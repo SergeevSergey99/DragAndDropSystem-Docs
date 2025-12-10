@@ -21,12 +21,16 @@ namespace Plugins.DragAndDropSystem.Examples.Trading.Data
         public IReadOnlyList<TradableItemModel> Inventory => _inventory.AsReadOnly();
 
         [Header("Equipment")]
+        [SerializeReference]
         private TradableItemModel _equippedWeapon;
 
+        [SerializeReference]
         private TradableItemModel _equippedArmor;
 
+        [SerializeReference]
         private TradableItemModel _equippedArtifact1;
 
+        [SerializeReference]
         private TradableItemModel _equippedArtifact2;
 
         public TradableItemModel EquippedWeapon => _equippedWeapon;
