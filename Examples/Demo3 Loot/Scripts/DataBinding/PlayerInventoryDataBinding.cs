@@ -9,7 +9,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
     /// <summary>
     /// DataBinding для инвентаря игрока.
     /// Связывает PlayerInventoryData (данные) ↔ UniversalInventory (UI).
-    /// Привязывается статически в Awake и остается активным всегда.
+    /// Сохраняет позиции предметов в слотах.
     /// </summary>
     public class PlayerInventoryDataBinding : InventoryDataBindingBase
     {
@@ -19,43 +19,42 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
         /// <summary>
         /// Синхронизация: данные игрока → UI
-        /// Вызывается при старте или когда данные меняются извне
+        /// Восстанавливает предметы в тех же слотах, где они были
         /// </summary>
         public override void ReloadUI()
         {
-            // Очищаем UI
             _isSyncing = true;
             _inventory.ClearAll();
 
-            // Загружаем предметы из данных игрока
-            var items = _playerData.Items;
-            if (items != null && items.Count > 0)
+            // Загружаем предметы в соответствующие слоты
+            var slots = _playerData.Slots;
+            int loadedCount = 0;
+
+            for (int i = 0; i < slots.Count; i++)
             {
-                foreach (var itemSO in items)
-                {
-                    if (itemSO == null)
-                        continue;
+                var itemSO = slots[i];
+                if (itemSO == null)
+                    continue;
 
-                    // Создаем адаптер для предмета
-                    IInventoryItem itemAdapter = CreateAdapter(itemSO);
+                // Создаем адаптер для предмета
+                IInventoryItem itemAdapter = CreateAdapter(itemSO);
 
-                    // Добавляем в UI
-                    AddToUIQuiet(itemAdapter, 1);
-                }
-
-                Debug.Log($"[PlayerInventoryDataBinding] Loaded {items.Count} items from player data to UI");
+                // Добавляем в конкретный слот UI
+                _inventory.TryAddItem(itemAdapter, 1, i);
+                loadedCount++;
             }
+
+            Debug.Log($"[PlayerInventoryDataBinding] Loaded {loadedCount} items from player data to UI");
 
             _isSyncing = false;
         }
 
         /// <summary>
         /// UI изменился: предмет добавлен → обновить данные игрока
-        /// Вызывается когда предмет перетащили В инвентарь игрока
+        /// Сохраняет предмет в тот же слот в данных
         /// </summary>
         protected override void OnItemAddedToUI(InventoryItemEventArgs args)
         {
-            // Извлекаем ItemSO из адаптера
             var itemSO = ExtractItemSO(args.Item);
             if (itemSO == null)
             {
@@ -63,35 +62,41 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                 return;
             }
 
-            // Добавляем в данные игрока
-            bool added = _playerData.AddItem(itemSO);
+            // Используем индекс слота из UI
+            int slotIndex = args.TargetSlot?.Index ?? -1;
+            if (slotIndex < 0)
+            {
+                Debug.LogWarning($"[PlayerInventoryDataBinding] No target slot index for '{itemSO.ItemName}'");
+                return;
+            }
+
+            bool added = _playerData.SetItem(slotIndex, itemSO);
 
             if (!added)
             {
-                Debug.LogWarning($"[PlayerInventoryDataBinding] Failed to add '{itemSO.ItemName}' to player data");
+                Debug.LogWarning($"[PlayerInventoryDataBinding] Failed to set '{itemSO.ItemName}' to slot {slotIndex}");
             }
         }
 
         /// <summary>
         /// UI изменился: предмет убран → обновить данные игрока
-        /// Вызывается когда предмет перетащили ИЗ инвентаря игрока
+        /// Очищает соответствующий слот в данных
         /// </summary>
         protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
         {
-            // Извлекаем ItemSO из адаптера
-            var itemSO = ExtractItemSO(args.Item);
-            if (itemSO == null)
+            // Используем индекс исходного слота
+            int slotIndex = args.SourceSlot?.Index ?? -1;
+            if (slotIndex < 0)
             {
-                Debug.LogWarning($"[PlayerInventoryDataBinding] Cannot extract ItemSO from {args.Item.GetType().Name}");
+                Debug.LogWarning($"[PlayerInventoryDataBinding] No source slot index for removed item");
                 return;
             }
 
-            // Убираем из данных игрока
-            bool removed = _playerData.RemoveItem(itemSO);
+            bool cleared = _playerData.ClearSlot(slotIndex);
 
-            if (!removed)
+            if (!cleared)
             {
-                Debug.LogWarning($"[PlayerInventoryDataBinding] Failed to remove '{itemSO.ItemName}' from player data");
+                Debug.LogWarning($"[PlayerInventoryDataBinding] Failed to clear slot {slotIndex}");
             }
         }
 
@@ -102,7 +107,6 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// </summary>
         private IInventoryItem CreateAdapter(ItemExampleSO itemSO)
         {
-            // Проверяем тип и создаем соответствующий адаптер
             if (itemSO is ItemExampleWith3DSO item3D)
             {
                 return new ItemSOWith3DAdapter(item3D);

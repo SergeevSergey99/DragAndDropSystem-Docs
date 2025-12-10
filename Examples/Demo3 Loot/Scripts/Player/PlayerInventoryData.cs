@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Plugins.DragAndDropSystem.Examples;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -8,24 +9,108 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 {
     /// <summary>
     /// Компонент для хранения данных инвентаря игрока.
+    /// Использует фиксированное количество слотов с null для пустых.
     /// Не содержит UI логики, только данные и события.
     /// </summary>
     public class PlayerInventoryData : MonoBehaviour
     {
         [Header("Inventory Configuration")]
-        [SerializeField, Tooltip("Предметы в инвентаре игрока")]
-        private List<ItemExampleSO> _items = new();
+        [SerializeField, Tooltip("Количество слотов в инвентаре")]
+        private int _slotCount = 9;
+
+        [SerializeField, Tooltip("Предметы в инвентаре игрока (null = пустой слот)")]
+        private List<ItemExampleSO> _slots = new();
 
         // Events
         public event Action OnInventoryChanged;
 
         // Properties
-        public List<ItemExampleSO> Items => _items;
-        public int ItemCount => _items.Count;
-        public bool IsEmpty => _items.Count == 0;
+        /// <summary>
+        /// Список слотов (null = пустой слот). Длина всегда равна SlotCount.
+        /// </summary>
+        public IReadOnlyList<ItemExampleSO> Slots => _slots;
+        public int SlotCount => _slotCount;
+        public int ItemCount => _slots.Count(s => s != null);
+        public bool IsEmpty => _slots.All(s => s == null);
+        public bool IsFull => _slots.All(s => s != null);
+
+        private void Awake()
+        {
+            EnsureSlotCount();
+        }
+
+        private void OnValidate()
+        {
+            EnsureSlotCount();
+        }
 
         /// <summary>
-        /// Добавить предмет в инвентарь
+        /// Гарантирует что список слотов имеет правильный размер
+        /// </summary>
+        private void EnsureSlotCount()
+        {
+            while (_slots.Count < _slotCount)
+                _slots.Add(null);
+            while (_slots.Count > _slotCount)
+                _slots.RemoveAt(_slots.Count - 1);
+        }
+
+        /// <summary>
+        /// Добавить предмет в конкретный слот
+        /// </summary>
+        public bool SetItem(int slotIndex, ItemExampleSO item)
+        {
+            if (slotIndex < 0 || slotIndex >= _slotCount)
+            {
+                Debug.LogWarning($"[PlayerInventoryData] Invalid slot index: {slotIndex}");
+                return false;
+            }
+
+            _slots[slotIndex] = item;
+            OnInventoryChanged?.Invoke();
+
+            if (item != null)
+                Debug.Log($"[PlayerInventoryData] Set '{item.ItemName}' to slot {slotIndex}");
+            else
+                Debug.Log($"[PlayerInventoryData] Cleared slot {slotIndex}");
+
+            return true;
+        }
+
+        /// <summary>
+        /// Получить предмет из слота
+        /// </summary>
+        public ItemExampleSO GetItem(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= _slotCount)
+                return null;
+
+            return _slots[slotIndex];
+        }
+
+        /// <summary>
+        /// Очистить слот
+        /// </summary>
+        public bool ClearSlot(int slotIndex)
+        {
+            return SetItem(slotIndex, null);
+        }
+
+        /// <summary>
+        /// Найти первый пустой слот
+        /// </summary>
+        public int FindEmptySlot()
+        {
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i] == null)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Добавить предмет в первый свободный слот
         /// </summary>
         public bool AddItem(ItemExampleSO item)
         {
@@ -35,15 +120,18 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                 return false;
             }
 
-            _items.Add(item);
-            OnInventoryChanged?.Invoke();
+            int emptySlot = FindEmptySlot();
+            if (emptySlot < 0)
+            {
+                Debug.LogWarning("[PlayerInventoryData] No empty slots available");
+                return false;
+            }
 
-            Debug.Log($"[PlayerInventoryData] Added '{item.ItemName}' to inventory.");
-            return true;
+            return SetItem(emptySlot, item);
         }
 
         /// <summary>
-        /// Убрать предмет из инвентаря
+        /// Убрать предмет из инвентаря (ищет по ссылке)
         /// </summary>
         public bool RemoveItem(ItemExampleSO item)
         {
@@ -53,19 +141,16 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                 return false;
             }
 
-            bool removed = _items.Remove(item);
-
-            if (removed)
+            for (int i = 0; i < _slots.Count; i++)
             {
-                OnInventoryChanged?.Invoke();
-                Debug.Log($"[PlayerInventoryData] Removed '{item.ItemName}' from inventory.");
-            }
-            else
-            {
-                Debug.LogWarning($"[PlayerInventoryData] Item '{item.ItemName}' not found in inventory");
+                if (_slots[i] == item)
+                {
+                    return ClearSlot(i);
+                }
             }
 
-            return removed;
+            Debug.LogWarning($"[PlayerInventoryData] Item '{item.ItemName}' not found in inventory");
+            return false;
         }
     }
 }
