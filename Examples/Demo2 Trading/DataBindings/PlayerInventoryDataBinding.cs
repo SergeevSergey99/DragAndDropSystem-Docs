@@ -1,3 +1,4 @@
+using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Rules;
@@ -56,24 +57,19 @@ namespace DragAndDropSystem.Examples.Trading
             // Если предмет пришел от торговца - покупаем у него
             if (TryHandlePurchaseFromMerchant(args))
             {
-                // Создаем модель и добавляем в данные
-                var soAdapter = args.Item as TradableSoAdapter;
-                var itemModel = new TradableItemModel(soAdapter.Item);
-                PlayerData.AddItem(itemModel);
-
                 // Заменяем адаптер SO на адаптер модели в слоте игрока
+                // ConvertAndReplaceSOAdapter создает TradableItemModel, который мы добавляем в данные
+                var soAdapter = args.Item as TradableSoAdapter;
                 if (args.TargetSlot != null)
                 {
-                    ConvertAndReplaceSOAdapter(args.TargetSlot, soAdapter);
+                    var itemModel = ConvertAndReplaceSOAdapter(args.TargetSlot, soAdapter);
+                    PlayerData.AddItem(itemModel);
                 }
             }
-            else
+            else if (args.Item is TradableItemModelAdapter adapter)
             {
-                // Просто добавляем предмет в инвентарь игрока
-                if (args.Item is TradableItemModelAdapter adapter)
-                {
-                    PlayerData.AddItem(adapter.Item);
-                }
+                // Добавляем предмет в данные (включая внутренние перемещения для сохранения порядка)
+                PlayerData.AddItem(adapter.Item);
             }
         }
 
@@ -85,7 +81,7 @@ namespace DragAndDropSystem.Examples.Trading
             // Если предмет ушел к торговцу - продаем ему
             TryHandleSellToMerchant(args);
 
-            // Удаляем предмет из инвентаря игрока
+            // Удаляем предмет из данных (включая внутренние перемещения для сохранения порядка)
             if (args.Item is TradableItemModelAdapter adapter)
             {
                 PlayerData.TryRemoveItem(adapter.Item);
