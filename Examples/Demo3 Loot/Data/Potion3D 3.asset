@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: Potion3D 3
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Potion Blue
-  <Icon>k__BackingField: {fileID: -2936278856002559257, guid: 616f88a219705034e999fd5bcf6b915e, type: 3}
   <itemType>k__BackingField: Consumable
-  _worldPrefab: {fileID: 4220417769938811161, guid: 4bbd3e2d7539e804c9878f37661d1182, type: 3}
+  _worldPrefab: {fileID: 1097463583627720804, guid: 798cb4d640df47649b9cd0b9eee28f17, type: 3}

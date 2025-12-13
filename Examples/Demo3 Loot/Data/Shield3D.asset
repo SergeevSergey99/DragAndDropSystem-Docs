@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: Shield3D
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Shield
-  <Icon>k__BackingField: {fileID: -9145353434820824368, guid: d58a3acac6a993f45b29761320b2bbf1, type: 3}
   <itemType>k__BackingField: Armor
-  _worldPrefab: {fileID: 4220417769938811161, guid: e25a78a6908247c4b884a5437843bdf0, type: 3}
+  _worldPrefab: {fileID: 1097463583627720804, guid: e51d548f995e28c43a75b76a7fc8b432, type: 3}

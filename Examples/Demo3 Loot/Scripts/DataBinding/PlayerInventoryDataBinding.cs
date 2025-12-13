@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                     continue;
 
                 // Создаем адаптер для предмета
-                IInventoryItem itemAdapter = CreateAdapter(itemSO);
+                IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
 
                 // Добавляем в конкретный слот UI
                 _inventory.TryAddItem(itemAdapter, 1, i);
@@ -103,32 +103,13 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         #region Helper Methods
 
         /// <summary>
-        /// Создать адаптер для ItemSO
-        /// </summary>
-        private IInventoryItem CreateAdapter(ItemExampleSO itemSO)
-        {
-            if (itemSO is ItemExampleWith3DSO item3D)
-            {
-                return new ItemSOWith3DAdapter(item3D);
-            }
-            else
-            {
-                return new ItemSOAdapter(itemSO);
-            }
-        }
-
-        /// <summary>
         /// Извлечь ItemSO из адаптера
         /// </summary>
-        private ItemExampleSO ExtractItemSO(IInventoryItem item)
+        private ItemExampleWith3DSO ExtractItemSO(IInventoryItem item)
         {
             if (item is ItemSOWith3DAdapter adapter3D)
             {
                 return adapter3D.item;
-            }
-            else if (item is ItemSOAdapter adapter)
-            {
-                return adapter.item;
             }
 
             return null;

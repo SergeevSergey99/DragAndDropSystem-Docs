@@ -32,13 +32,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
 
         protected override void OnItemAddedToUI(InventoryItemEventArgs args)
         {
-            // Поддержка обоих типов адаптеров
-            if (args.Item is ItemSOWith3DAdapter adapter3D)
-            {
-                var itemSO = adapter3D.item;
-                items.Add(itemSO);
-            }
-            else if (args.Item is ItemSOAdapter adapter)
+            if (args.Item is ItemSOAdapter adapter)
             {
                 var itemSO = adapter.item;
                 items.Add(itemSO);
@@ -47,13 +41,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
 
         protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
         {
-            // Поддержка обоих типов адаптеров
-            if (args.Item is ItemSOWith3DAdapter adapter3D)
-            {
-                var itemSO = adapter3D.item;
-                items.Remove(itemSO);
-            }
-            else if (args.Item is ItemSOAdapter adapter)
+            if (args.Item is ItemSOAdapter adapter)
             {
                 var itemSO = adapter.item;
                 items.Remove(itemSO);
@@ -83,18 +71,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
                     continue;
 
                 // Автоматический выбор правильного адаптера
-                IInventoryItem itemAdapter;
-
-                if (itemSO is ItemExampleWith3DSO item3D)
-                {
-                    // Для предметов с 3D используем ItemSOWith3DAdapter
-                    itemAdapter = new ItemSOWith3DAdapter(item3D);
-                }
-                else
-                {
-                    // Для обычных предметов используем ItemSOAdapter
-                    itemAdapter = new ItemSOAdapter(itemSO);
-                }
+                IInventoryItem itemAdapter = new ItemSOAdapter(itemSO);
 
                 AddToUIQuiet(itemAdapter, 1);
             }

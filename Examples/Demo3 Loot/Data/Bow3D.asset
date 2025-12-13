@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: Bow3D
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Bow
-  <Icon>k__BackingField: {fileID: -6585132106533301062, guid: d58a3acac6a993f45b29761320b2bbf1, type: 3}
   <itemType>k__BackingField: Weapon
-  _worldPrefab: {fileID: 4220417769938811161, guid: 51d629b679dd16b4c97e4fa8bf28afe4, type: 3}
+  _worldPrefab: {fileID: 1097463583627720804, guid: 25b8eab1370a3a94595bf27277498c5e, type: 3}

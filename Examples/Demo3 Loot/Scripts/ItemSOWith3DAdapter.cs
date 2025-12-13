@@ -1,5 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Examples.Demo3Loot;
 using DragAndDropSystem.World3D;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
@@ -25,6 +26,6 @@ namespace DragAndDropSystem.Examples
         public string DisplayName => item.ItemName;
 
         // IWorld3DAdapter реализация
-        public GameObject WorldPrefab => item.WorldPrefab;
+        public GameObject WorldPrefab => item.WorldPrefab.gameObject;
     }
 }

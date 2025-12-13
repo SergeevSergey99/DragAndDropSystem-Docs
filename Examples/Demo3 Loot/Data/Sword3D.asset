@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: Sword3D
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Sword
-  <Icon>k__BackingField: {fileID: 1025596343022489538, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
   <itemType>k__BackingField: Weapon
-  _worldPrefab: {fileID: 4220417769938811161, guid: 08e6c6ec03a58474283f52f13b951ea5, type: 3}
+  _worldPrefab: {fileID: 1097463583627720804, guid: 4f1681513d5a43c4db3f2e6d9044109a, type: 3}

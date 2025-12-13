@@ -1,3 +1,4 @@
+using DragAndDropSystem.Examples.Demo3Loot;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,14 +10,20 @@ namespace Plugins.DragAndDropSystem.Examples
     /// Для работы с системой используйте ItemSOWith3DAdapter
     /// </summary>
     [CreateAssetMenu(fileName = "ItemExampleWith3DSO", menuName = "DragAndDropSystem/Examples/ItemExampleWith3DSO", order = 2)]
-    public class ItemExampleWith3DSO : ItemExampleSO
+    public class ItemExampleWith3DSO : ScriptableObject
     {
-        [BoxGroup("3D World Representation")]
+        [field: SerializeField] 
+        public string ItemName { get; private set; }
+
+        public Sprite Icon => _worldPrefab.spriteRenderer.sprite;
+        
+        [field: SerializeField]
+        public string itemType { get; private set; }
+        
         [SerializeField, Tooltip("Префаб для создания в 3D мире при выбрасывании")]
-        [PreviewField(100)]
-        private GameObject _worldPrefab;
+        private ItemController _worldPrefab;
 
         // Публичное свойство для доступа из адаптера
-        public GameObject WorldPrefab => _worldPrefab;
+        public ItemController WorldPrefab => _worldPrefab;
     }
 }

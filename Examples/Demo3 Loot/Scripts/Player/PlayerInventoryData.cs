@@ -19,7 +19,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         private int _slotCount = 9;
 
         [SerializeField, Tooltip("Предметы в инвентаре игрока (null = пустой слот)")]
-        private List<ItemExampleSO> _slots = new();
+        private List<ItemExampleWith3DSO> _slots = new();
 
         // Events
         public event Action OnInventoryChanged;
@@ -28,7 +28,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Список слотов (null = пустой слот). Длина всегда равна SlotCount.
         /// </summary>
-        public IReadOnlyList<ItemExampleSO> Slots => _slots;
+        public IReadOnlyList<ItemExampleWith3DSO> Slots => _slots;
         public int SlotCount => _slotCount;
         public int ItemCount => _slots.Count(s => s != null);
         public bool IsEmpty => _slots.All(s => s == null);
@@ -58,7 +58,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Добавить предмет в конкретный слот
         /// </summary>
-        public bool SetItem(int slotIndex, ItemExampleSO item)
+        public bool SetItem(int slotIndex, ItemExampleWith3DSO item)
         {
             if (slotIndex < 0 || slotIndex >= _slotCount)
             {
@@ -80,7 +80,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Получить предмет из слота
         /// </summary>
-        public ItemExampleSO GetItem(int slotIndex)
+        public ItemExampleWith3DSO GetItem(int slotIndex)
         {
             if (slotIndex < 0 || slotIndex >= _slotCount)
                 return null;
@@ -112,7 +112,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Добавить предмет в первый свободный слот
         /// </summary>
-        public bool AddItem(ItemExampleSO item)
+        public bool AddItem(ItemExampleWith3DSO item)
         {
             if (item == null)
             {

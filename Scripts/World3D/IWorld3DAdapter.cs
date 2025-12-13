@@ -1,3 +1,4 @@
+using DragAndDropSystem.Examples.Demo3Loot;
 using UnityEngine;
 
 namespace DragAndDropSystem.World3D

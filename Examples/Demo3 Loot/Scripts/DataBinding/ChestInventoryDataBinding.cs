@@ -79,7 +79,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                         continue;
 
                     // Создаем адаптер для предмета
-                    IInventoryItem itemAdapter = CreateAdapter(itemSO);
+                    IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
 
                     // Добавляем в UI
                     AddToUIQuiet(itemAdapter, 1);
@@ -156,22 +156,6 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         }
 
         #region Helper Methods
-
-        /// <summary>
-        /// Создать адаптер для ItemSO
-        /// </summary>
-        private IInventoryItem CreateAdapter(ItemExampleSO itemSO)
-        {
-            // Проверяем тип и создаем соответствующий адаптер
-            if (itemSO is ItemExampleWith3DSO item3D)
-            {
-                return new ItemSOWith3DAdapter(item3D);
-            }
-            else
-            {
-                return new ItemSOAdapter(itemSO);
-            }
-        }
 
         /// <summary>
         /// Извлечь ItemSO из адаптера
