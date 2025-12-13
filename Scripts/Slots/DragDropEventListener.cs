@@ -55,6 +55,14 @@ namespace DragAndDropSystem.Slots
         {
             if (_slot.IsEmpty)
                 return;
+
+            // Проверяем интерактивность слота (для фильтрации)
+            if (!_slot.IsInteractable)
+            {
+                Extentions.DragAndDropLog($"OnPointerDown blocked - slot {name} is not interactable (filtered)");
+                return;
+            }
+
             Extentions.DragAndDropLog("OnPointerDown called on slot " + name + " with button " + eventData.button);
 
             // Проверяем, настроен ли автоперенос для этого инвентаря
@@ -154,6 +162,13 @@ namespace DragAndDropSystem.Slots
 
             if (_dragManager.IsDragging)
             {
+                // Не регистрируем как цель дропа если слот неинтерактивен (отфильтрован)
+                if (!_slot.IsInteractable)
+                {
+                    Extentions.DragAndDropLog($"Slot {name} is not interactable - not registering as drop target");
+                    return;
+                }
+
                 _dragManager.PushDropTarget(this);
             }
         }

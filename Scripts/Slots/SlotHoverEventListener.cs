@@ -230,6 +230,10 @@ namespace DragAndDropSystem.Slots
             if (_slot == null)
                 return false;
 
+            // Если слот неинтерактивен (отфильтрован)
+            if (!_slot.IsInteractable)
+                return false;
+
             // Если нужно только для непустых слотов
             if (_onlyWhenNotEmpty && _slot.IsEmpty)
                 return false;

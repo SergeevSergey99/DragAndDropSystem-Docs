@@ -29,6 +29,13 @@ namespace DragAndDropSystem.Slots
         [SerializeField] private Color _normalColor = Color.white;
         [SerializeField] private Color _highlightColor = Color.yellow;
 
+        [Header("Filter Settings")]
+        [SerializeField, Tooltip("Цвет затемнения для неактивных (отфильтрованных) слотов")]
+        private Color _nonInteractableColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+
+        [SerializeField, Tooltip("Опционально: CanvasGroup для управления интерактивностью")]
+        private CanvasGroup _canvasGroup;
+
         //[FoldoutGroup("Slot Rules", expanded: false)]
         [InfoBox("Правила фильтрации для этого конкретного слота. Оставьте пустым для слота без ограничений.")]
         [SerializeField, HideLabel]
@@ -144,5 +151,33 @@ namespace DragAndDropSystem.Slots
             }
         }
 
+        /// <summary>
+        /// Обновить визуальное состояние в зависимости от интерактивности.
+        /// Затемняет слот когда он неактивен (отфильтрован).
+        /// </summary>
+        protected override void UpdateInteractableVisuals()
+        {
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.interactable = IsInteractable;
+                _canvasGroup.blocksRaycasts = IsInteractable;
+                _canvasGroup.alpha = IsInteractable ? 1f : 0.5f;
+            }
+
+            // Обновляем цвет иконки
+            if (_iconImage != null && !IsEmpty)
+            {
+                _iconImage.color = IsInteractable ? _normalColor : _nonInteractableColor;
+            }
+        }
+
+        /// <summary>
+        /// Цвет для неактивных слотов (для настройки из кода)
+        /// </summary>
+        public Color NonInteractableColor
+        {
+            get => _nonInteractableColor;
+            set => _nonInteractableColor = value;
+        }
     }
 }
