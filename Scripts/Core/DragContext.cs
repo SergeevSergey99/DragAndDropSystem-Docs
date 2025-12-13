@@ -18,7 +18,22 @@ namespace DragAndDropSystem.Core
 
         public bool IsSameSlot => SourceSlot == TargetSlot;
         public bool IsSameInventory => SourceInventory == TargetInventory;
-        public bool HasTarget => TargetSlot != null && TargetInventory != null;
+
+        /// <summary>
+        /// True if we have any target (slot or inventory).
+        /// For world drops, both may be null - use handler-based validation instead.
+        /// </summary>
+        public bool HasTarget => TargetSlot != null || TargetInventory != null;
+
+        /// <summary>
+        /// True if we have a specific target slot
+        /// </summary>
+        public bool HasTargetSlot => TargetSlot != null;
+
+        /// <summary>
+        /// True if we have a target inventory
+        /// </summary>
+        public bool HasTargetInventory => TargetInventory != null;
 
         public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
         {

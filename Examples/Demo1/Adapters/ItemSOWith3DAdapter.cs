@@ -26,6 +26,5 @@ namespace DragAndDropSystem.Examples
 
         // IWorld3DAdapter реализация
         public GameObject WorldPrefab => item.WorldPrefab;
-        public bool HasWorldRepresentation => item.HasWorldRepresentation;
     }
 }

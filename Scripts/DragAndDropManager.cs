@@ -50,6 +50,7 @@ namespace DragAndDropSystem
         private DragContext _currentContext;
         private ISlot _hoveredSlot;
         private IInventory _hoveredInventory;
+        private IItemDropHandler _currentHandler;
         private GlobalRuleValidator _globalRules = new GlobalRuleValidator();
         private IDragVisual _currentVisual;
 
@@ -63,6 +64,10 @@ namespace DragAndDropSystem
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
+
+        // Exposed for IItemDropHandler implementations
+        public GlobalRuleValidator GlobalRules => _globalRules;
+        public InventoryTransferService TransferService => _transferService;
 
         // Quick click auto-transfer properties
         public bool IsQuickClickAutoTransferEnabled => _enableQuickClickAutoTransfer;
@@ -91,16 +96,15 @@ namespace DragAndDropSystem
         private void Initialize()
         {
             _canvas.worldCamera = Camera.main;
-            if (_canvas.worldCamera == null)
-                _canvas.worldCamera = FindObjectOfType<Camera>();
 
             // Добавляем базовые правила
             _globalRules.AddRule(new EmptySlotRule());
             _globalRules.AddRule(new SameSlotRule());
         }
 
-        private void OnDestroy()
+        protected override void DeInit()
         {
+            base.DeInit();
             // Уничтожаем все активные визуалы анимаций
             foreach (var visual in _activeAnimationVisuals)
             {
@@ -354,7 +358,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Очистить наведенный слот
+        /// Clear the hovered slot
         /// </summary>
         public void ClearHoveredSlot(ISlot slot)
         {
@@ -369,7 +373,52 @@ namespace DragAndDropSystem
 
                 _hoveredSlot = null;
                 _hoveredInventory = null;
+                _currentHandler = null;
                 _currentContext.ClearTarget();
+            }
+        }
+
+        /// <summary>
+        /// Set hovered slot using the drop handler for validation
+        /// </summary>
+        private void SetHoveredSlotWithHandler(ISlot slot, IItemDropHandler handler)
+        {
+            if (!IsDragging)
+                return;
+
+            // If already hovering this slot, do nothing
+            if (_hoveredSlot == slot && _currentHandler == handler)
+                return;
+
+            // Clear previous slot highlight
+            if (_hoveredSlot != null && _hoveredSlot is UniversalSlot previousSlot)
+            {
+                previousSlot.Highlight(false);
+            }
+
+            _hoveredSlot = slot;
+            _currentHandler = handler;
+
+            // For handler-based drops, we don't require inventory
+            // The handler encapsulates everything it needs
+
+            Extentions.DragAndDropLog($"<color=cyan>SetHoveredSlotWithHandler: slot={slot?.Index.ToString() ?? "AREA"}, handler={handler?.GetType().Name}</color>");
+
+            if (handler != null)
+            {
+                // Validate via handler
+                bool canDrop = handler.CanAcceptDrop(_currentContext);
+
+                if (canDrop && slot is UniversalSlot universalSlot)
+                {
+                    universalSlot.Highlight(true);
+                }
+
+                OnDragEnterSlot?.Invoke(this, new DragEventArgs(_currentContext));
+            }
+            else
+            {
+                Extentions.DragAndDropLog("<color=red>SetHoveredSlotWithHandler: Handler is null!</color>");
             }
         }
 
@@ -442,7 +491,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Активировать верхнюю цель в стеке
+        /// Activate the top target in the stack
         /// </summary>
         private void ActivateTopTarget()
         {
@@ -453,25 +502,29 @@ namespace DragAndDropSystem
             {
                 var top = _dropTargetStack[_dropTargetStack.Count - 1];
                 var slot = top.GetTargetSlot();
-                var inventory = top.GetTargetInventory();
+                var handler = top.GetDropHandler();
 
-                // Устанавливаем через существующий метод
-                SetHoveredSlot(slot, inventory);
+                // Store the handler
+                _currentHandler = handler;
 
-                // Активируем визуал target
+                // Update hovered slot and validate via handler
+                SetHoveredSlotWithHandler(slot, handler);
+
+                // Activate visual target
                 top.OnBecomeActiveTarget();
 
-                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, inventory={inventory?.GetType().Name}</color>");
+                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, handler={handler?.GetType().Name}</color>");
             }
             else
             {
-                // Стек пуст - очищаем hovered
+                // Stack empty - clear hovered
                 if (_hoveredSlot != null)
                 {
                     ClearHoveredSlot(_hoveredSlot);
                 }
                 _hoveredSlot = null;
                 _hoveredInventory = null;
+                _currentHandler = null;
                 _currentContext?.ClearTarget();
 
                 Extentions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared hovered</color>");
@@ -524,7 +577,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Завершить перетаскивание
+        /// Complete the drag operation
         /// </summary>
         public void CompleteDrag()
         {
@@ -533,27 +586,56 @@ namespace DragAndDropSystem
 
             bool success = false;
 
-            // Если есть целевой инвентарь (слот может быть null для дропа в область)
-            if (_hoveredInventory != null)
+            // Check if we have a handler (handler-based drops don't require inventory)
+            if (_currentHandler != null)
+            {
+                var eventArgs = new DragEventArgs(_currentContext);
+                OnDropAttempting?.Invoke(this, eventArgs);
+
+                if (!eventArgs.Cancel)
+                {
+                    // Validate via handler
+                    bool canDrop = _currentHandler.CanAcceptDrop(_currentContext);
+
+                    if (canDrop)
+                    {
+                        // Execute drop via handler
+                        var result = _currentHandler.HandleDrop(_currentContext);
+                        success = result.Success;
+
+                        if (success)
+                        {
+                            // Update context with result info for events
+                            if (result.TargetSlot != null && result.TargetInventory != null)
+                            {
+                                _currentContext.SetTarget(result.TargetSlot, result.TargetInventory);
+                            }
+
+                            // Dispatch events based on result
+                            DispatchDropResultEvents(result);
+
+                            OnDropCompleted?.Invoke(this, new DragEventArgs(_currentContext));
+                        }
+                        else
+                        {
+                            Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.HandleDrop failed: {result.FailureReason}</color>");
+                        }
+                    }
+                    else
+                    {
+                        Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
+                    }
+                }
+            }
+            // Fallback: try old inventory-based path (for backward compatibility during transition)
+            else if (_hoveredInventory != null)
             {
                 _currentContext.SetTarget(_hoveredSlot, _hoveredInventory);
 
                 var eventArgs = new DragEventArgs(_currentContext);
                 OnDropAttempting?.Invoke(this, eventArgs);
 
-                // Проверка правил
-                bool canDrop = false;
-                if (_hoveredSlot != null)
-                {
-                    // Дроп в конкретный слот - проверяем правила слота
-                    canDrop = !eventArgs.Cancel && CanDropToSlot();
-                }
-                else
-                {
-                    // Дроп в область - правила уже проверены в CanAcceptItem
-                    canDrop = !eventArgs.Cancel;
-                    Extentions.DragAndDropLog("<color=cyan>CompleteDrag: Dropping to area (no slot validation needed)</color>");
-                }
+                bool canDrop = !eventArgs.Cancel && CanDropToSlot();
 
                 if (canDrop)
                 {
@@ -572,6 +654,41 @@ namespace DragAndDropSystem
             }
 
             EndDrag();
+        }
+
+        /// <summary>
+        /// Dispatch events based on drop result (for inventory-based handlers)
+        /// </summary>
+        private void DispatchDropResultEvents(DropResult result)
+        {
+            if (!result.Success || result.Item == null)
+                return;
+
+            // Source inventory events
+            if (_currentContext.SourceInventory is UniversalInventory sourceUniversal)
+            {
+                sourceUniversal.EmitItemRemoved(
+                    result.Item,
+                    result.Amount,
+                    _currentContext.SourceSlot?.Index ?? -1,
+                    result.TargetInventory,
+                    _currentContext.SourceSlot,
+                    result.TargetSlot);
+
+                sourceUniversal.HandleSlotEmptied(_currentContext.SourceSlot);
+            }
+
+            // Target inventory events (only for inventory-based drops)
+            if (result.TargetInventory is UniversalInventory targetUniversal && result.TargetSlot != null)
+            {
+                targetUniversal.EmitItemAdded(
+                    result.Item,
+                    result.Amount,
+                    result.TargetSlot.Index,
+                    _currentContext.SourceInventory,
+                    _currentContext.SourceSlot,
+                    result.TargetSlot);
+            }
         }
 
         /// <summary>
@@ -851,6 +968,7 @@ namespace DragAndDropSystem
             _currentContext = null;
             _hoveredSlot = null;
             _hoveredInventory = null;
+            _currentHandler = null;
         }
 
         private void Update()

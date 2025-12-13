@@ -138,8 +138,8 @@ namespace DragAndDropSystem.DataBinding
                 return;
 
             // Проверяем участвует ли наш инвентарь в swap
-            bool isSourceInventory = args.SourceInventory == _inventory;
-            bool isTargetInventory = args.TargetInventory == _inventory;
+            bool isSourceInventory = ReferenceEquals(args.SourceInventory, _inventory);
+            bool isTargetInventory = ReferenceEquals(args.TargetInventory, _inventory);
 
             if (!isSourceInventory && !isTargetInventory)
                 return;
@@ -160,8 +160,8 @@ namespace DragAndDropSystem.DataBinding
         private void HandleSwapCompleted(object sender, InventorySwapEventArgs args)
         {
             // Проверяем участвует ли наш инвентарь в swap
-            bool isSourceInventory = args.SourceInventory == _inventory;
-            bool isTargetInventory = args.TargetInventory == _inventory;
+            bool isSourceInventory = ReferenceEquals(args.SourceInventory, _inventory);
+            bool isTargetInventory = ReferenceEquals(args.TargetInventory, _inventory);
 
             if (!isSourceInventory && !isTargetInventory)
                 return;

@@ -1,7 +1,9 @@
-﻿using DragAndDropSystem.Core;
+using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Tools;
+#if ENABLE_REFLEX_DI
 using Reflex.Attributes;
+#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -191,7 +193,14 @@ namespace DragAndDropSystem.Slots
 
         public ISlot GetTargetSlot() => _slot;
 
-        public IInventory GetTargetInventory() => _slot?.Inventory;
+        public IItemDropHandler GetDropHandler()
+        {
+            return new InventoryDropHandler(
+                _slot,
+                _slot?.Inventory,
+                _dragManager?.GlobalRules,
+                _dragManager?.TransferService);
+        }
 
         public void OnBecomeActiveTarget()
         {

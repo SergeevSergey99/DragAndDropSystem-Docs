@@ -13,10 +13,5 @@ namespace DragAndDropSystem.World3D
         /// Префаб 3D объекта для создания в мире
         /// </summary>
         GameObject WorldPrefab { get; }
-
-        /// <summary>
-        /// Есть ли у предмета 3D представление
-        /// </summary>
-        bool HasWorldRepresentation { get; }
     }
 }

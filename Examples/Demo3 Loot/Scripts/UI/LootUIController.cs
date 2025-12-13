@@ -45,12 +45,12 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             // Автоматически находим компоненты если они не назначены
             if (_playerInteraction == null)
             {
-                _playerInteraction = FindObjectOfType<PlayerInteraction>();
+                _playerInteraction = Object.FindFirstObjectByType<PlayerInteraction>();
             }
 
             if (_playerController == null)
             {
-                _playerController = FindObjectOfType<PlayerController>();
+                _playerController = Object.FindFirstObjectByType<PlayerController>();
             }
         }
 

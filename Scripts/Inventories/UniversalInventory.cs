@@ -773,7 +773,7 @@ namespace DragAndDropSystem.Inventories
 
         internal void NotifyPointerEnter(UniversalSlot slot)
         {
-            if (slot == null || slot.Inventory != this)
+            if (slot == null || !ReferenceEquals(slot.Inventory, this))
                 return;
 
             _pointerHoveredSlot = slot;
@@ -789,7 +789,7 @@ namespace DragAndDropSystem.Inventories
 
         internal void NotifySlotInteracted(UniversalSlot slot)
         {
-            if (slot == null || slot.Inventory != this)
+            if (slot == null || !ReferenceEquals(slot.Inventory, this))
                 return;
 
             _lastInteractedSlot = slot;
@@ -803,7 +803,7 @@ namespace DragAndDropSystem.Inventories
         {
             UniversalSlot slot = null;
 
-            if (_pointerHoveredSlot != null && _pointerHoveredSlot.Inventory == this)
+            if (_pointerHoveredSlot != null && ReferenceEquals(_pointerHoveredSlot.Inventory, this))
             {
                 slot = _pointerHoveredSlot;
             }
@@ -879,7 +879,6 @@ namespace DragAndDropSystem.Inventories
             // Если целевой слот не пустой - пытаемся объединить
             if (!targetSlot.IsEmpty)
             {
-                bool targetWasEmptyBefore = false;
                 // Для Unique режима нельзя объединять предметы
                 if (_itemBehavior == ItemBehaviorType.Unique)
                 {

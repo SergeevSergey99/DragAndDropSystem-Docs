@@ -176,15 +176,11 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Извлечь ItemSO из адаптера
         /// </summary>
-        private ItemExampleSO ExtractItemSO(IInventoryItem item)
+        private ItemExampleWith3DSO ExtractItemSO(IInventoryItem item)
         {
             if (item is ItemSOWith3DAdapter adapter3D)
             {
                 return adapter3D.item;
-            }
-            else if (item is ItemSOAdapter adapter)
-            {
-                return adapter.item;
             }
 
             return null;

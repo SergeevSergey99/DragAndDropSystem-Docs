@@ -170,14 +170,5 @@ namespace DragAndDropSystem.Slots
                 _iconImage.color = IsInteractable ? _normalColor : _nonInteractableColor;
             }
         }
-
-        /// <summary>
-        /// Цвет для неактивных слотов (для настройки из кода)
-        /// </summary>
-        public Color NonInteractableColor
-        {
-            get => _nonInteractableColor;
-            set => _nonInteractableColor = value;
-        }
     }
 }

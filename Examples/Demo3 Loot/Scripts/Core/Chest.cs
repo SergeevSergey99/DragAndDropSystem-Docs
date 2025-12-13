@@ -13,7 +13,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
     {
         [Header("Loot Configuration")]
         [SerializeField, Tooltip("Содержимое сундука")]
-        private List<ItemExampleSO> _items = new();
+        private List<ItemExampleWith3DSO> _items = new();
 
         private bool _isOpen = false;
 
@@ -24,7 +24,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         public bool IsOpen => _isOpen;
         public bool IsEmpty => _items.Count == 0;
         
-        public List<ItemExampleSO> GetItems() => _items;
+        public List<ItemExampleWith3DSO> GetItems() => _items;
 
         private void Awake()
         {
@@ -50,7 +50,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
         }
 
-        public bool AddItem(ItemExampleSO item)
+        public bool AddItem(ItemExampleWith3DSO item)
         {
             if (item == null) return false;
             
@@ -61,7 +61,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             return true;
         }
         
-        public bool RemoveItem(ItemExampleSO item)
+        public bool RemoveItem(ItemExampleWith3DSO item)
         {
             if (item == null)
             {

@@ -1,33 +1,33 @@
-using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
 
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Интерфейс для объектов, которые могут быть целью drop операции
-    /// Реализуется компонентами, которые принимают drag-and-drop (слоты, области и т.д.)
+    /// Interface for objects that can be drop targets.
+    /// Implemented by components that accept drag-and-drop (slots, areas, world drop zones, etc.)
     /// </summary>
     public interface IDropTarget
     {
         /// <summary>
-        /// Получить целевой слот (может быть null для областей типа InventoryDropArea)
+        /// Get the target slot (can be null for areas like InventoryDropArea or WorldDropZone)
         /// </summary>
         ISlot GetTargetSlot();
 
         /// <summary>
-        /// Получить целевой инвентарь
+        /// Get the drop handler responsible for validating and executing drops on this target.
+        /// The handler encapsulates all drop logic, including validation and item transfer.
         /// </summary>
-        IInventory GetTargetInventory();
+        IItemDropHandler GetDropHandler();
 
         /// <summary>
-        /// Вызывается когда этот target становится активным (верхним в стеке целей)
-        /// Используется для визуальной подсветки
+        /// Called when this target becomes active (top of the target stack).
+        /// Used for visual highlighting.
         /// </summary>
         void OnBecomeActiveTarget();
 
         /// <summary>
-        /// Вызывается когда этот target перестаёт быть активным
-        /// Используется для снятия визуальной подсветки
+        /// Called when this target stops being active.
+        /// Used to remove visual highlighting.
         /// </summary>
         void OnBecomeInactiveTarget();
     }

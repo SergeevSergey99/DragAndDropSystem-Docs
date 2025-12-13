@@ -19,7 +19,7 @@ namespace DragAndDropSystem.Rules
         [ListDrawerSettings(
             DraggableItems = true,
             ShowPaging = false,
-            Expanded = true,
+            ShowFoldout = true,
             ShowIndexLabels = true
             //, ListElementLabelName = "@$property.ValueEntry.WeakSmartValue is UnityEngine.Object obj ? obj.name : \"Null\""
         )]
@@ -30,7 +30,7 @@ namespace DragAndDropSystem.Rules
         [ListDrawerSettings(
             DraggableItems = true,
             ShowPaging = false,
-            Expanded = true,
+            ShowFoldout = true,
             ShowIndexLabels = true
             //, ListElementLabelName = "@$property.ValueEntry.WeakSmartValue is DragAndDropSystem.Rules.IDragRule rule && !string.IsNullOrEmpty(rule.RuleName) ? rule.RuleName : \"Null Rule\""
         )]

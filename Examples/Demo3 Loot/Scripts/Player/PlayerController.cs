@@ -55,10 +55,6 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             if (_playerCamera == null)
             {
                 _playerCamera = Camera.main;
-                if (_playerCamera == null)
-                {
-                    _playerCamera = FindObjectOfType<Camera>();
-                }
             }
 
             // Проверяем что камера ортографическая

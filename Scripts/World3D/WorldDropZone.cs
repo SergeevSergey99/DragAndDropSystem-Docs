@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 #if ENABLE_REFLEX_DI
@@ -13,12 +10,13 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.World3D
 {
     /// <summary>
-    /// UI область для выбрасывания предметов в 3D мир
-    /// Не привязана к инвентарю - просто спавнит префаб в указанной точке
-    /// и удаляет предмет из исходного инвентаря
+    /// UI area for dropping items into the 3D world.
+    /// Not bound to an inventory - simply spawns a prefab at the specified point
+    /// and removes the item from the source inventory.
+    /// Implements IItemDropHandler directly (no fake inventory wrapper needed).
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class WorldDropZone : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget
+    public class WorldDropZone : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget, IItemDropHandler
     {
 #if ENABLE_REFLEX_DI
         [Inject] private DragAndDropManager _dragManager;
@@ -72,7 +70,7 @@ namespace DragAndDropSystem.World3D
                 return;
 
             // Проверяем, есть ли у предмета 3D представление
-            _canAcceptCurrentItem = draggedStack.Item is IWorld3DAdapter adapter && adapter.HasWorldRepresentation;
+            _canAcceptCurrentItem = draggedStack.Item is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
 
             // Добавляем себя в стек целей
             _dragManager.PushDropTarget(this);
@@ -131,34 +129,78 @@ namespace DragAndDropSystem.World3D
 
         public ISlot GetTargetSlot()
         {
-            // У WorldDropZone нет целевого слота - это специальная зона для выбрасывания
+            // WorldDropZone has no target slot - it's a special drop zone
             return null;
         }
 
-        public IInventory GetTargetInventory()
+        public IItemDropHandler GetDropHandler()
         {
-            // У WorldDropZone нет инвентаря - это специальный виртуальный "инвентарь"
-            // Возвращаем специальный маркер (можно создать DummyInventory если нужно)
-            return new WorldDropInventory(this);
+            // WorldDropZone IS the handler - return this
+            return this;
         }
 
         public void OnBecomeActiveTarget()
         {
-            // Подсвечиваем область когда становимся активной целью
+            // Highlight area when becoming active target
             HighlightArea(true, _canAcceptCurrentItem);
         }
 
         public void OnBecomeInactiveTarget()
         {
-            // Снимаем подсветку когда перестаём быть активной целью
+            // Remove highlight when no longer active target
             HighlightArea(false, true);
         }
 
+        // ===== IItemDropHandler Implementation =====
+
+        public bool CanAcceptDrop(DragContext context)
+        {
+            if (context?.DraggedStack?.Item == null)
+                return false;
+
+            // Check if item has 3D world representation
+            bool canAccept = context.DraggedStack.Item is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
+
+            Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: {canAccept}</color>");
+            return canAccept;
+        }
+
+        public DropResult HandleDrop(DragContext context)
+        {
+            if (context?.DraggedStack == null)
+            {
+                return DropResult.Failed("Invalid drag context");
+            }
+
+            var stack = context.DraggedStack;
+            var sourceSlot = context.SourceSlot;
+            int amountToSpawn = stack.Count;
+
+            if (!SpawnItemInWorld(stack))
+            {
+                return DropResult.Failed("Failed to spawn item in world");
+            }
+
+            // Remove items from source slot (the dragged stack is a copy, source slot still has items)
+            if (sourceSlot?.Stack != null && !sourceSlot.Stack.IsEmpty)
+            {
+                sourceSlot.Stack.RemoveFromStack(amountToSpawn);
+                sourceSlot.UpdateVisuals();
+                Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {amountToSpawn} items from source slot {sourceSlot.Index}</color>");
+            }
+
+            return DropResult.Succeeded(
+                item: stack.Item,
+                amount: amountToSpawn,
+                targetSlot: null,
+                targetInventory: null);
+        }
+
         /// <summary>
-        /// Выбросить предмет в мир
-        /// Вызывается из WorldDropInventory при TryAddToSlot
+        /// Spawn item in world.
+        /// Called from HandleDrop.
         /// </summary>
-        public bool SpawnItemInWorld(ItemStack stack, IInventory sourceInventory, int sourceSlotIndex)
+        private bool SpawnItemInWorld(ItemStack stack)
         {
             if (stack == null || stack.IsEmpty || stack.Item == null)
             {
@@ -167,7 +209,7 @@ namespace DragAndDropSystem.World3D
             }
 
             // Проверяем, есть ли у предмета 3D префаб
-            if (!(stack.Item is IWorld3DAdapter adapter) || !adapter.HasWorldRepresentation)
+            if (stack.Item is not IWorld3DAdapter adapter)
             {
                 Extentions.DragAndDropLog($"<color=red>[WorldDropZone] Item {stack.Item.DisplayName} has no world prefab</color>");
                 return false;
@@ -223,65 +265,11 @@ namespace DragAndDropSystem.World3D
 
             Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.Item.DisplayName} in world</color>");
 
-            // Удаляем весь стак (он теперь в мире)
+            // Remove items from stack (they're now in the world)
+            // Note: The source slot will be updated by DragAndDropManager after HandleDrop
             stack.RemoveFromStack(stack.Count);
 
             return true;
-        }
-
-        /// <summary>
-        /// Виртуальный инвентарь для обработки drop операций в WorldDropZone
-        /// Делегирует спавн обратно в WorldDropZone
-        /// </summary>
-        private class WorldDropInventory : IInventory
-        {
-            private readonly WorldDropZone _owner;
-
-            public WorldDropInventory(WorldDropZone owner)
-            {
-                _owner = owner;
-            }
-
-            // Минимальная реализация IInventory для совместимости с DragAndDropManager
-            public IReadOnlyList<ISlot> Slots => new List<ISlot>(); // Пустой список
-            public int SlotCount => 0;
-            public InventoryDataBindingBase DataBinding { get; }
-
-            public ISlot GetSlot(int index) => null;
-            public bool Contains(IInventoryItem item) => false;
-            public int GetItemCount(IInventoryItem item) => 0;
-            public void UpdateAllVisuals() { }
-            public int GetDragAmount(ISlot slot) => 0;
-
-            public bool TryAddItem(IInventoryItem item, int count = 1, int targetSlotIndex = -1)
-            {
-                var stack = new ItemStack(item, count);
-                return TryAddStack(stack, targetSlotIndex);
-            }
-
-            public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
-            {
-                // Делегируем спавн обратно в WorldDropZone
-                return _owner.SpawnItemInWorld(stack, null, -1);
-            }
-
-            public bool TryAddToSlot(
-                ItemStack stack,
-                ISlot targetSlot,
-                IInventory sourceInventory = null,
-                int sourceSlotIndex = -1,
-                SlotOperationContext operationContext = null)
-            {
-                // Делегируем спавн обратно в WorldDropZone
-                return _owner.SpawnItemInWorld(stack, sourceInventory, sourceSlotIndex);
-            }
-
-            public int GetAcceptableCount(IInventoryItem item, int desiredCount) => int.MaxValue;
-
-            public bool TryRemoveItem(IInventoryItem item, int count = 1, int sourceSlotIndex = -1)
-            {
-                return false; // Нельзя удалить из мира через эту зону
-            }
         }
     }
 }

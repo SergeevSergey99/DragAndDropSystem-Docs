@@ -114,7 +114,14 @@ namespace DragAndDropSystem.UI
 
         public ISlot GetTargetSlot() => _foundSlot;
 
-        public IInventory GetTargetInventory() => _inventory;
+        public IItemDropHandler GetDropHandler()
+        {
+            return new InventoryDropHandler(
+                _foundSlot,
+                _inventory,
+                _dragManager?.GlobalRules,
+                _dragManager?.TransferService);
+        }
 
         public void OnBecomeActiveTarget()
         {

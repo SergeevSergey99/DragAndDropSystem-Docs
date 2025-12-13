@@ -18,6 +18,5 @@ namespace Plugins.DragAndDropSystem.Examples
 
         // Публичное свойство для доступа из адаптера
         public GameObject WorldPrefab => _worldPrefab;
-        public bool HasWorldRepresentation => _worldPrefab != null;
     }
 }

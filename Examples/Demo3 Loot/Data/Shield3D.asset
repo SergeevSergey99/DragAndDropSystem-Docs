@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6c5319bdf811bc4b94bc9e8efe0ae60, type: 3}
-  m_Name: ItemExampleWith3DSO
+  m_Name: Shield3D
   m_EditorClassIdentifier: 
-  <ItemName>k__BackingField: Chest
-  <Icon>k__BackingField: {fileID: 7495373075855711561, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
-  <itemType>k__BackingField: Other
-  _worldPrefab: {fileID: 4220417769938811161, guid: 08e6c6ec03a58474283f52f13b951ea5, type: 3}
+  <ItemName>k__BackingField: Shield
+  <Icon>k__BackingField: {fileID: -9145353434820824368, guid: d58a3acac6a993f45b29761320b2bbf1, type: 3}
+  <itemType>k__BackingField: Armor
+  _worldPrefab: {fileID: 4220417769938811161, guid: e25a78a6908247c4b884a5437843bdf0, type: 3}
