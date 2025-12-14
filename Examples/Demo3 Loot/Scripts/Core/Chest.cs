@@ -32,6 +32,8 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             CheckIfEmpty();
         }
 
+        public bool CanInteract(PlayerInteraction player) => true;
+        
         public void Interact(PlayerInteraction player)
         {
             // Переключаем состояние

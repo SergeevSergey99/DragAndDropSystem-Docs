@@ -99,6 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 228412539842365675}
+  - component: {fileID: -4326452153134456547}
   - component: {fileID: 649211847301960709}
   - component: {fileID: 751680170067173974}
   m_Layer: 0
@@ -124,6 +125,18 @@ Transform:
   - {fileID: 4920153236532521248}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-4326452153134456547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4220417769938811161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98d2cfef48a586a49a7ef17067493c8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.World3D.WorldItem
 --- !u!114 &649211847301960709
 MonoBehaviour:
   m_ObjectHideFlags: 0

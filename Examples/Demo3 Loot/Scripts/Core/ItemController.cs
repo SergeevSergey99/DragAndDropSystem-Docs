@@ -1,21 +1,35 @@
-﻿using Plugins.DragAndDropSystem.Examples;
+﻿using System;
+using DragAndDropSystem.World3D;
+using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Demo3Loot
 {
+    [RequireComponent(typeof(WorldItem))]
     public class ItemController : MonoBehaviour, IInteractable
     {
+        [field: SerializeField] public WorldItem WorldItem { get; private set; }
         [field: SerializeField] public SpriteRenderer spriteRenderer { get; private set; }
         
-        public ItemExampleWith3DSO ItemExampleWith3DSO { get; private set; }
-        
-        public void Initialize(ItemExampleWith3DSO itemExampleWith3DSO)
+        public bool CanInteract(PlayerInteraction player)
         {
-            ItemExampleWith3DSO = itemExampleWith3DSO;
+            return player.Inventory.IsFull == false;
         }
         public void Interact(PlayerInteraction player)
         {
-            Debug.Log($"Player {player.name} interacted with item {name}");
+            if (CanInteract(player) && WorldItem.itemData is ItemSOWith3DAdapter adapter)
+            {
+                if (player.Inventory.AddItem(adapter.item))
+                {
+                    Destroy(gameObject);
+                }
+            }
+        }
+
+        private void OnValidate()
+        {
+            if (WorldItem == null)
+                WorldItem = GetComponent<WorldItem>();
         }
     }
 }

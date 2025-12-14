@@ -5,6 +5,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
     /// </summary>
     public interface IInteractable
     {
+        bool CanInteract(PlayerInteraction player);
         /// <summary>
         /// Выполнить взаимодействие
         /// </summary>

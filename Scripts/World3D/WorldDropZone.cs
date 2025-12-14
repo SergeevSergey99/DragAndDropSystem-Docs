@@ -34,12 +34,6 @@ namespace DragAndDropSystem.World3D
         [SerializeField, Tooltip("Радиус случайного смещения")]
         private float _randomRadius = 0.5f;
 
-        [SerializeField, Tooltip("Добавить начальную силу (Rigidbody)")]
-        private bool _applyForce = true;
-
-        [SerializeField, Tooltip("Сила выбрасывания")]
-        private float _throwForce = 5f;
-
         [Header("Visual Feedback")]
         [SerializeField, Tooltip("Подсветка зоны при наведении")]
         private UnityEngine.UI.Image _areaHighlight;
@@ -243,18 +237,7 @@ namespace DragAndDropSystem.World3D
                     worldItem = spawnedObject.AddComponent<WorldItem>();
                 }
                 worldItem.Initialize(stack.Item, 1);
-
-                // Применяем силу если есть Rigidbody
-                if (_applyForce)
-                {
-                    var rb = spawnedObject.GetComponent<Rigidbody>();
-                    if (rb != null)
-                    {
-                        Vector3 forceDirection = (_spawnPoint != null ? _spawnPoint.forward : Vector3.forward) + Vector3.up * 0.5f;
-                        rb.AddForce(forceDirection.normalized * _throwForce, ForceMode.Impulse);
-                    }
-                }
-
+                
                 // Небольшое смещение для следующего предмета
                 if (_randomizePosition)
                 {
@@ -264,10 +247,6 @@ namespace DragAndDropSystem.World3D
             }
 
             Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.Item.DisplayName} in world</color>");
-
-            // Remove items from stack (they're now in the world)
-            // Note: The source slot will be updated by DragAndDropManager after HandleDrop
-            stack.RemoveFromStack(stack.Count);
 
             return true;
         }

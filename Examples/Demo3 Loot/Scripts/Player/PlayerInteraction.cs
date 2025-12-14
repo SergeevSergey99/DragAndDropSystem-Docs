@@ -43,9 +43,11 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// </summary>
         public event Action<IInteractable> OnInteracted;
 
+        public PlayerInventoryData Inventory { get; private set; }
         private void Awake()
         {
             _playerController = GetComponent<PlayerController>();
+            Inventory = FindAnyObjectByType<PlayerInventoryData>();
         }
 
         private void Update()
@@ -105,7 +107,9 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             // Если объект не изменился, ничего не делаем
             if (_currentInteractable == newInteractable)
                 return;
-
+            
+            if (newInteractable != null && !newInteractable.CanInteract(this)) return;
+            
             // Если был старый объект, вызываем событие выхода
             if (_currentInteractable != null)
             {
@@ -119,6 +123,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             // Если есть новый объект, вызываем событие входа
             if (_currentInteractable != null)
             {
+                
                 OnInteractableEntered?.Invoke(_currentInteractable);
             }
         }

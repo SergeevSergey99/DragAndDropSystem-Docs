@@ -133,7 +133,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Убрать предмет из инвентаря (ищет по ссылке)
         /// </summary>
-        public bool RemoveItem(ItemExampleSO item)
+        public bool RemoveItem(ItemExampleWith3DSO item)
         {
             if (item == null)
             {
