@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(\"/mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/.claude/skills/dragdrop-system/SKILL.md\")",
+      "Skill(dragdrop-system)",
+      "Skill(dragdrop-architecture)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
