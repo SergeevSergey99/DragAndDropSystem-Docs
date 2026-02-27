@@ -75,44 +75,44 @@ namespace DragAndDropSystem.Examples.Trading
             }
         }
 
-        protected override void OnItemAddedToUI(InventoryItemEventArgs args)
+        protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
             // Если мы сейчас синхронизируем UI - не обновляем данные
             if (_isSyncing) return;
 
-            var sourceBinding = args.SourceInventory?.DataBinding;
+            var sourceBinding = context.SourceInventory?.DataBinding;
 
             // Если предмет пришел от игрока или из экипировки - покупаем у него
             if ((sourceBinding is PlayerInventoryDataBinding || sourceBinding is EquipmentInventoryDataBinding)
-                && args.Item is TradableItemModelAdapter adapter)
+                && context.Item is TradableItemModelAdapter adapter)
             {
-                int totalPrice = adapter.SellPrice * args.Count;
+                int totalPrice = adapter.SellPrice * context.Count;
                 MerchantData.TrySpendMoney(totalPrice);
                 MerchantData.AddItem(adapter.Item.originalSO);
 
                 // Заменяем адаптер модели на адаптер SO в слоте торговца
                 // Это важно, чтобы в UI торговца всегда были SO адаптеры
-                if (args.TargetSlot != null)
+                if (context.TargetSlot != null)
                 {
                     var soAdapter = new TradableSoAdapter(adapter.Item.originalSO);
-                    args.TargetSlot.ReplaceItem(soAdapter);
+                    context.TargetSlot.ReplaceItem(soAdapter);
                 }
             }
         }
 
-        protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             // Если мы сейчас синхронизируем UI - не обновляем данные
             if (_isSyncing) return;
 
             // Проверяем куда ушел предмет
-            var targetBinding = args.TargetInventory?.DataBinding;
+            var targetBinding = context.TargetInventory?.DataBinding;
 
             // Если предмет ушел к игроку или в экипировку - продаем ему
             if ((targetBinding is PlayerInventoryDataBinding || targetBinding is EquipmentInventoryDataBinding)
-                && args.Item is TradableSoAdapter adapter)
+                && context.Item is TradableSoAdapter adapter)
             {
-                int totalPrice = adapter.BuyPrice * args.Count;
+                int totalPrice = adapter.BuyPrice * context.Count;
                 MerchantData.AddMoney(totalPrice);
                 MerchantData.TryRemoveItem(adapter.Item);
             }

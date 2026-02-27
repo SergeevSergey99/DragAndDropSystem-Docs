@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// UI изменился: предмет добавлен → обновить данные сундука
         /// Вызывается когда предмет перетащили В этот инвентарь
         /// </summary>
-        protected override void OnItemAddedToUI(InventoryItemEventArgs args)
+        protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
             if (_isSyncing)
                 return;
@@ -107,10 +107,10 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
 
             // Извлекаем ItemSO из адаптера
-            var itemSO = ExtractItemSO(args.Item);
+            var itemSO = ExtractItemSO(context.Item);
             if (itemSO == null)
             {
-                Debug.LogWarning($"[ChestInventoryDataBinding] Cannot extract ItemSO from {args.Item.GetType().Name}");
+                Debug.LogWarning($"[ChestInventoryDataBinding] Cannot extract ItemSO from {context.Item.GetType().Name}");
                 return;
             }
 
@@ -127,7 +127,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// UI изменился: предмет убран → обновить данные сундука
         /// Вызывается когда предмет перетащили ИЗ этого инвентаря
         /// </summary>
-        protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             if (_isSyncing)
                 return;
@@ -139,10 +139,10 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
 
             // Извлекаем ItemSO из адаптера
-            var itemSO = ExtractItemSO(args.Item);
+            var itemSO = ExtractItemSO(context.Item);
             if (itemSO == null)
             {
-                Debug.LogWarning($"[ChestInventoryDataBinding] Cannot extract ItemSO from {args.Item.GetType().Name}");
+                Debug.LogWarning($"[ChestInventoryDataBinding] Cannot extract ItemSO from {context.Item.GetType().Name}");
                 return;
             }
 

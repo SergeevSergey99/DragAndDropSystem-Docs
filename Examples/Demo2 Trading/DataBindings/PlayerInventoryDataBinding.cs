@@ -49,40 +49,40 @@ namespace DragAndDropSystem.Examples.Trading
             }
         }
 
-        protected override void OnItemAddedToUI(InventoryItemEventArgs args)
+        protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
             // Если мы сейчас синхронизируем UI - не обновляем данные
             if (_isSyncing) return;
 
             // Если предмет пришел от торговца - покупаем у него
-            if (TryHandlePurchaseFromMerchant(args))
+            if (TryHandlePurchaseFromMerchant(context))
             {
                 // Заменяем адаптер SO на адаптер модели в слоте игрока
                 // ConvertAndReplaceSOAdapter создает TradableItemModel, который мы добавляем в данные
-                var soAdapter = args.Item as TradableSoAdapter;
-                if (args.TargetSlot != null)
+                var soAdapter = context.Item as TradableSoAdapter;
+                if (context.TargetSlot != null)
                 {
-                    var itemModel = ConvertAndReplaceSOAdapter(args.TargetSlot, soAdapter);
+                    var itemModel = ConvertAndReplaceSOAdapter(context.TargetSlot, soAdapter);
                     PlayerData.AddItem(itemModel);
                 }
             }
-            else if (args.Item is TradableItemModelAdapter adapter)
+            else if (context.Item is TradableItemModelAdapter adapter)
             {
                 // Добавляем предмет в данные (включая внутренние перемещения для сохранения порядка)
                 PlayerData.AddItem(adapter.Item);
             }
         }
 
-        protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             // Если мы сейчас синхронизируем UI - не обновляем данные
             if (_isSyncing) return;
 
             // Если предмет ушел к торговцу - продаем ему
-            TryHandleSellToMerchant(args);
+            TryHandleSellToMerchant(context);
 
             // Удаляем предмет из данных (включая внутренние перемещения для сохранения порядка)
-            if (args.Item is TradableItemModelAdapter adapter)
+            if (context.Item is TradableItemModelAdapter adapter)
             {
                 PlayerData.TryRemoveItem(adapter.Item);
             }

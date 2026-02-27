@@ -108,7 +108,7 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private void OnInventoryChanged(object sender, InventoryItemEventArgs e)
+        private void OnInventoryChanged(InventoryItemEventContext context)
         {
             // Переприменяем фильтр при изменении инвентаря
             ApplyFilterAndSort();

@@ -20,9 +20,9 @@ namespace DragAndDropSystem
     /// </summary>
 
 #if ENABLE_REFLEX_DI
-    public class DragAndDropManager : MonoBehaviour, IDragEvents
+    public class DragAndDropManager : MonoBehaviour
 #else
-    public class DragAndDropManager : MonoSingleton<DragAndDropManager>, IDragEvents
+    public class DragAndDropManager : MonoSingleton<DragAndDropManager>
 #endif
     {
         [Header("Visual")]
@@ -76,22 +76,22 @@ namespace DragAndDropSystem
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
 
         // События drag-and-drop
-        public event EventHandler<DragEventArgs> OnDragStarting;
-        public event EventHandler<DragEventArgs> OnDragStarted;
-        public event EventHandler<DragEventArgs> OnDragEnterSlot;
-        public event EventHandler<DragEventArgs> OnDragExitSlot;
-        public event EventHandler<DragEventArgs> OnDropAttempting;
-        public event EventHandler<DragEventArgs> OnDropCompleted;
-        public event EventHandler<DragEventArgs> OnDragCancelled;
+        public event Action<DragContext> OnDragStarting;
+        public event Action<DragContext> OnDragStarted;
+        public event Action<DragContext> OnDragEnterSlot;
+        public event Action<DragContext> OnDragExitSlot;
+        public event Action<DragContext> OnDropAttempting;
+        public event Action<DragContext> OnDropCompleted;
+        public event Action<DragContext> OnDragCancelled;
 
         // События автопереноса
-        public event EventHandler<AutoTransferEventArgs> OnAutoTransferAttempting;
-        public event EventHandler<AutoTransferEventArgs> OnAutoTransferCompleted;
-        public event EventHandler<AutoTransferEventArgs> OnAutoTransferFailed;
+        public event Action<DragContext> OnAutoTransferAttempting;
+        public event Action<DragContext> OnAutoTransferCompleted;
+        public event Action<DragContext> OnAutoTransferFailed;
 
         // События обмена предметов (swap)
-        public event EventHandler<InventorySwapEventArgs> OnSwapAttempting;
-        public event EventHandler<InventorySwapEventArgs> OnSwapCompleted;
+        public event Action<InventorySwapContext> OnSwapAttempting;
+        public event Action<InventorySwapContext> OnSwapCompleted;
 
         [Inject]
         private void Initialize()
@@ -138,10 +138,7 @@ namespace DragAndDropSystem
         /// </summary>
         public bool StartDrag(ISlot sourceSlot)
         {
-            if (IsDragging || sourceSlot == null || sourceSlot.IsEmpty)
-            {
-                return false;
-            }
+            if (IsDragging || sourceSlot == null || sourceSlot.IsEmpty) return false;
 
             if (sourceSlot.Inventory == null)
             {
@@ -150,7 +147,7 @@ namespace DragAndDropSystem
             }
 
             // Определяем количество предметов для перетаскивания
-            int dragCount = sourceSlot.Inventory.GetDragAmount(sourceSlot);
+            int dragCount = sourceSlot.GetDragAmount();
 
             Extentions.DragAndDropLog($"<color=cyan>StartDrag: Taking {dragCount} of {sourceSlot.Stack.Count} items</color>");
 
@@ -158,18 +155,11 @@ namespace DragAndDropSystem
             var stack = new ItemStack(sourceSlot.Stack.Item, dragCount);
             _currentContext = new DragContext(stack, sourceSlot, sourceSlot.Inventory);
 
+            OnDragStarting?.Invoke(_currentContext);
+            
             var entry = _currentContext.Entries[0];
 
             // Проверяем правила начала перетаскивания
-            var eventArgs = new DragEventArgs(_currentContext);
-            OnDragStarting?.Invoke(this, eventArgs);
-
-            if (eventArgs.Cancel)
-            {
-                _currentContext = null;
-                return false;
-            }
-
             // Проверяем глобальные правила
             var globalResult = _globalRules.ValidateStartDrag(_currentContext, entry);
             if (!globalResult.IsValid)
@@ -204,7 +194,7 @@ namespace DragAndDropSystem
                 Debug.LogWarning("No drag visual available!");
             }
 
-            OnDragStarted?.Invoke(this, new DragEventArgs(_currentContext));
+            OnDragStarted?.Invoke(_currentContext);
 
             Extentions.DragAndDropLog($"<color=green>Started dragging</color>");
             return true;
@@ -240,13 +230,7 @@ namespace DragAndDropSystem
             _currentContext = new DragContext(entries);
 
             // Event: starting
-            var eventArgs = new DragEventArgs(_currentContext);
-            OnDragStarting?.Invoke(this, eventArgs);
-            if (eventArgs.Cancel)
-            {
-                _currentContext = null;
-                return false;
-            }
+            OnDragStarting?.Invoke(_currentContext);
 
             // Validate each entry against rules
             foreach (var entry in _currentContext.Entries)
@@ -279,7 +263,7 @@ namespace DragAndDropSystem
                 _currentVisual.Show(_currentContext.Entries);
             }
 
-            OnDragStarted?.Invoke(this, new DragEventArgs(_currentContext));
+            OnDragStarted?.Invoke(_currentContext);
             Extentions.DragAndDropLog($"<color=green>Started batch dragging ({entries.Count} entries)</color>");
             return true;
         }
@@ -426,7 +410,7 @@ namespace DragAndDropSystem
                     Extentions.DragAndDropLog("<color=cyan>SetHoveredSlot: Drop to area (no specific slot)</color>");
                 }
 
-                OnDragEnterSlot?.Invoke(this, new DragEventArgs(_currentContext));
+                OnDragEnterSlot?.Invoke(_currentContext);
             }
             else
             {
@@ -446,7 +430,7 @@ namespace DragAndDropSystem
                     universalSlot.Highlight(false);
                 }
 
-                OnDragExitSlot?.Invoke(this, new DragEventArgs(_currentContext));
+                OnDragExitSlot?.Invoke(_currentContext);
 
                 _hoveredSlot = null;
                 _hoveredInventory = null;
@@ -491,7 +475,7 @@ namespace DragAndDropSystem
                     universalSlot.Highlight(true);
                 }
 
-                OnDragEnterSlot?.Invoke(this, new DragEventArgs(_currentContext));
+                OnDragEnterSlot?.Invoke(_currentContext);
             }
             else
             {
@@ -670,42 +654,38 @@ namespace DragAndDropSystem
             // Check if we have a handler (handler-based drops don't require inventory)
             if (_currentHandler != null)
             {
-                var eventArgs = new DragEventArgs(_currentContext);
-                OnDropAttempting?.Invoke(this, eventArgs);
+                OnDropAttempting?.Invoke(_currentContext);
 
-                if (!eventArgs.Cancel)
+                // Validate via handler
+                bool canDrop = _currentHandler.CanAcceptDrop(_currentContext);
+
+                if (canDrop)
                 {
-                    // Validate via handler
-                    bool canDrop = _currentHandler.CanAcceptDrop(_currentContext);
+                    // Execute drop via handler
+                    var result = _currentHandler.HandleDrop(_currentContext);
+                    success = result.Success;
 
-                    if (canDrop)
+                    if (success)
                     {
-                        // Execute drop via handler
-                        var result = _currentHandler.HandleDrop(_currentContext);
-                        success = result.Success;
-
-                        if (success)
+                        // Update context with result info for events
+                        if (result.TargetSlot != null && result.TargetInventory != null)
                         {
-                            // Update context with result info for events
-                            if (result.TargetSlot != null && result.TargetInventory != null)
-                            {
-                                _currentContext.SetTarget(result.TargetSlot, result.TargetInventory);
-                            }
-
-                            // Dispatch events based on result
-                            DispatchDropResultEvents(result);
-
-                            OnDropCompleted?.Invoke(this, new DragEventArgs(_currentContext));
+                            _currentContext.SetTarget(result.TargetSlot, result.TargetInventory);
                         }
-                        else
-                        {
-                            Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.HandleDrop failed: {result.FailureReason}</color>");
-                        }
+
+                        // Dispatch events based on result
+                        DispatchDropResultEvents(result);
+
+                        OnDropCompleted?.Invoke(_currentContext);
                     }
                     else
                     {
-                        Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
+                        Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.HandleDrop failed: {result.FailureReason}</color>");
                     }
+                }
+                else
+                {
+                    Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
                 }
             }
             // Fallback: try old inventory-based path (for backward compatibility during transition)
@@ -713,10 +693,9 @@ namespace DragAndDropSystem
             {
                 _currentContext.SetTarget(_hoveredSlot, _hoveredInventory);
 
-                var eventArgs = new DragEventArgs(_currentContext);
-                OnDropAttempting?.Invoke(this, eventArgs);
+                OnDropAttempting?.Invoke(_currentContext);
 
-                bool canDrop = !eventArgs.Cancel && CanDropToSlot();
+                bool canDrop = CanDropToSlot();
 
                 if (canDrop)
                 {
@@ -724,14 +703,14 @@ namespace DragAndDropSystem
 
                     if (success)
                     {
-                        OnDropCompleted?.Invoke(this, new DragEventArgs(_currentContext));
+                        OnDropCompleted?.Invoke(_currentContext);
                     }
                 }
             }
 
             if (!success)
             {
-                OnDragCancelled?.Invoke(this, new DragEventArgs(_currentContext));
+                OnDragCancelled?.Invoke(_currentContext);
             }
 
             EndDrag();
@@ -784,7 +763,7 @@ namespace DragAndDropSystem
             if (!IsDragging)
                 return;
 
-            OnDragCancelled?.Invoke(this, new DragEventArgs(_currentContext));
+            OnDragCancelled?.Invoke(_currentContext);
             EndDrag();
         }
 
@@ -1037,7 +1016,7 @@ namespace DragAndDropSystem
             }
 
             // Создаем событие для возможности отмены или кастомной обработки
-            var swapEventArgs = new InventorySwapEventArgs(
+            var swapEventArgs = new InventorySwapContext(
                 entry.Stack,
                 reverseContext.Entries[0].Stack,
                 sourceSlot,
@@ -1046,7 +1025,7 @@ namespace DragAndDropSystem
                 targetInventory
             );
 
-            OnSwapAttempting?.Invoke(this, swapEventArgs);
+            OnSwapAttempting?.Invoke(swapEventArgs);
 
             if (swapEventArgs.Cancel)
             {
@@ -1073,7 +1052,7 @@ namespace DragAndDropSystem
             DispatchSwapEvents(targetUniversal, sourceUniversal, targetSlot, sourceSlot, swapResult);
 
             Extentions.DragAndDropLog($"<color=green>Swap completed via inventory method</color>");
-            OnSwapCompleted?.Invoke(this, swapEventArgs);
+            OnSwapCompleted?.Invoke(swapEventArgs);
             return true;
         }
 
@@ -1162,21 +1141,14 @@ namespace DragAndDropSystem
             var entry = context.Entries[0];
 
             // Генерируем событие попытки автопереноса
-            var eventArgs = new AutoTransferEventArgs(context);
-            OnAutoTransferAttempting?.Invoke(this, eventArgs);
-
-            if (eventArgs.Cancel)
-            {
-                Extentions.DragAndDropLog("<color=yellow>AutoTransfer cancelled by event handler</color>");
-                return false;
-            }
+            OnAutoTransferAttempting?.Invoke(context);
 
             // Проверяем глобальные правила
             var globalResult = _globalRules.ValidateStartDrag(context, entry);
             if (!globalResult.IsValid)
             {
                 Extentions.DragAndDropLog($"<color=red>AutoTransfer failed: {globalResult.FailureReason}</color>");
-                OnAutoTransferFailed?.Invoke(this, new AutoTransferEventArgs(context));
+                OnAutoTransferFailed?.Invoke(context);
                 return false;
             }
 
@@ -1187,7 +1159,7 @@ namespace DragAndDropSystem
                 if (!srcResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>AutoTransfer failed (source rules): {srcResult.FailureReason}</color>");
-                    OnAutoTransferFailed?.Invoke(this, new AutoTransferEventArgs(context));
+                    OnAutoTransferFailed?.Invoke(context);
                     return false;
                 }
             }
@@ -1199,7 +1171,7 @@ namespace DragAndDropSystem
                 if (!tgtResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>AutoTransfer failed (target rules): {tgtResult.FailureReason}</color>");
-                    OnAutoTransferFailed?.Invoke(this, new AutoTransferEventArgs(context));
+                    OnAutoTransferFailed?.Invoke(context);
                     return false;
                 }
             }
@@ -1215,7 +1187,7 @@ namespace DragAndDropSystem
             if (targetSlot == null)
             {
                 Extentions.DragAndDropLog("<color=red>AutoTransfer failed: No valid slot found in target inventory</color>");
-                OnAutoTransferFailed?.Invoke(this, new AutoTransferEventArgs(context));
+                OnAutoTransferFailed?.Invoke(context);
                 return false;
             }
             context.TargetSlot = targetSlot;
@@ -1231,7 +1203,7 @@ namespace DragAndDropSystem
             if (!_transferService.TryExecuteTransfer(transferRequest, out var outcome))
             {
                 Extentions.DragAndDropLog("<color=red>AutoTransfer failed: Transfer pipeline rejected</color>");
-                OnAutoTransferFailed?.Invoke(this, new AutoTransferEventArgs(context));
+                OnAutoTransferFailed?.Invoke(context);
                 return false;
             }
 
@@ -1277,8 +1249,8 @@ namespace DragAndDropSystem
                             slotForVisual.SetIconVisibility(true);
                         }
 
-                        OnDropCompleted?.Invoke(this, new DragEventArgs(context));
-                        OnAutoTransferCompleted?.Invoke(this, new AutoTransferEventArgs(context));
+                        OnDropCompleted?.Invoke(context);
+                        OnAutoTransferCompleted?.Invoke(context);
                     });
 
                 if (animationVisual != null)
@@ -1289,8 +1261,8 @@ namespace DragAndDropSystem
             }
             else
             {
-                OnDropCompleted?.Invoke(this, new DragEventArgs(context));
-                OnAutoTransferCompleted?.Invoke(this, new AutoTransferEventArgs(context));
+                OnDropCompleted?.Invoke(context);
+                OnAutoTransferCompleted?.Invoke(context);
             }
 
             return true;

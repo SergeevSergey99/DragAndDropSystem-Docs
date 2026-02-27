@@ -53,17 +53,17 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// UI изменился: предмет добавлен → обновить данные игрока
         /// Сохраняет предмет в тот же слот в данных
         /// </summary>
-        protected override void OnItemAddedToUI(InventoryItemEventArgs args)
+        protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            var itemSO = ExtractItemSO(args.Item);
+            var itemSO = ExtractItemSO(context.Item);
             if (itemSO == null)
             {
-                Debug.LogWarning($"[PlayerInventoryDataBinding] Cannot extract ItemSO from {args.Item.GetType().Name}");
+                Debug.LogWarning($"[PlayerInventoryDataBinding] Cannot extract ItemSO from {context.Item.GetType().Name}");
                 return;
             }
 
             // Используем индекс слота из UI
-            int slotIndex = args.TargetSlot?.Index ?? -1;
+            int slotIndex = context.TargetSlot?.Index ?? -1;
             if (slotIndex < 0)
             {
                 Debug.LogWarning($"[PlayerInventoryDataBinding] No target slot index for '{itemSO.ItemName}'");
@@ -82,10 +82,10 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// UI изменился: предмет убран → обновить данные игрока
         /// Очищает соответствующий слот в данных
         /// </summary>
-        protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             // Используем индекс исходного слота
-            int slotIndex = args.SourceSlot?.Index ?? -1;
+            int slotIndex = context.SourceSlot?.Index ?? -1;
             if (slotIndex < 0)
             {
                 Debug.LogWarning($"[PlayerInventoryDataBinding] No source slot index for removed item");

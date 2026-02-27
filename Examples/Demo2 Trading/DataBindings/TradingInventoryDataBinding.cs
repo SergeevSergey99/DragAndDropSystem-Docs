@@ -47,14 +47,14 @@ namespace DragAndDropSystem.Examples.Trading
         /// Обработка покупки у торговца, если применимо
         /// Возвращает true если покупка была обработана
         /// </summary>
-        protected bool TryHandlePurchaseFromMerchant(InventoryItemEventArgs args)
+        protected bool TryHandlePurchaseFromMerchant(InventoryItemEventContext context)
         {
-            if (args.SourceInventory?.DataBinding is not MerchantInventoryDataBinding)
+            if (context.SourceInventory?.DataBinding is not MerchantInventoryDataBinding)
                 return false;
 
-            if (args.Item is TradableSoAdapter adapter)
+            if (context.Item is TradableSoAdapter adapter)
             {
-                int totalPrice = adapter.BuyPrice * args.Count;
+                int totalPrice = adapter.BuyPrice * context.Count;
                 PlayerData.TrySpendMoney(totalPrice);
                 return true;
             }
@@ -66,14 +66,14 @@ namespace DragAndDropSystem.Examples.Trading
         /// Обработка продажи торговцу, если применимо
         /// Возвращает true если продажа была обработана
         /// </summary>
-        protected bool TryHandleSellToMerchant(InventoryItemEventArgs args)
+        protected bool TryHandleSellToMerchant(InventoryItemEventContext context)
         {
-            if (args.TargetInventory?.DataBinding is not MerchantInventoryDataBinding)
+            if (context.TargetInventory?.DataBinding is not MerchantInventoryDataBinding)
                 return false;
 
-            if (args.Item is TradableItemModelAdapter adapter)
+            if (context.Item is TradableItemModelAdapter adapter)
             {
-                int totalPrice = adapter.SellPrice * args.Count;
+                int totalPrice = adapter.SellPrice * context.Count;
                 PlayerData.AddMoney(totalPrice);
                 return true;
             }

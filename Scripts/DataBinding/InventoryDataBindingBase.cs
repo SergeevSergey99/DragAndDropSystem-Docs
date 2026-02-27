@@ -132,24 +132,24 @@ namespace DragAndDropSystem.DataBinding
         /// Обработчик события попытки swap
         /// Вызывает CanSwapInternal если swap затрагивает этот инвентарь
         /// </summary>
-        private void HandleSwapAttempting(object sender, InventorySwapEventArgs args)
+        private void HandleSwapAttempting(InventorySwapContext context)
         {
-            if (args.Cancel)
+            if (context.Cancel)
                 return;
 
             // Проверяем участвует ли наш инвентарь в swap
-            bool isSourceInventory = ReferenceEquals(args.SourceInventory, _inventory);
-            bool isTargetInventory = ReferenceEquals(args.TargetInventory, _inventory);
+            bool isSourceInventory = ReferenceEquals(context.SourceInventory, _inventory);
+            bool isTargetInventory = ReferenceEquals(context.TargetInventory, _inventory);
 
             if (!isSourceInventory && !isTargetInventory)
                 return;
 
             // Вызываем кастомную валидацию
-            var result = CanSwapInternal(args);
+            var result = CanSwapInternal(context);
             if (!result.IsValid)
             {
                 Extentions.DragAndDropLog($"[{GetType().Name}] CanSwapInternal rejected: {result.FailureReason}");
-                args.Cancel = true;
+                context.Cancel = true;
             }
         }
 
@@ -157,17 +157,17 @@ namespace DragAndDropSystem.DataBinding
         /// Обработчик события успешного swap
         /// Вызывает OnSwapCompleted если swap затрагивает этот инвентарь
         /// </summary>
-        private void HandleSwapCompleted(object sender, InventorySwapEventArgs args)
+        private void HandleSwapCompleted(InventorySwapContext context)
         {
             // Проверяем участвует ли наш инвентарь в swap
-            bool isSourceInventory = ReferenceEquals(args.SourceInventory, _inventory);
-            bool isTargetInventory = ReferenceEquals(args.TargetInventory, _inventory);
+            bool isSourceInventory = ReferenceEquals(context.SourceInventory, _inventory);
+            bool isTargetInventory = ReferenceEquals(context.TargetInventory, _inventory);
 
             if (!isSourceInventory && !isTargetInventory)
                 return;
 
             // Вызываем кастомную обработку
-            OnSwapCompleted(args);
+            OnSwapCompleted(context);
         }
 
         #region Inventory Events
@@ -175,24 +175,24 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Обработчик события добавления предмета в инвентарь
         /// </summary>
-        private void OnInventoryItemAdded(object sender, InventoryItemEventArgs args)
+        private void OnInventoryItemAdded(InventoryItemEventContext context)
         {
             if (_isSyncing) return;
 
-            Extentions.DragAndDropLog($"[{GetType().Name}] Item added: {args.Item.DisplayName} x{args.Count} (from: {args.SourceInventory?.GetType().Name ?? "null"})");
-            OnItemAddedToUI(args);
+            Extentions.DragAndDropLog($"[{GetType().Name}] Item added: {context.Item.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
+            OnItemAddedToUI(context);
         }
 
         /// <summary>
         /// Обработчик события удаления предмета из инвентаря
         /// </summary>
-        private void OnInventoryItemRemoved(object sender, InventoryItemEventArgs args)
+        private void OnInventoryItemRemoved(InventoryItemEventContext context)
         {
             if (_isSyncing) return;
 
-            Extentions.DragAndDropLog($"[{GetType().Name}] Item removed: {args.Item.DisplayName} x{args.Count} (to: {args.TargetInventory?.GetType().Name ?? "null"})");
+            Extentions.DragAndDropLog($"[{GetType().Name}] Item removed: {context.Item.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
 
-            OnItemRemovedFromUI(args);
+            OnItemRemovedFromUI(context);
         }
 
         #endregion
@@ -203,15 +203,15 @@ namespace DragAndDropSystem.DataBinding
         /// Вызывается когда в UI добавили предмет
         /// Здесь нужно обновить внешние данные (добавить в список GameManager)
         /// </summary>
-        /// <param name="args">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
-        protected abstract void OnItemAddedToUI(InventoryItemEventArgs args);
+        /// <param name="context">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
+        protected abstract void OnItemAddedToUI(InventoryItemEventContext context);
 
         /// <summary>
         /// Вызывается когда из UI убрали предмет
         /// Здесь нужно обновить внешние данные (убрать из списка GameManager)
         /// </summary>
-        /// <param name="args">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
-        protected abstract void OnItemRemovedFromUI(InventoryItemEventArgs args);
+        /// <param name="context">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
+        protected abstract void OnItemRemovedFromUI(InventoryItemEventContext context);
 
         /// <summary>
         /// Синхронизировать UI с внешними данными
@@ -315,7 +315,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         /// <param name="args">Аргументы события swap с информацией об обоих стаках и слотах</param>
         /// <returns>Результат валидации. Если вернуть Failure - swap будет отменен</returns>
-        protected virtual RuleResult CanSwapInternal(InventorySwapEventArgs args)
+        protected virtual RuleResult CanSwapInternal(InventorySwapContext args)
         {
             // По умолчанию разрешаем (базовая валидация уже выполнена)
             return RuleResult.Success();
@@ -331,7 +331,7 @@ namespace DragAndDropSystem.DataBinding
         /// - Специальная обработка экипировки (если swap с инвентаря на слот экипировки)
         /// </summary>
         /// <param name="args">Аргументы события swap с информацией об обоих стаках и слотах</param>
-        protected virtual void OnSwapCompleted(InventorySwapEventArgs args)
+        protected virtual void OnSwapCompleted(InventorySwapContext args)
         {
             // По умолчанию ничего не делаем
             // События OnItemAdded/OnItemRemoved уже сгенерированы для обоих инвентарей

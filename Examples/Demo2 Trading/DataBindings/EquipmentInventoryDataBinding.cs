@@ -104,14 +104,14 @@ namespace DragAndDropSystem.Examples.Trading
         /// Обработка экипировки предмета
         /// Когда предмет добавляется в слот экипировки - экипируем его в PlayerData
         /// </summary>
-        protected override void OnItemAddedToUI(InventoryItemEventArgs args)
+        protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
             // Если мы сейчас синхронизируем UI - не обновляем данные
             if (_isSyncing) return;
 
             // Пытаемся получить адаптер правильного типа
-            TradableItemModelAdapter modelAdapter = args.Item as TradableItemModelAdapter;
-            TradableSoAdapter soAdapter = args.Item as TradableSoAdapter;
+            TradableItemModelAdapter modelAdapter = context.Item as TradableItemModelAdapter;
+            TradableSoAdapter soAdapter = context.Item as TradableSoAdapter;
 
             if (modelAdapter == null && soAdapter == null)
             {
@@ -120,9 +120,9 @@ namespace DragAndDropSystem.Examples.Trading
             }
 
             // Если предмет пришел от торговца - покупаем у него
-            TryHandlePurchaseFromMerchant(args);
+            TryHandlePurchaseFromMerchant(context);
 
-            var slot = args.TargetSlot;
+            var slot = context.TargetSlot;
             TradableItemModel item;
 
             // Получаем модель предмета
@@ -133,7 +133,7 @@ namespace DragAndDropSystem.Examples.Trading
             else // soAdapter != null
             {
                 // Конвертируем SO адаптер в Model адаптер
-                item = ConvertAndReplaceSOAdapter(args.TargetSlot, soAdapter);
+                item = ConvertAndReplaceSOAdapter(context.TargetSlot, soAdapter);
             }
 
             // Экипируем предмет в соответствующий слот
@@ -163,35 +163,35 @@ namespace DragAndDropSystem.Examples.Trading
         /// Обработка снятия экипировки
         /// Когда предмет удаляется из слота экипировки - снимаем его в PlayerData
         /// </summary>
-        protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             // Если мы сейчас синхронизируем UI - не обновляем данные
             if (_isSyncing) return;
 
             // Если предмет ушел к торговцу - продаем ему
-            TryHandleSellToMerchant(args);
+            TryHandleSellToMerchant(context);
 
             // Снимаем экипировку из соответствующего слота
-            var slot = args.SourceSlot;
+            var slot = context.SourceSlot;
             if (ReferenceEquals(slot, _weaponSlot))
             {
                 PlayerData.UnequipWeapon();
-                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped weapon: {args.Item.DisplayName}");
+                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped weapon: {context.Item.DisplayName}");
             }
             else if (ReferenceEquals(slot, _armorSlot))
             {
                 PlayerData.UnequipArmor();
-                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped armor: {args.Item.DisplayName}");
+                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped armor: {context.Item.DisplayName}");
             }
             else if (ReferenceEquals(slot, _artifact1Slot))
             {
                 PlayerData.UnequipArtifact1();
-                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped artifact 1: {args.Item.DisplayName}");
+                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped artifact 1: {context.Item.DisplayName}");
             }
             else if (ReferenceEquals(slot, _artifact2Slot))
             {
                 PlayerData.UnequipArtifact2();
-                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped artifact 2: {args.Item.DisplayName}");
+                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Unequipped artifact 2: {context.Item.DisplayName}");
             }
         }
 

@@ -30,18 +30,18 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         [SerializeField, Tooltip("Пример: запретить сброс предметов в этот инвентарь")]
         private bool _preventDropToInventory = false;
 
-        protected override void OnItemAddedToUI(InventoryItemEventArgs args)
+        protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (args.Item is ItemSOAdapter adapter)
+            if (context.Item is ItemSOAdapter adapter)
             {
                 var itemSO = adapter.item;
                 items.Add(itemSO);
             }
         }
 
-        protected override void OnItemRemovedFromUI(InventoryItemEventArgs args)
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (args.Item is ItemSOAdapter adapter)
+            if (context.Item is ItemSOAdapter adapter)
             {
                 var itemSO = adapter.item;
                 items.Remove(itemSO);

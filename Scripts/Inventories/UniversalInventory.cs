@@ -119,16 +119,16 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Событие добавления предмета в этот инвентарь
         /// </summary>
-        public event EventHandler<InventoryItemEventArgs> OnItemAdded;
+        public event Action<InventoryItemEventContext> OnItemAdded;
 
         /// <summary>
         /// Событие удаления предмета из этого инвентаря
         /// </summary>
-        public event EventHandler<InventoryItemEventArgs> OnItemRemoved;
+        public event Action<InventoryItemEventContext> OnItemRemoved;
 
         internal void EmitItemAdded(IInventoryItem item, int count, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
         {
-            OnItemAdded?.Invoke(this, new InventoryItemEventArgs(
+            OnItemAdded?.Invoke(new InventoryItemEventContext(
                 item,
                 count,
                 slotIndex,
@@ -140,7 +140,7 @@ namespace DragAndDropSystem.Inventories
 
         internal void EmitItemRemoved(IInventoryItem item, int count, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
         {
-            OnItemRemoved?.Invoke(this, new InventoryItemEventArgs(
+            OnItemRemoved?.Invoke(new InventoryItemEventContext(
                 item,
                 count,
                 slotIndex,

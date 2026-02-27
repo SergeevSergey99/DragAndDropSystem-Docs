@@ -7,7 +7,7 @@ namespace DragAndDropSystem.Core
     /// <summary>
     /// Аргументы событий инвентаря (добавление/удаление предметов)
     /// </summary>
-    public class InventoryItemEventArgs : EventArgs
+    public class InventoryItemEventContext
     {
         public IInventoryItem Item { get; }
         public int Count { get; }
@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Core
         /// </summary>
         public ISlot TargetSlot { get; }
 
-        public InventoryItemEventArgs(
+        public InventoryItemEventContext(
             IInventoryItem item,
             int count,
             int slotIndex = -1,
@@ -59,7 +59,7 @@ namespace DragAndDropSystem.Core
     /// <summary>
     /// Аргументы событий обмена предметов (swap)
     /// </summary>
-    public class InventorySwapEventArgs : EventArgs
+    public class InventorySwapContext
     {
         /// <summary>
         /// Стак из исходного слота (будет перемещен в целевой)
@@ -96,7 +96,7 @@ namespace DragAndDropSystem.Core
         /// </summary>
         public bool Cancel { get; set; }
 
-        public InventorySwapEventArgs(
+        public InventorySwapContext(
             ItemStack sourceStack,
             ItemStack targetStack,
             ISlot sourceSlot,

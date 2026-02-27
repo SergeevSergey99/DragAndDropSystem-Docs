@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Slots
         public abstract void ReplaceItem(IInventoryItem newItem);
         public abstract void Clear();
         public abstract void UpdateVisuals();
-
+        
         /// <summary>
         /// Установить состояние интерактивности слота.
         /// Вызывается FilterSortController для фильтрации/сортировки.
@@ -57,5 +57,7 @@ namespace DragAndDropSystem.Slots
         {
             // По умолчанию ничего не делаем - наследники могут переопределить
         }
+
+        public int GetDragAmount() => Inventory?.GetDragAmount(this) ?? 0;
     }
 }
