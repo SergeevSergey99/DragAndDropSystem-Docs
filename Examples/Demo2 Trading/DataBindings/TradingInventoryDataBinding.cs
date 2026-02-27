@@ -19,20 +19,20 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности покупки предмета у торговца
         /// Возвращает null если источник не торговец, иначе результат проверки денег
         /// </summary>
-        protected RuleResult? ValidatePurchaseFromMerchant(DragContext context)
+        protected RuleResult? ValidatePurchaseFromMerchant(DragContext context, DragEntry entry)
         {
             // Если источник не торговец - возвращаем null (не наша ответственность)
-            if (context.SourceInventory?.DataBinding is not MerchantInventoryDataBinding)
+            if (entry.SourceInventory?.DataBinding is not MerchantInventoryDataBinding)
                 return null;
 
             // Проверяем тип адаптера
-            if (context.DraggedStack.Item is not TradableSoAdapter adapter)
+            if (entry.Stack.Item is not TradableSoAdapter adapter)
             {
                 return RuleResult.Failure("Неверный тип предмета");
             }
 
             // Вычисляем стоимость покупки
-            int totalPrice = adapter.BuyPrice * context.DraggedStack.Count;
+            int totalPrice = adapter.BuyPrice * entry.Stack.Count;
 
             // Проверяем достаточно ли денег у игрока
             if (!TradingEconomyManager.Instance.CanPlayerAfford(totalPrice))
@@ -97,9 +97,9 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка что операция является программным добавлением (из SyncToUI)
         /// Такие операции всегда разрешаем без дополнительных проверок
         /// </summary>
-        protected bool IsProgrammaticOperation(DragContext context)
+        protected bool IsProgrammaticOperation(DragContext context, DragEntry entry)
         {
-            return context.SourceInventory == null;
+            return entry.SourceInventory == null;
         }
     }
 }

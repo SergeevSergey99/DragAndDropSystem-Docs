@@ -72,7 +72,9 @@ namespace DragAndDropSystem.Core
             visualRect.position = startPos;
 
             // Показываем визуал с предметом
-            dragVisual.Show(stack);
+            // Create a temporary DragEntry for the visual
+            var entries = new[] { new DragEntry(stack, sourceSlot, null) };
+            dragVisual.Show(entries);
 
             // Создаем анимацию
             Tween tween;

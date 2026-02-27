@@ -51,12 +51,16 @@ namespace DragAndDropSystem.UI
             if (_dragManager == null || !_dragManager.IsDragging || _inventory == null)
                 return;
 
-            var draggedStack = _dragManager.CurrentContext?.DraggedStack;
-            if (draggedStack == null || draggedStack.Item == null)
+            var context = _dragManager.CurrentContext;
+            if (context == null || context.Entries.Count == 0)
+                return;
+
+            var stack = context.Entries[0].Stack;
+            if (stack == null || stack.Item == null)
                 return;
 
             // Проверяем может ли инвентарь принять этот предмет
-            bool canAccept = _inventory.CanAcceptItem(draggedStack.Item, draggedStack.Count, out ISlot suggestedSlot);
+            bool canAccept = _inventory.CanAcceptItem(stack.Item, stack.Count, out ISlot suggestedSlot);
 
             if (!canAccept)
             {

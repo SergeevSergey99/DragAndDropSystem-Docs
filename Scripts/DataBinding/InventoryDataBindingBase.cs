@@ -286,7 +286,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         /// <param name="context">Контекст перетаскивания</param>
         /// <returns>Результат валидации</returns>
-        protected virtual RuleResult CanStartDragInternal(DragContext context)
+        protected virtual RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
         {
             // По умолчанию разрешаем
             return RuleResult.Success();
@@ -297,8 +297,9 @@ namespace DragAndDropSystem.DataBinding
         /// Переопределите этот метод для добавления кастомной логики проверки
         /// </summary>
         /// <param name="context">Контекст перетаскивания</param>
+        /// <param name="entry">Конкретный элемент перетаскивания</param>
         /// <returns>Результат валидации</returns>
-        protected virtual RuleResult CanDropInternal(DragContext context)
+        protected virtual RuleResult CanDropInternal(DragContext context, DragEntry entry)
         {
             // По умолчанию разрешаем
             return RuleResult.Success();
@@ -357,20 +358,20 @@ namespace DragAndDropSystem.DataBinding
 
             public string RuleName => $"[{Priority}] DataBinding ({_owner.GetType().Name})";
 
-            public RuleResult CanStartDrag(DragContext context)
+            public RuleResult CanStartDrag(DragContext context, DragEntry entry)
             {
                 if (_owner == null)
                     return RuleResult.Success();
 
-                return _owner.CanStartDragInternal(context);
+                return _owner.CanStartDragInternal(context, entry);
             }
 
-            public RuleResult CanDrop(DragContext context)
+            public RuleResult CanDrop(DragContext context, DragEntry entry)
             {
                 if (_owner == null)
                     return RuleResult.Success();
 
-                return _owner.CanDropInternal(context);
+                return _owner.CanDropInternal(context, entry);
             }
         }
 

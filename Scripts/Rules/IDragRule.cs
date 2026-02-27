@@ -22,6 +22,7 @@ namespace DragAndDropSystem.Rules
 
     /// <summary>
     /// Базовый интерфейс для правила drag-and-drop
+    /// Каждое правило получает контекст (Target) и конкретный entry (Source/Stack)
     /// </summary>
     public interface IDragRule
     {
@@ -38,12 +39,21 @@ namespace DragAndDropSystem.Rules
         /// <summary>
         /// Проверить, можно ли начать перетаскивание
         /// </summary>
-        RuleResult CanStartDrag(DragContext context);
+        RuleResult CanStartDrag(DragContext context, DragEntry entry);
 
         /// <summary>
         /// Проверить, можно ли бросить предмет в целевой слот
         /// </summary>
-        RuleResult CanDrop(DragContext context);
+        RuleResult CanDrop(DragContext context, DragEntry entry);
+    }
+
+    /// <summary>
+    /// Опциональный интерфейс для правил, проверяющих всю группу entries целиком
+    /// </summary>
+    public interface IBatchDragRule
+    {
+        RuleResult CanStartBatchDrag(DragContext context);
+        RuleResult CanDropBatch(DragContext context);
     }
 
     /// <summary>
@@ -71,12 +81,12 @@ namespace DragAndDropSystem.Rules
         // Для отображения в Odin Inspector
         public virtual string RuleName => $"[{Priority}] {GetType().Name.Replace("Rule", "")}";
 
-        public virtual RuleResult CanStartDrag(DragContext context)
+        public virtual RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             return RuleResult.Success();
         }
 
-        public virtual RuleResult CanDrop(DragContext context)
+        public virtual RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             return RuleResult.Success();
         }

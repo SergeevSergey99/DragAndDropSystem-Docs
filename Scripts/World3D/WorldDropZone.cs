@@ -59,12 +59,16 @@ namespace DragAndDropSystem.World3D
             if (_dragManager == null || !_dragManager.IsDragging)
                 return;
 
-            var draggedStack = _dragManager.CurrentContext?.DraggedStack;
-            if (draggedStack == null || draggedStack.Item == null)
+            var context = _dragManager.CurrentContext;
+            if (context == null || context.Entries.Count == 0)
+                return;
+
+            var stack = context.Entries[0].Stack;
+            if (stack == null || stack.Item == null)
                 return;
 
             // Проверяем, есть ли у предмета 3D представление
-            _canAcceptCurrentItem = draggedStack.Item is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
+            _canAcceptCurrentItem = stack.Item is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
 
             // Добавляем себя в стек целей
             _dragManager.PushDropTarget(this);
@@ -149,45 +153,72 @@ namespace DragAndDropSystem.World3D
 
         public bool CanAcceptDrop(DragContext context)
         {
-            if (context?.DraggedStack?.Item == null)
+            if (context == null || context.Entries.Count == 0)
                 return false;
 
-            // Check if item has 3D world representation
-            bool canAccept = context.DraggedStack.Item is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
+            // Check all entries have 3D world representation
+            foreach (var entry in context.Entries)
+            {
+                if (entry.Stack?.Item == null)
+                    return false;
 
-            Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: {canAccept}</color>");
-            return canAccept;
+                if (entry.Stack.Item is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                {
+                    Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: false (entry missing 3D adapter)</color>");
+                    return false;
+                }
+            }
+
+            Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: true</color>");
+            return true;
         }
 
         public DropResult HandleDrop(DragContext context)
         {
-            if (context?.DraggedStack == null)
+            if (context == null || context.Entries.Count == 0)
             {
                 return DropResult.Failed("Invalid drag context");
             }
 
-            var stack = context.DraggedStack;
-            var sourceSlot = context.SourceSlot;
-            int amountToSpawn = stack.Count;
+            int totalSpawned = 0;
+            IInventoryItem lastItem = null;
 
-            if (!SpawnItemInWorld(stack))
+            // Handle each entry
+            foreach (var entry in context.Entries)
             {
-                return DropResult.Failed("Failed to spawn item in world");
+                var stack = entry.Stack;
+                var sourceSlot = entry.SourceSlot;
+
+                if (stack == null || stack.IsEmpty)
+                    continue;
+
+                int amountToSpawn = stack.Count;
+
+                if (!SpawnItemInWorld(stack))
+                    continue;
+
+                // Remove items from source slot
+                if (sourceSlot?.Stack != null && !sourceSlot.Stack.IsEmpty)
+                {
+                    sourceSlot.Stack.RemoveFromStack(amountToSpawn);
+                    sourceSlot.UpdateVisuals();
+                    Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {amountToSpawn} items from source slot {sourceSlot.Index}</color>");
+                }
+
+                totalSpawned += amountToSpawn;
+                lastItem = stack.Item;
             }
 
-            // Remove items from source slot (the dragged stack is a copy, source slot still has items)
-            if (sourceSlot?.Stack != null && !sourceSlot.Stack.IsEmpty)
+            if (totalSpawned > 0)
             {
-                sourceSlot.Stack.RemoveFromStack(amountToSpawn);
-                sourceSlot.UpdateVisuals();
-                Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {amountToSpawn} items from source slot {sourceSlot.Index}</color>");
+                return DropResult.Succeeded(
+                    item: lastItem,
+                    amount: totalSpawned,
+                    targetSlot: null,
+                    targetInventory: null);
             }
 
-            return DropResult.Succeeded(
-                item: stack.Item,
-                amount: amountToSpawn,
-                targetSlot: null,
-                targetInventory: null);
+            return DropResult.Failed("Failed to spawn items in world");
         }
 
         /// <summary>
@@ -237,7 +268,7 @@ namespace DragAndDropSystem.World3D
                     worldItem = spawnedObject.AddComponent<WorldItem>();
                 }
                 worldItem.Initialize(stack.Item, 1);
-                
+
                 // Небольшое смещение для следующего предмета
                 if (_randomizePosition)
                 {

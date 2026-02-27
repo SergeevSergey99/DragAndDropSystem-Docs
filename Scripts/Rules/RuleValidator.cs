@@ -105,15 +105,15 @@ namespace DragAndDropSystem.Rules
             BuildCombinedRules(visitedPresets);
 
         /// <summary>
-        /// Валидация начала перетаскивания
+        /// Валидация начала перетаскивания для конкретного entry
         /// </summary>
-        public RuleResult ValidateStartDrag(DragContext context)
+        public RuleResult ValidateStartDrag(DragContext context, DragEntry entry)
         {
             foreach (var rule in BuildCombinedRules(null))
             {
                 if (rule == null) continue;
 
-                var result = rule.CanStartDrag(context);
+                var result = rule.CanStartDrag(context, entry);
                 if (!result.IsValid)
                 {
                     return result;
@@ -123,15 +123,15 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Валидация сброса предмета
+        /// Валидация сброса предмета для конкретного entry
         /// </summary>
-        public RuleResult ValidateDrop(DragContext context)
+        public RuleResult ValidateDrop(DragContext context, DragEntry entry)
         {
             foreach (var rule in BuildCombinedRules(null))
             {
                 if (rule == null) continue;
 
-                var result = rule.CanDrop(context);
+                var result = rule.CanDrop(context, entry);
                 if (!result.IsValid)
                 {
                     return result;

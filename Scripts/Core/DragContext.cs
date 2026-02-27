@@ -1,23 +1,37 @@
+using System.Collections.Generic;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Inventories;
 
 namespace DragAndDropSystem.Core
 {
     /// <summary>
+    /// Один элемент операции перетаскивания (источник + стак)
+    /// </summary>
+    public readonly struct DragEntry
+    {
+        public ItemStack Stack { get; }
+        public ISlot SourceSlot { get; }
+        public IInventory SourceInventory { get; }
+
+        public DragEntry(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
+        {
+            Stack = stack;
+            SourceSlot = sourceSlot;
+            SourceInventory = sourceInventory;
+        }
+    }
+
+    /// <summary>
     /// Контекст операции перетаскивания
-    /// Содержит всю информацию о текущей операции drag-and-drop
+    /// Поддерживает как одиночный, так и множественный drag (batch)
     /// </summary>
     public class DragContext
     {
-        public ItemStack DraggedStack { get; private set; }
-        public ISlot SourceSlot { get; private set; }
-        public IInventory SourceInventory { get; private set; }
+        public IReadOnlyList<DragEntry> Entries { get; }
+        public bool IsBatchDrag => Entries.Count > 1;
 
         public ISlot TargetSlot { get; set; }
         public IInventory TargetInventory { get; set; }
-
-        public bool IsSameSlot => SourceSlot == TargetSlot;
-        public bool IsSameInventory => SourceInventory == TargetInventory;
 
         /// <summary>
         /// True if we have any target (slot or inventory).
@@ -35,11 +49,20 @@ namespace DragAndDropSystem.Core
         /// </summary>
         public bool HasTargetInventory => TargetInventory != null;
 
+        /// <summary>
+        /// Конструктор для одиночного entry (основной сценарий)
+        /// </summary>
         public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
         {
-            DraggedStack = stack;
-            SourceSlot = sourceSlot;
-            SourceInventory = sourceInventory;
+            Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
+        }
+
+        /// <summary>
+        /// Конструктор для множественных entries (batch drag)
+        /// </summary>
+        public DragContext(IReadOnlyList<DragEntry> entries)
+        {
+            Entries = entries;
         }
 
         public void SetTarget(ISlot targetSlot, IInventory targetInventory)

@@ -14,9 +14,9 @@ namespace DragAndDropSystem.Rules
     {
         public override int Priority => 0;
 
-        public override RuleResult CanStartDrag(DragContext context)
+        public override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
-            if (context.SourceSlot == null || context.SourceSlot.IsEmpty)
+            if (entry.SourceSlot == null || entry.SourceSlot.IsEmpty)
                 return RuleResult.Failure("Cannot drag from empty slot");
 
             return RuleResult.Success();
@@ -32,9 +32,9 @@ namespace DragAndDropSystem.Rules
     {
         public override int Priority => 10;
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (context.IsSameSlot)
+            if (entry.SourceSlot == context.TargetSlot)
                 return RuleResult.Failure("Cannot drop to the same slot");
 
             return RuleResult.Success();
@@ -61,9 +61,9 @@ namespace DragAndDropSystem.Rules
 
         public override int Priority => 20;
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (context.IsSameInventory && !_allowMoveWithinInventory)
+            if (entry.SourceInventory == context.TargetInventory && !_allowMoveWithinInventory)
                 return RuleResult.Failure("Moving within same inventory is not allowed");
 
             return RuleResult.Success();
@@ -95,18 +95,18 @@ namespace DragAndDropSystem.Rules
 
         public override int Priority => 50;
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (context.DraggedStack == null || context.DraggedStack.Item == null)
+            if (entry.Stack == null || entry.Stack.Item == null)
                 return RuleResult.Failure("Invalid item");
 
-            bool contains = _allowedItemIds.Contains(context.DraggedStack.Item.ItemId);
+            bool contains = _allowedItemIds.Contains(entry.Stack.Item.ItemId);
 
             if (_whitelist && !contains)
-                return RuleResult.Failure($"Item {context.DraggedStack.Item.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"Item {entry.Stack.Item.DisplayName} is not allowed in this slot");
 
             if (!_whitelist && contains)
-                return RuleResult.Failure($"Item {context.DraggedStack.Item.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"Item {entry.Stack.Item.DisplayName} is not allowed in this slot");
 
             return RuleResult.Success();
         }
@@ -133,13 +133,13 @@ namespace DragAndDropSystem.Rules
 
         public override int Priority => 60;
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             if (context.TargetInventory == null)
                 return RuleResult.Failure("No target inventory");
 
             // Если предмет уже есть в инвентаре, разрешаем
-            if (context.TargetInventory.Contains(context.DraggedStack.Item))
+            if (context.TargetInventory.Contains(entry.Stack.Item))
                 return RuleResult.Success();
 
             // Подсчитываем уникальные предметы
@@ -161,26 +161,26 @@ namespace DragAndDropSystem.Rules
     /// </summary>
     public class SlotLockRule : DragRuleBase, IInventoryRule
     {
-        private readonly System.Func<DragContext, bool> _isSlotLocked;
+        private readonly System.Func<DragContext, DragEntry, bool> _isSlotLocked;
 
-        public SlotLockRule(System.Func<DragContext, bool> isSlotLocked)
+        public SlotLockRule(System.Func<DragContext, DragEntry, bool> isSlotLocked)
         {
             _isSlotLocked = isSlotLocked;
         }
 
         public override int Priority => 5;
 
-        public override RuleResult CanStartDrag(DragContext context)
+        public override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
-            if (_isSlotLocked(context))
+            if (_isSlotLocked(context, entry))
                 return RuleResult.Failure("Slot is locked");
 
             return RuleResult.Success();
         }
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (_isSlotLocked(context))
+            if (_isSlotLocked(context, entry))
                 return RuleResult.Failure("Target slot is locked");
 
             return RuleResult.Success();
@@ -192,12 +192,12 @@ namespace DragAndDropSystem.Rules
     /// </summary>
     public class CustomRule : DragRuleBase, IInventoryRule
     {
-        private readonly System.Func<DragContext, RuleResult> _canStartDragFunc;
-        private readonly System.Func<DragContext, RuleResult> _canDropFunc;
+        private readonly System.Func<DragContext, DragEntry, RuleResult> _canStartDragFunc;
+        private readonly System.Func<DragContext, DragEntry, RuleResult> _canDropFunc;
 
         public CustomRule(
-            System.Func<DragContext, RuleResult> canStartDrag = null,
-            System.Func<DragContext, RuleResult> canDrop = null,
+            System.Func<DragContext, DragEntry, RuleResult> canStartDrag = null,
+            System.Func<DragContext, DragEntry, RuleResult> canDrop = null,
             int priority = 100)
         {
             _canStartDragFunc = canStartDrag;
@@ -207,14 +207,14 @@ namespace DragAndDropSystem.Rules
 
         public override int Priority { get; }
 
-        public override RuleResult CanStartDrag(DragContext context)
+        public override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
-            return _canStartDragFunc?.Invoke(context) ?? RuleResult.Success();
+            return _canStartDragFunc?.Invoke(context, entry) ?? RuleResult.Success();
         }
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            return _canDropFunc?.Invoke(context) ?? RuleResult.Success();
+            return _canDropFunc?.Invoke(context, entry) ?? RuleResult.Success();
         }
     }
 
@@ -239,12 +239,12 @@ namespace DragAndDropSystem.Rules
 
         public override int Priority => 60;
 
-        public override RuleResult CanDrop(DragContext context)
+        public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             if (context.TargetSlot == null)
             {
                 // Дроп в инвентарь без конкретного слота - проверяем стак целиком
-                if (context.DraggedStack.Count > _maxStackSize)
+                if (entry.Stack.Count > _maxStackSize)
                 {
                     return RuleResult.Failure($"Stack size limit is {_maxStackSize}");
                 }
@@ -252,15 +252,15 @@ namespace DragAndDropSystem.Rules
             else if (context.TargetSlot.IsEmpty)
             {
                 // Дроп в пустой слот - проверяем размер дропаемого стака
-                if (context.DraggedStack.Count > _maxStackSize)
+                if (entry.Stack.Count > _maxStackSize)
                 {
                     return RuleResult.Failure($"Stack size limit is {_maxStackSize}");
                 }
             }
-            else if (context.TargetSlot.Stack.CanStack(context.DraggedStack.Item))
+            else if (context.TargetSlot.Stack.CanStack(entry.Stack.Item))
             {
                 // Стакаем предметы - проверяем результирующее количество
-                int resultCount = context.TargetSlot.Stack.Count + context.DraggedStack.Count;
+                int resultCount = context.TargetSlot.Stack.Count + entry.Stack.Count;
                 if (resultCount > _maxStackSize)
                 {
                     return RuleResult.Failure($"Stack size limit is {_maxStackSize} (would result in {resultCount})");

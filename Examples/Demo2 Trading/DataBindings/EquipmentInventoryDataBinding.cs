@@ -38,17 +38,17 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности сбросить предмет в слот экипировки
         /// Проверяем соответствие типа предмета типу слота
         /// </summary>
-        protected override RuleResult CanDropInternal(DragContext context)
+        protected override RuleResult CanDropInternal(DragContext context, DragEntry entry)
         {
             // Если это программное добавление (SyncToUI) - разрешаем
-            if (IsProgrammaticOperation(context))
+            if (IsProgrammaticOperation(context, entry))
             {
                 return RuleResult.Success();
             }
 
             // Поддерживаем оба типа адаптеров: от игрока (Model) и от торговца (SO)
-            TradableItemModelAdapter modelAdapter = context.DraggedStack.Item as TradableItemModelAdapter;
-            TradableSoAdapter soAdapter = context.DraggedStack.Item as TradableSoAdapter;
+            TradableItemModelAdapter modelAdapter = entry.Stack.Item as TradableItemModelAdapter;
+            TradableSoAdapter soAdapter = entry.Stack.Item as TradableSoAdapter;
 
             if (modelAdapter == null && soAdapter == null)
             {
@@ -56,7 +56,7 @@ namespace DragAndDropSystem.Examples.Trading
             }
 
             // Проверяем покупку у торговца (если применимо)
-            var purchaseResult = ValidatePurchaseFromMerchant(context);
+            var purchaseResult = ValidatePurchaseFromMerchant(context, entry);
             if (purchaseResult.HasValue && !purchaseResult.Value.IsValid)
             {
                 return purchaseResult.Value;
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности начать перетаскивание из слота экипировки
         /// Разрешаем снимать экипировку
         /// </summary>
-        protected override RuleResult CanStartDragInternal(DragContext context)
+        protected override RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
         {
             return RuleResult.Success();
         }

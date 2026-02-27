@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CodeUtils;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
@@ -17,7 +18,7 @@ namespace DragAndDropSystem
     /// Новое поколение менеджера drag-and-drop
     /// Работает через композицию, правила и стратегии
     /// </summary>
-    
+
 #if ENABLE_REFLEX_DI
     public class DragAndDropManager : MonoBehaviour, IDragEvents
 #else
@@ -45,7 +46,7 @@ namespace DragAndDropSystem
         private AutoTransferAnimationStrategy _autoTransferAnimation;
 
         // Список активных анимационных визуалов для поддержки множественных анимаций
-        private System.Collections.Generic.List<GameObject> _activeAnimationVisuals = new System.Collections.Generic.List<GameObject>();
+        private List<GameObject> _activeAnimationVisuals = new List<GameObject>();
 
         private DragContext _currentContext;
         private ISlot _hoveredSlot;
@@ -55,10 +56,10 @@ namespace DragAndDropSystem
         private IDragVisual _currentVisual;
 
         // Стек целей drop операций (для корректной обработки вложенных областей и слотов)
-        private System.Collections.Generic.List<IDropTarget> _dropTargetStack = new System.Collections.Generic.List<IDropTarget>();
+        private List<IDropTarget> _dropTargetStack = new List<IDropTarget>();
 
         // Кеш визуалов: префаб → созданный экземпляр
-        private System.Collections.Generic.Dictionary<MonoBehaviour, IDragVisual> _visualCache = new System.Collections.Generic.Dictionary<MonoBehaviour, IDragVisual>();
+        private Dictionary<MonoBehaviour, IDragVisual> _visualCache = new Dictionary<MonoBehaviour, IDragVisual>();
         private IDragVisual _defaultVisualInstance;
         private readonly InventoryTransferService _transferService = new InventoryTransferService();
 
@@ -141,7 +142,7 @@ namespace DragAndDropSystem
             {
                 return false;
             }
-            
+
             if (sourceSlot.Inventory == null)
             {
                 Debug.LogError("StartDrag: sourceInventory is null! Slot not initialized?");
@@ -157,6 +158,8 @@ namespace DragAndDropSystem
             var stack = new ItemStack(sourceSlot.Stack.Item, dragCount);
             _currentContext = new DragContext(stack, sourceSlot, sourceSlot.Inventory);
 
+            var entry = _currentContext.Entries[0];
+
             // Проверяем правила начала перетаскивания
             var eventArgs = new DragEventArgs(_currentContext);
             OnDragStarting?.Invoke(this, eventArgs);
@@ -168,7 +171,7 @@ namespace DragAndDropSystem
             }
 
             // Проверяем глобальные правила
-            var globalResult = _globalRules.ValidateStartDrag(_currentContext);
+            var globalResult = _globalRules.ValidateStartDrag(_currentContext, entry);
             if (!globalResult.IsValid)
             {
                 Extentions.DragAndDropLog($"Cannot start drag: {globalResult.FailureReason}");
@@ -179,7 +182,7 @@ namespace DragAndDropSystem
             // Проверяем правила инвентаря
             if (sourceSlot.Inventory is UniversalInventory universalInventory)
             {
-                var inventoryResult = universalInventory.RuleValidator.ValidateStartDrag(_currentContext);
+                var inventoryResult = universalInventory.RuleValidator.ValidateStartDrag(_currentContext, entry);
                 if (!inventoryResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"Cannot start drag: {inventoryResult.FailureReason}");
@@ -190,11 +193,11 @@ namespace DragAndDropSystem
 
             // Выбираем визуал (кастомный из инвентаря или дефолтный)
             _currentVisual = GetDragVisual(sourceSlot.Inventory);
-            
+
             if (_currentVisual != null)
             {
                 _currentVisual.UpdatePosition(GetMousePosition());
-                _currentVisual.Show(stack);
+                _currentVisual.Show(_currentContext.Entries);
             }
             else
             {
@@ -204,6 +207,80 @@ namespace DragAndDropSystem
             OnDragStarted?.Invoke(this, new DragEventArgs(_currentContext));
 
             Extentions.DragAndDropLog($"<color=green>Started dragging</color>");
+            return true;
+        }
+
+        /// <summary>
+        /// Начать batch-перетаскивание из нескольких слотов
+        /// </summary>
+        public bool StartDrag(IReadOnlyList<ISlot> sourceSlots)
+        {
+            if (IsDragging || sourceSlots == null || sourceSlots.Count == 0)
+                return false;
+
+            // Single slot — delegate to standard path
+            if (sourceSlots.Count == 1)
+                return StartDrag(sourceSlots[0]);
+
+            // Build entries
+            var entries = new List<DragEntry>(sourceSlots.Count);
+            foreach (var slot in sourceSlots)
+            {
+                if (slot == null || slot.IsEmpty || slot.Inventory == null)
+                    continue;
+
+                int dragCount = slot.Inventory.GetDragAmount(slot);
+                var stack = new ItemStack(slot.Stack.Item, dragCount);
+                entries.Add(new DragEntry(stack, slot, slot.Inventory));
+            }
+
+            if (entries.Count == 0)
+                return false;
+
+            _currentContext = new DragContext(entries);
+
+            // Event: starting
+            var eventArgs = new DragEventArgs(_currentContext);
+            OnDragStarting?.Invoke(this, eventArgs);
+            if (eventArgs.Cancel)
+            {
+                _currentContext = null;
+                return false;
+            }
+
+            // Validate each entry against rules
+            foreach (var entry in _currentContext.Entries)
+            {
+                var globalResult = _globalRules.ValidateStartDrag(_currentContext, entry);
+                if (!globalResult.IsValid)
+                {
+                    Extentions.DragAndDropLog($"Cannot start batch drag: {globalResult.FailureReason}");
+                    _currentContext = null;
+                    return false;
+                }
+
+                if (entry.SourceInventory is UniversalInventory universalInventory)
+                {
+                    var inventoryResult = universalInventory.RuleValidator.ValidateStartDrag(_currentContext, entry);
+                    if (!inventoryResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"Cannot start batch drag: {inventoryResult.FailureReason}");
+                        _currentContext = null;
+                        return false;
+                    }
+                }
+            }
+
+            // Visual: use first entry's inventory for visual
+            _currentVisual = GetDragVisual(entries[0].SourceInventory);
+            if (_currentVisual != null)
+            {
+                _currentVisual.UpdatePosition(GetMousePosition());
+                _currentVisual.Show(_currentContext.Entries);
+            }
+
+            OnDragStarted?.Invoke(this, new DragEventArgs(_currentContext));
+            Extentions.DragAndDropLog($"<color=green>Started batch dragging ({entries.Count} entries)</color>");
             return true;
         }
 
@@ -533,6 +610,7 @@ namespace DragAndDropSystem
 
         /// <summary>
         /// Проверить, можно ли сбросить в текущий наведенный слот
+        /// Проверяет все entries контекста
         /// </summary>
         private bool CanDropToSlot()
         {
@@ -542,33 +620,36 @@ namespace DragAndDropSystem
                 return false;
             }
 
-            // Глобальные правила
-            var globalResult = _globalRules.ValidateDrop(_currentContext);
-            if (!globalResult.IsValid)
+            foreach (var entry in _currentContext.Entries)
             {
-                Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Global rule failed: {globalResult.FailureReason}</color>");
-                return false;
-            }
-
-            // Правила целевого инвентаря
-            if (_currentContext.TargetInventory is UniversalInventory targetInventory)
-            {
-                var inventoryResult = targetInventory.RuleValidator.ValidateDrop(_currentContext);
-                if (!inventoryResult.IsValid)
+                // Глобальные правила
+                var globalResult = _globalRules.ValidateDrop(_currentContext, entry);
+                if (!globalResult.IsValid)
                 {
-                    Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Inventory rule failed: {inventoryResult.FailureReason}</color>");
+                    Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Global rule failed: {globalResult.FailureReason}</color>");
                     return false;
                 }
-            }
 
-            // Правила конкретного слота
-            if (_currentContext.TargetSlot?.SlotRuleValidator != null)
-            {
-                var slotResult = _currentContext.TargetSlot.SlotRuleValidator.ValidateDrop(_currentContext);
-                if (!slotResult.IsValid)
+                // Правила целевого инвентаря
+                if (_currentContext.TargetInventory is UniversalInventory targetInventory)
                 {
-                    Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Slot rule failed: {slotResult.FailureReason}</color>");
-                    return false;
+                    var inventoryResult = targetInventory.RuleValidator.ValidateDrop(_currentContext, entry);
+                    if (!inventoryResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Inventory rule failed: {inventoryResult.FailureReason}</color>");
+                        return false;
+                    }
+                }
+
+                // Правила конкретного слота
+                if (_currentContext.TargetSlot?.SlotRuleValidator != null)
+                {
+                    var slotResult = _currentContext.TargetSlot.SlotRuleValidator.ValidateDrop(_currentContext, entry);
+                    if (!slotResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Slot rule failed: {slotResult.FailureReason}</color>");
+                        return false;
+                    }
                 }
             }
 
@@ -664,18 +745,22 @@ namespace DragAndDropSystem
             if (!result.Success || result.Item == null)
                 return;
 
+            // For batch: events are dispatched per-entry by the handler
+            // For single: dispatch source/target events
+            var entry = _currentContext.Entries[0];
+
             // Source inventory events
-            if (_currentContext.SourceInventory is UniversalInventory sourceUniversal)
+            if (entry.SourceInventory is UniversalInventory sourceUniversal)
             {
                 sourceUniversal.EmitItemRemoved(
                     result.Item,
                     result.Amount,
-                    _currentContext.SourceSlot?.Index ?? -1,
+                    entry.SourceSlot?.Index ?? -1,
                     result.TargetInventory,
-                    _currentContext.SourceSlot,
+                    entry.SourceSlot,
                     result.TargetSlot);
 
-                sourceUniversal.HandleSlotEmptied(_currentContext.SourceSlot);
+                sourceUniversal.HandleSlotEmptied(entry.SourceSlot);
             }
 
             // Target inventory events (only for inventory-based drops)
@@ -685,8 +770,8 @@ namespace DragAndDropSystem
                     result.Item,
                     result.Amount,
                     result.TargetSlot.Index,
-                    _currentContext.SourceInventory,
-                    _currentContext.SourceSlot,
+                    entry.SourceInventory,
+                    entry.SourceSlot,
                     result.TargetSlot);
             }
         }
@@ -705,11 +790,18 @@ namespace DragAndDropSystem
 
         private bool PerformTransfer()
         {
-            var source = _currentContext.SourceInventory;
+            // Batch drag: iterate all entries
+            if (_currentContext.IsBatchDrag)
+            {
+                return PerformBatchTransfer();
+            }
+
+            var entry = _currentContext.Entries[0];
+            var source = entry.SourceInventory;
             var target = _currentContext.TargetInventory;
-            var sourceSlot = _currentContext.SourceSlot;
+            var sourceSlot = entry.SourceSlot;
             var targetSlot = _currentContext.TargetSlot;
-            var draggedStack = _currentContext.DraggedStack;
+            var draggedStack = entry.Stack;
 
             if (source == null || target == null || sourceSlot == null || draggedStack == null)
             {
@@ -717,7 +809,7 @@ namespace DragAndDropSystem
                 return false;
             }
 
-            Extentions.DragAndDropLog($"<color=yellow>PerformTransfer: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={targetSlot?.Index.ToString() ?? "AREA"} | SameInventory={_currentContext.IsSameInventory}</color>");
+            Extentions.DragAndDropLog($"<color=yellow>PerformTransfer: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={targetSlot?.Index.ToString() ?? "AREA"} | SameInventory={entry.SourceInventory == _currentContext.TargetInventory}</color>");
 
             // Попытка swap до начала транзакции, чтобы не терять состояние источника
             if (_autoSwapOnOccupiedSlot && targetSlot != null && !targetSlot.IsEmpty)
@@ -760,13 +852,49 @@ namespace DragAndDropSystem
             return true;
         }
 
+        private bool PerformBatchTransfer()
+        {
+            var target = _currentContext.TargetInventory;
+            if (target == null)
+            {
+                Extentions.DragAndDropLog("<color=red>PerformBatchTransfer: No target inventory</color>");
+                return false;
+            }
+
+            bool anySuccess = false;
+
+            foreach (var entry in _currentContext.Entries)
+            {
+                if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null)
+                    continue;
+
+                var request = new InventoryTransferRequest(
+                    entry.SourceInventory,
+                    entry.SourceSlot,
+                    target,
+                    null, // batch: let inventory find slots
+                    entry.Stack,
+                    true);
+
+                if (_transferService.TryExecuteTransfer(request, out var outcome))
+                {
+                    DispatchTransferEvents(outcome);
+
+                    if (outcome.SourceInventory is UniversalInventory universalSource)
+                    {
+                        universalSource.HandleSlotEmptied(outcome.SourceSlot);
+                    }
+
+                    anySuccess = true;
+                }
+            }
+
+            return anySuccess;
+        }
+
         /// <summary>
         /// Валидация возможности обмена предметов между слотами
-        /// Проверяет:
-        /// 1. Можно ли вытащить предмет из целевого слота (CanStartDrag)
-        /// 2. Можно ли вытащить предмет из исходного слота (уже проверено при StartDrag)
-        /// 3. Можно ли поместить предмет из целевого слота в исходный (CanDrop)
-        /// 4. Можно ли поместить предмет из исходного слота в целевой (CanDrop)
+        /// Только для одиночного drag (не batch)
         /// </summary>
         private bool ValidateSwap(DragContext dragContext, ISlot targetSlot, out DragContext reverseContext)
         {
@@ -778,8 +906,9 @@ namespace DragAndDropSystem
                 return false;
             }
 
-            var sourceSlot = dragContext.SourceSlot;
-            var sourceInventory = dragContext.SourceInventory;
+            var entry = dragContext.Entries[0];
+            var sourceSlot = entry.SourceSlot;
+            var sourceInventory = entry.SourceInventory;
             var targetInventory = dragContext.TargetInventory;
 
             // Создаем копию стака из целевого слота для валидации
@@ -787,9 +916,10 @@ namespace DragAndDropSystem
 
             // 1. Проверяем можно ли вытащить предмет из целевого слота
             reverseContext = new DragContext(targetStack, targetSlot, targetInventory);
+            var reverseEntry = reverseContext.Entries[0];
 
             // Проверяем глобальные правила для вытаскивания из целевого слота
-            var globalStartResult = _globalRules.ValidateStartDrag(reverseContext);
+            var globalStartResult = _globalRules.ValidateStartDrag(reverseContext, reverseEntry);
             if (!globalStartResult.IsValid)
             {
                 Extentions.DragAndDropLog($"<color=red>ValidateSwap: Cannot start drag from target slot: {globalStartResult.FailureReason}</color>");
@@ -799,7 +929,7 @@ namespace DragAndDropSystem
             // Проверяем правила целевого инвентаря для вытаскивания
             if (targetInventory is UniversalInventory targetUniversal)
             {
-                var targetStartResult = targetUniversal.RuleValidator.ValidateStartDrag(reverseContext);
+                var targetStartResult = targetUniversal.RuleValidator.ValidateStartDrag(reverseContext, reverseEntry);
                 if (!targetStartResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>ValidateSwap: Target inventory rejects start drag: {targetStartResult.FailureReason}</color>");
@@ -812,7 +942,7 @@ namespace DragAndDropSystem
             reverseContext.SetTarget(sourceSlot, sourceInventory);
 
             // Глобальные правила
-            var globalDropReverseResult = _globalRules.ValidateDrop(reverseContext);
+            var globalDropReverseResult = _globalRules.ValidateDrop(reverseContext, reverseEntry);
             if (!globalDropReverseResult.IsValid)
             {
                 Extentions.DragAndDropLog($"<color=red>ValidateSwap: Cannot drop target item to source slot (global): {globalDropReverseResult.FailureReason}</color>");
@@ -822,7 +952,7 @@ namespace DragAndDropSystem
             // Правила исходного инвентаря
             if (sourceInventory is UniversalInventory sourceUniversal)
             {
-                var sourceDropResult = sourceUniversal.RuleValidator.ValidateDrop(reverseContext);
+                var sourceDropResult = sourceUniversal.RuleValidator.ValidateDrop(reverseContext, reverseEntry);
                 if (!sourceDropResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>ValidateSwap: Source inventory rejects target item: {sourceDropResult.FailureReason}</color>");
@@ -833,7 +963,7 @@ namespace DragAndDropSystem
             // Правила исходного слота
             if (sourceSlot.SlotRuleValidator != null)
             {
-                var sourceSlotResult = sourceSlot.SlotRuleValidator.ValidateDrop(reverseContext);
+                var sourceSlotResult = sourceSlot.SlotRuleValidator.ValidateDrop(reverseContext, reverseEntry);
                 if (!sourceSlotResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>ValidateSwap: Source slot rejects target item: {sourceSlotResult.FailureReason}</color>");
@@ -842,8 +972,7 @@ namespace DragAndDropSystem
             }
 
             // 2b. Предмет из исходного слота -> целевой слот (уже проверено в CanDropToSlot, но проверим еще раз)
-            // Используем оригинальный dragContext который уже имеет target
-            var globalDropResult = _globalRules.ValidateDrop(dragContext);
+            var globalDropResult = _globalRules.ValidateDrop(dragContext, entry);
             if (!globalDropResult.IsValid)
             {
                 Extentions.DragAndDropLog($"<color=red>ValidateSwap: Cannot drop source item to target slot (global): {globalDropResult.FailureReason}</color>");
@@ -852,7 +981,7 @@ namespace DragAndDropSystem
 
             if (targetInventory is UniversalInventory targetUniversal2)
             {
-                var targetDropResult = targetUniversal2.RuleValidator.ValidateDrop(dragContext);
+                var targetDropResult = targetUniversal2.RuleValidator.ValidateDrop(dragContext, entry);
                 if (!targetDropResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>ValidateSwap: Target inventory rejects source item: {targetDropResult.FailureReason}</color>");
@@ -862,7 +991,7 @@ namespace DragAndDropSystem
 
             if (targetSlot.SlotRuleValidator != null)
             {
-                var targetSlotResult = targetSlot.SlotRuleValidator.ValidateDrop(dragContext);
+                var targetSlotResult = targetSlot.SlotRuleValidator.ValidateDrop(dragContext, entry);
                 if (!targetSlotResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>ValidateSwap: Target slot rejects source item: {targetSlotResult.FailureReason}</color>");
@@ -877,18 +1006,21 @@ namespace DragAndDropSystem
         /// <summary>
         /// Выполнить обмен предметов между слотами
         /// Атомарная операция: либо оба предмета обмениваются, либо ничего не происходит
+        /// Только для одиночного drag (не batch)
         /// </summary>
         private bool TrySwap()
         {
-            if (!IsDragging || !_currentContext.HasTarget || _currentContext.TargetSlot == null)
+            // Swap only for single entry
+            if (!IsDragging || _currentContext.IsBatchDrag || !_currentContext.HasTarget || _currentContext.TargetSlot == null)
             {
                 Extentions.DragAndDropLog("<color=red>TrySwap: Invalid state for swap</color>");
                 return false;
             }
 
-            var sourceSlot = _currentContext.SourceSlot;
+            var entry = _currentContext.Entries[0];
+            var sourceSlot = entry.SourceSlot;
             var targetSlot = _currentContext.TargetSlot;
-            var sourceInventory = _currentContext.SourceInventory;
+            var sourceInventory = entry.SourceInventory;
             var targetInventory = _currentContext.TargetInventory;
 
             if (targetSlot.IsEmpty)
@@ -906,8 +1038,8 @@ namespace DragAndDropSystem
 
             // Создаем событие для возможности отмены или кастомной обработки
             var swapEventArgs = new InventorySwapEventArgs(
-                _currentContext.DraggedStack,
-                reverseContext.DraggedStack,
+                entry.Stack,
+                reverseContext.Entries[0].Stack,
                 sourceSlot,
                 targetSlot,
                 sourceInventory,
@@ -1004,7 +1136,7 @@ namespace DragAndDropSystem
                 Extentions.DragAndDropLog("<color=red>TryAutoTransfer: Invalid parameters (null check)</color>");
                 return false;
             }
-            if (IsDragging && _currentContext.SourceSlot == sourceSlot)
+            if (IsDragging && _currentContext.Entries[0].SourceSlot == sourceSlot)
             {
                 Extentions.DragAndDropLog($"<color=red>Cannot auto-transfer: slot {sourceSlot.Index} is currently being dragged manually</color>");
                 return false;
@@ -1027,6 +1159,8 @@ namespace DragAndDropSystem
             );
             context.TargetInventory = targetInventory;
 
+            var entry = context.Entries[0];
+
             // Генерируем событие попытки автопереноса
             var eventArgs = new AutoTransferEventArgs(context);
             OnAutoTransferAttempting?.Invoke(this, eventArgs);
@@ -1038,7 +1172,7 @@ namespace DragAndDropSystem
             }
 
             // Проверяем глобальные правила
-            var globalResult = _globalRules.ValidateStartDrag(context);
+            var globalResult = _globalRules.ValidateStartDrag(context, entry);
             if (!globalResult.IsValid)
             {
                 Extentions.DragAndDropLog($"<color=red>AutoTransfer failed: {globalResult.FailureReason}</color>");
@@ -1049,7 +1183,7 @@ namespace DragAndDropSystem
             // Проверяем правила исходного инвентаря
             if (sourceInventory is UniversalInventory srcUniversal)
             {
-                var srcResult = srcUniversal.RuleValidator.ValidateStartDrag(context);
+                var srcResult = srcUniversal.RuleValidator.ValidateStartDrag(context, entry);
                 if (!srcResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>AutoTransfer failed (source rules): {srcResult.FailureReason}</color>");
@@ -1061,7 +1195,7 @@ namespace DragAndDropSystem
             // Проверяем правила целевого инвентаря
             if (targetInventory is UniversalInventory tgtUniversal)
             {
-                var tgtResult = tgtUniversal.RuleValidator.ValidateDrop(context);
+                var tgtResult = tgtUniversal.RuleValidator.ValidateDrop(context, entry);
                 if (!tgtResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>AutoTransfer failed (target rules): {tgtResult.FailureReason}</color>");
@@ -1091,7 +1225,7 @@ namespace DragAndDropSystem
                 sourceSlot,
                 targetInventory,
                 context.TargetSlot,
-                context.DraggedStack,
+                entry.Stack,
                 true);
 
             if (!_transferService.TryExecuteTransfer(transferRequest, out var outcome))
@@ -1175,8 +1309,8 @@ namespace DragAndDropSystem
             }
 
             // Создаем временный DragContext для проверки правил слотов
-            // Используем исходный инвентарь из sourceSlot
             var tempContext = new DragContext(transferStack, sourceSlot, sourceSlot.Inventory);
+            var tempEntry = tempContext.Entries[0];
 
             // Проверяем, поддерживает ли целевой инвентарь стакание предметов
             bool shouldTryStacking = true;
@@ -1207,7 +1341,7 @@ namespace DragAndDropSystem
                         // Проверяем правила слота
                         if (slot.SlotRuleValidator != null)
                         {
-                            var slotResult = slot.SlotRuleValidator.ValidateDrop(tempContext);
+                            var slotResult = slot.SlotRuleValidator.ValidateDrop(tempContext, tempEntry);
                             if (!slotResult.IsValid)
                             {
                                 Extentions.DragAndDropLog($"<color=yellow>Slot {slot.Index} with same item rejected by slot rules: {slotResult.FailureReason}</color>");
@@ -1233,7 +1367,7 @@ namespace DragAndDropSystem
                 // Проверяем правила слота
                 if (slot.SlotRuleValidator != null)
                 {
-                    var slotResult = slot.SlotRuleValidator.ValidateDrop(tempContext);
+                    var slotResult = slot.SlotRuleValidator.ValidateDrop(tempContext, tempEntry);
                     if (!slotResult.IsValid)
                     {
                         Extentions.DragAndDropLog($"<color=yellow>Empty slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");

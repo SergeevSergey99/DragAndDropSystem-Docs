@@ -399,17 +399,18 @@ namespace DragAndDropSystem.Inventories
 
             var context = new DragContext(previewStack, null, null);
             context.SetTarget(slot, this);
+            var entry = context.Entries[0];
 
             if (_ruleValidator != null)
             {
-                var inventoryResult = _ruleValidator.ValidateDrop(context);
+                var inventoryResult = _ruleValidator.ValidateDrop(context, entry);
                 if (!inventoryResult.IsValid)
                     return false;
             }
 
             if (slot.SlotRuleValidator != null)
             {
-                var slotResult = slot.SlotRuleValidator.ValidateDrop(context);
+                var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);
                 if (!slotResult.IsValid)
                     return false;
             }
@@ -1028,10 +1029,11 @@ namespace DragAndDropSystem.Inventories
             // Создаем контекст без целевого слота
             var context = new DragContext(previewStack, null, null);
             context.TargetInventory = this;
+            var entry = context.Entries[0];
 
             if (_ruleValidator != null)
             {
-                var inventoryResult = _ruleValidator.ValidateDrop(context);
+                var inventoryResult = _ruleValidator.ValidateDrop(context, entry);
                 if (!inventoryResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: Inventory rules rejected: {inventoryResult.FailureReason}</color>");
@@ -1052,7 +1054,7 @@ namespace DragAndDropSystem.Inventories
                         // Проверяем правила этого слота
                         if (slot.SlotRuleValidator != null)
                         {
-                            var slotResult = slot.SlotRuleValidator.ValidateDrop(context);
+                            var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);
                             if (!slotResult.IsValid)
                                 continue;
                         }
@@ -1072,7 +1074,7 @@ namespace DragAndDropSystem.Inventories
                     // Проверяем правила этого слота
                     if (slot.SlotRuleValidator != null)
                     {
-                        var slotResult = slot.SlotRuleValidator.ValidateDrop(context);
+                        var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);
                         if (!slotResult.IsValid)
                             continue; // Этот слот не подходит
                     }
@@ -1093,9 +1095,9 @@ namespace DragAndDropSystem.Inventories
                     // Создаем временный контекст с виртуальным слотом
                     var virtualSlotContext = new DragContext(previewStack, null, null);
                     virtualSlotContext.TargetInventory = this;
-                    // Слот еще не создан, но проверяем правила префаба
+                    var virtualEntry = virtualSlotContext.Entries[0];
 
-                    var prefabSlotResult = _slotPrefab.SlotRuleValidator.ValidateDrop(virtualSlotContext);
+                    var prefabSlotResult = _slotPrefab.SlotRuleValidator.ValidateDrop(virtualSlotContext, virtualEntry);
                     if (!prefabSlotResult.IsValid)
                     {
                         Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: Slot prefab rules rejected: {prefabSlotResult.FailureReason}</color>");
@@ -1126,10 +1128,11 @@ namespace DragAndDropSystem.Inventories
             var previewStack = new ItemStack(item, 1);
             var context = new DragContext(previewStack, null, null);
             context.TargetInventory = this;
+            var entry = context.Entries[0];
 
             if (_ruleValidator != null)
             {
-                var inventoryResult = _ruleValidator.ValidateDrop(context);
+                var inventoryResult = _ruleValidator.ValidateDrop(context, entry);
                 if (!inventoryResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>[{name}] GetAcceptableCount: Inventory rules rejected</color>");

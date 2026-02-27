@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,9 +39,16 @@ namespace DragAndDropSystem.UI
             Hide();
         }
 
-        public void Show(ItemStack stack)
+        public void Show(IReadOnlyList<DragEntry> entries)
         {
-            if (stack == null || stack.IsEmpty || _iconImage == null)
+            if (entries == null || entries.Count == 0 || _iconImage == null)
+            {
+                Hide();
+                return;
+            }
+
+            var stack = entries[0].Stack;
+            if (stack == null || stack.IsEmpty)
             {
                 Hide();
                 return;
@@ -56,7 +64,12 @@ namespace DragAndDropSystem.UI
 
             if (_countText != null)
             {
-                if (stack.Count > 1)
+                if (entries.Count > 1)
+                {
+                    _countText.gameObject.SetActive(true);
+                    _countText.text = entries.Count.ToString();
+                }
+                else if (stack.Count > 1)
                 {
                     _countText.gameObject.SetActive(true);
                     _countText.text = stack.Count.ToString();

@@ -1,4 +1,4 @@
-﻿using DragAndDropSystem.Core;
+using DragAndDropSystem.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -8,14 +8,14 @@ namespace DragAndDropSystem.Rules
     {
         [SerializeField]
         private CompositeRuleMode _mode = CompositeRuleMode.AND;
-        
+
         [SerializeField, HideLabel]
         private RuleValidator<TRule> _validator = new RuleValidator<TRule>();
 
-        private RuleResult EvaluateRules(DragContext context, System.Func<TRule, RuleResult> evaluator)
+        private RuleResult EvaluateRules(DragContext context, DragEntry entry, System.Func<TRule, RuleResult> evaluator)
         {
             var rules = _validator.GetRules();
-            
+
             foreach (var rule in rules)
             {
                 var result = evaluator(rule);
@@ -32,11 +32,11 @@ namespace DragAndDropSystem.Rules
                 : RuleResult.Failure("All rules failed in OR composite rule.");
         }
 
-        public override RuleResult CanStartDrag(DragContext context) =>
-            EvaluateRules(context, r => r.CanStartDrag(context));
+        public override RuleResult CanStartDrag(DragContext context, DragEntry entry) =>
+            EvaluateRules(context, entry, r => r.CanStartDrag(context, entry));
 
-        public override RuleResult CanDrop(DragContext context) =>
-            EvaluateRules(context, r => r.CanDrop(context));
+        public override RuleResult CanDrop(DragContext context, DragEntry entry) =>
+            EvaluateRules(context, entry, r => r.CanDrop(context, entry));
     }
 
     public class CompositeGlobalRule : CompositeRule<IGlobalRule>, IGlobalRule { }

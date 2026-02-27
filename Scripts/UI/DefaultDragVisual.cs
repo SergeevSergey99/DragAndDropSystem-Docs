@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,9 +25,16 @@ namespace DragAndDropSystem.UI
         public bool IsVisible => gameObject.activeSelf;
 
 
-        public void Show(ItemStack stack)
+        public void Show(IReadOnlyList<DragEntry> entries)
         {
-            if (stack == null || stack.IsEmpty || _iconImage == null)
+            if (entries == null || entries.Count == 0 || _iconImage == null)
+            {
+                Hide();
+                return;
+            }
+
+            var stack = entries[0].Stack;
+            if (stack == null || stack.IsEmpty)
             {
                 Hide();
                 return;
@@ -37,7 +45,13 @@ namespace DragAndDropSystem.UI
 
             if (_showCount && _countText != null)
             {
-                if (stack.Count > 1)
+                // Для batch: показываем общее количество entries, для single - количество в стаке
+                if (entries.Count > 1)
+                {
+                    _countText.gameObject.SetActive(true);
+                    _countText.text = entries.Count.ToString();
+                }
+                else if (stack.Count > 1)
                 {
                     _countText.gameObject.SetActive(true);
                     _countText.text = stack.Count.ToString();

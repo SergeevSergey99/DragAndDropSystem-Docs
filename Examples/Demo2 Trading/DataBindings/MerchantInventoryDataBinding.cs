@@ -162,15 +162,15 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности начать перетаскивание из инвентаря торговца
         /// Проверяем что у игрока достаточно денег для покупки
         /// </summary>
-        protected override RuleResult CanStartDragInternal(DragContext context)
+        protected override RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
         {
-            if (context.DraggedStack.Item is not TradableSoAdapter adapter)
+            if (entry.Stack.Item is not TradableSoAdapter adapter)
             {
                 return RuleResult.Failure("Неверный тип предмета");
             }
 
             // Вычисляем стоимость покупки
-            int totalPrice = adapter.BuyPrice * context.DraggedStack.Count;
+            int totalPrice = adapter.BuyPrice * entry.Stack.Count;
 
             // Проверяем достаточно ли денег у игрока
             if (!TradingEconomyManager.Instance.CanPlayerAfford(totalPrice))
@@ -185,29 +185,29 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности сбросить предмет в инвентарь торговца
         /// Проверяем что предмет идет от игрока и у торговца достаточно денег
         /// </summary>
-        protected override RuleResult CanDropInternal(DragContext context)
+        protected override RuleResult CanDropInternal(DragContext context, DragEntry entry)
         {
             // Если SourceInventory == null, то это программное добавление (SyncToUI)
             // Разрешаем такие операции
-            if (context.SourceInventory == null)
+            if (entry.SourceInventory == null)
             {
                 return RuleResult.Success();
             }
 
             // ВАЖНО: Запрещаем торговлю между торговцами
-            var sourceIsMerchant = context.SourceInventory.DataBinding as MerchantInventoryDataBinding;
+            var sourceIsMerchant = entry.SourceInventory.DataBinding as MerchantInventoryDataBinding;
             if (sourceIsMerchant != null)
             {
                 return RuleResult.Failure("Нельзя торговать между торговцами!");
             }
             // Получаем предмет как TradableItemAdapter
-            if (context.DraggedStack.Item is not TradableItemModelAdapter adapter)
+            if (entry.Stack.Item is not TradableItemModelAdapter adapter)
             {
                 return RuleResult.Failure("Неверный тип предмета");
             }
 
             // Проверяем что источник - это игрок
-            var sourceIsPlayer = context.SourceInventory.DataBinding as TradingInventoryDataBinding;
+            var sourceIsPlayer = entry.SourceInventory.DataBinding as TradingInventoryDataBinding;
             if (sourceIsPlayer == null)
             {
                 return RuleResult.Failure("Можно продавать только предметы из инвентаря игрока");
@@ -215,7 +215,7 @@ namespace DragAndDropSystem.Examples.Trading
 
 
             // Вычисляем стоимость продажи
-            int totalPrice = adapter.SellPrice * context.DraggedStack.Count;
+            int totalPrice = adapter.SellPrice * entry.Stack.Count;
 
             // Проверяем достаточно ли денег у торговца
             if (MerchantData.Money < totalPrice)

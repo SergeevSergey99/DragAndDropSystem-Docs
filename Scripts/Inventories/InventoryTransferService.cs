@@ -326,6 +326,7 @@ namespace DragAndDropSystem.Inventories
 
             // Создаем контекст для валидации правил
             var validationContext = new DragContext(transferStack, sourceSlot, sourceInventory);
+            var validationEntry = validationContext.Entries[0];
 
             foreach (var slot in targetInventory.Slots)
             {
@@ -344,7 +345,7 @@ namespace DragAndDropSystem.Inventories
                 validationContext.SetTarget(slot, targetInventory);
 
                 // Проверяем inventory-level правила (включая DataBinding правила)
-                var inventoryResult = targetInventory.RuleValidator.ValidateDrop(validationContext);
+                var inventoryResult = targetInventory.RuleValidator.ValidateDrop(validationContext, validationEntry);
                 if (!inventoryResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=gray>[InventoryTransferService] Slot {slot.Index} rejected by inventory rules: {inventoryResult.FailureReason}</color>");
@@ -354,7 +355,7 @@ namespace DragAndDropSystem.Inventories
                 // Проверяем slot-level правила
                 if (slot.SlotRuleValidator != null)
                 {
-                    var slotResult = slot.SlotRuleValidator.ValidateDrop(validationContext);
+                    var slotResult = slot.SlotRuleValidator.ValidateDrop(validationContext, validationEntry);
                     if (!slotResult.IsValid)
                     {
                         Extentions.DragAndDropLog($"<color=gray>[InventoryTransferService] Slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using UnityEngine;
 
@@ -9,9 +10,9 @@ namespace DragAndDropSystem.UI
     public interface IDragVisual
     {
         /// <summary>
-        /// Показать визуал с указанным предметом
+        /// Показать визуал с указанными entries
         /// </summary>
-        void Show(ItemStack stack);
+        void Show(IReadOnlyList<DragEntry> entries);
 
         /// <summary>
         /// Скрыть визуал

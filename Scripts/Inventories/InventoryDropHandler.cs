@@ -53,36 +53,40 @@ namespace DragAndDropSystem.Inventories
             // Update context with our target info
             context.SetTarget(_targetSlot, _targetInventory);
 
-            // 1. Global rules
-            if (_globalRules != null)
+            // Validate each entry against all rule tiers
+            foreach (var entry in context.Entries)
             {
-                var globalResult = _globalRules.ValidateDrop(context);
-                if (!globalResult.IsValid)
+                // 1. Global rules
+                if (_globalRules != null)
                 {
-                    Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Global rule failed: {globalResult.FailureReason}</color>");
-                    return false;
+                    var globalResult = _globalRules.ValidateDrop(context, entry);
+                    if (!globalResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Global rule failed: {globalResult.FailureReason}</color>");
+                        return false;
+                    }
                 }
-            }
 
-            // 2. Inventory rules
-            if (_targetInventory is UniversalInventory universalInventory)
-            {
-                var inventoryResult = universalInventory.RuleValidator.ValidateDrop(context);
-                if (!inventoryResult.IsValid)
+                // 2. Inventory rules
+                if (_targetInventory is UniversalInventory universalInventory)
                 {
-                    Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Inventory rule failed: {inventoryResult.FailureReason}</color>");
-                    return false;
+                    var inventoryResult = universalInventory.RuleValidator.ValidateDrop(context, entry);
+                    if (!inventoryResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Inventory rule failed: {inventoryResult.FailureReason}</color>");
+                        return false;
+                    }
                 }
-            }
 
-            // 3. Slot rules (only if we have a specific target slot)
-            if (_targetSlot?.SlotRuleValidator != null)
-            {
-                var slotResult = _targetSlot.SlotRuleValidator.ValidateDrop(context);
-                if (!slotResult.IsValid)
+                // 3. Slot rules (only if we have a specific target slot)
+                if (_targetSlot?.SlotRuleValidator != null)
                 {
-                    Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Slot rule failed: {slotResult.FailureReason}</color>");
-                    return false;
+                    var slotResult = _targetSlot.SlotRuleValidator.ValidateDrop(context, entry);
+                    if (!slotResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Slot rule failed: {slotResult.FailureReason}</color>");
+                        return false;
+                    }
                 }
             }
 
@@ -97,9 +101,17 @@ namespace DragAndDropSystem.Inventories
                 return DropResult.Failed("Null drag context");
             }
 
-            var source = context.SourceInventory;
-            var sourceSlot = context.SourceSlot;
-            var draggedStack = context.DraggedStack;
+            // For batch drag: iterate entries and transfer each
+            if (context.IsBatchDrag)
+            {
+                return HandleBatchDrop(context);
+            }
+
+            // Single entry path (original behavior)
+            var entry = context.Entries[0];
+            var source = entry.SourceInventory;
+            var sourceSlot = entry.SourceSlot;
+            var draggedStack = entry.Stack;
 
             if (source == null || sourceSlot == null || draggedStack == null)
             {
@@ -137,8 +149,6 @@ namespace DragAndDropSystem.Inventories
                 context.SetTarget(outcome.TargetSlot, outcome.TargetInventory);
             }
 
-            // Note: Events and HandleSlotEmptied are handled by DragAndDropManager
-
             Extentions.DragAndDropLog($"<color=green>[InventoryDropHandler] Transferred {outcome.Amount} items successfully</color>");
 
             return DropResult.Succeeded(
@@ -148,6 +158,45 @@ namespace DragAndDropSystem.Inventories
                 targetInventory: outcome.TargetInventory,
                 isPartialTransfer: outcome.IsPartialTransfer,
                 remainingInSource: outcome.RemainingInSource);
+        }
+
+        private DropResult HandleBatchDrop(DragContext context)
+        {
+            context.SetTarget(_targetSlot, _targetInventory);
+
+            int totalTransferred = 0;
+            IInventoryItem lastItem = null;
+
+            foreach (var entry in context.Entries)
+            {
+                if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null)
+                    continue;
+
+                var request = new InventoryTransferRequest(
+                    entry.SourceInventory,
+                    entry.SourceSlot,
+                    _targetInventory,
+                    null, // batch: let inventory find slots
+                    entry.Stack,
+                    allowAlternativeSlots: true);
+
+                if (_transferService.TryExecuteTransfer(request, out var outcome))
+                {
+                    totalTransferred += outcome.Amount;
+                    lastItem = outcome.Item;
+                }
+            }
+
+            if (totalTransferred > 0)
+            {
+                return DropResult.Succeeded(
+                    item: lastItem,
+                    amount: totalTransferred,
+                    targetSlot: _targetSlot,
+                    targetInventory: _targetInventory);
+            }
+
+            return DropResult.Failed("Batch transfer failed");
         }
     }
 }
