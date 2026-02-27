@@ -29,7 +29,7 @@ namespace DragAndDropSystem.Selection
         /// <summary>
         /// Вызывается при любом изменении выделения
         /// </summary>
-        public event EventHandler<SelectionChangedEventArgs> OnSelectionChanged;
+        public event Action<SelectionContext> OnSelectionChanged;
 
         // ===== Публичное API =====
 
@@ -157,7 +157,7 @@ namespace DragAndDropSystem.Selection
                 allSlots.AddRange(slots);
 
             CurrentContext = new SelectionContext(_byInventory, allSlots, _selected);
-            OnSelectionChanged?.Invoke(this, new SelectionChangedEventArgs(CurrentContext));
+            OnSelectionChanged?.Invoke(CurrentContext);
         }
     }
 }
