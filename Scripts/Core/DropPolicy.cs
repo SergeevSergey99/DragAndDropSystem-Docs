@@ -1,4 +1,5 @@
 using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Core
@@ -115,10 +116,10 @@ namespace DragAndDropSystem.Core
         [SerializeField, Tooltip("Если выключено, используется policy по умолчанию/из контекста.")]
         private bool _enabled;
 
-        [SerializeField] private OccupiedTargetPolicy _occupiedTarget = OccupiedTargetPolicy.TryAlternativeSlots;
-        [SerializeField] private CapacityPolicy _capacity = CapacityPolicy.RejectAll;
-        [SerializeField] private BatchExecutionPolicy _batchExecution = BatchExecutionPolicy.Atomic;
-        [SerializeField] private TargetUsagePolicy _targetUsage = TargetUsagePolicy.TargetAsHint;
+        [SerializeField, ShowIf(nameof(_enabled))] private OccupiedTargetPolicy _occupiedTarget = OccupiedTargetPolicy.TryAlternativeSlots;
+        [SerializeField, ShowIf(nameof(_enabled))] private CapacityPolicy _capacity = CapacityPolicy.RejectAll;
+        [SerializeField, ShowIf(nameof(_enabled))] private BatchExecutionPolicy _batchExecution = BatchExecutionPolicy.Atomic;
+        [SerializeField, ShowIf(nameof(_enabled))] private TargetUsagePolicy _targetUsage = TargetUsagePolicy.TargetAsHint;
 
         public bool Enabled => _enabled;
 
