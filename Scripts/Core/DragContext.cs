@@ -29,6 +29,7 @@ namespace DragAndDropSystem.Core
     {
         public IReadOnlyList<DragEntry> Entries { get; }
         public bool IsBatchDrag => Entries.Count > 1;
+        public DropPolicy Policy { get; set; }
 
         /// <summary>
         /// Целевой слот операции.
@@ -66,6 +67,7 @@ namespace DragAndDropSystem.Core
         public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
         {
             Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
+            Policy = DropPolicy.SingleDefault;
         }
 
         /// <summary>
@@ -74,6 +76,7 @@ namespace DragAndDropSystem.Core
         public DragContext(IReadOnlyList<DragEntry> entries)
         {
             Entries = entries;
+            Policy = DropPolicy.BatchAtomic;
         }
 
         public void SetTarget(ISlot targetSlot, IInventory targetInventory)
