@@ -124,14 +124,21 @@ namespace DragAndDropSystem.UI
 
         public IItemDropHandler GetDropHandler()
         {
+            System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
+                ? _dragManager.RaiseSwapAttempting
+                : null;
+            System.Action<InventorySwapContext> swapCompleted = _dragManager != null
+                ? _dragManager.RaiseSwapCompleted
+                : null;
+
             return new InventoryDropHandler(
                 _foundSlot,
                 _inventory,
                 _dragManager?.GlobalRules,
                 _dragManager?.TransferService,
                 _dropPolicyOverride?.BuildOrNull(),
-                _dragManager?.RaiseSwapAttempting,
-                _dragManager?.RaiseSwapCompleted);
+                swapAttempting,
+                swapCompleted);
         }
 
         public void OnBecomeActiveTarget()
