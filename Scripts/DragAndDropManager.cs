@@ -99,7 +99,6 @@ namespace DragAndDropSystem
             _canvas.worldCamera = Camera.main;
 
             // Добавляем базовые правила
-            _globalRules.AddRule(new EmptySlotRule());
             _globalRules.AddRule(new SameSlotRule());
         }
 

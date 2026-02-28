@@ -6,24 +6,6 @@ using UnityEngine;
 namespace DragAndDropSystem.Rules
 {
     /// <summary>
-    /// Запрещает перетаскивание из пустого слота
-    /// Применяется глобально
-    /// </summary>
-    [Serializable]
-    public class EmptySlotRule : DragRuleBase, IGlobalRule
-    {
-        public override int Priority => 0;
-
-        public override RuleResult CanStartDrag(DragContext context, DragEntry entry)
-        {
-            if (entry.SourceSlot == null || entry.SourceSlot.IsEmpty)
-                return RuleResult.Failure("Cannot drag from empty slot");
-
-            return RuleResult.Success();
-        }
-    }
-
-    /// <summary>
     /// Запрещает бросать предмет в тот же слот, откуда взяли
     /// Применяется глобально
     /// </summary>
