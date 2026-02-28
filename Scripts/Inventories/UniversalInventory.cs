@@ -85,6 +85,10 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, HideLabel]
         private InventoryRuleValidator _ruleValidator = new InventoryRuleValidator();
 
+        [FoldoutGroup("Drop Policy", expanded: false)]
+        [SerializeField, HideLabel]
+        private DropPolicySettings _dropPolicySettings = new DropPolicySettings();
+
         [FoldoutGroup("Visual", expanded: false)]
         [InfoBox("Оставьте пустым для использования стандартного визуала. Префаб будет закеширован при первом использовании.", InfoMessageType.Info)]
         [SerializeField, Tooltip("Префаб кастомного визуала для перетаскивания (опционально)")]
@@ -115,6 +119,19 @@ namespace DragAndDropSystem.Inventories
         public UniversalSlot SlotPrefab => _slotPrefab;
         
         public InventoryDataBindingBase DataBinding { get; private set; }
+
+        /// <summary>
+        /// Effective drop policy for this inventory.
+        /// If custom settings are disabled, returns system defaults by drag type.
+        /// </summary>
+        public DropPolicy GetDropPolicy(bool isBatchDrag)
+        {
+            var configured = _dropPolicySettings?.BuildOrNull();
+            if (configured != null)
+                return configured;
+
+            return isBatchDrag ? DropPolicy.BatchAtomic : DropPolicy.SingleDefault;
+        }
 
         /// <summary>
         /// Событие добавления предмета в этот инвентарь

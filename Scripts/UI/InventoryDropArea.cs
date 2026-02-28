@@ -34,6 +34,10 @@ namespace DragAndDropSystem.UI
         [SerializeField] private Color _highlightColor = new Color(1f, 1f, 0f, 0.3f);
         [SerializeField] private Color _normalColor = new Color(1f, 1f, 1f, 0f);
 
+        [Header("Drop Policy Override")]
+        [SerializeField, Tooltip("Опциональный override policy для этой зоны дропа. Если выключен - используется policy инвентаря.")]
+        private DropPolicySettings _dropPolicyOverride = new DropPolicySettings();
+
         private ISlot _foundSlot;
         private bool _isHighlighted;
 
@@ -124,7 +128,8 @@ namespace DragAndDropSystem.UI
                 _foundSlot,
                 _inventory,
                 _dragManager?.GlobalRules,
-                _dragManager?.TransferService);
+                _dragManager?.TransferService,
+                _dropPolicyOverride?.BuildOrNull());
         }
 
         public void OnBecomeActiveTarget()

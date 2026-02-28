@@ -16,6 +16,7 @@ namespace DragAndDropSystem.Inventories
         private readonly GlobalRuleValidator _globalRules;
         private readonly TransferPlanner _planner;
         private readonly TransferPlanExecutor _executor;
+        private readonly DropPolicy _policyOverride;
         private TransferPlan _cachedPlan;
 
         /// <summary>
@@ -25,13 +26,15 @@ namespace DragAndDropSystem.Inventories
             ISlot targetSlot,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            InventoryTransferService transferService)
+            InventoryTransferService transferService,
+            DropPolicy policyOverride = null)
         {
             _targetSlot = targetSlot;
             _targetInventory = targetInventory;
             _globalRules = globalRules;
             _planner = new TransferPlanner();
             _executor = new TransferPlanExecutor(transferService);
+            _policyOverride = policyOverride;
         }
 
         /// <summary>
@@ -40,8 +43,9 @@ namespace DragAndDropSystem.Inventories
         public InventoryDropHandler(
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            InventoryTransferService transferService)
-            : this(null, targetInventory, globalRules, transferService)
+            InventoryTransferService transferService,
+            DropPolicy policyOverride = null)
+            : this(null, targetInventory, globalRules, transferService, policyOverride)
         {
         }
 
@@ -56,9 +60,12 @@ namespace DragAndDropSystem.Inventories
 
             // Update context with our target info
             context.SetTarget(_targetSlot, _targetInventory);
+            var effectivePolicy = ResolveEffectivePolicy(context);
+            context.Policy = effectivePolicy;
+
             var plan = _planner.BuildPlan(
                 context,
-                context.Policy,
+                effectivePolicy,
                 _targetInventory,
                 _targetSlot,
                 _globalRules);
@@ -102,10 +109,12 @@ namespace DragAndDropSystem.Inventories
             }
 
             context.SetTarget(_targetSlot, _targetInventory);
+            var effectivePolicy = ResolveEffectivePolicy(context);
+            context.Policy = effectivePolicy;
 
             var plan = _cachedPlan ?? _planner.BuildPlan(
                 context,
-                context.Policy,
+                effectivePolicy,
                 _targetInventory,
                 _targetSlot,
                 _globalRules);
@@ -133,6 +142,20 @@ namespace DragAndDropSystem.Inventories
 
             Extentions.DragAndDropLog($"<color=green>[InventoryDropHandler] Executed plan: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
             return summary.DropResult;
+        }
+
+        private DropPolicy ResolveEffectivePolicy(DragContext context)
+        {
+            if (_policyOverride != null)
+                return _policyOverride;
+
+            if (_targetInventory is UniversalInventory universalInventory)
+                return universalInventory.GetDropPolicy(context?.IsBatchDrag ?? false);
+
+            if (context?.Policy != null)
+                return context.Policy;
+
+            return DropPolicy.SingleDefault;
         }
     }
 }

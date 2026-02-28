@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace DragAndDropSystem.Core
 {
@@ -103,5 +104,30 @@ namespace DragAndDropSystem.Core
                 capacity: CapacityPolicy.Partial,
                 batchExecution: BatchExecutionPolicy.BestEffort,
                 targetUsage: TargetUsagePolicy.TargetAsHint);
+    }
+
+    /// <summary>
+    /// Inspector-friendly настройки policy.
+    /// </summary>
+    [Serializable]
+    public sealed class DropPolicySettings
+    {
+        [SerializeField, Tooltip("Если выключено, используется policy по умолчанию/из контекста.")]
+        private bool _enabled;
+
+        [SerializeField] private OccupiedTargetPolicy _occupiedTarget = OccupiedTargetPolicy.TryAlternativeSlots;
+        [SerializeField] private CapacityPolicy _capacity = CapacityPolicy.RejectAll;
+        [SerializeField] private BatchExecutionPolicy _batchExecution = BatchExecutionPolicy.Atomic;
+        [SerializeField] private TargetUsagePolicy _targetUsage = TargetUsagePolicy.TargetAsHint;
+
+        public bool Enabled => _enabled;
+
+        public DropPolicy BuildOrNull()
+        {
+            if (!_enabled)
+                return null;
+
+            return new DropPolicy(_occupiedTarget, _capacity, _batchExecution, _targetUsage);
+        }
     }
 }

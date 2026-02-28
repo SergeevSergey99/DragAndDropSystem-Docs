@@ -30,10 +30,6 @@ namespace DragAndDropSystem
         [SerializeField] private DefaultDragVisual _defaultDragVisualPrefab;
         [SerializeField] private Transform _visualContainer;
 
-        [Header("Settings")]
-        [SerializeField, Tooltip("Автоматически менять предметы местами если целевой слот занят")]
-        private bool _autoSwapOnOccupiedSlot = false;
-
         [Header("Quick Click Auto-Transfer (LMB)")]
         [SerializeField] private bool _enableQuickClickAutoTransfer = true;
         [SerializeField, Range(0.05f, 1f), Tooltip("Максимальная длительность клика для автопереноса (секунды)")]
@@ -291,64 +287,26 @@ namespace DragAndDropSystem
             if (!IsDragging)
                 return;
 
-            // Если уже наведен на этот слот, ничего не делаем
-            if (_hoveredSlot == slot && _hoveredInventory == inventory)
-                return;
-
-            // Очищаем предыдущий слот
-            if (_hoveredSlot != null && _hoveredSlot is UniversalSlot previousSlot)
-            {
-                previousSlot.Highlight(false);
-            }
-
-            _hoveredSlot = slot;
-
-            // Для дропа в область (slot == null) инвентарь ОБЯЗАТЕЛЕН
             if (slot == null && inventory == null)
             {
                 Extentions.DragAndDropLog("<color=red>SetHoveredSlot: slot and inventory are both null!</color>");
                 return;
             }
 
-            // Автоматически находим инвентарь если не указан
             if (inventory == null && slot != null)
             {
                 inventory = slot.Inventory;
             }
 
-            _hoveredInventory = inventory;
-
-            Extentions.DragAndDropLog($"<color=cyan>SetHoveredSlot: slot={slot?.Index.ToString() ?? "AREA"}, inventory={inventory?.GetType().Name}</color>");
-
-            if (_hoveredInventory != null)
-            {
-                _currentContext.SetTarget(slot, _hoveredInventory);
-
-                // Проверяем, можно ли сбросить
-                if (slot != null)
-                {
-                    // Дроп в конкретный слот - проверяем правила слота
-                    if (CanDropToSlot())
-                    {
-                        if (slot is UniversalSlot universalSlot)
-                        {
-                            universalSlot.Highlight(true);
-                        }
-                    }
-                }
-                else
-                {
-                    // Дроп в область - проверяем только правила инвентаря
-                    // (CanAcceptItem уже проверил в InventoryDropArea)
-                    Extentions.DragAndDropLog("<color=cyan>SetHoveredSlot: Drop to area (no specific slot)</color>");
-                }
-
-                OnDragEnterSlot?.Invoke(_currentContext);
-            }
-            else
+            if (inventory == null)
             {
                 Extentions.DragAndDropLog("<color=red>SetHoveredSlot: Inventory not found!</color>");
+                return;
             }
+
+            _hoveredInventory = inventory;
+            var handler = new InventoryDropHandler(slot, inventory, _globalRules, _transferService);
+            SetHoveredSlotWithHandler(slot, handler);
         }
 
         /// <summary>
@@ -356,36 +314,34 @@ namespace DragAndDropSystem
         /// </summary>
         public void ClearHoveredSlot(ISlot slot)
         {
-            if (_hoveredSlot == slot)
+            if (_hoveredSlot != slot)
+                return;
+
+            if (slot is UniversalSlot universalSlot)
             {
-                if (slot is UniversalSlot universalSlot)
-                {
-                    universalSlot.Highlight(false);
-                }
-
-                OnDragExitSlot?.Invoke(_currentContext);
-
-                _hoveredSlot = null;
-                _hoveredInventory = null;
-                _currentHandler = null;
-                _currentContext.ClearTarget();
+                universalSlot.Highlight(false);
             }
+
+            OnDragExitSlot?.Invoke(_currentContext);
+
+            _hoveredSlot = null;
+            _hoveredInventory = null;
+            _currentHandler = null;
+            _currentContext?.ClearTarget();
         }
 
         /// <summary>
-        /// Set hovered slot using the drop handler for validation
+        /// Set hovered slot using the drop handler for validation.
         /// </summary>
         private void SetHoveredSlotWithHandler(ISlot slot, IItemDropHandler handler)
         {
             if (!IsDragging)
                 return;
 
-            // If already hovering this slot, do nothing
             if (_hoveredSlot == slot && _currentHandler == handler)
                 return;
 
-            // Clear previous slot highlight
-            if (_hoveredSlot != null && _hoveredSlot is UniversalSlot previousSlot)
+            if (_hoveredSlot is UniversalSlot previousSlot)
             {
                 previousSlot.Highlight(false);
             }
@@ -393,27 +349,19 @@ namespace DragAndDropSystem
             _hoveredSlot = slot;
             _currentHandler = handler;
 
-            // For handler-based drops, we don't require inventory
-            // The handler encapsulates everything it needs
-
-            Extentions.DragAndDropLog($"<color=cyan>SetHoveredSlotWithHandler: slot={slot?.Index.ToString() ?? "AREA"}, handler={handler?.GetType().Name}</color>");
-
-            if (handler != null)
-            {
-                // Validate via handler
-                bool canDrop = handler.CanAcceptDrop(_currentContext);
-
-                if (canDrop && slot is UniversalSlot universalSlot)
-                {
-                    universalSlot.Highlight(true);
-                }
-
-                OnDragEnterSlot?.Invoke(_currentContext);
-            }
-            else
+            if (handler == null)
             {
                 Extentions.DragAndDropLog("<color=red>SetHoveredSlotWithHandler: Handler is null!</color>");
+                return;
             }
+
+            bool canDrop = handler.CanAcceptDrop(_currentContext);
+            if (canDrop && slot is UniversalSlot universalSlot)
+            {
+                universalSlot.Highlight(true);
+            }
+
+            OnDragEnterSlot?.Invoke(_currentContext);
         }
 
         /// <summary>
@@ -523,61 +471,6 @@ namespace DragAndDropSystem
 
                 Extentions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared hovered</color>");
             }
-        }
-
-        /// <summary>
-        /// Проверить, можно ли сбросить в текущий наведённый слот/инвентарь.
-        /// Вызывается для каждого entry — глобальные и inventory-правила.
-        /// Slot-правила применяются только для single drag, где <c>TargetSlot</c> — точная цель.
-        /// Для batch <c>TargetSlot</c> — UI-хинт; slot-валидация выполняется в <see cref="Inventories.InventoryTransferService"/>.
-        /// </summary>
-        private bool CanDropToSlot()
-        {
-            if (!IsDragging || !_currentContext.HasTarget)
-            {
-                Extentions.DragAndDropLog("<color=red>CanDropToSlot: No dragging or target</color>");
-                return false;
-            }
-
-            // ── Per-entry validation ────────────────────────────────────────────────
-            // Для batch: TargetSlot — UI-хинт (слот под курсором), не финальный слот каждого entry.
-            // Slot-правила применяются только для single drag; для batch — в Phase 3 (InventoryTransferService).
-            foreach (var entry in _currentContext.Entries)
-            {
-                // Глобальные правила
-                var globalResult = _globalRules.ValidateDrop(_currentContext, entry);
-                if (!globalResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Global rule failed: {globalResult.FailureReason}</color>");
-                    return false;
-                }
-
-                // Правила целевого инвентаря
-                if (_currentContext.TargetInventory is UniversalInventory targetInventory)
-                {
-                    var inventoryResult = targetInventory.RuleValidator.ValidateDrop(_currentContext, entry);
-                    if (!inventoryResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Inventory rule failed: {inventoryResult.FailureReason}</color>");
-                        return false;
-                    }
-                }
-
-                // Slot-правила только для single drag: TargetSlot — точная финальная цель.
-                // Для batch slot-валидация происходит в Phase 3 (InventoryTransferService).
-                if (!_currentContext.IsBatchDrag && _currentContext.TargetSlot?.SlotRuleValidator != null)
-                {
-                    var slotResult = _currentContext.TargetSlot.SlotRuleValidator.ValidateDrop(_currentContext, entry);
-                    if (!slotResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Slot rule failed: {slotResult.FailureReason}</color>");
-                        return false;
-                    }
-                }
-            }
-
-            Extentions.DragAndDropLog("<color=green>CanDropToSlot: Success!</color>");
-            return true;
         }
 
         /// <summary>
