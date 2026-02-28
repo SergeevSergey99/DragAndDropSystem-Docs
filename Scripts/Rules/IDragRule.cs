@@ -48,15 +48,6 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Опциональный интерфейс для правил, проверяющих всю группу entries целиком
-    /// </summary>
-    public interface IBatchDragRule
-    {
-        RuleResult CanStartBatchDrag(DragContext context);
-        RuleResult CanDropBatch(DragContext context);
-    }
-
-    /// <summary>
     /// Маркерный интерфейс для правил, применимых к глобальному менеджеру
     /// </summary>
     public interface IGlobalRule : IDragRule { }

@@ -165,16 +165,7 @@ namespace DragAndDropSystem
             // Event: starting
             OnDragStarting?.Invoke(_currentContext);
 
-            // Phase 1: Batch-level validation (один вызов на всю операцию, IBatchDragRule)
-            var batchGlobalStart = _globalRules.ValidateStartDragBatch(_currentContext);
-            if (!batchGlobalStart.IsValid)
-            {
-                Extentions.DragAndDropLog($"Cannot start batch drag: {batchGlobalStart.FailureReason}");
-                _currentContext = null;
-                return false;
-            }
-
-            // Phase 2: Per-entry validation
+            // Per-entry validation
             foreach (var entry in _currentContext.Entries)
             {
                 var globalResult = _globalRules.ValidateStartDrag(_currentContext, entry);
@@ -535,16 +526,10 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Проверить, можно ли сбросить в текущий наведенный слот/инвентарь.
-        /// Валидация проходит в два этапа:
-        /// <list type="bullet">
-        /// <item><b>Phase 1 (batch-level):</b> вызывается один раз для всей операции —
-        ///   правила <see cref="IBatchDragRule"/> через <see cref="RuleValidator{TRule}.ValidateDropBatch"/>.</item>
-        /// <item><b>Phase 2 (per-entry):</b> вызывается для каждого entry — глобальные и inventory-правила.
-        ///   Для batch <c>TargetSlot</c> временно сбрасывается в null, т.к. финальный слот
-        ///   для каждого entry неизвестен и будет определён в <see cref="Inventories.InventoryTransferService"/> (Phase 3).
-        ///   Slot-правила применяются только для single drag, где <c>TargetSlot</c> — точная цель.</item>
-        /// </list>
+        /// Проверить, можно ли сбросить в текущий наведённый слот/инвентарь.
+        /// Вызывается для каждого entry — глобальные и inventory-правила.
+        /// Slot-правила применяются только для single drag, где <c>TargetSlot</c> — точная цель.
+        /// Для batch <c>TargetSlot</c> — UI-хинт; slot-валидация выполняется в <see cref="Inventories.InventoryTransferService"/>.
         /// </summary>
         private bool CanDropToSlot()
         {
@@ -554,29 +539,7 @@ namespace DragAndDropSystem
                 return false;
             }
 
-            // ── Phase 1: Batch-level validation ────────────────────────────────────
-            // Вызывается один раз; только правила IBatchDragRule.
-            if (_currentContext.IsBatchDrag)
-            {
-                var batchGlobal = _globalRules.ValidateDropBatch(_currentContext);
-                if (!batchGlobal.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Batch global rule failed: {batchGlobal.FailureReason}</color>");
-                    return false;
-                }
-
-                if (_currentContext.TargetInventory is UniversalInventory batchTargetInventory)
-                {
-                    var batchInv = batchTargetInventory.RuleValidator.ValidateDropBatch(_currentContext);
-                    if (!batchInv.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Batch inventory rule failed: {batchInv.FailureReason}</color>");
-                        return false;
-                    }
-                }
-            }
-
-            // ── Phase 2: Per-entry validation ──────────────────────────────────────
+            // ── Per-entry validation ────────────────────────────────────────────────
             // Для batch: TargetSlot — UI-хинт (слот под курсором), не финальный слот каждого entry.
             // Slot-правила применяются только для single drag; для batch — в Phase 3 (InventoryTransferService).
             foreach (var entry in _currentContext.Entries)

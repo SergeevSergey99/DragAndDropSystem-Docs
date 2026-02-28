@@ -53,30 +53,6 @@ namespace DragAndDropSystem.Inventories
             // Update context with our target info
             context.SetTarget(_targetSlot, _targetInventory);
 
-            // 0. Batch-level rules (called once for the whole operation, before per-entry loop)
-            if (context.IsBatchDrag)
-            {
-                if (_globalRules != null)
-                {
-                    var batchGlobal = _globalRules.ValidateDropBatch(context);
-                    if (!batchGlobal.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Batch global rule failed: {batchGlobal.FailureReason}</color>");
-                        return false;
-                    }
-                }
-
-                if (_targetInventory is UniversalInventory batchInventory)
-                {
-                    var batchInv = batchInventory.RuleValidator.ValidateDropBatch(context);
-                    if (!batchInv.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Batch inventory rule failed: {batchInv.FailureReason}</color>");
-                        return false;
-                    }
-                }
-            }
-
             // Validate each entry against all rule tiers
             foreach (var entry in context.Entries)
             {
