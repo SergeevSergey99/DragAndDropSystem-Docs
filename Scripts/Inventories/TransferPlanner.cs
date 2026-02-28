@@ -49,13 +49,17 @@ namespace DragAndDropSystem.Inventories
             int requestedAmount,
             int plannedAmount,
             IReadOnlyList<PlannedSlotAllocation> allocations,
-            string failureReason = null)
+            string failureReason = null,
+            bool requiresSwap = false,
+            ISlot swapTargetSlot = null)
         {
             Entry = entry;
             RequestedAmount = requestedAmount;
             PlannedAmount = plannedAmount;
             Allocations = allocations;
             FailureReason = failureReason;
+            RequiresSwap = requiresSwap;
+            SwapTargetSlot = swapTargetSlot;
         }
 
         public DragEntry Entry { get; }
@@ -63,7 +67,9 @@ namespace DragAndDropSystem.Inventories
         public int PlannedAmount { get; }
         public IReadOnlyList<PlannedSlotAllocation> Allocations { get; }
         public string FailureReason { get; }
-        public bool IsPlanned => PlannedAmount > 0 && Allocations.Count > 0;
+        public bool RequiresSwap { get; }
+        public ISlot SwapTargetSlot { get; }
+        public bool IsPlanned => RequiresSwap || (PlannedAmount > 0 && Allocations.Count > 0);
         public bool IsPartial => PlannedAmount > 0 && PlannedAmount < RequestedAmount;
     }
 
@@ -264,6 +270,18 @@ namespace DragAndDropSystem.Inventories
 
             if (plannedAmount == 0)
             {
+                if (ShouldPlanSwap(context, entry, policy, targetSlotHint, preferHint))
+                {
+                    return new PlannedEntryTransfer(
+                        entry,
+                        requested,
+                        requested,
+                        EmptyAllocations,
+                        failureReason: null,
+                        requiresSwap: true,
+                        swapTargetSlot: targetSlotHint);
+                }
+
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
             }
 
@@ -273,6 +291,25 @@ namespace DragAndDropSystem.Inventories
             }
 
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations);
+        }
+
+        private static bool ShouldPlanSwap(
+            DragContext context,
+            DragEntry entry,
+            DropPolicy policy,
+            ISlot targetSlotHint,
+            bool preferHint)
+        {
+            if (!preferHint || targetSlotHint == null || policy == null)
+                return false;
+
+            if (policy.OccupiedTarget != OccupiedTargetPolicy.TrySwap)
+                return false;
+
+            if (context.IsBatchDrag)
+                return false;
+
+            return CanPlanSwap(entry, targetSlotHint);
         }
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForDefaultInventory(
@@ -451,6 +488,27 @@ namespace DragAndDropSystem.Inventories
             universal.ItemBehavior == UniversalInventory.ItemBehaviorType.Unique;
 
         private static int Min(int a, int b) => a < b ? a : b;
+
+        private static bool CanPlanSwap(DragEntry entry, ISlot targetSlot)
+        {
+            if (entry.SourceSlot == null || targetSlot == null)
+                return false;
+
+            if (ReferenceEquals(entry.SourceSlot, targetSlot))
+                return false;
+
+            if (targetSlot.IsEmpty)
+                return false;
+
+            if (entry.SourceSlot.IsEmpty || entry.SourceSlot.Stack == null || entry.SourceSlot.Stack.IsEmpty)
+                return false;
+
+            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.Item == null)
+                return false;
+
+            // Current swap implementation supports only full stack from source slot.
+            return entry.SourceSlot.Stack.Count == entry.Stack.Count;
+        }
 
         private bool IsCandidateAllowedByRules(
             DragContext context,

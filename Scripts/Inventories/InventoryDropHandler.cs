@@ -2,6 +2,7 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
+using System;
 
 namespace DragAndDropSystem.Inventories
 {
@@ -17,6 +18,8 @@ namespace DragAndDropSystem.Inventories
         private readonly TransferPlanner _planner;
         private readonly TransferPlanExecutor _executor;
         private readonly DropPolicy _policyOverride;
+        private readonly Func<InventorySwapContext, bool> _swapAttempting;
+        private readonly Action<InventorySwapContext> _swapCompleted;
         private TransferPlan _cachedPlan;
 
         /// <summary>
@@ -27,7 +30,9 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
             InventoryTransferService transferService,
-            DropPolicy policyOverride = null)
+            DropPolicy policyOverride = null,
+            Func<InventorySwapContext, bool> swapAttempting = null,
+            Action<InventorySwapContext> swapCompleted = null)
         {
             _targetSlot = targetSlot;
             _targetInventory = targetInventory;
@@ -35,6 +40,8 @@ namespace DragAndDropSystem.Inventories
             _planner = new TransferPlanner();
             _executor = new TransferPlanExecutor(transferService);
             _policyOverride = policyOverride;
+            _swapAttempting = swapAttempting;
+            _swapCompleted = swapCompleted;
         }
 
         /// <summary>
@@ -44,8 +51,10 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
             InventoryTransferService transferService,
-            DropPolicy policyOverride = null)
-            : this(null, targetInventory, globalRules, transferService, policyOverride)
+            DropPolicy policyOverride = null,
+            Func<InventorySwapContext, bool> swapAttempting = null,
+            Action<InventorySwapContext> swapCompleted = null)
+            : this(null, targetInventory, globalRules, transferService, policyOverride, swapAttempting, swapCompleted)
         {
         }
 
@@ -128,7 +137,12 @@ namespace DragAndDropSystem.Inventories
             var policy = context.Policy;
             Extentions.DragAndDropLog($"<color=yellow>[InventoryDropHandler] HandleDrop: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
 
-            var summary = _executor.Execute(plan);
+            var summary = _executor.Execute(plan, new TransferExecutionOptions
+            {
+                GlobalRules = _globalRules,
+                SwapAttempting = _swapAttempting,
+                SwapCompleted = _swapCompleted
+            });
             if (!summary.Success)
             {
                 Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Execute failed: {summary.DropResult.FailureReason}</color>");

@@ -305,7 +305,14 @@ namespace DragAndDropSystem
             }
 
             _hoveredInventory = inventory;
-            var handler = new InventoryDropHandler(slot, inventory, _globalRules, _transferService);
+            var handler = new InventoryDropHandler(
+                slot,
+                inventory,
+                _globalRules,
+                _transferService,
+                policyOverride: null,
+                swapAttempting: RaiseSwapAttempting,
+                swapCompleted: RaiseSwapCompleted);
             SetHoveredSlotWithHandler(slot, handler);
         }
 
@@ -489,7 +496,14 @@ namespace DragAndDropSystem
             // both paths use the same planner/executor pipeline.
             if (handlerToUse == null && _hoveredInventory != null)
             {
-                handlerToUse = new InventoryDropHandler(_hoveredSlot, _hoveredInventory, _globalRules, _transferService);
+                handlerToUse = new InventoryDropHandler(
+                    _hoveredSlot,
+                    _hoveredInventory,
+                    _globalRules,
+                    _transferService,
+                    policyOverride: null,
+                    swapAttempting: RaiseSwapAttempting,
+                    swapCompleted: RaiseSwapCompleted);
             }
 
             if (handlerToUse != null)
@@ -881,6 +895,17 @@ namespace DragAndDropSystem
                     outcome.SourceSlot,
                     outcome.TargetSlot);
             }
+        }
+
+        public bool RaiseSwapAttempting(InventorySwapContext context)
+        {
+            OnSwapAttempting?.Invoke(context);
+            return context != null && !context.Cancel;
+        }
+
+        public void RaiseSwapCompleted(InventorySwapContext context)
+        {
+            OnSwapCompleted?.Invoke(context);
         }
 
         Vector3 GetMousePosition()

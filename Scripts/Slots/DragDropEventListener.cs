@@ -199,7 +199,10 @@ namespace DragAndDropSystem.Slots
                 _slot,
                 _slot?.Inventory,
                 _dragManager?.GlobalRules,
-                _dragManager?.TransferService);
+                _dragManager?.TransferService,
+                policyOverride: null,
+                swapAttempting: _dragManager?.RaiseSwapAttempting,
+                swapCompleted: _dragManager?.RaiseSwapCompleted);
         }
 
         public void OnBecomeActiveTarget()

@@ -129,7 +129,9 @@ namespace DragAndDropSystem.UI
                 _inventory,
                 _dragManager?.GlobalRules,
                 _dragManager?.TransferService,
-                _dropPolicyOverride?.BuildOrNull());
+                _dropPolicyOverride?.BuildOrNull(),
+                _dragManager?.RaiseSwapAttempting,
+                _dragManager?.RaiseSwapCompleted);
         }
 
         public void OnBecomeActiveTarget()

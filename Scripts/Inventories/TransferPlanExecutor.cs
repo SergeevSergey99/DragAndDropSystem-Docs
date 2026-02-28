@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 
@@ -31,6 +32,13 @@ namespace DragAndDropSystem.Inventories
         public DropResult DropResult { get; }
     }
 
+    public sealed class TransferExecutionOptions
+    {
+        public GlobalRuleValidator GlobalRules { get; set; }
+        public System.Func<InventorySwapContext, bool> SwapAttempting { get; set; }
+        public System.Action<InventorySwapContext> SwapCompleted { get; set; }
+    }
+
     /// <summary>
     /// Исполняет готовый TransferPlan.
     /// Поддерживает атомарный режим (с откатом) и BestEffort.
@@ -38,13 +46,14 @@ namespace DragAndDropSystem.Inventories
     public class TransferPlanExecutor
     {
         private readonly InventoryTransferService _transferService;
+        private readonly RuleEvaluationService _ruleEvaluationService = new RuleEvaluationService();
 
         public TransferPlanExecutor(InventoryTransferService transferService = null)
         {
             _transferService = transferService ?? new InventoryTransferService();
         }
 
-        public TransferExecutionSummary Execute(TransferPlan plan)
+        public TransferExecutionSummary Execute(TransferPlan plan, TransferExecutionOptions options = null)
         {
             if (plan == null || !plan.IsValid || plan.Entries == null || plan.Entries.Count == 0)
             {
@@ -68,6 +77,7 @@ namespace DragAndDropSystem.Inventories
             ISlot lastTargetSlot = null;
             bool hadPartialTransfer = false;
             var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
+            var successfulSwaps = new List<PendingSwapOutcome>(plan.Entries.Count);
 
             foreach (var plannedEntry in plan.Entries)
             {
@@ -89,34 +99,54 @@ namespace DragAndDropSystem.Inventories
                 int entryTransferred = 0;
                 bool entryFailed = false;
 
-                foreach (var allocation in plannedEntry.Allocations)
+                if (plannedEntry.RequiresSwap)
                 {
-                    if (allocation.Slot == null || allocation.Amount <= 0)
+                    if (TryExecuteSwap(plannedEntry, plan.TargetInventory, options, out var swapOutcome, out var swapFailure))
+                    {
+                        successfulSwaps.Add(swapOutcome);
+                        succeededEntries++;
+                        entryTransferred = swapOutcome.MovedAmount;
+                        transferredAmount += swapOutcome.MovedAmount;
+                        lastItem = swapOutcome.SwapResult.SourceStackBefore?.Item;
+                        lastTargetSlot = swapOutcome.TargetSlot;
+                    }
+                    else
                     {
                         entryFailed = true;
-                        break;
+                        Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Swap failed: {swapFailure}</color>");
                     }
-
-                    var request = new InventoryTransferRequest(
-                        plannedEntry.Entry.SourceInventory,
-                        plannedEntry.Entry.SourceSlot,
-                        plan.TargetInventory,
-                        allocation.Slot,
-                        new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount),
-                        allowAlternativeSlots: false);
-
-                    if (!_transferService.TryExecuteTransfer(request, out var outcome) || outcome.Amount <= 0)
+                }
+                else
+                {
+                    foreach (var allocation in plannedEntry.Allocations)
                     {
-                        entryFailed = true;
-                        break;
-                    }
+                        if (allocation.Slot == null || allocation.Amount <= 0)
+                        {
+                            entryFailed = true;
+                            break;
+                        }
 
-                    entryTransferred += outcome.Amount;
-                    transferredAmount += outcome.Amount;
-                    lastItem = outcome.Item;
-                    lastTargetSlot = outcome.TargetSlot ?? allocation.Slot;
-                    hadPartialTransfer |= outcome.IsPartialTransfer;
-                    successfulOutcomes.Add(outcome);
+                        var request = new InventoryTransferRequest(
+                            plannedEntry.Entry.SourceInventory,
+                            plannedEntry.Entry.SourceSlot,
+                            plan.TargetInventory,
+                            allocation.Slot,
+                            new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount),
+                            allowAlternativeSlots: false);
+
+                        if (!_transferService.TryExecuteTransfer(request, out var outcome) || outcome.Amount <= 0)
+                        {
+                            entryFailed = true;
+                            break;
+                        }
+
+                        entryTransferred += outcome.Amount;
+                        transferredAmount += outcome.Amount;
+                        lastItem = outcome.Item;
+                        lastTargetSlot = outcome.TargetSlot ?? allocation.Slot;
+                        hadPartialTransfer |= outcome.IsPartialTransfer;
+                        successfulOutcomes.Add(outcome);
+                    }
                 }
 
                 if (entryFailed)
@@ -134,7 +164,10 @@ namespace DragAndDropSystem.Inventories
                 }
                 else if (entryTransferred > 0)
                 {
-                    succeededEntries++;
+                    if (!plannedEntry.RequiresSwap)
+                    {
+                        succeededEntries++;
+                    }
                     if (entryTransferred < plannedEntry.RequestedAmount)
                     {
                         hadPartialTransfer = true;
@@ -180,9 +213,125 @@ namespace DragAndDropSystem.Inventories
             // Эмитим события только после успешного завершения всей операции.
             // В Atomic это предотвращает "ложные" события при последующем откате.
             DispatchTransferEvents(successfulOutcomes);
+            DispatchSwapEvents(successfulSwaps, options);
 
             Extentions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Executed plan: successEntries={succeededEntries}, failedEntries={failedEntries}, amount={transferredAmount}</color>");
             return new TransferExecutionSummary(success, succeededEntries, failedEntries, transferredAmount, isPartial, result);
+        }
+
+        private bool TryExecuteSwap(
+            PlannedEntryTransfer plannedEntry,
+            IInventory fallbackTargetInventory,
+            TransferExecutionOptions options,
+            out PendingSwapOutcome swapOutcome,
+            out string failureReason)
+        {
+            swapOutcome = default;
+            failureReason = null;
+
+            var sourceSlot = plannedEntry.Entry.SourceSlot;
+            var sourceInventory = plannedEntry.Entry.SourceInventory;
+            var targetSlot = plannedEntry.SwapTargetSlot;
+            var targetInventory = targetSlot?.Inventory ?? fallbackTargetInventory;
+
+            if (sourceSlot == null || targetSlot == null || sourceInventory == null || targetInventory == null)
+            {
+                failureReason = "Invalid swap target/source";
+                return false;
+            }
+
+            if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
+            {
+                failureReason = "Swap requires non-empty source and target slots";
+                return false;
+            }
+
+            if (!ValidateSwapRules(sourceSlot, sourceInventory, targetSlot, targetInventory, options?.GlobalRules, out var validationFailure))
+            {
+                failureReason = validationFailure;
+                return false;
+            }
+
+            var sourceStackBefore = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
+            var targetStackBefore = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
+
+            var swapContext = new InventorySwapContext(
+                sourceStackBefore,
+                targetStackBefore,
+                sourceSlot,
+                targetSlot,
+                sourceInventory,
+                targetInventory);
+
+            if (options?.SwapAttempting != null && !options.SwapAttempting(swapContext))
+            {
+                failureReason = "Swap cancelled by listener";
+                return false;
+            }
+
+            if (targetInventory is not UniversalInventory targetUniversal)
+            {
+                failureReason = "Target inventory must be UniversalInventory for swap";
+                return false;
+            }
+
+            var sourceUniversal = sourceInventory as UniversalInventory;
+            if (!targetUniversal.TrySwapSlots(targetSlot, sourceSlot, out var swapResult))
+            {
+                failureReason = "TrySwapSlots returned false";
+                return false;
+            }
+
+            swapOutcome = new PendingSwapOutcome(
+                swapContext,
+                targetUniversal,
+                sourceUniversal,
+                targetSlot,
+                sourceSlot,
+                swapResult);
+            return true;
+        }
+
+        private bool ValidateSwapRules(
+            ISlot sourceSlot,
+            IInventory sourceInventory,
+            ISlot targetSlot,
+            IInventory targetInventory,
+            GlobalRuleValidator globalRules,
+            out string failureReason)
+        {
+            failureReason = null;
+
+            var sourceStack = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
+            var targetStack = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
+
+            var sourceContext = new DragContext(sourceStack, sourceSlot, sourceInventory);
+            var sourceEntry = sourceContext.Entries[0];
+            var reverseContext = new DragContext(targetStack, targetSlot, targetInventory);
+            var reverseEntry = reverseContext.Entries[0];
+
+            var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
+            if (!reverseStart.IsValid)
+            {
+                failureReason = reverseStart.FailureReason;
+                return false;
+            }
+
+            var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseContext, reverseEntry, sourceInventory, sourceSlot, globalRules);
+            if (!reverseDrop.IsValid)
+            {
+                failureReason = reverseDrop.FailureReason;
+                return false;
+            }
+
+            var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceContext, sourceEntry, targetInventory, targetSlot, globalRules);
+            if (!sourceDrop.IsValid)
+            {
+                failureReason = sourceDrop.FailureReason;
+                return false;
+            }
+
+            return true;
         }
 
         private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)
@@ -217,6 +366,59 @@ namespace DragAndDropSystem.Inventories
                         outcome.SourceSlot,
                         outcome.TargetSlot);
                 }
+            }
+        }
+
+        private static void DispatchSwapEvents(IReadOnlyList<PendingSwapOutcome> outcomes, TransferExecutionOptions options)
+        {
+            if (outcomes == null)
+                return;
+
+            foreach (var outcome in outcomes)
+            {
+                if (outcome.TargetInventory != null &&
+                    outcome.SwapResult.TargetStackBefore != null &&
+                    !outcome.SwapResult.TargetStackBefore.IsEmpty)
+                {
+                    outcome.TargetInventory.EmitItemRemoved(
+                        outcome.SwapResult.TargetStackBefore.Item,
+                        outcome.SwapResult.TargetStackBefore.Count,
+                        outcome.TargetSlot.Index,
+                        outcome.SourceInventory,
+                        outcome.TargetSlot,
+                        outcome.SourceSlot);
+
+                    outcome.TargetInventory.EmitItemAdded(
+                        outcome.SwapResult.SourceStackBefore.Item,
+                        outcome.SwapResult.SourceStackBefore.Count,
+                        outcome.TargetSlot.Index,
+                        outcome.SourceInventory,
+                        outcome.SourceSlot,
+                        outcome.TargetSlot);
+                }
+
+                if (outcome.SourceInventory != null &&
+                    outcome.SwapResult.SourceStackBefore != null &&
+                    !outcome.SwapResult.SourceStackBefore.IsEmpty)
+                {
+                    outcome.SourceInventory.EmitItemRemoved(
+                        outcome.SwapResult.SourceStackBefore.Item,
+                        outcome.SwapResult.SourceStackBefore.Count,
+                        outcome.SourceSlot.Index,
+                        outcome.TargetInventory,
+                        outcome.SourceSlot,
+                        outcome.TargetSlot);
+
+                    outcome.SourceInventory.EmitItemAdded(
+                        outcome.SwapResult.TargetStackBefore.Item,
+                        outcome.SwapResult.TargetStackBefore.Count,
+                        outcome.SourceSlot.Index,
+                        outcome.TargetInventory,
+                        outcome.TargetSlot,
+                        outcome.SourceSlot);
+                }
+
+                options?.SwapCompleted?.Invoke(outcome.SwapContext);
             }
         }
 
@@ -274,6 +476,33 @@ namespace DragAndDropSystem.Inventories
                     pair.Key.UpdateAllVisuals();
                 }
             }
+        }
+
+        private readonly struct PendingSwapOutcome
+        {
+            public PendingSwapOutcome(
+                InventorySwapContext swapContext,
+                UniversalInventory targetInventory,
+                UniversalInventory sourceInventory,
+                ISlot targetSlot,
+                ISlot sourceSlot,
+                SwapOperationResult swapResult)
+            {
+                SwapContext = swapContext;
+                TargetInventory = targetInventory;
+                SourceInventory = sourceInventory;
+                TargetSlot = targetSlot;
+                SourceSlot = sourceSlot;
+                SwapResult = swapResult;
+            }
+
+            public InventorySwapContext SwapContext { get; }
+            public UniversalInventory TargetInventory { get; }
+            public UniversalInventory SourceInventory { get; }
+            public ISlot TargetSlot { get; }
+            public ISlot SourceSlot { get; }
+            public SwapOperationResult SwapResult { get; }
+            public int MovedAmount => SwapResult.SourceStackBefore?.Count ?? 0;
         }
     }
 }
