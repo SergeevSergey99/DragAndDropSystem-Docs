@@ -589,19 +589,25 @@ namespace DragAndDropSystem
                 return;
 
             bool success = false;
+            DropResult result = default;
+            IItemDropHandler handlerToUse = _currentHandler;
 
-            // Check if we have a handler (handler-based drops don't require inventory)
-            if (_currentHandler != null)
+            // Fallback: for legacy hover path, wrap inventory target into handler so
+            // both paths use the same planner/executor pipeline.
+            if (handlerToUse == null && _hoveredInventory != null)
+            {
+                handlerToUse = new InventoryDropHandler(_hoveredSlot, _hoveredInventory, _globalRules, _transferService);
+            }
+
+            if (handlerToUse != null)
             {
                 OnDropAttempting?.Invoke(_currentContext);
 
-                // Validate via handler
-                bool canDrop = _currentHandler.CanAcceptDrop(_currentContext);
+                bool canDrop = handlerToUse.CanAcceptDrop(_currentContext);
 
                 if (canDrop)
                 {
-                    // Execute drop via handler
-                    var result = _currentHandler.HandleDrop(_currentContext);
+                    result = handlerToUse.HandleDrop(_currentContext);
                     success = result.Success;
 
                     if (success)
@@ -624,25 +630,6 @@ namespace DragAndDropSystem
                     Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
                 }
             }
-            // Fallback: try old inventory-based path (for backward compatibility during transition)
-            else if (_hoveredInventory != null)
-            {
-                _currentContext.SetTarget(_hoveredSlot, _hoveredInventory);
-
-                OnDropAttempting?.Invoke(_currentContext);
-
-                bool canDrop = CanDropToSlot();
-
-                if (canDrop)
-                {
-                    success = PerformTransfer();
-
-                    if (success)
-                    {
-                        OnDropCompleted?.Invoke(_currentContext);
-                    }
-                }
-            }
 
             if (!success)
             {
@@ -662,295 +649,6 @@ namespace DragAndDropSystem
 
             OnDragCancelled?.Invoke(_currentContext);
             EndDrag();
-        }
-
-        private bool PerformTransfer()
-        {
-            // Batch drag: iterate all entries
-            if (_currentContext.IsBatchDrag)
-            {
-                return PerformBatchTransfer();
-            }
-
-            var entry = _currentContext.Entries[0];
-            var source = entry.SourceInventory;
-            var target = _currentContext.TargetInventory;
-            var sourceSlot = entry.SourceSlot;
-            var targetSlot = _currentContext.TargetSlot;
-            var draggedStack = entry.Stack;
-
-            if (source == null || target == null || sourceSlot == null || draggedStack == null)
-            {
-                Extentions.DragAndDropLog("<color=red>PerformTransfer: Invalid context</color>");
-                return false;
-            }
-
-            Extentions.DragAndDropLog($"<color=yellow>PerformTransfer: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={targetSlot?.Index.ToString() ?? "AREA"} | SameInventory={entry.SourceInventory == _currentContext.TargetInventory}</color>");
-
-            // Попытка swap до начала транзакции, чтобы не терять состояние источника
-            if (_autoSwapOnOccupiedSlot && targetSlot != null && !targetSlot.IsEmpty)
-            {
-                Extentions.DragAndDropLog("<color=cyan>PerformTransfer: Target slot occupied, evaluating swap...</color>");
-                if (TrySwap())
-                {
-                    Extentions.DragAndDropLog("<color=green>PerformTransfer: Swap succeeded!</color>");
-                    return true;
-                }
-            }
-
-            var request = new InventoryTransferRequest(
-                source,
-                sourceSlot,
-                target,
-                targetSlot,
-                draggedStack,
-                true);
-
-            if (!_transferService.TryExecuteTransfer(request, out var outcome))
-            {
-                Extentions.DragAndDropLog("<color=red>Transfer failed</color>");
-                return false;
-            }
-
-            if (outcome.TargetSlot != null)
-            {
-                _currentContext.SetTarget(outcome.TargetSlot, outcome.TargetInventory);
-            }
-
-            DispatchTransferEvents(outcome);
-
-            if (outcome.SourceInventory is UniversalInventory universalSource)
-            {
-                universalSource.HandleSlotEmptied(outcome.SourceSlot);
-            }
-
-            Extentions.DragAndDropLog($"<color=green>Transferred {outcome.Amount} items successfully</color>");
-            return true;
-        }
-
-        private bool PerformBatchTransfer()
-        {
-            var target = _currentContext.TargetInventory;
-            if (target == null)
-            {
-                Extentions.DragAndDropLog("<color=red>PerformBatchTransfer: No target inventory</color>");
-                return false;
-            }
-
-            bool anySuccess = false;
-
-            foreach (var entry in _currentContext.Entries)
-            {
-                if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null)
-                    continue;
-
-                var request = new InventoryTransferRequest(
-                    entry.SourceInventory,
-                    entry.SourceSlot,
-                    target,
-                    null, // batch: let inventory find slots
-                    entry.Stack,
-                    true);
-
-                if (_transferService.TryExecuteTransfer(request, out var outcome))
-                {
-                    DispatchTransferEvents(outcome);
-
-                    if (outcome.SourceInventory is UniversalInventory universalSource)
-                    {
-                        universalSource.HandleSlotEmptied(outcome.SourceSlot);
-                    }
-
-                    anySuccess = true;
-                }
-            }
-
-            return anySuccess;
-        }
-
-        /// <summary>
-        /// Валидация возможности обмена предметов между слотами
-        /// Только для одиночного drag (не batch)
-        /// </summary>
-        private bool ValidateSwap(DragContext dragContext, ISlot targetSlot, out DragContext reverseContext)
-        {
-            reverseContext = null;
-
-            if (targetSlot == null || targetSlot.IsEmpty)
-            {
-                Extentions.DragAndDropLog("<color=red>ValidateSwap: Target slot is null or empty</color>");
-                return false;
-            }
-
-            var entry = dragContext.Entries[0];
-            var sourceSlot = entry.SourceSlot;
-            var sourceInventory = entry.SourceInventory;
-            var targetInventory = dragContext.TargetInventory;
-
-            // Создаем копию стака из целевого слота для валидации
-            var targetStack = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
-
-            // 1. Проверяем можно ли вытащить предмет из целевого слота
-            reverseContext = new DragContext(targetStack, targetSlot, targetInventory);
-            var reverseEntry = reverseContext.Entries[0];
-
-            // Проверяем глобальные правила для вытаскивания из целевого слота
-            var globalStartResult = _globalRules.ValidateStartDrag(reverseContext, reverseEntry);
-            if (!globalStartResult.IsValid)
-            {
-                Extentions.DragAndDropLog($"<color=red>ValidateSwap: Cannot start drag from target slot: {globalStartResult.FailureReason}</color>");
-                return false;
-            }
-
-            // Проверяем правила целевого инвентаря для вытаскивания
-            if (targetInventory is UniversalInventory targetUniversal)
-            {
-                var targetStartResult = targetUniversal.RuleValidator.ValidateStartDrag(reverseContext, reverseEntry);
-                if (!targetStartResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>ValidateSwap: Target inventory rejects start drag: {targetStartResult.FailureReason}</color>");
-                    return false;
-                }
-            }
-
-            // 2. Теперь проверяем можно ли поместить предметы в новые места
-            // 2a. Предмет из целевого слота -> исходный слот
-            reverseContext.SetTarget(sourceSlot, sourceInventory);
-
-            // Глобальные правила
-            var globalDropReverseResult = _globalRules.ValidateDrop(reverseContext, reverseEntry);
-            if (!globalDropReverseResult.IsValid)
-            {
-                Extentions.DragAndDropLog($"<color=red>ValidateSwap: Cannot drop target item to source slot (global): {globalDropReverseResult.FailureReason}</color>");
-                return false;
-            }
-
-            // Правила исходного инвентаря
-            if (sourceInventory is UniversalInventory sourceUniversal)
-            {
-                var sourceDropResult = sourceUniversal.RuleValidator.ValidateDrop(reverseContext, reverseEntry);
-                if (!sourceDropResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>ValidateSwap: Source inventory rejects target item: {sourceDropResult.FailureReason}</color>");
-                    return false;
-                }
-            }
-
-            // Правила исходного слота
-            if (sourceSlot.SlotRuleValidator != null)
-            {
-                var sourceSlotResult = sourceSlot.SlotRuleValidator.ValidateDrop(reverseContext, reverseEntry);
-                if (!sourceSlotResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>ValidateSwap: Source slot rejects target item: {sourceSlotResult.FailureReason}</color>");
-                    return false;
-                }
-            }
-
-            // 2b. Предмет из исходного слота -> целевой слот (уже проверено в CanDropToSlot, но проверим еще раз)
-            var globalDropResult = _globalRules.ValidateDrop(dragContext, entry);
-            if (!globalDropResult.IsValid)
-            {
-                Extentions.DragAndDropLog($"<color=red>ValidateSwap: Cannot drop source item to target slot (global): {globalDropResult.FailureReason}</color>");
-                return false;
-            }
-
-            if (targetInventory is UniversalInventory targetUniversal2)
-            {
-                var targetDropResult = targetUniversal2.RuleValidator.ValidateDrop(dragContext, entry);
-                if (!targetDropResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>ValidateSwap: Target inventory rejects source item: {targetDropResult.FailureReason}</color>");
-                    return false;
-                }
-            }
-
-            if (targetSlot.SlotRuleValidator != null)
-            {
-                var targetSlotResult = targetSlot.SlotRuleValidator.ValidateDrop(dragContext, entry);
-                if (!targetSlotResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>ValidateSwap: Target slot rejects source item: {targetSlotResult.FailureReason}</color>");
-                    return false;
-                }
-            }
-
-            Extentions.DragAndDropLog("<color=green>ValidateSwap: Swap is valid!</color>");
-            return true;
-        }
-
-        /// <summary>
-        /// Выполнить обмен предметов между слотами
-        /// Атомарная операция: либо оба предмета обмениваются, либо ничего не происходит
-        /// Только для одиночного drag (не batch)
-        /// </summary>
-        private bool TrySwap()
-        {
-            // Swap only for single entry
-            if (!IsDragging || _currentContext.IsBatchDrag || !_currentContext.HasTarget || _currentContext.TargetSlot == null)
-            {
-                Extentions.DragAndDropLog("<color=red>TrySwap: Invalid state for swap</color>");
-                return false;
-            }
-
-            var entry = _currentContext.Entries[0];
-            var sourceSlot = entry.SourceSlot;
-            var targetSlot = _currentContext.TargetSlot;
-            var sourceInventory = entry.SourceInventory;
-            var targetInventory = _currentContext.TargetInventory;
-
-            if (targetSlot.IsEmpty)
-            {
-                Extentions.DragAndDropLog("<color=red>TrySwap: Target slot is empty, no need to swap</color>");
-                return false;
-            }
-
-            // Валидация swap
-            if (!ValidateSwap(_currentContext, targetSlot, out DragContext reverseContext))
-            {
-                Extentions.DragAndDropLog("<color=red>TrySwap: Validation failed</color>");
-                return false;
-            }
-
-            // Создаем событие для возможности отмены или кастомной обработки
-            var swapEventArgs = new InventorySwapContext(
-                entry.Stack,
-                reverseContext.Entries[0].Stack,
-                sourceSlot,
-                targetSlot,
-                sourceInventory,
-                targetInventory
-            );
-
-            OnSwapAttempting?.Invoke(swapEventArgs);
-
-            if (swapEventArgs.Cancel)
-            {
-                Extentions.DragAndDropLog("<color=yellow>TrySwap: Cancelled by event handler</color>");
-                return false;
-            }
-
-            // Выполняем swap через метод целевого инвентаря и получаем данные для событий
-            if (targetInventory is not UniversalInventory targetUniversal)
-            {
-                Extentions.DragAndDropLog("<color=red>TrySwap: Target inventory is not UniversalInventory</color>");
-                return false;
-            }
-
-            bool success = targetUniversal.TrySwapSlots(targetSlot, sourceSlot, out var swapResult);
-
-            if (!success)
-            {
-                Extentions.DragAndDropLog("<color=red>TrySwap: Inventory swap method failed</color>");
-                return false;
-            }
-
-            var sourceUniversal = sourceSlot.Inventory as UniversalInventory;
-            DispatchSwapEvents(targetUniversal, sourceUniversal, targetSlot, sourceSlot, swapResult);
-
-            Extentions.DragAndDropLog($"<color=green>Swap completed via inventory method</color>");
-            OnSwapCompleted?.Invoke(swapEventArgs);
-            return true;
         }
 
         private void EndDrag()
@@ -1289,52 +987,6 @@ namespace DragAndDropSystem
                     outcome.SourceInventory,
                     outcome.SourceSlot,
                     outcome.TargetSlot);
-            }
-        }
-
-        private void DispatchSwapEvents(
-            UniversalInventory targetInventory,
-            UniversalInventory sourceInventory,
-            ISlot targetSlot,
-            ISlot sourceSlot,
-            SwapOperationResult swapResult)
-        {
-            if (targetInventory != null && swapResult.TargetStackBefore != null && !swapResult.TargetStackBefore.IsEmpty)
-            {
-                targetInventory.EmitItemRemoved(
-                    swapResult.TargetStackBefore.Item,
-                    swapResult.TargetStackBefore.Count,
-                    targetSlot.Index,
-                    sourceInventory,
-                    targetSlot,
-                    sourceSlot);
-
-                targetInventory.EmitItemAdded(
-                    swapResult.SourceStackBefore.Item,
-                    swapResult.SourceStackBefore.Count,
-                    targetSlot.Index,
-                    sourceInventory,
-                    sourceSlot,
-                    targetSlot);
-            }
-
-            if (sourceInventory != null && swapResult.SourceStackBefore != null && !swapResult.SourceStackBefore.IsEmpty)
-            {
-                sourceInventory.EmitItemRemoved(
-                    swapResult.SourceStackBefore.Item,
-                    swapResult.SourceStackBefore.Count,
-                    sourceSlot.Index,
-                    targetInventory,
-                    sourceSlot,
-                    targetSlot);
-
-                sourceInventory.EmitItemAdded(
-                    swapResult.TargetStackBefore.Item,
-                    swapResult.TargetStackBefore.Count,
-                    sourceSlot.Index,
-                    targetInventory,
-                    targetSlot,
-                    sourceSlot);
             }
         }
 
