@@ -577,13 +577,8 @@ namespace DragAndDropSystem
             }
 
             // ── Phase 2: Per-entry validation ──────────────────────────────────────
-            // Для batch: убираем TargetSlot — финальный слот каждого entry неизвестен
-            // до реального переноса, поэтому slot-правила здесь неприменимы.
-            // TargetSlot восстанавливается после цикла (нужен для UI-хайлайта).
-            var savedTargetSlot = _currentContext.TargetSlot;
-            if (_currentContext.IsBatchDrag)
-                _currentContext.TargetSlot = null;
-
+            // Для batch: TargetSlot — UI-хинт (слот под курсором), не финальный слот каждого entry.
+            // Slot-правила применяются только для single drag; для batch — в Phase 3 (InventoryTransferService).
             foreach (var entry in _currentContext.Entries)
             {
                 // Глобальные правила
@@ -591,7 +586,6 @@ namespace DragAndDropSystem
                 if (!globalResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Global rule failed: {globalResult.FailureReason}</color>");
-                    if (_currentContext.IsBatchDrag) _currentContext.TargetSlot = savedTargetSlot;
                     return false;
                 }
 
@@ -602,7 +596,6 @@ namespace DragAndDropSystem
                     if (!inventoryResult.IsValid)
                     {
                         Extentions.DragAndDropLog($"<color=red>CanDropToSlot: Inventory rule failed: {inventoryResult.FailureReason}</color>");
-                        if (_currentContext.IsBatchDrag) _currentContext.TargetSlot = savedTargetSlot;
                         return false;
                     }
                 }
@@ -619,9 +612,6 @@ namespace DragAndDropSystem
                     }
                 }
             }
-
-            if (_currentContext.IsBatchDrag)
-                _currentContext.TargetSlot = savedTargetSlot;
 
             Extentions.DragAndDropLog("<color=green>CanDropToSlot: Success!</color>");
             return true;
@@ -710,8 +700,10 @@ namespace DragAndDropSystem
             if (!result.Success || result.Item == null)
                 return;
 
-            // For batch: events are dispatched per-entry by the handler
-            // For single: dispatch source/target events
+            // For batch: events already dispatched per-entry inside HandleBatchDrop
+            if (_currentContext.IsBatchDrag)
+                return;
+
             var entry = _currentContext.Entries[0];
 
             // Source inventory events

@@ -33,13 +33,11 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// Целевой слот операции.
         /// <para>
-        /// <b>Single drag:</b> точный финальный слот — правила слота применяются напрямую.<br/>
-        /// <b>Batch drag (pre-flight):</b> null — финальные слоты неизвестны до реального переноса,
-        /// поэтому per-entry slot-правила при валидации не применяются.
-        /// Slot-level валидация для batch происходит на Phase 3 в <see cref="DragAndDropSystem.Inventories.InventoryTransferService"/>
-        /// для каждого entry отдельно.<br/>
-        /// <b>Batch drag (hint):</b> если пользователь навёл на конкретный слот — сохраняется как
-        /// подсказка для UI-хайлайта, но не используется для per-entry валидации.
+        /// <b>null</b> — цель не задана (авто-перенос, дроп на область инвентаря, вызов из кода).<br/>
+        /// <b>Single drag:</b> точный финальный слот — slot-правила применяются напрямую.<br/>
+        /// <b>Batch drag:</b> UI-хинт (слот под курсором). Финальный слот каждого entry неизвестен
+        /// до реального переноса — определяется в <see cref="DragAndDropSystem.Inventories.InventoryTransferService"/>.
+        /// Правила должны использовать <see cref="IsBatchDrag"/> чтобы игнорировать TargetSlot при batch-валидации.
         /// </para>
         /// </summary>
         public ISlot TargetSlot { get; set; }

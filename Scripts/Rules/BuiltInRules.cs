@@ -16,7 +16,8 @@ namespace DragAndDropSystem.Rules
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.SourceSlot == context.TargetSlot)
+            // Для batch TargetSlot — UI-хинт, не реальная цель entry; slot-валидация в TransferService
+            if (!context.IsBatchDrag && entry.SourceSlot == context.TargetSlot)
                 return RuleResult.Failure("Cannot drop to the same slot");
 
             return RuleResult.Success();
@@ -223,9 +224,9 @@ namespace DragAndDropSystem.Rules
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (context.TargetSlot == null)
+            if (context.TargetSlot == null || context.IsBatchDrag)
             {
-                // Дроп в инвентарь без конкретного слота - проверяем стак целиком
+                // Дроп в инвентарь без конкретного слота (или batch: финальный слот неизвестен) — проверяем стак целиком
                 if (entry.Stack.Count > _maxStackSize)
                 {
                     return RuleResult.Failure($"Stack size limit is {_maxStackSize}");
