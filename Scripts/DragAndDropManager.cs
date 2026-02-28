@@ -612,9 +612,6 @@ namespace DragAndDropSystem
                             _currentContext.SetTarget(result.TargetSlot, result.TargetInventory);
                         }
 
-                        // Dispatch events based on result
-                        DispatchDropResultEvents(result);
-
                         OnDropCompleted?.Invoke(_currentContext);
                     }
                     else
@@ -653,47 +650,6 @@ namespace DragAndDropSystem
             }
 
             EndDrag();
-        }
-
-        /// <summary>
-        /// Dispatch events based on drop result (for inventory-based handlers)
-        /// </summary>
-        private void DispatchDropResultEvents(DropResult result)
-        {
-            if (!result.Success || result.Item == null)
-                return;
-
-            // For batch: events already dispatched per-entry inside HandleBatchDrop
-            if (_currentContext.IsBatchDrag)
-                return;
-
-            var entry = _currentContext.Entries[0];
-
-            // Source inventory events
-            if (entry.SourceInventory is UniversalInventory sourceUniversal)
-            {
-                sourceUniversal.EmitItemRemoved(
-                    result.Item,
-                    result.Amount,
-                    entry.SourceSlot?.Index ?? -1,
-                    result.TargetInventory,
-                    entry.SourceSlot,
-                    result.TargetSlot);
-
-                sourceUniversal.HandleSlotEmptied(entry.SourceSlot);
-            }
-
-            // Target inventory events (only for inventory-based drops)
-            if (result.TargetInventory is UniversalInventory targetUniversal && result.TargetSlot != null)
-            {
-                targetUniversal.EmitItemAdded(
-                    result.Item,
-                    result.Amount,
-                    result.TargetSlot.Index,
-                    entry.SourceInventory,
-                    entry.SourceSlot,
-                    result.TargetSlot);
-            }
         }
 
         /// <summary>

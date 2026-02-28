@@ -67,6 +67,7 @@ namespace DragAndDropSystem.Inventories
             IInventoryItem lastItem = null;
             ISlot lastTargetSlot = null;
             bool hadPartialTransfer = false;
+            var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
 
             foreach (var plannedEntry in plan.Entries)
             {
@@ -115,6 +116,7 @@ namespace DragAndDropSystem.Inventories
                     lastItem = outcome.Item;
                     lastTargetSlot = outcome.TargetSlot ?? allocation.Slot;
                     hadPartialTransfer |= outcome.IsPartialTransfer;
+                    successfulOutcomes.Add(outcome);
                 }
 
                 if (entryFailed)
@@ -175,8 +177,47 @@ namespace DragAndDropSystem.Inventories
                 isPartialTransfer: isPartial,
                 remainingInSource: 0);
 
+            // Эмитим события только после успешного завершения всей операции.
+            // В Atomic это предотвращает "ложные" события при последующем откате.
+            DispatchTransferEvents(successfulOutcomes);
+
             Extentions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Executed plan: successEntries={succeededEntries}, failedEntries={failedEntries}, amount={transferredAmount}</color>");
             return new TransferExecutionSummary(success, succeededEntries, failedEntries, transferredAmount, isPartial, result);
+        }
+
+        private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)
+        {
+            if (outcomes == null)
+                return;
+
+            foreach (var outcome in outcomes)
+            {
+                if (outcome.Item == null || outcome.Amount <= 0)
+                    continue;
+
+                if (outcome.SourceInventory is UniversalInventory sourceUniversal)
+                {
+                    sourceUniversal.EmitItemRemoved(
+                        outcome.Item,
+                        outcome.Amount,
+                        outcome.SourceSlot?.Index ?? -1,
+                        outcome.TargetInventory,
+                        outcome.SourceSlot,
+                        outcome.TargetSlot);
+                    sourceUniversal.HandleSlotEmptied(outcome.SourceSlot);
+                }
+
+                if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null)
+                {
+                    targetUniversal.EmitItemAdded(
+                        outcome.Item,
+                        outcome.Amount,
+                        outcome.TargetSlot.Index,
+                        outcome.SourceInventory,
+                        outcome.SourceSlot,
+                        outcome.TargetSlot);
+                }
+            }
         }
 
         private static TransferExecutionSummary BuildFailedSummary(

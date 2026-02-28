@@ -14,7 +14,9 @@ namespace DragAndDropSystem.Inventories
         private readonly ISlot _targetSlot;
         private readonly IInventory _targetInventory;
         private readonly GlobalRuleValidator _globalRules;
-        private readonly InventoryTransferService _transferService;
+        private readonly TransferPlanner _planner;
+        private readonly TransferPlanExecutor _executor;
+        private TransferPlan _cachedPlan;
 
         /// <summary>
         /// Create a handler for a specific slot
@@ -28,7 +30,8 @@ namespace DragAndDropSystem.Inventories
             _targetSlot = targetSlot;
             _targetInventory = targetInventory;
             _globalRules = globalRules;
-            _transferService = transferService;
+            _planner = new TransferPlanner();
+            _executor = new TransferPlanExecutor(transferService);
         }
 
         /// <summary>
@@ -47,50 +50,27 @@ namespace DragAndDropSystem.Inventories
             if (context == null || _targetInventory == null)
             {
                 Extentions.DragAndDropLog("<color=red>[InventoryDropHandler] CanAcceptDrop: null context or inventory</color>");
+                _cachedPlan = null;
                 return false;
             }
 
             // Update context with our target info
             context.SetTarget(_targetSlot, _targetInventory);
+            var plan = _planner.BuildPlan(
+                context,
+                context.Policy,
+                _targetInventory,
+                _targetSlot,
+                _globalRules);
 
-            // Validate each entry against all rule tiers
-            foreach (var entry in context.Entries)
+            _cachedPlan = plan.IsValid ? plan : null;
+            if (!plan.IsValid)
             {
-                // 1. Global rules
-                if (_globalRules != null)
-                {
-                    var globalResult = _globalRules.ValidateDrop(context, entry);
-                    if (!globalResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Global rule failed: {globalResult.FailureReason}</color>");
-                        return false;
-                    }
-                }
-
-                // 2. Inventory rules
-                if (_targetInventory is UniversalInventory universalInventory)
-                {
-                    var inventoryResult = universalInventory.RuleValidator.ValidateDrop(context, entry);
-                    if (!inventoryResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Inventory rule failed: {inventoryResult.FailureReason}</color>");
-                        return false;
-                    }
-                }
-
-                // 3. Slot rules (only if we have a specific target slot)
-                if (_targetSlot?.SlotRuleValidator != null)
-                {
-                    var slotResult = _targetSlot.SlotRuleValidator.ValidateDrop(context, entry);
-                    if (!slotResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Slot rule failed: {slotResult.FailureReason}</color>");
-                        return false;
-                    }
-                }
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] CanAcceptDrop: plan failed: {plan.Failure?.Reason}</color>");
+                return false;
             }
 
-            Extentions.DragAndDropLog("<color=green>[InventoryDropHandler] CanAcceptDrop: Success!</color>");
+            Extentions.DragAndDropLog("<color=green>[InventoryDropHandler] CanAcceptDrop: plan is valid</color>");
             return true;
         }
 
@@ -100,14 +80,11 @@ namespace DragAndDropSystem.Inventories
             {
                 return DropResult.Failed("Null drag context");
             }
-
-            // For batch drag: iterate entries and transfer each
-            if (context.IsBatchDrag)
+            if (context.Entries == null || context.Entries.Count == 0)
             {
-                return HandleBatchDrop(context);
+                return DropResult.Failed("Drag context has no entries");
             }
 
-            // Single entry path (original behavior)
             var entry = context.Entries[0];
             var source = entry.SourceInventory;
             var sourceSlot = entry.SourceSlot;
@@ -124,102 +101,38 @@ namespace DragAndDropSystem.Inventories
                 return DropResult.Failed("Target inventory is null");
             }
 
-            // Update context with target
             context.SetTarget(_targetSlot, _targetInventory);
 
-            Extentions.DragAndDropLog($"<color=yellow>[InventoryDropHandler] HandleDrop: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"}</color>");
-
-            var request = new InventoryTransferRequest(
-                source,
-                sourceSlot,
+            var plan = _cachedPlan ?? _planner.BuildPlan(
+                context,
+                context.Policy,
                 _targetInventory,
                 _targetSlot,
-                draggedStack,
-                allowAlternativeSlots: true);
+                _globalRules);
+            _cachedPlan = null;
 
-            if (!_transferService.TryExecuteTransfer(request, out var outcome))
+            if (plan == null || !plan.IsValid)
             {
-                Extentions.DragAndDropLog("<color=red>[InventoryDropHandler] Transfer failed</color>");
-                return DropResult.Failed("Transfer failed");
+                return DropResult.Failed(plan?.Failure?.Reason ?? "Transfer plan is invalid");
             }
 
-            // Update context with actual target slot (may differ from requested)
-            if (outcome.TargetSlot != null)
+            var policy = context.Policy;
+            Extentions.DragAndDropLog($"<color=yellow>[InventoryDropHandler] HandleDrop: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
+
+            var summary = _executor.Execute(plan);
+            if (!summary.Success)
             {
-                context.SetTarget(outcome.TargetSlot, outcome.TargetInventory);
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Execute failed: {summary.DropResult.FailureReason}</color>");
+                return summary.DropResult;
             }
 
-            Extentions.DragAndDropLog($"<color=green>[InventoryDropHandler] Transferred {outcome.Amount} items successfully</color>");
-
-            return DropResult.Succeeded(
-                item: outcome.Item,
-                amount: outcome.Amount,
-                targetSlot: outcome.TargetSlot,
-                targetInventory: outcome.TargetInventory,
-                isPartialTransfer: outcome.IsPartialTransfer,
-                remainingInSource: outcome.RemainingInSource);
-        }
-
-        private DropResult HandleBatchDrop(DragContext context)
-        {
-            context.SetTarget(_targetSlot, _targetInventory);
-
-            int totalTransferred = 0;
-            IInventoryItem lastItem = null;
-
-            foreach (var entry in context.Entries)
+            if (summary.DropResult.TargetSlot != null && summary.DropResult.TargetInventory != null)
             {
-                if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null)
-                    continue;
-
-                var request = new InventoryTransferRequest(
-                    entry.SourceInventory,
-                    entry.SourceSlot,
-                    _targetInventory,
-                    null, // batch: let inventory find slots
-                    entry.Stack,
-                    allowAlternativeSlots: true);
-
-                if (_transferService.TryExecuteTransfer(request, out var outcome))
-                {
-                    totalTransferred += outcome.Amount;
-                    lastItem = outcome.Item;
-
-                    if (outcome.SourceInventory is UniversalInventory sourceUniversal)
-                    {
-                        sourceUniversal.EmitItemRemoved(
-                            outcome.Item,
-                            outcome.Amount,
-                            outcome.SourceSlot?.Index ?? -1,
-                            outcome.TargetInventory,
-                            outcome.SourceSlot,
-                            outcome.TargetSlot);
-                        sourceUniversal.HandleSlotEmptied(outcome.SourceSlot);
-                    }
-
-                    if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null)
-                    {
-                        targetUniversal.EmitItemAdded(
-                            outcome.Item,
-                            outcome.Amount,
-                            outcome.TargetSlot.Index,
-                            outcome.SourceInventory,
-                            outcome.SourceSlot,
-                            outcome.TargetSlot);
-                    }
-                }
+                context.SetTarget(summary.DropResult.TargetSlot, summary.DropResult.TargetInventory);
             }
 
-            if (totalTransferred > 0)
-            {
-                return DropResult.Succeeded(
-                    item: lastItem,
-                    amount: totalTransferred,
-                    targetSlot: _targetSlot,
-                    targetInventory: _targetInventory);
-            }
-
-            return DropResult.Failed("Batch transfer failed");
+            Extentions.DragAndDropLog($"<color=green>[InventoryDropHandler] Executed plan: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
+            return summary.DropResult;
         }
     }
 }
