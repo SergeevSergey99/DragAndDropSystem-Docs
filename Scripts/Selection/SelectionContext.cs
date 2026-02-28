@@ -56,7 +56,7 @@ namespace DragAndDropSystem.Selection
 
             var snapshot = new Dictionary<IInventory, IReadOnlyList<ISlot>>(byInventory.Count);
             foreach (var kvp in byInventory)
-                snapshot[kvp.Key] = kvp.Value.AsReadOnly();
+                snapshot[kvp.Key] = new List<ISlot>(kvp.Value).AsReadOnly();
             ByInventory = snapshot;
         }
     }
