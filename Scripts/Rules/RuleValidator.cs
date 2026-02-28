@@ -105,6 +105,46 @@ namespace DragAndDropSystem.Rules
             BuildCombinedRules(visitedPresets);
 
         /// <summary>
+        /// Batch-level валидация начала перетаскивания.
+        /// Вызывается один раз для всей операции (до per-entry цикла).
+        /// Обрабатывает только правила, реализующие <see cref="IBatchDragRule"/>.
+        /// </summary>
+        public RuleResult ValidateStartDragBatch(DragContext context)
+        {
+            foreach (var rule in BuildCombinedRules(null))
+            {
+                if (rule == null) continue;
+                if (rule is IBatchDragRule batchRule)
+                {
+                    var result = batchRule.CanStartBatchDrag(context);
+                    if (!result.IsValid)
+                        return result;
+                }
+            }
+            return RuleResult.Success();
+        }
+
+        /// <summary>
+        /// Batch-level валидация сброса предметов.
+        /// Вызывается один раз для всей операции (до per-entry цикла).
+        /// Обрабатывает только правила, реализующие <see cref="IBatchDragRule"/>.
+        /// </summary>
+        public RuleResult ValidateDropBatch(DragContext context)
+        {
+            foreach (var rule in BuildCombinedRules(null))
+            {
+                if (rule == null) continue;
+                if (rule is IBatchDragRule batchRule)
+                {
+                    var result = batchRule.CanDropBatch(context);
+                    if (!result.IsValid)
+                        return result;
+                }
+            }
+            return RuleResult.Success();
+        }
+
+        /// <summary>
         /// Валидация начала перетаскивания для конкретного entry
         /// </summary>
         public RuleResult ValidateStartDrag(DragContext context, DragEntry entry)

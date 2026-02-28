@@ -30,7 +30,20 @@ namespace DragAndDropSystem.Core
         public IReadOnlyList<DragEntry> Entries { get; }
         public bool IsBatchDrag => Entries.Count > 1;
 
+        /// <summary>
+        /// Целевой слот операции.
+        /// <para>
+        /// <b>Single drag:</b> точный финальный слот — правила слота применяются напрямую.<br/>
+        /// <b>Batch drag (pre-flight):</b> null — финальные слоты неизвестны до реального переноса,
+        /// поэтому per-entry slot-правила при валидации не применяются.
+        /// Slot-level валидация для batch происходит на Phase 3 в <see cref="DragAndDropSystem.Inventories.InventoryTransferService"/>
+        /// для каждого entry отдельно.<br/>
+        /// <b>Batch drag (hint):</b> если пользователь навёл на конкретный слот — сохраняется как
+        /// подсказка для UI-хайлайта, но не используется для per-entry валидации.
+        /// </para>
+        /// </summary>
         public ISlot TargetSlot { get; set; }
+
         public IInventory TargetInventory { get; set; }
 
         /// <summary>
