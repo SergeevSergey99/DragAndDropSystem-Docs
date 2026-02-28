@@ -135,81 +135,15 @@ namespace DragAndDropSystem
         /// <summary>
         /// Начать перетаскивание из слота
         /// </summary>
-        public bool StartDrag(ISlot sourceSlot)
-        {
-            if (IsDragging || sourceSlot == null || sourceSlot.IsEmpty) return false;
-
-            if (sourceSlot.Inventory == null)
-            {
-                Debug.LogError("StartDrag: sourceInventory is null! Slot not initialized?");
-                return false;
-            }
-
-            // Определяем количество предметов для перетаскивания
-            int dragCount = sourceSlot.GetDragAmount();
-
-            Extentions.DragAndDropLog($"<color=cyan>StartDrag: Taking {dragCount} of {sourceSlot.Stack.Count} items</color>");
-
-            // Создаем контекст с независимой копией стака (чтобы он не изменился после переноса)
-            var stack = new ItemStack(sourceSlot.Stack.Item, dragCount);
-            _currentContext = new DragContext(stack, sourceSlot, sourceSlot.Inventory);
-
-            OnDragStarting?.Invoke(_currentContext);
-            
-            var entry = _currentContext.Entries[0];
-
-            // Проверяем правила начала перетаскивания
-            // Проверяем глобальные правила
-            var globalResult = _globalRules.ValidateStartDrag(_currentContext, entry);
-            if (!globalResult.IsValid)
-            {
-                Extentions.DragAndDropLog($"Cannot start drag: {globalResult.FailureReason}");
-                _currentContext = null;
-                return false;
-            }
-
-            // Проверяем правила инвентаря
-            if (sourceSlot.Inventory is UniversalInventory universalInventory)
-            {
-                var inventoryResult = universalInventory.RuleValidator.ValidateStartDrag(_currentContext, entry);
-                if (!inventoryResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"Cannot start drag: {inventoryResult.FailureReason}");
-                    _currentContext = null;
-                    return false;
-                }
-            }
-
-            // Выбираем визуал (кастомный из инвентаря или дефолтный)
-            _currentVisual = GetDragVisual(sourceSlot.Inventory);
-
-            if (_currentVisual != null)
-            {
-                _currentVisual.UpdatePosition(GetMousePosition());
-                _currentVisual.Show(_currentContext.Entries);
-            }
-            else
-            {
-                Debug.LogWarning("No drag visual available!");
-            }
-
-            OnDragStarted?.Invoke(_currentContext);
-
-            Extentions.DragAndDropLog($"<color=green>Started dragging</color>");
-            return true;
-        }
+        public bool StartDrag(ISlot sourceSlot) => sourceSlot != null && StartDrag(new List<ISlot> { sourceSlot });
 
         /// <summary>
-        /// Начать batch-перетаскивание из нескольких слотов
+        /// Начать перетаскивание из одного или нескольких слотов
         /// </summary>
         public bool StartDrag(IReadOnlyList<ISlot> sourceSlots)
         {
             if (IsDragging || sourceSlots == null || sourceSlots.Count == 0)
                 return false;
-
-            // Single slot — delegate to standard path
-            if (sourceSlots.Count == 1)
-                return StartDrag(sourceSlots[0]);
 
             // Build entries
             var entries = new List<DragEntry>(sourceSlots.Count);
@@ -272,7 +206,7 @@ namespace DragAndDropSystem
             }
 
             OnDragStarted?.Invoke(_currentContext);
-            Extentions.DragAndDropLog($"<color=green>Started batch dragging ({entries.Count} entries)</color>");
+            Extentions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
         }
 
