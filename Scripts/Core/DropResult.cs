@@ -49,6 +49,16 @@ namespace DragAndDropSystem.Core
         /// </summary>
         public int RemainingInSource { get; }
 
+        /// <summary>
+        /// Number of batch entries executed successfully (1 for classic single transfer).
+        /// </summary>
+        public int SucceededEntries { get; }
+
+        /// <summary>
+        /// Number of batch entries that failed to execute.
+        /// </summary>
+        public int FailedEntries { get; }
+
         private DropResult(
             bool success,
             IInventoryItem item,
@@ -57,7 +67,9 @@ namespace DragAndDropSystem.Core
             IInventory targetInventory,
             string failureReason,
             bool isPartialTransfer,
-            int remainingInSource)
+            int remainingInSource,
+            int succeededEntries,
+            int failedEntries)
         {
             Success = success;
             Item = item;
@@ -67,6 +79,8 @@ namespace DragAndDropSystem.Core
             FailureReason = failureReason;
             IsPartialTransfer = isPartialTransfer;
             RemainingInSource = remainingInSource;
+            SucceededEntries = succeededEntries;
+            FailedEntries = failedEntries;
         }
 
         /// <summary>
@@ -78,7 +92,9 @@ namespace DragAndDropSystem.Core
             ISlot targetSlot = null,
             IInventory targetInventory = null,
             bool isPartialTransfer = false,
-            int remainingInSource = 0)
+            int remainingInSource = 0,
+            int succeededEntries = 1,
+            int failedEntries = 0)
         {
             return new DropResult(
                 success: true,
@@ -88,7 +104,9 @@ namespace DragAndDropSystem.Core
                 targetInventory: targetInventory,
                 failureReason: null,
                 isPartialTransfer: isPartialTransfer,
-                remainingInSource: remainingInSource);
+                remainingInSource: remainingInSource,
+                succeededEntries: succeededEntries,
+                failedEntries: failedEntries);
         }
 
         /// <summary>
@@ -104,7 +122,56 @@ namespace DragAndDropSystem.Core
                 targetInventory: null,
                 failureReason: reason,
                 isPartialTransfer: false,
-                remainingInSource: 0);
+                remainingInSource: 0,
+                succeededEntries: 0,
+                failedEntries: 1);
+        }
+
+        /// <summary>
+        /// Create a successful batch drop result.
+        /// </summary>
+        public static DropResult SucceededBatch(
+            IInventoryItem item,
+            int amount,
+            ISlot targetSlot,
+            IInventory targetInventory,
+            int succeededEntries,
+            int failedEntries,
+            bool isPartialTransfer,
+            int remainingInSource = 0)
+        {
+            return new DropResult(
+                success: true,
+                item: item,
+                amount: amount,
+                targetSlot: targetSlot,
+                targetInventory: targetInventory,
+                failureReason: null,
+                isPartialTransfer: isPartialTransfer,
+                remainingInSource: remainingInSource,
+                succeededEntries: succeededEntries,
+                failedEntries: failedEntries);
+        }
+
+        /// <summary>
+        /// Create a failed batch drop result.
+        /// </summary>
+        public static DropResult FailedBatch(
+            string reason,
+            int succeededEntries,
+            int failedEntries)
+        {
+            return new DropResult(
+                success: false,
+                item: null,
+                amount: 0,
+                targetSlot: null,
+                targetInventory: null,
+                failureReason: reason,
+                isPartialTransfer: false,
+                remainingInSource: 0,
+                succeededEntries: succeededEntries,
+                failedEntries: failedEntries);
         }
     }
 }
