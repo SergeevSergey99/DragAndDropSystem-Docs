@@ -1,5 +1,13 @@
 # Trading System - Краткое описание
 
+**Last Updated**: 2026-02-28
+
+## Актуальность
+
+- Дроп-логика в проекте использует pipeline (`DropPolicy` + planner + executor).
+- Swap настраивается policy (`OccupiedTargetPolicy.TrySwap`), не manager-флагом.
+- Для swap-хуков используйте `InventorySwapContext`.
+
 ## Созданные файлы
 
 ### 📦 ScriptableObject

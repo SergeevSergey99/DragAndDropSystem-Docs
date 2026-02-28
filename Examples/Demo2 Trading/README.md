@@ -1,5 +1,15 @@
 # Trading System Example
 
+**Last Updated**: 2026-02-28
+
+## Актуальность под новую архитектуру
+
+Этот пример работает через текущий transfer pipeline:
+
+- `DropPolicy` -> `TransferPlanner` -> `TransferPlanExecutor`
+- swap включается через `OccupiedTargetPolicy.TrySwap`, а не через legacy-флаг менеджера
+- кастомные ограничения swap реализуются через `InventorySwapContext` в DataBinding
+
 Пример системы торговли с централизованной моделью экономики, демонстрирующий продвинутые возможности DataBinding системы.
 
 ## Описание

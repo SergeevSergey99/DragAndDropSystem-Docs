@@ -1,5 +1,12 @@
 # World 3D Integration - Выбрасывание предметов в мир
 
+**Last Updated**: 2026-02-28
+
+## Совместимость с transfer pipeline
+
+World drop targets совместимы с текущей архитектурой: обработка дропа использует общий policy/planner/executor pipeline через `IItemDropHandler`.
+
+
 Этот модуль добавляет возможность выбрасывания предметов из UI инвентаря в 3D пространство.
 
 ## Компоненты

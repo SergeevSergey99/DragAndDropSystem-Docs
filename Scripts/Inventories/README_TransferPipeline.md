@@ -1,5 +1,7 @@
 # Transfer Pipeline Architecture (Policy + Planner + Executor)
 
+**Last Updated**: 2026-02-28
+
 Документ описывает новую архитектуру переноса предметов в системе DragAndDropSystem,
 включая множественный перенос и swap в рамках единого pipeline.
 

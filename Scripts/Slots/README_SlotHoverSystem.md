@@ -1,5 +1,12 @@
 # Slot Hover System - Система наведения на слоты
 
+**Last Updated**: 2026-02-28
+
+## Совместимость с transfer pipeline
+
+Hover-система остается опциональной и независимой от `DropPolicy` / `TransferPlanner` / `TransferPlanExecutor`. Интеграция с drag&drop API без изменений.
+
+
 Опциональная система для отслеживания наведения курсора на слоты и отображения tooltip с информацией о предметах.
 
 ## 📋 Описание

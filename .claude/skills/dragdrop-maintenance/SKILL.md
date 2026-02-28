@@ -7,7 +7,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 **Purpose**: Keep Claude skills synchronized with codebase changes
 
-**Last Updated**: 2025-01-20
+**Last Updated**: 2026-02-28
 
 **When to use this skill**:
 - After implementing major architectural changes
@@ -18,9 +18,9 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 ---
 
-## NEW: Modular Skills Structure (2025-01-20)
+## Current Skills Structure
 
-**IMPORTANT CHANGE**: Skills now use a modular structure with quick reference SKILL.md files and detailed documentation in separate files.
+**IMPORTANT CHANGE (2026-02-28)**: Core docs must reflect policy/planner/executor transfer architecture and swap execution inside the same pipeline.
 
 ### Structure
 
