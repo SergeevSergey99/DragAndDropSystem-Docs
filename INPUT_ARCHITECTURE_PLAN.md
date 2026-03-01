@@ -41,7 +41,7 @@
 │                                                             │
 │   InputEventRouter  ←─────────────────────────────────────┐ │
 │   (static/singleton)           SlotInputAdapter (per-slot) │ │
-│   anti-dup + source priority   пересылает raw события      │ │
+│   anti-dup only                пересылает raw события      │ │
 │          ↓                     в router                    │ │
 │   InventoryInteractionCoordinator  (per-inventory)         │ │
 │   • единственный получатель всех интентов                  │ │
@@ -91,9 +91,11 @@ SlotInputAdapter реализует:
 InputEventRouter
   • знает все координаторы (регистрация при Awake)
   • маршрутизирует событие в координатор слота
-  • применяет anti-dup (frame gating)
-  • применяет source priority (mouse vs gamepad)
+  • применяет anti-dup (frame gating) — единственная ответственность по фильтрации
 ```
+
+**НЕ занимается** source priority — у Router нет контекста для этого решения.
+Он не знает текущее состояние взаимодействия и не может судить что важнее.
 
 Может быть singleton или инжектироваться через DI.
 
@@ -210,32 +212,33 @@ Router.RouteIntent(intent, source):
 При одновременном использовании мыши и геймпада (Steam Deck, гибридный ввод)
 фокус может прийти из разных источников и создать ложный расфокус.
 
-### Решение: FocusSource + приоритет последнего активного устройства
+**Владелец: только Coordinator.** Router форвардит все события как есть,
+не фильтрует по источнику — у него нет контекста для этого решения.
+
+### Решение: FocusSource в Coordinator
 
 ```csharp
 enum FocusSource { None, Mouse, Gamepad, VirtualCursor }
 ```
 
-Координатор хранит `ActiveFocusSource`. При получении FocusEnter из нового источника:
+Координатор хранит `_activeFocusSource`. Вся логика приоритета сосредоточена здесь:
 
 ```
-Таблица приоритетов (настраивается):
-  последний активный источник имеет приоритет
+OnFocusEnter(slot, source):
+  // Политика: последнее активное устройство вытесняет предыдущее.
+  // Mouse движение всегда вытесняет геймпад-навигацию — и наоборот.
+  _activeFocusSource = source
+  _focusedSlot = slot
+  → state machine: FocusEntered
 
-OnFocusEnter(slot, source=Mouse):
-  if (ActiveFocusSource == Gamepad) {
-    // мышь пришла пока геймпад был активен
-    // политика: Mouse вытесняет Gamepad (последнее движение)
-  }
-  ActiveFocusSource = Mouse
-  FocusedSlot = slot
-
-OnFocusExit(slot, source=Mouse):
-  if (source != ActiveFocusSource) return  // игнорируем exit от неактивного источника
-  FocusedSlot = null
+OnFocusExit(slot, source):
+  if (source != _activeFocusSource) return  // exit от неактивного источника — игнор
+  _focusedSlot = null
+  → state machine: FocusLost
 ```
 
-**Итог**: ложный расфокус от "старого" источника не проходит.
+**Итог**: ложный расфокус от «старого» источника не проходит.
+Единственное место с логикой приоритета — `Coordinator.OnFocusEnter/Exit`.
 
 ---
 
@@ -300,8 +303,10 @@ Anti-dup + маршрутизация в нужный координатор:
 Регистрация: coordinator.Register() при Awake
 Маршрутизация: по ISlot → находит координатор инвентаря слота
 Anti-dup: frame gating через HashSet, очистка в LateUpdate
-Source priority: хранит последний активный FocusSource
 ```
+
+Router **не знает** о FocusSource и не принимает решений по приоритету.
+Он форвардит событие как есть — координатор решит принять или проигнорировать.
 
 ### `InventoryInteractionCoordinator` (новый, per-inventory)
 
@@ -420,7 +425,7 @@ Router не знает какой путь используется — полу
 ### Шаг 2 — `InputEventRouter`
 Singleton. Пока только принимает события и логирует — без реальной маршрутизации.
 Тестируем что все slot-события доходят корректно.
-Добавляем frame gating и source priority.
+Добавляем frame gating.
 
 ### Шаг 3 — `InteractionState` state machine
 Чистый C# класс, без Unity-зависимостей.
