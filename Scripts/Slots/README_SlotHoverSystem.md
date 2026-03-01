@@ -110,7 +110,7 @@ protected virtual void OnSlotHoverExitInternal(SlotHoverEventArgs args);
 ```
 Prefabs/Slot.prefab
 ├── UniversalSlot
-├── DragDropEventListener (уже есть)
+├── SlotInputAdapter (уже есть)
 └── SlotHoverEventListener (добавить)
     └── Only When Not Empty: ✓
 ```

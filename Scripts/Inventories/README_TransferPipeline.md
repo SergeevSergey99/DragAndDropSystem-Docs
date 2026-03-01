@@ -122,7 +122,7 @@ Manager:
 ### Drop targets
 
 - `Scripts/UI/InventoryDropArea.cs`
-- `Scripts/Slots/DragDropEventListener.cs`
+- `Scripts/Interaction/SlotInputAdapter.cs`
 
 Оба компонента создают handler с прокидыванием swap callbacks менеджера.
 
@@ -136,7 +136,7 @@ Manager:
 - `Scripts/Inventories/InventoryDropHandler.cs`
 - `Scripts/DragAndDropManager.cs`
 - `Scripts/UI/InventoryDropArea.cs`
-- `Scripts/Slots/DragDropEventListener.cs`
+- `Scripts/Interaction/SlotInputAdapter.cs`
 
 ## Что это дает в практическом плане
 
