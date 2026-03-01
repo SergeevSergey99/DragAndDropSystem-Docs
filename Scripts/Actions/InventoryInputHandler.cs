@@ -23,9 +23,6 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, Tooltip("Писать предупреждения, если действие не сработало")]
         private bool _logWarnings;
         
-        [SerializeField, Tooltip("Если включено, пытается отправлять action в новый Interaction Router. При отсутствии coordinator используется старый fallback.")]
-        private bool _useInteractionRouter = true;
-
         private readonly List<Subscription> _subscriptions = new List<Subscription>();
 
         private void Awake()
@@ -116,32 +113,10 @@ namespace DragAndDropSystem.Inventories
                 return;
             }
 
-            if (_useInteractionRouter)
+            bool routed = InputEventRouter.Instance.TryRouteInventoryAction(_inventory, binding.Action, context, _logWarnings);
+            if (!routed && _logWarnings)
             {
-                bool routed = InputEventRouter.Instance.TryRouteInventoryAction(_inventory, binding.Action, context, _logWarnings);
-                if (routed)
-                    return;
-            }
-
-            // Разрешаем активный слот для действия
-            var activeSlot = _inventory.ResolveAutoTransferSlot();
-
-            // Проверяем, можно ли выполнить действие
-            if (!binding.Action.CanExecute(_inventory, activeSlot))
-            {
-                if (_logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Input '{binding.Label}': Action '{binding.Action.DisplayName}' cannot be executed.");
-                }
-                return;
-            }
-
-            // Выполняем действие
-            bool success = binding.Action.Execute(_inventory, activeSlot, _logWarnings);
-
-            if (!success && _logWarnings)
-            {
-                Debug.LogWarning($"[{name}] Input '{binding.Label}': Action '{binding.Action.DisplayName}' failed to execute.");
+                Debug.LogWarning($"[{name}] Input '{binding.Label}': no interaction coordinator/router target for inventory '{_inventory.name}'.");
             }
         }
 

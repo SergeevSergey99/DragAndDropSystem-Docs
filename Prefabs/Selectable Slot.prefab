@@ -299,11 +299,9 @@ GameObject:
   - component: {fileID: 7500812802423111428}
   - component: {fileID: 9074624100229294965}
   - component: {fileID: 360401508713574776}
-  - component: {fileID: 2028602600639648272}
   - component: {fileID: 558899001122334455}
   - component: {fileID: -1197741666563837782}
   - component: {fileID: 1964554084652171826}
-  - component: {fileID: 8732326462941864119}
   m_Layer: 5
   m_Name: Selectable Slot
   m_TagString: Untagged
@@ -398,19 +396,6 @@ MonoBehaviour:
   references:
     version: 2
     RefIds: []
---- !u!114 &2028602600639648272
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288852642469321198}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8928d5eb11ed447f94304fe565bdc33f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _slot: {fileID: 360401508713574776}
 --- !u!114 &558899001122334455
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -425,7 +410,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.SlotInputAdapter
   _slot: {fileID: 360401508713574776}
   _coordinator: {fileID: 0}
-  _disableLegacyComponentsOnEnable: 1
 --- !u!114 &-1197741666563837782
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -464,30 +448,6 @@ MonoBehaviour:
   _backgroundGraphic: {fileID: 0}
   _selectedColor: {r: 1, g: 0.85, b: 0.1, a: 1}
   _defaultColor: {r: 1, g: 1, b: 1, a: 1}
---- !u!114 &8732326462941864119
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288852642469321198}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ecfbfebe5148b2429aa03273ded9ef9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _slot: {fileID: 360401508713574776}
-  _logWarnings: 0
-  _bindings:
-  - Modifier: 2
-    Operation:
-      rid: 6676588669311909962
-  references:
-    version: 2
-    RefIds:
-    - rid: 6676588669311909962
-      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
 --- !u!1 &6479211610076900272
 GameObject:
   m_ObjectHideFlags: 0
