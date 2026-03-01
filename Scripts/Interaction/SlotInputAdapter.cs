@@ -45,6 +45,8 @@ namespace DragAndDropSystem.Interaction
                 _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
             if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
                 _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
+            if (_coordinator == null && Application.isPlaying && _slot?.Inventory is UniversalInventory runtimeInventory)
+                _coordinator = runtimeInventory.gameObject.AddComponent<InventoryInteractionCoordinator>();
         }
 
         private void OnEnable()
@@ -53,6 +55,8 @@ namespace DragAndDropSystem.Interaction
                 _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
             if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
                 _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
+            if (_coordinator == null && Application.isPlaying && _slot?.Inventory is UniversalInventory runtimeInventory)
+                _coordinator = runtimeInventory.gameObject.AddComponent<InventoryInteractionCoordinator>();
 
             if (!_disableLegacyComponentsOnEnable)
                 return;

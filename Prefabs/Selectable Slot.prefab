@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 9074624100229294965}
   - component: {fileID: 360401508713574776}
   - component: {fileID: 2028602600639648272}
+  - component: {fileID: 558899001122334455}
   - component: {fileID: -1197741666563837782}
   - component: {fileID: 1964554084652171826}
   - component: {fileID: 8732326462941864119}
@@ -410,6 +411,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _slot: {fileID: 360401508713574776}
+--- !u!114 &558899001122334455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6288852642469321198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f7120d4f55f4b5986652408c95e9a87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.SlotInputAdapter
+  _slot: {fileID: 360401508713574776}
+  _coordinator: {fileID: 0}
+  _disableLegacyComponentsOnEnable: 1
 --- !u!114 &-1197741666563837782
 MonoBehaviour:
   m_ObjectHideFlags: 0
