@@ -530,7 +530,7 @@ namespace DragAndDropSystem.Inventories
                     entry.SourceInventory);
             }
 
-            var result = _ruleEvaluationService.ValidateEntryDrop(context, validationEntry, targetInventory, targetSlot, globalRules);
+            var result = _ruleEvaluationService.ValidateEntryDrop(context.WithTarget(targetSlot, targetInventory), validationEntry, globalRules);
             return result.IsValid;
         }
 

@@ -67,8 +67,6 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            // Update context with our target info
-            context.SetTarget(_targetSlot, _targetInventory);
             var effectivePolicy = ResolveEffectivePolicy(context);
             context.Policy = effectivePolicy;
 
@@ -117,7 +115,6 @@ namespace DragAndDropSystem.Inventories
                 return DropResult.Failed("Target inventory is null");
             }
 
-            context.SetTarget(_targetSlot, _targetInventory);
             var effectivePolicy = ResolveEffectivePolicy(context);
             context.Policy = effectivePolicy;
 

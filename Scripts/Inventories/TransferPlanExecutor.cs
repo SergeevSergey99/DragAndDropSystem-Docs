@@ -306,8 +306,11 @@ namespace DragAndDropSystem.Inventories
             var targetStack = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
 
             var sourceContext = new DragContext(sourceStack, sourceSlot, sourceInventory);
+            sourceContext.SetTarget(targetSlot, targetInventory);
             var sourceEntry = sourceContext.Entries[0];
+
             var reverseContext = new DragContext(targetStack, targetSlot, targetInventory);
+            reverseContext.SetTarget(sourceSlot, sourceInventory);
             var reverseEntry = reverseContext.Entries[0];
 
             var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
@@ -317,14 +320,14 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseContext, reverseEntry, sourceInventory, sourceSlot, globalRules);
+            var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseContext, reverseEntry, globalRules);
             if (!reverseDrop.IsValid)
             {
                 failureReason = reverseDrop.FailureReason;
                 return false;
             }
 
-            var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceContext, sourceEntry, targetInventory, targetSlot, globalRules);
+            var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceContext, sourceEntry, globalRules);
             if (!sourceDrop.IsValid)
             {
                 failureReason = sourceDrop.FailureReason;

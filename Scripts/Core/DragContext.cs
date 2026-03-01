@@ -79,6 +79,21 @@ namespace DragAndDropSystem.Core
             Policy = DropPolicy.BatchAtomic;
         }
 
+        private DragContext(IReadOnlyList<DragEntry> entries, DropPolicy policy, ISlot targetSlot, IInventory targetInventory)
+        {
+            Entries = entries;
+            Policy = policy;
+            TargetSlot = targetSlot;
+            TargetInventory = targetInventory;
+        }
+
+        /// <summary>
+        /// Создаёт копию контекста с заданной целью для валидации правил.
+        /// Оригинальный контекст не изменяется.
+        /// </summary>
+        public DragContext WithTarget(ISlot targetSlot, IInventory targetInventory)
+            => new DragContext(Entries, Policy, targetSlot, targetInventory);
+
         public void SetTarget(ISlot targetSlot, IInventory targetInventory)
         {
             TargetSlot = targetSlot;

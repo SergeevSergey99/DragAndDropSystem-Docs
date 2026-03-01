@@ -40,49 +40,36 @@ namespace DragAndDropSystem.Rules
         public RuleResult ValidateEntryDrop(
             DragContext context,
             DragEntry entry,
-            IInventory targetInventory,
-            ISlot targetSlot,
             GlobalRuleValidator globalRules = null)
         {
             if (context == null)
                 return RuleResult.Failure("Drag context is null");
 
-            if (targetInventory == null)
+            if (context.TargetInventory == null)
                 return RuleResult.Failure("Target inventory is null");
 
-            var previousSlot = context.TargetSlot;
-            var previousInventory = context.TargetInventory;
-            context.SetTarget(targetSlot, targetInventory);
-
-            try
+            if (globalRules != null)
             {
-                if (globalRules != null)
-                {
-                    var globalDropResult = globalRules.ValidateDrop(context, entry);
-                    if (!globalDropResult.IsValid)
-                        return globalDropResult;
-                }
-
-                if (targetInventory is UniversalInventory targetUniversal)
-                {
-                    var inventoryDropResult = targetUniversal.RuleValidator.ValidateDrop(context, entry);
-                    if (!inventoryDropResult.IsValid)
-                        return inventoryDropResult;
-                }
-
-                if (targetSlot?.SlotRuleValidator != null)
-                {
-                    var slotDropResult = targetSlot.SlotRuleValidator.ValidateDrop(context, entry);
-                    if (!slotDropResult.IsValid)
-                        return slotDropResult;
-                }
-
-                return RuleResult.Success();
+                var globalDropResult = globalRules.ValidateDrop(context, entry);
+                if (!globalDropResult.IsValid)
+                    return globalDropResult;
             }
-            finally
+
+            if (context.TargetInventory is UniversalInventory targetUniversal)
             {
-                context.SetTarget(previousSlot, previousInventory);
+                var inventoryDropResult = targetUniversal.RuleValidator.ValidateDrop(context, entry);
+                if (!inventoryDropResult.IsValid)
+                    return inventoryDropResult;
             }
+
+            if (context.TargetSlot?.SlotRuleValidator != null)
+            {
+                var slotDropResult = context.TargetSlot.SlotRuleValidator.ValidateDrop(context, entry);
+                if (!slotDropResult.IsValid)
+                    return slotDropResult;
+            }
+
+            return RuleResult.Success();
         }
     }
 }
