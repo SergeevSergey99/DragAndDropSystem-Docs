@@ -69,6 +69,15 @@ namespace DragAndDropSystem.Core
             Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
             Policy = DropPolicy.SingleDefault;
         }
+        /// <summary>
+        /// Конструктор для одиночного entry с целью (например, вызов из кода с заранее известной целью)
+        /// </summary>
+        public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory, ISlot targetSlot, IInventory targetInventory)
+        {
+            Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
+            Policy = DropPolicy.SingleDefault;
+            SetTarget(targetSlot, targetInventory);
+        }
 
         /// <summary>
         /// Конструктор для множественных entries (batch drag)

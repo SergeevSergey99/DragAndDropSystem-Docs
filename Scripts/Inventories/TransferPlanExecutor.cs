@@ -305,12 +305,10 @@ namespace DragAndDropSystem.Inventories
             var sourceStack = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
             var targetStack = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
 
-            var sourceContext = new DragContext(sourceStack, sourceSlot, sourceInventory);
-            sourceContext.SetTarget(targetSlot, targetInventory);
+            var sourceContext = new DragContext(sourceStack, sourceSlot, sourceInventory, targetSlot, targetInventory);
             var sourceEntry = sourceContext.Entries[0];
 
-            var reverseContext = new DragContext(targetStack, targetSlot, targetInventory);
-            reverseContext.SetTarget(sourceSlot, sourceInventory);
+            var reverseContext = new DragContext(targetStack, targetSlot, targetInventory, sourceSlot, sourceInventory);
             var reverseEntry = reverseContext.Entries[0];
 
             var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
