@@ -91,40 +91,54 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetCoordinator(inventory, out var coordinator))
                 return false;
 
-            var key = new IntentDedupKey((int)callbackContext.phase, null);
+            var key = new IntentDedupKey((int)callbackContext.phase, null, action);
             if (!_handledThisFrame.Add(key))
                 return true;
 
             return coordinator.RouteInventoryAction(action, callbackContext, logWarnings);
         }
 
-        public void RoutePointerEnter(SlotInputAdapter adapter, PointerEventData eventData) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnPointerEnter(adapter, eventData));
+        public void RoutePointerEnter(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnPointerEnter(adapter, eventData);
+        }
 
-        public void RoutePointerExit(SlotInputAdapter adapter, PointerEventData eventData) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnPointerExit(adapter, eventData));
+        public void RoutePointerExit(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnPointerExit(adapter, eventData);
+        }
 
-        public void RoutePointerDown(SlotInputAdapter adapter, PointerEventData eventData) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnPointerDown(adapter, eventData));
+        public void RoutePointerDown(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnPointerDown(adapter, eventData);
+        }
 
-        public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnPointerUp(adapter, eventData));
+        public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnPointerUp(adapter, eventData);
+        }
 
-        public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnBeginDrag(adapter, eventData));
+        public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnBeginDrag(adapter, eventData);
+        }
 
-        public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnFocusEnter(adapter, source));
+        public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnFocusEnter(adapter, source);
+        }
 
-        public void RouteFocusExit(SlotInputAdapter adapter, FocusSource source) =>
-            TryGetCoordinator(adapter, out var coordinator)
-                .IfTrue(() => coordinator.OnFocusExit(adapter, source));
+        public void RouteFocusExit(SlotInputAdapter adapter, FocusSource source)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnFocusExit(adapter, source);
+        }
 
         private bool TryGetCoordinator(SlotInputAdapter adapter, out InventoryInteractionCoordinator coordinator)
         {
@@ -153,23 +167,16 @@ namespace DragAndDropSystem.Interaction
 
         private readonly struct IntentDedupKey
         {
-            public IntentDedupKey(int type, ISlot slot)
+            public IntentDedupKey(int type, ISlot slot, object token)
             {
                 Type = type;
                 Slot = slot;
+                Token = token;
             }
 
             public int Type { get; }
             public ISlot Slot { get; }
-        }
-    }
-
-    internal static class RouterExtensions
-    {
-        public static void IfTrue(this bool value, System.Action action)
-        {
-            if (value)
-                action?.Invoke();
+            public object Token { get; }
         }
     }
 }

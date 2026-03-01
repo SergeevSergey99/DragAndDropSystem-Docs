@@ -4,6 +4,9 @@ using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
+#if ENABLE_REFLEX_DI
+using Reflex.Attributes;
+#endif
 
 namespace DragAndDropSystem.Interaction
 {
@@ -24,7 +27,11 @@ namespace DragAndDropSystem.Interaction
         public UniversalSlot Slot => _slot;
         public InventoryInteractionCoordinator Coordinator => _coordinator;
 
+#if ENABLE_REFLEX_DI
+        [Inject] private DragAndDropManager _dragManager;
+#else
         private DragAndDropManager _dragManager => DragAndDropManager.Instance;
+#endif
 
         private void Awake()
         {
@@ -37,7 +44,7 @@ namespace DragAndDropSystem.Interaction
 
         private void OnDisable()
         {
-            if (!DragAndDropManager.IsInstanceExist || _slot == null || _dragManager == null)
+            if (_slot == null || _dragManager == null)
                 return;
 
             if (_dragManager.IsDragging)

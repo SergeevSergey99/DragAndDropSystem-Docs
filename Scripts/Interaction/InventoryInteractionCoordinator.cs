@@ -1,8 +1,14 @@
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+#if ENABLE_REFLEX_DI
+using Reflex.Attributes;
+#endif
 
 namespace DragAndDropSystem.Interaction
 {
@@ -26,6 +32,8 @@ namespace DragAndDropSystem.Interaction
 
         [SerializeField] private UniversalInventory _inventory;
         [SerializeField] private bool _logWarnings;
+        [SerializeField] private bool _usePointerBindings = true;
+        [SerializeField] private List<PointerBinding> _pointerBindings = new List<PointerBinding>();
 
         private ISlot _focusedSlot;
         private FocusSource _activeFocusSource = FocusSource.None;
@@ -36,8 +44,13 @@ namespace DragAndDropSystem.Interaction
         public UniversalInventory Inventory => _inventory;
         public ISlot FocusedSlot => _focusedSlot;
         public FocusSource ActiveFocusSource => _activeFocusSource;
+        public bool IsDragInProgress => _dragManager != null && _dragManager.IsDragging;
 
+#if ENABLE_REFLEX_DI
+        [Inject] private DragAndDropManager _dragManager;
+#else
         private DragAndDropManager _dragManager => DragAndDropManager.Instance;
+#endif
 
         private void Awake()
         {
@@ -48,12 +61,23 @@ namespace DragAndDropSystem.Interaction
         private void OnEnable()
         {
             InputEventRouter.Instance.RegisterCoordinator(this);
+            if (_dragManager != null)
+            {
+                _dragManager.OnDropCompleted += HandleDragEnded;
+                _dragManager.OnDragCancelled += HandleDragEnded;
+            }
         }
 
         private void OnDisable()
         {
             if (InputEventRouter.IsInstanceExist)
                 InputEventRouter.Instance.UnregisterCoordinator(this);
+
+            if (_dragManager != null)
+            {
+                _dragManager.OnDropCompleted -= HandleDragEnded;
+                _dragManager.OnDragCancelled -= HandleDragEnded;
+            }
         }
 
         public void OnPointerEnter(SlotInputAdapter adapter, PointerEventData _)
@@ -86,6 +110,11 @@ namespace DragAndDropSystem.Interaction
         {
             if (eventData == null || adapter == null)
                 return;
+
+            if (_state == InteractionState.Pressed && _pressedAdapter == adapter && _pressedButton == eventData.button)
+            {
+                TryExecutePointerBinding(adapter, eventData);
+            }
 
             // Выход из Pressed независимо от результата, чтобы не "залипать".
             if (_state == InteractionState.Pressed && _pressedAdapter == adapter && _pressedButton == eventData.button)
@@ -189,6 +218,115 @@ namespace DragAndDropSystem.Interaction
             }
 
             return true;
+        }
+
+        public void TryExecuteDrag(UniversalSlot slot)
+        {
+            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                return;
+
+            if (_dragManager.IsDragging)
+            {
+                _dragManager.CompleteDrag();
+                return;
+            }
+
+            bool started = _dragManager.StartDrag(slot);
+            if (started)
+            {
+                _state = InteractionState.Dragging;
+            }
+        }
+
+        public void TryCancelDrag()
+        {
+            if (_dragManager.IsDragging)
+            {
+                _dragManager.CancelDrag();
+            }
+        }
+
+        private void HandleDragEnded(DragAndDropSystem.Core.DragContext _)
+        {
+            _state = _focusedSlot != null ? InteractionState.Focused : InteractionState.Idle;
+            _pressedAdapter = null;
+        }
+
+        private void TryExecutePointerBinding(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (!_usePointerBindings || adapter?.Slot == null || eventData == null)
+                return;
+
+            if (_state == InteractionState.Dragging)
+                return;
+
+            for (int i = 0; i < _pointerBindings.Count; i++)
+            {
+                var binding = _pointerBindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+                if (!binding.Matches(eventData))
+                    continue;
+
+                if (binding.Action.CanExecute(this, adapter, eventData))
+                {
+                    binding.Action.Execute(this, adapter, eventData);
+                    eventData.Use();
+                }
+                else if (_logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Pointer binding '{binding.Label}' cannot execute.");
+                }
+                return;
+            }
+        }
+
+        [Serializable]
+        public class PointerBinding
+        {
+            [SerializeField] private string _label;
+            [SerializeField] private PointerEventData.InputButton _button = PointerEventData.InputButton.Left;
+            [SerializeField] private ModifierKey _modifier = ModifierKey.None;
+            [SerializeReference] private SlotInteractionAction _action;
+
+            public SlotInteractionAction Action => _action;
+            public string Label => string.IsNullOrEmpty(_label)
+                ? (_action != null ? _action.DisplayName : "Pointer Binding")
+                : _label;
+
+            public bool IsValid() => _action != null;
+
+            public bool Matches(PointerEventData eventData)
+            {
+                if (eventData == null || eventData.button != _button)
+                    return false;
+
+                bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+                bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                bool alt = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+
+                switch (_modifier)
+                {
+                    case ModifierKey.None:
+                        return !ctrl && !shift && !alt;
+                    case ModifierKey.Ctrl:
+                        return ctrl && !shift && !alt;
+                    case ModifierKey.Shift:
+                        return shift && !ctrl && !alt;
+                    case ModifierKey.Alt:
+                        return alt && !ctrl && !shift;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        public enum ModifierKey
+        {
+            None = 0,
+            Ctrl = 1,
+            Shift = 2,
+            Alt = 3
         }
     }
 }
