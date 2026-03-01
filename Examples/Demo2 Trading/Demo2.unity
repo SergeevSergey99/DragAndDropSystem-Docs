@@ -398,6 +398,7 @@ GameObject:
   m_Component:
   - component: {fileID: 182231643}
   - component: {fileID: 182231642}
+  - component: {fileID: 910000000000000001}
   m_Layer: 0
   m_Name: SelectionManager
   m_TagString: Untagged
@@ -1187,6 +1188,7 @@ GameObject:
   - component: {fileID: 515452350}
   - component: {fileID: 515452349}
   - component: {fileID: 515452348}
+  - component: {fileID: 910000000000000002}
   m_Layer: 5
   m_Name: Inventory Merchant 2
   m_TagString: Untagged
@@ -1439,6 +1441,7 @@ GameObject:
   - component: {fileID: 520690178}
   - component: {fileID: 520690177}
   - component: {fileID: 520690180}
+  - component: {fileID: 910000000000000003}
   m_Layer: 5
   m_Name: Inventory1
   m_TagString: Untagged
@@ -4379,6 +4382,7 @@ GameObject:
   - component: {fileID: 1383874840}
   - component: {fileID: 1383874839}
   - component: {fileID: 1383874838}
+  - component: {fileID: 910000000000000004}
   m_Layer: 5
   m_Name: Inventory Merchant 1
   m_TagString: Untagged
@@ -7387,6 +7391,90 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 9060904737983262869}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &910000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182231641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515452346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 520690172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383874836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

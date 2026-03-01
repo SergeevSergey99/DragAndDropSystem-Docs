@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3953592695543780856}
   - component: {fileID: 9006198000373872380}
   - component: {fileID: 1460896741492025917}
+  - component: {fileID: 2723276657636712345}
   m_Layer: 5
   m_Name: DragCanvas
   m_TagString: Untagged
@@ -115,3 +116,15 @@ MonoBehaviour:
         _ease: 9
         _useArc: 1
         _arcHeightPixels: 50
+--- !u!114 &2723276657636712345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2246638230345617431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18fedea49b02460997b8efda292d44cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InputEventRouter

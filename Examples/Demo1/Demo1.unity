@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 8671011}
   - component: {fileID: 8671013}
   - component: {fileID: 8671012}
+  - component: {fileID: 910000000000000001}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -891,6 +892,7 @@ GameObject:
   - component: {fileID: 233341990}
   - component: {fileID: 233341989}
   - component: {fileID: 233341988}
+  - component: {fileID: 910000000000000002}
   m_Layer: 5
   m_Name: Inventory1
   m_TagString: Untagged
@@ -1409,6 +1411,7 @@ GameObject:
   - component: {fileID: 485691799}
   - component: {fileID: 485691797}
   - component: {fileID: 485691798}
+  - component: {fileID: 910000000000000003}
   m_Layer: 5
   m_Name: Inventory3
   m_TagString: Untagged
@@ -3047,6 +3050,7 @@ GameObject:
   - component: {fileID: 1324997593}
   - component: {fileID: 1324997592}
   - component: {fileID: 1324997591}
+  - component: {fileID: 910000000000000004}
   m_Layer: 5
   m_Name: Inventory4
   m_TagString: Untagged
@@ -3194,6 +3198,7 @@ GameObject:
   - component: {fileID: 1358364177}
   - component: {fileID: 1358364182}
   - component: {fileID: 1358364181}
+  - component: {fileID: 910000000000000005}
   m_Layer: 5
   m_Name: Inventory2
   m_TagString: Untagged
@@ -6480,6 +6485,111 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
+--- !u!114 &910000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8671010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233341986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 485691795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1324997587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+--- !u!114 &910000000000000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1358364175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
