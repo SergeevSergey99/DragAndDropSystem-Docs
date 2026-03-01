@@ -32,17 +32,15 @@ namespace DragAndDropSystem.Selection
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
-
-            var manager = SelectionManager.Instance;
-            if (manager == null) return;
+            if (SelectionManager.IsInstanceExist == false) return;
 
             foreach (var binding in _bindings)
             {
                 if (!binding.IsValid()) continue;
                 if (!binding.ModifierMatches()) continue;
 
-                if (binding.Operation.CanExecute(manager, _slot))
-                    binding.Operation.Execute(manager, _slot);
+                if (binding.Operation.CanExecute(SelectionManager.Instance, _slot))
+                    binding.Operation.Execute(SelectionManager.Instance, _slot);
                 else if (_logWarnings)
                     Debug.LogWarning($"[{name}] Operation '{binding.Operation.DisplayName}' cannot execute.");
 
