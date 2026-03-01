@@ -40,6 +40,7 @@ namespace DragAndDropSystem.UI
 
         private ISlot _foundSlot;
         private bool _isHighlighted;
+        private UnityEngine.UI.Graphic _raycastGraphic;
 
         private void OnValidate()
         {
@@ -47,6 +48,31 @@ namespace DragAndDropSystem.UI
             if (_inventory == null)
             {
                 _inventory = GetComponentInParent<UniversalInventory>();
+            }
+
+            if (_raycastGraphic == null)
+            {
+                _raycastGraphic = GetComponent<UnityEngine.UI.Graphic>();
+            }
+        }
+
+        private void Awake()
+        {
+            if (_raycastGraphic == null)
+            {
+                _raycastGraphic = GetComponent<UnityEngine.UI.Graphic>();
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (_raycastGraphic == null)
+                return;
+
+            bool shouldReceiveRaycast = _dragManager != null && _dragManager.IsDragging;
+            if (_raycastGraphic.raycastTarget != shouldReceiveRaycast)
+            {
+                _raycastGraphic.raycastTarget = shouldReceiveRaycast;
             }
         }
 

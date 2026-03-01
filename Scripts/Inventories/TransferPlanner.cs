@@ -137,7 +137,9 @@ namespace DragAndDropSystem.Inventories
                 return Fail(policy, targetInventory, targetSlotHint, TransferPlanFailureCode.InvalidTargetInventory, "Target inventory is null");
             }
 
-            if (targetInventory.Slots == null || targetInventory.Slots.Count == 0)
+            bool hasExistingSlots = targetInventory.Slots != null && targetInventory.Slots.Count > 0;
+            bool canDeferSlotResolution = !hasExistingSlots && targetSlotHint == null;
+            if (!hasExistingSlots && !canDeferSlotResolution)
             {
                 return Fail(policy, targetInventory, targetSlotHint, TransferPlanFailureCode.NoTargetSlots, "Target inventory has no slots");
             }
@@ -259,6 +261,24 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this item");
             }
 
+            // Inventory-area drop (no target slot) into dynamic inventory can start with 0 slots.
+            // In this case actual slot is resolved during execution via TryAddStack/TryAddToSlot.
+            if ((virtualSlots == null || virtualSlots.Count == 0) && targetSlotHint == null)
+            {
+                int deferredAmount = policy.Capacity == CapacityPolicy.Partial
+                    ? Min(requested, acceptableByInventory)
+                    : requested;
+
+                if (deferredAmount <= 0)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No capacity for deferred placement");
+
+                return new PlannedEntryTransfer(
+                    entry,
+                    requested,
+                    deferredAmount,
+                    new[] { new PlannedSlotAllocation(null, deferredAmount) });
+            }
+
             bool preferHint = targetSlotHint != null && isFirstEntry;
             var allocations = IsUniqueInventory(targetInventory)
                 ? AllocateForUniqueInventory(context, entry, item, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules)
@@ -267,6 +287,25 @@ namespace DragAndDropSystem.Inventories
             int plannedAmount = 0;
             foreach (var allocation in allocations)
                 plannedAmount += allocation.Amount;
+
+            // Inventory-area drop into dynamic inventories:
+            // when existing slots are all unsuitable/occupied, inventory may still accept items
+            // by creating new slots during execution (TryAddStack path).
+            if (plannedAmount == 0 && targetSlotHint == null && acceptableByInventory > 0)
+            {
+                int deferredAmount = policy.Capacity == CapacityPolicy.Partial
+                    ? Min(requested, acceptableByInventory)
+                    : requested;
+
+                if (deferredAmount > 0)
+                {
+                    return new PlannedEntryTransfer(
+                        entry,
+                        requested,
+                        deferredAmount,
+                        new[] { new PlannedSlotAllocation(null, deferredAmount) });
+                }
+            }
 
             if (plannedAmount == 0)
             {

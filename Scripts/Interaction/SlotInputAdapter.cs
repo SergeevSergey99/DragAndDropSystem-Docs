@@ -18,7 +18,7 @@ namespace DragAndDropSystem.Interaction
     public class SlotInputAdapter : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler,
         IPointerDownHandler, IPointerUpHandler,
-        IBeginDragHandler,
+        IBeginDragHandler, IDragHandler,
         ISelectHandler, IDeselectHandler,
         ISubmitHandler, ICancelHandler,
         IDropTarget
@@ -26,66 +26,33 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private UniversalSlot _slot;
         [SerializeField] private InventoryInteractionCoordinator _coordinator;
         [SerializeField] private bool _disableLegacyComponentsOnEnable = true;
+        private bool _legacyComponentsDisabled;
 
         public UniversalSlot Slot => _slot;
         public InventoryInteractionCoordinator Coordinator => _coordinator;
 
-#if ENABLE_REFLEX_DI
-        [Inject] private DragAndDropManager _dragManager;
-#else
-        private DragAndDropManager _dragManager => DragAndDropManager.Instance;
-#endif
 
         private void Awake()
         {
             if (_slot == null)
                 _slot = GetComponent<UniversalSlot>();
 
-            if (_coordinator == null)
-                _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
-            if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
-                _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
-            if (_coordinator == null && Application.isPlaying && _slot?.Inventory is UniversalInventory runtimeInventory)
-                _coordinator = runtimeInventory.gameObject.AddComponent<InventoryInteractionCoordinator>();
+            EnsureCoordinatorAndLegacyState();
         }
 
         private void OnEnable()
         {
-            if (_coordinator == null)
-                _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
-            if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
-                _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
-            if (_coordinator == null && Application.isPlaying && _slot?.Inventory is UniversalInventory runtimeInventory)
-                _coordinator = runtimeInventory.gameObject.AddComponent<InventoryInteractionCoordinator>();
-
-            if (!_disableLegacyComponentsOnEnable)
-                return;
-            if (_coordinator == null)
-                return;
-
-            var legacyDrag = GetComponent<DragDropEventListener>();
-            if (legacyDrag != null && legacyDrag.enabled)
-            {
-                legacyDrag.enabled = false;
-                Extentions.DragAndDropLog($"Disabled legacy DragDropEventListener on '{name}'");
-            }
-
-            var legacySelection = GetComponent<SlotPointerSelectionTrigger>();
-            if (legacySelection != null && legacySelection.enabled)
-            {
-                legacySelection.enabled = false;
-                Extentions.DragAndDropLog($"Disabled legacy SlotPointerSelectionTrigger on '{name}'");
-            }
+            EnsureCoordinatorAndLegacyState();
         }
 
         private void OnDisable()
         {
-            if (_slot == null || _dragManager == null)
+            if (_slot == null || DragAndDropManager.IsInstanceExist == false)
                 return;
 
-            if (_dragManager.IsDragging)
+            if (DragAndDropManager.Instance.IsDragging)
             {
-                _dragManager.PopDropTarget(this);
+                DragAndDropManager.Instance.PopDropTarget(this);
             }
 
             if (_slot.Inventory is UniversalInventory universalInventory)
@@ -96,6 +63,8 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
+
             if (_slot?.Inventory is UniversalInventory universalInventory)
             {
                 universalInventory.NotifyPointerEnter(_slot);
@@ -106,6 +75,8 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
+
             if (_slot?.Inventory is UniversalInventory universalInventory)
             {
                 universalInventory.NotifyPointerExit(_slot);
@@ -116,6 +87,8 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
+
             if (_slot == null || _slot.IsEmpty)
                 return;
 
@@ -135,32 +108,77 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
             InputEventRouter.Instance.RoutePointerUp(this, eventData);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
             InputEventRouter.Instance.RouteBeginDrag(this, eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            // Intentionally no-op.
+            // Unity UI drag pipeline may require IDragHandler for stable BeginDrag dispatch.
         }
 
         public void OnSelect(BaseEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
             InputEventRouter.Instance.RouteFocusEnter(this, FocusSource.Gamepad);
         }
 
         public void OnDeselect(BaseEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
             InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
         }
 
         public void OnSubmit(BaseEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
             InputEventRouter.Instance.RouteSubmit(this, eventData);
         }
 
         public void OnCancel(BaseEventData eventData)
         {
+            EnsureCoordinatorAndLegacyState();
             InputEventRouter.Instance.RouteCancel(this, eventData);
+        }
+
+        private void EnsureCoordinatorAndLegacyState()
+        {
+            if (_slot == null)
+                _slot = GetComponent<UniversalSlot>();
+
+            if (_coordinator == null)
+                _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
+            if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
+                _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
+            if (_coordinator == null && Application.isPlaying && _slot?.Inventory is UniversalInventory runtimeInventory)
+                _coordinator = runtimeInventory.gameObject.GetComponent<InventoryInteractionCoordinator>() ??
+                               runtimeInventory.gameObject.AddComponent<InventoryInteractionCoordinator>();
+
+            if (_legacyComponentsDisabled || !_disableLegacyComponentsOnEnable || _coordinator == null)
+                return;
+
+            var legacyDrag = GetComponent<DragDropEventListener>();
+            if (legacyDrag != null && legacyDrag.enabled)
+            {
+                legacyDrag.enabled = false;
+                Extentions.DragAndDropLog($"Disabled legacy DragDropEventListener on '{name}'");
+            }
+
+            var legacySelection = GetComponent<SlotPointerSelectionTrigger>();
+            if (legacySelection != null && legacySelection.enabled)
+            {
+                legacySelection.enabled = false;
+                Extentions.DragAndDropLog($"Disabled legacy SlotPointerSelectionTrigger on '{name}'");
+            }
+
+            _legacyComponentsDisabled = true;
         }
 
         // ===== IDropTarget =====
@@ -169,18 +187,14 @@ namespace DragAndDropSystem.Interaction
 
         public IItemDropHandler GetDropHandler()
         {
-            System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
-                ? _dragManager.RaiseSwapAttempting
-                : null;
-            System.Action<InventorySwapContext> swapCompleted = _dragManager != null
-                ? _dragManager.RaiseSwapCompleted
-                : null;
+            System.Func<InventorySwapContext, bool> swapAttempting = DragAndDropManager.Instance.RaiseSwapAttempting;
+            System.Action<InventorySwapContext> swapCompleted = DragAndDropManager.Instance.RaiseSwapCompleted;
 
             return new InventoryDropHandler(
                 _slot,
                 _slot?.Inventory,
-                _dragManager?.GlobalRules,
-                _dragManager?.TransferService,
+                DragAndDropManager.Instance.GlobalRules,
+                DragAndDropManager.Instance.TransferService,
                 policyOverride: null,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);

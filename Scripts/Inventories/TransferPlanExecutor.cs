@@ -120,7 +120,7 @@ namespace DragAndDropSystem.Inventories
                 {
                     foreach (var allocation in plannedEntry.Allocations)
                     {
-                        if (allocation.Slot == null || allocation.Amount <= 0)
+                        if (allocation.Amount <= 0)
                         {
                             entryFailed = true;
                             break;
