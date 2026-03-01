@@ -22,46 +22,224 @@
 │                       СЛОЙ ВВОДА                            │
 │                                                             │
 │  Мышь LMB ───┐                                              │
-│  Геймпад A ──┼──→  InputAction "Interact"                   │
-│  Клавиша E ──┘                                              │
-│                                                             │
-│  Мышь RMB ───┐                                              │
-│  Геймпад X ──┼──→  InputAction "SecondaryInteract"          │
+│  Геймпад A ──┼──→  InputAction "Interact"   ┐               │
+│  Клавиша E ──┘                              │ только для    │
+│                                             │ keyboard /    │
+│  Мышь RMB ───┐                              │ gamepad       │
+│  Геймпад X ──┼──→  InputAction "Secondary" ─┘               │
 │  Клавиша Q ──┘                                              │
 │                                                             │
-│  Геймпад D-pad/стик ──→  UI Navigation (Selectable)         │
-│                      или Virtual Cursor (World Space UI)    │
-└─────────────────────────────┬───────────────────────────────┘
-                              ↓  Intent
+│  Мышь (pointer) ──→  Unity EventSystem  ┐                   │
+│  Touch          ──→  Unity EventSystem  ┘ pointer-события   │
+│                                                             │
+│  Геймпад D-pad/стик ──→  UI Navigation / Virtual Cursor     │
+└──────────┬──────────────────────────┬───────────────────────┘
+           │ Input System events      │ EventSystem pointer events
+           ▼                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  СЛОЙ ВЗАИМОДЕЙСТВИЯ                        │
 │                                                             │
-│        InventoryInteractionCoordinator  (per-inventory)     │
-│                                                             │
-│  • Единственный получатель всех интентов                    │
-│  • Владеет state machine                                    │
-│  • Диспатчит в домен после принятия решения                 │
-│  • Конфигурируется биндингами в инспекторе                  │
-│                                                             │
-│        SlotInputAdapter  (per-slot, тонкий)                 │
-│                                                             │
-│  • IPointerEnterHandler / IPointerExitHandler               │
-│  • ISelectHandler / IDeselectHandler  (геймпад навигация)   │
-│  • Только: coordinator.NotifyFocusChanged(slot, true/false) │
-│  • Ноль доменной логики                                     │
+│   InputEventRouter  ←─────────────────────────────────────┐ │
+│   (static/singleton)           SlotInputAdapter (per-slot) │ │
+│   anti-dup + source priority   пересылает raw события      │ │
+│          ↓                     в router                    │ │
+│   InventoryInteractionCoordinator  (per-inventory)         │ │
+│   • единственный получатель всех интентов                  │ │
+│   • владеет state machine                                  │ │
+│   • диспатчит в домен после принятия решения               │ │
+│   • управляет PushDropTarget / PopDropTarget               │ │
+│   • конфигурируется биндингами в инспекторе                │ │
 └──────────┬──────────────────────────┬───────────────────────┘
            ↓                          ↓
 ┌──────────────────┐      ┌──────────────────────────────────┐
 │  DragAndDrop     │      │  SelectionManager                │
 │  Manager         │      │  InventoryActionBase             │
-└──────────────────┘      └──────────────────────────────────┘
+│  (контракт ниже) │      └──────────────────────────────────┘
+└──────────────────┘
 ```
 
 ---
 
-## State Machine координатора
+## [HIGH] InputEventRouter — как slot-события доходят до координатора
 
-Явные состояния устраняют гонки: пока занято одно состояние — другие интенты игнорируются.
+Координатор per-inventory физически не висит на слотах. Unity EventSystem отправляет
+pointer-события только тому GameObject, на котором они произошли.
+Поэтому нужен явный механизм пересылки.
+
+### Решение: SlotInputAdapter пересылает все raw-события
+
+`SlotInputAdapter` остаётся тонким — никакой доменной логики, только пересылка:
+
+```
+SlotInputAdapter реализует:
+  IPointerEnterHandler  → router.RoutePointerEnter(slot, eventData)
+  IPointerExitHandler   → router.RoutePointerExit(slot, eventData)
+  IPointerDownHandler   → router.RoutePointerDown(slot, eventData)
+  IPointerUpHandler     → router.RoutePointerUp(slot, eventData)
+  IBeginDragHandler     → router.RouteBeginDrag(slot, eventData)
+  ISelectHandler        → router.RouteFocusEnter(slot, FocusSource.Gamepad)
+  IDeselectHandler      → router.RouteFocusExit(slot, FocusSource.Gamepad)
+  IDropTarget           → остаётся (см. ниже)
+```
+
+### InputEventRouter
+
+Принимает raw-события от всех адаптеров, применяет anti-dup политику
+и передаёт в нужный координатор:
+
+```
+InputEventRouter
+  • знает все координаторы (регистрация при Awake)
+  • маршрутизирует событие в координатор слота
+  • применяет anti-dup (frame gating)
+  • применяет source priority (mouse vs gamepad)
+```
+
+Может быть singleton или инжектироваться через DI.
+
+---
+
+## [HIGH] IDropTarget и PushDropTarget / PopDropTarget
+
+Текущая проблема: `DragDropEventListener` делает PushDropTarget при PointerEnter
+и PopDropTarget при PointerExit. В новой архитектуре `SlotInputAdapter`
+перестаёт это делать, и дроп-стек в `DragAndDropManager` перестанет работать.
+
+### Решение: координатор управляет дроп-стеком
+
+`SlotInputAdapter` **остаётся** реализовывать `IDropTarget` (только фабрика хэндлера):
+
+```
+SlotInputAdapter : IDropTarget
+  GetTargetSlot()    → _slot
+  GetDropHandler()   → new InventoryDropHandler(...)   // как сейчас
+  OnBecomeActiveTarget()    → _slot.Highlight(true)
+  OnBecomeInactiveTarget()  → _slot.Highlight(false)
+```
+
+Но **PushDropTarget / PopDropTarget вызывает координатор**, когда получает
+FocusEnter/Exit и `DragAndDropManager.IsDragging == true`:
+
+```
+Coordinator.OnFocusEnter(slot):
+  if (dragManager.IsDragging && slot.IsInteractable)
+    dragManager.PushDropTarget(slot.Adapter)
+
+Coordinator.OnFocusExit(slot):
+  if (dragManager.IsDragging)
+    dragManager.PopDropTarget(slot.Adapter)
+```
+
+Таким образом IDropTarget и дроп-стек работают как прежде, просто инициатор — координатор.
+
+---
+
+## [MEDIUM] Контракт интеграции с DragAndDropManager
+
+«Без изменений» неверно. Координатор вызывает методы менеджера,
+и часть внутренней логики менеджера перестаёт быть нужной.
+
+### Что координатор вызывает у менеджера (публичный контракт — без изменений)
+```
+DragAndDropManager.StartDrag(IReadOnlyList<ISlot>)   ← старт drag из координатора
+DragAndDropManager.CompleteDrag()                    ← координатор решил завершить
+DragAndDropManager.CancelDrag()                      ← координатор решил отменить
+DragAndDropManager.PushDropTarget(IDropTarget)       ← через координатор
+DragAndDropManager.PopDropTarget(IDropTarget)        ← через координатор
+```
+
+### Что меняется внутри менеджера
+```
+SetHoveredSlot(slot, inventory)  — вероятно можно удалить:
+  координатор управляет дроп-стеком напрямую через PushDropTarget,
+  этот метод был legacy-путём до рефакторинга
+
+Внутренняя quick-click корутина:
+  логика "quick click → auto-transfer" переезжает в state machine координатора,
+  из менеджера убирается
+```
+
+### Обратная связь менеджера → координатор
+Менеджер должен уметь сообщать о внешней отмене drag
+(например, слот стал недоступен во время drag):
+```
+DragAndDropManager.OnDragCancelled  ← координатор подписывается,
+                                       чтобы сбросить state в Idle
+```
+
+---
+
+## [MEDIUM] Anti-dup политика: EventSystem + Input System
+
+Один физический клик мышью может прийти через **оба** канала:
+- EventSystem: PointerDown → SlotInputAdapter → Router
+- Input System: "Interact" action performed → InventoryInputHandler → Coordinator
+
+### Решение: разделение каналов по типу устройства
+
+**Правило**: мышь и touch — **только через EventSystem**. Input System биндинги
+для мыши не используются (документируется как ограничение).
+
+```
+Input System bindings:
+  Mouse/leftButton    ← НЕ использовать в InventoryInputHandler
+  Keyboard/*          ← ОК
+  Gamepad/*           ← ОК
+
+EventSystem:
+  pointer events      ← всё мышиное/touch идёт сюда
+```
+
+Если всё же нужна поддержка мыши в обоих каналах (edge case):
+**Frame gating** — Router хранит `_lastHandledFrame[IntentType]`
+и игнорирует дублирующий интент в том же frame:
+
+```
+Router.RouteIntent(intent, source):
+  var key = (intent.Type, intent.Slot)
+  if (_handledThisFrame.Contains(key)) return   // дубль — игнорируем
+  _handledThisFrame.Add(key)
+  coordinator.Dispatch(intent)
+  // очищается в LateUpdate
+```
+
+---
+
+## [MEDIUM] Focus source-awareness
+
+При одновременном использовании мыши и геймпада (Steam Deck, гибридный ввод)
+фокус может прийти из разных источников и создать ложный расфокус.
+
+### Решение: FocusSource + приоритет последнего активного устройства
+
+```csharp
+enum FocusSource { None, Mouse, Gamepad, VirtualCursor }
+```
+
+Координатор хранит `ActiveFocusSource`. При получении FocusEnter из нового источника:
+
+```
+Таблица приоритетов (настраивается):
+  последний активный источник имеет приоритет
+
+OnFocusEnter(slot, source=Mouse):
+  if (ActiveFocusSource == Gamepad) {
+    // мышь пришла пока геймпад был активен
+    // политика: Mouse вытесняет Gamepad (последнее движение)
+  }
+  ActiveFocusSource = Mouse
+  FocusedSlot = slot
+
+OnFocusExit(slot, source=Mouse):
+  if (source != ActiveFocusSource) return  // игнорируем exit от неактивного источника
+  FocusedSlot = null
+```
+
+**Итог**: ложный расфокус от "старого" источника не проходит.
+
+---
+
+## State Machine координатора
 
 ```
                     ┌──────────────────────────────────┐
@@ -70,148 +248,145 @@
                         │ FocusEntered(slot)
                         ▼
                     ┌──────────────────────────────────┐
-                    │            Focused               │◄──── FocusChanged(newSlot)
-                    └───┬──────────────┬───────────────┘
-                        │ Pressed      │ GrabIntent (геймпад)
-                        ▼             ▼
-    ┌──────────────────────┐   ┌──────────────────────────────┐
-    │       Pressed        │   │          GrabMode            │
-    └──┬────────────┬──────┘   │  (предмет «поднят», виден    │
-       │            │          │   визуал, ждём навигацию)    │
-       │ Moved      │ Released └──┬──────────────┬────────────┘
-       │ beyond     │ quickly     │ FocusChanged │ Cancel
-       │ threshold  │             │ (navigate)   │
-       ▼            ▼             ▼              ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐    Idle
-│ Dragging │  │ Clicked  │  │ DragHover│
-│          │  │          │  │ (gamepad)│
-│ следует  │  │ выполнить│  └────┬─────┘
-│ за       │  │ биндинг  │       │ Confirm
-│ курсором │  └──────────┘       ▼
-└────┬─────┘               Drop → Idle
-     │ Released
-     ▼
-  Drop → Idle
+              ┌────►│            Focused               │◄── FocusChanged(newSlot)
+              │     └───┬──────────────┬───────────────┘
+              │         │ Pressed      │ GrabIntent (геймпад)
+              │         ▼             ▼
+              │  ┌────────────┐  ┌──────────────────────────┐
+FocusLost     │  │  Pressed   │  │        GrabMode          │
+──────────────┘  └──┬─────┬──┘  │  предмет «поднят»        │
+                    │     │     │  ждём навигацию геймпадом │
+             Moved  │     │     └──┬──────────────┬─────────┘
+             beyond │     │ Up     │ FocusChanged │ Cancel/B
+             thresh │     │ quickly│              │
+                    ▼     ▼        ▼              ▼
+             ┌─────────┐ ┌──────┐ ┌──────────┐  Idle
+             │Dragging │ │Click │ │DragHover │
+             │следует  │ │выпол-│ │(gamepad) │
+             │за       │ │нить  │ └────┬─────┘
+             │курсором │ │бинд. │      │ Confirm/A
+             └────┬────┘ └──────┘      ▼
+                  │ Up           Drop → Idle
+                  ▼
+            Drop → Idle
 ```
 
-**Правило владения:** `Dragging` и `GrabMode` блокируют все selection-интенты.
-`Clicked` блокирует старт drag для текущего события.
+**Правила владения (ownership rules):**
+- `Dragging` / `GrabMode` → selection-интенты игнорируются
+- `Clicked` → drag не стартует для текущего события
+- `Pressed` → selection не выполняется до Up
 
 ---
 
 ## Компоненты
+
+### `SlotInputAdapter` (новый, per-slot)
+Заменяет `DragDropEventListener` и `SlotPointerSelectionTrigger`.
+Только пересылка событий, ноль доменной логики:
+
+```
+Реализует:
+  IPointerEnterHandler, IPointerExitHandler   → router.RoutePointer*(slot, data)
+  IPointerDownHandler, IPointerUpHandler      → router.RoutePointer*(slot, data)
+  IBeginDragHandler                           → router.RouteBeginDrag(slot, data)
+  ISelectHandler, IDeselectHandler            → router.RouteFocus*(slot, Gamepad)
+  IDropTarget                                 → остаётся без изменений
+```
+
+### `InputEventRouter` (новый, singleton или DI)
+Anti-dup + маршрутизация в нужный координатор:
+
+```
+Регистрация: coordinator.Register() при Awake
+Маршрутизация: по ISlot → находит координатор инвентаря слота
+Anti-dup: frame gating через HashSet, очистка в LateUpdate
+Source priority: хранит последний активный FocusSource
+```
 
 ### `InventoryInteractionCoordinator` (новый, per-inventory)
 
 ```
 Поля:
   [SerializeField] UniversalInventory _inventory
-  [SerializeField] List<SlotBinding> _bindings   ← конфигурация в инспекторе
+  [SerializeField] List<SlotBinding> _bindings
 
-  InteractionState _state   ← state machine
-  ISlot _focusedSlot        ← текущий слот в фокусе
+  InteractionState _state
+  ISlot _focusedSlot
+  FocusSource _activeFocusSource
 
-Получает:
-  NotifyFocusChanged(ISlot slot, bool entered)   ← от SlotInputAdapter
-  Dispatch(InteractionIntent intent)             ← от InventoryInputHandler и Input System
+Публичный API (вызывается из Router):
+  RouteRawEvent(SlotRawEvent event)
 
-Диспатчит в домен:
-  DragAndDropManager.StartDrag / CompleteDrag / CancelDrag
-  SelectionManager.Execute(operation, slot)
-  InventoryActionBase.Execute(inventory, slot)
+Управляет:
+  dragManager.StartDrag / CompleteDrag / CancelDrag
+  dragManager.PushDropTarget / PopDropTarget
+  selectionManager.Execute(operation, slot)
+  action.Execute(inventory, slot)
 ```
 
-### `SlotInputAdapter` (новый, per-slot, заменяет DragDropEventListener + SlotPointerSelectionTrigger)
+### `SlotBinding` и `SlotAction` (новые, конфигурация)
 
 ```
-Реализует:
-  IPointerEnterHandler   → coordinator.NotifyFocusChanged(slot, true)
-  IPointerExitHandler    → coordinator.NotifyFocusChanged(slot, false)
-  ISelectHandler         → coordinator.NotifyFocusChanged(slot, true)   // геймпад
-  IDeselectHandler       → coordinator.NotifyFocusChanged(slot, false)  // геймпад
-  IDropTarget            → остаётся (логика дропа не меняется)
+SlotBinding (abstract, [SerializeReference])
+  ├── InputActionBinding     [InputActionReference + Modifier] → SlotAction
+  ├── PointerButtonBinding   [MouseButton + Modifier] → SlotAction
+  └── NavigationBinding      [Submit | Cancel] → SlotAction
 
-НЕ реализует:
-  IPointerDownHandler    ← убирается отсюда, живёт в координаторе
-  IPointerClickHandler   ← убирается отсюда, живёт в координаторе
-  IBeginDragHandler      ← убирается отсюда, живёт в координаторе
+SlotAction (abstract, [SerializeReference])
+  ├── DragSlotAction         StartDrag или Drop в зависимости от state
+  ├── CancelDragAction       CancelDrag
+  ├── SelectionSlotAction    обёртка над SelectionOperationBase
+  └── InventorySlotAction    обёртка над InventoryActionBase
 ```
 
 ### `InventoryInputHandler` (изменяется)
 
 ```
-Было:
-  HandleAction() → _inventory.ResolveAutoTransferSlot() → action.Execute()
-
-Станет:
-  HandleAction() → coordinator.Dispatch(new InteractionIntent(action, context))
-
-Координатор сам знает focusedSlot — дублирования нет.
-Keyboard и gamepad-кнопки становятся просто ещё одним источником интентов.
-```
-
-### `SlotBinding` (новый, конфигурация)
-
-```csharp
-// [SerializeReference] в инспекторе — можно выбрать тип биндинга
-
-SlotBinding (abstract)
-  ├── InputActionBinding     [InputActionReference] → SlotAction
-  ├── PointerButtonBinding   [MouseButton + Modifier] → SlotAction
-  └── NavigationBinding      [NavigationEvent] → SlotAction  // Submit, Cancel
-```
-
-### `SlotAction` (новый, полиморфный)
-
-```csharp
-// [SerializeReference] — переиспользует существующие типы
-
-SlotAction (abstract)
-  ├── DragSlotAction           // StartDrag / подтвердить дроп
-  ├── SelectionSlotAction      // обёртка над SelectionOperationBase (без изменений)
-  └── InventorySlotAction      // обёртка над InventoryActionBase (без изменений)
+Было:   action.Execute(_inventory, _inventory.ResolveAutoTransferSlot())
+Станет: router.RouteInputAction(actionBinding, context)
+        // Router передаст в coordinator с текущим focusedSlot
 ```
 
 ---
 
 ## Конфигурация в инспекторе
 
-**Пример: мышь + клавиатура**
+**Мышь + клавиатура:**
 ```
-Bindings:
   PointerButtonBinding  LMB, None   → DragSlotAction
   PointerButtonBinding  LMB, Ctrl   → SelectionSlotAction [ToggleSlotOperation]
   PointerButtonBinding  LMB, Shift  → SelectionSlotAction [RangeSelectOperation]
   PointerButtonBinding  RMB, None   → SelectionSlotAction [ClearAndSelectOperation]
   InputActionBinding    "AutoTransfer" → InventorySlotAction [AutoTransferAction]
+  InputActionBinding    "SortInventory" → InventorySlotAction [SortInventoryAction]
 ```
 
-**Пример: геймпад (grab mode)**
+**Геймпад (grab mode):**
 ```
-Bindings:
-  InputActionBinding    "Interact"   → DragSlotAction          // A = поднять/положить
-  InputActionBinding    "Secondary"  → SelectionSlotAction [Toggle]  // X = выделить
-  NavigationBinding     Submit       → DragSlotAction          // подтвердить дроп
-  NavigationBinding     Cancel       → CancelDragAction        // B = отмена
+  InputActionBinding    "Interact"  → DragSlotAction      // A = поднять/положить
+  InputActionBinding    "Secondary" → SelectionSlotAction [ToggleSlotOperation]
+  NavigationBinding     Submit      → DragSlotAction       // подтвердить дроп
+  NavigationBinding     Cancel      → CancelDragAction     // B = отмена
 ```
 
-Разные конфиги — просто разные биндинги, без изменения кода.
+Разные инвентари на сцене могут иметь разные конфиги координатора.
 
 ---
 
-## Геймпад: два пути получения фокуса
+## Геймпад: два пути фокуса
 
-### Путь 1: UI Selectable (простой)
+### Путь 1: UI Selectable Navigation
 Слоты наследуют `Selectable`, настраивается стандартная UI Navigation.
-`SlotInputAdapter` реализует `ISelectHandler`.
-**Требует:** правильной настройки Navigation в инспекторе.
+`SlotInputAdapter` получает `ISelectHandler` от EventSystem.
+**Требует:** правильной настройки Explicit Navigation в инспекторе на каждом слоте.
 
-### Путь 2: Virtual Cursor (гибкий)
-Кастомный курсор управляется стиком через Input System.
-EventSystem raycast по позиции курсора → `SlotInputAdapter.OnPointerEnter`.
-**Нужен для:** World Space Canvas, нестандартных раскладок слотов.
+### Путь 2: Virtual Cursor
+Кастомный курсор управляется стиком через Input System, двигается по экрану.
+EventSystem raycast по позиции курсора → `IPointerEnterHandler` срабатывает как обычно.
+`FocusSource = VirtualCursor`.
+**Нужен для:** World Space Canvas, нестандартных раскладок.
 
-Координатор не знает какой путь используется — получает одинаковый `NotifyFocusChanged`.
+Router не знает какой путь используется — получает одинаковый `RouteFocusEnter`.
 
 ---
 
@@ -219,28 +394,61 @@ EventSystem raycast по позиции курсора → `SlotInputAdapter.OnP
 
 | Компонент | Статус |
 |---|---|
-| `DragAndDropManager` | Без изменений |
 | `SelectionManager` | Без изменений |
 | `SelectionOperationBase` и все наследники | Без изменений |
 | `InventoryActionBase` и все наследники | Без изменений |
 | `TransferPlanner` / `TransferPlanExecutor` | Без изменений |
 | `DropPolicy`, `DragContext`, правила | Без изменений |
-| `IDropTarget` и логика дропа | Без изменений |
+| `IDropTarget` интерфейс | Без изменений |
+| `DragAndDropManager` публичный API | Без изменений (SetHoveredSlot — под вопросом) |
+
+| Компонент | Статус |
+|---|---|
+| `DragAndDropManager` внутренняя quick-click логика | Переезжает в state machine |
+| `InventoryInputHandler` | Рефакторинг: отправляет в Router |
+| `DragDropEventListener` | Удаляется |
+| `SlotPointerSelectionTrigger` | Удаляется |
 
 ---
 
 ## Порядок реализации
 
-1. **`SlotInputAdapter`** — тонкий компонент, только нотификации. Можно добавить рядом с существующими компонентами без их удаления.
+### Шаг 1 — `SlotInputAdapter` (без удаления старых компонентов)
+Тонкий компонент-пересылка. Можно добавить рядом с существующими.
+Старые компоненты пока не удалять — они продолжают работать параллельно.
 
-2. **`InteractionState` state machine** — чистый C# класс, без Unity зависимостей. Покрывается юнит-тестами.
+### Шаг 2 — `InputEventRouter`
+Singleton. Пока только принимает события и логирует — без реальной маршрутизации.
+Тестируем что все slot-события доходят корректно.
+Добавляем frame gating и source priority.
 
-3. **`SlotAction` иерархия** — обёртки над существующими типами. `DragSlotAction`, `SelectionSlotAction`, `InventorySlotAction`.
+### Шаг 3 — `InteractionState` state machine
+Чистый C# класс, без Unity-зависимостей.
+Покрывается unit-тестами отдельно от Unity.
 
-4. **`SlotBinding` иерархия** — конфигурация биндингов для инспектора.
+### Шаг 4 — `SlotAction` иерархия
+`DragSlotAction`, `CancelDragAction`, `SelectionSlotAction`, `InventorySlotAction`.
+Обёртки над существующими типами — минимальный код.
 
-5. **`InventoryInteractionCoordinator`** — собирает всё вместе. На этом этапе `DragDropEventListener` и `SlotPointerSelectionTrigger` можно удалить.
+### Шаг 5 — `SlotBinding` иерархия
+`InputActionBinding`, `PointerButtonBinding`, `NavigationBinding`.
 
-6. **`InventoryInputHandler`** — рефакторинг на `Dispatch(intent)` вместо прямого вызова.
+### Шаг 6 — `InventoryInteractionCoordinator`
+Собирает state machine + биндинги + домен.
+На этом шаге подключаем реальную маршрутизацию в Router.
+Тестируем мышь — старые компоненты ещё живы как fallback.
 
-7. **Геймпад** — добавить `NavigationBinding`, протестировать оба пути фокуса.
+### Шаг 7 — Интеграция с `DragAndDropManager`
+Убираем quick-click корутину из менеджера.
+Проверяем что PushDropTarget/PopDropTarget работают через координатор.
+Удаляем `SetHoveredSlot` если он больше не нужен.
+
+### Шаг 8 — Рефакторинг `InventoryInputHandler`
+Переводим на Router.Dispatch вместо прямого вызова действий.
+
+### Шаг 9 — Удаление старых компонентов
+`DragDropEventListener` и `SlotPointerSelectionTrigger` удаляются.
+Обновляем все префабы слотов.
+
+### Шаг 10 — Геймпад
+Добавляем `NavigationBinding`. Тестируем оба пути фокуса.
