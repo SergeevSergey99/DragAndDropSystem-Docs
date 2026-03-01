@@ -36,8 +36,11 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private List<PointerBinding> _pointerBindings = new List<PointerBinding>();
         [SerializeField] private bool _useNavigationBindings = true;
         [SerializeField] private List<NavigationBinding> _navigationBindings = new List<NavigationBinding>();
+        [SerializeField] private bool _useInputActionBindings = true;
+        [SerializeField] private List<InputActionBinding> _inputActionBindings = new List<InputActionBinding>();
 
         private ISlot _focusedSlot;
+        private SlotInputAdapter _focusedAdapter;
         private FocusSource _activeFocusSource = FocusSource.None;
         private InteractionState _state = InteractionState.Idle;
         private SlotInputAdapter _pressedAdapter;
@@ -161,6 +164,7 @@ namespace DragAndDropSystem.Interaction
             // Источник фокуса: последнее взаимодействие побеждает.
             _activeFocusSource = source;
             _focusedSlot = adapter.Slot;
+            _focusedAdapter = adapter;
 
             if (_state == InteractionState.Idle)
                 _state = InteractionState.Focused;
@@ -189,6 +193,7 @@ namespace DragAndDropSystem.Interaction
             if (ReferenceEquals(_focusedSlot, adapter.Slot))
             {
                 _focusedSlot = null;
+                _focusedAdapter = null;
                 _activeFocusSource = FocusSource.None;
                 if (_state != InteractionState.Dragging)
                     _state = InteractionState.Idle;
@@ -207,11 +212,14 @@ namespace DragAndDropSystem.Interaction
 
         public bool RouteInventoryAction(
             InventoryActionBase action,
-            InputAction.CallbackContext _,
+            InputAction.CallbackContext context,
             bool logWarnings)
         {
             if (_inventory == null || action == null)
                 return false;
+
+            if (_useInputActionBindings && TryExecuteInputActionBinding(context))
+                return true;
 
             var activeSlot = _focusedSlot as UniversalSlot ?? _inventory.ResolveAutoTransferSlot();
             if (!action.CanExecute(_inventory, activeSlot))
@@ -291,6 +299,45 @@ namespace DragAndDropSystem.Interaction
                 }
                 return;
             }
+        }
+
+        private bool TryExecuteInputActionBinding(InputAction.CallbackContext context)
+        {
+            var inputAction = context.action;
+            if (inputAction == null)
+                return false;
+
+            var adapter = _focusedAdapter ?? ResolveAdapterFromFocusedSlot();
+
+            for (int i = 0; i < _inputActionBindings.Count; i++)
+            {
+                var binding = _inputActionBindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+                if (!binding.Matches(inputAction))
+                    continue;
+
+                if (binding.Action.CanExecute(this, adapter, null))
+                {
+                    binding.Action.Execute(this, adapter, null);
+                }
+                else if (_logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Input binding '{binding.Label}' cannot execute.");
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        private SlotInputAdapter ResolveAdapterFromFocusedSlot()
+        {
+            if (_focusedSlot is UniversalSlot universalSlot)
+            {
+                return universalSlot.GetComponent<SlotInputAdapter>();
+            }
+            return null;
         }
 
         private void TryExecuteNavigationBinding(SlotInputAdapter adapter, NavigationEventType eventType)
@@ -375,6 +422,33 @@ namespace DragAndDropSystem.Interaction
 
             public bool IsValid() => _action != null;
             public bool Matches(NavigationEventType eventType) => _eventType == eventType;
+        }
+
+        [Serializable]
+        public class InputActionBinding
+        {
+            [SerializeField] private string _label;
+            [SerializeField] private InputActionReference _actionReference;
+            [SerializeReference] private SlotInteractionAction _action;
+
+            public SlotInteractionAction Action => _action;
+            public string Label => string.IsNullOrEmpty(_label)
+                ? (_action != null ? _action.DisplayName : "InputAction Binding")
+                : _label;
+
+            public bool IsValid() => _actionReference != null && _action != null;
+
+            public bool Matches(InputAction runtimeAction)
+            {
+                if (runtimeAction == null || _actionReference == null)
+                    return false;
+
+                var configured = _actionReference.action;
+                if (configured == null)
+                    return false;
+
+                return ReferenceEquals(configured, runtimeAction) || configured.name == runtimeAction.name;
+            }
         }
 
         public enum ModifierKey

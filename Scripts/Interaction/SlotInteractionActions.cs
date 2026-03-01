@@ -13,7 +13,7 @@ namespace DragAndDropSystem.Interaction
         public virtual string DisplayName => GetType().Name.Replace("Action", string.Empty);
 
         public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
-            => coordinator != null && adapter != null;
+            => coordinator != null;
 
         public abstract void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData);
     }
