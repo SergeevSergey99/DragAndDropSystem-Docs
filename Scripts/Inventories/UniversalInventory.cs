@@ -216,8 +216,14 @@ namespace DragAndDropSystem.Inventories
             _lastInteractedSlot = null;
         }
 
-        private void InitializeSlots()
+        [FoldoutGroup("Slot Setup", expanded: true), Button]
+        private void CacheSlots()
         {
+            if (_slotContainer == null)
+            {
+                Debug.LogError($"[{name}] CacheSlots: _slotContainer is NULL!");
+                return;
+            }
             if (_slots == null)
             {
                 _slots = new List<ISlot>();
@@ -226,19 +232,21 @@ namespace DragAndDropSystem.Inventories
             // Удаляем возможные пустые ссылки
             _slots.RemoveAll(slot => slot == null);
 
-            // Если список пустой, пробуем автоматически найти слоты в контейнере
-            if (_slots.Count == 0 && _slotContainer != null)
+
+            var autoSlots = _slotContainer.GetComponentsInChildren<ISlot>(includeInactive: true).ToList();
+            foreach (var slot in autoSlots)
             {
-                var autoSlots = _slotContainer.GetComponentsInChildren<ISlot>(includeInactive: true).ToList();
-                foreach (var slot in autoSlots)
+                if (slot != null && !_slots.Contains(slot))
                 {
-                    if (slot != null && !_slots.Contains(slot))
-                    {
-                        _slots.Add(slot);
-                    }
+                    _slots.Add(slot);
                 }
             }
-
+            Extentions.DragAndDropLog($"<color=magenta>[{name}] CacheSlots completed! Found {_slots.Count} slots.</color>");
+        }
+        private void InitializeSlots()
+        {
+            CacheSlots();
+            
             for (int i = 0; i < _slots.Count; i++)
             {
                 var slot = _slots[i];
