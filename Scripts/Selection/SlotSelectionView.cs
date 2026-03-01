@@ -40,16 +40,15 @@ namespace DragAndDropSystem.Selection
 
         private void OnEnable()
         {
-            if (!SelectionManager.IsInstanceExist) return;
-            SelectionManager.Instance.OnSelectionChanged += Refresh;
+            SelectionManager.OnSelectionChanged += Refresh;
             // Синхронизируемся сразу — компонент мог включиться пока выделение уже было активно
-            Refresh(SelectionManager.Instance.CurrentContext);
+            if (SelectionManager.IsInstanceExist)
+                Refresh(SelectionManager.Instance.CurrentContext);
         }
 
         private void OnDisable()
         {
-            if (!SelectionManager.IsInstanceExist) return;
-            SelectionManager.Instance.OnSelectionChanged -= Refresh;
+            SelectionManager.OnSelectionChanged -= Refresh;
         }
 
         private void Refresh(SelectionContext context)

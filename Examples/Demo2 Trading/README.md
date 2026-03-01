@@ -184,6 +184,11 @@ Merchant 2:
      - Merchant Name Text - ссылка на TextMeshProUGUI для имени
      - Money Text - ссылка на TextMeshProUGUI для денег
 
+3. **Стоимость выделенных к покупке предметов (опционально):**
+   - Добавьте компонент `SelectedPurchasePriceView` на любой UI объект.
+   - Укажите `Total Price Text` (TextMeshProUGUI).
+   - Компонент считает сумму только по выделенным слотам инвентарей продавцов (`MerchantInventoryDataBinding`).
+
 ### 4. Правила (опционально)
 
 Вы можете добавить дополнительные правила в каждый биндинг:

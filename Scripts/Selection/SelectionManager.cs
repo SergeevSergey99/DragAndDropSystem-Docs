@@ -29,7 +29,7 @@ namespace DragAndDropSystem.Selection
         /// <summary>
         /// Вызывается при любом изменении выделения
         /// </summary>
-        public event Action<SelectionContext> OnSelectionChanged;
+        public static event Action<SelectionContext> OnSelectionChanged;
 
         // ===== Публичное API =====
 
