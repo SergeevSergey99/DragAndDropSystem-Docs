@@ -30,7 +30,7 @@ namespace DragAndDropSystem.Interaction
             // Старт drag на мыши происходит через BeginDrag.
             bool canStartFromThisEvent = eventData == null || eventData.dragging;
 
-            if (coordinator.IsDragInProgress || canStartFromThisEvent)
+            if (DragAndDropManager.Instance.IsDragging || canStartFromThisEvent)
             {
                 coordinator.TryExecuteDrag(adapter?.Slot);
             }

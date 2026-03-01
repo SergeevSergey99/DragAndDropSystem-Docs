@@ -50,13 +50,6 @@ namespace DragAndDropSystem.Interaction
         public UniversalInventory Inventory => _inventory;
         public ISlot FocusedSlot => _focusedSlot;
         public FocusSource ActiveFocusSource => _activeFocusSource;
-        public bool IsDragInProgress => _dragManager != null && _dragManager.IsDragging;
-
-#if ENABLE_REFLEX_DI
-        [Inject] private DragAndDropManager _dragManager;
-#else
-        private DragAndDropManager _dragManager => DragAndDropManager.Instance;
-#endif
 
         private void Awake()
         {
@@ -70,11 +63,8 @@ namespace DragAndDropSystem.Interaction
         {
             EnsureDefaultBindings();
             InputEventRouter.Instance.RegisterCoordinator(this);
-            if (_dragManager != null)
-            {
-                _dragManager.OnDropCompleted += HandleDragEnded;
-                _dragManager.OnDragCancelled += HandleDragEnded;
-            }
+            DragAndDropManager.Instance.OnDropCompleted += HandleDragEnded;
+            DragAndDropManager.Instance.OnDragCancelled += HandleDragEnded;
         }
 
         private void OnDisable()
@@ -82,10 +72,10 @@ namespace DragAndDropSystem.Interaction
             if (InputEventRouter.IsInstanceExist)
                 InputEventRouter.Instance.UnregisterCoordinator(this);
 
-            if (_dragManager != null)
+            if (DragAndDropManager.IsInstanceExist)
             {
-                _dragManager.OnDropCompleted -= HandleDragEnded;
-                _dragManager.OnDragCancelled -= HandleDragEnded;
+                DragAndDropManager.Instance.OnDropCompleted -= HandleDragEnded;
+                DragAndDropManager.Instance.OnDragCancelled -= HandleDragEnded;
             }
         }
 
@@ -141,14 +131,14 @@ namespace DragAndDropSystem.Interaction
             if (eventData.button != PointerEventData.InputButton.Left)
                 return;
 
-            if (_dragManager.IsDragging)
+            if (DragAndDropManager.Instance.IsDragging)
                 return;
 
             // Drag стартуем только с интерактивного и непустого слота.
             if (!adapter.Slot.IsInteractable || adapter.Slot.IsEmpty)
                 return;
 
-            bool started = _dragManager.StartDrag(adapter.Slot);
+            bool started = DragAndDropManager.Instance.StartDrag(adapter.Slot);
             if (started)
             {
                 _state = InteractionState.Dragging;
@@ -174,9 +164,9 @@ namespace DragAndDropSystem.Interaction
                 _state = InteractionState.Focused;
 
             // Новый pipeline: координатор управляет drop target стеком.
-            if (_dragManager.IsDragging && adapter.Slot.IsInteractable)
+            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
             {
-                _dragManager.PushDropTarget(adapter);
+                DragAndDropManager.Instance.PushDropTarget(adapter);
             }
         }
 
@@ -189,9 +179,9 @@ namespace DragAndDropSystem.Interaction
             if (source != _activeFocusSource)
                 return;
 
-            if (_dragManager.IsDragging)
+            if (DragAndDropManager.Instance.IsDragging)
             {
-                _dragManager.PopDropTarget(adapter);
+                DragAndDropManager.Instance.PopDropTarget(adapter);
             }
 
             if (ReferenceEquals(_focusedSlot, adapter.Slot))
@@ -246,16 +236,16 @@ namespace DragAndDropSystem.Interaction
 
         public void TryExecuteDrag(UniversalSlot slot)
         {
-            if (_dragManager.IsDragging)
+            if (DragAndDropManager.Instance.IsDragging)
             {
-                _dragManager.CompleteDrag();
+                DragAndDropManager.Instance.CompleteDrag();
                 return;
             }
 
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return;
 
-            bool started = _dragManager.StartDrag(slot);
+            bool started = DragAndDropManager.Instance.StartDrag(slot);
             if (started)
             {
                 _state = InteractionState.Dragging;
@@ -264,9 +254,9 @@ namespace DragAndDropSystem.Interaction
 
         public void TryCancelDrag()
         {
-            if (_dragManager.IsDragging)
+            if (DragAndDropManager.Instance.IsDragging)
             {
-                _dragManager.CancelDrag();
+                DragAndDropManager.Instance.CancelDrag();
             }
         }
 
