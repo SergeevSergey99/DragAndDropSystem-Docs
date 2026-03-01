@@ -38,6 +38,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private List<NavigationBinding> _navigationBindings = new List<NavigationBinding>();
         [SerializeField] private bool _useInputActionBindings = true;
         [SerializeField] private List<InputActionBinding> _inputActionBindings = new List<InputActionBinding>();
+        [SerializeField] private bool _autoConfigureDefaultBindings = true;
 
         private ISlot _focusedSlot;
         private SlotInputAdapter _focusedAdapter;
@@ -61,10 +62,13 @@ namespace DragAndDropSystem.Interaction
         {
             if (_inventory == null)
                 _inventory = GetComponent<UniversalInventory>();
+
+            EnsureDefaultBindings();
         }
 
         private void OnEnable()
         {
+            EnsureDefaultBindings();
             InputEventRouter.Instance.RegisterCoordinator(this);
             if (_dragManager != null)
             {
@@ -301,6 +305,42 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
+        private void EnsureDefaultBindings()
+        {
+            if (!_autoConfigureDefaultBindings)
+                return;
+
+            if (_pointerBindings.Count == 0)
+            {
+                _pointerBindings.Add(new PointerBinding(
+                    "LMB Drag",
+                    PointerEventData.InputButton.Left,
+                    ModifierKey.None,
+                    new DragSlotAction()));
+                _pointerBindings.Add(new PointerBinding(
+                    "LMB Ctrl Toggle",
+                    PointerEventData.InputButton.Left,
+                    ModifierKey.Ctrl,
+                    new SelectionSlotAction(new ToggleSlotOperation())));
+                _pointerBindings.Add(new PointerBinding(
+                    "LMB Shift Range",
+                    PointerEventData.InputButton.Left,
+                    ModifierKey.Shift,
+                    new SelectionSlotAction(new RangeSelectOperation())));
+                _pointerBindings.Add(new PointerBinding(
+                    "RMB Select",
+                    PointerEventData.InputButton.Right,
+                    ModifierKey.None,
+                    new SelectionSlotAction(new ClearAndSelectOperation())));
+            }
+
+            if (_navigationBindings.Count == 0)
+            {
+                _navigationBindings.Add(new NavigationBinding("Submit Drag", NavigationEventType.Submit, new DragSlotAction()));
+                _navigationBindings.Add(new NavigationBinding("Cancel Drag", NavigationEventType.Cancel, new CancelDragAction()));
+            }
+        }
+
         private bool TryExecuteInputActionBinding(InputAction.CallbackContext context)
         {
             var inputAction = context.action;
@@ -376,6 +416,18 @@ namespace DragAndDropSystem.Interaction
             [SerializeField] private ModifierKey _modifier = ModifierKey.None;
             [SerializeReference] private SlotInteractionAction _action;
 
+            public PointerBinding()
+            {
+            }
+
+            public PointerBinding(string label, PointerEventData.InputButton button, ModifierKey modifier, SlotInteractionAction action)
+            {
+                _label = label;
+                _button = button;
+                _modifier = modifier;
+                _action = action;
+            }
+
             public SlotInteractionAction Action => _action;
             public string Label => string.IsNullOrEmpty(_label)
                 ? (_action != null ? _action.DisplayName : "Pointer Binding")
@@ -414,6 +466,17 @@ namespace DragAndDropSystem.Interaction
             [SerializeField] private string _label;
             [SerializeField] private NavigationEventType _eventType = NavigationEventType.Submit;
             [SerializeReference] private SlotInteractionAction _action;
+
+            public NavigationBinding()
+            {
+            }
+
+            public NavigationBinding(string label, NavigationEventType eventType, SlotInteractionAction action)
+            {
+                _label = label;
+                _eventType = eventType;
+                _action = action;
+            }
 
             public SlotInteractionAction Action => _action;
             public string Label => string.IsNullOrEmpty(_label)

@@ -43,11 +43,20 @@ namespace DragAndDropSystem.Interaction
 
             if (_coordinator == null)
                 _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
+            if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
+                _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
         }
 
         private void OnEnable()
         {
+            if (_coordinator == null)
+                _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
+            if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
+                _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
+
             if (!_disableLegacyComponentsOnEnable)
+                return;
+            if (_coordinator == null)
                 return;
 
             var legacyDrag = GetComponent<DragDropEventListener>();

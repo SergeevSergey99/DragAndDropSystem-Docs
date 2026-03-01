@@ -51,6 +51,15 @@ namespace DragAndDropSystem.Interaction
     {
         [SerializeReference] private SelectionOperationBase _operation;
 
+        public SelectionSlotAction()
+        {
+        }
+
+        public SelectionSlotAction(SelectionOperationBase operation)
+        {
+            _operation = operation;
+        }
+
         public override bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!base.CanExecute(coordinator, adapter, eventData) || _operation == null)
@@ -80,6 +89,16 @@ namespace DragAndDropSystem.Interaction
     {
         [SerializeField] private InventoryActionBase _action;
         [SerializeField] private bool _logWarnings;
+
+        public InventorySlotAction()
+        {
+        }
+
+        public InventorySlotAction(InventoryActionBase action, bool logWarnings = false)
+        {
+            _action = action;
+            _logWarnings = logWarnings;
+        }
 
         public override bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
         {
