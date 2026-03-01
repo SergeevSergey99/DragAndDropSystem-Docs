@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DragAndDropSystem.Interaction;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,6 +22,9 @@ namespace DragAndDropSystem.Inventories
 
         [SerializeField, Tooltip("Писать предупреждения, если действие не сработало")]
         private bool _logWarnings;
+        
+        [SerializeField, Tooltip("Если включено, пытается отправлять action в новый Interaction Router. При отсутствии coordinator используется старый fallback.")]
+        private bool _useInteractionRouter = true;
 
         private readonly List<Subscription> _subscriptions = new List<Subscription>();
 
@@ -110,6 +114,13 @@ namespace DragAndDropSystem.Inventories
                     Debug.LogWarning($"[{name}] Input '{binding.Label}': No action assigned.");
                 }
                 return;
+            }
+
+            if (_useInteractionRouter)
+            {
+                bool routed = InputEventRouter.Instance.TryRouteInventoryAction(_inventory, binding.Action, context, _logWarnings);
+                if (routed)
+                    return;
             }
 
             // Разрешаем активный слот для действия

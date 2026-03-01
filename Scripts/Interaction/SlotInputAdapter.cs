@@ -1,0 +1,148 @@
+using DragAndDropSystem.Core;
+using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Slots;
+using DragAndDropSystem.Tools;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+namespace DragAndDropSystem.Interaction
+{
+    /// <summary>
+    /// Тонкий slot-adapter: пересылает raw-события в InputEventRouter.
+    /// Доменную логику не содержит.
+    /// </summary>
+    public class SlotInputAdapter : MonoBehaviour,
+        IPointerEnterHandler, IPointerExitHandler,
+        IPointerDownHandler, IPointerUpHandler,
+        IBeginDragHandler,
+        ISelectHandler, IDeselectHandler,
+        IDropTarget
+    {
+        [SerializeField] private UniversalSlot _slot;
+        [SerializeField] private InventoryInteractionCoordinator _coordinator;
+
+        public UniversalSlot Slot => _slot;
+        public InventoryInteractionCoordinator Coordinator => _coordinator;
+
+        private DragAndDropManager _dragManager => DragAndDropManager.Instance;
+
+        private void Awake()
+        {
+            if (_slot == null)
+                _slot = GetComponent<UniversalSlot>();
+
+            if (_coordinator == null)
+                _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
+        }
+
+        private void OnDisable()
+        {
+            if (!DragAndDropManager.IsInstanceExist || _slot == null || _dragManager == null)
+                return;
+
+            if (_dragManager.IsDragging)
+            {
+                _dragManager.PopDropTarget(this);
+            }
+
+            if (_slot.Inventory is UniversalInventory universalInventory)
+            {
+                universalInventory.NotifyPointerExit(_slot);
+            }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (_slot?.Inventory is UniversalInventory universalInventory)
+            {
+                universalInventory.NotifyPointerEnter(_slot);
+            }
+
+            InputEventRouter.Instance.RoutePointerEnter(this, eventData);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_slot?.Inventory is UniversalInventory universalInventory)
+            {
+                universalInventory.NotifyPointerExit(_slot);
+            }
+
+            InputEventRouter.Instance.RoutePointerExit(this, eventData);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (_slot == null || _slot.IsEmpty)
+                return;
+
+            if (!_slot.IsInteractable)
+            {
+                Extentions.DragAndDropLog($"OnPointerDown blocked - slot {name} is not interactable (filtered)");
+                return;
+            }
+
+            if (_slot.Inventory is UniversalInventory universalInventory)
+            {
+                universalInventory.NotifySlotInteracted(_slot);
+            }
+
+            InputEventRouter.Instance.RoutePointerDown(this, eventData);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            InputEventRouter.Instance.RoutePointerUp(this, eventData);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            InputEventRouter.Instance.RouteBeginDrag(this, eventData);
+        }
+
+        public void OnSelect(BaseEventData eventData)
+        {
+            InputEventRouter.Instance.RouteFocusEnter(this, FocusSource.Gamepad);
+        }
+
+        public void OnDeselect(BaseEventData eventData)
+        {
+            InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
+        }
+
+        // ===== IDropTarget =====
+
+        public ISlot GetTargetSlot() => _slot;
+
+        public IItemDropHandler GetDropHandler()
+        {
+            System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
+                ? _dragManager.RaiseSwapAttempting
+                : null;
+            System.Action<InventorySwapContext> swapCompleted = _dragManager != null
+                ? _dragManager.RaiseSwapCompleted
+                : null;
+
+            return new InventoryDropHandler(
+                _slot,
+                _slot?.Inventory,
+                _dragManager?.GlobalRules,
+                _dragManager?.TransferService,
+                policyOverride: null,
+                swapAttempting: swapAttempting,
+                swapCompleted: swapCompleted);
+        }
+
+        public void OnBecomeActiveTarget()
+        {
+            if (_slot != null)
+                _slot.Highlight(true);
+        }
+
+        public void OnBecomeInactiveTarget()
+        {
+            if (_slot != null)
+                _slot.Highlight(false);
+        }
+    }
+}
