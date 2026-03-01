@@ -34,6 +34,8 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private bool _logWarnings;
         [SerializeField] private bool _usePointerBindings = true;
         [SerializeField] private List<PointerBinding> _pointerBindings = new List<PointerBinding>();
+        [SerializeField] private bool _useNavigationBindings = true;
+        [SerializeField] private List<NavigationBinding> _navigationBindings = new List<NavigationBinding>();
 
         private ISlot _focusedSlot;
         private FocusSource _activeFocusSource = FocusSource.None;
@@ -193,6 +195,16 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
+        public void OnSubmit(SlotInputAdapter adapter, BaseEventData _)
+        {
+            TryExecuteNavigationBinding(adapter, NavigationEventType.Submit);
+        }
+
+        public void OnCancel(SlotInputAdapter adapter, BaseEventData _)
+        {
+            TryExecuteNavigationBinding(adapter, NavigationEventType.Cancel);
+        }
+
         public bool RouteInventoryAction(
             InventoryActionBase action,
             InputAction.CallbackContext _,
@@ -222,14 +234,14 @@ namespace DragAndDropSystem.Interaction
 
         public void TryExecuteDrag(UniversalSlot slot)
         {
-            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
-                return;
-
             if (_dragManager.IsDragging)
             {
                 _dragManager.CompleteDrag();
                 return;
             }
+
+            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                return;
 
             bool started = _dragManager.StartDrag(slot);
             if (started)
@@ -281,6 +293,34 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
+        private void TryExecuteNavigationBinding(SlotInputAdapter adapter, NavigationEventType eventType)
+        {
+            if (!_useNavigationBindings || adapter?.Slot == null)
+                return;
+
+            if (_state == InteractionState.Dragging && eventType != NavigationEventType.Cancel)
+                return;
+
+            for (int i = 0; i < _navigationBindings.Count; i++)
+            {
+                var binding = _navigationBindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+                if (!binding.Matches(eventType))
+                    continue;
+
+                if (binding.Action.CanExecute(this, adapter, null))
+                {
+                    binding.Action.Execute(this, adapter, null);
+                }
+                else if (_logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Navigation binding '{binding.Label}' cannot execute.");
+                }
+                return;
+            }
+        }
+
         [Serializable]
         public class PointerBinding
         {
@@ -321,12 +361,34 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
+        [Serializable]
+        public class NavigationBinding
+        {
+            [SerializeField] private string _label;
+            [SerializeField] private NavigationEventType _eventType = NavigationEventType.Submit;
+            [SerializeReference] private SlotInteractionAction _action;
+
+            public SlotInteractionAction Action => _action;
+            public string Label => string.IsNullOrEmpty(_label)
+                ? (_action != null ? _action.DisplayName : "Navigation Binding")
+                : _label;
+
+            public bool IsValid() => _action != null;
+            public bool Matches(NavigationEventType eventType) => _eventType == eventType;
+        }
+
         public enum ModifierKey
         {
             None = 0,
             Ctrl = 1,
             Shift = 2,
             Alt = 3
+        }
+
+        public enum NavigationEventType
+        {
+            Submit = 0,
+            Cancel = 1
         }
     }
 }

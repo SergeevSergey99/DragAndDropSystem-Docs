@@ -1,5 +1,6 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using UnityEngine;
@@ -19,10 +20,12 @@ namespace DragAndDropSystem.Interaction
         IPointerDownHandler, IPointerUpHandler,
         IBeginDragHandler,
         ISelectHandler, IDeselectHandler,
+        ISubmitHandler, ICancelHandler,
         IDropTarget
     {
         [SerializeField] private UniversalSlot _slot;
         [SerializeField] private InventoryInteractionCoordinator _coordinator;
+        [SerializeField] private bool _disableLegacyComponentsOnEnable = true;
 
         public UniversalSlot Slot => _slot;
         public InventoryInteractionCoordinator Coordinator => _coordinator;
@@ -40,6 +43,26 @@ namespace DragAndDropSystem.Interaction
 
             if (_coordinator == null)
                 _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
+        }
+
+        private void OnEnable()
+        {
+            if (!_disableLegacyComponentsOnEnable)
+                return;
+
+            var legacyDrag = GetComponent<DragDropEventListener>();
+            if (legacyDrag != null && legacyDrag.enabled)
+            {
+                legacyDrag.enabled = false;
+                Extentions.DragAndDropLog($"Disabled legacy DragDropEventListener on '{name}'");
+            }
+
+            var legacySelection = GetComponent<SlotPointerSelectionTrigger>();
+            if (legacySelection != null && legacySelection.enabled)
+            {
+                legacySelection.enabled = false;
+                Extentions.DragAndDropLog($"Disabled legacy SlotPointerSelectionTrigger on '{name}'");
+            }
         }
 
         private void OnDisable()
@@ -115,6 +138,16 @@ namespace DragAndDropSystem.Interaction
         public void OnDeselect(BaseEventData eventData)
         {
             InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
+        }
+
+        public void OnSubmit(BaseEventData eventData)
+        {
+            InputEventRouter.Instance.RouteSubmit(this, eventData);
+        }
+
+        public void OnCancel(BaseEventData eventData)
+        {
+            InputEventRouter.Instance.RouteCancel(this, eventData);
         }
 
         // ===== IDropTarget =====

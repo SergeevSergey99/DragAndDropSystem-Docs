@@ -140,6 +140,18 @@ namespace DragAndDropSystem.Interaction
                 coordinator.OnFocusExit(adapter, source);
         }
 
+        public void RouteSubmit(SlotInputAdapter adapter, BaseEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnSubmit(adapter, eventData);
+        }
+
+        public void RouteCancel(SlotInputAdapter adapter, BaseEventData eventData)
+        {
+            if (TryGetCoordinator(adapter, out var coordinator))
+                coordinator.OnCancel(adapter, eventData);
+        }
+
         private bool TryGetCoordinator(SlotInputAdapter adapter, out InventoryInteractionCoordinator coordinator)
         {
             coordinator = null;
