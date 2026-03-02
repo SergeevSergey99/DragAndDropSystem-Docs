@@ -133,17 +133,24 @@ namespace DragAndDropSystem.Interaction
             if (eventData == null || adapter == null)
                 return;
 
-            if (_state == InteractionState.Pressed && _pressedAdapter == adapter && _pressedButton == eventData.button)
+            bool releaseOfPressedButton = _pressedAdapter == adapter && _pressedButton == eventData.button;
+            bool isDraggingNow = DragAndDropManager.Instance.IsDragging;
+            bool shouldProcessPointerUp =
+                (_state == InteractionState.Pressed && releaseOfPressedButton) ||
+                isDraggingNow;
+
+            if (shouldProcessPointerUp)
             {
-                bool dragOnly = DragAndDropManager.Instance.IsDragging;
+                bool dragOnly = isDraggingNow;
                 TryExecutePointerBinding(adapter, eventData, dragOnly);
             }
 
             // Выход из Pressed независимо от результата, чтобы не "залипать".
-            if (_state == InteractionState.Pressed && _pressedAdapter == adapter && _pressedButton == eventData.button)
+            if (releaseOfPressedButton)
             {
                 _pressedAdapter = null;
-                _state = _focusedSlot != null ? InteractionState.Focused : InteractionState.Idle;
+                if (!DragAndDropManager.Instance.IsDragging)
+                    _state = _focusedSlot != null ? InteractionState.Focused : InteractionState.Idle;
             }
         }
 

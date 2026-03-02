@@ -212,13 +212,16 @@ namespace DragAndDropSystem.Interaction
                 return;
 
             var state = GetOrCreateFallbackState(inventory);
-            if (state.PressedAdapter == adapter && state.PressedButton == eventData.button)
+            bool releaseOfPressedButton = state.PressedAdapter == adapter && state.PressedButton == eventData.button;
+            bool isDraggingNow = DragAndDropManager.Instance.IsDragging;
+
+            if (releaseOfPressedButton || isDraggingNow)
             {
-                bool dragOnly = DragAndDropManager.Instance.IsDragging;
+                bool dragOnly = isDraggingNow;
                 ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly);
             }
 
-            if (state.PressedAdapter == adapter && state.PressedButton == eventData.button)
+            if (releaseOfPressedButton)
             {
                 state.PressedAdapter = null;
             }
