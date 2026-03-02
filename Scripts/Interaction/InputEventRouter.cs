@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -42,6 +43,8 @@ namespace DragAndDropSystem.Interaction
 
         private readonly Dictionary<IInventory, InventoryInteractionCoordinator> _byInventory =
             new Dictionary<IInventory, InventoryInteractionCoordinator>();
+        private readonly Dictionary<UniversalInventory, FallbackInteractionState> _fallbackByInventory =
+            new Dictionary<UniversalInventory, FallbackInteractionState>();
 
         private readonly HashSet<IntentDedupKey> _handledThisFrame = new HashSet<IntentDedupKey>();
 
@@ -104,24 +107,32 @@ namespace DragAndDropSystem.Interaction
         {
             if (TryGetCoordinator(adapter, out var coordinator))
                 coordinator.OnPointerEnter(adapter, eventData);
+            else
+                RouteFallbackPointerEnter(adapter);
         }
 
         public void RoutePointerExit(SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (TryGetCoordinator(adapter, out var coordinator))
                 coordinator.OnPointerExit(adapter, eventData);
+            else
+                RouteFallbackPointerExit(adapter);
         }
 
         public void RoutePointerDown(SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (TryGetCoordinator(adapter, out var coordinator))
                 coordinator.OnPointerDown(adapter, eventData);
+            else
+                RouteFallbackPointerDown(adapter, eventData);
         }
 
         public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (TryGetCoordinator(adapter, out var coordinator))
                 coordinator.OnPointerUp(adapter, eventData);
+            else
+                RouteFallbackPointerUp(adapter, eventData);
         }
 
         public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
@@ -146,12 +157,198 @@ namespace DragAndDropSystem.Interaction
         {
             if (TryGetCoordinator(adapter, out var coordinator))
                 coordinator.OnSubmit(adapter, eventData);
+            else
+                RouteFallbackNavigation(adapter, InventoryInteractionCoordinator.NavigationEventType.Submit);
         }
 
         public void RouteCancel(SlotInputAdapter adapter, BaseEventData eventData)
         {
             if (TryGetCoordinator(adapter, out var coordinator))
                 coordinator.OnCancel(adapter, eventData);
+            else
+                RouteFallbackNavigation(adapter, InventoryInteractionCoordinator.NavigationEventType.Cancel);
+        }
+
+        private void RouteFallbackPointerEnter(SlotInputAdapter adapter)
+        {
+            if (adapter?.Slot == null)
+                return;
+
+            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
+            {
+                DragAndDropManager.Instance.PushDropTarget(adapter);
+            }
+        }
+
+        private void RouteFallbackPointerExit(SlotInputAdapter adapter)
+        {
+            if (adapter?.Slot == null)
+                return;
+
+            if (DragAndDropManager.Instance.IsDragging)
+            {
+                DragAndDropManager.Instance.PopDropTarget(adapter);
+            }
+        }
+
+        private void RouteFallbackPointerDown(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (!TryGetFallbackInventory(adapter, out var inventory) || eventData == null)
+                return;
+
+            var state = GetOrCreateFallbackState(inventory);
+            state.PressedAdapter = adapter;
+            state.PressedButton = eventData.button;
+
+            ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly: true);
+        }
+
+        private void RouteFallbackPointerUp(SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (!TryGetFallbackInventory(adapter, out var inventory) || eventData == null)
+                return;
+
+            var state = GetOrCreateFallbackState(inventory);
+            if (state.PressedAdapter == adapter && state.PressedButton == eventData.button)
+            {
+                ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly: false);
+            }
+
+            if (state.PressedAdapter == adapter && state.PressedButton == eventData.button)
+            {
+                state.PressedAdapter = null;
+            }
+        }
+
+        private void RouteFallbackNavigation(
+            SlotInputAdapter adapter,
+            InventoryInteractionCoordinator.NavigationEventType eventType)
+        {
+            if (!TryGetFallbackInventory(adapter, out var inventory) || _defaultBindingsProfile == null)
+                return;
+
+            var bindings = _defaultBindingsProfile.NavigationBindings;
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid() || !binding.Matches(eventType))
+                    continue;
+
+                ExecuteFallbackAction(inventory, adapter, binding.Action, null);
+                return;
+            }
+        }
+
+        private void ExecuteFallbackPointerBindings(
+            UniversalInventory inventory,
+            SlotInputAdapter adapter,
+            PointerEventData eventData,
+            bool dragOnly)
+        {
+            if (_defaultBindingsProfile == null)
+                return;
+
+            var bindings = _defaultBindingsProfile.PointerBindings;
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid() || !binding.Matches(eventData))
+                    continue;
+
+                bool isDrag = binding.Action is DragSlotAction;
+                if (dragOnly && !isDrag)
+                    continue;
+                if (!dragOnly && isDrag)
+                    continue;
+
+                ExecuteFallbackAction(inventory, adapter, binding.Action, eventData);
+                eventData.Use();
+                return;
+            }
+        }
+
+        private static void ExecuteFallbackAction(
+            UniversalInventory inventory,
+            SlotInputAdapter adapter,
+            SlotInteractionAction action,
+            PointerEventData eventData)
+        {
+            if (action == null)
+                return;
+
+            if (action is DragSlotAction)
+            {
+                if (DragAndDropManager.Instance.IsDragging)
+                {
+                    DragAndDropManager.Instance.CompleteDrag();
+                    return;
+                }
+
+                var slot = adapter?.Slot;
+                if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                    return;
+
+                DragAndDropManager.Instance.StartDrag(slot);
+                return;
+            }
+
+            if (action is CancelDragAction)
+            {
+                if (DragAndDropManager.Instance.IsDragging)
+                    DragAndDropManager.Instance.CancelDrag();
+                return;
+            }
+
+            if (action is SelectionSlotAction selectionAction)
+            {
+                if (!SelectionManager.IsInstanceExist || selectionAction.Operation == null)
+                    return;
+
+                var slot = adapter?.Slot;
+                if (slot == null)
+                    return;
+
+                var selection = SelectionManager.Instance;
+                if (selectionAction.Operation.CanExecute(selection, slot))
+                {
+                    selectionAction.Operation.Execute(selection, slot);
+                }
+                return;
+            }
+
+            if (action is InventorySlotAction inventoryAction)
+            {
+                if (inventory == null || inventoryAction.InventoryAction == null)
+                    return;
+
+                var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
+                if (!inventoryAction.InventoryAction.CanExecute(inventory, slot))
+                    return;
+
+                inventoryAction.InventoryAction.Execute(inventory, slot, inventoryAction.LogWarnings);
+            }
+        }
+
+        private bool TryGetFallbackInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
+        {
+            inventory = null;
+            if (adapter?.Slot?.Inventory is UniversalInventory universalInventory)
+            {
+                inventory = universalInventory;
+                return true;
+            }
+            return false;
+        }
+
+        private FallbackInteractionState GetOrCreateFallbackState(UniversalInventory inventory)
+        {
+            if (!_fallbackByInventory.TryGetValue(inventory, out var state) || state == null)
+            {
+                state = new FallbackInteractionState();
+                _fallbackByInventory[inventory] = state;
+            }
+
+            return state;
         }
 
         private bool TryGetCoordinator(SlotInputAdapter adapter, out InventoryInteractionCoordinator coordinator)
@@ -176,7 +373,20 @@ namespace DragAndDropSystem.Interaction
             if (inventory == null)
                 return false;
 
-            return _byInventory.TryGetValue(inventory, out coordinator) && coordinator != null;
+            if (_byInventory.TryGetValue(inventory, out coordinator) && coordinator != null)
+                return true;
+
+            if (inventory is UniversalInventory universalInventory)
+            {
+                coordinator = universalInventory.GetComponent<InventoryInteractionCoordinator>();
+                if (coordinator != null)
+                {
+                    _byInventory[universalInventory] = coordinator;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private readonly struct IntentDedupKey
@@ -191,6 +401,12 @@ namespace DragAndDropSystem.Interaction
             public int Type { get; }
             public ISlot Slot { get; }
             public object Token { get; }
+        }
+
+        private sealed class FallbackInteractionState
+        {
+            public SlotInputAdapter PressedAdapter;
+            public PointerEventData.InputButton PressedButton;
         }
     }
 }

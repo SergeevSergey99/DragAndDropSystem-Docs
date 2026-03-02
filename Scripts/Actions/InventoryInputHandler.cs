@@ -114,9 +114,24 @@ namespace DragAndDropSystem.Inventories
             }
 
             bool routed = InputEventRouter.Instance.TryRouteInventoryAction(_inventory, binding.Action, context, _logWarnings);
-            if (!routed && _logWarnings)
+            if (routed)
+                return;
+
+            // Fallback: execute directly when coordinator/router path is unavailable.
+            var activeSlot = _inventory.ResolveAutoTransferSlot();
+            if (!binding.Action.CanExecute(_inventory, activeSlot))
             {
-                Debug.LogWarning($"[{name}] Input '{binding.Label}': no interaction coordinator/router target for inventory '{_inventory.name}'.");
+                if (_logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Input '{binding.Label}': action '{binding.Action.DisplayName}' cannot execute for inventory '{_inventory.name}'.");
+                }
+                return;
+            }
+
+            bool success = binding.Action.Execute(_inventory, activeSlot, _logWarnings);
+            if (!success && _logWarnings)
+            {
+                Debug.LogWarning($"[{name}] Input '{binding.Label}': direct execute failed for inventory '{_inventory.name}'.");
             }
         }
 

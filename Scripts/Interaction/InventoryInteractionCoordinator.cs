@@ -119,6 +119,10 @@ namespace DragAndDropSystem.Interaction
             _pressedAdapter = adapter;
             _pressedButton = eventData.button;
             _state = InteractionState.Pressed;
+
+            // Drag-binding executes on pointer down to support configurable mouse buttons
+            // without relying on raw BeginDrag (which is left-button-oriented in UI modules).
+            TryExecutePointerBinding(adapter, eventData, dragOnly: true);
         }
 
         public void OnPointerUp(SlotInputAdapter adapter, PointerEventData eventData)
@@ -128,7 +132,7 @@ namespace DragAndDropSystem.Interaction
 
             if (_state == InteractionState.Pressed && _pressedAdapter == adapter && _pressedButton == eventData.button)
             {
-                TryExecutePointerBinding(adapter, eventData);
+                TryExecutePointerBinding(adapter, eventData, dragOnly: false);
             }
 
             // Выход из Pressed независимо от результата, чтобы не "залипать".
@@ -141,29 +145,9 @@ namespace DragAndDropSystem.Interaction
 
         public void OnBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (adapter?.Slot == null || eventData == null)
-                return;
-
-            if (eventData.button != PointerEventData.InputButton.Left)
-                return;
-
-            if (DragAndDropManager.Instance.IsDragging)
-                return;
-
-            // Drag стартуем только с интерактивного и непустого слота.
-            if (!adapter.Slot.IsInteractable || adapter.Slot.IsEmpty)
-                return;
-
-            bool started = DragAndDropManager.Instance.StartDrag(adapter.Slot);
-            if (started)
-            {
-                _state = InteractionState.Dragging;
-                _pressedAdapter = null;
-            }
-            else if (_logWarnings)
-            {
-                Debug.LogWarning($"[{name}] Failed to start drag for slot {adapter.Slot.Index}");
-            }
+            // Intentionally no-op.
+            // Drag start must be driven only by configured bindings
+            // (pointer/navigation/input-action), not by raw BeginDrag.
         }
 
         public void OnFocusEnter(SlotInputAdapter adapter, FocusSource source)
@@ -282,7 +266,7 @@ namespace DragAndDropSystem.Interaction
             _pressedAdapter = null;
         }
 
-        private void TryExecutePointerBinding(SlotInputAdapter adapter, PointerEventData eventData)
+        private void TryExecutePointerBinding(SlotInputAdapter adapter, PointerEventData eventData, bool dragOnly)
         {
             if (!_resolvedUsePointerBindings || adapter?.Slot == null || eventData == null)
                 return;
@@ -296,6 +280,10 @@ namespace DragAndDropSystem.Interaction
                 if (binding == null || !binding.IsValid())
                     continue;
                 if (!binding.Matches(eventData))
+                    continue;
+                if (dragOnly && !(binding.Action is DragSlotAction))
+                    continue;
+                if (!dragOnly && binding.Action is DragSlotAction)
                     continue;
 
                 if (binding.Action.CanExecute(this, adapter, eventData))

@@ -26,14 +26,9 @@ namespace DragAndDropSystem.Interaction
             if (coordinator == null)
                 return;
 
-            // Для pointer click-up не стартуем новый drag.
-            // Старт drag на мыши происходит через BeginDrag.
-            bool canStartFromThisEvent = eventData == null || eventData.dragging;
-
-            if (DragAndDropManager.Instance.IsDragging || canStartFromThisEvent)
-            {
-                coordinator.TryExecuteDrag(adapter?.Slot);
-            }
+            // Drag is fully binding-driven.
+            // Pointer/navigation/input-action bindings can start or complete drag.
+            coordinator.TryExecuteDrag(adapter?.Slot);
         }
     }
 
@@ -50,6 +45,7 @@ namespace DragAndDropSystem.Interaction
     public sealed class SelectionSlotAction : SlotInteractionAction
     {
         [SerializeReference] private SelectionOperationBase _operation;
+        public SelectionOperationBase Operation => _operation;
 
         public SelectionSlotAction()
         {
@@ -89,6 +85,8 @@ namespace DragAndDropSystem.Interaction
     {
         [SerializeField] private InventoryActionBase _action;
         [SerializeField] private bool _logWarnings;
+        public InventoryActionBase InventoryAction => _action;
+        public bool LogWarnings => _logWarnings;
 
         public InventorySlotAction()
         {
