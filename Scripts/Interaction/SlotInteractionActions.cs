@@ -12,32 +12,71 @@ namespace DragAndDropSystem.Interaction
     {
         public virtual string DisplayName => GetType().Name.Replace("Action", string.Empty);
 
-        public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
-            => coordinator != null;
+        public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+            => inventory != null;
 
-        public abstract void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData);
+        public virtual bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+            => false;
+
+        public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
+            => CanExecute(
+                coordinator != null ? coordinator.Inventory : adapter?.Slot?.Inventory as UniversalInventory,
+                adapter,
+                eventData);
+
+        public virtual void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            Execute(
+                coordinator != null ? coordinator.Inventory : adapter?.Slot?.Inventory as UniversalInventory,
+                adapter,
+                eventData,
+                logWarnings: false);
+        }
     }
 
     [Serializable]
     public sealed class DragSlotAction : SlotInteractionAction
     {
-        public override void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (coordinator == null)
-                return;
+        [field: SerializeField] public bool CompleteOnPointerUp { get; private set; } = true;
 
-            // Drag is fully binding-driven.
-            // Pointer/navigation/input-action bindings can start or complete drag.
-            coordinator.TryExecuteDrag(adapter?.Slot);
+        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (DragAndDropManager.Instance.IsDragging)
+                return true;
+
+            var slot = adapter?.Slot;
+            return slot != null && !slot.IsEmpty && slot.IsInteractable;
+        }
+
+        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        {
+            if (DragAndDropManager.Instance.IsDragging)
+            {
+                DragAndDropManager.Instance.CompleteDrag();
+                return true;
+            }
+
+            var slot = adapter?.Slot;
+            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                return false;
+
+            return DragAndDropManager.Instance.StartDrag(slot);
         }
     }
 
     [Serializable]
     public sealed class CancelDragAction : SlotInteractionAction
     {
-        public override void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+            => DragAndDropManager.Instance.IsDragging;
+
+        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
-            coordinator.TryCancelDrag();
+            if (!DragAndDropManager.Instance.IsDragging)
+                return false;
+
+            DragAndDropManager.Instance.CancelDrag();
+            return true;
         }
     }
 
@@ -58,25 +97,29 @@ namespace DragAndDropSystem.Interaction
 
         public override bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!base.CanExecute(coordinator, adapter, eventData) || _operation == null)
+            if (_operation == null)
                 return false;
 
             if (!SelectionManager.IsInstanceExist)
                 return false;
 
-            return _operation.CanExecute(SelectionManager.Instance, adapter.Slot);
+            return _operation.CanExecute(SelectionManager.Instance, adapter?.Slot);
         }
 
-        public override void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
             if (_operation == null || !SelectionManager.IsInstanceExist)
-                return;
+                return false;
 
             var manager = SelectionManager.Instance;
-            if (_operation.CanExecute(manager, adapter.Slot))
+            var slot = adapter?.Slot;
+            if (_operation.CanExecute(manager, slot))
             {
-                _operation.Execute(manager, adapter.Slot);
+                _operation.Execute(manager, slot);
+                return true;
             }
+
+            return false;
         }
     }
 
@@ -98,25 +141,25 @@ namespace DragAndDropSystem.Interaction
             _logWarnings = logWarnings;
         }
 
-        public override bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!base.CanExecute(coordinator, adapter, eventData) || _action == null)
+            if (_action == null || inventory == null)
                 return false;
 
-            var inventory = coordinator.Inventory;
-            if (inventory == null)
-                return false;
-
-            var slot = adapter?.Slot;
+            var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
             return _action.CanExecute(inventory, slot);
         }
 
-        public override void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
-            if (_action == null || coordinator.Inventory == null)
-                return;
+            if (_action == null || inventory == null)
+                return false;
 
-            _action.Execute(coordinator.Inventory, adapter?.Slot, _logWarnings);
+            var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
+            if (!_action.CanExecute(inventory, slot))
+                return false;
+
+            return _action.Execute(inventory, slot, _logWarnings || logWarnings);
         }
     }
 }

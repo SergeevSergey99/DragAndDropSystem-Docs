@@ -297,9 +297,9 @@ namespace DragAndDropSystem.Interaction
                 if (!dragOnly && binding.Action is DragSlotAction)
                     continue;
 
-                if (binding.Action.CanExecute(this, adapter, eventData))
+                if (binding.Action.CanExecute(_inventory, adapter, eventData))
                 {
-                    binding.Action.Execute(this, adapter, eventData);
+                    binding.Action.Execute(_inventory, adapter, eventData, _logWarnings);
                     eventData.Use();
                 }
                 else if (_logWarnings)
@@ -353,9 +353,9 @@ namespace DragAndDropSystem.Interaction
                 if (!binding.Matches(inputAction))
                     continue;
 
-                if (binding.Action.CanExecute(this, adapter, null))
+                if (binding.Action.CanExecute(_inventory, adapter, null))
                 {
-                    binding.Action.Execute(this, adapter, null);
+                    binding.Action.Execute(_inventory, adapter, null, _logWarnings);
                 }
                 else if (_logWarnings)
                 {
@@ -445,9 +445,9 @@ namespace DragAndDropSystem.Interaction
                 if (!binding.Matches(eventType))
                     continue;
 
-                if (binding.Action.CanExecute(this, adapter, null))
+                if (binding.Action.CanExecute(_inventory, adapter, null))
                 {
-                    binding.Action.Execute(this, adapter, null);
+                    binding.Action.Execute(_inventory, adapter, null, _logWarnings);
                 }
                 else if (_logWarnings)
                 {

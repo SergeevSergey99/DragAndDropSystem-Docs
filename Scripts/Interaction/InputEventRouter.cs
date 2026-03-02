@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -283,57 +282,10 @@ namespace DragAndDropSystem.Interaction
             if (action == null)
                 return;
 
-            if (action is DragSlotAction)
-            {
-                if (DragAndDropManager.Instance.IsDragging)
-                {
-                    DragAndDropManager.Instance.CompleteDrag();
-                    return;
-                }
-
-                var slot = adapter?.Slot;
-                if (slot == null || slot.IsEmpty || !slot.IsInteractable)
-                    return;
-
-                DragAndDropManager.Instance.StartDrag(slot);
+            if (!action.CanExecute(inventory, adapter, eventData))
                 return;
-            }
 
-            if (action is CancelDragAction)
-            {
-                if (DragAndDropManager.Instance.IsDragging)
-                    DragAndDropManager.Instance.CancelDrag();
-                return;
-            }
-
-            if (action is SelectionSlotAction selectionAction)
-            {
-                if (!SelectionManager.IsInstanceExist || selectionAction.Operation == null)
-                    return;
-
-                var slot = adapter?.Slot;
-                if (slot == null)
-                    return;
-
-                var selection = SelectionManager.Instance;
-                if (selectionAction.Operation.CanExecute(selection, slot))
-                {
-                    selectionAction.Operation.Execute(selection, slot);
-                }
-                return;
-            }
-
-            if (action is InventorySlotAction inventoryAction)
-            {
-                if (inventory == null || inventoryAction.InventoryAction == null)
-                    return;
-
-                var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
-                if (!inventoryAction.InventoryAction.CanExecute(inventory, slot))
-                    return;
-
-                inventoryAction.InventoryAction.Execute(inventory, slot, inventoryAction.LogWarnings);
-            }
+            action.Execute(inventory, adapter, eventData, logWarnings: false);
         }
 
         private bool TryGetFallbackInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
