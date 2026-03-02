@@ -32,6 +32,7 @@
 
 Роль:
 - хранит маппинг `IInventory -> InventoryInteractionCoordinator`;
+- хранит глобальный `DefaultBindingsProfile` (SO) для всех координаторов;
 - маршрутизирует события от адаптеров и `InventoryInputHandler`;
 - выполняет frame-level anti-dup для action-intents.
 
@@ -43,8 +44,28 @@
 - единая state-машина взаимодействия инвентаря;
 - держит `FocusedSlot` и источник фокуса (`FocusSource`);
 - исполняет `PointerBinding`, `NavigationBinding`, `InputActionBinding`;
+- поддерживает профиль биндингов (`InventoryInteractionBindingsProfile`) + локальные override через `BindingMergeMode`;
 - управляет drop target stack (`PushDropTarget/PopDropTarget`) через `DragAndDropManager`;
 - маршрутизирует selection- и inventory-actions.
+
+## Профили биндингов (SO)
+
+Файл типа:
+- `Scripts/Interaction/InventoryInteractionBindingsProfile.cs`
+
+Глобальный дефолтный профиль:
+- `Settings/DefaultInventoryInteractionBindingsProfile.asset`
+
+Где задаётся:
+- на `InputEventRouter` поле `_defaultBindingsProfile` (в `Prefabs/DragCanvas.prefab` уже назначен).
+
+Override на конкретном инвентаре:
+- `InventoryInteractionCoordinator._bindingsProfile` — профиль для конкретного инвентаря;
+- `InventoryInteractionCoordinator._useGlobalBindingsProfile` — брать глобальный профиль, если локальный не задан;
+- `BindingMergeMode` для pointer/navigation/input:
+  - `LocalOnly`
+  - `ProfileOnly`
+  - `LocalThenProfile`
 
 ### SlotInteractionActions
 

@@ -901,7 +901,7 @@ GameObject:
   - component: {fileID: 233341990}
   - component: {fileID: 233341989}
   - component: {fileID: 233341988}
-  - component: {fileID: 910000000000000002}
+  - component: {fileID: 233341992}
   m_Layer: 5
   m_Name: Inventory1
   m_TagString: Untagged
@@ -1027,6 +1027,34 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 233341986}
   m_CullTransparentMesh: 1
+--- !u!114 &233341992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233341986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inventory: {fileID: 233341989}
+  _logWarnings: 0
+  _useGlobalBindingsProfile: 0
+  _bindingsProfile: {fileID: 0}
+  _pointerBindingMode: 2
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _navigationBindingMode: 2
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _inputActionBindingMode: 2
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  references:
+    version: 2
+    RefIds: []
 --- !u!1001 &301571356
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6447,52 +6475,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
   _inventory: {fileID: 0}
   _logWarnings: 0
+  _useGlobalBindingsProfile: 1
+  _bindingsProfile: {fileID: 0}
+  _pointerBindingMode: 2
   _usePointerBindings: 1
   _pointerBindings: []
+  _navigationBindingMode: 2
   _useNavigationBindings: 1
   _navigationBindings: []
+  _inputActionBindingMode: 2
   _useInputActionBindings: 1
   _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
   references:
     version: 2
     RefIds: []
---- !u!114 &910000000000000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233341986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 233341989}
-  _logWarnings: 0
-  _usePointerBindings: 1
-  _pointerBindings: []
-  _useNavigationBindings: 1
-  _navigationBindings: []
-  _useInputActionBindings: 1
-  _inputActionBindings:
-  - _label: 
-    _actionReference: {fileID: -2099379676528639254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
-    _action:
-      rid: 6676588690130075792
-  _autoConfigureDefaultBindings: 1
-  references:
-    version: 2
-    RefIds:
-    - rid: 6676588690130075792
-      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        _operation:
-          rid: 6676588690130075803
-    - rid: 6676588690130075803
-      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
 --- !u!114 &910000000000000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6507,13 +6503,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
   _inventory: {fileID: 0}
   _logWarnings: 0
+  _useGlobalBindingsProfile: 1
+  _bindingsProfile: {fileID: 0}
+  _pointerBindingMode: 2
   _usePointerBindings: 1
   _pointerBindings: []
+  _navigationBindingMode: 2
   _useNavigationBindings: 1
   _navigationBindings: []
+  _inputActionBindingMode: 2
   _useInputActionBindings: 1
   _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
   references:
     version: 2
     RefIds: []
@@ -6531,13 +6531,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
   _inventory: {fileID: 0}
   _logWarnings: 0
+  _useGlobalBindingsProfile: 1
+  _bindingsProfile: {fileID: 0}
+  _pointerBindingMode: 2
   _usePointerBindings: 1
   _pointerBindings: []
+  _navigationBindingMode: 2
   _useNavigationBindings: 1
   _navigationBindings: []
+  _inputActionBindingMode: 2
   _useInputActionBindings: 1
   _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
   references:
     version: 2
     RefIds: []
@@ -6555,13 +6559,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
   _inventory: {fileID: 0}
   _logWarnings: 0
+  _useGlobalBindingsProfile: 1
+  _bindingsProfile: {fileID: 0}
+  _pointerBindingMode: 2
   _usePointerBindings: 1
   _pointerBindings: []
+  _navigationBindingMode: 2
   _useNavigationBindings: 1
   _navigationBindings: []
+  _inputActionBindingMode: 2
   _useInputActionBindings: 1
   _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
   references:
     version: 2
     RefIds: []

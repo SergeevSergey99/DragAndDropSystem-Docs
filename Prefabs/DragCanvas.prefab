@@ -128,3 +128,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18fedea49b02460997b8efda292d44cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InputEventRouter
+  _defaultBindingsProfile: {fileID: 11400000, guid: 4f9345350f0328246b2aba8386a06f49, type: 2}

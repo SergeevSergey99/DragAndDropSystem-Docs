@@ -32,14 +32,18 @@ namespace DragAndDropSystem.Interaction
 
         [SerializeField] private UniversalInventory _inventory;
         [SerializeField] private bool _logWarnings;
+        [SerializeField] private bool _useGlobalBindingsProfile = true;
+        [SerializeField] private InventoryInteractionBindingsProfile _bindingsProfile;
+        [SerializeField] private BindingMergeMode _pointerBindingMode = BindingMergeMode.LocalThenProfile;
         [SerializeField] private bool _usePointerBindings = true;
         [SerializeField] private List<PointerBinding> _pointerBindings = new List<PointerBinding>();
+        [SerializeField] private BindingMergeMode _navigationBindingMode = BindingMergeMode.LocalThenProfile;
         [SerializeField] private bool _useNavigationBindings = true;
         [SerializeField] private List<NavigationBinding> _navigationBindings = new List<NavigationBinding>();
+        [SerializeField] private BindingMergeMode _inputActionBindingMode = BindingMergeMode.LocalThenProfile;
         [SerializeField] private bool _useInputActionBindings = true;
         [SerializeField] private List<InputActionBinding> _inputActionBindings = new List<InputActionBinding>();
-        [SerializeField] private bool _autoConfigureDefaultBindings = true;
-
+        
         private ISlot _focusedSlot;
         private SlotInputAdapter _focusedAdapter;
         private FocusSource _activeFocusSource = FocusSource.None;
@@ -47,6 +51,12 @@ namespace DragAndDropSystem.Interaction
         private SlotInputAdapter _pressedAdapter;
         private PointerEventData.InputButton _pressedButton;
         private readonly List<InputActionSubscription> _inputActionSubscriptions = new List<InputActionSubscription>();
+        private readonly List<PointerBinding> _resolvedPointerBindings = new List<PointerBinding>();
+        private readonly List<NavigationBinding> _resolvedNavigationBindings = new List<NavigationBinding>();
+        private readonly List<InputActionBinding> _resolvedInputActionBindings = new List<InputActionBinding>();
+        private bool _resolvedUsePointerBindings = true;
+        private bool _resolvedUseNavigationBindings = true;
+        private bool _resolvedUseInputActionBindings = true;
         private int _lastInputBindingFrame = -1;
         private InputAction _lastInputBindingAction;
 
@@ -59,12 +69,12 @@ namespace DragAndDropSystem.Interaction
             if (_inventory == null)
                 _inventory = GetComponent<UniversalInventory>();
 
-            EnsureDefaultBindings();
+            ResolveBindings();
         }
 
         private void OnEnable()
         {
-            EnsureDefaultBindings();
+            ResolveBindings();
             InputEventRouter.Instance.RegisterCoordinator(this);
             DragAndDropManager.Instance.OnDropCompleted += HandleDragEnded;
             DragAndDropManager.Instance.OnDragCancelled += HandleDragEnded;
@@ -218,7 +228,7 @@ namespace DragAndDropSystem.Interaction
             if (_inventory == null || action == null)
                 return false;
 
-            if (_useInputActionBindings && TryExecuteInputActionBinding(context))
+            if (_resolvedUseInputActionBindings && TryExecuteInputActionBinding(context))
                 return true;
 
             var activeSlot = _focusedSlot as UniversalSlot ?? _inventory.ResolveAutoTransferSlot();
@@ -274,15 +284,15 @@ namespace DragAndDropSystem.Interaction
 
         private void TryExecutePointerBinding(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!_usePointerBindings || adapter?.Slot == null || eventData == null)
+            if (!_resolvedUsePointerBindings || adapter?.Slot == null || eventData == null)
                 return;
 
             if (_state == InteractionState.Dragging)
                 return;
 
-            for (int i = 0; i < _pointerBindings.Count; i++)
+            for (int i = 0; i < _resolvedPointerBindings.Count; i++)
             {
-                var binding = _pointerBindings[i];
+                var binding = _resolvedPointerBindings[i];
                 if (binding == null || !binding.IsValid())
                     continue;
                 if (!binding.Matches(eventData))
@@ -301,40 +311,27 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        private void EnsureDefaultBindings()
+        private void ResolveBindings()
         {
-            if (!_autoConfigureDefaultBindings)
+            _resolvedPointerBindings.Clear();
+            _resolvedNavigationBindings.Clear();
+            _resolvedInputActionBindings.Clear();
+
+            var profile = ResolveProfile();
+            if (profile != null)
+            {
+                BuildMergedBindings(_pointerBindingMode, _usePointerBindings, _pointerBindings, profile.UsePointerBindings, profile.PointerBindings, _resolvedPointerBindings, out _resolvedUsePointerBindings);
+                BuildMergedBindings(_navigationBindingMode, _useNavigationBindings, _navigationBindings, profile.UseNavigationBindings, profile.NavigationBindings, _resolvedNavigationBindings, out _resolvedUseNavigationBindings);
+                BuildMergedBindings(_inputActionBindingMode, _useInputActionBindings, _inputActionBindings, profile.UseInputActionBindings, profile.InputActionBindings, _resolvedInputActionBindings, out _resolvedUseInputActionBindings);
                 return;
-
-            if (_pointerBindings.Count == 0)
-            {
-                _pointerBindings.Add(new PointerBinding(
-                    "LMB Drag",
-                    PointerEventData.InputButton.Left,
-                    ModifierKey.None,
-                    new DragSlotAction()));
-                _pointerBindings.Add(new PointerBinding(
-                    "LMB Ctrl Toggle",
-                    PointerEventData.InputButton.Left,
-                    ModifierKey.Ctrl,
-                    new SelectionSlotAction(new ToggleSlotOperation())));
-                _pointerBindings.Add(new PointerBinding(
-                    "LMB Shift Range",
-                    PointerEventData.InputButton.Left,
-                    ModifierKey.Shift,
-                    new SelectionSlotAction(new RangeSelectOperation())));
-                _pointerBindings.Add(new PointerBinding(
-                    "RMB Select",
-                    PointerEventData.InputButton.Right,
-                    ModifierKey.None,
-                    new SelectionSlotAction(new ClearAndSelectOperation())));
             }
 
-            if (_navigationBindings.Count == 0)
-            {
-                _navigationBindings.Add(new NavigationBinding("Submit Drag", NavigationEventType.Submit, new DragSlotAction()));
-                _navigationBindings.Add(new NavigationBinding("Cancel Drag", NavigationEventType.Cancel, new CancelDragAction()));
-            }
+            _resolvedUsePointerBindings = _usePointerBindings;
+            _resolvedUseNavigationBindings = _useNavigationBindings;
+            _resolvedUseInputActionBindings = _useInputActionBindings;
+            _resolvedPointerBindings.AddRange(_pointerBindings);
+            _resolvedNavigationBindings.AddRange(_navigationBindings);
+            _resolvedInputActionBindings.AddRange(_inputActionBindings);
         }
 
         private bool TryExecuteInputActionBinding(InputAction.CallbackContext context)
@@ -349,9 +346,9 @@ namespace DragAndDropSystem.Interaction
 
             var adapter = _focusedAdapter ?? ResolveAdapterFromFocusedSlot();
 
-            for (int i = 0; i < _inputActionBindings.Count; i++)
+            for (int i = 0; i < _resolvedInputActionBindings.Count; i++)
             {
-                var binding = _inputActionBindings[i];
+                var binding = _resolvedInputActionBindings[i];
                 if (binding == null || !binding.IsValid())
                     continue;
                 if (!binding.Matches(inputAction))
@@ -378,12 +375,12 @@ namespace DragAndDropSystem.Interaction
         {
             UnbindInputActions();
 
-            if (!_useInputActionBindings)
+            if (!_resolvedUseInputActionBindings)
                 return;
 
-            for (int i = 0; i < _inputActionBindings.Count; i++)
+            for (int i = 0; i < _resolvedInputActionBindings.Count; i++)
             {
-                var binding = _inputActionBindings[i];
+                var binding = _resolvedInputActionBindings[i];
                 if (binding == null || !binding.IsValid())
                     continue;
 
@@ -413,7 +410,7 @@ namespace DragAndDropSystem.Interaction
 
         private void HandleInputActionPerformed(InputAction.CallbackContext context)
         {
-            if (!_useInputActionBindings)
+            if (!_resolvedUseInputActionBindings)
                 return;
 
             bool handled = TryExecuteInputActionBinding(context);
@@ -435,15 +432,15 @@ namespace DragAndDropSystem.Interaction
 
         private void TryExecuteNavigationBinding(SlotInputAdapter adapter, NavigationEventType eventType)
         {
-            if (!_useNavigationBindings || adapter?.Slot == null)
+            if (!_resolvedUseNavigationBindings || adapter?.Slot == null)
                 return;
 
             if (_state == InteractionState.Dragging && eventType != NavigationEventType.Cancel)
                 return;
 
-            for (int i = 0; i < _navigationBindings.Count; i++)
+            for (int i = 0; i < _resolvedNavigationBindings.Count; i++)
             {
-                var binding = _navigationBindings[i];
+                var binding = _resolvedNavigationBindings[i];
                 if (binding == null || !binding.IsValid())
                     continue;
                 if (!binding.Matches(eventType))
@@ -458,6 +455,66 @@ namespace DragAndDropSystem.Interaction
                     Debug.LogWarning($"[{name}] Navigation binding '{binding.Label}' cannot execute.");
                 }
                 return;
+            }
+        }
+
+        private InventoryInteractionBindingsProfile ResolveProfile()
+        {
+            if (_bindingsProfile != null)
+                return _bindingsProfile;
+
+            if (!_useGlobalBindingsProfile)
+                return null;
+
+            return InputEventRouter.Instance.DefaultBindingsProfile;
+        }
+
+        private static void BuildMergedBindings<TBinding>(
+            BindingMergeMode mode,
+            bool localEnabled,
+            List<TBinding> localBindings,
+            bool profileEnabled,
+            IReadOnlyList<TBinding> profileBindings,
+            List<TBinding> destination,
+            out bool isEnabled)
+            where TBinding : class
+        {
+            switch (mode)
+            {
+                case BindingMergeMode.LocalOnly:
+                    isEnabled = localEnabled;
+                    AppendValidBindings(localBindings, destination);
+                    return;
+
+                case BindingMergeMode.ProfileOnly:
+                    isEnabled = profileEnabled;
+                    AppendValidBindings(profileBindings, destination);
+                    return;
+
+                case BindingMergeMode.LocalThenProfile:
+                    isEnabled = localEnabled && profileEnabled;
+                    AppendValidBindings(localBindings, destination);
+                    AppendValidBindings(profileBindings, destination);
+                    return;
+
+                default:
+                    isEnabled = localEnabled;
+                    AppendValidBindings(localBindings, destination);
+                    return;
+            }
+        }
+
+        private static void AppendValidBindings<TBinding>(IReadOnlyList<TBinding> source, List<TBinding> destination)
+            where TBinding : class
+        {
+            if (source == null)
+                return;
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                var binding = source[i];
+                if (binding != null)
+                    destination.Add(binding);
             }
         }
 
@@ -592,6 +649,13 @@ namespace DragAndDropSystem.Interaction
         {
             Submit = 0,
             Cancel = 1
+        }
+
+        public enum BindingMergeMode
+        {
+            LocalOnly = 0,
+            ProfileOnly = 1,
+            LocalThenProfile = 2
         }
     }
 }

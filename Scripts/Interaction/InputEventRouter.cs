@@ -17,8 +17,10 @@ namespace DragAndDropSystem.Interaction
     public class InputEventRouter : MonoBehaviour
     {
         private static InputEventRouter _instance;
+        [SerializeField] private InventoryInteractionBindingsProfile _defaultBindingsProfile;
 
         public static bool IsInstanceExist => _instance != null;
+        public InventoryInteractionBindingsProfile DefaultBindingsProfile => _defaultBindingsProfile;
 
         public static InputEventRouter Instance
         {

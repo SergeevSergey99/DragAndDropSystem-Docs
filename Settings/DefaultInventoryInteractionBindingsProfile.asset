@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17a1a438d577b354090d3fde8fdec7e2, type: 3}
+  m_Name: DefaultInventoryInteractionBindingsProfile
+  m_EditorClassIdentifier: 
+  _usePointerBindings: 1
+  _pointerBindings:
+  - _label: LMB Drag
+    _button: 0
+    _modifier: 0
+    _action:
+      rid: 1001
+  - _label: LMB Ctrl Toggle
+    _button: 0
+    _modifier: 1
+    _action:
+      rid: 1002
+  - _label: LMB Shift Range
+    _button: 0
+    _modifier: 2
+    _action:
+      rid: 1003
+  - _label: RMB Select
+    _button: 1
+    _modifier: 0
+    _action:
+      rid: 1004
+  _useNavigationBindings: 1
+  _navigationBindings:
+  - _label: Submit Drag
+    _eventType: 0
+    _action:
+      rid: 1005
+  - _label: Cancel Drag
+    _eventType: 1
+    _action:
+      rid: 1006
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 1001
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 1002
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data:
+        _operation:
+          rid: 2001
+    - rid: 2001
+      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 1003
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data:
+        _operation:
+          rid: 2002
+    - rid: 2002
+      type: {class: RangeSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 1004
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data:
+        _operation:
+          rid: 2003
+    - rid: 2003
+      type: {class: ClearAndSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 1005
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 1006
+      type: {class: CancelDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
