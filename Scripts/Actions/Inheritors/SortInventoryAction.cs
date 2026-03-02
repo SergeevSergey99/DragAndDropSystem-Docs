@@ -27,14 +27,10 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Sort Inventory";
 
-        public override bool Execute(UniversalInventory inventory, UniversalSlot activeSlot, bool logWarnings)
+        public override bool Execute(UniversalInventory inventory, UniversalSlot activeSlot)
         {
             if (inventory == null)
             {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"SortInventoryAction: Inventory is null.");
-                }
                 return false;
             }
 
@@ -56,10 +52,6 @@ namespace DragAndDropSystem.Inventories
 
             if (stacks.Count == 0)
             {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"SortInventoryAction: Inventory is empty, nothing to sort.");
-                }
                 return false;
             }
 
@@ -89,11 +81,6 @@ namespace DragAndDropSystem.Inventories
             }
 
             inventory.UpdateAllVisuals();
-
-            if (logWarnings)
-            {
-                Debug.Log($"SortInventoryAction: Sorted {stacks.Count} items by {_sortType}" + (_reverse ? " (reversed)" : ""));
-            }
 
             return true;
         }

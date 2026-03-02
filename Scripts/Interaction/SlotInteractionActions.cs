@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Interaction
         public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null;
 
-        public virtual void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings) {}
+        public virtual void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData) {}
 
         public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
             => CanExecute(
@@ -38,7 +38,7 @@ namespace DragAndDropSystem.Interaction
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.Instance.IsDragging)
             {
@@ -65,7 +65,7 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!DragAndDropManager.Instance.IsDragging)
                 return;
@@ -86,7 +86,7 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!DragAndDropManager.Instance.IsDragging)
                 return;
@@ -120,7 +120,7 @@ namespace DragAndDropSystem.Interaction
             return _operation.CanExecute(SelectionManager.Instance, adapter?.Slot);
         }
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (_operation == null || !SelectionManager.IsInstanceExist)
                 return;
@@ -138,16 +138,14 @@ namespace DragAndDropSystem.Interaction
     public sealed class InventorySlotAction : SlotInteractionAction
     {
         [SerializeField] private InventoryActionBase _action;
-        [SerializeField] private bool _logWarnings;
 
         public InventorySlotAction()
         {
         }
 
-        public InventorySlotAction(InventoryActionBase action, bool logWarnings = false)
+        public InventorySlotAction(InventoryActionBase action)
         {
             _action = action;
-            _logWarnings = logWarnings;
         }
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
@@ -159,7 +157,7 @@ namespace DragAndDropSystem.Interaction
             return _action.CanExecute(inventory, slot);
         }
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (_action == null || inventory == null)
                 return;
@@ -168,7 +166,7 @@ namespace DragAndDropSystem.Interaction
             if (!_action.CanExecute(inventory, slot))
                 return;
 
-            _action.Execute(inventory, slot, _logWarnings || logWarnings);
+            _action.Execute(inventory, slot);
         }
     }
 }

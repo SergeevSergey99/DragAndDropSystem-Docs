@@ -19,55 +19,15 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Auto Transfer";
 
-        public override bool Execute(UniversalInventory inventory, UniversalSlot activeSlot, bool logWarnings)
+        public override bool Execute(UniversalInventory inventory, UniversalSlot activeSlot)
         {
             var dragManager = DragAndDropManager.Instance;
-            if (dragManager == null)
-            {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"AutoTransferAction: DragAndDropManager not found.");
-                }
+            if (dragManager == null || dragManager.IsDragging || activeSlot == null || activeSlot.IsEmpty)
                 return false;
-            }
-
-            if (dragManager.IsDragging)
-            {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"AutoTransferAction: Cannot execute while dragging.");
-                }
-                return false;
-            }
-
-            if (activeSlot == null)
-            {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"AutoTransferAction: Active slot not found.");
-                }
-                return false;
-            }
-
-            if (activeSlot.IsEmpty)
-            {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"AutoTransferAction: Slot '{activeSlot.name}' is empty.");
-                }
-                return false;
-            }
-
+            
             var targets = ResolveTargets(inventory);
-            if (targets.Count == 0)
-            {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"AutoTransferAction: No target inventories configured.");
-                }
-                return false;
-            }
-
+            if (targets.Count == 0) return false;
+            
             foreach (var targetInventory in targets)
             {
                 if (ReferenceEquals(targetInventory, inventory))
@@ -86,11 +46,6 @@ namespace DragAndDropSystem.Inventories
                     inventory.NotifySlotInteracted(activeSlot);
                     return true;
                 }
-            }
-
-            if (logWarnings)
-            {
-                Debug.LogWarning($"AutoTransferAction: Failed to transfer to any target inventory.");
             }
 
             return false;

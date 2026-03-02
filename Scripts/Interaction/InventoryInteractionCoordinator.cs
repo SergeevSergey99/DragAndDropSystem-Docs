@@ -12,7 +12,6 @@ namespace DragAndDropSystem.Interaction
     public class InventoryInteractionCoordinator : MonoBehaviour
     {
         [SerializeField] private UniversalInventory _inventory;
-        [SerializeField] private bool _logWarnings;
 
         [Header("Profile")]
         [SerializeField] private bool _useGlobalBindingsProfile = true;
@@ -48,7 +47,6 @@ namespace DragAndDropSystem.Interaction
         private bool _resolvedUseInputActionBindings = true;
 
         public UniversalInventory Inventory => _inventory;
-        public bool LogWarnings => _logWarnings;
 
         public bool UsePointerBindingsResolved => _resolvedUsePointerBindings;
         public bool UseNavigationBindingsResolved => _resolvedUseNavigationBindings;

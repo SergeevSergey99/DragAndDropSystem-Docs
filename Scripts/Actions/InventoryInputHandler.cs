@@ -19,9 +19,6 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, Tooltip("Список привязок действий к клавишам Input System")]
         [ListDrawerSettings(ShowIndexLabels = true, ListElementLabelName = "Label")]
         private List<ActionBinding> _bindings = new List<ActionBinding>();
-
-        [SerializeField, Tooltip("Писать предупреждения, если действие не сработало")]
-        private bool _logWarnings;
         
         private readonly List<Subscription> _subscriptions = new List<Subscription>();
 
@@ -49,10 +46,6 @@ namespace DragAndDropSystem.Inventories
                 var action = binding.ActionReference.action;
                 if (action == null)
                 {
-                    if (_logWarnings)
-                    {
-                        Debug.LogWarning($"{nameof(InventoryInputHandler)} on {name}: InputActionReference '{binding.Label}' has no action.");
-                    }
                     continue;
                 }
 
@@ -101,19 +94,9 @@ namespace DragAndDropSystem.Inventories
 
         private void HandleAction(ActionBinding binding, InputAction.CallbackContext context)
         {
-            if (!binding.ShouldProcess(context))
-                return;
+            if (!binding.ShouldProcess(context) || binding.Action == null) return;
 
-            if (binding.Action == null)
-            {
-                if (_logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Input '{binding.Label}': No action assigned.");
-                }
-                return;
-            }
-
-            bool routed = InputEventRouter.Instance.TryRouteInventoryAction(_inventory, binding.Action, context, _logWarnings);
+            bool routed = InputEventRouter.Instance.TryRouteInventoryAction(_inventory, binding.Action, context);
             if (routed)
                 return;
 
@@ -121,18 +104,10 @@ namespace DragAndDropSystem.Inventories
             var activeSlot = _inventory.ResolveAutoTransferSlot();
             if (!binding.Action.CanExecute(_inventory, activeSlot))
             {
-                if (_logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Input '{binding.Label}': action '{binding.Action.DisplayName}' cannot execute for inventory '{_inventory.name}'.");
-                }
                 return;
             }
 
-            bool success = binding.Action.Execute(_inventory, activeSlot, _logWarnings);
-            if (!success && _logWarnings)
-            {
-                Debug.LogWarning($"[{name}] Input '{binding.Label}': direct execute failed for inventory '{_inventory.name}'.");
-            }
+            bool success = binding.Action.Execute(_inventory, activeSlot);
         }
 
         [Serializable]

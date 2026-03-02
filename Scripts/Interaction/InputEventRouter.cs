@@ -89,8 +89,7 @@ namespace DragAndDropSystem.Interaction
         public bool TryRouteInventoryAction(
             UniversalInventory inventory,
             InventoryActionBase action,
-            InputAction.CallbackContext callbackContext,
-            bool logWarnings)
+            InputAction.CallbackContext callbackContext)
         {
             if (inventory == null || action == null)
                 return false;
@@ -103,18 +102,10 @@ namespace DragAndDropSystem.Interaction
             var activeSlot = state.FocusedSlot as UniversalSlot ?? inventory.ResolveAutoTransferSlot();
             if (!action.CanExecute(inventory, activeSlot))
             {
-                if (logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Routed action '{action.DisplayName}' cannot execute for inventory '{inventory.name}'.");
-                }
                 return true;
             }
 
-            bool success = action.Execute(inventory, activeSlot, logWarnings);
-            if (!success && logWarnings)
-            {
-                Debug.LogWarning($"[{name}] Routed action '{action.DisplayName}' failed for inventory '{inventory.name}'.");
-            }
+            bool success = action.Execute(inventory, activeSlot);
 
             return true;
         }
@@ -248,7 +239,7 @@ namespace DragAndDropSystem.Interaction
             PointerEventData eventData,
             bool dragOnly)
         {
-            var bindings = ResolvePointerBindings(inventory, out bool useBindings, out bool logWarnings);
+            var bindings = ResolvePointerBindings(inventory, out bool useBindings);
             if (!useBindings || eventData == null)
                 return;
 
@@ -269,12 +260,8 @@ namespace DragAndDropSystem.Interaction
 
                 if (binding.Action.CanExecute(inventory, adapter, eventData))
                 {
-                    binding.Action.Execute(inventory, adapter, eventData, logWarnings);
+                    binding.Action.Execute(inventory, adapter, eventData);
                     eventData.Use();
-                }
-                else if (logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Pointer binding '{binding.Label}' cannot execute for '{inventory.name}'.");
                 }
 
                 return;
@@ -286,7 +273,7 @@ namespace DragAndDropSystem.Interaction
             SlotInputAdapter adapter,
             NavigationEventType eventType)
         {
-            var bindings = ResolveNavigationBindings(inventory, out bool useBindings, out bool logWarnings);
+            var bindings = ResolveNavigationBindings(inventory, out bool useBindings);
             if (!useBindings)
                 return;
 
@@ -301,13 +288,9 @@ namespace DragAndDropSystem.Interaction
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
-                    binding.Action.Execute(inventory, adapter, null, logWarnings);
+                    binding.Action.Execute(inventory, adapter, null);
                 }
-                else if (logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Navigation binding '{binding.Label}' cannot execute for '{inventory.name}'.");
-                }
-
+                
                 return;
             }
         }
@@ -317,7 +300,7 @@ namespace DragAndDropSystem.Interaction
             if (inventory == null)
                 return;
 
-            var bindings = ResolveInputActionBindings(inventory, out bool useBindings, out bool logWarnings);
+            var bindings = ResolveInputActionBindings(inventory, out bool useBindings);
             if (!useBindings)
                 return;
 
@@ -336,11 +319,7 @@ namespace DragAndDropSystem.Interaction
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
-                    binding.Action.Execute(inventory, adapter, null, logWarnings);
-                }
-                else if (logWarnings)
-                {
-                    Debug.LogWarning($"[{name}] Input binding '{binding.Label}' cannot execute for '{inventory.name}'.");
+                    binding.Action.Execute(inventory, adapter, null);
                 }
 
                 return;
@@ -398,19 +377,17 @@ namespace DragAndDropSystem.Interaction
 
         private IReadOnlyList<PointerBinding> ResolvePointerBindings(
             UniversalInventory inventory,
-            out bool useBindings,
-            out bool logWarnings)
+            out bool useBindings)
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
             {
                 overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
                 useBindings = overrideCoordinator.UsePointerBindingsResolved;
-                logWarnings = overrideCoordinator.LogWarnings;
                 return overrideCoordinator.PointerBindingsResolved;
             }
 
             useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UsePointerBindings;
-            logWarnings = false;
+            
             return _defaultBindingsProfile != null
                 ? _defaultBindingsProfile.PointerBindings
                 : Array.Empty<PointerBinding>();
@@ -418,19 +395,17 @@ namespace DragAndDropSystem.Interaction
 
         private IReadOnlyList<NavigationBinding> ResolveNavigationBindings(
             UniversalInventory inventory,
-            out bool useBindings,
-            out bool logWarnings)
+            out bool useBindings)
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
             {
                 overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
                 useBindings = overrideCoordinator.UseNavigationBindingsResolved;
-                logWarnings = overrideCoordinator.LogWarnings;
                 return overrideCoordinator.NavigationBindingsResolved;
             }
 
             useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UseNavigationBindings;
-            logWarnings = false;
+            
             return _defaultBindingsProfile != null
                 ? _defaultBindingsProfile.NavigationBindings
                 : Array.Empty<NavigationBinding>();
@@ -438,19 +413,17 @@ namespace DragAndDropSystem.Interaction
 
         private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(
             UniversalInventory inventory,
-            out bool useBindings,
-            out bool logWarnings)
+            out bool useBindings)
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
             {
                 overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
                 useBindings = overrideCoordinator.UseInputActionBindingsResolved;
-                logWarnings = overrideCoordinator.LogWarnings;
                 return overrideCoordinator.InputActionBindingsResolved;
             }
 
             useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UseInputActionBindings;
-            logWarnings = false;
+            
             return _defaultBindingsProfile != null
                 ? _defaultBindingsProfile.InputActionBindings
                 : Array.Empty<InputActionBinding>();

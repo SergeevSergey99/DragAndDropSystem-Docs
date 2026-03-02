@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Inventories
         /// <param name="activeSlot">Активный слот (под курсором или последний взаимодействовавший)</param>
         /// <param name="logWarnings">Писать ли предупреждения в консоль</param>
         /// <returns>True если действие выполнено успешно</returns>
-        public abstract bool Execute(UniversalInventory inventory, UniversalSlot activeSlot, bool logWarnings);
+        public abstract bool Execute(UniversalInventory inventory, UniversalSlot activeSlot);
 
         /// <summary>
         /// Можно ли выполнить действие (проверка перед выполнением)
