@@ -1,4 +1,5 @@
 using DragAndDropSystem.Inventories;
+using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,18 +19,24 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private InventoryInteractionBindingsProfile _bindingsProfile;
 
         [Header("Pointer")]
-        [SerializeField] private BindingMergeMode _pointerBindingMode = BindingMergeMode.LocalThenProfile;
         [SerializeField] private bool _usePointerBindings = true;
+        [ShowIf(nameof(_usePointerBindings))]
+        [SerializeField] private BindingMergeMode _pointerBindingMode = BindingMergeMode.LocalThenProfile;
+        [ShowIf(nameof(_usePointerBindings))]
         [SerializeField] private List<PointerBinding> _pointerBindings = new List<PointerBinding>();
 
         [Header("Navigation")]
-        [SerializeField] private BindingMergeMode _navigationBindingMode = BindingMergeMode.LocalThenProfile;
         [SerializeField] private bool _useNavigationBindings = true;
+        [ShowIf(nameof(_useNavigationBindings))]
+        [SerializeField] private BindingMergeMode _navigationBindingMode = BindingMergeMode.LocalThenProfile;
+        [ShowIf(nameof(_useNavigationBindings))]
         [SerializeField] private List<NavigationBinding> _navigationBindings = new List<NavigationBinding>();
 
         [Header("Input Actions")]
-        [SerializeField] private BindingMergeMode _inputActionBindingMode = BindingMergeMode.LocalThenProfile;
         [SerializeField] private bool _useInputActionBindings = true;
+        [ShowIf(nameof(_useInputActionBindings))]
+        [SerializeField] private BindingMergeMode _inputActionBindingMode = BindingMergeMode.LocalThenProfile;
+        [ShowIf(nameof(_useInputActionBindings))]
         [SerializeField] private List<InputActionBinding> _inputActionBindings = new List<InputActionBinding>();
 
         private readonly List<PointerBinding> _resolvedPointerBindings = new List<PointerBinding>();
