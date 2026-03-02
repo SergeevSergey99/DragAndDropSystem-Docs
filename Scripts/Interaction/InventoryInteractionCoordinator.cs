@@ -46,6 +46,9 @@ namespace DragAndDropSystem.Interaction
         private InteractionState _state = InteractionState.Idle;
         private SlotInputAdapter _pressedAdapter;
         private PointerEventData.InputButton _pressedButton;
+        private readonly List<InputActionSubscription> _inputActionSubscriptions = new List<InputActionSubscription>();
+        private int _lastInputBindingFrame = -1;
+        private InputAction _lastInputBindingAction;
 
         public UniversalInventory Inventory => _inventory;
         public ISlot FocusedSlot => _focusedSlot;
@@ -65,6 +68,7 @@ namespace DragAndDropSystem.Interaction
             InputEventRouter.Instance.RegisterCoordinator(this);
             DragAndDropManager.Instance.OnDropCompleted += HandleDragEnded;
             DragAndDropManager.Instance.OnDragCancelled += HandleDragEnded;
+            BindInputActions();
         }
 
         private void OnDisable()
@@ -77,6 +81,8 @@ namespace DragAndDropSystem.Interaction
                 DragAndDropManager.Instance.OnDropCompleted -= HandleDragEnded;
                 DragAndDropManager.Instance.OnDragCancelled -= HandleDragEnded;
             }
+
+            UnbindInputActions();
         }
 
         public void OnPointerEnter(SlotInputAdapter adapter, PointerEventData _)
@@ -337,6 +343,10 @@ namespace DragAndDropSystem.Interaction
             if (inputAction == null)
                 return false;
 
+            // Защита от двойного выполнения в одном кадре (router + прямой subscription).
+            if (_lastInputBindingFrame == Time.frameCount && ReferenceEquals(_lastInputBindingAction, inputAction))
+                return true;
+
             var adapter = _focusedAdapter ?? ResolveAdapterFromFocusedSlot();
 
             for (int i = 0; i < _inputActionBindings.Count; i++)
@@ -355,10 +365,63 @@ namespace DragAndDropSystem.Interaction
                 {
                     Debug.LogWarning($"[{name}] Input binding '{binding.Label}' cannot execute.");
                 }
+
+                _lastInputBindingFrame = Time.frameCount;
+                _lastInputBindingAction = inputAction;
                 return true;
             }
 
             return false;
+        }
+
+        private void BindInputActions()
+        {
+            UnbindInputActions();
+
+            if (!_useInputActionBindings)
+                return;
+
+            for (int i = 0; i < _inputActionBindings.Count; i++)
+            {
+                var binding = _inputActionBindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+
+                var action = binding.ActionReference.action;
+                if (action == null)
+                    continue;
+
+                Action<InputAction.CallbackContext> handler = HandleInputActionPerformed;
+                action.performed += handler;
+                _inputActionSubscriptions.Add(new InputActionSubscription(action, handler));
+            }
+        }
+
+        private void UnbindInputActions()
+        {
+            for (int i = 0; i < _inputActionSubscriptions.Count; i++)
+            {
+                var sub = _inputActionSubscriptions[i];
+                if (sub.Action == null)
+                    continue;
+
+                sub.Action.performed -= sub.Handler;
+            }
+
+            _inputActionSubscriptions.Clear();
+        }
+
+        private void HandleInputActionPerformed(InputAction.CallbackContext context)
+        {
+            if (!_useInputActionBindings)
+                return;
+
+            bool handled = TryExecuteInputActionBinding(context);
+            if (!handled && _logWarnings)
+            {
+                var actionName = context.action != null ? context.action.name : "<null>";
+                Debug.LogWarning($"[{name}] No matching coordinator input binding for action '{actionName}'.");
+            }
         }
 
         private SlotInputAdapter ResolveAdapterFromFocusedSlot()
@@ -484,6 +547,7 @@ namespace DragAndDropSystem.Interaction
             [SerializeField] private InputActionReference _actionReference;
             [SerializeReference] private SlotInteractionAction _action;
 
+            public InputActionReference ActionReference => _actionReference;
             public SlotInteractionAction Action => _action;
             public string Label => string.IsNullOrEmpty(_label)
                 ? (_action != null ? _action.DisplayName : "InputAction Binding")
@@ -502,6 +566,18 @@ namespace DragAndDropSystem.Interaction
 
                 return ReferenceEquals(configured, runtimeAction) || configured.name == runtimeAction.name;
             }
+        }
+
+        private readonly struct InputActionSubscription
+        {
+            public InputActionSubscription(InputAction action, Action<InputAction.CallbackContext> handler)
+            {
+                Action = action;
+                Handler = handler;
+            }
+
+            public InputAction Action { get; }
+            public Action<InputAction.CallbackContext> Handler { get; }
         }
 
         public enum ModifierKey

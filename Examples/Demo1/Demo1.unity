@@ -215,6 +215,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -544,6 +545,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -680,6 +682,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -777,6 +780,12 @@ MonoBehaviour:
   _areaHighlight: {fileID: 0}
   _highlightColor: {r: 1, g: 1, b: 0, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 0}
+  _dropPolicyOverride:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
 --- !u!114 &147669534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -956,7 +965,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Inventories.UniversalInventory
   _slotContainer: {fileID: 786501633}
-  _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  _slotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 0
   _itemBehavior: 0
   _dragAmount: 0
@@ -969,6 +978,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
+  _dropPolicySettings:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
   _customDragVisualPrefab: {fileID: 0}
   _slots: []
   references:
@@ -1232,6 +1247,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1466,6 +1482,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
+  _dropPolicySettings:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
   _customDragVisualPrefab: {fileID: 0}
   _slots:
   - {fileID: 1871280076}
@@ -1759,6 +1781,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1895,6 +1918,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -3132,6 +3156,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
+  _dropPolicySettings:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
   _customDragVisualPrefab: {fileID: 0}
   _slots:
   - {fileID: 1386801225}
@@ -3276,6 +3306,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
+  _dropPolicySettings:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
   _customDragVisualPrefab: {fileID: 0}
   _slots:
   - {fileID: 301571359}
@@ -3711,6 +3747,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
+--- !u!1 &1508389851 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2246638230345617431, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+  m_PrefabInstance: {fileID: 888533094569659051}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1508389857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1508389851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce28377e79c6303488aff89adf2b1808, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1514636141 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
@@ -3942,6 +3995,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -4350,6 +4404,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -4736,6 +4791,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -4985,6 +5041,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
+  _dropPolicySettings:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
   _customDragVisualPrefab: {fileID: 0}
   _slots:
   - {fileID: 9060904737983262872}
@@ -5601,6 +5663,12 @@ MonoBehaviour:
   _areaHighlight: {fileID: 0}
   _highlightColor: {r: 1, g: 1, b: 0, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 0}
+  _dropPolicyOverride:
+    _enabled: 0
+    _occupiedTarget: 2
+    _capacity: 0
+    _batchExecution: 0
+    _targetUsage: 1
 --- !u!1 &1921539347
 GameObject:
   m_ObjectHideFlags: 0
@@ -5696,6 +5764,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -5946,6 +6015,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -6358,8 +6428,143 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2246638230345617431, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1508389857}
   m_SourcePrefab: {fileID: 100100000, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+--- !u!114 &910000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8671010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &910000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 233341986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 233341989}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings:
+  - _label: 
+    _actionReference: {fileID: -2099379676528639254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    _action:
+      rid: 6676588690130075792
+  _autoConfigureDefaultBindings: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 6676588690130075792
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data:
+        _operation:
+          rid: 6676588690130075803
+    - rid: 6676588690130075803
+      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data: 
+--- !u!114 &910000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 485691795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &910000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1324997587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &910000000000000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1358364175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
+  _inventory: {fileID: 0}
+  _logWarnings: 0
+  _usePointerBindings: 1
+  _pointerBindings: []
+  _useNavigationBindings: 1
+  _navigationBindings: []
+  _useInputActionBindings: 1
+  _inputActionBindings: []
+  _autoConfigureDefaultBindings: 1
+  references:
+    version: 2
+    RefIds: []
 --- !u!1001 &9060904737983262869
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6485,111 +6690,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
---- !u!114 &910000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8671010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _logWarnings: 0
-  _usePointerBindings: 1
-  _pointerBindings: []
-  _useNavigationBindings: 1
-  _navigationBindings: []
-  _useInputActionBindings: 1
-  _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
---- !u!114 &910000000000000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233341986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _logWarnings: 0
-  _usePointerBindings: 1
-  _pointerBindings: []
-  _useNavigationBindings: 1
-  _navigationBindings: []
-  _useInputActionBindings: 1
-  _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
---- !u!114 &910000000000000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 485691795}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _logWarnings: 0
-  _usePointerBindings: 1
-  _pointerBindings: []
-  _useNavigationBindings: 1
-  _navigationBindings: []
-  _useInputActionBindings: 1
-  _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
---- !u!114 &910000000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1324997587}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _logWarnings: 0
-  _usePointerBindings: 1
-  _pointerBindings: []
-  _useNavigationBindings: 1
-  _navigationBindings: []
-  _useInputActionBindings: 1
-  _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
---- !u!114 &910000000000000005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1358364175}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _logWarnings: 0
-  _usePointerBindings: 1
-  _pointerBindings: []
-  _useNavigationBindings: 1
-  _navigationBindings: []
-  _useInputActionBindings: 1
-  _inputActionBindings: []
-  _autoConfigureDefaultBindings: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
