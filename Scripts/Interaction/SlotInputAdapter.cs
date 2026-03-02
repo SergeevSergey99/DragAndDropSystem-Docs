@@ -83,7 +83,7 @@ namespace DragAndDropSystem.Interaction
         {
             EnsureCoordinator();
 
-            if (_slot == null || _slot.IsEmpty)
+            if (_slot == null)
                 return;
 
             if (!_slot.IsInteractable)

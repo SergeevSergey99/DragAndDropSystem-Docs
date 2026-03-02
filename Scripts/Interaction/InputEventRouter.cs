@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
@@ -7,17 +8,24 @@ using UnityEngine.InputSystem;
 
 namespace DragAndDropSystem.Interaction
 {
-    /// <summary>
-    /// Router сырых событий ввода:
-    /// - от slot adapters (pointer/focus/drag)
-    /// - от InventoryInputHandler (Input System actions)
-    /// Маршрутизирует события в per-inventory coordinator.
-    /// </summary>
     [DisallowMultipleComponent]
     public class InputEventRouter : MonoBehaviour
     {
         private static InputEventRouter _instance;
+
         [SerializeField] private InventoryInteractionBindingsProfile _defaultBindingsProfile;
+
+        private readonly Dictionary<UniversalInventory, InventoryInteractionCoordinator> _overridesByInventory =
+            new Dictionary<UniversalInventory, InventoryInteractionCoordinator>();
+
+        private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory =
+            new Dictionary<UniversalInventory, RuntimeState>();
+
+        private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory =
+            new Dictionary<UniversalInventory, List<InputActionSubscription>>();
+
+        private readonly HashSet<IntentDedupKey> _handledThisFrame = new HashSet<IntentDedupKey>();
+        private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
 
         public static bool IsInstanceExist => _instance != null;
         public InventoryInteractionBindingsProfile DefaultBindingsProfile => _defaultBindingsProfile;
@@ -40,28 +48,18 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        private readonly Dictionary<IInventory, InventoryInteractionCoordinator> _byInventory =
-            new Dictionary<IInventory, InventoryInteractionCoordinator>();
-        private readonly Dictionary<UniversalInventory, FallbackInteractionState> _fallbackByInventory =
-            new Dictionary<UniversalInventory, FallbackInteractionState>();
-
-        private readonly HashSet<IntentDedupKey> _handledThisFrame = new HashSet<IntentDedupKey>();
-
         private void Awake()
         {
             if (_instance == null)
-            {
                 _instance = this;
-            }
             else if (_instance != this)
-            {
                 Destroy(gameObject);
-            }
         }
 
         private void LateUpdate()
         {
             _handledThisFrame.Clear();
+            CleanupStaleInventories();
         }
 
         public void RegisterCoordinator(InventoryInteractionCoordinator coordinator)
@@ -69,7 +67,11 @@ namespace DragAndDropSystem.Interaction
             if (coordinator == null || coordinator.Inventory == null)
                 return;
 
-            _byInventory[coordinator.Inventory] = coordinator;
+            var inventory = coordinator.Inventory;
+            _overridesByInventory[inventory] = coordinator;
+
+            coordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+            RebindCoordinatorInputActions(inventory, coordinator);
         }
 
         public void UnregisterCoordinator(InventoryInteractionCoordinator coordinator)
@@ -77,10 +79,11 @@ namespace DragAndDropSystem.Interaction
             if (coordinator == null || coordinator.Inventory == null)
                 return;
 
-            if (_byInventory.TryGetValue(coordinator.Inventory, out var existing) && existing == coordinator)
-            {
-                _byInventory.Remove(coordinator.Inventory);
-            }
+            var inventory = coordinator.Inventory;
+            if (_overridesByInventory.TryGetValue(inventory, out var existing) && existing == coordinator)
+                _overridesByInventory.Remove(inventory);
+
+            UnbindCoordinatorInputActions(inventory);
         }
 
         public bool TryRouteInventoryAction(
@@ -92,203 +95,424 @@ namespace DragAndDropSystem.Interaction
             if (inventory == null || action == null)
                 return false;
 
-            if (!TryGetCoordinator(inventory, out var coordinator))
-                return false;
-
-            var key = new IntentDedupKey((int)callbackContext.phase, null, action);
+            var key = new IntentDedupKey((int)callbackContext.phase, inventory, action);
             if (!_handledThisFrame.Add(key))
                 return true;
 
-            return coordinator.RouteInventoryAction(action, callbackContext, logWarnings);
+            var state = GetOrCreateState(inventory);
+            var activeSlot = state.FocusedSlot as UniversalSlot ?? inventory.ResolveAutoTransferSlot();
+            if (!action.CanExecute(inventory, activeSlot))
+            {
+                if (logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Routed action '{action.DisplayName}' cannot execute for inventory '{inventory.name}'.");
+                }
+                return true;
+            }
+
+            bool success = action.Execute(inventory, activeSlot, logWarnings);
+            if (!success && logWarnings)
+            {
+                Debug.LogWarning($"[{name}] Routed action '{action.DisplayName}' failed for inventory '{inventory.name}'.");
+            }
+
+            return true;
         }
 
         public void RoutePointerEnter(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnPointerEnter(adapter, eventData);
-            else
-                RouteFallbackPointerEnter(adapter);
+            if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
+                return;
+
+            var state = GetOrCreateState(inventory);
+            state.FocusedAdapter = adapter;
+            state.FocusedSlot = adapter.Slot;
+            state.ActiveFocusSource = FocusSource.Mouse;
+
+            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
+                DragAndDropManager.Instance.PushDropTarget(adapter);
         }
 
         public void RoutePointerExit(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnPointerExit(adapter, eventData);
-            else
-                RouteFallbackPointerExit(adapter);
+            if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
+                return;
+
+            var state = GetOrCreateState(inventory);
+            if (state.ActiveFocusSource == FocusSource.Mouse && ReferenceEquals(state.FocusedSlot, adapter.Slot))
+            {
+                state.FocusedAdapter = null;
+                state.FocusedSlot = null;
+                state.ActiveFocusSource = FocusSource.None;
+            }
+
+            if (DragAndDropManager.Instance.IsDragging)
+                DragAndDropManager.Instance.PopDropTarget(adapter);
         }
 
         public void RoutePointerDown(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnPointerDown(adapter, eventData);
-            else
-                RouteFallbackPointerDown(adapter, eventData);
-        }
-
-        public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnPointerUp(adapter, eventData);
-            else
-                RouteFallbackPointerUp(adapter, eventData);
-        }
-
-        public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnBeginDrag(adapter, eventData);
-        }
-
-        public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source)
-        {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnFocusEnter(adapter, source);
-        }
-
-        public void RouteFocusExit(SlotInputAdapter adapter, FocusSource source)
-        {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnFocusExit(adapter, source);
-        }
-
-        public void RouteSubmit(SlotInputAdapter adapter, BaseEventData eventData)
-        {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnSubmit(adapter, eventData);
-            else
-                RouteFallbackNavigation(adapter, InventoryInteractionCoordinator.NavigationEventType.Submit);
-        }
-
-        public void RouteCancel(SlotInputAdapter adapter, BaseEventData eventData)
-        {
-            if (TryGetCoordinator(adapter, out var coordinator))
-                coordinator.OnCancel(adapter, eventData);
-            else
-                RouteFallbackNavigation(adapter, InventoryInteractionCoordinator.NavigationEventType.Cancel);
-        }
-
-        private void RouteFallbackPointerEnter(SlotInputAdapter adapter)
-        {
-            if (adapter?.Slot == null)
+            if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
-            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
-            {
-                DragAndDropManager.Instance.PushDropTarget(adapter);
-            }
-        }
-
-        private void RouteFallbackPointerExit(SlotInputAdapter adapter)
-        {
-            if (adapter?.Slot == null)
-                return;
-
-            if (DragAndDropManager.Instance.IsDragging)
-            {
-                DragAndDropManager.Instance.PopDropTarget(adapter);
-            }
-        }
-
-        private void RouteFallbackPointerDown(SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (!TryGetFallbackInventory(adapter, out var inventory) || eventData == null)
-                return;
-
-            var state = GetOrCreateFallbackState(inventory);
+            var state = GetOrCreateState(inventory);
             state.PressedAdapter = adapter;
             state.PressedButton = eventData.button;
 
             if (!DragAndDropManager.Instance.IsDragging)
             {
-                ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly: true);
+                // PointerDown should allow regular slot actions (selection, inventory ops)
+                // and drag start actions. Drag completion/cancel is processed on PointerUp.
+                ExecutePointerBindings(inventory, adapter, eventData, dragOnly: false);
             }
         }
 
-        private void RouteFallbackPointerUp(SlotInputAdapter adapter, PointerEventData eventData)
+        public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!TryGetFallbackInventory(adapter, out var inventory) || eventData == null)
+            if (eventData == null)
                 return;
 
-            var state = GetOrCreateFallbackState(inventory);
+            if (!TryResolveInventoryForPointerUp(adapter, out var inventory))
+                return;
+
+            var state = GetOrCreateState(inventory);
             bool releaseOfPressedButton = state.PressedAdapter == adapter && state.PressedButton == eventData.button;
             bool isDraggingNow = DragAndDropManager.Instance.IsDragging;
+            bool shouldProcess = (releaseOfPressedButton && state.PressedAdapter != null) || isDraggingNow;
 
-            if (releaseOfPressedButton || isDraggingNow)
+            if (shouldProcess)
             {
                 bool dragOnly = isDraggingNow;
-                ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly);
+                ExecutePointerBindings(inventory, adapter, eventData, dragOnly);
             }
 
             if (releaseOfPressedButton)
-            {
                 state.PressedAdapter = null;
-            }
         }
 
-        private void RouteFallbackNavigation(
-            SlotInputAdapter adapter,
-            InventoryInteractionCoordinator.NavigationEventType eventType)
+        public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!TryGetFallbackInventory(adapter, out var inventory) || _defaultBindingsProfile == null)
-                return;
-
-            var bindings = _defaultBindingsProfile.NavigationBindings;
-            for (int i = 0; i < bindings.Count; i++)
-            {
-                var binding = bindings[i];
-                if (binding == null || !binding.IsValid() || !binding.Matches(eventType))
-                    continue;
-
-                ExecuteFallbackAction(inventory, adapter, binding.Action, null);
-                return;
-            }
+            // no-op: drag is binding-driven only
         }
 
-        private void ExecuteFallbackPointerBindings(
+        public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source)
+        {
+            if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
+                return;
+
+            var state = GetOrCreateState(inventory);
+            state.FocusedAdapter = adapter;
+            state.FocusedSlot = adapter.Slot;
+            state.ActiveFocusSource = source;
+
+            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
+                DragAndDropManager.Instance.PushDropTarget(adapter);
+        }
+
+        public void RouteFocusExit(SlotInputAdapter adapter, FocusSource source)
+        {
+            if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
+                return;
+
+            var state = GetOrCreateState(inventory);
+            if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedSlot, adapter.Slot))
+            {
+                state.FocusedAdapter = null;
+                state.FocusedSlot = null;
+                state.ActiveFocusSource = FocusSource.None;
+            }
+
+            if (DragAndDropManager.Instance.IsDragging)
+                DragAndDropManager.Instance.PopDropTarget(adapter);
+        }
+
+        public void RouteSubmit(SlotInputAdapter adapter, BaseEventData eventData)
+        {
+            if (!TryGetInventory(adapter, out var inventory))
+                return;
+
+            ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Submit);
+        }
+
+        public void RouteCancel(SlotInputAdapter adapter, BaseEventData eventData)
+        {
+            if (!TryGetInventory(adapter, out var inventory))
+                return;
+
+            ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
+        }
+
+        private void ExecutePointerBindings(
             UniversalInventory inventory,
             SlotInputAdapter adapter,
             PointerEventData eventData,
             bool dragOnly)
         {
-            if (_defaultBindingsProfile == null)
+            var bindings = ResolvePointerBindings(inventory, out bool useBindings, out bool logWarnings);
+            if (!useBindings || eventData == null)
                 return;
 
-            var bindings = _defaultBindingsProfile.PointerBindings;
+            if (!dragOnly && adapter?.Slot == null)
+                return;
+
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsValid() || !binding.Matches(eventData))
                     continue;
 
-                bool isDrag = binding.Action is DragSlotAction;
-                if (dragOnly && !isDrag)
+                bool isDragBinding = IsDragBindingAction(binding.Action);
+                if (dragOnly && !isDragBinding)
                     continue;
-                if (!dragOnly && isDrag)
+                if (!dragOnly && isDragBinding)
                     continue;
 
-                ExecuteFallbackAction(inventory, adapter, binding.Action, eventData);
-                eventData.Use();
+                if (binding.Action.CanExecute(inventory, adapter, eventData))
+                {
+                    binding.Action.Execute(inventory, adapter, eventData, logWarnings);
+                    eventData.Use();
+                }
+                else if (logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Pointer binding '{binding.Label}' cannot execute for '{inventory.name}'.");
+                }
+
                 return;
             }
         }
 
-        private static void ExecuteFallbackAction(
+        private void ExecuteNavigationBindings(
             UniversalInventory inventory,
             SlotInputAdapter adapter,
-            SlotInteractionAction action,
-            PointerEventData eventData)
+            NavigationEventType eventType)
         {
+            var bindings = ResolveNavigationBindings(inventory, out bool useBindings, out bool logWarnings);
+            if (!useBindings)
+                return;
+
+            if (DragAndDropManager.Instance.IsDragging && eventType != NavigationEventType.Cancel)
+                return;
+
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid() || !binding.Matches(eventType))
+                    continue;
+
+                if (binding.Action.CanExecute(inventory, adapter, null))
+                {
+                    binding.Action.Execute(inventory, adapter, null, logWarnings);
+                }
+                else if (logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Navigation binding '{binding.Label}' cannot execute for '{inventory.name}'.");
+                }
+
+                return;
+            }
+        }
+
+        private void HandleCoordinatorInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
+        {
+            if (inventory == null)
+                return;
+
+            var bindings = ResolveInputActionBindings(inventory, out bool useBindings, out bool logWarnings);
+            if (!useBindings)
+                return;
+
+            var action = context.action;
             if (action == null)
                 return;
 
-            if (!action.CanExecute(inventory, adapter, eventData))
-                return;
+            var state = GetOrCreateState(inventory);
+            var adapter = state.FocusedAdapter ?? ResolveAdapterFromSlot(state.FocusedSlot);
 
-            action.Execute(inventory, adapter, eventData, logWarnings: false);
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid() || !binding.Matches(action))
+                    continue;
+
+                if (binding.Action.CanExecute(inventory, adapter, null))
+                {
+                    binding.Action.Execute(inventory, adapter, null, logWarnings);
+                }
+                else if (logWarnings)
+                {
+                    Debug.LogWarning($"[{name}] Input binding '{binding.Label}' cannot execute for '{inventory.name}'.");
+                }
+
+                return;
+            }
         }
 
-        private bool TryGetFallbackInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
+        private void RebindCoordinatorInputActions(UniversalInventory inventory, InventoryInteractionCoordinator coordinator)
+        {
+            UnbindCoordinatorInputActions(inventory);
+
+            if (coordinator == null)
+                return;
+
+            coordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+            if (!coordinator.UseInputActionBindingsResolved)
+                return;
+
+            var bindings = coordinator.InputActionBindingsResolved;
+            var subs = new List<InputActionSubscription>();
+            _actionSubscriptionsByInventory[inventory] = subs;
+
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+
+                var inputAction = binding.ActionReference.action;
+                if (inputAction == null)
+                    continue;
+
+                Action<InputAction.CallbackContext> handler = ctx => HandleCoordinatorInputAction(inventory, ctx);
+                inputAction.performed += handler;
+                subs.Add(new InputActionSubscription(inputAction, handler));
+            }
+        }
+
+        private void UnbindCoordinatorInputActions(UniversalInventory inventory)
+        {
+            if (inventory == null)
+                return;
+
+            if (!_actionSubscriptionsByInventory.TryGetValue(inventory, out var subs))
+                return;
+
+            for (int i = 0; i < subs.Count; i++)
+            {
+                var sub = subs[i];
+                if (sub.Action != null)
+                    sub.Action.performed -= sub.Handler;
+            }
+
+            _actionSubscriptionsByInventory.Remove(inventory);
+        }
+
+        private IReadOnlyList<PointerBinding> ResolvePointerBindings(
+            UniversalInventory inventory,
+            out bool useBindings,
+            out bool logWarnings)
+        {
+            if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
+            {
+                overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+                useBindings = overrideCoordinator.UsePointerBindingsResolved;
+                logWarnings = overrideCoordinator.LogWarnings;
+                return overrideCoordinator.PointerBindingsResolved;
+            }
+
+            useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UsePointerBindings;
+            logWarnings = false;
+            return _defaultBindingsProfile != null
+                ? _defaultBindingsProfile.PointerBindings
+                : Array.Empty<PointerBinding>();
+        }
+
+        private IReadOnlyList<NavigationBinding> ResolveNavigationBindings(
+            UniversalInventory inventory,
+            out bool useBindings,
+            out bool logWarnings)
+        {
+            if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
+            {
+                overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+                useBindings = overrideCoordinator.UseNavigationBindingsResolved;
+                logWarnings = overrideCoordinator.LogWarnings;
+                return overrideCoordinator.NavigationBindingsResolved;
+            }
+
+            useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UseNavigationBindings;
+            logWarnings = false;
+            return _defaultBindingsProfile != null
+                ? _defaultBindingsProfile.NavigationBindings
+                : Array.Empty<NavigationBinding>();
+        }
+
+        private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(
+            UniversalInventory inventory,
+            out bool useBindings,
+            out bool logWarnings)
+        {
+            if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
+            {
+                overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+                useBindings = overrideCoordinator.UseInputActionBindingsResolved;
+                logWarnings = overrideCoordinator.LogWarnings;
+                return overrideCoordinator.InputActionBindingsResolved;
+            }
+
+            useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UseInputActionBindings;
+            logWarnings = false;
+            return _defaultBindingsProfile != null
+                ? _defaultBindingsProfile.InputActionBindings
+                : Array.Empty<InputActionBinding>();
+        }
+
+        private RuntimeState GetOrCreateState(UniversalInventory inventory)
+        {
+            if (!_runtimeStateByInventory.TryGetValue(inventory, out var state) || state == null)
+            {
+                state = new RuntimeState();
+                _runtimeStateByInventory[inventory] = state;
+            }
+
+            return state;
+        }
+
+        private void CleanupStaleInventories()
+        {
+            if (_runtimeStateByInventory.Count == 0 && _overridesByInventory.Count == 0 && _actionSubscriptionsByInventory.Count == 0)
+                return;
+
+            _staleInventories.Clear();
+
+            foreach (var kv in _runtimeStateByInventory)
+            {
+                if (kv.Key == null)
+                    _staleInventories.Add(kv.Key);
+            }
+
+            foreach (var kv in _overridesByInventory)
+            {
+                if (kv.Key == null && !_staleInventories.Contains(kv.Key))
+                    _staleInventories.Add(kv.Key);
+            }
+
+            foreach (var kv in _actionSubscriptionsByInventory)
+            {
+                if (kv.Key == null && !_staleInventories.Contains(kv.Key))
+                    _staleInventories.Add(kv.Key);
+            }
+
+            for (int i = 0; i < _staleInventories.Count; i++)
+            {
+                var stale = _staleInventories[i];
+                if (stale != null)
+                    continue;
+
+                _runtimeStateByInventory.Remove(stale);
+                _overridesByInventory.Remove(stale);
+                _actionSubscriptionsByInventory.Remove(stale);
+            }
+        }
+
+        private static SlotInputAdapter ResolveAdapterFromSlot(ISlot slot)
+        {
+            if (slot is UniversalSlot universalSlot)
+                return universalSlot.GetComponent<SlotInputAdapter>();
+
+            return null;
+        }
+
+        private bool TryGetInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
         {
             inventory = null;
             if (adapter?.Slot?.Inventory is UniversalInventory universalInventory)
@@ -299,73 +523,67 @@ namespace DragAndDropSystem.Interaction
             return false;
         }
 
-        private FallbackInteractionState GetOrCreateFallbackState(UniversalInventory inventory)
+        private bool TryResolveInventoryForPointerUp(SlotInputAdapter adapter, out UniversalInventory inventory)
         {
-            if (!_fallbackByInventory.TryGetValue(inventory, out var state) || state == null)
-            {
-                state = new FallbackInteractionState();
-                _fallbackByInventory[inventory] = state;
-            }
+            if (TryGetInventory(adapter, out inventory))
+                return true;
 
-            return state;
-        }
-
-        private bool TryGetCoordinator(SlotInputAdapter adapter, out InventoryInteractionCoordinator coordinator)
-        {
-            coordinator = null;
-            if (adapter == null)
+            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
                 return false;
 
-            if (adapter.Coordinator != null)
+            var hovered = DragAndDropManager.Instance.HoveredInventory;
+            if (hovered != null)
             {
-                coordinator = adapter.Coordinator;
+                inventory = hovered;
                 return true;
             }
 
-            var slot = adapter.Slot;
-            return slot != null && TryGetCoordinator(slot.Inventory, out coordinator);
-        }
-
-        private bool TryGetCoordinator(IInventory inventory, out InventoryInteractionCoordinator coordinator)
-        {
-            coordinator = null;
-            if (inventory == null)
-                return false;
-
-            if (_byInventory.TryGetValue(inventory, out coordinator) && coordinator != null)
-                return true;
-
-            if (inventory is UniversalInventory universalInventory)
+            var context = DragAndDropManager.Instance.CurrentContext;
+            if (context != null && context.Entries.Count > 0)
             {
-                coordinator = universalInventory.GetComponent<InventoryInteractionCoordinator>();
-                if (coordinator != null)
-                {
-                    _byInventory[universalInventory] = coordinator;
-                    return true;
-                }
+                inventory = context.Entries[0].SourceInventory as UniversalInventory;
+                return inventory != null;
             }
 
             return false;
         }
 
+        private static bool IsDragBindingAction(SlotInteractionAction action)
+            => action is DragSlotAction || action is CompleteDragAction;
+
+        private readonly struct InputActionSubscription
+        {
+            public InputActionSubscription(InputAction action, Action<InputAction.CallbackContext> handler)
+            {
+                Action = action;
+                Handler = handler;
+            }
+
+            public InputAction Action { get; }
+            public Action<InputAction.CallbackContext> Handler { get; }
+        }
+
+        private sealed class RuntimeState
+        {
+            public ISlot FocusedSlot;
+            public SlotInputAdapter FocusedAdapter;
+            public FocusSource ActiveFocusSource;
+            public SlotInputAdapter PressedAdapter;
+            public PointerEventData.InputButton PressedButton;
+        }
+
         private readonly struct IntentDedupKey
         {
-            public IntentDedupKey(int type, ISlot slot, object token)
+            public IntentDedupKey(int type, object scope, object token)
             {
                 Type = type;
-                Slot = slot;
+                Scope = scope;
                 Token = token;
             }
 
             public int Type { get; }
-            public ISlot Slot { get; }
+            public object Scope { get; }
             public object Token { get; }
-        }
-
-        private sealed class FallbackInteractionState
-        {
-            public SlotInputAdapter PressedAdapter;
-            public PointerEventData.InputButton PressedButton;
         }
     }
 }

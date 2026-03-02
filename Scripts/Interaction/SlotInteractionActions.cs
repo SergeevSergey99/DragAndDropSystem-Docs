@@ -15,23 +15,13 @@ namespace DragAndDropSystem.Interaction
         public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null;
 
-        public virtual bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
-            => false;
+        public virtual void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings) {}
 
         public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
             => CanExecute(
                 coordinator != null ? coordinator.Inventory : adapter?.Slot?.Inventory as UniversalInventory,
                 adapter,
                 eventData);
-
-        public virtual void Execute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            Execute(
-                coordinator != null ? coordinator.Inventory : adapter?.Slot?.Inventory as UniversalInventory,
-                adapter,
-                eventData,
-                logWarnings: false);
-        }
     }
 
     [Serializable]
@@ -48,22 +38,22 @@ namespace DragAndDropSystem.Interaction
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
-        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
             if (DragAndDropManager.Instance.IsDragging)
             {
                 if (!CompleteOnPointerUp)
-                    return false;
+                    return;
 
                 DragAndDropManager.Instance.CompleteDrag();
-                return true;
+                return;
             }
 
             var slot = adapter?.Slot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
-                return false;
+                return;
 
-            return DragAndDropManager.Instance.StartDrag(slot);
+            DragAndDropManager.Instance.StartDrag(slot);
         }
     }
 
@@ -75,19 +65,18 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
-        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
             if (!DragAndDropManager.Instance.IsDragging)
-                return false;
+                return;
 
             if (CancelOnNoSlots && !DragAndDropManager.Instance.HasActiveDropTarget)
             {
                 DragAndDropManager.Instance.CancelDrag();
-                return true;
+                return;
             }
 
             DragAndDropManager.Instance.CompleteDrag();
-            return true;
         }
     }
 
@@ -97,13 +86,12 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
-        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
             if (!DragAndDropManager.Instance.IsDragging)
-                return false;
+                return;
 
             DragAndDropManager.Instance.CancelDrag();
-            return true;
         }
     }
 
@@ -132,20 +120,17 @@ namespace DragAndDropSystem.Interaction
             return _operation.CanExecute(SelectionManager.Instance, adapter?.Slot);
         }
 
-        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
             if (_operation == null || !SelectionManager.IsInstanceExist)
-                return false;
+                return;
 
             var manager = SelectionManager.Instance;
             var slot = adapter?.Slot;
             if (_operation.CanExecute(manager, slot))
             {
                 _operation.Execute(manager, slot);
-                return true;
             }
-
-            return false;
         }
     }
 
@@ -174,16 +159,16 @@ namespace DragAndDropSystem.Interaction
             return _action.CanExecute(inventory, slot);
         }
 
-        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
         {
             if (_action == null || inventory == null)
-                return false;
+                return;
 
             var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
             if (!_action.CanExecute(inventory, slot))
-                return false;
+                return;
 
-            return _action.Execute(inventory, slot, _logWarnings || logWarnings);
+            _action.Execute(inventory, slot, _logWarnings || logWarnings);
         }
     }
 }

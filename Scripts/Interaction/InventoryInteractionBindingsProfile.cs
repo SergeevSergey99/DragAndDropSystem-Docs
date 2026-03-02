@@ -9,24 +9,21 @@ namespace DragAndDropSystem.Interaction
     public sealed class InventoryInteractionBindingsProfile : ScriptableObject
     {
         [SerializeField] private bool _usePointerBindings = true;
-        [SerializeField] private List<InventoryInteractionCoordinator.PointerBinding> _pointerBindings =
-            new List<InventoryInteractionCoordinator.PointerBinding>();
+        [SerializeField] private List<PointerBinding> _pointerBindings = new();
 
         [SerializeField] private bool _useNavigationBindings = true;
-        [SerializeField] private List<InventoryInteractionCoordinator.NavigationBinding> _navigationBindings =
-            new List<InventoryInteractionCoordinator.NavigationBinding>();
+        [SerializeField] private List<NavigationBinding> _navigationBindings = new();
 
         [SerializeField] private bool _useInputActionBindings = true;
-        [SerializeField] private List<InventoryInteractionCoordinator.InputActionBinding> _inputActionBindings =
-            new List<InventoryInteractionCoordinator.InputActionBinding>();
+        [SerializeField] private List<InputActionBinding> _inputActionBindings = new();
 
         public bool UsePointerBindings => _usePointerBindings;
-        public IReadOnlyList<InventoryInteractionCoordinator.PointerBinding> PointerBindings => _pointerBindings;
+        public IReadOnlyList<PointerBinding> PointerBindings => _pointerBindings;
 
         public bool UseNavigationBindings => _useNavigationBindings;
-        public IReadOnlyList<InventoryInteractionCoordinator.NavigationBinding> NavigationBindings => _navigationBindings;
+        public IReadOnlyList<NavigationBinding> NavigationBindings => _navigationBindings;
 
         public bool UseInputActionBindings => _useInputActionBindings;
-        public IReadOnlyList<InventoryInteractionCoordinator.InputActionBinding> InputActionBindings => _inputActionBindings;
+        public IReadOnlyList<InputActionBinding> InputActionBindings => _inputActionBindings;
     }
 }
