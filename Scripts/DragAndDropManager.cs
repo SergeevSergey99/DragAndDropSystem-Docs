@@ -61,6 +61,9 @@ namespace DragAndDropSystem
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
+        public bool HasActiveDropTarget => _currentHandler != null || _hoveredInventory != null || _dropTargetStack.Count > 0;
+        public bool HasActiveSlotDropTarget => _hoveredSlot != null;
+        public UniversalInventory HoveredInventory => _hoveredInventory as UniversalInventory;
 
         // Exposed for IItemDropHandler implementations
         public GlobalRuleValidator GlobalRules => _globalRules;

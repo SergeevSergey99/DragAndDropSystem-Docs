@@ -42,7 +42,7 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.Instance.IsDragging)
-                return true;
+                return CompleteOnPointerUp;
 
             var slot = adapter?.Slot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
@@ -52,6 +52,9 @@ namespace DragAndDropSystem.Interaction
         {
             if (DragAndDropManager.Instance.IsDragging)
             {
+                if (!CompleteOnPointerUp)
+                    return false;
+
                 DragAndDropManager.Instance.CompleteDrag();
                 return true;
             }
@@ -61,6 +64,30 @@ namespace DragAndDropSystem.Interaction
                 return false;
 
             return DragAndDropManager.Instance.StartDrag(slot);
+        }
+    }
+
+    [Serializable]
+    public sealed class CompleteDragAction : SlotInteractionAction
+    {
+        [field: SerializeField] public bool CancelOnNoSlots { get; private set; } = true;
+
+        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+            => DragAndDropManager.Instance.IsDragging;
+
+        public override bool Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData, bool logWarnings)
+        {
+            if (!DragAndDropManager.Instance.IsDragging)
+                return false;
+
+            if (CancelOnNoSlots && !DragAndDropManager.Instance.HasActiveDropTarget)
+            {
+                DragAndDropManager.Instance.CancelDrag();
+                return true;
+            }
+
+            DragAndDropManager.Instance.CompleteDrag();
+            return true;
         }
     }
 
@@ -84,7 +111,6 @@ namespace DragAndDropSystem.Interaction
     public sealed class SelectionSlotAction : SlotInteractionAction
     {
         [SerializeReference] private SelectionOperationBase _operation;
-        public SelectionOperationBase Operation => _operation;
 
         public SelectionSlotAction()
         {
@@ -128,8 +154,6 @@ namespace DragAndDropSystem.Interaction
     {
         [SerializeField] private InventoryActionBase _action;
         [SerializeField] private bool _logWarnings;
-        public InventoryActionBase InventoryAction => _action;
-        public bool LogWarnings => _logWarnings;
 
         public InventorySlotAction()
         {
