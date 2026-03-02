@@ -122,7 +122,10 @@ namespace DragAndDropSystem.Interaction
 
             // Drag-binding executes on pointer down to support configurable mouse buttons
             // without relying on raw BeginDrag (which is left-button-oriented in UI modules).
-            TryExecutePointerBinding(adapter, eventData, dragOnly: true);
+            if (!DragAndDropManager.Instance.IsDragging)
+            {
+                TryExecutePointerBinding(adapter, eventData, dragOnly: true);
+            }
         }
 
         public void OnPointerUp(SlotInputAdapter adapter, PointerEventData eventData)
@@ -132,7 +135,8 @@ namespace DragAndDropSystem.Interaction
 
             if (_state == InteractionState.Pressed && _pressedAdapter == adapter && _pressedButton == eventData.button)
             {
-                TryExecutePointerBinding(adapter, eventData, dragOnly: false);
+                bool dragOnly = DragAndDropManager.Instance.IsDragging;
+                TryExecutePointerBinding(adapter, eventData, dragOnly);
             }
 
             // Выход из Pressed независимо от результата, чтобы не "залипать".
@@ -271,7 +275,7 @@ namespace DragAndDropSystem.Interaction
             if (!_resolvedUsePointerBindings || adapter?.Slot == null || eventData == null)
                 return;
 
-            if (_state == InteractionState.Dragging)
+            if (_state == InteractionState.Dragging && !dragOnly)
                 return;
 
             for (int i = 0; i < _resolvedPointerBindings.Count; i++)

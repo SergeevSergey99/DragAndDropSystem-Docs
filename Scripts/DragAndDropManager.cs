@@ -593,17 +593,6 @@ namespace DragAndDropSystem
                 {
                     _currentVisual.UpdatePosition(GetMousePosition());
                 }
-
-                // Проверяем отпускание кнопки мыши
-                if (Input.GetMouseButtonUp(0))
-                {
-                    CompleteDrag();
-                }
-                // ESC для отмены
-                else if (Input.GetKeyDown(KeyCode.Escape))
-                {
-                    CancelDrag();
-                }
             }
         }
 

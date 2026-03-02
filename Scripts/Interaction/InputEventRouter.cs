@@ -200,7 +200,10 @@ namespace DragAndDropSystem.Interaction
             state.PressedAdapter = adapter;
             state.PressedButton = eventData.button;
 
-            ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly: true);
+            if (!DragAndDropManager.Instance.IsDragging)
+            {
+                ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly: true);
+            }
         }
 
         private void RouteFallbackPointerUp(SlotInputAdapter adapter, PointerEventData eventData)
@@ -211,7 +214,8 @@ namespace DragAndDropSystem.Interaction
             var state = GetOrCreateFallbackState(inventory);
             if (state.PressedAdapter == adapter && state.PressedButton == eventData.button)
             {
-                ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly: false);
+                bool dragOnly = DragAndDropManager.Instance.IsDragging;
+                ExecuteFallbackPointerBindings(inventory, adapter, eventData, dragOnly);
             }
 
             if (state.PressedAdapter == adapter && state.PressedButton == eventData.button)
