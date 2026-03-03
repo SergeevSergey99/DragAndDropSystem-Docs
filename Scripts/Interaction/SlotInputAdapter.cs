@@ -20,23 +20,14 @@ namespace DragAndDropSystem.Interaction
         IDropTarget
     {
         [SerializeField] private UniversalSlot _slot;
-        [SerializeField] private InventoryInteractionCoordinator _coordinator;
 
         public UniversalSlot Slot => _slot;
-        public InventoryInteractionCoordinator Coordinator => _coordinator;
 
 
         private void Awake()
         {
             if (_slot == null)
                 _slot = GetComponent<UniversalSlot>();
-
-            EnsureCoordinator();
-        }
-
-        private void OnEnable()
-        {
-            EnsureCoordinator();
         }
 
         private void OnDisable()
@@ -57,8 +48,6 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            EnsureCoordinator();
-
             if (_slot?.Inventory is UniversalInventory universalInventory)
             {
                 universalInventory.NotifyPointerEnter(_slot);
@@ -69,8 +58,6 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            EnsureCoordinator();
-
             if (_slot?.Inventory is UniversalInventory universalInventory)
             {
                 universalInventory.NotifyPointerExit(_slot);
@@ -81,8 +68,6 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            EnsureCoordinator();
-
             if (_slot == null)
                 return;
 
@@ -102,13 +87,11 @@ namespace DragAndDropSystem.Interaction
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            EnsureCoordinator();
             InputEventRouter.Instance.RoutePointerUp(this, eventData);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            EnsureCoordinator();
             InputEventRouter.Instance.RouteBeginDrag(this, eventData);
         }
 
@@ -120,37 +103,22 @@ namespace DragAndDropSystem.Interaction
 
         public void OnSelect(BaseEventData eventData)
         {
-            EnsureCoordinator();
             InputEventRouter.Instance.RouteFocusEnter(this, FocusSource.Gamepad);
         }
 
         public void OnDeselect(BaseEventData eventData)
         {
-            EnsureCoordinator();
             InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
         }
 
         public void OnSubmit(BaseEventData eventData)
         {
-            EnsureCoordinator();
             InputEventRouter.Instance.RouteSubmit(this, eventData);
         }
 
         public void OnCancel(BaseEventData eventData)
         {
-            EnsureCoordinator();
             InputEventRouter.Instance.RouteCancel(this, eventData);
-        }
-
-        private void EnsureCoordinator()
-        {
-            if (_slot == null)
-                _slot = GetComponent<UniversalSlot>();
-
-            if (_coordinator == null)
-                _coordinator = GetComponentInParent<InventoryInteractionCoordinator>();
-            if (_coordinator == null && _slot?.Inventory is UniversalInventory inventory)
-                _coordinator = inventory.GetComponent<InventoryInteractionCoordinator>();
         }
 
         // ===== IDropTarget =====
