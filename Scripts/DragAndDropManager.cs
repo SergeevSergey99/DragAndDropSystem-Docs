@@ -58,6 +58,7 @@ namespace DragAndDropSystem
         private Dictionary<MonoBehaviour, IDragVisual> _visualCache = new Dictionary<MonoBehaviour, IDragVisual>();
         private IDragVisual _defaultVisualInstance;
         private readonly InventoryTransferService _transferService = new InventoryTransferService();
+        private readonly AutoTransferService _autoTransferService = new AutoTransferService();
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
@@ -604,144 +605,98 @@ namespace DragAndDropSystem
         /// </summary>
         public bool TryAutoTransfer(ISlot sourceSlot, IInventory sourceInventory, IInventory targetInventory)
         {
-            if (sourceSlot == null || sourceSlot.IsEmpty || sourceInventory == null || targetInventory == null)
+            if (sourceSlot == null)
+                return false;
+
+            return TryAutoTransfer(
+                new[] { sourceSlot },
+                sourceInventory,
+                targetInventory);
+        }
+
+        /// <summary>
+        /// Выполнить автоперенос одного или нескольких слотов в целевой инвентарь через общий transfer pipeline.
+        /// </summary>
+        public bool TryAutoTransfer(IReadOnlyList<ISlot> sourceSlots, IInventory sourceInventory, IInventory targetInventory)
+        {
+            if (sourceSlots == null || sourceSlots.Count == 0 || sourceInventory == null || targetInventory == null)
             {
-                Extentions.DragAndDropLog("<color=red>TryAutoTransfer: Invalid parameters (null check)</color>");
+                Extentions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Invalid parameters</color>");
                 return false;
             }
-            if (IsDragging && _currentContext.Entries[0].SourceSlot == sourceSlot)
+
+            if (IsDragging && _currentContext != null && _currentContext.Entries.Count > 0)
             {
-                Extentions.DragAndDropLog($"<color=red>Cannot auto-transfer: slot {sourceSlot.Index} is currently being dragged manually</color>");
+                for (int i = 0; i < sourceSlots.Count; i++)
+                {
+                    if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
+                    {
+                        Extentions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Source slot is currently dragged manually</color>");
+                        return false;
+                    }
+                }
+            }
+
+            if (!_autoTransferService.TryCreateContext(sourceSlots, sourceInventory, targetInventory, out var context, out var createFailure))
+            {
+                Extentions.DragAndDropLog($"<color=red>TryAutoTransfer(batch): {createFailure}</color>");
                 return false;
             }
-            if (sourceSlot.Stack == null || sourceSlot.Stack.Item == null)
-            {
-                Extentions.DragAndDropLog("<color=red>TryAutoTransfer: Source slot has no valid item</color>");
-                return false;
-            }
 
-            // Определяем количество для переноса
-            int transferAmount = sourceInventory.GetDragAmount(sourceSlot);
-            var transferStack = new ItemStack(sourceSlot.Stack.Item, transferAmount);
-
-            // Создаем контекст автопереноса
-            var context = new DragContext(
-                new ItemStack(sourceSlot.Stack.Item, transferAmount),
-                sourceSlot,
-                sourceInventory
-            );
-            context.TargetInventory = targetInventory;
-
-            var entry = context.Entries[0];
-
-            // Генерируем событие попытки автопереноса
             OnAutoTransferAttempting?.Invoke(context);
 
-            // Проверяем глобальные правила
-            var globalResult = _globalRules.ValidateStartDrag(context, entry);
-            if (!globalResult.IsValid)
+            var dropResult = _autoTransferService.Execute(
+                context,
+                targetInventory,
+                _globalRules,
+                _transferService,
+                RaiseSwapAttempting,
+                RaiseSwapCompleted);
+
+            if (!dropResult.Success)
             {
-                Extentions.DragAndDropLog($"<color=red>AutoTransfer failed: {globalResult.FailureReason}</color>");
+                Extentions.DragAndDropLog($"<color=red>AutoTransfer failed: {dropResult.FailureReason}</color>");
                 OnAutoTransferFailed?.Invoke(context);
                 return false;
             }
 
-            // Проверяем правила исходного инвентаря
-            if (sourceInventory is UniversalInventory srcUniversal)
-            {
-                var srcResult = srcUniversal.RuleValidator.ValidateStartDrag(context, entry);
-                if (!srcResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>AutoTransfer failed (source rules): {srcResult.FailureReason}</color>");
-                    OnAutoTransferFailed?.Invoke(context);
-                    return false;
-                }
-            }
+            NotifyAutoTransferSourceSlots(context);
 
-            // Проверяем правила целевого инвентаря
-            if (targetInventory is UniversalInventory tgtUniversal)
-            {
-                var tgtResult = tgtUniversal.RuleValidator.ValidateDrop(context, entry);
-                if (!tgtResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>AutoTransfer failed (target rules): {tgtResult.FailureReason}</color>");
-                    OnAutoTransferFailed?.Invoke(context);
-                    return false;
-                }
-            }
+            var sourceSlotForVisual = context.Entries.Count > 0 ? context.Entries[0].SourceSlot : null;
+            var sourceInventoryForVisual = context.Entries.Count > 0 ? context.Entries[0].SourceInventory : null;
+            var transferredItem = dropResult.Item;
+            int transferredAmount = dropResult.Amount;
+            var finalTargetSlot = dropResult.TargetSlot;
+            bool canAnimateSingle = context.Entries.Count == 1
+                                    && _autoTransferAnimation != null
+                                    && sourceSlotForVisual != null
+                                    && finalTargetSlot != null
+                                    && transferredItem != null
+                                    && transferredAmount > 0;
 
-            // Сохраняем ссылку на предмет для логирования (до модификации стака)
-            var transferredItem = transferStack.Item;
             string itemName = transferredItem?.DisplayName ?? "Unknown";
             string targetName = targetInventory?.GetType().Name ?? "Unknown";
+            Extentions.DragAndDropLog($"<color=green>AutoTransfer success: {transferredAmount}x {itemName} → {targetName} (slot {finalTargetSlot?.Index.ToString() ?? "-"})</color>");
 
-            // Ищем подходящий слот с учетом правил слотов
-            ISlot targetSlot = FindValidAutoTransferSlot(targetInventory, transferStack, sourceSlot);
-
-            if (targetSlot == null)
+            if (canAnimateSingle)
             {
-                Extentions.DragAndDropLog("<color=red>AutoTransfer failed: No valid slot found in target inventory</color>");
-                OnAutoTransferFailed?.Invoke(context);
-                return false;
-            }
-            context.TargetSlot = targetSlot;
+                if (finalTargetSlot is UniversalSlot targetUniversalSlot)
+                    targetUniversalSlot.SetIconVisibility(false);
 
-            var transferRequest = new InventoryTransferRequest(
-                sourceInventory,
-                sourceSlot,
-                targetInventory,
-                context.TargetSlot,
-                entry.Stack,
-                true);
-
-            if (!_transferService.TryExecuteTransfer(transferRequest, out var outcome))
-            {
-                Extentions.DragAndDropLog("<color=red>AutoTransfer failed: Transfer pipeline rejected</color>");
-                OnAutoTransferFailed?.Invoke(context);
-                return false;
-            }
-
-            if (outcome.TargetSlot != null)
-            {
-                context.TargetSlot = outcome.TargetSlot;
-            }
-
-            DispatchTransferEvents(outcome);
-
-            if (outcome.SourceInventory is UniversalInventory srcUniversalInventory)
-            {
-                srcUniversalInventory.HandleSlotEmptied(outcome.SourceSlot);
-            }
-
-            var finalTargetSlot = outcome.TargetSlot ?? targetSlot;
-            bool targetWasEmpty = outcome.TargetWasEmptyBefore;
-            int transferred = outcome.Amount;
-
-            Extentions.DragAndDropLog($"<color=green>AutoTransfer success: {transferred}x {itemName} → {targetName} (slot {finalTargetSlot?.Index.ToString() ?? "-"})</color>");
-
-            if (_autoTransferAnimation != null && finalTargetSlot != null)
-            {
-                if (targetWasEmpty && finalTargetSlot is UniversalSlot universalTargetSlot)
-                {
-                    universalTargetSlot.SetIconVisibility(false);
-                }
-
-                var visualStack = new ItemStack(transferredItem, transferred);
-                var visualPrefab = GetDragVisualPrefab(sourceInventory);
+                var visualStack = new ItemStack(transferredItem, transferredAmount);
+                var visualPrefab = GetDragVisualPrefab(sourceInventoryForVisual);
 
                 GameObject animationVisual = _autoTransferAnimation.AnimateTransfer(
                     visualStack,
-                    sourceSlot,
+                    sourceSlotForVisual,
                     finalTargetSlot,
                     visualPrefab,
                     _visualContainer != null ? _visualContainer : _canvas.transform,
                     _canvas,
                     () =>
                     {
-                        if (targetWasEmpty && finalTargetSlot is UniversalSlot slotForVisual)
-                        {
+                        if (finalTargetSlot is UniversalSlot slotForVisual)
                             slotForVisual.SetIconVisibility(true);
-                        }
 
                         OnDropCompleted?.Invoke(context);
                         OnAutoTransferCompleted?.Invoke(context);
@@ -762,91 +717,21 @@ namespace DragAndDropSystem
             return true;
         }
 
-        /// <summary>
-        /// Найти валидный слот для автопереноса с учетом правил слотов
-        /// </summary>
-        private ISlot FindValidAutoTransferSlot(IInventory targetInventory, ItemStack transferStack, ISlot sourceSlot)
+        private static void NotifyAutoTransferSourceSlots(DragContext context)
         {
-            var slots = targetInventory.Slots;
-            if (slots == null || slots.Count == 0)
-            {
-                Extentions.DragAndDropLog("<color=red>FindValidAutoTransferSlot: Target inventory has no slots</color>");
-                return null;
-            }
+            if (context?.Entries == null)
+                return;
 
-            // Создаем временный DragContext для проверки правил слотов
-            var tempContext = new DragContext(transferStack, sourceSlot, sourceSlot.Inventory);
-            var tempEntry = tempContext.Entries[0];
-
-            // Проверяем, поддерживает ли целевой инвентарь стакание предметов
-            bool shouldTryStacking = true;
-            if (targetInventory is UniversalInventory universalTargetInventory)
+            for (int i = 0; i < context.Entries.Count; i++)
             {
-                // Если инвентарь в режиме Unique - пропускаем попытку стакания
-                if (universalTargetInventory.ItemBehavior == UniversalInventory.ItemBehaviorType.Unique)
+                var entry = context.Entries[i];
+                if (entry.SourceInventory is UniversalInventory sourceUniversal &&
+                    entry.SourceSlot != null &&
+                    entry.SourceSlot.IsEmpty)
                 {
-                    shouldTryStacking = false;
-                    Extentions.DragAndDropLog($"<color=cyan>Target inventory [{universalTargetInventory.name}] is in Unique mode - skipping stacking attempt</color>");
+                    sourceUniversal.HandleSlotEmptied(entry.SourceSlot);
                 }
             }
-
-            // Сначала ищем слот с таким же предметом (только если инвентарь поддерживает стакание)
-            if (shouldTryStacking)
-            {
-                foreach (var slot in slots)
-                {
-                    if (slot == null || slot.IsEmpty)
-                        continue;
-
-                    // Проверяем, можно ли стакнуть
-                    if (slot.Stack.CanStack(transferStack.Item))
-                    {
-                        // Устанавливаем целевой слот в контекст
-                        tempContext.SetTarget(slot, targetInventory);
-
-                        // Проверяем правила слота
-                        if (slot.SlotRuleValidator != null)
-                        {
-                            var slotResult = slot.SlotRuleValidator.ValidateDrop(tempContext, tempEntry);
-                            if (!slotResult.IsValid)
-                            {
-                                Extentions.DragAndDropLog($"<color=yellow>Slot {slot.Index} with same item rejected by slot rules: {slotResult.FailureReason}</color>");
-                                continue;
-                            }
-                        }
-
-                        Extentions.DragAndDropLog($"<color=cyan>Found valid slot {slot.Index} with same item for stacking</color>");
-                        return slot;
-                    }
-                }
-            }
-
-            // Теперь ищем пустой слот
-            foreach (var slot in slots)
-            {
-                if (slot == null || !slot.IsEmpty)
-                    continue;
-
-                // Устанавливаем целевой слот в контекст
-                tempContext.SetTarget(slot, targetInventory);
-
-                // Проверяем правила слота
-                if (slot.SlotRuleValidator != null)
-                {
-                    var slotResult = slot.SlotRuleValidator.ValidateDrop(tempContext, tempEntry);
-                    if (!slotResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=yellow>Empty slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");
-                        continue;
-                    }
-                }
-
-                Extentions.DragAndDropLog($"<color=cyan>Found valid empty slot {slot.Index}</color>");
-                return slot;
-            }
-
-            Extentions.DragAndDropLog("<color=red>No valid slot found (all slots are full or rejected by rules)</color>");
-            return null;
         }
 
         /// <summary>
@@ -862,31 +747,6 @@ namespace DragAndDropSystem
 
             // Визуал уничтожен - удаляем из списка
             _activeAnimationVisuals.Remove(visual);
-        }
-
-        private void DispatchTransferEvents(InventoryTransferResult outcome)
-        {
-            if (outcome.SourceInventory is UniversalInventory sourceUniversal && outcome.Item != null)
-            {
-                sourceUniversal.EmitItemRemoved(
-                    outcome.Item,
-                    outcome.Amount,
-                    outcome.SourceSlot?.Index ?? -1,
-                    outcome.TargetInventory,
-                    outcome.SourceSlot,
-                    outcome.TargetSlot);
-            }
-
-            if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null && outcome.Item != null)
-            {
-                targetUniversal.EmitItemAdded(
-                    outcome.Item,
-                    outcome.Amount,
-                    outcome.TargetSlot.Index,
-                    outcome.SourceInventory,
-                    outcome.SourceSlot,
-                    outcome.TargetSlot);
-            }
         }
 
         public bool RaiseSwapAttempting(InventorySwapContext context)

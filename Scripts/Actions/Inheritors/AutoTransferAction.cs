@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -17,14 +18,21 @@ namespace DragAndDropSystem.Inventories
         [HideLabel]
         private InventoryList _targetInventories = new InventoryList();
 
+        [SerializeField, Tooltip("Использовать текущее выделение для множественного автопереноса")]
+        private bool _useSelectionForBatch = true;
+
         public override string DisplayName => "Auto Transfer";
 
         public override ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot)
         {
             var dragManager = DragAndDropManager.Instance;
-            if (dragManager == null || dragManager.IsDragging || activeSlot == null || activeSlot.IsEmpty)
-                return ActionResult.Failed("Invalid drag manager state or active slot");
+            if (dragManager == null || dragManager.IsDragging)
+                return ActionResult.Failed("Invalid drag manager state");
             
+            var sourceSlots = ResolveSourceSlots(inventory, activeSlot);
+            if (sourceSlots.Count == 0)
+                return ActionResult.Failed("No valid source slots for auto transfer");
+
             var targets = ResolveTargets(inventory);
             if (targets.Count == 0)
                 return ActionResult.Failed("No target inventories configured");
@@ -38,13 +46,14 @@ namespace DragAndDropSystem.Inventories
                     continue;
 
                 var success = dragManager.TryAutoTransfer(
-                    activeSlot,
+                    sourceSlots,
                     inventory,
                     targetInventory);
 
                 if (success)
                 {
-                    inventory.NotifySlotInteracted(activeSlot);
+                    if (activeSlot != null)
+                        inventory.NotifySlotInteracted(activeSlot);
                     return ActionResult.Succeeded();
                 }
             }
@@ -57,7 +66,9 @@ namespace DragAndDropSystem.Inventories
             if (!base.CanExecute(inventory, activeSlot))
                 return false;
 
-            if (activeSlot == null || activeSlot.IsEmpty)
+            bool hasActiveSlot = activeSlot != null && !activeSlot.IsEmpty && activeSlot.IsInteractable;
+            bool hasSelectionSources = _useSelectionForBatch && ResolveSourceSlots(inventory, activeSlot).Count > 0;
+            if (!hasActiveSlot && !hasSelectionSources)
                 return false;
 
             var dragManager = DragAndDropManager.Instance;
@@ -82,6 +93,36 @@ namespace DragAndDropSystem.Inventories
                     }
                 }
             }
+
+            return result;
+        }
+
+        private List<ISlot> ResolveSourceSlots(UniversalInventory inventory, UniversalSlot activeSlot)
+        {
+            var result = new List<ISlot>();
+
+            if (_useSelectionForBatch && SelectionManager.IsInstanceExist)
+            {
+                var context = SelectionManager.Instance.CurrentContext;
+                if (context != null && context.HasSelection)
+                {
+                    for (int i = 0; i < context.AllSlots.Count; i++)
+                    {
+                        var slot = context.AllSlots[i];
+                        if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                            continue;
+
+                        if (!ReferenceEquals(slot.Inventory, inventory))
+                            continue;
+
+                        if (!result.Contains(slot))
+                            result.Add(slot);
+                    }
+                }
+            }
+
+            if (result.Count == 0 && activeSlot != null && !activeSlot.IsEmpty && activeSlot.IsInteractable)
+                result.Add(activeSlot);
 
             return result;
         }
