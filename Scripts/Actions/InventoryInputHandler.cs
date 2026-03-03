@@ -107,7 +107,7 @@ namespace DragAndDropSystem.Inventories
                 return;
             }
 
-            bool success = binding.Action.Execute(_inventory, activeSlot);
+            _ = binding.Action.Execute(_inventory, activeSlot);
         }
 
         [Serializable]

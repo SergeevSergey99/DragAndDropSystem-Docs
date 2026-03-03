@@ -113,7 +113,7 @@ namespace DragAndDropSystem.Interaction
                 return true;
             }
 
-            bool success = action.Execute(inventory, activeSlot);
+            _ = action.Execute(inventory, activeSlot);
 
             return true;
         }
@@ -267,7 +267,7 @@ namespace DragAndDropSystem.Interaction
 
                 if (binding.Action.CanExecute(inventory, adapter, eventData))
                 {
-                    binding.Action.Execute(inventory, adapter, eventData);
+                    _ = binding.Action.Execute(inventory, adapter, eventData);
                     eventData.Use();
                 }
 
@@ -295,7 +295,7 @@ namespace DragAndDropSystem.Interaction
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
-                    binding.Action.Execute(inventory, adapter, null);
+                    _ = binding.Action.Execute(inventory, adapter, null);
                 }
                 
                 return;
@@ -326,7 +326,7 @@ namespace DragAndDropSystem.Interaction
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
-                    binding.Action.Execute(inventory, adapter, null);
+                    _ = binding.Action.Execute(inventory, adapter, null);
                 }
 
                 return;

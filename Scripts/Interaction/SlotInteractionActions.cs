@@ -1,4 +1,5 @@
 using System;
+using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
@@ -15,7 +16,8 @@ namespace DragAndDropSystem.Interaction
         public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null;
 
-        public virtual void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData) {}
+        public virtual ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+            => ActionResult.Failed("Action is not implemented");
 
         public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
             => CanExecute(
@@ -38,22 +40,24 @@ namespace DragAndDropSystem.Interaction
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.Instance.IsDragging)
             {
                 if (!CompleteOnPointerUp)
-                    return;
+                    return ActionResult.Failed("Complete on pointer up is disabled");
 
                 DragAndDropManager.Instance.CompleteDrag();
-                return;
+                return ActionResult.Succeeded();
             }
 
             var slot = adapter?.Slot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
-                return;
+                return ActionResult.Failed("Slot is empty or not interactable");
 
-            DragAndDropManager.Instance.StartDrag(slot);
+            return DragAndDropManager.Instance.StartDrag(slot)
+                ? ActionResult.Succeeded()
+                : ActionResult.Failed("Start drag failed");
         }
     }
 
@@ -65,18 +69,19 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!DragAndDropManager.Instance.IsDragging)
-                return;
+                return ActionResult.Failed("Drag is not active");
 
             if (CancelOnNoSlots && !DragAndDropManager.Instance.HasActiveDropTarget)
             {
                 DragAndDropManager.Instance.CancelDrag();
-                return;
+                return ActionResult.Succeeded();
             }
 
             DragAndDropManager.Instance.CompleteDrag();
+            return ActionResult.Succeeded();
         }
     }
 
@@ -86,12 +91,13 @@ namespace DragAndDropSystem.Interaction
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!DragAndDropManager.Instance.IsDragging)
-                return;
+                return ActionResult.Failed("Drag is not active");
 
             DragAndDropManager.Instance.CancelDrag();
+            return ActionResult.Succeeded();
         }
     }
 
@@ -120,17 +126,20 @@ namespace DragAndDropSystem.Interaction
             return _operation.CanExecute(SelectionManager.Instance, adapter?.Slot);
         }
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (_operation == null || !SelectionManager.IsInstanceExist)
-                return;
+                return ActionResult.Failed("Selection operation is not available");
 
             var manager = SelectionManager.Instance;
             var slot = adapter?.Slot;
             if (_operation.CanExecute(manager, slot))
             {
                 _operation.Execute(manager, slot);
+                return ActionResult.Succeeded();
             }
+
+            return ActionResult.Failed("Selection operation cannot execute");
         }
     }
 
@@ -157,16 +166,16 @@ namespace DragAndDropSystem.Interaction
             return _action.CanExecute(inventory, slot);
         }
 
-        public override void Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (_action == null || inventory == null)
-                return;
+                return ActionResult.Failed("Inventory action is not configured");
 
             var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
             if (!_action.CanExecute(inventory, slot))
-                return;
+                return ActionResult.Failed("Inventory action cannot execute");
 
-            _action.Execute(inventory, slot);
+            return _action.Execute(inventory, slot);
         }
     }
 }

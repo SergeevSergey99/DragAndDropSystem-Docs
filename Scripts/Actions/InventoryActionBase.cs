@@ -1,4 +1,5 @@
 using System;
+using DragAndDropSystem.Core;
 using DragAndDropSystem.Slots;
 using UnityEngine;
 
@@ -21,8 +22,8 @@ namespace DragAndDropSystem.Inventories
         /// <param name="inventory">Инвентарь, на котором выполняется действие</param>
         /// <param name="activeSlot">Активный слот (под курсором или последний взаимодействовавший)</param>
         /// <param name="logWarnings">Писать ли предупреждения в консоль</param>
-        /// <returns>True если действие выполнено успешно</returns>
-        public abstract bool Execute(UniversalInventory inventory, UniversalSlot activeSlot);
+        /// <returns>Результат выполнения действия</returns>
+        public abstract ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot);
 
         /// <summary>
         /// Можно ли выполнить действие (проверка перед выполнением)

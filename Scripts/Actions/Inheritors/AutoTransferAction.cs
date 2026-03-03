@@ -19,14 +19,15 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Auto Transfer";
 
-        public override bool Execute(UniversalInventory inventory, UniversalSlot activeSlot)
+        public override ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot)
         {
             var dragManager = DragAndDropManager.Instance;
             if (dragManager == null || dragManager.IsDragging || activeSlot == null || activeSlot.IsEmpty)
-                return false;
+                return ActionResult.Failed("Invalid drag manager state or active slot");
             
             var targets = ResolveTargets(inventory);
-            if (targets.Count == 0) return false;
+            if (targets.Count == 0)
+                return ActionResult.Failed("No target inventories configured");
             
             foreach (var targetInventory in targets)
             {
@@ -44,11 +45,11 @@ namespace DragAndDropSystem.Inventories
                 if (success)
                 {
                     inventory.NotifySlotInteracted(activeSlot);
-                    return true;
+                    return ActionResult.Succeeded();
                 }
             }
 
-            return false;
+            return ActionResult.Failed("Auto transfer failed for all targets");
         }
 
         public override bool CanExecute(UniversalInventory inventory, UniversalSlot activeSlot)

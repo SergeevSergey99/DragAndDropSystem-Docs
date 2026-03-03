@@ -27,11 +27,11 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Sort Inventory";
 
-        public override bool Execute(UniversalInventory inventory, UniversalSlot activeSlot)
+        public override ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot)
         {
             if (inventory == null)
             {
-                return false;
+                return ActionResult.Failed("Inventory is null");
             }
 
             // Собираем все непустые стаки
@@ -52,7 +52,7 @@ namespace DragAndDropSystem.Inventories
 
             if (stacks.Count == 0)
             {
-                return false;
+                return ActionResult.Failed("No items to sort");
             }
 
             // Сортируем
@@ -82,7 +82,7 @@ namespace DragAndDropSystem.Inventories
 
             inventory.UpdateAllVisuals();
 
-            return true;
+            return ActionResult.Succeeded();
         }
 
         public override bool CanExecute(UniversalInventory inventory, UniversalSlot activeSlot)
