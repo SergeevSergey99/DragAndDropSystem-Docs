@@ -62,6 +62,77 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
+    public sealed class StartMultiDragAction : SlotInteractionAction
+    {
+        [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
+        [SerializeField] private bool _restrictToSameInventory = true;
+
+        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (DragAndDropManager.Instance.IsDragging)
+                return false;
+
+            var sourceSlots = BuildSourceSlots(inventory, adapter);
+            return sourceSlots.Count > 0;
+        }
+
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (DragAndDropManager.Instance.IsDragging)
+                return ActionResult.Failed("Drag is already active");
+
+            var sourceSlots = BuildSourceSlots(inventory, adapter);
+            if (sourceSlots.Count == 0)
+                return ActionResult.Failed("No valid slots for multi drag");
+
+            return DragAndDropManager.Instance.StartDrag(sourceSlots)
+                ? ActionResult.Succeeded()
+                : ActionResult.Failed("Failed to start multi drag");
+        }
+
+        private System.Collections.Generic.List<ISlot> BuildSourceSlots(UniversalInventory inventory, SlotInputAdapter adapter)
+        {
+            var result = new System.Collections.Generic.List<ISlot>();
+            var activeSlot = adapter?.Slot;
+
+            if (SelectionManager.IsInstanceExist)
+            {
+                var context = SelectionManager.Instance.CurrentContext;
+                if (context != null && context.HasSelection)
+                {
+                    for (int i = 0; i < context.AllSlots.Count; i++)
+                    {
+                        var slot = context.AllSlots[i];
+                        if (!IsEligible(slot, inventory))
+                            continue;
+
+                        if (!result.Contains(slot))
+                            result.Add(slot);
+                    }
+                }
+            }
+
+            if (result.Count == 0 && _fallbackToActiveSlotIfSelectionEmpty && IsEligible(activeSlot, inventory))
+            {
+                result.Add(activeSlot);
+            }
+
+            return result;
+        }
+
+        private bool IsEligible(ISlot slot, UniversalInventory inventory)
+        {
+            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                return false;
+
+            if (_restrictToSameInventory && inventory != null && !ReferenceEquals(slot.Inventory, inventory))
+                return false;
+
+            return true;
+        }
+    }
+
+    [Serializable]
     public sealed class CompleteDragAction : SlotInteractionAction
     {
         [field: SerializeField] public bool CancelOnNoSlots { get; private set; } = true;

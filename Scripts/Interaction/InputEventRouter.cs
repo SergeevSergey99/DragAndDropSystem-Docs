@@ -529,7 +529,7 @@ namespace DragAndDropSystem.Interaction
         }
 
         private static bool IsDragBindingAction(SlotInteractionAction action)
-            => action is DragSlotAction || action is CompleteDragAction;
+            => action is DragSlotAction || action is StartMultiDragAction || action is CompleteDragAction;
 
         private void ProcessGlobalPointerUpsWhileDragging()
         {
