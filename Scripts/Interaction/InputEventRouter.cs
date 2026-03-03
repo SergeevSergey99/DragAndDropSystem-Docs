@@ -25,6 +25,8 @@ namespace DragAndDropSystem.Interaction
             new Dictionary<UniversalInventory, List<InputActionSubscription>>();
 
         private readonly HashSet<IntentDedupKey> _handledThisFrame = new HashSet<IntentDedupKey>();
+        private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame =
+            new HashSet<PointerEventData.InputButton>();
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
 
         public static bool IsInstanceExist => _instance != null;
@@ -59,7 +61,13 @@ namespace DragAndDropSystem.Interaction
         private void LateUpdate()
         {
             _handledThisFrame.Clear();
+            _pointerUpHandledThisFrame.Clear();
             CleanupStaleInventories();
+        }
+
+        private void Update()
+        {
+            ProcessGlobalPointerUpsWhileDragging();
         }
 
         public void RegisterCoordinator(InventoryInteractionCoordinator coordinator)
@@ -173,6 +181,7 @@ namespace DragAndDropSystem.Interaction
 
             if (shouldProcess)
             {
+                _pointerUpHandledThisFrame.Add(eventData.button);
                 bool dragOnly = isDraggingNow;
                 ExecutePointerBindings(inventory, adapter, eventData, dragOnly);
             }
@@ -254,8 +263,6 @@ namespace DragAndDropSystem.Interaction
 
                 bool isDragBinding = IsDragBindingAction(binding.Action);
                 if (dragOnly && !isDragBinding)
-                    continue;
-                if (!dragOnly && isDragBinding)
                     continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, eventData))
@@ -523,6 +530,88 @@ namespace DragAndDropSystem.Interaction
 
         private static bool IsDragBindingAction(SlotInteractionAction action)
             => action is DragSlotAction || action is CompleteDragAction;
+
+        private void ProcessGlobalPointerUpsWhileDragging()
+        {
+            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
+                return;
+
+            ProcessGlobalPointerUp(PointerEventData.InputButton.Left);
+            ProcessGlobalPointerUp(PointerEventData.InputButton.Right);
+            ProcessGlobalPointerUp(PointerEventData.InputButton.Middle);
+        }
+
+        private void ProcessGlobalPointerUp(PointerEventData.InputButton button)
+        {
+            if (_pointerUpHandledThisFrame.Contains(button))
+                return;
+
+            if (!WasPointerButtonReleasedThisFrame(button))
+                return;
+
+            if (!TryResolveInventoryForGlobalPointerUp(out var inventory))
+                return;
+
+            var state = GetOrCreateState(inventory);
+            var adapter = state.PressedAdapter ?? state.FocusedAdapter ?? ResolveAdapterFromSlot(state.FocusedSlot);
+            var eventData = new PointerEventData(EventSystem.current) { button = button };
+
+            _pointerUpHandledThisFrame.Add(button);
+            ExecutePointerBindings(inventory, adapter, eventData, dragOnly: true);
+        }
+
+        private bool TryResolveInventoryForGlobalPointerUp(out UniversalInventory inventory)
+        {
+            inventory = null;
+
+            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
+                return false;
+
+            var hovered = DragAndDropManager.Instance.HoveredInventory;
+            if (hovered != null)
+            {
+                inventory = hovered;
+                return true;
+            }
+
+            var context = DragAndDropManager.Instance.CurrentContext;
+            if (context != null && context.Entries.Count > 0)
+            {
+                inventory = context.Entries[0].SourceInventory as UniversalInventory;
+                return inventory != null;
+            }
+
+            return false;
+        }
+
+        private static bool WasPointerButtonReleasedThisFrame(PointerEventData.InputButton button)
+        {
+            var mouse = Mouse.current;
+            if (mouse != null)
+            {
+                switch (button)
+                {
+                    case PointerEventData.InputButton.Left:
+                        return mouse.leftButton.wasReleasedThisFrame;
+                    case PointerEventData.InputButton.Right:
+                        return mouse.rightButton.wasReleasedThisFrame;
+                    case PointerEventData.InputButton.Middle:
+                        return mouse.middleButton.wasReleasedThisFrame;
+                }
+            }
+
+            switch (button)
+            {
+                case PointerEventData.InputButton.Left:
+                    return Input.GetMouseButtonUp(0);
+                case PointerEventData.InputButton.Right:
+                    return Input.GetMouseButtonUp(1);
+                case PointerEventData.InputButton.Middle:
+                    return Input.GetMouseButtonUp(2);
+                default:
+                    return false;
+            }
+        }
 
         private readonly struct InputActionSubscription
         {
