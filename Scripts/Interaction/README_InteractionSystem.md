@@ -1,6 +1,6 @@
 # Interaction Input System
 
-**Last Updated**: 2026-03-02
+**Last Updated**: 2026-03-05
 
 Документ описывает актуальную (после миграции) систему ввода/взаимодействия для инвентарей.
 
@@ -10,7 +10,7 @@
 
 1. `SlotInputAdapter` собирает raw-события.
 2. `InputEventRouter` маршрутизирует события в нужный инвентарь.
-3. `InventoryInteractionCoordinator` принимает решение и вызывает доменные API.
+3. `InventoryExtraInteractionBinder` задает переопределения биндингов для инвентаря, а `InputEventRouter` исполняет их.
 
 Старая схема на `DragDropEventListener` и `SlotPointerSelectionTrigger` удалена из slot-prefab.
 
@@ -31,41 +31,36 @@
 Файл: `Scripts/Interaction/InputEventRouter.cs`
 
 Роль:
-- хранит маппинг `IInventory -> InventoryInteractionCoordinator`;
-- хранит глобальный `DefaultBindingsProfile` (SO) для всех координаторов;
+- хранит маппинг `IInventory -> InventoryExtraInteractionBinder`;
+- хранит глобальный `DefaultBindingsProfile` (SO);
 - маршрутизирует события от адаптеров и `InventoryInputHandler`;
 - выполняет frame-level anti-dup для action-intents.
 
-### InventoryInteractionCoordinator (per-inventory)
+### InventoryExtraInteractionBinder (per-inventory)
 
-Файл: `Scripts/Interaction/InventoryInteractionCoordinator.cs`
+Файл: `Scripts/Interaction/InventoryExtraInteractionBinder.cs`
 
 Роль:
-- единая state-машина взаимодействия инвентаря;
-- держит `FocusedSlot` и источник фокуса (`FocusSource`);
-- исполняет `PointerBinding`, `NavigationBinding`, `InputActionBinding`;
-- поддерживает профиль биндингов (`InventoryInteractionBindingsProfile`) + локальные override через `BindingMergeMode`;
-- управляет drop target stack (`PushDropTarget/PopDropTarget`) через `DragAndDropManager`;
-- маршрутизирует selection- и inventory-actions.
+- хранит локальные `PointerBinding`, `NavigationBinding`, `InputActionBinding`;
+- опционально добавляет биндинги из `InteractionBindingsProfile`;
+- опционально добавляет биндинги из глобального `InputEventRouter.DefaultBindingsProfile`;
+- регистрируется в `InputEventRouter` как override для конкретного `UniversalInventory`.
 
 ## Профили биндингов (SO)
 
 Файл типа:
-- `Scripts/Interaction/InventoryInteractionBindingsProfile.cs`
+- `Scripts/Interaction/InteractionBindingsProfile.cs`
 
 Глобальный дефолтный профиль:
-- `Settings/DefaultInventoryInteractionBindingsProfile.asset`
+- `Settings/DefaultInteractionBindingsProfile.asset` (или любой назначенный в `InputEventRouter.DefaultBindingsProfile`)
 
 Где задаётся:
-- на `InputEventRouter` поле `_defaultBindingsProfile` (в `Prefabs/DragCanvas.prefab` уже назначен).
+- на `InputEventRouter` поле `DefaultBindingsProfile`.
 
 Override на конкретном инвентаре:
-- `InventoryInteractionCoordinator._bindingsProfile` — профиль для конкретного инвентаря;
-- `InventoryInteractionCoordinator._useGlobalBindingsProfile` — брать глобальный профиль, если локальный не задан;
-- `BindingMergeMode` для pointer/navigation/input:
-  - `LocalOnly`
-  - `ProfileOnly`
-  - `LocalThenProfile`
+- `InventoryExtraInteractionBinder._bindingsProfile` — профиль для конкретного инвентаря;
+- `InventoryExtraInteractionBinder._useGlobalBindingsProfile` — подключать глобальный профиль роутера;
+- локальные биндинги в компоненте всегда добавляются в итоговый набор.
 
 ### SlotInteractionActions
 
@@ -81,19 +76,23 @@ Override на конкретном инвентаре:
 
 ### Мышь (pointer)
 
-`EventSystem -> SlotInputAdapter -> InputEventRouter -> InventoryInteractionCoordinator -> DragAndDropManager/Selection`
+`EventSystem -> SlotInputAdapter -> InputEventRouter -> (resolved PointerBinding) -> SlotInteractionAction -> DragAndDropManager/Selection`
 
 ### Геймпад/клавиатура (actions)
 
-`InputAction -> InventoryInputHandler -> InputEventRouter -> InventoryInteractionCoordinator -> InventoryAction/Selection/Drag`
+`InputAction -> InventoryInputHandler -> InputEventRouter -> InventoryActionBase`
+
+или
+
+`InputAction -> InputEventRouter (bindings from InventoryExtraInteractionBinder) -> SlotInteractionAction`
 
 ### UI navigation focus
 
-`ISelect/IDeselect -> SlotInputAdapter -> Router -> Coordinator (FocusedSlot)`
+`ISelect/IDeselect -> SlotInputAdapter -> InputEventRouter (FocusedSlot)`
 
 ## Примеры конфигураций действий
 
-Ниже примеры, как настраивать биндинги в `InventoryInteractionCoordinator`.
+Ниже примеры, как настраивать биндинги в `InventoryExtraInteractionBinder`.
 
 ### Случай 1: Базовый mouse drag&drop (без мультивыделения)
 
@@ -155,15 +154,15 @@ Override на конкретном инвентаре:
 ### Случай 5: Два разных профиля в одной сцене
 
 Пример:
-- `PlayerInventoryCoordinator`:
+- `PlayerInventoryBinder`:
   - `LMB -> DragSlotAction`
   - `Ctrl+LMB -> ToggleSlotOperation`
-- `MerchantInventoryCoordinator`:
+- `MerchantInventoryBinder`:
   - `LMB -> SelectionSlotAction(ClearAndSelectOperation)`
   - `RMB -> DragSlotAction`
 
 Важный момент:
-- профили задаются на каждом `InventoryInteractionCoordinator` отдельно, а не глобально.
+- профили задаются на каждом `InventoryExtraInteractionBinder` отдельно, а не глобально.
 
 ### Случай 6: Auto-transfer и sort по кнопкам
 
@@ -172,7 +171,7 @@ Override на конкретном инвентаре:
 - привязать `SortInventoryAction` к action `Sort`.
 
 Поток:
-- `InventoryInputHandler -> InputEventRouter -> InventoryInteractionCoordinator -> InventorySlotAction`.
+- `InventoryInputHandler -> InputEventRouter -> InventoryActionBase`.
 
 Применение:
 - Diablo-like quick move (`Shift`/`Y`) и сортировка (`R3`/`V`).
@@ -190,7 +189,7 @@ Override на конкретном инвентаре:
 ### Случай 8: Отключить выделение во время drag (по умолчанию)
 
 Ничего отдельно настраивать не нужно:
-- координатор уже блокирует selection-интенты в состоянии drag.
+- роутер уже блокирует часть конфликтующих интентов во время drag и разводит pointer-up обработку.
 
 Используйте это как базовое поведение, если хотите избежать гонок между переносом и выделением.
 
@@ -204,10 +203,10 @@ Override на конкретном инвентаре:
 Содержат `SlotInputAdapter`.
 Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) удалены.
 
-### Router и coordinator
+### Router и binder
 
 - `InputEventRouter` добавлен в `Prefabs/DragCanvas.prefab`;
-- `InventoryInteractionCoordinator` должен быть на каждом `UniversalInventory` (в demo-сценах уже добавлен).
+- `InventoryExtraInteractionBinder` добавляется на `UniversalInventory`, где нужны override биндингов.
 
 ## InventoryDropArea
 
@@ -229,7 +228,7 @@ Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigg
 ## Debug checklist
 
 1. На слоте есть `SlotInputAdapter` и `UniversalSlot`.
-2. На `UniversalInventory` есть `InventoryInteractionCoordinator`.
+2. На `UniversalInventory` есть `InventoryExtraInteractionBinder`, если для него нужны отдельные биндинги.
 3. В сцене присутствует `InputEventRouter` (через `DragCanvas`).
 4. В `InventoryInputHandler` action уходит в router (без legacy fallback).
 5. Для проблем с дропом в область проверить `InventoryDropArea` и `DropPolicy`.
