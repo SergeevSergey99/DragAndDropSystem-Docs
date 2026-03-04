@@ -7,10 +7,10 @@ using System;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Drop handler for inventory-based targets (slots and inventory areas).
+    /// Drop processor for inventory-based targets (slots and inventory areas).
     /// Encapsulates 3-tier rule validation and delegates to InventoryTransferService.
     /// </summary>
-    public class InventoryDropHandler : IItemDropHandler
+    public class InventoryDropProcessor : IDropProcessor
     {
         private readonly ISlot _targetSlot;
         private readonly IInventory _targetInventory;
@@ -23,9 +23,9 @@ namespace DragAndDropSystem.Inventories
         private TransferPlan _cachedPlan;
 
         /// <summary>
-        /// Create a handler for a specific slot
+        /// Create a processor for a specific slot
         /// </summary>
-        public InventoryDropHandler(
+        public InventoryDropProcessor(
             ISlot targetSlot,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
@@ -45,9 +45,9 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Create a handler for an inventory area (no specific slot)
+        /// Create a processor for an inventory area (no specific slot)
         /// </summary>
-        public InventoryDropHandler(
+        public InventoryDropProcessor(
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
             InventoryTransferService transferService,
@@ -62,7 +62,7 @@ namespace DragAndDropSystem.Inventories
         {
             if (context == null || _targetInventory == null)
             {
-                Extentions.DragAndDropLog("<color=red>[InventoryDropHandler] CanAcceptDrop: null context or inventory</color>");
+                Extentions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: null context or inventory</color>");
                 _cachedPlan = null;
                 return false;
             }
@@ -80,15 +80,15 @@ namespace DragAndDropSystem.Inventories
             _cachedPlan = plan.IsValid ? plan : null;
             if (!plan.IsValid)
             {
-                Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] CanAcceptDrop: plan failed: {plan.Failure?.Reason}</color>");
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropProcessor] CanAcceptDrop: plan failed: {plan.Failure?.Reason}</color>");
                 return false;
             }
 
-            Extentions.DragAndDropLog("<color=green>[InventoryDropHandler] CanAcceptDrop: plan is valid</color>");
+            Extentions.DragAndDropLog("<color=green>[InventoryDropProcessor] CanAcceptDrop: plan is valid</color>");
             return true;
         }
 
-        public DropResult HandleDrop(DragContext context)
+        public DropResult ProcessDrop(DragContext context)
         {
             if (context == null)
             {
@@ -106,7 +106,7 @@ namespace DragAndDropSystem.Inventories
 
             if (source == null || sourceSlot == null || draggedStack == null)
             {
-                Extentions.DragAndDropLog("<color=red>[InventoryDropHandler] HandleDrop: Invalid context</color>");
+                Extentions.DragAndDropLog("<color=red>[InventoryDropProcessor] ProcessDrop: Invalid context</color>");
                 return DropResult.Failed("Invalid drag context");
             }
 
@@ -132,7 +132,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             var policy = context.Policy;
-            Extentions.DragAndDropLog($"<color=yellow>[InventoryDropHandler] HandleDrop: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
+            Extentions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] ProcessDrop: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
 
             var summary = _executor.Execute(plan, new TransferExecutionOptions
             {
@@ -142,7 +142,7 @@ namespace DragAndDropSystem.Inventories
             });
             if (!summary.Success)
             {
-                Extentions.DragAndDropLog($"<color=red>[InventoryDropHandler] Execute failed: {summary.DropResult.FailureReason}</color>");
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropProcessor] Execute failed: {summary.DropResult.FailureReason}</color>");
                 return summary.DropResult;
             }
 
@@ -151,7 +151,7 @@ namespace DragAndDropSystem.Inventories
                 context.SetTarget(summary.DropResult.TargetSlot, summary.DropResult.TargetInventory);
             }
 
-            Extentions.DragAndDropLog($"<color=green>[InventoryDropHandler] Executed plan: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
+            Extentions.DragAndDropLog($"<color=green>[InventoryDropProcessor] Executed plan: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
             return summary.DropResult;
         }
 

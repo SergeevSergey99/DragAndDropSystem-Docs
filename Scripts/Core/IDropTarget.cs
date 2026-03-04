@@ -14,10 +14,10 @@ namespace DragAndDropSystem.Core
         ISlot GetTargetSlot();
 
         /// <summary>
-        /// Get the drop handler responsible for validating and executing drops on this target.
-        /// The handler encapsulates all drop logic, including validation and item transfer.
+        /// Get the drop processor responsible for validating and executing drops on this target.
+        /// The processor encapsulates all drop logic, including validation and item transfer.
         /// </summary>
-        IItemDropHandler GetDropHandler();
+        IDropProcessor GetDropHandler();
 
         /// <summary>
         /// Called when this target becomes active (top of the target stack).

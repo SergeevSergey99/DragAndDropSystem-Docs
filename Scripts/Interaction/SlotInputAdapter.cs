@@ -125,12 +125,12 @@ namespace DragAndDropSystem.Interaction
 
         public ISlot GetTargetSlot() => _slot;
 
-        public IItemDropHandler GetDropHandler()
+        public IDropProcessor GetDropHandler()
         {
             System.Func<InventorySwapContext, bool> swapAttempting = DragAndDropManager.Instance.RaiseSwapAttempting;
             System.Action<InventorySwapContext> swapCompleted = DragAndDropManager.Instance.RaiseSwapCompleted;
 
-            return new InventoryDropHandler(
+            return new InventoryDropProcessor(
                 _slot,
                 _slot?.Inventory,
                 DragAndDropManager.Instance.GlobalRules,

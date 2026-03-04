@@ -40,7 +40,7 @@ namespace DragAndDropSystem
         private DragContext _currentContext;
         private ISlot _hoveredSlot;
         private IInventory _hoveredInventory;
-        private IItemDropHandler _currentHandler;
+        private IDropProcessor _currentProcessor;
         private GlobalRuleValidator _globalRules = new GlobalRuleValidator();
         private IDragVisual _currentVisual;
 
@@ -55,11 +55,11 @@ namespace DragAndDropSystem
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
-        public bool HasActiveDropTarget => _currentHandler != null || _hoveredInventory != null || _dropTargetStack.Count > 0;
+        public bool HasActiveDropTarget => _currentProcessor != null || _hoveredInventory != null || _dropTargetStack.Count > 0;
         public bool HasActiveSlotDropTarget => _hoveredSlot != null;
         public UniversalInventory HoveredInventory => _hoveredInventory as UniversalInventory;
 
-        // Exposed for IItemDropHandler implementations
+        // Exposed for IDropProcessor implementations
         public GlobalRuleValidator GlobalRules => _globalRules;
         public InventoryTransferService TransferService => _transferService;
 
@@ -302,7 +302,7 @@ namespace DragAndDropSystem
             }
 
             _hoveredInventory = inventory;
-            var handler = new InventoryDropHandler(
+            var handler = new InventoryDropProcessor(
                 slot,
                 inventory,
                 _globalRules,
@@ -330,19 +330,19 @@ namespace DragAndDropSystem
 
             _hoveredSlot = null;
             _hoveredInventory = null;
-            _currentHandler = null;
+            _currentProcessor = null;
             _currentContext?.ClearTarget();
         }
 
         /// <summary>
-        /// Set hovered slot using the drop handler for validation.
+        /// Set hovered slot using the drop processor for validation.
         /// </summary>
-        private void SetHoveredSlotWithHandler(ISlot slot, IItemDropHandler handler)
+        private void SetHoveredSlotWithHandler(ISlot slot, IDropProcessor processor)
         {
             if (!IsDragging)
                 return;
 
-            if (_hoveredSlot == slot && _currentHandler == handler)
+            if (_hoveredSlot == slot && _currentProcessor == processor)
                 return;
 
             if (_hoveredSlot is UniversalSlot previousSlot)
@@ -351,15 +351,15 @@ namespace DragAndDropSystem
             }
 
             _hoveredSlot = slot;
-            _currentHandler = handler;
+            _currentProcessor = processor;
 
-            if (handler == null)
+            if (processor == null)
             {
                 Extentions.DragAndDropLog("<color=red>SetHoveredSlotWithHandler: Handler is null!</color>");
                 return;
             }
 
-            bool canDrop = handler.CanAcceptDrop(_currentContext);
+            bool canDrop = processor.CanAcceptDrop(_currentContext);
             if (canDrop && slot is UniversalSlot universalSlot)
             {
                 universalSlot.Highlight(true);
@@ -450,16 +450,16 @@ namespace DragAndDropSystem
                 var slot = top.GetTargetSlot();
                 var handler = top.GetDropHandler();
 
-                // Store the handler
-                _currentHandler = handler;
+                // Store the processor
+                _currentProcessor = handler;
 
-                // Update hovered slot and validate via handler
+                // Update hovered slot and validate via processor
                 SetHoveredSlotWithHandler(slot, handler);
 
                 // Activate visual target
                 top.OnBecomeActiveTarget();
 
-                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, handler={handler?.GetType().Name}</color>");
+                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, processor={handler?.GetType().Name}</color>");
             }
             else
             {
@@ -470,7 +470,7 @@ namespace DragAndDropSystem
                 }
                 _hoveredSlot = null;
                 _hoveredInventory = null;
-                _currentHandler = null;
+                _currentProcessor = null;
                 _currentContext?.ClearTarget();
 
                 Extentions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared hovered</color>");
@@ -487,13 +487,13 @@ namespace DragAndDropSystem
 
             bool success = false;
             DropResult result = default;
-            IItemDropHandler handlerToUse = _currentHandler;
+            IDropProcessor processorToUse = _currentProcessor;
 
-            // Fallback: for legacy hover path, wrap inventory target into handler so
+            // Fallback: for legacy hover path, wrap inventory target into processor so
             // both paths use the same planner/executor pipeline.
-            if (handlerToUse == null && _hoveredInventory != null)
+            if (processorToUse == null && _hoveredInventory != null)
             {
-                handlerToUse = new InventoryDropHandler(
+                processorToUse = new InventoryDropProcessor(
                     _hoveredSlot,
                     _hoveredInventory,
                     _globalRules,
@@ -503,15 +503,15 @@ namespace DragAndDropSystem
                     swapCompleted: RaiseSwapCompleted);
             }
 
-            if (handlerToUse != null)
+            if (processorToUse != null)
             {
                 OnDropAttempting?.Invoke(_currentContext);
 
-                bool canDrop = handlerToUse.CanAcceptDrop(_currentContext);
+                bool canDrop = processorToUse.CanAcceptDrop(_currentContext);
 
                 if (canDrop)
                 {
-                    result = handlerToUse.HandleDrop(_currentContext);
+                    result = processorToUse.ProcessDrop(_currentContext);
                     success = result.Success;
 
                     if (success)
@@ -526,7 +526,7 @@ namespace DragAndDropSystem
                     }
                     else
                     {
-                        Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.HandleDrop failed: {result.FailureReason}</color>");
+                        Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.ProcessDrop failed: {result.FailureReason}</color>");
                     }
                 }
                 else
@@ -578,7 +578,7 @@ namespace DragAndDropSystem
             _currentContext = null;
             _hoveredSlot = null;
             _hoveredInventory = null;
-            _currentHandler = null;
+            _currentProcessor = null;
         }
 
         private void Update()

@@ -47,7 +47,7 @@ namespace DragAndDropSystem.Core
 
         /// <summary>
         /// True if we have any target (slot or inventory).
-        /// For world drops, both may be null - use handler-based validation instead.
+        /// For world drops, both may be null - use processor-based validation instead.
         /// </summary>
         public bool HasTarget => TargetSlot != null || TargetInventory != null;
 

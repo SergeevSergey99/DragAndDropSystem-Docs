@@ -88,7 +88,7 @@ namespace DragAndDropSystem.Inventories
             if (targetInventory == null)
                 return DropResult.Failed("Auto-transfer target inventory is null");
 
-            var handler = new InventoryDropHandler(
+            var handler = new InventoryDropProcessor(
                 targetSlot: null,
                 targetInventory: targetInventory,
                 globalRules: globalRules,
@@ -100,7 +100,7 @@ namespace DragAndDropSystem.Inventories
             if (!handler.CanAcceptDrop(context))
                 return DropResult.Failed("Auto-transfer plan rejected");
 
-            return handler.HandleDrop(context);
+            return handler.ProcessDrop(context);
         }
     }
 }

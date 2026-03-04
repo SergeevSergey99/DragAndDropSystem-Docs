@@ -10,10 +10,10 @@ namespace DragAndDropSystem.World3D
     /// UI area for dropping items into the 3D world.
     /// Not bound to an inventory - simply spawns a prefab at the specified point
     /// and removes the item from the source inventory.
-    /// Implements IItemDropHandler directly (no fake inventory wrapper needed).
+    /// Implements IDropProcessor directly (no fake inventory wrapper needed).
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class WorldDropZone : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget, IItemDropHandler
+    public class WorldDropZone : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget, IDropProcessor
     {
         private DragAndDropManager _dragManager => DragAndDropManager.Instance;
 
@@ -122,9 +122,9 @@ namespace DragAndDropSystem.World3D
             return null;
         }
 
-        public IItemDropHandler GetDropHandler()
+        public IDropProcessor GetDropHandler()
         {
-            // WorldDropZone IS the handler - return this
+            // WorldDropZone IS the processor - return this
             return this;
         }
 
@@ -140,7 +140,7 @@ namespace DragAndDropSystem.World3D
             HighlightArea(false, true);
         }
 
-        // ===== IItemDropHandler Implementation =====
+        // ===== IDropProcessor Implementation =====
 
         public bool CanAcceptDrop(DragContext context)
         {
@@ -164,7 +164,7 @@ namespace DragAndDropSystem.World3D
             return true;
         }
 
-        public DropResult HandleDrop(DragContext context)
+        public DropResult ProcessDrop(DragContext context)
         {
             if (context == null || context.Entries.Count == 0)
             {
@@ -214,7 +214,7 @@ namespace DragAndDropSystem.World3D
 
         /// <summary>
         /// Spawn item in world.
-        /// Called from HandleDrop.
+        /// Called from ProcessDrop.
         /// </summary>
         private bool SpawnItemInWorld(ItemStack stack)
         {
