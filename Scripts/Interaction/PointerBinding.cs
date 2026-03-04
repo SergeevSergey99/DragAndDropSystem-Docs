@@ -97,11 +97,4 @@ namespace DragAndDropSystem.Interaction
         Submit = 0,
         Cancel = 1
     }
-
-    public enum BindingMergeMode
-    {
-        LocalOnly = 0,
-        ProfileOnly = 1,
-        LocalThenProfile = 2
-    }
 }

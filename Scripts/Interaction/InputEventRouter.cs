@@ -48,8 +48,7 @@ namespace DragAndDropSystem.Interaction
 
             var inventory = extraBinder.Inventory;
             _overridesByInventory[inventory] = extraBinder;
-
-            extraBinder.RebuildResolvedBindings(DefaultBindingsProfile);
+            
             RebindExtraInputActions(inventory, extraBinder);
         }
 
@@ -219,9 +218,9 @@ namespace DragAndDropSystem.Interaction
             PointerEventData eventData,
             bool dragOnly)
         {
-            var bindings = ResolvePointerBindings(inventory, out bool useBindings);
-            if (!useBindings || eventData == null)
-                return;
+            if (eventData == null) return;
+            
+            var bindings = ResolvePointerBindings(inventory);
 
             if (!dragOnly && adapter?.Slot == null)
                 return;
@@ -251,9 +250,7 @@ namespace DragAndDropSystem.Interaction
             SlotInputAdapter adapter,
             NavigationEventType eventType)
         {
-            var bindings = ResolveNavigationBindings(inventory, out bool useBindings);
-            if (!useBindings)
-                return;
+            var bindings = ResolveNavigationBindings(inventory);
 
             if (DragAndDropManager.Instance.IsDragging && eventType != NavigationEventType.Cancel)
                 return;
@@ -278,9 +275,7 @@ namespace DragAndDropSystem.Interaction
             if (inventory == null)
                 return;
 
-            var bindings = ResolveInputActionBindings(inventory, out bool useBindings);
-            if (!useBindings)
-                return;
+            var bindings = ResolveInputActionBindings(inventory);
 
             var action = context.action;
             if (action == null)
@@ -307,13 +302,8 @@ namespace DragAndDropSystem.Interaction
         private void RebindExtraInputActions(UniversalInventory inventory, InventoryExtraInteractionBinder binder)
         {
             UnbindExtraInputActions(inventory);
-
-            if (binder == null)
-                return;
-
-            binder.RebuildResolvedBindings(DefaultBindingsProfile);
-            if (!binder.UseInputActionBindingsResolved)
-                return;
+            
+            if (binder == null) return;
 
             var bindings = binder.InputActionBindingsResolved;
             var subs = new List<InputActionSubscription>();
@@ -353,54 +343,36 @@ namespace DragAndDropSystem.Interaction
             _actionSubscriptionsByInventory.Remove(inventory);
         }
 
-        private IReadOnlyList<PointerBinding> ResolvePointerBindings(
-            UniversalInventory inventory,
-            out bool useBindings)
+        private IReadOnlyList<PointerBinding> ResolvePointerBindings(UniversalInventory inventory)
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
-                overrideBinder.RebuildResolvedBindings(DefaultBindingsProfile);
-                useBindings = overrideBinder.UsePointerBindingsResolved;
                 return overrideBinder.PointerBindingsResolved;
             }
-
-            useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UsePointerBindings;
             
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.PointerBindings
                 : Array.Empty<PointerBinding>();
         }
 
-        private IReadOnlyList<NavigationBinding> ResolveNavigationBindings(
-            UniversalInventory inventory,
-            out bool useBindings)
+        private IReadOnlyList<NavigationBinding> ResolveNavigationBindings(UniversalInventory inventory)
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
-                overrideBinder.RebuildResolvedBindings(DefaultBindingsProfile);
-                useBindings = overrideBinder.UseNavigationBindingsResolved;
                 return overrideBinder.NavigationBindingsResolved;
             }
-
-            useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UseNavigationBindings;
             
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.NavigationBindings
                 : Array.Empty<NavigationBinding>();
         }
 
-        private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(
-            UniversalInventory inventory,
-            out bool useBindings)
+        private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(UniversalInventory inventory)
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
-                overrideBinder.RebuildResolvedBindings(DefaultBindingsProfile);
-                useBindings = overrideBinder.UseInputActionBindingsResolved;
                 return overrideBinder.InputActionBindingsResolved;
             }
-
-            useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UseInputActionBindings;
             
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.InputActionBindings
