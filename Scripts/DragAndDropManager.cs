@@ -6,10 +6,7 @@ using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.UI;
-using Reflex.Attributes;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 using Extentions = DragAndDropSystem.Tools.Extentions;
 
 namespace DragAndDropSystem
@@ -18,12 +15,8 @@ namespace DragAndDropSystem
     /// Новое поколение менеджера drag-and-drop
     /// Работает через композицию, правила и стратегии
     /// </summary>
-
-#if ENABLE_REFLEX_DI
-    public class DragAndDropManager : MonoBehaviour
-#else
+    [DisallowMultipleComponent]
     public class DragAndDropManager : MonoSingleton<DragAndDropManager>
-#endif
     {
         [Header("Visual")]
         [SerializeField] private Canvas _canvas;
@@ -93,9 +86,9 @@ namespace DragAndDropSystem
         public event Action<InventorySwapContext> OnSwapAttempting;
         public event Action<InventorySwapContext> OnSwapCompleted;
 
-        [Inject]
-        private void Initialize()
+        protected override void Init()
         {
+            base.Init();
             _canvas.worldCamera = Camera.main;
 
             // Добавляем базовые правила

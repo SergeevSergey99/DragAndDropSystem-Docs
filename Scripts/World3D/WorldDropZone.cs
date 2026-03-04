@@ -1,9 +1,6 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
-#if ENABLE_REFLEX_DI
-using Reflex.Attributes;
-#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -18,11 +15,7 @@ namespace DragAndDropSystem.World3D
     [RequireComponent(typeof(RectTransform))]
     public class WorldDropZone : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget, IItemDropHandler
     {
-#if ENABLE_REFLEX_DI
-        [Inject] private DragAndDropManager _dragManager;
-#else
         private DragAndDropManager _dragManager => DragAndDropManager.Instance;
-#endif
 
         [Header("Spawn Settings")]
         [SerializeField, Tooltip("Точка спавна предметов в мире")]
@@ -91,9 +84,7 @@ namespace DragAndDropSystem.World3D
 
         private void OnDisable()
         {
-#if !ENABLE_REFLEX_DI
             if (!DragAndDropManager.IsInstanceExist) return;
-#endif
             // Удаляем себя из стека при отключении
             if (_dragManager != null && _dragManager.IsDragging)
             {

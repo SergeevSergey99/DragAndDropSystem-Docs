@@ -9,13 +9,13 @@ using UnityEngine.InputSystem;
 namespace DragAndDropSystem.Interaction
 {
     [DisallowMultipleComponent]
-    public class InventoryInteractionCoordinator : MonoBehaviour
+    public class InventoryExtraInteractionBinder : MonoBehaviour
     {
         [SerializeField] private UniversalInventory _inventory;
 
         [Header("Profile")]
         [SerializeField] private bool _useGlobalBindingsProfile = true;
-        [SerializeField] private InventoryInteractionBindingsProfile _bindingsProfile;
+        [SerializeField] private InteractionBindingsProfile _bindingsProfile;
 
         [Header("Pointer")]
         [SerializeField] private bool _usePointerBindings = true;
@@ -64,16 +64,16 @@ namespace DragAndDropSystem.Interaction
 
         private void OnEnable()
         {
-            InputEventRouter.Instance.RegisterCoordinator(this);
+            InputEventRouter.Instance.RegisterExtraBinder(this);
         }
 
         private void OnDisable()
         {
             if (InputEventRouter.IsInstanceExist)
-                InputEventRouter.Instance.UnregisterCoordinator(this);
+                InputEventRouter.Instance.UnregisterExtraBinder(this);
         }
 
-        public void RebuildResolvedBindings(InventoryInteractionBindingsProfile globalProfile)
+        public void RebuildResolvedBindings(InteractionBindingsProfile globalProfile)
         {
             _resolvedPointerBindings.Clear();
             _resolvedNavigationBindings.Clear();
@@ -97,7 +97,7 @@ namespace DragAndDropSystem.Interaction
             AppendValidBindings(_inputActionBindings, _resolvedInputActionBindings);
         }
 
-        private InventoryInteractionBindingsProfile ResolveProfile(InventoryInteractionBindingsProfile globalProfile)
+        private InteractionBindingsProfile ResolveProfile(InteractionBindingsProfile globalProfile)
         {
             if (_bindingsProfile != null)
                 return _bindingsProfile;

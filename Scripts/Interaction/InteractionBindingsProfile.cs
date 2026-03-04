@@ -5,9 +5,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Interaction
 {
     [CreateAssetMenu(
-        fileName = "InventoryInteractionBindingsProfile",
+        fileName = "InteractionBindingsProfile",
         menuName = "DragAndDropSystem/Interaction/Bindings Profile")]
-    public sealed class InventoryInteractionBindingsProfile : ScriptableObject
+    public sealed class InteractionBindingsProfile : ScriptableObject
     {
         [SerializeField] private bool _usePointerBindings = true;
         [ShowIf(nameof(_usePointerBindings))]

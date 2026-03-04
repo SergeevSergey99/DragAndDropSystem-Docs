@@ -1,63 +1,39 @@
 using System;
 using System.Collections.Generic;
+using CodeUtils;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace DragAndDropSystem.Interaction
 {
     [DisallowMultipleComponent]
-    public class InputEventRouter : MonoBehaviour
+    public class InputEventRouter : MonoSingleton<InputEventRouter>
     {
-        private static InputEventRouter _instance;
+        [field: SerializeField] 
+        public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
-        [SerializeField] private InventoryInteractionBindingsProfile _defaultBindingsProfile;
+        // Словарь для переопределения привязок на уровне конкретного инвентаря (например, для разных UI или режимов работы)
+        private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
+        // Словарь для хранения runtime-состояния (наведенный слот, источник фокуса, нажатые кнопки и т.д.) для каждого инвентаря
+        private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
+        // Словарь для хранения подписок на InputAction для каждого инвентаря, чтобы можно было отписаться при необходимости
+        private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
 
-        private readonly Dictionary<UniversalInventory, InventoryInteractionCoordinator> _overridesByInventory =
-            new Dictionary<UniversalInventory, InventoryInteractionCoordinator>();
-
-        private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory =
-            new Dictionary<UniversalInventory, RuntimeState>();
-
-        private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory =
-            new Dictionary<UniversalInventory, List<InputActionSubscription>>();
-
-        private readonly HashSet<IntentDedupKey> _handledThisFrame = new HashSet<IntentDedupKey>();
-        private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame =
-            new HashSet<PointerEventData.InputButton>();
+        // Набор для дедупликации вызовов действий в рамках одного кадра, чтобы избежать повторного срабатывания при нескольких событиях (например, PointerDown + InputAction)
+        private readonly HashSet<IntentDedupKey> _handledThisFrame = new();
+        // Набор для отслеживания, какие кнопки мыши уже были обработаны в рамках глобального PointerUp во время перетаскивания, чтобы не обрабатывать их несколько раз
+        private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame = new ();
+        // Временный список для очистки словарей от невалидных (уничтоженных) инвентарей
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
 
-        public static bool IsInstanceExist => _instance != null;
-        public InventoryInteractionBindingsProfile DefaultBindingsProfile => _defaultBindingsProfile;
-
-        public static InputEventRouter Instance
+        private void Update()
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = FindFirstObjectByType<InputEventRouter>();
-                    if (_instance == null)
-                    {
-                        var go = new GameObject(nameof(InputEventRouter));
-                        _instance = go.AddComponent<InputEventRouter>();
-                    }
-                }
-
-                return _instance;
-            }
+            ProcessGlobalPointerUpsWhileDragging();
         }
-
-        private void Awake()
-        {
-            if (_instance == null)
-                _instance = this;
-            else if (_instance != this)
-                Destroy(gameObject);
-        }
-
         private void LateUpdate()
         {
             _handledThisFrame.Clear();
@@ -65,30 +41,25 @@ namespace DragAndDropSystem.Interaction
             CleanupStaleInventories();
         }
 
-        private void Update()
+        public void RegisterExtraBinder(InventoryExtraInteractionBinder extraBinder)
         {
-            ProcessGlobalPointerUpsWhileDragging();
-        }
-
-        public void RegisterCoordinator(InventoryInteractionCoordinator coordinator)
-        {
-            if (coordinator == null || coordinator.Inventory == null)
+            if (extraBinder == null || extraBinder.Inventory == null)
                 return;
 
-            var inventory = coordinator.Inventory;
-            _overridesByInventory[inventory] = coordinator;
+            var inventory = extraBinder.Inventory;
+            _overridesByInventory[inventory] = extraBinder;
 
-            coordinator.RebuildResolvedBindings(_defaultBindingsProfile);
-            RebindCoordinatorInputActions(inventory, coordinator);
+            extraBinder.RebuildResolvedBindings(DefaultBindingsProfile);
+            RebindCoordinatorInputActions(inventory, extraBinder);
         }
 
-        public void UnregisterCoordinator(InventoryInteractionCoordinator coordinator)
+        public void UnregisterExtraBinder(InventoryExtraInteractionBinder extraBinder)
         {
-            if (coordinator == null || coordinator.Inventory == null)
+            if (extraBinder == null || extraBinder.Inventory == null)
                 return;
 
-            var inventory = coordinator.Inventory;
-            if (_overridesByInventory.TryGetValue(inventory, out var existing) && existing == coordinator)
+            var inventory = extraBinder.Inventory;
+            if (_overridesByInventory.TryGetValue(inventory, out var existing) && existing == extraBinder)
                 _overridesByInventory.Remove(inventory);
 
             UnbindCoordinatorInputActions(inventory);
@@ -333,18 +304,18 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        private void RebindCoordinatorInputActions(UniversalInventory inventory, InventoryInteractionCoordinator coordinator)
+        private void RebindCoordinatorInputActions(UniversalInventory inventory, InventoryExtraInteractionBinder binder)
         {
             UnbindCoordinatorInputActions(inventory);
 
-            if (coordinator == null)
+            if (binder == null)
                 return;
 
-            coordinator.RebuildResolvedBindings(_defaultBindingsProfile);
-            if (!coordinator.UseInputActionBindingsResolved)
+            binder.RebuildResolvedBindings(DefaultBindingsProfile);
+            if (!binder.UseInputActionBindingsResolved)
                 return;
 
-            var bindings = coordinator.InputActionBindingsResolved;
+            var bindings = binder.InputActionBindingsResolved;
             var subs = new List<InputActionSubscription>();
             _actionSubscriptionsByInventory[inventory] = subs;
 
@@ -388,15 +359,15 @@ namespace DragAndDropSystem.Interaction
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
             {
-                overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+                overrideCoordinator.RebuildResolvedBindings(DefaultBindingsProfile);
                 useBindings = overrideCoordinator.UsePointerBindingsResolved;
                 return overrideCoordinator.PointerBindingsResolved;
             }
 
-            useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UsePointerBindings;
+            useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UsePointerBindings;
             
-            return _defaultBindingsProfile != null
-                ? _defaultBindingsProfile.PointerBindings
+            return DefaultBindingsProfile != null
+                ? DefaultBindingsProfile.PointerBindings
                 : Array.Empty<PointerBinding>();
         }
 
@@ -406,15 +377,15 @@ namespace DragAndDropSystem.Interaction
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
             {
-                overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+                overrideCoordinator.RebuildResolvedBindings(DefaultBindingsProfile);
                 useBindings = overrideCoordinator.UseNavigationBindingsResolved;
                 return overrideCoordinator.NavigationBindingsResolved;
             }
 
-            useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UseNavigationBindings;
+            useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UseNavigationBindings;
             
-            return _defaultBindingsProfile != null
-                ? _defaultBindingsProfile.NavigationBindings
+            return DefaultBindingsProfile != null
+                ? DefaultBindingsProfile.NavigationBindings
                 : Array.Empty<NavigationBinding>();
         }
 
@@ -424,15 +395,15 @@ namespace DragAndDropSystem.Interaction
         {
             if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
             {
-                overrideCoordinator.RebuildResolvedBindings(_defaultBindingsProfile);
+                overrideCoordinator.RebuildResolvedBindings(DefaultBindingsProfile);
                 useBindings = overrideCoordinator.UseInputActionBindingsResolved;
                 return overrideCoordinator.InputActionBindingsResolved;
             }
 
-            useBindings = _defaultBindingsProfile != null && _defaultBindingsProfile.UseInputActionBindings;
+            useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UseInputActionBindings;
             
-            return _defaultBindingsProfile != null
-                ? _defaultBindingsProfile.InputActionBindings
+            return DefaultBindingsProfile != null
+                ? DefaultBindingsProfile.InputActionBindings
                 : Array.Empty<InputActionBinding>();
         }
 

@@ -11,6 +11,7 @@ namespace DragAndDropSystem.Selection
     /// Синглтон, управляющий состоянием выделения слотов.
     /// Внутри работает с мутабельными структурами, наружу отдаёт только неизменяемый SelectionContext.
     /// </summary>
+    [DisallowMultipleComponent]
     public class SelectionManager : MonoSingleton<SelectionManager>
     {
         // Внутреннее мутабельное состояние

@@ -1,9 +1,6 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Tools;
-#if ENABLE_REFLEX_DI
-using Reflex.Attributes;
-#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -11,11 +8,7 @@ namespace DragAndDropSystem.Slots
 {
     public class DragDropEventListener : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IPointerEnterHandler, IPointerExitHandler, IDropTarget
     {
-#if ENABLE_REFLEX_DI
-        [Inject] private DragAndDropManager _dragManager;
-#else
         private DragAndDropManager _dragManager => DragAndDropManager.Instance;
-#endif
         [SerializeField] private UniversalSlot _slot;
 
         public UniversalSlot Slot => _slot;
@@ -37,10 +30,8 @@ namespace DragAndDropSystem.Slots
             _pointerDownForDrag = false;
 
             // Удаляем себя из стека drop targets если находимся в процессе драга
-            
-#if !ENABLE_REFLEX_DI
             if (!DragAndDropManager.IsInstanceExist) return;
-#endif
+            
             if (_dragManager != null && _dragManager.IsDragging)
             {
                 _dragManager.PopDropTarget(this);

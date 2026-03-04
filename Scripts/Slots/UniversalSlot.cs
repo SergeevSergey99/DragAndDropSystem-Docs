@@ -2,9 +2,6 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Tools;
-#if ENABLE_REFLEX_DI
-using Reflex.Attributes;
-#endif
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;

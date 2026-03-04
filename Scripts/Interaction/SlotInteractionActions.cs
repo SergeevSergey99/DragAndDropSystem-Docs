@@ -18,12 +18,6 @@ namespace DragAndDropSystem.Interaction
 
         public virtual ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => ActionResult.Failed("Action is not implemented");
-
-        public virtual bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
-            => CanExecute(
-                coordinator != null ? coordinator.Inventory : adapter?.Slot?.Inventory as UniversalInventory,
-                adapter,
-                eventData);
     }
 
     [Serializable]
@@ -177,24 +171,11 @@ namespace DragAndDropSystem.Interaction
     {
         [SerializeReference] private SelectionOperationBase _operation;
 
-        public SelectionSlotAction()
-        {
-        }
+        public SelectionSlotAction() {}
 
         public SelectionSlotAction(SelectionOperationBase operation)
         {
             _operation = operation;
-        }
-
-        public override bool CanExecute(InventoryInteractionCoordinator coordinator, SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (_operation == null)
-                return false;
-
-            if (!SelectionManager.IsInstanceExist)
-                return false;
-
-            return _operation.CanExecute(SelectionManager.Instance, adapter?.Slot);
         }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)

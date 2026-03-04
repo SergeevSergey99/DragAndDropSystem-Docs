@@ -6,10 +6,6 @@ using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
-#if ENABLE_REFLEX_DI
-using Reflex.Attributes;
-using Reflex.Core;
-#endif
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -23,9 +19,6 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider
     {
-#if ENABLE_REFLEX_DI
-        [Inject] Container _container;
-#endif
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Контейнер для слотов")]
         private Transform _slotContainer;
@@ -268,21 +261,17 @@ namespace DragAndDropSystem.Inventories
 
             if (_slotPrefab == null)
             {
-                Debug.LogError($"[{name}] CreateSlot: _slotPrefab is NULL!");
+                Extentions.DragAndDropLog($"[{name}] CreateSlot: _slotPrefab is NULL!");
                 return null;
             }
 
             if (_slotContainer == null)
             {
-                Debug.LogError($"[{name}] CreateSlot: _slotContainer is NULL!");
+                Extentions.DragAndDropLog($"[{name}] CreateSlot: _slotContainer is NULL!");
                 return null;
             }
 
-#if ENABLE_REFLEX_DI
-            var slotGO = _container.Instantiate(_slotPrefab, _slotContainer);
-#else
             var slotGO = Instantiate(_slotPrefab, _slotContainer);
-#endif
             slotGO.Initialize(_slots.Count, this);
             _slots.Add(slotGO);
 
