@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Core
         /// Get the drop processor responsible for validating and executing drops on this target.
         /// The processor encapsulates all drop logic, including validation and item transfer.
         /// </summary>
-        IDropProcessor GetDropHandler();
+        IDropProcessor GetDropProcessor();
 
         /// <summary>
         /// Called when this target becomes active (top of the target stack).

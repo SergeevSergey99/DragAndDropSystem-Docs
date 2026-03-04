@@ -184,7 +184,7 @@ namespace DragAndDropSystem.Slots
 
         public ISlot GetTargetSlot() => _slot;
 
-        public IDropProcessor GetDropHandler()
+        public IDropProcessor GetDropProcessor()
         {
             System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
                 ? _dragManager.RaiseSwapAttempting

@@ -125,7 +125,7 @@ namespace DragAndDropSystem.Interaction
 
         public ISlot GetTargetSlot() => _slot;
 
-        public IDropProcessor GetDropHandler()
+        public IDropProcessor GetDropProcessor()
         {
             System.Func<InventorySwapContext, bool> swapAttempting = DragAndDropManager.Instance.RaiseSwapAttempting;
             System.Action<InventorySwapContext> swapCompleted = DragAndDropManager.Instance.RaiseSwapCompleted;

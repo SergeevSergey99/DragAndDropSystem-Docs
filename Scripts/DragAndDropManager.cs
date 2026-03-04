@@ -353,7 +353,7 @@ namespace DragAndDropSystem
             {
                 var top = _dropTargetStack[_dropTargetStack.Count - 1];
                 var slot = top.GetTargetSlot();
-                var processor = top.GetDropHandler();
+                var processor = top.GetDropProcessor();
 
                 // Keep drag enter/exit events bound to active slot-like target transitions.
                 if (_activeDropTarget != null && !ReferenceEquals(_activeDropTarget, top))

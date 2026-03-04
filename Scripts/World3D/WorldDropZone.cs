@@ -122,7 +122,7 @@ namespace DragAndDropSystem.World3D
             return null;
         }
 
-        public IDropProcessor GetDropHandler()
+        public IDropProcessor GetDropProcessor()
         {
             // WorldDropZone IS the processor - return this
             return this;
