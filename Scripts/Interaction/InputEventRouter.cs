@@ -50,7 +50,7 @@ namespace DragAndDropSystem.Interaction
             _overridesByInventory[inventory] = extraBinder;
 
             extraBinder.RebuildResolvedBindings(DefaultBindingsProfile);
-            RebindCoordinatorInputActions(inventory, extraBinder);
+            RebindExtraInputActions(inventory, extraBinder);
         }
 
         public void UnregisterExtraBinder(InventoryExtraInteractionBinder extraBinder)
@@ -62,7 +62,7 @@ namespace DragAndDropSystem.Interaction
             if (_overridesByInventory.TryGetValue(inventory, out var existing) && existing == extraBinder)
                 _overridesByInventory.Remove(inventory);
 
-            UnbindCoordinatorInputActions(inventory);
+            UnbindExtraInputActions(inventory);
         }
 
         public bool TryRouteInventoryAction(
@@ -273,7 +273,7 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        private void HandleCoordinatorInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
+        private void HandleExtraInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
         {
             if (inventory == null)
                 return;
@@ -304,9 +304,9 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        private void RebindCoordinatorInputActions(UniversalInventory inventory, InventoryExtraInteractionBinder binder)
+        private void RebindExtraInputActions(UniversalInventory inventory, InventoryExtraInteractionBinder binder)
         {
-            UnbindCoordinatorInputActions(inventory);
+            UnbindExtraInputActions(inventory);
 
             if (binder == null)
                 return;
@@ -329,13 +329,13 @@ namespace DragAndDropSystem.Interaction
                 if (inputAction == null)
                     continue;
 
-                Action<InputAction.CallbackContext> handler = ctx => HandleCoordinatorInputAction(inventory, ctx);
+                Action<InputAction.CallbackContext> handler = ctx => HandleExtraInputAction(inventory, ctx);
                 inputAction.performed += handler;
                 subs.Add(new InputActionSubscription(inputAction, handler));
             }
         }
 
-        private void UnbindCoordinatorInputActions(UniversalInventory inventory)
+        private void UnbindExtraInputActions(UniversalInventory inventory)
         {
             if (inventory == null)
                 return;
@@ -357,11 +357,11 @@ namespace DragAndDropSystem.Interaction
             UniversalInventory inventory,
             out bool useBindings)
         {
-            if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
+            if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
-                overrideCoordinator.RebuildResolvedBindings(DefaultBindingsProfile);
-                useBindings = overrideCoordinator.UsePointerBindingsResolved;
-                return overrideCoordinator.PointerBindingsResolved;
+                overrideBinder.RebuildResolvedBindings(DefaultBindingsProfile);
+                useBindings = overrideBinder.UsePointerBindingsResolved;
+                return overrideBinder.PointerBindingsResolved;
             }
 
             useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UsePointerBindings;
@@ -375,11 +375,11 @@ namespace DragAndDropSystem.Interaction
             UniversalInventory inventory,
             out bool useBindings)
         {
-            if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
+            if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
-                overrideCoordinator.RebuildResolvedBindings(DefaultBindingsProfile);
-                useBindings = overrideCoordinator.UseNavigationBindingsResolved;
-                return overrideCoordinator.NavigationBindingsResolved;
+                overrideBinder.RebuildResolvedBindings(DefaultBindingsProfile);
+                useBindings = overrideBinder.UseNavigationBindingsResolved;
+                return overrideBinder.NavigationBindingsResolved;
             }
 
             useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UseNavigationBindings;
@@ -393,11 +393,11 @@ namespace DragAndDropSystem.Interaction
             UniversalInventory inventory,
             out bool useBindings)
         {
-            if (_overridesByInventory.TryGetValue(inventory, out var overrideCoordinator) && overrideCoordinator != null)
+            if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
-                overrideCoordinator.RebuildResolvedBindings(DefaultBindingsProfile);
-                useBindings = overrideCoordinator.UseInputActionBindingsResolved;
-                return overrideCoordinator.InputActionBindingsResolved;
+                overrideBinder.RebuildResolvedBindings(DefaultBindingsProfile);
+                useBindings = overrideBinder.UseInputActionBindingsResolved;
+                return overrideBinder.InputActionBindingsResolved;
             }
 
             useBindings = DefaultBindingsProfile != null && DefaultBindingsProfile.UseInputActionBindings;
