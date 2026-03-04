@@ -23,6 +23,7 @@ namespace DragAndDropSystem.Interaction
         public string Label => string.IsNullOrEmpty(_label)
             ? (_action != null ? _action.DisplayName : "InputAction Binding")
             : _label;
+        public TriggerPhaseEnum TriggerPhase => _triggerPhase;
 
         public bool IsValid() => _actionReference != null && _action != null;
 

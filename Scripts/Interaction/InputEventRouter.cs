@@ -320,7 +320,18 @@ namespace DragAndDropSystem.Interaction
                     continue;
 
                 Action<InputAction.CallbackContext> handler = ctx => HandleExtraInputAction(inventory, ctx);
-                inputAction.performed += handler;
+                switch (binding.TriggerPhase)
+                {
+                    case TriggerPhaseEnum.Started:
+                        inputAction.started += handler;
+                        break;
+                    case TriggerPhaseEnum.Performed:
+                        inputAction.performed += handler;
+                        break;
+                    case TriggerPhaseEnum.Canceled:
+                        inputAction.canceled += handler;
+                        break;
+                }
                 subs.Add(new InputActionSubscription(inputAction, handler));
             }
         }
