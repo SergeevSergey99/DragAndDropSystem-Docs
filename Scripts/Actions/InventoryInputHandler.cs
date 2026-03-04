@@ -167,13 +167,6 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        public enum TriggerPhaseEnum
-        {
-            Started,
-            Performed,
-            Canceled
-        }
-
         private readonly struct Subscription
         {
             public Subscription(InputAction action, Action<InputAction.CallbackContext> handler, TriggerPhaseEnum phase)

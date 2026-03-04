@@ -287,7 +287,7 @@ namespace DragAndDropSystem.Interaction
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
-                if (binding == null || !binding.IsValid() || !binding.Matches(action))
+                if (binding == null || !binding.IsValid() || !binding.Matches(context))
                     continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
