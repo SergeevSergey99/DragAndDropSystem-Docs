@@ -482,13 +482,6 @@ namespace DragAndDropSystem.Interaction
             if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
                 return false;
 
-            var hovered = DragAndDropManager.Instance.HoveredInventory;
-            if (hovered != null)
-            {
-                inventory = hovered;
-                return true;
-            }
-
             var context = DragAndDropManager.Instance.CurrentContext;
             if (context != null && context.Entries.Count > 0)
             {
@@ -537,13 +530,6 @@ namespace DragAndDropSystem.Interaction
 
             if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
                 return false;
-
-            var hovered = DragAndDropManager.Instance.HoveredInventory;
-            if (hovered != null)
-            {
-                inventory = hovered;
-                return true;
-            }
 
             var context = DragAndDropManager.Instance.CurrentContext;
             if (context != null && context.Entries.Count > 0)

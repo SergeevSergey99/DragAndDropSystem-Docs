@@ -38,8 +38,7 @@ namespace DragAndDropSystem
         private List<GameObject> _activeAnimationVisuals = new List<GameObject>();
 
         private DragContext _currentContext;
-        private ISlot _hoveredSlot;
-        private IInventory _hoveredInventory;
+        private IDropTarget _activeDropTarget;
         private IDropProcessor _currentProcessor;
         private GlobalRuleValidator _globalRules = new GlobalRuleValidator();
         private IDragVisual _currentVisual;
@@ -55,9 +54,8 @@ namespace DragAndDropSystem
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
-        public bool HasActiveDropTarget => _currentProcessor != null || _hoveredInventory != null || _dropTargetStack.Count > 0;
-        public bool HasActiveSlotDropTarget => _hoveredSlot != null;
-        public UniversalInventory HoveredInventory => _hoveredInventory as UniversalInventory;
+        public bool HasActiveDropTarget => _currentProcessor != null || _dropTargetStack.Count > 0;
+        public bool HasActiveSlotDropTarget => _activeDropTarget?.GetTargetSlot() != null;
 
         // Exposed for IDropProcessor implementations
         public GlobalRuleValidator GlobalRules => _globalRules;
@@ -276,99 +274,6 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Установить слот, над которым находится курсор
-        /// slot может быть null - это значит дроп в область инвентаря (не в конкретный слот)
-        /// </summary>
-        public void SetHoveredSlot(ISlot slot, IInventory inventory = null)
-        {
-            if (!IsDragging)
-                return;
-
-            if (slot == null && inventory == null)
-            {
-                Extentions.DragAndDropLog("<color=red>SetHoveredSlot: slot and inventory are both null!</color>");
-                return;
-            }
-
-            if (inventory == null && slot != null)
-            {
-                inventory = slot.Inventory;
-            }
-
-            if (inventory == null)
-            {
-                Extentions.DragAndDropLog("<color=red>SetHoveredSlot: Inventory not found!</color>");
-                return;
-            }
-
-            _hoveredInventory = inventory;
-            var handler = new InventoryDropProcessor(
-                slot,
-                inventory,
-                _globalRules,
-                _transferService,
-                policyOverride: null,
-                swapAttempting: RaiseSwapAttempting,
-                swapCompleted: RaiseSwapCompleted);
-            SetHoveredSlotWithHandler(slot, handler);
-        }
-
-        /// <summary>
-        /// Clear the hovered slot
-        /// </summary>
-        public void ClearHoveredSlot(ISlot slot)
-        {
-            if (_hoveredSlot != slot)
-                return;
-
-            if (slot is UniversalSlot universalSlot)
-            {
-                universalSlot.Highlight(false);
-            }
-
-            OnDragExitSlot?.Invoke(_currentContext);
-
-            _hoveredSlot = null;
-            _hoveredInventory = null;
-            _currentProcessor = null;
-            _currentContext?.ClearTarget();
-        }
-
-        /// <summary>
-        /// Set hovered slot using the drop processor for validation.
-        /// </summary>
-        private void SetHoveredSlotWithHandler(ISlot slot, IDropProcessor processor)
-        {
-            if (!IsDragging)
-                return;
-
-            if (_hoveredSlot == slot && _currentProcessor == processor)
-                return;
-
-            if (_hoveredSlot is UniversalSlot previousSlot)
-            {
-                previousSlot.Highlight(false);
-            }
-
-            _hoveredSlot = slot;
-            _currentProcessor = processor;
-
-            if (processor == null)
-            {
-                Extentions.DragAndDropLog("<color=red>SetHoveredSlotWithHandler: Handler is null!</color>");
-                return;
-            }
-
-            bool canDrop = processor.CanAcceptDrop(_currentContext);
-            if (canDrop && slot is UniversalSlot universalSlot)
-            {
-                universalSlot.Highlight(true);
-            }
-
-            OnDragEnterSlot?.Invoke(_currentContext);
-        }
-
-        /// <summary>
         /// Добавить цель в стек (вызывается при OnPointerEnter)
         /// Автоматически активирует новый верхний target
         /// </summary>
@@ -448,32 +353,37 @@ namespace DragAndDropSystem
             {
                 var top = _dropTargetStack[_dropTargetStack.Count - 1];
                 var slot = top.GetTargetSlot();
-                var handler = top.GetDropHandler();
+                var processor = top.GetDropHandler();
 
-                // Store the processor
-                _currentProcessor = handler;
+                // Keep drag enter/exit events bound to active slot-like target transitions.
+                if (_activeDropTarget != null && !ReferenceEquals(_activeDropTarget, top))
+                {
+                    OnDragExitSlot?.Invoke(_currentContext);
+                }
+                if (!ReferenceEquals(_activeDropTarget, top))
+                {
+                    OnDragEnterSlot?.Invoke(_currentContext);
+                }
 
-                // Update hovered slot and validate via processor
-                SetHoveredSlotWithHandler(slot, handler);
+                _activeDropTarget = top;
+                _currentProcessor = processor;
 
                 // Activate visual target
                 top.OnBecomeActiveTarget();
 
-                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, processor={handler?.GetType().Name}</color>");
+                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, processor={processor?.GetType().Name}</color>");
             }
             else
             {
-                // Stack empty - clear hovered
-                if (_hoveredSlot != null)
+                if (_activeDropTarget != null)
                 {
-                    ClearHoveredSlot(_hoveredSlot);
+                    OnDragExitSlot?.Invoke(_currentContext);
                 }
-                _hoveredSlot = null;
-                _hoveredInventory = null;
+                _activeDropTarget = null;
                 _currentProcessor = null;
                 _currentContext?.ClearTarget();
 
-                Extentions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared hovered</color>");
+                Extentions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared active target</color>");
             }
         }
 
@@ -488,20 +398,6 @@ namespace DragAndDropSystem
             bool success = false;
             DropResult result = default;
             IDropProcessor processorToUse = _currentProcessor;
-
-            // Fallback: for legacy hover path, wrap inventory target into processor so
-            // both paths use the same planner/executor pipeline.
-            if (processorToUse == null && _hoveredInventory != null)
-            {
-                processorToUse = new InventoryDropProcessor(
-                    _hoveredSlot,
-                    _hoveredInventory,
-                    _globalRules,
-                    _transferService,
-                    policyOverride: null,
-                    swapAttempting: RaiseSwapAttempting,
-                    swapCompleted: RaiseSwapCompleted);
-            }
 
             if (processorToUse != null)
             {
@@ -564,20 +460,19 @@ namespace DragAndDropSystem
             }
             _dropTargetStack.Clear();
 
-            if (_hoveredSlot is UniversalSlot hoveredSlot)
-            {
-                hoveredSlot.Highlight(false);
-            }
-
             if (_currentVisual != null)
             {
                 _currentVisual.Hide();
                 _currentVisual = null;
             }
 
+            if (_activeDropTarget != null)
+            {
+                OnDragExitSlot?.Invoke(_currentContext);
+            }
+
             _currentContext = null;
-            _hoveredSlot = null;
-            _hoveredInventory = null;
+            _activeDropTarget = null;
             _currentProcessor = null;
         }
 
