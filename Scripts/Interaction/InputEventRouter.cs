@@ -332,7 +332,7 @@ namespace DragAndDropSystem.Interaction
                         inputAction.canceled += handler;
                         break;
                 }
-                subs.Add(new InputActionSubscription(inputAction, handler));
+                subs.Add(new InputActionSubscription(inputAction, handler, binding.TriggerPhase));
             }
         }
 
@@ -347,8 +347,21 @@ namespace DragAndDropSystem.Interaction
             for (int i = 0; i < subs.Count; i++)
             {
                 var sub = subs[i];
-                if (sub.Action != null)
-                    sub.Action.performed -= sub.Handler;
+                if (sub.Action == null)
+                    continue;
+
+                switch (sub.Phase)
+                {
+                    case TriggerPhaseEnum.Started:
+                        sub.Action.started -= sub.Handler;
+                        break;
+                    case TriggerPhaseEnum.Performed:
+                        sub.Action.performed -= sub.Handler;
+                        break;
+                    case TriggerPhaseEnum.Canceled:
+                        sub.Action.canceled -= sub.Handler;
+                        break;
+                }
             }
 
             _actionSubscriptionsByInventory.Remove(inventory);
@@ -555,14 +568,16 @@ namespace DragAndDropSystem.Interaction
 
         private readonly struct InputActionSubscription
         {
-            public InputActionSubscription(InputAction action, Action<InputAction.CallbackContext> handler)
+            public InputActionSubscription(InputAction action, Action<InputAction.CallbackContext> handler, TriggerPhaseEnum phase)
             {
                 Action = action;
                 Handler = handler;
+                Phase = phase;
             }
 
             public InputAction Action { get; }
             public Action<InputAction.CallbackContext> Handler { get; }
+            public TriggerPhaseEnum Phase { get; }
         }
 
         private sealed class RuntimeState
