@@ -27,11 +27,35 @@ namespace DragAndDropSystem.Interaction
         private readonly List<NavigationBinding> _resolvedNavigationBindings = new();
         private readonly List<InputActionBinding> _resolvedInputActionBindings = new();
 
+        private bool _runtimeDirty = true;
+
         public UniversalInventory Inventory => _inventory;
 
-        public IReadOnlyList<PointerBinding> PointerBindingsResolved => _resolvedPointerBindings;
-        public IReadOnlyList<NavigationBinding> NavigationBindingsResolved => _resolvedNavigationBindings;
-        public IReadOnlyList<InputActionBinding> InputActionBindingsResolved => _resolvedInputActionBindings;
+        public IReadOnlyList<PointerBinding> PointerBindingsResolved
+        {
+            get
+            {
+                if (_runtimeDirty) RebuildResolvedBindings();
+                return _resolvedPointerBindings;
+            }
+        }
+
+        public IReadOnlyList<NavigationBinding> NavigationBindingsResolved
+        {
+            get
+            {
+                if (_runtimeDirty) RebuildResolvedBindings();
+                return _resolvedNavigationBindings;
+            }
+        }
+        public IReadOnlyList<InputActionBinding> InputActionBindingsResolved
+        {
+            get
+            {
+                if (_runtimeDirty) RebuildResolvedBindings();
+                return _resolvedInputActionBindings;
+            }
+        }
 
         private void Awake()
         {
@@ -49,6 +73,11 @@ namespace DragAndDropSystem.Interaction
         {
             if (InputEventRouter.IsInstanceExist)
                 InputEventRouter.Instance.UnregisterExtraBinder(this);
+        }
+
+        private void OnValidate()
+        {
+            _runtimeDirty = true;
         }
 
         private void RebuildResolvedBindings()
@@ -78,6 +107,7 @@ namespace DragAndDropSystem.Interaction
                     AppendValidBindings(globalProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
                 }
             }
+            _runtimeDirty = false;
         }
 
         private static void AppendValidBindings<TBinding>(IReadOnlyList<TBinding> source, List<TBinding> destination)
