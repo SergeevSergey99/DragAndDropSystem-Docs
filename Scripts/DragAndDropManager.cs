@@ -539,7 +539,8 @@ namespace DragAndDropSystem
                 _globalRules,
                 _transferService,
                 RaiseSwapAttempting,
-                RaiseSwapCompleted);
+                RaiseSwapCompleted,
+                out var executionSummary);
 
             if (!dropResult.Success)
             {
@@ -550,50 +551,70 @@ namespace DragAndDropSystem
 
             NotifyAutoTransferSourceSlots(context);
 
-            var sourceSlotForVisual = context.Entries.Count > 0 ? context.Entries[0].SourceSlot : null;
-            var sourceInventoryForVisual = context.Entries.Count > 0 ? context.Entries[0].SourceInventory : null;
             var transferredItem = dropResult.Item;
             int transferredAmount = dropResult.Amount;
             var finalTargetSlot = dropResult.TargetSlot;
-            bool canAnimateSingle = context.Entries.Count == 1
-                                    && _autoTransferAnimation != null
-                                    && sourceSlotForVisual != null
-                                    && finalTargetSlot != null
-                                    && transferredItem != null
-                                    && transferredAmount > 0;
+            var executedEntries = executionSummary?.ExecutedEntries;
+            bool canAnimate = _autoTransferAnimation != null
+                              && executedEntries != null
+                              && executedEntries.Count > 0;
 
             string itemName = transferredItem?.DisplayName ?? "Unknown";
             string targetName = targetInventory?.GetType().Name ?? "Unknown";
             Extentions.DragAndDropLog($"<color=green>AutoTransfer success: {transferredAmount}x {itemName} → {targetName} (slot {finalTargetSlot?.Index.ToString() ?? "-"})</color>");
 
-            if (canAnimateSingle)
+            if (canAnimate)
             {
-                if (finalTargetSlot is UniversalSlot targetUniversalSlot)
-                    targetUniversalSlot.SetIconVisibility(false);
-
-                var visualStack = new ItemStack(transferredItem, transferredAmount);
-                var visualPrefab = GetDragVisualPrefab(sourceInventoryForVisual);
-
-                GameObject animationVisual = _autoTransferAnimation.AnimateTransfer(
-                    visualStack,
-                    sourceSlotForVisual,
-                    finalTargetSlot,
-                    visualPrefab,
-                    _visualContainer != null ? _visualContainer : _canvas.transform,
-                    _canvas,
-                    () =>
-                    {
-                        if (finalTargetSlot is UniversalSlot slotForVisual)
-                            slotForVisual.SetIconVisibility(true);
-
-                        OnDropCompleted?.Invoke(context);
-                        OnAutoTransferCompleted?.Invoke(context);
-                    });
-
-                if (animationVisual != null)
+                int pendingAnimations = 0;
+                System.Action animationCompleted = () =>
                 {
-                    _activeAnimationVisuals.Add(animationVisual);
-                    StartCoroutine(RemoveAnimationVisualWhenDestroyed(animationVisual));
+                    pendingAnimations--;
+                    if (pendingAnimations > 0)
+                        return;
+
+                    OnDropCompleted?.Invoke(context);
+                    OnAutoTransferCompleted?.Invoke(context);
+                };
+
+                for (int i = 0; i < executedEntries.Count; i++)
+                {
+                    var entry = executedEntries[i];
+                    if (entry.SourceSlot == null || entry.TargetSlot == null || entry.Item == null || entry.Amount <= 0)
+                        continue;
+
+                    if (entry.TargetSlot is UniversalSlot targetUniversalSlot)
+                        targetUniversalSlot.SetIconVisibility(false);
+
+                    var visualStack = new ItemStack(entry.Item, entry.Amount);
+                    var visualPrefab = GetDragVisualPrefab(entry.SourceSlot.Inventory);
+
+                    pendingAnimations++;
+
+                    GameObject animationVisual = _autoTransferAnimation.AnimateTransfer(
+                        visualStack,
+                        entry.SourceSlot,
+                        entry.TargetSlot,
+                        visualPrefab,
+                        _visualContainer != null ? _visualContainer : _canvas.transform,
+                        _canvas,
+                        () =>
+                        {
+                            if (entry.TargetSlot is UniversalSlot slotForVisual)
+                                slotForVisual.SetIconVisibility(true);
+                            animationCompleted();
+                        });
+
+                    if (animationVisual != null)
+                    {
+                        _activeAnimationVisuals.Add(animationVisual);
+                        StartCoroutine(RemoveAnimationVisualWhenDestroyed(animationVisual));
+                    }
+                }
+
+                if (pendingAnimations == 0)
+                {
+                    OnDropCompleted?.Invoke(context);
+                    OnAutoTransferCompleted?.Invoke(context);
                 }
             }
             else

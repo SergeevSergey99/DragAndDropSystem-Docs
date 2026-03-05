@@ -6,6 +6,22 @@ using DragAndDropSystem.Tools;
 
 namespace DragAndDropSystem.Inventories
 {
+    public readonly struct ExecutedTransferEntry
+    {
+        public ExecutedTransferEntry(ISlot sourceSlot, ISlot targetSlot, IInventoryItem item, int amount)
+        {
+            SourceSlot = sourceSlot;
+            TargetSlot = targetSlot;
+            Item = item;
+            Amount = amount;
+        }
+
+        public ISlot SourceSlot { get; }
+        public ISlot TargetSlot { get; }
+        public IInventoryItem Item { get; }
+        public int Amount { get; }
+    }
+
     public sealed class TransferExecutionSummary
     {
         public TransferExecutionSummary(
@@ -14,7 +30,8 @@ namespace DragAndDropSystem.Inventories
             int failedEntries,
             int transferredAmount,
             bool isPartial,
-            DropResult dropResult)
+            DropResult dropResult,
+            IReadOnlyList<ExecutedTransferEntry> executedEntries = null)
         {
             Success = success;
             SucceededEntries = succeededEntries;
@@ -22,6 +39,7 @@ namespace DragAndDropSystem.Inventories
             TransferredAmount = transferredAmount;
             IsPartial = isPartial;
             DropResult = dropResult;
+            ExecutedEntries = executedEntries ?? System.Array.Empty<ExecutedTransferEntry>();
         }
 
         public bool Success { get; }
@@ -30,6 +48,7 @@ namespace DragAndDropSystem.Inventories
         public int TransferredAmount { get; }
         public bool IsPartial { get; }
         public DropResult DropResult { get; }
+        public IReadOnlyList<ExecutedTransferEntry> ExecutedEntries { get; }
     }
 
     public sealed class TransferExecutionOptions
@@ -78,6 +97,7 @@ namespace DragAndDropSystem.Inventories
             bool hadPartialTransfer = false;
             var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
             var successfulSwaps = new List<PendingSwapOutcome>(plan.Entries.Count);
+            var executedEntries = new List<ExecutedTransferEntry>(plan.Entries.Count);
 
             foreach (var plannedEntry in plan.Entries)
             {
@@ -109,6 +129,14 @@ namespace DragAndDropSystem.Inventories
                         transferredAmount += swapOutcome.MovedAmount;
                         lastItem = swapOutcome.SwapResult.SourceStackBefore?.Item;
                         lastTargetSlot = swapOutcome.TargetSlot;
+                        if (swapOutcome.MovedAmount > 0 && swapOutcome.SwapResult.SourceStackBefore?.Item != null)
+                        {
+                            executedEntries.Add(new ExecutedTransferEntry(
+                                swapOutcome.SourceSlot,
+                                swapOutcome.TargetSlot,
+                                swapOutcome.SwapResult.SourceStackBefore.Item,
+                                swapOutcome.MovedAmount));
+                        }
                     }
                     else
                     {
@@ -146,6 +174,11 @@ namespace DragAndDropSystem.Inventories
                         lastTargetSlot = outcome.TargetSlot ?? allocation.Slot;
                         hadPartialTransfer |= outcome.IsPartialTransfer;
                         successfulOutcomes.Add(outcome);
+                        executedEntries.Add(new ExecutedTransferEntry(
+                            outcome.SourceSlot,
+                            outcome.TargetSlot ?? allocation.Slot,
+                            outcome.Item,
+                            outcome.Amount));
                     }
                 }
 
@@ -216,7 +249,14 @@ namespace DragAndDropSystem.Inventories
             DispatchSwapEvents(successfulSwaps, options);
 
             Extentions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Executed plan: successEntries={succeededEntries}, failedEntries={failedEntries}, amount={transferredAmount}</color>");
-            return new TransferExecutionSummary(success, succeededEntries, failedEntries, transferredAmount, isPartial, result);
+            return new TransferExecutionSummary(
+                success,
+                succeededEntries,
+                failedEntries,
+                transferredAmount,
+                isPartial,
+                result,
+                executedEntries);
         }
 
         private bool TryExecuteSwap(

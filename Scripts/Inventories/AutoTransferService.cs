@@ -80,8 +80,11 @@ namespace DragAndDropSystem.Inventories
             InventoryTransferService transferService,
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
+            out TransferExecutionSummary executionSummary,
             DropPolicy policyOverride = null)
         {
+            executionSummary = null;
+
             if (context == null)
                 return DropResult.Failed("Auto-transfer context is null");
 
@@ -100,7 +103,8 @@ namespace DragAndDropSystem.Inventories
             if (!handler.CanAcceptDrop(context))
                 return DropResult.Failed("Auto-transfer plan rejected");
 
-            return handler.ProcessDrop(context);
+            executionSummary = handler.ProcessDropWithSummary(context);
+            return executionSummary.DropResult;
         }
     }
 }

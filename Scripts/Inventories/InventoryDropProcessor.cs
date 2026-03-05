@@ -21,6 +21,7 @@ namespace DragAndDropSystem.Inventories
         private readonly Func<InventorySwapContext, bool> _swapAttempting;
         private readonly Action<InventorySwapContext> _swapCompleted;
         private TransferPlan _cachedPlan;
+        public TransferExecutionSummary LastExecutionSummary { get; private set; }
 
         /// <summary>
         /// Create a processor for a specific slot
@@ -90,13 +91,33 @@ namespace DragAndDropSystem.Inventories
 
         public DropResult ProcessDrop(DragContext context)
         {
+            var summary = ProcessDropWithSummary(context);
+            return summary.DropResult;
+        }
+
+        public TransferExecutionSummary ProcessDropWithSummary(DragContext context)
+        {
             if (context == null)
             {
-                return DropResult.Failed("Null drag context");
+                LastExecutionSummary = new TransferExecutionSummary(
+                    success: false,
+                    succeededEntries: 0,
+                    failedEntries: 0,
+                    transferredAmount: 0,
+                    isPartial: false,
+                    dropResult: DropResult.Failed("Null drag context"));
+                return LastExecutionSummary;
             }
             if (context.Entries == null || context.Entries.Count == 0)
             {
-                return DropResult.Failed("Drag context has no entries");
+                LastExecutionSummary = new TransferExecutionSummary(
+                    success: false,
+                    succeededEntries: 0,
+                    failedEntries: 0,
+                    transferredAmount: 0,
+                    isPartial: false,
+                    dropResult: DropResult.Failed("Drag context has no entries"));
+                return LastExecutionSummary;
             }
 
             var entry = context.Entries[0];
@@ -107,12 +128,26 @@ namespace DragAndDropSystem.Inventories
             if (source == null || sourceSlot == null || draggedStack == null)
             {
                 Extentions.DragAndDropLog("<color=red>[InventoryDropProcessor] ProcessDrop: Invalid context</color>");
-                return DropResult.Failed("Invalid drag context");
+                LastExecutionSummary = new TransferExecutionSummary(
+                    success: false,
+                    succeededEntries: 0,
+                    failedEntries: 0,
+                    transferredAmount: 0,
+                    isPartial: false,
+                    dropResult: DropResult.Failed("Invalid drag context"));
+                return LastExecutionSummary;
             }
 
             if (_targetInventory == null)
             {
-                return DropResult.Failed("Target inventory is null");
+                LastExecutionSummary = new TransferExecutionSummary(
+                    success: false,
+                    succeededEntries: 0,
+                    failedEntries: 0,
+                    transferredAmount: 0,
+                    isPartial: false,
+                    dropResult: DropResult.Failed("Target inventory is null"));
+                return LastExecutionSummary;
             }
 
             var effectivePolicy = ResolveEffectivePolicy(context);
@@ -128,7 +163,14 @@ namespace DragAndDropSystem.Inventories
 
             if (plan == null || !plan.IsValid)
             {
-                return DropResult.Failed(plan?.Failure?.Reason ?? "Transfer plan is invalid");
+                LastExecutionSummary = new TransferExecutionSummary(
+                    success: false,
+                    succeededEntries: 0,
+                    failedEntries: 0,
+                    transferredAmount: 0,
+                    isPartial: false,
+                    dropResult: DropResult.Failed(plan?.Failure?.Reason ?? "Transfer plan is invalid"));
+                return LastExecutionSummary;
             }
 
             var policy = context.Policy;
@@ -140,10 +182,11 @@ namespace DragAndDropSystem.Inventories
                 SwapAttempting = _swapAttempting,
                 SwapCompleted = _swapCompleted
             });
+            LastExecutionSummary = summary;
             if (!summary.Success)
             {
                 Extentions.DragAndDropLog($"<color=red>[InventoryDropProcessor] Execute failed: {summary.DropResult.FailureReason}</color>");
-                return summary.DropResult;
+                return summary;
             }
 
             if (summary.DropResult.TargetSlot != null && summary.DropResult.TargetInventory != null)
@@ -152,7 +195,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             Extentions.DragAndDropLog($"<color=green>[InventoryDropProcessor] Executed plan: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
-            return summary.DropResult;
+            return summary;
         }
 
         private DropPolicy ResolveEffectivePolicy(DragContext context)
