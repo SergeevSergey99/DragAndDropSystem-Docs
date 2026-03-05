@@ -63,16 +63,20 @@ namespace DragAndDropSystem.Interaction
             
             if (_bindingsProfile != null)
             {
-                AppendValidBindings(_bindingsProfile?.PointerBindings, _resolvedPointerBindings);
-                AppendValidBindings(_bindingsProfile?.NavigationBindings, _resolvedNavigationBindings);
-                AppendValidBindings(_bindingsProfile?.InputActionBindings, _resolvedInputActionBindings);
+                AppendValidBindings(_bindingsProfile.PointerBindingsRuntime, _resolvedPointerBindings);
+                AppendValidBindings(_bindingsProfile.NavigationBindingsRuntime, _resolvedNavigationBindings);
+                AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
             }
             
             if (_useGlobalBindingsProfile && InputEventRouter.IsInstanceExist)
             {
-                AppendValidBindings(InputEventRouter.Instance.DefaultBindingsProfile?.PointerBindings, _resolvedPointerBindings);
-                AppendValidBindings(InputEventRouter.Instance.DefaultBindingsProfile?.NavigationBindings, _resolvedNavigationBindings);
-                AppendValidBindings(InputEventRouter.Instance.DefaultBindingsProfile?.InputActionBindings, _resolvedInputActionBindings);
+                var globalProfile = InputEventRouter.Instance.DefaultBindingsProfile;
+                if (globalProfile != null)
+                {
+                    AppendValidBindings(globalProfile.PointerBindingsRuntime, _resolvedPointerBindings);
+                    AppendValidBindings(globalProfile.NavigationBindingsRuntime, _resolvedNavigationBindings);
+                    AppendValidBindings(globalProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
+                }
             }
         }
 

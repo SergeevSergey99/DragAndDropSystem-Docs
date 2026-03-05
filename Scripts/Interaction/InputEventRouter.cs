@@ -375,7 +375,7 @@ namespace DragAndDropSystem.Interaction
             }
             
             return DefaultBindingsProfile != null
-                ? DefaultBindingsProfile.PointerBindings
+                ? DefaultBindingsProfile.PointerBindingsRuntime
                 : Array.Empty<PointerBinding>();
         }
 
@@ -387,7 +387,7 @@ namespace DragAndDropSystem.Interaction
             }
             
             return DefaultBindingsProfile != null
-                ? DefaultBindingsProfile.NavigationBindings
+                ? DefaultBindingsProfile.NavigationBindingsRuntime
                 : Array.Empty<NavigationBinding>();
         }
 
@@ -399,7 +399,7 @@ namespace DragAndDropSystem.Interaction
             }
             
             return DefaultBindingsProfile != null
-                ? DefaultBindingsProfile.InputActionBindings
+                ? DefaultBindingsProfile.InputActionBindingsRuntime
                 : Array.Empty<InputActionBinding>();
         }
 

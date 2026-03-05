@@ -18,6 +18,22 @@ namespace DragAndDropSystem.Interaction
 
         [SerializeReference] private SlotInteractionAction _action;
 
+        public InputActionBinding()
+        {
+        }
+
+        public InputActionBinding(
+            string label,
+            InputActionReference actionReference,
+            TriggerPhaseEnum triggerPhase,
+            SlotInteractionAction action)
+        {
+            _label = label;
+            _actionReference = actionReference;
+            _triggerPhase = triggerPhase;
+            _action = action;
+        }
+
         public InputActionReference ActionReference => _actionReference;
         public SlotInteractionAction Action => _action;
         public string Label => string.IsNullOrEmpty(_label)

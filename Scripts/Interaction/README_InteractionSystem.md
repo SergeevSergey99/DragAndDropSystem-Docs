@@ -46,6 +46,10 @@
 - опционально добавляет биндинги из глобального `InputEventRouter.DefaultBindingsProfile`;
 - регистрируется в `InputEventRouter` как override для конкретного `UniversalInventory`.
 
+Важно:
+- в `InteractionBindingsProfile` (SO) доступны только `AssetOnlySlotInteractionAction`;
+- в локальных биндингах `InventoryExtraInteractionBinder` доступны любые `SlotInteractionAction`, включая scene-bound.
+
 ## Профили биндингов (SO)
 
 Файл типа:
@@ -71,6 +75,12 @@ Override на конкретном инвентаре:
 - `CancelDragAction`
 - `SelectionSlotAction`
 - `InventorySlotAction`
+
+`InventorySlotAction` (local-only) может вызывать:
+- сценовый `InventoryActionBase` (MonoBehaviour на объекте сцены/префаба);
+- `InventoryActionAssetBase` (ScriptableObject asset для переиспользуемых конфигураций).
+
+`InventoryAssetSlotAction` (SO-safe) вызывает только `InventoryActionAssetBase`.
 
 ## Поток событий
 

@@ -21,7 +21,10 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class DragSlotAction : SlotInteractionAction
+    public abstract class AssetOnlySlotInteractionAction : SlotInteractionAction {}
+
+    [Serializable]
+    public sealed class DragSlotAction : AssetOnlySlotInteractionAction
     {
         [field: SerializeField] public bool CompleteOnPointerUp { get; private set; } = true;
 
@@ -56,7 +59,7 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class StartMultiDragAction : SlotInteractionAction
+    public sealed class StartMultiDragAction : AssetOnlySlotInteractionAction
     {
         [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
         [SerializeField] private bool _restrictToSameInventory = true;
@@ -127,7 +130,7 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class CompleteDragAction : SlotInteractionAction
+    public sealed class CompleteDragAction : AssetOnlySlotInteractionAction
     {
         [field: SerializeField] public bool CancelOnNoSlots { get; private set; } = true;
 
@@ -151,7 +154,7 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class CancelDragAction : SlotInteractionAction
+    public sealed class CancelDragAction : AssetOnlySlotInteractionAction
     {
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
@@ -167,7 +170,7 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class SelectionSlotAction : SlotInteractionAction
+    public sealed class SelectionSlotAction : AssetOnlySlotInteractionAction
     {
         [SerializeReference] private SelectionOperationBase _operation;
 
@@ -198,36 +201,28 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class InventorySlotAction : SlotInteractionAction
     {
-        [SerializeField] private InventoryActionBase _action;
-
-        public InventorySlotAction()
-        {
-        }
-
-        public InventorySlotAction(InventoryActionBase action)
-        {
-            _action = action;
-        }
+        [SerializeField, Tooltip("Сценовый action-компонент (MonoBehaviour).")]
+        private InventoryActionBase _sceneAction;
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (_action == null || inventory == null)
+            if (_sceneAction == null || inventory == null)
                 return false;
 
             var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
-            return _action.CanExecute(inventory, slot);
+            return _sceneAction.CanExecute(inventory, slot);
         }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (_action == null || inventory == null)
+            if (_sceneAction == null || inventory == null)
                 return ActionResult.Failed("Inventory action is not configured");
 
             var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
-            if (!_action.CanExecute(inventory, slot))
+            if (!_sceneAction.CanExecute(inventory, slot))
                 return ActionResult.Failed("Inventory action cannot execute");
 
-            return _action.Execute(inventory, slot);
+            return _sceneAction.Execute(inventory, slot);
         }
     }
 }
