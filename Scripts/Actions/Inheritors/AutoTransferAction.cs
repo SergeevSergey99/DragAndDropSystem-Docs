@@ -54,6 +54,9 @@ namespace DragAndDropSystem.Inventories
                 {
                     if (activeSlot != null)
                         inventory.NotifySlotInteracted(activeSlot);
+                    
+                    if (SelectionManager.IsInstanceExist)
+                        SelectionManager.Instance.Clear();
                     return ActionResult.Succeeded();
                 }
             }
