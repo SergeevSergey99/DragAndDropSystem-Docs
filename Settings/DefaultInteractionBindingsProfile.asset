@@ -16,26 +16,31 @@ MonoBehaviour:
   - _label: MMB Drag
     _button: 2
     _modifier: 0
+    _triggerPhase: 1
     _action:
       rid: 6676588759005003857
   - _label: LMB Drop
     _button: 0
     _modifier: 0
+    _triggerPhase: 2
     _action:
       rid: 6676588703534547018
   - _label: LMB Ctrl Toggle
     _button: 0
     _modifier: 1
+    _triggerPhase: 3
     _action:
       rid: 1002
   - _label: LMB Shift Range
     _button: 0
     _modifier: 2
+    _triggerPhase: 3
     _action:
       rid: 1003
   - _label: RMB Select
     _button: 1
     _modifier: 0
+    _triggerPhase: 3
     _action:
       rid: 1004
   _navigationBindings:

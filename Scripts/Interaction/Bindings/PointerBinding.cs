@@ -11,17 +11,24 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private string _label;
         [SerializeField] private PointerEventData.InputButton _button = PointerEventData.InputButton.Left;
         [SerializeField] private ModifierKey _modifier = ModifierKey.None;
+        [SerializeField] private PointerTriggerPhase _triggerPhase = PointerTriggerPhase.Any;
         [SerializeReference] private SlotInteractionAction _action;
 
         public PointerBinding()
         {
         }
 
-        public PointerBinding(string label, PointerEventData.InputButton button, ModifierKey modifier, SlotInteractionAction action)
+        public PointerBinding(
+            string label,
+            PointerEventData.InputButton button,
+            ModifierKey modifier,
+            PointerTriggerPhase triggerPhase,
+            SlotInteractionAction action)
         {
             _label = label;
             _button = button;
             _modifier = modifier;
+            _triggerPhase = triggerPhase;
             _action = action;
         }
 
@@ -32,9 +39,12 @@ namespace DragAndDropSystem.Interaction
 
         public bool IsValid() => _action != null;
 
-        public bool Matches(PointerEventData eventData)
+        public bool Matches(PointerEventData eventData, PointerTriggerPhase eventPhase)
         {
             if (eventData == null || eventData.button != _button)
+                return false;
+
+            if (!PhaseMatches(eventPhase))
                 return false;
 
             bool ctrl = IsCtrlPressed();
@@ -54,6 +64,14 @@ namespace DragAndDropSystem.Interaction
                 default:
                     return false;
             }
+        }
+
+        private bool PhaseMatches(PointerTriggerPhase eventPhase)
+        {
+            if (_triggerPhase == PointerTriggerPhase.Any)
+                return true;
+
+            return _triggerPhase == eventPhase;
         }
 
         private static bool IsCtrlPressed()

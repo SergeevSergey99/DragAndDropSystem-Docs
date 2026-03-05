@@ -10,6 +10,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private string _label;
         [SerializeField] private PointerEventData.InputButton _button = PointerEventData.InputButton.Left;
         [SerializeField] private ModifierKey _modifier = ModifierKey.None;
+        [SerializeField] private PointerTriggerPhase _triggerPhase = PointerTriggerPhase.Any;
         [SerializeReference] private AssetOnlySlotInteractionAction _action;
 
         public string Label => string.IsNullOrEmpty(_label)
@@ -19,6 +20,6 @@ namespace DragAndDropSystem.Interaction
         public bool IsValid() => _action != null;
 
         public PointerBinding ToRuntimeBinding()
-            => new PointerBinding(_label, _button, _modifier, _action);
+            => new PointerBinding(_label, _button, _modifier, _triggerPhase, _action);
     }
 }

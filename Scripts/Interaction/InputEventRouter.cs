@@ -132,7 +132,7 @@ namespace DragAndDropSystem.Interaction
             {
                 // PointerDown should allow regular slot actions (selection, inventory ops)
                 // and drag start actions. Drag completion/cancel is processed on PointerUp.
-                ExecutePointerBindings(inventory, adapter, eventData, dragOnly: false);
+                ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down, dragOnly: false);
             }
         }
 
@@ -152,8 +152,29 @@ namespace DragAndDropSystem.Interaction
             if (shouldProcess)
             {
                 _pointerUpHandledThisFrame.Add(eventData.button);
-                bool dragOnly = isDraggingNow;
-                ExecutePointerBindings(inventory, adapter, eventData, dragOnly);
+                if (isDraggingNow)
+                {
+                    ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up, dragOnly: true);
+                }
+                else if (releaseOfPressedButton && state.PressedAdapter != null)
+                {
+                    bool handledClick = ExecutePointerBindings(
+                        inventory,
+                        adapter,
+                        eventData,
+                        PointerTriggerPhase.Click,
+                        dragOnly: false);
+
+                    if (!handledClick)
+                    {
+                        ExecutePointerBindings(
+                            inventory,
+                            adapter,
+                            eventData,
+                            PointerTriggerPhase.Up,
+                            dragOnly: false);
+                    }
+                }
             }
 
             if (releaseOfPressedButton)
@@ -212,23 +233,24 @@ namespace DragAndDropSystem.Interaction
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
         }
 
-        private void ExecutePointerBindings(
+        private bool ExecutePointerBindings(
             UniversalInventory inventory,
             SlotInputAdapter adapter,
             PointerEventData eventData,
+            PointerTriggerPhase phase,
             bool dragOnly)
         {
-            if (eventData == null) return;
+            if (eventData == null) return false;
             
             var bindings = ResolvePointerBindings(inventory);
 
             if (!dragOnly && adapter?.Slot == null)
-                return;
+                return false;
 
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
-                if (binding == null || !binding.IsValid() || !binding.Matches(eventData))
+                if (binding == null || !binding.IsValid() || !binding.Matches(eventData, phase))
                     continue;
 
                 bool isDragBinding = IsDragBindingAction(binding.Action);
@@ -239,9 +261,11 @@ namespace DragAndDropSystem.Interaction
                 {
                     _ = binding.Action.Execute(inventory, adapter, eventData);
                     eventData.Use();
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private void ExecuteNavigationBindings(
@@ -516,7 +540,7 @@ namespace DragAndDropSystem.Interaction
             var eventData = new PointerEventData(EventSystem.current) { button = button };
 
             _pointerUpHandledThisFrame.Add(button);
-            ExecutePointerBindings(inventory, adapter, eventData, dragOnly: true);
+            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up, dragOnly: true);
         }
 
         private bool TryResolveInventoryForGlobalPointerUp(out UniversalInventory inventory)
