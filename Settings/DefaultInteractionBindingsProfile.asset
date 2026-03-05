@@ -28,19 +28,19 @@ MonoBehaviour:
   - _label: LMB Ctrl Toggle
     _button: 0
     _modifier: 1
-    _triggerPhase: 3
+    _triggerPhase: 4
     _action:
       rid: 1002
   - _label: LMB Shift Range
     _button: 0
     _modifier: 2
-    _triggerPhase: 3
+    _triggerPhase: 4
     _action:
       rid: 1003
   - _label: RMB Select
     _button: 1
     _modifier: 0
-    _triggerPhase: 3
+    _triggerPhase: 4
     _action:
       rid: 1004
   _navigationBindings:

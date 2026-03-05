@@ -6,7 +6,6 @@ using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 namespace DragAndDropSystem.Interaction
 {
@@ -15,6 +14,10 @@ namespace DragAndDropSystem.Interaction
     {
         [field: SerializeField] 
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
+
+        [Header("Pointer Gestures")]
+        [SerializeField, Min(0.01f)] private float _longClickThresholdSeconds = 0.35f;
+        [SerializeField, Min(0f)] private float _clickMoveTolerancePixels = 8f;
 
         // Словарь для переопределения привязок на уровне конкретного инвентаря (например, для разных UI или режимов работы)
         private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
@@ -127,6 +130,8 @@ namespace DragAndDropSystem.Interaction
             var state = GetOrCreateState(inventory);
             state.PressedAdapter = adapter;
             state.PressedButton = eventData.button;
+            state.PressedTime = Time.unscaledTime;
+            state.PressedPosition = eventData.position;
 
             if (!DragAndDropManager.Instance.IsDragging)
             {
@@ -158,12 +163,26 @@ namespace DragAndDropSystem.Interaction
                 }
                 else if (releaseOfPressedButton && state.PressedAdapter != null)
                 {
-                    bool handledClick = ExecutePointerBindings(
-                        inventory,
-                        adapter,
-                        eventData,
-                        PointerTriggerPhase.Click,
-                        dragOnly: false);
+                    bool handledClick = false;
+                    if (TryResolveClickPhase(state, eventData, out var clickPhase))
+                    {
+                        handledClick = ExecutePointerBindings(
+                            inventory,
+                            adapter,
+                            eventData,
+                            clickPhase,
+                            dragOnly: false);
+
+                        if (!handledClick && clickPhase != PointerTriggerPhase.Click)
+                        {
+                            handledClick = ExecutePointerBindings(
+                                inventory,
+                                adapter,
+                                eventData,
+                                PointerTriggerPhase.Click,
+                                dragOnly: false);
+                        }
+                    }
 
                     if (!handledClick)
                     {
@@ -514,6 +533,26 @@ namespace DragAndDropSystem.Interaction
         private static bool IsDragBindingAction(SlotInteractionAction action)
             => action is DragSlotAction || action is StartMultiDragAction || action is CompleteDragAction;
 
+        private bool TryResolveClickPhase(RuntimeState state, PointerEventData eventData, out PointerTriggerPhase phase)
+        {
+            phase = PointerTriggerPhase.Click;
+            if (state == null || eventData == null)
+                return false;
+
+            var pressPosition = state.PressedPosition;
+            float sqrDistance = (eventData.position - pressPosition).sqrMagnitude;
+            float sqrTolerance = _clickMoveTolerancePixels * _clickMoveTolerancePixels;
+            if (sqrDistance > sqrTolerance)
+                return false;
+
+            float pressDuration = Mathf.Max(0f, Time.unscaledTime - state.PressedTime);
+            phase = pressDuration >= _longClickThresholdSeconds
+                ? PointerTriggerPhase.ClickLong
+                : PointerTriggerPhase.ClickShort;
+
+            return true;
+        }
+
         private void ProcessGlobalPointerUpsWhileDragging()
         {
             if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
@@ -610,6 +649,8 @@ namespace DragAndDropSystem.Interaction
             public FocusSource ActiveFocusSource;
             public SlotInputAdapter PressedAdapter;
             public PointerEventData.InputButton PressedButton;
+            public float PressedTime;
+            public Vector2 PressedPosition;
         }
 
         private readonly struct IntentDedupKey

@@ -5,7 +5,9 @@
         Any = 0,
         Down = 1,
         Up = 2,
-        Click = 3
+        Click = 3,
+        ClickShort = 4,
+        ClickLong = 5
     }
 
     public enum TriggerPhaseEnum
