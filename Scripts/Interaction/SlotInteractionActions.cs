@@ -61,13 +61,14 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class StartMultiDragAction : AssetOnlySlotInteractionAction
     {
+        [SerializeField] private bool _completeOnPointerUp = true;
         [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
         [SerializeField] private bool _restrictToSameInventory = true;
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.Instance.IsDragging)
-                return false;
+                return _completeOnPointerUp;
 
             var sourceSlots = BuildSourceSlots(inventory, adapter);
             return sourceSlots.Count > 0;
@@ -76,7 +77,13 @@ namespace DragAndDropSystem.Interaction
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.Instance.IsDragging)
-                return ActionResult.Failed("Drag is already active");
+            {
+                if (!_completeOnPointerUp)
+                    return ActionResult.Failed("Complete on pointer up is disabled");
+
+                DragAndDropManager.Instance.CompleteDrag();
+                return ActionResult.Succeeded();
+            }
 
             var sourceSlots = BuildSourceSlots(inventory, adapter);
             if (sourceSlots.Count == 0)

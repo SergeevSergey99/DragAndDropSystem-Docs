@@ -12,13 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17a1a438d577b354090d3fde8fdec7e2, type: 3}
   m_Name: DefaultInteractionBindingsProfile
   m_EditorClassIdentifier: 
-  _usePointerBindings: 1
   _pointerBindings:
   - _label: MMB Drag
     _button: 2
     _modifier: 0
     _action:
-      rid: 6676588738370600960
+      rid: 6676588759005003857
   - _label: LMB Drop
     _button: 0
     _modifier: 0
@@ -39,7 +38,6 @@ MonoBehaviour:
     _modifier: 0
     _action:
       rid: 1004
-  _useNavigationBindings: 1
   _navigationBindings:
   - _label: Submit Drag
     _eventType: 0
@@ -49,7 +47,6 @@ MonoBehaviour:
     _eventType: 1
     _action:
       rid: 1006
-  _useInputActionBindings: 1
   _inputActionBindings: []
   references:
     version: 2
@@ -89,8 +86,7 @@ MonoBehaviour:
       type: {class: CompleteDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
         <CancelOnNoSlots>k__BackingField: 1
-    - rid: 6676588738370600960
-      type: {class: StartMultiDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+    - rid: 6676588759005003857
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
-        _fallbackToActiveSlotIfSelectionEmpty: 1
-        _restrictToSameInventory: 1
+        <CompleteOnPointerUp>k__BackingField: 1
