@@ -68,7 +68,7 @@ namespace DragAndDropSystem.Interaction
                 AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
             }
             
-            if (_useGlobalBindingsProfile && InputEventRouter.IsInstanceExist)
+            if (_useGlobalBindingsProfile)
             {
                 var globalProfile = InputEventRouter.Instance.DefaultBindingsProfile;
                 if (globalProfile != null)

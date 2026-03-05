@@ -239,9 +239,8 @@ namespace DragAndDropSystem.Interaction
                 {
                     _ = binding.Action.Execute(inventory, adapter, eventData);
                     eventData.Use();
+                    return;
                 }
-
-                return;
             }
         }
 
