@@ -265,7 +265,7 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Принудительно синхронизировать UI (можно вызвать из внешнего кода)
         /// </summary>
-        [ContextMenu("Force Sync To UI")]
+        [UnityEngine.ContextMenu("Force Sync To UI")]
         public void ForceSyncToUI()
         {
             ReloadUI();
