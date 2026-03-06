@@ -4,10 +4,10 @@
 
 ## Manual Drag & Drop (Pipeline)
 
-1. `DragDropEventListener` reports drag/drop target to `DragAndDropManager`.
-2. `DragAndDropManager.CompleteDrag()` chooses target handler (`IItemDropHandler`).
-3. `InventoryDropHandler.CanAcceptDrop()` validates drop possibility.
-4. `InventoryDropHandler.HandleDrop()`:
+1. Active `IDropTarget` is tracked by `DragAndDropManager`.
+2. `DragAndDropManager.CompleteDrag()` gets `IDropProcessor` from the active target.
+3. `InventoryDropProcessor.CanAcceptDrop()` validates drop possibility.
+4. `InventoryDropProcessor.ProcessDrop()`:
    - resolves effective `DropPolicy`
    - builds `TransferPlan` via `TransferPlanner`
    - executes plan via `TransferPlanExecutor`
@@ -44,7 +44,7 @@ but manual drop semantics are now centralized through plan/executor pipeline.
 ## Key Files
 
 - `Scripts/DragAndDropManager.cs`
-- `Scripts/Inventories/InventoryDropHandler.cs`
+- `Scripts/Inventories/InventoryDropProcessor.cs`
 - `Scripts/Inventories/TransferPlanner.cs`
 - `Scripts/Inventories/TransferPlanExecutor.cs`
 - `Scripts/Inventories/InventoryTransferService.cs`

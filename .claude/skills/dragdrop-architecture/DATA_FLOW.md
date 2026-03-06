@@ -5,7 +5,7 @@
 ## Manual Drop Flow
 
 1. `DragAndDropManager` finalizes drag and resolves active drop target.
-2. Target provides `IItemDropHandler` (typically `InventoryDropHandler`).
+2. Target provides `IDropProcessor` (typically `InventoryDropProcessor`).
 3. Handler builds context with effective policy.
 4. `TransferPlanner.Plan(...)` returns `TransferPlan`.
 5. `TransferPlanExecutor.Execute(...)` applies plan.

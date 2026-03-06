@@ -4,7 +4,7 @@
 
 ## Совместимость с transfer pipeline
 
-World drop targets совместимы с текущей архитектурой: обработка дропа использует общий policy/planner/executor pipeline через `IItemDropHandler`.
+World drop targets совместимы с текущей архитектурой: обработка дропа использует общий policy/planner/executor pipeline через `IDropProcessor`.
 
 
 Этот модуль добавляет возможность выбрасывания предметов из UI инвентаря в 3D пространство.
@@ -45,7 +45,7 @@ UI компонент - зона для выбрасывания предмет�
 Пример ScriptableObject предмета с поддержкой 3D (данные). Наследуется от `ItemExampleSO` и добавляет поле `WorldPrefab`.
 
 ### 5. ItemSOWith3DAdapter
-Адаптер для работы ItemExampleWith3DSO с системой инвентаря + 3D. Реализует `IStackableItem` и `IWorld3DAdapter`.
+Адаптер для работы ItemExampleWith3DSO с системой инвентаря + 3D. Реализует `IInventoryItem` и `IWorld3DAdapter`.
 
 ### 6. ItemsSOInventoryDataBinding (обновлён)
 Универсальный DataBinding, который автоматически работает с обоими типами:

@@ -1,35 +1,33 @@
 # Selection System
 
-**Last Updated**: 2026-03-02
+**Last Updated**: 2026-03-06
 
-Система выделения слотов (single/multi-select) поверх нового interaction pipeline.
+Selection работает поверх interaction pipeline и не имеет собственного input-router.
 
 ## Ключевая идея
 
 - `SelectionManager` хранит состояние выделения.
-- `SelectionOperationBase` описывает действие над выделением.
-- `InventoryInteractionCoordinator` запускает selection-операции через `SelectionSlotAction` в биндингах.
+- `SelectionOperationBase` описывает мутацию selection state.
+- `SelectionSlotAction` вызывает operation из bindings.
+- `SlotSelectionView` визуализирует результат на UI.
 
-Отдельный `SlotPointerSelectionTrigger` больше не используется в slot-prefab.
+Отдельный `SlotPointerSelectionTrigger` не является целевой схемой для новых prefab/configuration.
 
 ## Архитектура
 
-```
-Pointer/Navigate/InputAction
-        │
-        ▼
-SlotInputAdapter -> InputEventRouter -> InventoryInteractionCoordinator
-                                           │
-                                           ▼
-                                 SelectionSlotAction
-                                           │
-                                           ▼
+```text
+Pointer / Navigation / InputAction
+        |
+        v
+SlotInputAdapter -> InputEventRouter -> SelectionSlotAction
+                                           |
+                                           v
                                    SelectionOperationBase
-                                           │
-                                           ▼
+                                           |
+                                           v
                                      SelectionManager
-                                           │
-                                           ▼
+                                           |
+                                           v
                                      SlotSelectionView
 ```
 
@@ -39,6 +37,12 @@ SlotInputAdapter -> InputEventRouter -> InventoryInteractionCoordinator
 
 Файл: `Scripts/Selection/SelectionManager.cs`
 
+Хранит:
+- текущее выделение;
+- группировку по инвентарям;
+- `CurrentContext`;
+- `lastSelectedSlot` для range-select.
+
 API:
 - `Select(slot)`
 - `Deselect(slot)`
@@ -46,7 +50,7 @@ API:
 - `SelectRange(toSlot)`
 - `SelectAll(inventory)`
 - `Clear()`
-- `CurrentContext`
+- `IsSelected(slot)`
 
 ### SelectionOperationBase
 
@@ -60,41 +64,52 @@ API:
 - `ClearSelectionOperation`
 - `SelectByConditionOperation`
 
+### SelectionSlotAction
+
+Файл: `Scripts/Selection/SelectionSlotAction.cs`
+
+Asset-safe action для interaction bindings.
+Берет slot из `SlotInputAdapter` и вызывает выбранную `SelectionOperationBase`.
+
 ### SlotSelectionView
 
 Файл: `Scripts/Selection/SlotSelectionView.cs`
 
-Визуализирует состояние выделения на слоте.
+Подписывается на `SelectionManager.OnSelectionChanged` и обновляет визуал слота.
 
-## Как настраивать теперь
+## Как настраивать
 
-Настройка производится в `InventoryInteractionCoordinator` через pointer/navigation/action bindings.
+Selection настраивается через `PointerBinding` / `NavigationBinding` / `InputActionBinding`.
 
-Типовой набор pointer-биндингов:
-- `LMB + None -> SelectionSlotAction(ClearAndSelectOperation)`
-- `LMB + Ctrl -> SelectionSlotAction(ToggleSlotOperation)`
-- `LMB + Shift -> SelectionSlotAction(RangeSelectOperation)`
+Типовой набор:
+- `LMB + None + ClickShort -> SelectionSlotAction(ClearAndSelectOperation)`
+- `LMB + Ctrl + ClickShort -> SelectionSlotAction(ToggleSlotOperation)`
+- `LMB + Shift + ClickShort -> SelectionSlotAction(RangeSelectOperation)`
 
-Типовой набор action-биндингов:
-- `SelectAll action -> SelectionSlotAction(SelectAllOperation)`
-- `ClearSelection action -> SelectionSlotAction(ClearSelectionOperation)`
+Action bindings:
+- `SelectAll -> SelectionSlotAction(SelectAllOperation)`
+- `ClearSelection -> SelectionSlotAction(ClearSelectionOperation)`
+
+Для multi-drag:
+- `StartMultiDragAction` может использовать текущее selection как source set.
 
 ## Пример реакции на выделение
 
 ```csharp
 SelectionManager.OnSelectionChanged += context =>
 {
-    // пример: обновить кнопку продажи
     sellButton.interactable = context.HasSelection;
 };
 ```
 
 ## Совместимость
 
-Selection не меняет transfer pipeline напрямую.
-Перенос/дроп выполняется через `DragAndDropManager` + transfer planner/executor.
+- Selection не меняет transfer pipeline напрямую.
+- Перенос выполняется через `DragAndDropManager` и `InventoryDropProcessor`.
+- Batch actions могут использовать `SelectionContext` как источник слотов.
 
 ## См. также
 
 - `Scripts/Interaction/README_InteractionSystem.md`
 - `Scripts/Inventories/README_TransferPipeline.md`
+- `Scripts/ContextMenu/README_ContextMenu.md`

@@ -25,7 +25,7 @@ Main benefits:
 - `DragAndDropManager` (`Scripts/DragAndDropManager.cs`)
   - Coordinates drag lifecycle and drop targets.
   - Exposes swap events: `OnSwapAttempting`, `OnSwapCompleted`.
-- `InventoryDropHandler` (`Scripts/Inventories/InventoryDropHandler.cs`)
+- `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`)
   - Entry point for plan+execute flow for inventory drops.
 - `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`)
   - Produces `TransferPlan` and per-entry actions.

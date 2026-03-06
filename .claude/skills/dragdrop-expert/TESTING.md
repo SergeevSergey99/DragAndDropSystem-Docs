@@ -31,7 +31,7 @@
 ## Integration Tests
 
 ### Drop Targets
-- [ ] slot target (`DragDropEventListener`) uses same pipeline
+- [ ] slot target (`SlotInputAdapter`) uses same pipeline
 - [ ] area target (`InventoryDropArea`) uses same pipeline
 - [ ] manager fallback handler path behaves identically
 
@@ -45,5 +45,5 @@
 After transfer/swap changes always re-check:
 - [ ] `TransferPlanner` output for policy matrix
 - [ ] `TransferPlanExecutor` atomic rollback
-- [ ] `InventoryDropHandler` effective policy resolution
+- [ ] `InventoryDropProcessor` effective policy resolution
 - [ ] no compile errors due to delegate/nullability syntax on Unity C# profile

@@ -27,7 +27,7 @@ description: Expert guidance for reviewing and extending DragAndDropSystem with 
 
 - `Scripts/Core/DropPolicy.cs`
 - `Scripts/Core/DragContext.cs`
-- `Scripts/Inventories/InventoryDropHandler.cs`
+- `Scripts/Inventories/InventoryDropProcessor.cs`
 - `Scripts/Inventories/TransferPlanner.cs`
 - `Scripts/Inventories/TransferPlanExecutor.cs`
 - `Scripts/Inventories/InventoryTransferService.cs`

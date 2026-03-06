@@ -10,14 +10,14 @@ Responsibilities:
 - drag lifecycle orchestration
 - active drop target resolution
 - global rules access
-- routing to `IItemDropHandler`
+- routing to `IDropProcessor`
 - public swap events (`OnSwapAttempting`, `OnSwapCompleted`)
 
 Note: manager no longer owns all transfer branching logic directly.
 
-## InventoryDropHandler
+## InventoryDropProcessor
 
-Location: `Scripts/Inventories/InventoryDropHandler.cs`
+Location: `Scripts/Inventories/InventoryDropProcessor.cs`
 
 Responsibilities:
 - resolve effective target inventory/slot

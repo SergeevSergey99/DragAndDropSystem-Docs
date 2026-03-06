@@ -4,7 +4,7 @@
 
 ## Quick Click Auto-Transfer
 
-- Implemented in `DragDropEventListener` + manager auto-transfer path.
+- Implemented through `InputEventRouter`, pointer phases, and bound actions.
 - Distinguishes click vs drag by time and distance thresholds.
 
 ## Atomic Batch Execution

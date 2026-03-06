@@ -1,244 +1,182 @@
 # Interaction Input System
 
-**Last Updated**: 2026-03-05
+**Last Updated**: 2026-03-06
 
-Документ описывает актуальную (после миграции) систему ввода/взаимодействия для инвентарей.
+Документ описывает актуальный input pipeline для UI-инвентарей после миграции с legacy listeners.
 
 ## Цель
 
-Свести все пользовательские интенты (мышь, UI navigation, Input System actions) к единому маршруту:
+Свести мышь, navigation и `InputAction` к одному маршруту:
 
-1. `SlotInputAdapter` собирает raw-события.
-2. `InputEventRouter` маршрутизирует события в нужный инвентарь.
-3. `InventoryExtraInteractionBinder` задает переопределения биндингов для инвентаря, а `InputEventRouter` исполняет их.
+1. `SlotInputAdapter` собирает raw UI-события.
+2. `InputEventRouter` маршрутизирует их в контекст нужного инвентаря.
+3. Bindings из `InventoryExtraInteractionBinder` или `InteractionBindingsProfile` выбирают `SlotInteractionAction`.
+4. Action вызывает drag, selection, context menu или scene inventory action.
 
-Старая схема на `DragDropEventListener` и `SlotPointerSelectionTrigger` удалена из slot-prefab.
+Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) больше не являются целевой схемой.
 
 ## Компоненты
 
-### SlotInputAdapter (per-slot)
+### SlotInputAdapter
 
 Файл: `Scripts/Interaction/SlotInputAdapter.cs`
 
 Роль:
 - принимает `IPointer*`, `IBeginDrag`, `ISelect/IDeselect`, `ISubmit/ICancel`;
 - прокидывает события в `InputEventRouter`;
-- реализует `IDropTarget` для интеграции с drop stack менеджера;
-- не содержит бизнес-логики переноса/выделения.
+- реализует `IDropTarget` и создает `InventoryDropProcessor` для slot-drop;
+- не содержит доменной логики drag, selection или context menu.
 
-### InputEventRouter (singleton)
+### InputEventRouter
 
 Файл: `Scripts/Interaction/InputEventRouter.cs`
 
 Роль:
-- хранит маппинг `IInventory -> InventoryExtraInteractionBinder`;
-- хранит глобальный `DefaultBindingsProfile` (SO);
-- маршрутизирует события от адаптеров и `InventoryInputHandler`;
-- выполняет frame-level anti-dup для action-intents.
+- хранит runtime-state по инвентарям;
+- разрешает pointer/navigation/input-action bindings;
+- отслеживает focus/pressed state;
+- классифицирует pointer phases: `Down`, `Up`, `Click`, `ClickShort`, `ClickLong`;
+- изолирует drag-only обработку на pointer-up;
+- выполняет anti-dup для action intents.
 
-### InventoryExtraInteractionBinder (per-inventory)
+### InventoryExtraInteractionBinder
 
 Файл: `Scripts/Interaction/InventoryExtraInteractionBinder.cs`
 
 Роль:
 - хранит локальные `PointerBinding`, `NavigationBinding`, `InputActionBinding`;
-- опционально добавляет биндинги из `InteractionBindingsProfile`;
-- опционально добавляет биндинги из глобального `InputEventRouter.DefaultBindingsProfile`;
-- регистрируется в `InputEventRouter` как override для конкретного `UniversalInventory`.
+- опционально добавляет bindings из profile asset;
+- может подключать глобальный `InputEventRouter.DefaultBindingsProfile`;
+- используется как per-inventory override.
 
 Важно:
-- в `InteractionBindingsProfile` (SO) доступны только `AssetOnlySlotInteractionAction`;
-- в локальных биндингах `InventoryExtraInteractionBinder` доступны любые `SlotInteractionAction`, включая scene-bound.
+- в `InteractionBindingsProfile` доступны только `AssetOnlySlotInteractionAction`;
+- в локальных bindings доступны любые `SlotInteractionAction`, включая scene-bound действия.
 
-## Профили биндингов (SO)
+### InteractionBindingsProfile
 
-Файл типа:
-- `Scripts/Interaction/InteractionBindingsProfile.cs`
+Файл: `Scripts/Interaction/InteractionBindingsProfile.cs`
 
-Глобальный дефолтный профиль:
-- `Settings/DefaultInteractionBindingsProfile.asset` (или любой назначенный в `InputEventRouter.DefaultBindingsProfile`)
+SO-профиль для переиспользуемых bindings.
 
-Где задаётся:
-- на `InputEventRouter` поле `DefaultBindingsProfile`.
+Использование:
+- глобально через `InputEventRouter.DefaultBindingsProfile`;
+- локально через `InventoryExtraInteractionBinder._bindingsProfile`.
 
-Override на конкретном инвентаре:
-- `InventoryExtraInteractionBinder._bindingsProfile` — профиль для конкретного инвентаря;
-- `InventoryExtraInteractionBinder._useGlobalBindingsProfile` — подключать глобальный профиль роутера;
-- локальные биндинги в компоненте всегда добавляются в итоговый набор.
+## Поддерживаемые actions
 
-### SlotInteractionActions
+### Interaction namespace
 
 Файл: `Scripts/Interaction/SlotInteractionActions.cs`
 
-Поддерживаемые действия:
 - `DragSlotAction`
+- `CompleteDragAction`
 - `CancelDragAction`
-- `SelectionSlotAction`
 - `InventorySlotAction`
 
-`InventorySlotAction` (local-only) может вызывать:
-- сценовый `InventoryActionBase` (MonoBehaviour на объекте сцены/префаба);
-- `InventoryActionAssetBase` (ScriptableObject asset для переиспользуемых конфигураций).
+### Selection namespace
 
-`InventoryAssetSlotAction` (SO-safe) вызывает только `InventoryActionAssetBase`.
+Файлы:
+- `Scripts/Selection/SelectionSlotAction.cs`
+- `Scripts/Selection/StartMultiDragAction.cs`
+
+- `SelectionSlotAction`
+- `StartMultiDragAction`
+
+### ContextMenu namespace
+
+Файл:
+- `Scripts/ContextMenu/ShowContextMenuAction.cs`
+
+- `ShowContextMenuAction`
 
 ## Поток событий
 
-### Мышь (pointer)
+### Pointer
 
-`EventSystem -> SlotInputAdapter -> InputEventRouter -> (resolved PointerBinding) -> SlotInteractionAction -> DragAndDropManager/Selection`
+`EventSystem -> SlotInputAdapter -> InputEventRouter -> PointerBinding -> SlotInteractionAction`
 
-### Геймпад/клавиатура (actions)
+### InputAction
 
-`InputAction -> InventoryInputHandler -> InputEventRouter -> InventoryActionBase`
+`InputAction -> InputEventRouter (bindings from InventoryExtraInteractionBinder or profile) -> SlotInteractionAction`
 
-или
+### Navigation focus
 
-`InputAction -> InputEventRouter (bindings from InventoryExtraInteractionBinder) -> SlotInteractionAction`
+`ISelect/IDeselect -> SlotInputAdapter -> InputEventRouter`
 
-### UI navigation focus
+## Pointer phases
 
-`ISelect/IDeselect -> SlotInputAdapter -> InputEventRouter (FocusedSlot)`
+Pointer bindings поддерживают:
+- `Any`
+- `Down`
+- `Up`
+- `Click`
+- `ClickShort`
+- `ClickLong`
 
-## Примеры конфигураций действий
+Рекомендации:
+- start drag: `Down`
+- complete drag: `Up`
+- selection/context menu: `ClickShort`
+- special alt behavior: `ClickLong`
 
-Ниже примеры, как настраивать биндинги в `InventoryExtraInteractionBinder`.
+## Типовые конфигурации
 
-### Случай 1: Базовый mouse drag&drop (без мультивыделения)
+### Базовый drag&drop
 
 `Pointer Bindings`:
-- `LMB + None -> DragSlotAction`
+- `LMB + Down -> DragSlotAction`
+- `LMB + Up -> CompleteDragAction`
 
 `Navigation Bindings`:
 - `Submit -> DragSlotAction`
 - `Cancel -> CancelDragAction`
 
-Применение:
-- простой инвентарь лута, где нужно только перетаскивание.
-
-### Случай 2: Mouse + мультивыделение (RTS/ARPG стиль)
+### Multi-selection + drag на другой кнопке
 
 `Pointer Bindings`:
-- `LMB + None -> SelectionSlotAction(ClearAndSelectOperation)`
-- `LMB + Ctrl -> SelectionSlotAction(ToggleSlotOperation)`
-- `LMB + Shift -> SelectionSlotAction(RangeSelectOperation)`
-- `RMB + None -> DragSlotAction`
+- `LMB + None + ClickShort -> SelectionSlotAction(ClearAndSelectOperation)`
+- `LMB + Ctrl + ClickShort -> SelectionSlotAction(ToggleSlotOperation)`
+- `LMB + Shift + ClickShort -> SelectionSlotAction(RangeSelectOperation)`
+- `RMB + Down -> DragSlotAction`
+- `RMB + Up -> CompleteDragAction`
 
-`Input Action Bindings` (через `InventoryInputHandler`):
-- `SelectAll -> SelectionSlotAction(SelectAllOperation)`
-- `ClearSelection -> SelectionSlotAction(ClearSelectionOperation)`
+### Context menu
 
-Применение:
-- нужно отделить выбор слотов и перенос на разные кнопки мыши.
-
-### Случай 3: Gamepad-only inventory
-
-Предусловия:
-- слоты навигируемы через `Selectable` и `EventSystem` (`Navigate/Submit/Cancel`).
+`Pointer Bindings`:
+- `RMB + ClickShort -> ShowContextMenuAction`
 
 `Navigation Bindings`:
-- `Submit -> DragSlotAction`
-- `Cancel -> CancelDragAction`
+- `Cancel -> ShowContextMenuAction`
 
-`Input Action Bindings`:
-- `SecondaryInteract -> SelectionSlotAction(ToggleSlotOperation)`
-- `SelectAll -> SelectionSlotAction(SelectAllOperation)` (опционально)
+### Scene-specific inventory actions
 
-Применение:
-- консольный UI без мыши.
+`InputAction Bindings`:
+- `QuickMove -> InventorySlotAction(scene AutoTransferAction)`
+- `Sort -> InventorySlotAction(scene SortInventoryAction)`
 
-### Случай 4: Read-only инвентарь (только просмотр и выделение)
+## Runtime notes
 
-`Pointer Bindings`:
-- `LMB + None -> SelectionSlotAction(ClearAndSelectOperation)`
-- `LMB + Ctrl -> SelectionSlotAction(ToggleSlotOperation)`
+- `InventorySlotAction` и `ShowContextMenuAction` используют `adapter?.Slot ?? inventory.ResolveAutoTransferSlot()`.
+- `ResolveAutoTransferSlot()` сейчас ищет слот в порядке: `hover -> EventSystem.currentSelectedGameObject -> lastInteracted`.
+- `InputEventRouter` хранит текущий `FocusSource`, который используется и для context menu actions без pointer event.
 
-Не добавлять `DragSlotAction` в pointer/navigation bindings.
+## Prefabs и сцены
 
-Дополнительно:
-- можно назначить правило DataBinding, запрещающее `CanStartDrag`.
-
-Применение:
-- витрина магазина, журнал предметов, квестовые списки.
-
-### Случай 5: Два разных профиля в одной сцене
-
-Пример:
-- `PlayerInventoryBinder`:
-  - `LMB -> DragSlotAction`
-  - `Ctrl+LMB -> ToggleSlotOperation`
-- `MerchantInventoryBinder`:
-  - `LMB -> SelectionSlotAction(ClearAndSelectOperation)`
-  - `RMB -> DragSlotAction`
-
-Важный момент:
-- профили задаются на каждом `InventoryExtraInteractionBinder` отдельно, а не глобально.
-
-### Случай 6: Auto-transfer и sort по кнопкам
-
-На `InventoryInputHandler`:
-- привязать `AutoTransferAction` к action `QuickMove`.
-- привязать `SortInventoryAction` к action `Sort`.
-
-Поток:
-- `InventoryInputHandler -> InputEventRouter -> InventoryActionBase`.
-
-Применение:
-- Diablo-like quick move (`Shift`/`Y`) и сортировка (`R3`/`V`).
-
-### Случай 7: Drag только правой кнопкой, выбор только левой
-
-`Pointer Bindings`:
-- `LMB + None -> SelectionSlotAction(ClearAndSelectOperation)`
-- `LMB + Ctrl -> SelectionSlotAction(ToggleSlotOperation)`
-- `RMB + None -> DragSlotAction`
-
-Применение:
-- чтобы случайные клики ЛКМ не начинали перенос.
-
-### Случай 8: Отключить выделение во время drag (по умолчанию)
-
-Ничего отдельно настраивать не нужно:
-- роутер уже блокирует часть конфликтующих интентов во время drag и разводит pointer-up обработку.
-
-Используйте это как базовое поведение, если хотите избежать гонок между переносом и выделением.
-
-## Префабы и сцены
-
-### Slot prefabs
-
+Slot prefabs:
 - `Prefabs/Slot.prefab`
 - `Prefabs/Selectable Slot.prefab`
 
-Содержат `SlotInputAdapter`.
-Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) удалены.
+Ожидаемые компоненты:
+- `UniversalSlot`
+- `SlotInputAdapter`
 
-### Router и binder
-
-- `InputEventRouter` добавлен в `Prefabs/DragCanvas.prefab`;
-- `InventoryExtraInteractionBinder` добавляется на `UniversalInventory`, где нужны override биндингов.
-
-## InventoryDropArea
-
-Файл: `Scripts/UI/InventoryDropArea.cs`
-
-Поведение:
-- drop-area активна как raycast-target только во время активного drag;
-- в обычном состоянии не перехватывает клики слотов;
-- поддерживает drop в dynamic inventories, включая сценарии с созданием новых слотов.
-
-## Связанные изменения transfer pipeline
-
-Файлы:
-- `Scripts/Inventories/TransferPlanner.cs`
-- `Scripts/Inventories/TransferPlanExecutor.cs`
-
-Добавлено deferred-планирование для inventory-area drop (когда таргет-слот не задан и слот может создаться в execution phase).
+В сцене должен присутствовать `InputEventRouter` обычно через `Prefabs/DragCanvas.prefab`.
 
 ## Debug checklist
 
-1. На слоте есть `SlotInputAdapter` и `UniversalSlot`.
-2. На `UniversalInventory` есть `InventoryExtraInteractionBinder`, если для него нужны отдельные биндинги.
-3. В сцене присутствует `InputEventRouter` (через `DragCanvas`).
-4. В `InventoryInputHandler` action уходит в router (без legacy fallback).
-5. Для проблем с дропом в область проверить `InventoryDropArea` и `DropPolicy`.
+1. На слоте есть `UniversalSlot` и `SlotInputAdapter`.
+2. На инвентаре есть `InventoryExtraInteractionBinder`, если нужны локальные bindings.
+3. В сцене есть `InputEventRouter`.
+4. Для drag completion настроен отдельный binding на `Up`.
+5. Для selection/context menu pointer binding использует `ClickShort`, а не `Any`.

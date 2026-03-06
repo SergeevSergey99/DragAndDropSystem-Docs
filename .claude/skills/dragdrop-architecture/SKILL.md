@@ -29,4 +29,4 @@ This replaces fragmented decision logic in manager-level transfer handling.
 2. Keep drop behavior fully policy-driven.
 3. Keep swap execution in the same pipeline as regular transfers.
 4. Keep event emission rollback-safe in atomic mode.
-5. Keep UI target code thin (`InventoryDropHandler` as boundary).
+5. Keep UI target code thin (`InventoryDropProcessor` as boundary).

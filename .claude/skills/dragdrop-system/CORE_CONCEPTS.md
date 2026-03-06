@@ -67,7 +67,7 @@ The system prefers deferred event dispatch for consistency:
 
 ## 7. Handler Boundary
 
-`InventoryDropHandler` is the adapter between UI/manager targets and pipeline internals.
+`InventoryDropProcessor` is the adapter between UI/manager targets and pipeline internals.
 
 Responsibilities:
 - resolve effective target+policy
