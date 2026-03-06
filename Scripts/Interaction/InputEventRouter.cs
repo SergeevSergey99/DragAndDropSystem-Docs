@@ -273,8 +273,7 @@ namespace DragAndDropSystem.Interaction
                 if (binding == null || !binding.IsValid() || !binding.Matches(eventData, phase))
                     continue;
 
-                bool isDragBinding = IsDragBindingAction(binding.Action);
-                if (dragOnly && !isDragBinding)
+                if (dragOnly && !binding.Action.IsDragBinding())
                     continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, eventData))
@@ -530,9 +529,6 @@ namespace DragAndDropSystem.Interaction
 
             return false;
         }
-
-        private static bool IsDragBindingAction(SlotInteractionAction action)
-            => action is DragSlotAction || action is StartMultiDragAction || action is CompleteDragAction;
 
         private bool TryResolveClickPhase(RuntimeState state, PointerEventData eventData, out PointerTriggerPhase phase)
         {

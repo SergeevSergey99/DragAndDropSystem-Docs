@@ -16,6 +16,8 @@ namespace DragAndDropSystem.Selection
         [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
         [SerializeField] private bool _restrictToSameInventory = true;
 
+        public override bool IsDragBinding() => true;
+        
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.Instance.IsDragging)

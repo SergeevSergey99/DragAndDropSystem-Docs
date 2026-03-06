@@ -11,6 +11,8 @@ namespace DragAndDropSystem.Interaction
     public abstract class SlotInteractionAction
     {
         public virtual string DisplayName => GetType().Name.Replace("Action", string.Empty);
+        
+        public virtual bool IsDragBinding() => false;
 
         public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null;
@@ -25,6 +27,7 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class DragSlotAction : AssetOnlySlotInteractionAction
     {
+        public override bool IsDragBinding() => true;
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             var slot = adapter?.Slot;
@@ -54,6 +57,8 @@ namespace DragAndDropSystem.Interaction
     {
         [field: SerializeField] public bool CancelOnNoSlots { get; private set; } = true;
 
+        public override bool IsDragBinding() => true;
+        
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;
 
