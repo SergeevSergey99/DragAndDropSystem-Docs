@@ -26,13 +26,8 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class DragSlotAction : AssetOnlySlotInteractionAction
     {
-        [field: SerializeField] public bool CompleteOnPointerUp { get; private set; } = true;
-
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
-                return CompleteOnPointerUp;
-
             var slot = adapter?.Slot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
@@ -41,9 +36,6 @@ namespace DragAndDropSystem.Interaction
         {
             if (DragAndDropManager.Instance.IsDragging)
             {
-                if (!CompleteOnPointerUp)
-                    return ActionResult.Failed("Complete on pointer up is disabled");
-
                 DragAndDropManager.Instance.CompleteDrag();
                 return ActionResult.Succeeded();
             }

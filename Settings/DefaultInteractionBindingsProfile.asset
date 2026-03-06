@@ -19,12 +19,12 @@ MonoBehaviour:
     _triggerPhase: 1
     _action:
       rid: 6676588759005003857
-  - _label: LMB Drop
-    _button: 0
+  - _label: MMB Drag
+    _button: 2
     _modifier: 0
     _triggerPhase: 2
     _action:
-      rid: 6676588703534547018
+      rid: 6676588777423765576
   - _label: LMB Ctrl Toggle
     _button: 0
     _modifier: 1
@@ -73,8 +73,7 @@ MonoBehaviour:
           rid: 2003
     - rid: 1005
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        <CompleteOnPointerUp>k__BackingField: 1
+      data: 
     - rid: 1006
       type: {class: CancelDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data: 
@@ -87,11 +86,9 @@ MonoBehaviour:
     - rid: 2003
       type: {class: ClearAndSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data: 
-    - rid: 6676588703534547018
-      type: {class: CompleteDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        <CancelOnNoSlots>k__BackingField: 1
     - rid: 6676588759005003857
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        <CompleteOnPointerUp>k__BackingField: 1
+      data: 
+    - rid: 6676588777423765576
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
