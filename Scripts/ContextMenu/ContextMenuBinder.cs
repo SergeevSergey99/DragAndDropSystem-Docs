@@ -19,6 +19,14 @@ namespace DragAndDropSystem.ContextMenu
         [SerializeField, Tooltip("Пункты меню для пустого слота. Если не задан — используется основной пресет.")]
         private ContextMenuPreset _emptySlotPreset;
 
+        [SerializeField, Tooltip("Сценовые пункты меню для непустого слота.")]
+        private List<ContextMenuSceneEntryBase> _sceneEntries = new();
+
+        [SerializeField, Tooltip("Сценовые пункты меню для пустого слота. Если не заданы — используются обычные сценовые пункты.")]
+        private List<ContextMenuSceneEntryBase> _emptySlotSceneEntries = new();
+
+        private readonly List<IContextMenuEntry> _resolvedEntries = new();
+
         public UniversalInventory Inventory => _inventory;
 
         private void Awake()
@@ -30,12 +38,33 @@ namespace DragAndDropSystem.ContextMenu
         /// <summary>
         /// Вернуть записи пресета для данного состояния слота.
         /// </summary>
-        public IReadOnlyList<ContextMenuEntryDefinitionSO> GetEntries(bool slotIsEmpty)
+        public IReadOnlyList<IContextMenuEntry> GetEntries(bool slotIsEmpty)
         {
+            _resolvedEntries.Clear();
+
             var preset = (slotIsEmpty && _emptySlotPreset != null) ? _emptySlotPreset : _preset;
-            return preset != null
-                ? preset.Entries
-                : System.Array.Empty<ContextMenuEntryDefinitionSO>();
+            if (preset != null && preset.Entries != null)
+            {
+                for (int i = 0; i < preset.Entries.Count; i++)
+                {
+                    var entry = preset.Entries[i];
+                    if (entry != null)
+                        _resolvedEntries.Add(entry);
+                }
+            }
+
+            var sceneEntries = slotIsEmpty && _emptySlotSceneEntries.Count > 0
+                ? _emptySlotSceneEntries
+                : _sceneEntries;
+
+            for (int i = 0; i < sceneEntries.Count; i++)
+            {
+                var entry = sceneEntries[i];
+                if (entry != null)
+                    _resolvedEntries.Add(entry);
+            }
+
+            return _resolvedEntries;
         }
     }
 }

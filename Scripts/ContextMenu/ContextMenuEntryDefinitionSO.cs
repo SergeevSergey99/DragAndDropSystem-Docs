@@ -6,7 +6,7 @@ namespace DragAndDropSystem.ContextMenu
     /// Базовый SO для одного пункта контекстного меню.
     /// Субклассируйте в своём проекте чтобы добавить игровую логику.
     /// </summary>
-    public abstract class ContextMenuEntryDefinitionSO : ScriptableObject
+    public abstract class ContextMenuEntryDefinitionSO : ScriptableObject, IContextMenuEntry
     {
         [SerializeField] private string _label;
         [SerializeField] private Sprite _icon;

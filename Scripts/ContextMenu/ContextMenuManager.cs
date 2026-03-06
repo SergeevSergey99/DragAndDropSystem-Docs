@@ -17,10 +17,10 @@ namespace DragAndDropSystem.ContextMenu
         public bool IsOpen { get; private set; }
 
         /// <summary>
-        /// Показать контекстное меню: фильтрует записи через <see cref="ContextMenuEntryDefinitionSO.CanShow"/>
+        /// Показать контекстное меню: фильтрует записи через <see cref="IContextMenuEntry.CanShow"/>
         /// и передаёт видимые пункты во view.
         /// </summary>
-        public void Show(IReadOnlyList<ContextMenuEntryDefinitionSO> entries, ContextMenuContext ctx)
+        public void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx)
         {
             if (_view == null)
             {
@@ -28,13 +28,19 @@ namespace DragAndDropSystem.ContextMenu
                 return;
             }
 
+            if (IsOpen)
+                Hide();
+
             var visible = entries
                 .Where(e => e != null && e.CanShow(ctx))
                 .OrderBy(e => e.Order)
                 .ToList();
 
             if (visible.Count == 0)
+            {
+                IsOpen = false;
                 return;
+            }
 
             _view.Show(visible, ctx);
             IsOpen = true;

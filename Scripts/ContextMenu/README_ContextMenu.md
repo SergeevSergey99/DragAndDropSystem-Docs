@@ -7,13 +7,15 @@
 ## Архитектура
 
 ```
-ContextMenuEntryDefinitionSO   — один пункт меню (SO, субклассируется в проекте)
-ContextMenuPreset              — список пунктов (SO, назначается на инвентарь)
-ContextMenuBinder              — компонент на GO инвентаря, хранит пресеты
+IContextMenuEntry              — runtime-контракт пункта меню
+ContextMenuEntryDefinitionSO   — asset-based пункт меню (SO, субклассируется в проекте)
+ContextMenuSceneEntryBase      — scene-based пункт меню (MonoBehaviour)
+ContextMenuPreset              — список asset-based пунктов (SO, назначается на инвентарь)
+ContextMenuBinder              — компонент на GO инвентаря, хранит пресеты и scene entries
 ContextMenuContext             — контекст клика (inventory / slot / item / позиция / устройство)
 ContextMenuManager             — синглтон, фильтрует CanShow, сортирует, передаёт во View
 ContextMenuViewBase            — абстрактный MonoBehaviour-вью (реализуется в проекте)
-ShowContextMenuAction          — SlotInteractionAction, запускает весь pipeline
+ShowContextMenuAction          — AssetOnlySlotInteractionAction, запускает весь pipeline
 ```
 
 ### Поток выполнения
@@ -22,7 +24,7 @@ ShowContextMenuAction          — SlotInteractionAction, запускает в�
 Пользователь кликает (ПКМ / геймпад)
   → InputEventRouter
     → ShowContextMenuAction.Execute(inventory, adapter, eventData)
-      → ContextMenuBinder.GetEntries(slotIsEmpty)        // выбор пресета
+      → ContextMenuBinder.GetEntries(slotIsEmpty)        // preset + scene entries
         → ContextMenuManager.Show(entries, ctx)
           → entries.Where(e => e.CanShow(ctx))           // фильтрация
             → entries.OrderBy(e => e.Order)              // сортировка
@@ -30,6 +32,7 @@ ShowContextMenuAction          — SlotInteractionAction, запускает в�
 ```
 
 При выборе пункта View вызывает `entry.Execute(ctx)` напрямую.
+Это одинаково работает и для asset-based, и для scene-based entries.
 
 ---
 
@@ -61,12 +64,14 @@ ShowContextMenuAction          — SlotInteractionAction, запускает в�
 
 | Поле | Назначение |
 |---|---|
-| **Preset** | Пресет для непустых слотов |
-| **Empty Slot Preset** | Пресет для пустых слотов (опционально) |
+| **Preset** | Asset-based пресет для непустых слотов |
+| **Empty Slot Preset** | Asset-based пресет для пустых слотов (опционально) |
+| **Scene Entries** | Сценовые пункты для непустых слотов |
+| **Empty Slot Scene Entries** | Сценовые пункты для пустых слотов |
 
 ### 5. Привяжите действие к вводу
 
-В `InventoryExtraInteractionBinder` (или в глобальном `InteractionBindingsProfile`) добавьте биндинг:
+В `InventoryExtraInteractionBinder` или в глобальном `DefaultInteractionBindingsProfile` добавьте биндинг:
 
 **Мышь — правый клик:**
 ```
@@ -153,7 +158,7 @@ public class MyContextMenuView : ContextMenuViewBase
 
     private ContextMenuContext _ctx;
 
-    public override void Show(IReadOnlyList<ContextMenuEntryDefinitionSO> entries, ContextMenuContext ctx)
+    public override void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx)
     {
         _ctx = ctx;
 

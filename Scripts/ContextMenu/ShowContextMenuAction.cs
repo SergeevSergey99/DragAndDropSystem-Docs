@@ -13,7 +13,7 @@ namespace DragAndDropSystem.ContextMenu
     /// Требует <see cref="ContextMenuManager"/> на сцене.
     /// </summary>
     [Serializable]
-    public sealed class ShowContextMenuAction : SlotInteractionAction
+    public sealed class ShowContextMenuAction : AssetOnlySlotInteractionAction
     {
         public override string DisplayName => "Show Context Menu";
 
@@ -29,7 +29,7 @@ namespace DragAndDropSystem.ContextMenu
             if (binder == null)
                 return ActionResult.Failed("No ContextMenuBinder on inventory");
 
-            var slot    = adapter?.Slot;
+            var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
             var isEmpty = slot == null || slot.IsEmpty;
             var entries = binder.GetEntries(isEmpty);
 
