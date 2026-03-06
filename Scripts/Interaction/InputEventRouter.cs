@@ -92,6 +92,18 @@ namespace DragAndDropSystem.Interaction
             return true;
         }
 
+        public FocusSource ResolveActiveFocusSource(UniversalInventory inventory)
+        {
+            if (inventory == null)
+                return FocusSource.None;
+
+            var state = GetOrCreateState(inventory);
+            if (state.ActiveFocusSource != FocusSource.None)
+                return state.ActiveFocusSource;
+
+            return FocusSource.Gamepad;
+        }
+
         public void RoutePointerEnter(SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)

@@ -43,7 +43,9 @@ namespace DragAndDropSystem.ContextMenu
                 Item           = slot?.Stack?.Item,
                 ItemCount      = slot?.Stack?.Count ?? 0,
                 ScreenPosition = eventData?.position ?? Vector2.zero,
-                InputSource    = eventData != null ? FocusSource.Mouse : FocusSource.Gamepad,
+                InputSource    = eventData != null
+                    ? FocusSource.Mouse
+                    : InputEventRouter.Instance.ResolveActiveFocusSource(inventory),
             };
 
             ContextMenuManager.Instance.Show(entries, ctx);

@@ -816,14 +816,26 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         public UniversalSlot ResolveAutoTransferSlot()
         {
-            UniversalSlot slot = null;
-
             if (_pointerHoveredSlot != null && ReferenceEquals(_pointerHoveredSlot.Inventory, this))
+                return _pointerHoveredSlot;
+
+            var selectedObject = EventSystem.current != null
+                ? EventSystem.current.currentSelectedGameObject
+                : null;
+
+            if (selectedObject != null)
             {
-                slot = _pointerHoveredSlot;
+                var selectedSlot = selectedObject.GetComponent<UniversalSlot>()
+                    ?? selectedObject.GetComponentInParent<UniversalSlot>();
+
+                if (selectedSlot != null && ReferenceEquals(selectedSlot.Inventory, this))
+                    return selectedSlot;
             }
 
-            return slot;
+            if (_lastInteractedSlot != null && ReferenceEquals(_lastInteractedSlot.Inventory, this))
+                return _lastInteractedSlot;
+
+            return null;
         }
 
         /// <summary>

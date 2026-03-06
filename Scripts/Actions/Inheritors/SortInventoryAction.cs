@@ -34,55 +34,9 @@ namespace DragAndDropSystem.Inventories
                 return ActionResult.Failed("Inventory is null");
             }
 
-            // Собираем все непустые стаки
-            var stacks = new List<ItemStackData>();
-            for (int i = 0; i < inventory.SlotCount; i++)
-            {
-                var slot = inventory.GetSlot(i);
-                if (slot != null && !slot.IsEmpty)
-                {
-                    stacks.Add(new ItemStackData
-                    {
-                        Item = slot.Stack.Item,
-                        Count = slot.Stack.Count,
-                        OriginalSlotIndex = i
-                    });
-                }
-            }
-
-            if (stacks.Count == 0)
-            {
-                return ActionResult.Failed("No items to sort");
-            }
-
-            // Сортируем
-            SortStacks(stacks);
-
-            // Очищаем все слоты
-            for (int i = 0; i < inventory.SlotCount; i++)
-            {
-                var slot = inventory.GetSlot(i);
-                if (slot != null && !slot.IsEmpty)
-                {
-                    slot.Clear();
-                }
-            }
-
-            // Размещаем отсортированные стаки обратно
-            for (int i = 0; i < stacks.Count && i < inventory.SlotCount; i++)
-            {
-                var slot = inventory.GetSlot(i);
-                if (slot != null)
-                {
-                    var stackData = stacks[i];
-                    var newStack = new ItemStack(stackData.Item, stackData.Count);
-                    slot.SetStack(newStack);
-                }
-            }
-
-            inventory.UpdateAllVisuals();
-
-            return ActionResult.Succeeded();
+            return TrySortInventory(inventory, _sortType, _reverse)
+                ? ActionResult.Succeeded()
+                : ActionResult.Failed("No items to sort");
         }
 
         public override bool CanExecute(UniversalInventory inventory, UniversalSlot activeSlot)
@@ -103,15 +57,61 @@ namespace DragAndDropSystem.Inventories
             return false;
         }
 
-        private void SortStacks(List<ItemStackData> stacks)
+        public static bool TrySortInventory(UniversalInventory inventory, SortType sortType, bool reverse)
         {
-            switch (_sortType)
+            if (inventory == null)
+                return false;
+
+            var stacks = new List<ItemStackData>();
+            for (int i = 0; i < inventory.SlotCount; i++)
+            {
+                var slot = inventory.GetSlot(i);
+                if (slot != null && !slot.IsEmpty)
+                {
+                    stacks.Add(new ItemStackData
+                    {
+                        Item = slot.Stack.Item,
+                        Count = slot.Stack.Count,
+                        OriginalSlotIndex = i
+                    });
+                }
+            }
+
+            if (stacks.Count == 0)
+                return false;
+
+            SortStacks(stacks, sortType, reverse);
+
+            for (int i = 0; i < inventory.SlotCount; i++)
+            {
+                var slot = inventory.GetSlot(i);
+                if (slot != null && !slot.IsEmpty)
+                    slot.Clear();
+            }
+
+            for (int i = 0; i < stacks.Count && i < inventory.SlotCount; i++)
+            {
+                var slot = inventory.GetSlot(i);
+                if (slot != null)
+                {
+                    var stackData = stacks[i];
+                    slot.SetStack(new ItemStack(stackData.Item, stackData.Count));
+                }
+            }
+
+            inventory.UpdateAllVisuals();
+            return true;
+        }
+
+        private static void SortStacks(List<ItemStackData> stacks, SortType sortType, bool reverse)
+        {
+            switch (sortType)
             {
                 case SortType.ByName:
                     stacks.Sort((a, b) =>
                     {
                         int result = string.Compare(a.Item.DisplayName, b.Item.DisplayName, StringComparison.Ordinal);
-                        return _reverse ? -result : result;
+                        return reverse ? -result : result;
                     });
                     break;
 
@@ -119,7 +119,7 @@ namespace DragAndDropSystem.Inventories
                     stacks.Sort((a, b) =>
                     {
                         int result = string.Compare(a.Item.ItemId, b.Item.ItemId, StringComparison.Ordinal);
-                        return _reverse ? -result : result;
+                        return reverse ? -result : result;
                     });
                     break;
 
@@ -127,7 +127,7 @@ namespace DragAndDropSystem.Inventories
                     stacks.Sort((a, b) =>
                     {
                         int result = b.Count.CompareTo(a.Count); // Больше -> меньше
-                        return _reverse ? -result : result;
+                        return reverse ? -result : result;
                     });
                     break;
             }

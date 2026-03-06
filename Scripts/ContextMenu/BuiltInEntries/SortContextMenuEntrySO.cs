@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inventories;
 using UnityEngine;
 
 namespace DragAndDropSystem.ContextMenu.BuiltInEntries
@@ -42,55 +41,16 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
             if (inventory == null)
                 return;
 
-            var stacks = new List<(IInventoryItem item, int count)>();
-            for (int i = 0; i < inventory.SlotCount; i++)
-            {
-                var slot = inventory.GetSlot(i);
-                if (slot != null && !slot.IsEmpty)
-                    stacks.Add((slot.Stack.Item, slot.Stack.Count));
-            }
-
-            Sort(stacks);
-
-            for (int i = 0; i < inventory.SlotCount; i++)
-                inventory.GetSlot(i)?.Clear();
-
-            for (int i = 0; i < stacks.Count && i < inventory.SlotCount; i++)
-            {
-                var slot = inventory.GetSlot(i);
-                if (slot != null)
-                    slot.SetStack(new ItemStack(stacks[i].item, stacks[i].count));
-            }
-
-            inventory.UpdateAllVisuals();
+            _ = SortInventoryAction.TrySortInventory(inventory, MapSortType(_sortType), _reverse);
         }
 
-        private void Sort(List<(IInventoryItem item, int count)> stacks)
-        {
-            switch (_sortType)
+        private static SortInventoryAction.SortType MapSortType(SortType sortType)
+            => sortType switch
             {
-                case SortType.ByName:
-                    stacks.Sort((a, b) =>
-                    {
-                        int r = string.Compare(a.item.DisplayName, b.item.DisplayName, StringComparison.Ordinal);
-                        return _reverse ? -r : r;
-                    });
-                    break;
-                case SortType.ByItemId:
-                    stacks.Sort((a, b) =>
-                    {
-                        int r = string.Compare(a.item.ItemId, b.item.ItemId, StringComparison.Ordinal);
-                        return _reverse ? -r : r;
-                    });
-                    break;
-                case SortType.ByStackSize:
-                    stacks.Sort((a, b) =>
-                    {
-                        int r = b.count.CompareTo(a.count);
-                        return _reverse ? -r : r;
-                    });
-                    break;
-            }
-        }
+                SortType.ByName => SortInventoryAction.SortType.ByName,
+                SortType.ByItemId => SortInventoryAction.SortType.ByItemId,
+                SortType.ByStackSize => SortInventoryAction.SortType.ByStackSize,
+                _ => SortInventoryAction.SortType.ByName
+            };
     }
 }
