@@ -1,7 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
