@@ -1,6 +1,6 @@
 # Shaped Items Architecture Plan
 
-**Last Updated**: 2026-03-06
+**Last Updated**: 2026-03-08
 
 Документ описывает рекомендуемую архитектуру для поддержки предметов разного размера и формы, занимающих несколько ячеек инвентаря.
 
@@ -21,7 +21,7 @@
 Правильная модель:
 - `ISlot` остается минимальной ячейкой UI/инвентаря;
 - поверх набора слотов вводится слой layout/occupancy;
-- предмет знает свой footprint;
+- предмет может знать свой footprint через опциональный интерфейс;
 - planner работает не с одиночным slot, а с набором занимаемых ячеек.
 
 Иными словами: базовая сущность размещения становится не `slot`, а `placement`.
@@ -54,21 +54,36 @@
 
 ### 1. Item footprint model
 
-Нужен новый контракт, например концептуально:
-- размер (`width`, `height`) для прямоугольных предметов;
-- или матрица/битмаска для произвольной формы;
-- ориентация (`rotation`);
-- anchor point.
+`IInventoryItem` — минимальный интерфейс, добавлять footprint напрямую в него нельзя: это сломает все существующие реализации.
+
+**Выбранный подход**: отдельный опциональный интерфейс `IShapedItem : IInventoryItem`.
+
+```
+IShapedItem
+  int FootprintWidth  { get; }
+  int FootprintHeight { get; }
+  // Phase 4: bool[,] ShapeMask { get; }
+```
+
+Occupancy layer проверяет `item as IShapedItem`. Если `null` — предмет считается 1x1, и поведение не отличается от текущего. Это обеспечивает полную совместимость без изменения существующих адаптеров.
 
 Минимальный практичный старт:
 - прямоугольный footprint;
 - поворот на 90 градусов;
-- anchor = верхний левый или нижний левый slot.
+- anchor = верхний левый slot.
 
 Расширенный вариант позже:
-- произвольная shape mask.
+- произвольная shape mask через `bool[,]` или битмаску.
 
-### 2. Grid inventory topology
+### 2. Стекуемость shaped items — зафиксированное ограничение
+
+**Решение для Phase 1–3: shaped items всегда имеют `Count = 1`.**
+
+`ItemStack.Count > 1` для shaped item не поддерживается. Occupancy layer при размещении обязан проверять это как precondition. Попытка положить стак из 3 единиц предмета с footprint 2x1 должна явно отклоняться.
+
+Это упрощает planner, executor, сериализацию и все edge-case логики. Стекуемые shaped items можно рассмотреть в Phase 4 как отдельную фичу.
+
+### 3. Grid inventory topology
 
 У инвентаря должен появиться grid layout descriptor:
 - число колонок;
@@ -78,7 +93,7 @@
 
 Текущий `UniversalInventory` уже хранит список слотов, но не знает топологию grid на уровне данных. Это нужно добавить отдельно, а не выводить каждый раз из UI.
 
-### 3. Occupancy layer
+### 4. Occupancy layer
 
 Нужен runtime-слой занятости ячеек.
 
@@ -88,13 +103,22 @@
 - какой existing item блокирует placement;
 - какие placements конфликтуют.
 
-Это должен быть отдельный компонент/сервис, а не логика внутри `UniversalSlot`.
+**Ключевое решение: occupancy layer — производное состояние.**
 
-### 4. Placement model
+Occupancy не является источником истины. Источник истины — список `Placement` объектов в инвентаре. Occupancy-карта (mapping `slotIndex -> placementId`) строится из этого списка при инициализации и перестраивается при любом изменении placement.
+
+Это означает:
+- сериализуется только список placements;
+- occupancy пересчитывается при загрузке сцены / десериализации;
+- нет риска рассинхронизации между слотами и occupancy.
+
+Occupancy layer реализуется как сервис внутри grid inventory (не отдельный `MonoBehaviour`), принадлежащий инвентарю и управляемый им.
+
+### 5. Placement model
 
 Нужна отдельная сущность размещения предмета, содержащая:
 - item;
-- count;
+- count (для Phase 1–3 всегда = 1);
 - anchor slot/index;
 - orientation;
 - covered cells.
@@ -110,12 +134,36 @@
 - один placement <-> один anchor slot;
 - follower-cells не являются владельцами stack.
 
+### 6. Сериализация placement state
+
+Сериализуется список `PlacementData`:
+```
+PlacementData
+  int   anchorIndex
+  string itemId
+  int   count        // Phase 1–3: всегда 1
+  int   orientation  // 0 или 90
+```
+
+Occupancy пересчитывается при загрузке из этого списка. Follower-состояние слотов не сериализуется — оно восстанавливается из `PlacementData`.
+
+Это влияет на то, как `UniversalInventory` хранит и восстанавливает state в grid-режиме.
+
 ## Изменения в текущей архитектуре
+
+### IInventoryStrategy
+
+**Это самое болезненное место.** Текущий `IInventoryStrategy.TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)` принимает один `targetIndex`. Для shaped item нужно передать anchor + orientation — это не расширяемо без смены сигнатуры.
+
+**Решение**: для grid inventory вводится отдельный `IGridInventoryStrategy`, не наследующий от `IInventoryStrategy`. Grid inventory использует его вместо базовой стратегии. Существующие стратегии (`UniqueItemStrategy`, `StackableItemStrategy` и др.) не трогаются.
+
+Это решение нужно принять на Phase 1, иначе Phase 2 потребует переписывать уже написанный код.
 
 ### UniversalInventory
 
 Нужно расширить:
 - grid metadata;
+- список placements и API управления ими;
 - API поиска placement по slot;
 - API проверки placement;
 - операции установки/очистки multi-cell placement.
@@ -124,7 +172,7 @@
 
 Лучший путь:
 - только anchor slot хранит реальный stack/item;
-- остальные занятые слоты знают, что они являются частью placement и ссылаются на anchor.
+- остальные занятые слоты знают, что они являются частью placement и ссылаются на anchor;
 - публичные методы, принимающие slot, должны уметь резолвить placement через anchor.
 
 ### ISlot / UniversalSlot
@@ -139,25 +187,47 @@
 
 Важно: follower-slot не должен притворяться полноценным владельцем `ItemStack`.
 
+### DragContext
+
+Текущий `DragContext` несёт source slot и target slot. Для shaped items drag context должен дополнительно нести:
+- footprint перетаскиваемого предмета (из `IShapedItem`);
+- текущую orientation;
+- какая ячейка является anchor под курсором (не обязательно верхний левый угол footprint).
+
+Без этого planner не сможет валидировать placement по всем covered cells. Расширение `DragContext` нужно сделать обратно совместимым: для 1x1 предметов anchor = target slot, footprint = 1x1.
+
 ### TransferPlanner
 
 Это главный модуль, который придется переработать.
 
 Сейчас planner планирует allocation по одиночным slot target candidates. Для shaped items planner должен:
+- извлекать footprint из `DragContext` (через `IShapedItem`);
 - искать набор anchor candidates;
-- проверять footprint целиком для каждого кандидата;
+- проверять footprint целиком для каждого кандидата через occupancy layer;
 - резервировать virtual occupancy не по slot, а по всем covered cells;
 - строить placement plan, а не simple slot allocation.
 
 Если этого не сделать именно в planner, вся логика начнет расползаться по UI и inventory mutation code.
 
-### TransferPlanExecutor
+### TransferPlanExecutor и snapshot/rollback
 
 Executor должен применять plan как placement transaction:
 - освободить старый placement целиком;
 - занять новый placement целиком;
 - откатить все covered cells в atomic mode;
 - корректно эмитить события только один раз на placement, а не на каждую ячейку.
+
+**Snapshot/rollback требует расширения.** Текущий `InventorySnapshotUtility` делает снапшоты на уровне одного слота. При откате multi-cell placement нужно откатить все covered cells атомарно. На Phase 2 `InventorySnapshot` должен уметь захватывать и восстанавливать placement state (список placements + occupancy), а не только содержимое отдельных слотов.
+
+### InventoryTransferResult
+
+Текущий `InventoryTransferResult` возвращает один `ISlot TargetSlot`. После placement multi-cell предмета это поле теряет смысл или становится двусмысленным.
+
+**Решение**: добавить в `InventoryTransferResult` опциональные поля:
+- `ISlot AnchorSlot` — anchor slot размещения (для shaped items);
+- `IReadOnlyList<int> CoveredSlotIndices` — все занятые ячейки.
+
+Для 1x1 переносов `AnchorSlot == TargetSlot`, `CoveredSlotIndices` содержит один элемент. Все существующие подписчики события трансфера продолжают работать без изменений.
 
 ### RuleEvaluationService / Rules
 
@@ -205,24 +275,36 @@ Selection должна работать на уровне placement, а не о�
 - orientation;
 - maybe logical item instance / placement id.
 
+### AutoTransferAnimationStrategy — явное ограничение
+
+Существующий `AutoTransferContext` / `TweenAutoTransferAnimation` работают на уровне одного слота. Для auto-transfer shaped item нужно освободить весь старый placement и занять весь новый — текущая анимация этого не поддерживает.
+
+**Решение для Phase 1–3: auto-transfer для shaped items отключён явно.** При попытке auto-transfer shaped item система должна либо отклонить операцию, либо выполнить перенос без анимации. Полноценная поддержка анимации — Phase 4.
+
 ## Этапы реализации
 
 ### Phase 1. Foundation
 
 Сначала добавить только основу:
-- grid metadata;
-- footprint contract;
-- anchor + occupied cells;
-- placement queries.
+- `IShapedItem` интерфейс;
+- grid metadata и topology;
+- `PlacementData` и список placements в инвентаре;
+- occupancy layer как производное состояние;
+- anchor + follower state на слотах;
+- placement queries (CanPlace, GetPlacement, GetCoveredSlots);
+- `IGridInventoryStrategy` как отдельная стратегия;
+- сериализация `PlacementData`.
 
-Без drag UI, без rotation, без fancy preview.
+Без drag UI, без rotation, без fancy preview. Без изменений в `DragContext` и transfer pipeline.
 
 ### Phase 2. Planner/Executor integration
 
 Потом внедрить shaped placement в transfer pipeline:
-- planner строит placement-aware allocations;
+- расширить `DragContext` footprint + orientation;
+- planner строит placement-aware allocations через occupancy layer;
 - executor применяет placement transaction;
-- rollback работает на multi-cell state.
+- rollback работает на multi-cell state через расширенный `InventorySnapshot`;
+- расширить `InventoryTransferResult` полями anchor/covered.
 
 ### Phase 3. UI/UX
 
@@ -235,10 +317,12 @@ Selection должна работать на уровне placement, а не о�
 ### Phase 4. Advanced
 
 Позже можно добавлять:
-- произвольные shape masks;
+- произвольные shape masks (`bool[,]`);
 - auto-rotation on placement;
 - packing heuristics;
-- shape-aware auto-sort;
+- shape-aware auto-sort (2D bin packing — нетривиальная задача, отдельный scope);
+- полноценная auto-transfer анимация для shaped items;
+- стекуемые shaped items (если нужно);
 - rule presets for equipment-like grid inventories.
 
 ## Что важно не сломать
@@ -252,16 +336,18 @@ Selection должна работать на уровне placement, а не о�
 - current rule pipeline.
 
 Лучше всего добиться этого через feature flag / inventory mode:
-- обычный inventory;
-- grid/shaped inventory.
+- обычный inventory (текущий режим, без изменений);
+- grid/shaped inventory (новый режим).
+
+Проверка режима должна быть в одном месте (на уровне инвентаря), а не размазана по planner/executor/UI.
 
 ## Практическая рекомендация
 
 Самый безопасный путь:
 
-1. Ввести placement model рядом с текущей slot model.
-2. Добавить grid inventory как отдельный режим инвентаря.
-3. Адаптировать planner/executor так, чтобы они умели оба режима.
+1. Ввести `IShapedItem` и `PlacementData` рядом с текущей slot model.
+2. Добавить grid inventory как отдельный режим с `IGridInventoryStrategy`.
+3. Адаптировать `DragContext`, planner и executor так, чтобы они умели оба режима.
 4. Только потом переносить selection/context menu/preview на placement-aware поведение.
 
 Это дольше, но существенно безопаснее, чем пытаться сразу переписать всю систему под shaped items.
@@ -269,13 +355,16 @@ Selection должна работать на уровне placement, а не о�
 ## Минимальный MVP shaped items
 
 Если нужен не идеальный, а реалистичный первый релиз фичи, то MVP может быть таким:
-- только прямоугольные предметы;
+- только прямоугольные предметы (`IShapedItem` с width/height);
 - только grid inventory;
 - rotation 0/90;
+- shaped items всегда Count = 1;
 - один anchor slot хранит stack;
+- occupancy layer как производное состояние из placement list;
 - planner проверяет footprint по occupied cells;
 - selection и context menu работают по anchor placement;
-- auto-sort и batch swap можно временно ограничить.
+- auto-sort явно отключён для grid inventory (2D bin packing — отдельная задача);
+- auto-transfer для shaped items явно отключён.
 
 Это уже даст сильную пользовательскую ценность и не потребует сразу решать все сложные edge-case для произвольных форм.
 
@@ -284,6 +373,10 @@ Selection должна работать на уровне placement, а не о�
 Для этого проекта следует считать выбранной моделью:
 - `anchor placement + occupancy layer`;
 - без shared `ItemStack` across multiple slots;
+- footprint через опциональный `IShapedItem`, без изменения `IInventoryItem`;
+- occupancy как производное состояние от списка placements;
+- `IGridInventoryStrategy` отдельно от существующих стратегий;
+- shaped items Count = 1 (Phase 1–3);
 - с резолвом любых slot-driven действий через anchor placement.
 
 Если когда-либо понадобится модель со shared runtime entity на несколько ячеек, ее лучше делать как отдельную placement-сущность, а не как один `ItemStack`, напрямую лежащий в нескольких слотах.
