@@ -9,7 +9,7 @@ namespace Plugins.DragAndDropSystem.Examples
     /// Расширяет ItemExampleSO добавляя поле для 3D префаба
     /// Для работы с системой используйте ItemSOWith3DAdapter
     /// </summary>
-    [CreateAssetMenu(fileName = "ItemExampleWith3DSO", menuName = "DragAndDropSystem/Examples/ItemExampleWith3DSO", order = 2)]
+    [CreateAssetMenu(fileName = "ItemExampleWith3DSO", menuName = "DragAndDrop/Examples/ItemExampleWith3DSO", order = 2)]
     public class ItemExampleWith3DSO : ScriptableObject
     {
         [field: SerializeField] 

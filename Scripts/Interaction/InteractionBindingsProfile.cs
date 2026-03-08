@@ -4,9 +4,7 @@ using UnityEngine;
 
 namespace DragAndDropSystem.Interaction
 {
-    [CreateAssetMenu(
-        fileName = "InteractionBindingsProfile",
-        menuName = "DragAndDropSystem/Interaction/Bindings Profile")]
+    [CreateAssetMenu(fileName = "InteractionBindingsProfile", menuName = "DragAndDrop/Interaction/Bindings Profile")]
     public sealed class InteractionBindingsProfile : ScriptableObject
     {
         [SerializeField] private List<AssetPointerBinding> _pointerBindings = new();

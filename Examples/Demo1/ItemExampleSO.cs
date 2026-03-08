@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples
 {
-    [CreateAssetMenu(fileName = "ItemExampleSO", menuName = "DragAndDropSystem/Examples/ItemExampleSO", order = 1)]
+    [CreateAssetMenu(fileName = "ItemExampleSO", menuName = "DragAndDrop/Examples/ItemExampleSO", order = 1)]
     public class ItemExampleSO : ScriptableObject
     {
         [field: SerializeField] 
