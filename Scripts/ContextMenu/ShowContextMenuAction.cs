@@ -18,7 +18,9 @@ namespace DragAndDropSystem.ContextMenu
         public override string DisplayName => "Show Context Menu";
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => inventory != null && ContextMenuManager.IsInstanceExist;
+            => inventory != null
+            && ContextMenuManager.IsInstanceExist
+            && inventory.GetComponent<ContextMenuBinder>() != null;
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
@@ -43,9 +45,7 @@ namespace DragAndDropSystem.ContextMenu
                 Item           = slot?.Stack?.Item,
                 ItemCount      = slot?.Stack?.Count ?? 0,
                 ScreenPosition = eventData?.position ?? Vector2.zero,
-                InputSource    = eventData != null
-                    ? FocusSource.Mouse
-                    : InputEventRouter.Instance.ResolveActiveFocusSource(inventory),
+                InputSource    = InputEventRouter.Instance.ResolveActiveFocusSource(inventory),
             };
 
             ContextMenuManager.Instance.Show(entries, ctx);

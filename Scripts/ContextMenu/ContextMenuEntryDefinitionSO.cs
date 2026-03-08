@@ -24,6 +24,9 @@ namespace DragAndDropSystem.ContextMenu
         /// <summary>Показывать ли этот пункт для данного контекста.</summary>
         public abstract bool CanShow(ContextMenuContext ctx);
 
+        /// <summary>Активен ли пункт. Переопределяйте для disabled-состояния.</summary>
+        public virtual bool IsEnabled(ContextMenuContext ctx) => true;
+
         /// <summary>Выполнить действие.</summary>
         public abstract void Execute(ContextMenuContext ctx);
     }

@@ -22,10 +22,11 @@ namespace DragAndDropSystem.ContextMenu
         [SerializeField, Tooltip("Сценовые пункты меню для непустого слота.")]
         private List<ContextMenuSceneEntryBase> _sceneEntries = new();
 
-        [SerializeField, Tooltip("Сценовые пункты меню для пустого слота. Если не заданы — используются обычные сценовые пункты.")]
-        private List<ContextMenuSceneEntryBase> _emptySlotSceneEntries = new();
+        [SerializeField, Tooltip("Переопределить сценовые пункты для пустого слота. Если выключено — используются обычные сценовые пункты.")]
+        private bool _overrideEmptySlotSceneEntries = false;
 
-        private readonly List<IContextMenuEntry> _resolvedEntries = new();
+        [SerializeField, Tooltip("Сценовые пункты меню для пустого слота. Работает только если включён Override Empty Slot Scene Entries.")]
+        private List<ContextMenuSceneEntryBase> _emptySlotSceneEntries = new();
 
         public UniversalInventory Inventory => _inventory;
 
@@ -37,10 +38,11 @@ namespace DragAndDropSystem.ContextMenu
 
         /// <summary>
         /// Вернуть записи пресета для данного состояния слота.
+        /// Возвращает новый список — безопасно хранить ссылку.
         /// </summary>
-        public IReadOnlyList<IContextMenuEntry> GetEntries(bool slotIsEmpty)
+        public List<IContextMenuEntry> GetEntries(bool slotIsEmpty)
         {
-            _resolvedEntries.Clear();
+            var result = new List<IContextMenuEntry>();
 
             var preset = (slotIsEmpty && _emptySlotPreset != null) ? _emptySlotPreset : _preset;
             if (preset != null && preset.Entries != null)
@@ -49,11 +51,11 @@ namespace DragAndDropSystem.ContextMenu
                 {
                     var entry = preset.Entries[i];
                     if (entry != null)
-                        _resolvedEntries.Add(entry);
+                        result.Add(entry);
                 }
             }
 
-            var sceneEntries = slotIsEmpty && _emptySlotSceneEntries.Count > 0
+            var sceneEntries = (slotIsEmpty && _overrideEmptySlotSceneEntries)
                 ? _emptySlotSceneEntries
                 : _sceneEntries;
 
@@ -61,10 +63,10 @@ namespace DragAndDropSystem.ContextMenu
             {
                 var entry = sceneEntries[i];
                 if (entry != null)
-                    _resolvedEntries.Add(entry);
+                    result.Add(entry);
             }
 
-            return _resolvedEntries;
+            return result;
         }
     }
 }

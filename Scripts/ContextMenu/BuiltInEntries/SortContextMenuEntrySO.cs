@@ -10,14 +10,7 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
     [CreateAssetMenu(fileName = "SortEntry", menuName = "DragAndDrop/ContextMenu/Built-in/Sort", order = 0)]
     public class SortContextMenuEntrySO : ContextMenuEntryDefinitionSO
     {
-        public enum SortType
-        {
-            ByName,
-            ByItemId,
-            ByStackSize,
-        }
-
-        [SerializeField] private SortType _sortType = SortType.ByName;
+        [SerializeField] private SortInventoryAction.SortType _sortType = SortInventoryAction.SortType.ByName;
         [SerializeField] private bool _reverse = false;
 
         public override bool CanShow(ContextMenuContext ctx)
@@ -41,16 +34,7 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
             if (inventory == null)
                 return;
 
-            _ = SortInventoryAction.TrySortInventory(inventory, MapSortType(_sortType), _reverse);
+            _ = SortInventoryAction.TrySortInventory(inventory, _sortType, _reverse);
         }
-
-        private static SortInventoryAction.SortType MapSortType(SortType sortType)
-            => sortType switch
-            {
-                SortType.ByName => SortInventoryAction.SortType.ByName,
-                SortType.ByItemId => SortInventoryAction.SortType.ByItemId,
-                SortType.ByStackSize => SortInventoryAction.SortType.ByStackSize,
-                _ => SortInventoryAction.SortType.ByName
-            };
     }
 }

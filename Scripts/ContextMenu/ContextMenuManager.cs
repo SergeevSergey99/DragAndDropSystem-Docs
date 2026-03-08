@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CodeUtils;
@@ -15,6 +16,12 @@ namespace DragAndDropSystem.ContextMenu
         [SerializeField] private ContextMenuViewBase _view;
 
         public bool IsOpen { get; private set; }
+
+        /// <summary>Вызывается после открытия меню.</summary>
+        public event Action OnOpened;
+
+        /// <summary>Вызывается после закрытия меню.</summary>
+        public event Action OnClosed;
 
         /// <summary>
         /// Показать контекстное меню: фильтрует записи через <see cref="IContextMenuEntry.CanShow"/>
@@ -44,14 +51,19 @@ namespace DragAndDropSystem.ContextMenu
 
             _view.Show(visible, ctx);
             IsOpen = true;
+            OnOpened?.Invoke();
         }
 
         public void Hide()
         {
+            if (!IsOpen)
+                return;
+
             if (_view != null)
                 _view.Hide();
 
             IsOpen = false;
+            OnClosed?.Invoke();
         }
     }
 }

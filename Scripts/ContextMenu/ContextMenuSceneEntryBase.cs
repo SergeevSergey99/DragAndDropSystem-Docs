@@ -18,6 +18,10 @@ namespace DragAndDropSystem.ContextMenu
         public virtual Sprite GetIcon(ContextMenuContext ctx) => _icon;
 
         public abstract bool CanShow(ContextMenuContext ctx);
+
+        /// <summary>Активен ли пункт. Переопределяйте для disabled-состояния.</summary>
+        public virtual bool IsEnabled(ContextMenuContext ctx) => true;
+
         public abstract void Execute(ContextMenuContext ctx);
     }
 }

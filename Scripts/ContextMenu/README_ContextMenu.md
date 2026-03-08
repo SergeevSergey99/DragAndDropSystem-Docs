@@ -67,7 +67,8 @@ ShowContextMenuAction          — AssetOnlySlotInteractionAction, запуск�
 | **Preset** | Asset-based пресет для непустых слотов |
 | **Empty Slot Preset** | Asset-based пресет для пустых слотов (опционально) |
 | **Scene Entries** | Сценовые пункты для непустых слотов |
-| **Empty Slot Scene Entries** | Сценовые пункты для пустых слотов |
+| **Override Empty Slot Scene Entries** | Включить отдельные сценовые пункты для пустых слотов |
+| **Empty Slot Scene Entries** | Сценовые пункты для пустых слотов (только если включён Override) |
 
 ### 5. Привяжите действие к вводу
 
@@ -121,6 +122,35 @@ public class UseItemMenuEntrySO : ContextMenuEntryDefinitionSO
 | `ItemCount` | `int` | Количество в стаке |
 | `ScreenPosition` | `Vector2` | Экранная позиция клика |
 | `InputSource` | `FocusSource` | Mouse / Gamepad / VirtualCursor |
+
+### IsEnabled — disabled-состояние пунктов
+
+Помимо `CanShow` (скрыть/показать) каждый пункт может реализовать `IsEnabled` — показывается,
+но недоступен для нажатия (например, «Надеть» серый если нет свободного слота экипировки).
+
+```csharp
+public override bool IsEnabled(ContextMenuContext ctx)
+    => ctx.Inventory.HasFreeEquipSlot(ctx.Item);
+```
+
+View должен проверять `entry.IsEnabled(ctx)` и рендерить соответственно. Базовые классы
+возвращают `true` по умолчанию.
+
+### События ContextMenuManager
+
+```csharp
+ContextMenuManager.Instance.OnOpened += () => { /* меню открылось */ };
+ContextMenuManager.Instance.OnClosed += () => { /* меню закрылось */ };
+```
+
+Используйте `OnOpened`/`OnClosed` вместо поллинга `IsOpen`. Типичный пример:
+
+```csharp
+void Awake()
+{
+    DragAndDropManager.Instance.DragStarted += _ => ContextMenuManager.Instance.Hide();
+}
+```
 
 ### Порядок пунктов
 
