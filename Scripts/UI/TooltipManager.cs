@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Slots;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace DragAndDropSystem.UI
     /// <summary>
     /// Менеджер tooltip для отображения информации о предметах при наведении на слоты.
     /// ОПЦИОНАЛЬНЫЙ компонент - работает только если добавлен на сцену.
-    /// Подписывается на статические события SlotHoverEventListener.
+    /// Подписывается на статические hover-события SlotInputAdapter.
     ///
     /// Использует ITooltipView для визуализации - можно указать разные префабы tooltip для разных предметов.
     /// </summary>
@@ -47,15 +48,15 @@ namespace DragAndDropSystem.UI
         private void OnEnable()
         {
             // Подписываемся на глобальные статические события слотов
-            SlotHoverEventListener.OnAnySlotHoverEnter += OnSlotHoverEnter;
-            SlotHoverEventListener.OnAnySlotHoverExit += OnSlotHoverExit;
+            SlotInputAdapter.OnAnySlotHoverEnter += OnSlotHoverEnter;
+            SlotInputAdapter.OnAnySlotHoverExit += OnSlotHoverExit;
         }
 
         private void OnDisable()
         {
             // Отписываемся от событий
-            SlotHoverEventListener.OnAnySlotHoverEnter -= OnSlotHoverEnter;
-            SlotHoverEventListener.OnAnySlotHoverExit -= OnSlotHoverExit;
+            SlotInputAdapter.OnAnySlotHoverEnter -= OnSlotHoverEnter;
+            SlotInputAdapter.OnAnySlotHoverExit -= OnSlotHoverExit;
 
             // Останавливаем корутины
             StopAllTooltipCoroutines();

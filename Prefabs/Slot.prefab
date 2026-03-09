@@ -103,6 +103,7 @@ MonoBehaviour:
   m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -224,7 +225,6 @@ GameObject:
   - component: {fileID: 9074624100229294965}
   - component: {fileID: 360401508713574776}
   - component: {fileID: 556677889900112233}
-  - component: {fileID: -1197741666563837782}
   m_Layer: 5
   m_Name: Slot
   m_TagString: Untagged
@@ -310,6 +310,8 @@ MonoBehaviour:
   _emptyColor: {r: 1, g: 1, b: 1, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
   _highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _nonInteractableColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+  _canvasGroup: {fileID: 0}
   _slotRuleValidator:
     _presets: []
     _inlineRules: []
@@ -329,26 +331,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.SlotInputAdapter
   _slot: {fileID: 360401508713574776}
-  _coordinator: {fileID: 0}
---- !u!114 &-1197741666563837782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288852642469321198}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd529600f895d7f419bf8581812dea82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.SlotHoverEventListener
-  _slot: {fileID: 360401508713574776}
   _onlyWhenNotEmpty: 1
-  _ignoreWhileDragging: 0
-  onSlotHoverEnter:
+  _ignoreHoverWhileDragging: 0
+  _onSlotHoverEnter:
     m_PersistentCalls:
       m_Calls: []
-  onSlotHoverExit:
+  _onSlotHoverExit:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &6479211610076900272

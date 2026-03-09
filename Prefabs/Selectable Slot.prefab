@@ -300,7 +300,6 @@ GameObject:
   - component: {fileID: 9074624100229294965}
   - component: {fileID: 360401508713574776}
   - component: {fileID: 558899001122334455}
-  - component: {fileID: -1197741666563837782}
   - component: {fileID: 1964554084652171826}
   m_Layer: 5
   m_Name: Selectable Slot
@@ -409,26 +408,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.SlotInputAdapter
   _slot: {fileID: 360401508713574776}
-  _coordinator: {fileID: 0}
---- !u!114 &-1197741666563837782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6288852642469321198}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd529600f895d7f419bf8581812dea82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.SlotHoverEventListener
-  _slot: {fileID: 360401508713574776}
   _onlyWhenNotEmpty: 1
-  _ignoreWhileDragging: 0
-  onSlotHoverEnter:
+  _ignoreHoverWhileDragging: 0
+  _onSlotHoverEnter:
     m_PersistentCalls:
       m_Calls: []
-  onSlotHoverExit:
+  _onSlotHoverExit:
     m_PersistentCalls:
       m_Calls: []
 --- !u!114 &1964554084652171826
