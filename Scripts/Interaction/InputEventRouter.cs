@@ -7,6 +7,7 @@ using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.Interaction
 {
@@ -15,6 +16,10 @@ namespace DragAndDropSystem.Interaction
     {
         [field: SerializeField] 
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
+
+        [Header("Navigation Focus")]
+        [SerializeField, Tooltip("Автоматически поддерживать фокус на слоте для gamepad/keyboard навигации")]
+        private bool _autoMaintainFocus = true;
 
         [Header("Pointer Gestures")]
         [SerializeField, Min(0.01f)] private float _longClickThresholdSeconds = 0.35f;
@@ -45,6 +50,9 @@ namespace DragAndDropSystem.Interaction
             _handledThisFrame.Clear();
             _pointerUpHandledThisFrame.Clear();
             CleanupStaleInventories();
+
+            if (_autoMaintainFocus)
+                MaintainNavigationFocus();
         }
 
         public void RegisterExtraBinder(InventoryExtraInteractionBinder extraBinder)
@@ -691,6 +699,60 @@ namespace DragAndDropSystem.Interaction
                 default:
                     return false;
             }
+        }
+
+        private void MaintainNavigationFocus()
+        {
+            var es = EventSystem.current;
+            if (es == null)
+                return;
+
+            var selectedGO = es.currentSelectedGameObject;
+            if (selectedGO != null && selectedGO.activeInHierarchy)
+                return;
+            
+            var selectedAdapter = selectedGO != null ? selectedGO.GetComponent<SlotInputAdapter>() : null;
+            if (selectedAdapter != null && selectedAdapter.isActiveAndEnabled)
+                return;
+
+            var target = FindBestFocusTarget();
+            if (target != null)
+                es.SetSelectedGameObject(target.gameObject);
+        }
+
+        private SlotInputAdapter FindBestFocusTarget()
+        {
+            if (_activeInventory != null && _activeInventory.isActiveAndEnabled)
+            {
+                var adapter = FindFirstActiveAdapter(_activeInventory);
+                if (adapter != null)
+                    return adapter;
+            }
+
+            var allSelectables = Selectable.allSelectablesArray;
+            for (int i = 0; i < Selectable.allSelectableCount; i++)
+            {
+                if (allSelectables[i] is SlotInputAdapter candidate && candidate.isActiveAndEnabled)
+                    return candidate;
+            }
+
+            return null;
+        }
+
+        private static SlotInputAdapter FindFirstActiveAdapter(UniversalInventory inventory)
+        {
+            var slots = inventory.Slots;
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (slots[i] is UniversalSlot slot)
+                {
+                    var adapter = slot.GetComponent<SlotInputAdapter>();
+                    if (adapter != null && adapter.isActiveAndEnabled)
+                        return adapter;
+                }
+            }
+
+            return null;
         }
 
         private readonly struct InputActionSubscription
