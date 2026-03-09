@@ -6,6 +6,7 @@ using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.Interaction
 {
@@ -13,11 +14,8 @@ namespace DragAndDropSystem.Interaction
     /// Тонкий slot-adapter: пересылает raw-события в InputEventRouter.
     /// Доменную логику не содержит.
     /// </summary>
-    public class SlotInputAdapter : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler,
-        IPointerDownHandler, IPointerUpHandler,
+    public class SlotInputAdapter : Selectable,
         IBeginDragHandler, IDragHandler,
-        ISelectHandler, IDeselectHandler,
         ISubmitHandler, ICancelHandler,
         IDropTarget
     {
@@ -31,26 +29,36 @@ namespace DragAndDropSystem.Interaction
         [SerializeField, Tooltip("Игнорировать hover-события во время перетаскивания")]
         private bool _ignoreHoverWhileDragging = false;
         [SerializeField, Tooltip("Локальное событие наведения на слот")]
-        private UnityEvent<SlotHoverEventArgs> _onSlotHoverEnter = new();
+        private UnityEvent _onSlotHoverEnter = new();
         [SerializeField, Tooltip("Локальное событие ухода курсора со слота")]
-        private UnityEvent<SlotHoverEventArgs> _onSlotHoverExit = new();
+        private UnityEvent _onSlotHoverExit = new();
 
         public UniversalSlot Slot => _slot;
         public bool IsHovering { get; private set; }
-        public UnityEvent<SlotHoverEventArgs> OnSlotHoverEnter => _onSlotHoverEnter;
-        public UnityEvent<SlotHoverEventArgs> OnSlotHoverExit => _onSlotHoverExit;
-        public event Action<SlotHoverEventArgs> HoverEntered;
-        public event Action<SlotHoverEventArgs> HoverExited;
+        
+        public UnityEvent OnSlotHoverEnter => _onSlotHoverEnter;
+        public UnityEvent OnSlotHoverExit => _onSlotHoverExit;
 
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             if (_slot == null)
                 _slot = GetComponent<UniversalSlot>();
+
+            // Ensure navigation is Automatic after base class change from MonoBehaviour to Selectable.
+            // Prefabs serialized before the change may have default(Navigation) = None.
+            if (navigation.mode == Navigation.Mode.None)
+            {
+                var nav = navigation;
+                nav.mode = Navigation.Mode.Automatic;
+                navigation = nav;
+            }
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             if (_slot == null || DragAndDropManager.IsInstanceExist == false)
             {
                 if (IsHovering)
@@ -72,8 +80,9 @@ namespace DragAndDropSystem.Interaction
                 ForceHoverExit();
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public override void OnPointerEnter(PointerEventData eventData)
         {
+            base.OnPointerEnter(eventData);
             if (_slot?.Inventory is UniversalInventory universalInventory)
             {
                 universalInventory.NotifyPointerEnter(_slot);
@@ -83,8 +92,9 @@ namespace DragAndDropSystem.Interaction
             InputEventRouter.Instance.RoutePointerEnter(this, eventData);
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public override void OnPointerExit(PointerEventData eventData)
         {
+            base.OnPointerExit(eventData);
             if (_slot?.Inventory is UniversalInventory universalInventory)
             {
                 universalInventory.NotifyPointerExit(_slot);
@@ -94,8 +104,9 @@ namespace DragAndDropSystem.Interaction
             InputEventRouter.Instance.RoutePointerExit(this, eventData);
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public override void OnPointerDown(PointerEventData eventData)
         {
+            base.OnPointerDown(eventData);
             if (_slot == null)
                 return;
 
@@ -113,8 +124,9 @@ namespace DragAndDropSystem.Interaction
             InputEventRouter.Instance.RoutePointerDown(this, eventData);
         }
 
-        public void OnPointerUp(PointerEventData eventData)
+        public override void OnPointerUp(PointerEventData eventData)
         {
+            base.OnPointerUp(eventData);
             InputEventRouter.Instance.RoutePointerUp(this, eventData);
         }
 
@@ -129,13 +141,30 @@ namespace DragAndDropSystem.Interaction
             // Unity UI drag pipeline may require IDragHandler for stable BeginDrag dispatch.
         }
 
-        public void OnSelect(BaseEventData eventData)
+        public override void OnMove(AxisEventData eventData)
         {
+            var next = eventData.moveDir switch
+            {
+                MoveDirection.Left => FindSelectableOnLeft(),
+                MoveDirection.Right => FindSelectableOnRight(),
+                MoveDirection.Up => FindSelectableOnUp(),
+                MoveDirection.Down => FindSelectableOnDown(),
+                _ => null
+            };
+            Extentions.DragAndDropLog($"OnMove: {name}, dir={eventData.moveDir}, found={next?.name ?? "NULL"}, allSelectables={Selectable.allSelectableCount}");
+            base.OnMove(eventData);
+        }
+
+        public override void OnSelect(BaseEventData eventData)
+        {
+            base.OnSelect(eventData);
+            Extentions.DragAndDropLog($"OnSelect: {name}, nav mode: {navigation.mode}");
             InputEventRouter.Instance.RouteFocusEnter(this, FocusSource.Gamepad);
         }
 
-        public void OnDeselect(BaseEventData eventData)
+        public override void OnDeselect(BaseEventData eventData)
         {
+            base.OnDeselect(eventData);
             InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
         }
 
@@ -212,11 +241,10 @@ namespace DragAndDropSystem.Interaction
             IsHovering = true;
             var args = CreateHoverEventArgs(eventData, true);
 
-            HoverEntered?.Invoke(args);
             if (args.Cancel)
                 return;
 
-            _onSlotHoverEnter?.Invoke(args);
+            _onSlotHoverEnter?.Invoke();
             OnAnySlotHoverEnter?.Invoke(args);
         }
 
@@ -228,11 +256,10 @@ namespace DragAndDropSystem.Interaction
             IsHovering = false;
             var args = CreateHoverEventArgs(eventData, false);
 
-            HoverExited?.Invoke(args);
             if (args.Cancel)
                 return;
 
-            _onSlotHoverExit?.Invoke(args);
+            _onSlotHoverExit?.Invoke();
             OnAnySlotHoverExit?.Invoke(args);
         }
 
@@ -240,11 +267,11 @@ namespace DragAndDropSystem.Interaction
         {
             IsHovering = false;
             var args = CreateHoverEventArgs(null, false);
-            HoverExited?.Invoke(args);
+            
             if (args.Cancel)
                 return;
 
-            _onSlotHoverExit?.Invoke(args);
+            _onSlotHoverExit?.Invoke();
             OnAnySlotHoverExit?.Invoke(args);
         }
 
