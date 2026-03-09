@@ -40,6 +40,8 @@ namespace DragAndDropSystem.Interaction
         private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame = new ();
         // Временный список для очистки словарей от невалидных (уничтоженных) инвентарей
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
+        // Глобальный флаг: пользователь сейчас в режиме навигации (gamepad/keyboard) а не мыши
+        private bool _navigationModeActive;
 
         private void Update()
         {
@@ -181,6 +183,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
+            _navigationModeActive = false;
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
@@ -268,6 +271,9 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
                 return;
 
+            if (source == FocusSource.Gamepad)
+                _navigationModeActive = true;
+
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
@@ -300,6 +306,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
+            _navigationModeActive = true;
             MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Submit);
         }
@@ -309,6 +316,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
+            _navigationModeActive = true;
             MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
         }
@@ -703,21 +711,54 @@ namespace DragAndDropSystem.Interaction
 
         private void MaintainNavigationFocus()
         {
+            // Детектим холодный старт: пользователь нажал d-pad/стрелки, но ничего не выбрано,
+            // поэтому EventSystem не доставил Move/Select и _navigationModeActive ещё false.
+            if (!_navigationModeActive)
+            {
+                if (!DetectNavigationInput())
+                    return;
+
+                _navigationModeActive = true;
+            }
+
             var es = EventSystem.current;
             if (es == null)
                 return;
 
-            var selectedGO = es.currentSelectedGameObject;
-            if (selectedGO != null && selectedGO.activeInHierarchy)
-                return;
-            
-            var selectedAdapter = selectedGO != null ? selectedGO.GetComponent<SlotInputAdapter>() : null;
-            if (selectedAdapter != null && selectedAdapter.isActiveAndEnabled)
+            var selected = es.currentSelectedGameObject;
+            if (selected != null && selected.activeInHierarchy)
                 return;
 
             var target = FindBestFocusTarget();
             if (target != null)
                 es.SetSelectedGameObject(target.gameObject);
+        }
+
+        private static bool DetectNavigationInput()
+        {
+            var gamepad = Gamepad.current;
+            if (gamepad != null)
+            {
+                var dpad = gamepad.dpad;
+                if (dpad.up.wasPressedThisFrame || dpad.down.wasPressedThisFrame ||
+                    dpad.left.wasPressedThisFrame || dpad.right.wasPressedThisFrame)
+                    return true;
+
+                var stick = gamepad.leftStick;
+                if (stick.up.wasPressedThisFrame || stick.down.wasPressedThisFrame ||
+                    stick.left.wasPressedThisFrame || stick.right.wasPressedThisFrame)
+                    return true;
+            }
+
+            var keyboard = Keyboard.current;
+            if (keyboard != null)
+            {
+                if (keyboard.upArrowKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame ||
+                    keyboard.leftArrowKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
+                    return true;
+            }
+
+            return false;
         }
 
         private SlotInputAdapter FindBestFocusTarget()
