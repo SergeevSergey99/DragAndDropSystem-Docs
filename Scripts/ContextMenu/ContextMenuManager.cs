@@ -52,7 +52,7 @@ namespace DragAndDropSystem.ContextMenu
         /// </summary>
         public void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx)
         {
-            var view = ResolveView(ctx?.Inventory);
+            var view = ResolveView(ctx.Inventory);
             if (view == null)
             {
                 Debug.LogWarning("[ContextMenuManager] View prefab/instance is not assigned.");
