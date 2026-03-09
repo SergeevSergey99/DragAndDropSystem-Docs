@@ -173,11 +173,18 @@ Slot prefabs:
 
 В сцене должен присутствовать `InputEventRouter` обычно через `Prefabs/DragCanvas.prefab`.
 
+Для live drag visual в сцене также должен присутствовать `DragVisualPresenter` с настроенными:
+- `Canvas`
+- `Default Drag Visual Prefab`
+- опционально `Visual Container`
+
 Presentation override binders:
 - `InventoryDragVisualBinder` переопределяет drag visual prefab для конкретного `UniversalInventory`;
 - `InventoryContextMenuViewBinder` переопределяет context menu view prefab для конкретного `UniversalInventory`.
 
 Legacy inventory-level visual override fields больше не используются. Presentation override настраивается через отдельные binder-компоненты.
+
+Live drag visual теперь обрабатывается отдельным `DragVisualPresenter`, который подписывается на события `DragAndDropManager`. Сам `DragAndDropManager` больше не создает и не двигает drag visual напрямую.
 
 ## Debug checklist
 

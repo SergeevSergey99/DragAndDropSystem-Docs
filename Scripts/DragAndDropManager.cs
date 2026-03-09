@@ -18,11 +18,6 @@ namespace DragAndDropSystem
     [DisallowMultipleComponent]
     public class DragAndDropManager : MonoSingleton<DragAndDropManager>
     {
-        [Header("Visual")]
-        [SerializeField] private Canvas _canvas;
-        [SerializeField] private DefaultDragVisual _defaultDragVisualPrefab;
-        [SerializeField] private Transform _visualContainer;
-
         [Header("Quick Click Auto-Transfer (LMB)")]
         [SerializeField] private bool _enableQuickClickAutoTransfer = true;
         [SerializeField, Range(0.05f, 1f), Tooltip("Максимальная длительность клика для автопереноса (секунды)")]
@@ -41,15 +36,10 @@ namespace DragAndDropSystem
         private IDropTarget _activeDropTarget;
         private IDropProcessor _currentProcessor;
         private GlobalRuleValidator _globalRules = new GlobalRuleValidator();
-        private IDragVisual _currentVisual;
 
         // Стек целей drop операций (для корректной обработки вложенных областей и слотов)
         private List<IDropTarget> _dropTargetStack = new List<IDropTarget>();
 
-        // Кеш визуалов: префаб → созданный экземпляр
-        private Dictionary<MonoBehaviour, IDragVisual> _visualCache = new Dictionary<MonoBehaviour, IDragVisual>();
-        private readonly Dictionary<UniversalInventory, InventoryDragVisualBinder> _dragVisualBindersByInventory = new Dictionary<UniversalInventory, InventoryDragVisualBinder>();
-        private IDragVisual _defaultVisualInstance;
         private readonly InventoryTransferService _transferService = new InventoryTransferService();
         private readonly AutoTransferService _autoTransferService = new AutoTransferService();
 
@@ -66,23 +56,6 @@ namespace DragAndDropSystem
         public bool IsQuickClickAutoTransferEnabled => _enableQuickClickAutoTransfer;
         public float QuickClickTimeThreshold => _quickClickTimeThreshold;
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
-
-        public void RegisterDragVisualBinder(InventoryDragVisualBinder binder)
-        {
-            if (binder == null || binder.Inventory == null)
-                return;
-
-            _dragVisualBindersByInventory[binder.Inventory] = binder;
-        }
-
-        public void UnregisterDragVisualBinder(InventoryDragVisualBinder binder)
-        {
-            if (binder == null || binder.Inventory == null)
-                return;
-
-            if (_dragVisualBindersByInventory.TryGetValue(binder.Inventory, out var existing) && existing == binder)
-                _dragVisualBindersByInventory.Remove(binder.Inventory);
-        }
 
         // События drag-and-drop
         public event Action<DragContext> OnDragStarting;
@@ -105,7 +78,6 @@ namespace DragAndDropSystem
         protected override void Init()
         {
             base.Init();
-            _canvas.worldCamera = Camera.main;
 
             // Добавляем базовые правила
             _globalRules.AddRule(new SameSlotRule());
@@ -197,92 +169,9 @@ namespace DragAndDropSystem
                 }
             }
 
-            // Visual: use first entry's inventory for visual
-            _currentVisual = GetDragVisual(entries[0].SourceInventory);
-            if (_currentVisual != null)
-            {
-                _currentVisual.UpdatePosition(GetMousePosition());
-                _currentVisual.Show(_currentContext.Entries);
-            }
-
             OnDragStarted?.Invoke(_currentContext);
             Extentions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
-        }
-
-        /// <summary>
-        /// Получить визуал для перетаскивания (кастомный или дефолтный)
-        /// Использует кеш для переиспользования визуалов
-        /// </summary>
-        private IDragVisual GetDragVisual(IInventory inventory)
-        {
-            var visualPrefab = GetDragVisualPrefab(inventory);
-            if (visualPrefab == null)
-                return null;
-
-            if (!ReferenceEquals(visualPrefab, _defaultDragVisualPrefab))
-            {
-                if (_visualCache.TryGetValue(visualPrefab, out var cachedVisual))
-                {
-                    Extentions.DragAndDropLog($"<color=cyan>Using cached custom visual from {inventory?.GetType().Name ?? "UnknownInventory"}</color>");
-                    return cachedVisual;
-                }
-
-                var visualInstance = InstantiateVisual(visualPrefab);
-                if (visualInstance != null)
-                {
-                    _visualCache[visualPrefab] = visualInstance;
-                    Extentions.DragAndDropLog($"<color=cyan>Created new custom visual from {inventory?.GetType().Name ?? "UnknownInventory"}</color>");
-                    return visualInstance;
-                }
-            }
-
-            // Используем дефолтный (создаем при первом использовании)
-            if (_defaultVisualInstance == null && _defaultDragVisualPrefab != null)
-            {
-                _defaultVisualInstance = InstantiateVisual(_defaultDragVisualPrefab);
-                Extentions.DragAndDropLog("<color=cyan>Created default drag visual</color>");
-            }
-
-            Extentions.DragAndDropLog("<color=cyan>Using default drag visual</color>");
-            return _defaultVisualInstance;
-        }
-
-        /// <summary>
-        /// Получить префаб визуала для анимации (кастомный от инвентаря или дефолтный)
-        /// </summary>
-        private MonoBehaviour GetDragVisualPrefab(IInventory inventory)
-        {
-            if (inventory is UniversalInventory universalInventory)
-            {
-                if (_dragVisualBindersByInventory.TryGetValue(universalInventory, out var binder) &&
-                    binder != null &&
-                    binder.DragVisualPrefab != null)
-                    return binder.DragVisualPrefab;
-            }
-
-            return _defaultDragVisualPrefab;
-        }
-
-        /// <summary>
-        /// Создать экземпляр визуала из префаба
-        /// </summary>
-        private IDragVisual InstantiateVisual(MonoBehaviour prefab)
-        {
-            if (prefab == null)
-                return null;
-
-            var container = _visualContainer != null ? _visualContainer : _canvas.transform;
-            var instance = Instantiate(prefab, container);
-
-            if (instance is IDragVisual dragVisual)
-            {
-                return dragVisual;
-            }
-
-            Debug.LogError($"Prefab {prefab.name} does not implement IDragVisual!");
-            Destroy(instance.gameObject);
-            return null;
         }
 
         /// <summary>
@@ -472,12 +361,6 @@ namespace DragAndDropSystem
             }
             _dropTargetStack.Clear();
 
-            if (_currentVisual != null)
-            {
-                _currentVisual.Hide();
-                _currentVisual = null;
-            }
-
             if (_activeDropTarget != null)
             {
                 OnDragExitSlot?.Invoke(_currentContext);
@@ -486,18 +369,6 @@ namespace DragAndDropSystem
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
-        }
-
-        private void Update()
-        {
-            if (IsDragging)
-            {
-                // Обновляем позицию визуала
-                if (_currentVisual != null)
-                {
-                    _currentVisual.UpdatePosition(GetMousePosition());
-                }
-            }
         }
 
         /// <summary>
@@ -598,7 +469,8 @@ namespace DragAndDropSystem
                         targetUniversalSlot.SetIconVisibility(false);
 
                     var visualStack = new ItemStack(entry.Item, entry.Amount);
-                    var visualPrefab = GetDragVisualPrefab(entry.SourceSlot.Inventory);
+                    var presenter = DragVisualPresenter.Instance;
+                    var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceSlot.Inventory);
 
                     pendingAnimations++;
 
@@ -607,8 +479,8 @@ namespace DragAndDropSystem
                         entry.SourceSlot,
                         entry.TargetSlot,
                         visualPrefab,
-                        _visualContainer != null ? _visualContainer : _canvas.transform,
-                        _canvas,
+                        presenter.VisualContainer,
+                        presenter.PresentationCanvas,
                         () =>
                         {
                             if (entry.TargetSlot is UniversalSlot slotForVisual)
@@ -679,35 +551,6 @@ namespace DragAndDropSystem
         public void RaiseSwapCompleted(InventorySwapContext context)
         {
             OnSwapCompleted?.Invoke(context);
-        }
-
-        Vector3 GetMousePosition()
-        {
-            // Проверяем тип Canvas
-            if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
-            {
-                // Для Screen Space - Overlay просто используем позицию мыши
-                return Input.mousePosition;
-            }
-            else if (_canvas.renderMode == RenderMode.ScreenSpaceCamera || _canvas.renderMode == RenderMode.WorldSpace)
-            {
-                // Для Screen Space - Camera или World Space используем RectTransformUtility
-                RectTransform canvasRect = _canvas.GetComponent<RectTransform>();
-                Vector2 localPoint;
-
-                Camera cam = _canvas.renderMode == RenderMode.ScreenSpaceCamera ? _canvas.worldCamera : Camera.main;
-
-                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        canvasRect,
-                        Input.mousePosition,
-                        cam,
-                        out localPoint))
-                {
-                    return canvasRect.TransformPoint(localPoint);
-                }
-            }
-
-            return Input.mousePosition;
         }
     }
 }

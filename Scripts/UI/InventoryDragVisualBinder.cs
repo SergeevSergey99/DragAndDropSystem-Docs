@@ -23,13 +23,13 @@ namespace DragAndDropSystem.UI
             if (_inventory == null)
                 _inventory = GetComponent<UniversalInventory>();
 
-            DragAndDropManager.Instance.RegisterDragVisualBinder(this);
+            DragVisualPresenter.Instance.RegisterBinder(this);
         }
 
         private void OnDisable()
         {
-            if (DragAndDropManager.IsInstanceExist)
-                DragAndDropManager.Instance.UnregisterDragVisualBinder(this);
+            if (DragVisualPresenter.IsInstanceExist)
+                DragVisualPresenter.Instance.UnregisterBinder(this);
         }
     }
 }
