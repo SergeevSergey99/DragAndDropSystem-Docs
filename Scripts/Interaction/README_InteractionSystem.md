@@ -173,6 +173,12 @@ Slot prefabs:
 
 В сцене должен присутствовать `InputEventRouter` обычно через `Prefabs/DragCanvas.prefab`.
 
+Presentation override binders:
+- `InventoryDragVisualBinder` переопределяет drag visual prefab для конкретного `UniversalInventory`;
+- `InventoryContextMenuViewBinder` переопределяет context menu view prefab для конкретного `UniversalInventory`.
+
+Legacy inventory-level visual override fields больше не используются. Presentation override настраивается через отдельные binder-компоненты.
+
 ## Debug checklist
 
 1. На слоте есть `UniversalSlot` и `SlotInputAdapter`.

@@ -48,6 +48,7 @@ namespace DragAndDropSystem
 
         // Кеш визуалов: префаб → созданный экземпляр
         private Dictionary<MonoBehaviour, IDragVisual> _visualCache = new Dictionary<MonoBehaviour, IDragVisual>();
+        private readonly Dictionary<UniversalInventory, InventoryDragVisualBinder> _dragVisualBindersByInventory = new Dictionary<UniversalInventory, InventoryDragVisualBinder>();
         private IDragVisual _defaultVisualInstance;
         private readonly InventoryTransferService _transferService = new InventoryTransferService();
         private readonly AutoTransferService _autoTransferService = new AutoTransferService();
@@ -65,6 +66,23 @@ namespace DragAndDropSystem
         public bool IsQuickClickAutoTransferEnabled => _enableQuickClickAutoTransfer;
         public float QuickClickTimeThreshold => _quickClickTimeThreshold;
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
+
+        public void RegisterDragVisualBinder(InventoryDragVisualBinder binder)
+        {
+            if (binder == null || binder.Inventory == null)
+                return;
+
+            _dragVisualBindersByInventory[binder.Inventory] = binder;
+        }
+
+        public void UnregisterDragVisualBinder(InventoryDragVisualBinder binder)
+        {
+            if (binder == null || binder.Inventory == null)
+                return;
+
+            if (_dragVisualBindersByInventory.TryGetValue(binder.Inventory, out var existing) && existing == binder)
+                _dragVisualBindersByInventory.Remove(binder.Inventory);
+        }
 
         // События drag-and-drop
         public event Action<DragContext> OnDragStarting;
@@ -198,27 +216,24 @@ namespace DragAndDropSystem
         /// </summary>
         private IDragVisual GetDragVisual(IInventory inventory)
         {
-            // Проверяем, есть ли кастомный визуал у инвентаря
-            if (inventory is UniversalInventory universalInventory)
-            {
-                var customPrefab = universalInventory.GetCustomDragVisualPrefab();
-                if (customPrefab != null)
-                {
-                    // Проверяем кеш
-                    if (_visualCache.TryGetValue(customPrefab, out var cachedVisual))
-                    {
-                        Extentions.DragAndDropLog($"<color=cyan>Using cached custom visual from {inventory.GetType().Name}</color>");
-                        return cachedVisual;
-                    }
+            var visualPrefab = GetDragVisualPrefab(inventory);
+            if (visualPrefab == null)
+                return null;
 
-                    // Создаем новый экземпляр из префаба
-                    var visualInstance = InstantiateVisual(customPrefab);
-                    if (visualInstance != null)
-                    {
-                        _visualCache[customPrefab] = visualInstance;
-                        Extentions.DragAndDropLog($"<color=cyan>Created new custom visual from {inventory.GetType().Name}</color>");
-                        return visualInstance;
-                    }
+            if (!ReferenceEquals(visualPrefab, _defaultDragVisualPrefab))
+            {
+                if (_visualCache.TryGetValue(visualPrefab, out var cachedVisual))
+                {
+                    Extentions.DragAndDropLog($"<color=cyan>Using cached custom visual from {inventory?.GetType().Name ?? "UnknownInventory"}</color>");
+                    return cachedVisual;
+                }
+
+                var visualInstance = InstantiateVisual(visualPrefab);
+                if (visualInstance != null)
+                {
+                    _visualCache[visualPrefab] = visualInstance;
+                    Extentions.DragAndDropLog($"<color=cyan>Created new custom visual from {inventory?.GetType().Name ?? "UnknownInventory"}</color>");
+                    return visualInstance;
                 }
             }
 
@@ -238,17 +253,14 @@ namespace DragAndDropSystem
         /// </summary>
         private MonoBehaviour GetDragVisualPrefab(IInventory inventory)
         {
-            // Проверяем, есть ли кастомный визуал у инвентаря
             if (inventory is UniversalInventory universalInventory)
             {
-                var customPrefab = universalInventory.GetCustomDragVisualPrefab();
-                if (customPrefab != null)
-                {
-                    return customPrefab;
-                }
+                if (_dragVisualBindersByInventory.TryGetValue(universalInventory, out var binder) &&
+                    binder != null &&
+                    binder.DragVisualPrefab != null)
+                    return binder.DragVisualPrefab;
             }
 
-            // Возвращаем дефолтный
             return _defaultDragVisualPrefab;
         }
 

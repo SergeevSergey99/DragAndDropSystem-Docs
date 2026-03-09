@@ -13,8 +13,9 @@ ContextMenuSceneEntryBase      — scene-based пункт меню (MonoBehaviou
 ContextMenuPreset              — список asset-based пунктов (SO, назначается на инвентарь)
 ContextMenuBinder              — компонент на GO инвентаря, хранит пресеты и scene entries
 ContextMenuContext             — контекст клика (inventory / slot / item / позиция / устройство)
-ContextMenuManager             — синглтон, фильтрует CanShow, сортирует, передаёт во View
-ContextMenuViewBase            — абстрактный MonoBehaviour-вью (реализуется в проекте)
+ContextMenuManager             — синглтон, фильтрует CanShow, сортирует, резолвит View и передаёт во View
+InventoryContextMenuViewBinder — scene-level override биндер для view prefab конкретного инвентаря
+ContextMenuViewBase            — абстрактный MonoBehaviour-вью (реализуется в проекте, инстанцируется из prefab)
 ShowContextMenuAction          — AssetOnlySlotInteractionAction, запускает весь pipeline
 ```
 
@@ -40,11 +41,11 @@ ShowContextMenuAction          — AssetOnlySlotInteractionAction, запуск�
 
 ### 1. ContextMenuManager на сцене
 
-Создайте пустой GO, добавьте компонент `ContextMenuManager`. Назначьте свою реализацию `ContextMenuViewBase` в поле **View**.
+Создайте пустой GO, добавьте компонент `ContextMenuManager`. Назначьте свою реализацию `ContextMenuViewBase` в поле **Default View Prefab**.
 
 ```
 [ContextMenuManager]
-  └── View → MyContextMenuView
+  └── Default View Prefab → MyContextMenuView
 ```
 
 ### 2. Создайте пункты меню (SO)
@@ -69,6 +70,19 @@ ShowContextMenuAction          — AssetOnlySlotInteractionAction, запуск�
 | **Scene Entries** | Сценовые пункты для непустых слотов |
 | **Override Empty Slot Scene Entries** | Включить отдельные сценовые пункты для пустых слотов |
 | **Empty Slot Scene Entries** | Сценовые пункты для пустых слотов (только если включён Override) |
+
+### 4.1. InventoryContextMenuViewBinder на инвентаре
+
+Если для конкретного инвентаря нужен свой визуальный стиль меню, добавьте `InventoryContextMenuViewBinder` на тот же GO:
+
+| Поле | Назначение |
+|---|---|
+| **Inventory** | Целевой `UniversalInventory` |
+| **View Prefab** | Override prefab для `ContextMenuViewBase` |
+
+Резолв view идёт в порядке:
+- `InventoryContextMenuViewBinder.ViewPrefab`
+- `ContextMenuManager.Default View Prefab`
 
 ### 5. Привяжите действие к вводу
 

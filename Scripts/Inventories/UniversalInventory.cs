@@ -82,11 +82,6 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, HideLabel]
         private DropPolicySettings _dropPolicySettings = new DropPolicySettings();
 
-        [FoldoutGroup("Visual", expanded: false)]
-        [InfoBox("Оставьте пустым для использования стандартного визуала. Префаб будет закеширован при первом использовании.", InfoMessageType.Info)]
-        [SerializeField, Tooltip("Префаб кастомного визуала для перетаскивания (опционально)")]
-        private MonoBehaviour _customDragVisualPrefab;
-
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Tooltip("Слоты, созданные в сцене. Можно задать вручную в инспекторе. Если пусто — будут найдены автоматически.")]
         private List<ISlot> _slots = new List<ISlot>();
@@ -1256,14 +1251,6 @@ namespace DragAndDropSystem.Inventories
                 }
             }
             return count;
-        }
-
-        /// <summary>
-        /// Получить префаб кастомного визуала для перетаскивания (если настроен)
-        /// </summary>
-        public MonoBehaviour GetCustomDragVisualPrefab()
-        {
-            return _customDragVisualPrefab;
         }
 
         /// <summary>
