@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using Sirenix.OdinInspector;
@@ -69,9 +70,12 @@ namespace DragAndDropSystem.Inventories
             if (!base.CanExecute(inventory, activeSlot))
                 return false;
 
-            bool hasActiveSlot = activeSlot != null && !activeSlot.IsEmpty && activeSlot.IsInteractable;
-            bool hasSelectionSources = _useSelectionForBatch && ResolveSourceSlots(inventory, activeSlot).Count > 0;
-            if (!hasActiveSlot && !hasSelectionSources)
+            if (InputEventRouter.IsInstanceExist && !InputEventRouter.Instance.IsInventoryActive(inventory))
+                return false;
+
+            bool hasSelectionSources = HasSelectionSources(inventory);
+            bool hasContextSlot = ResolveContextSourceSlot(inventory) != null;
+            if (!hasContextSlot && !hasSelectionSources)
                 return false;
 
             var dragManager = DragAndDropManager.Instance;
@@ -124,10 +128,48 @@ namespace DragAndDropSystem.Inventories
                 }
             }
 
-            if (result.Count == 0 && activeSlot != null && !activeSlot.IsEmpty && activeSlot.IsInteractable)
-                result.Add(activeSlot);
+            if (result.Count == 0)
+            {
+                var contextSlot = ResolveContextSourceSlot(inventory);
+                if (contextSlot != null)
+                    result.Add(contextSlot);
+            }
 
             return result;
+        }
+
+        private bool HasSelectionSources(UniversalInventory inventory)
+        {
+            if (!_useSelectionForBatch || !SelectionManager.IsInstanceExist)
+                return false;
+
+            var context = SelectionManager.Instance.CurrentContext;
+            if (context == null || !context.HasSelection)
+                return false;
+
+            for (int i = 0; i < context.AllSlots.Count; i++)
+            {
+                var slot = context.AllSlots[i];
+                if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                    continue;
+
+                if (ReferenceEquals(slot.Inventory, inventory))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private UniversalSlot ResolveContextSourceSlot(UniversalInventory inventory)
+        {
+            var contextSlot = InputEventRouter.IsInstanceExist
+                ? InputEventRouter.Instance.ResolveQuickActionSlot(inventory, requireActiveInventory: true)
+                : null;
+
+            if (contextSlot != null && !contextSlot.IsEmpty && contextSlot.IsInteractable)
+                return contextSlot;
+
+            return null;
         }
     }
 }

@@ -26,6 +26,8 @@ namespace DragAndDropSystem.Interaction
         private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
         // Словарь для хранения подписок на InputAction для каждого инвентаря, чтобы можно было отписаться при необходимости
         private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
+        // Последний инвентарь, с которым пользователь явно взаимодействовал. Используется только для inventory-scoped quick actions.
+        private UniversalInventory _activeInventory;
 
         // Набор для дедупликации вызовов действий в рамках одного кадра, чтобы избежать повторного срабатывания при нескольких событиях (например, PointerDown + InputAction)
         private readonly HashSet<IntentDedupKey> _handledThisFrame = new();
@@ -81,7 +83,9 @@ namespace DragAndDropSystem.Interaction
                 return true;
 
             var state = GetOrCreateState(inventory);
-            var activeSlot = state.FocusedSlot as UniversalSlot ?? inventory.ResolveAutoTransferSlot();
+            var activeSlot = state.FocusedSlot as UniversalSlot
+                             ?? state.HoveredSlot as UniversalSlot
+                             ?? inventory.ResolveAutoTransferSlot();
             if (!action.CanExecute(inventory, activeSlot))
             {
                 return true;
@@ -104,14 +108,41 @@ namespace DragAndDropSystem.Interaction
             return FocusSource.Gamepad;
         }
 
+        public UniversalSlot ResolveFocusedSlot(UniversalInventory inventory)
+        {
+            if (inventory == null)
+                return null;
+
+            var state = GetOrCreateState(inventory);
+            return state.FocusedSlot as UniversalSlot;
+        }
+
+        public bool IsInventoryActive(UniversalInventory inventory)
+            => inventory != null && ReferenceEquals(_activeInventory, inventory);
+
+        public UniversalSlot ResolveQuickActionSlot(UniversalInventory inventory, bool requireActiveInventory = true)
+        {
+            if (inventory == null)
+                return null;
+
+            if (requireActiveInventory && !IsInventoryActive(inventory))
+                return null;
+
+            var state = GetOrCreateState(inventory);
+            return state.FocusedSlot as UniversalSlot
+                   ?? state.HoveredSlot as UniversalSlot
+                   ?? inventory.ResolveAutoTransferSlot();
+        }
+
         public void RoutePointerEnter(SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
                 return;
 
+            MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
-            state.FocusedAdapter = adapter;
-            state.FocusedSlot = adapter.Slot;
+            state.HoveredAdapter = adapter;
+            state.HoveredSlot = adapter.Slot;
             state.ActiveFocusSource = FocusSource.Mouse;
 
             if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
@@ -124,11 +155,13 @@ namespace DragAndDropSystem.Interaction
                 return;
 
             var state = GetOrCreateState(inventory);
-            if (state.ActiveFocusSource == FocusSource.Mouse && ReferenceEquals(state.FocusedSlot, adapter.Slot))
+            if (ReferenceEquals(state.HoveredSlot, adapter.Slot))
             {
-                state.FocusedAdapter = null;
-                state.FocusedSlot = null;
-                state.ActiveFocusSource = FocusSource.None;
+                state.HoveredAdapter = null;
+                state.HoveredSlot = null;
+
+                if (state.FocusedSlot == null)
+                    state.ActiveFocusSource = FocusSource.None;
             }
 
             if (DragAndDropManager.Instance.IsDragging)
@@ -140,7 +173,11 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
+            MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
+            state.FocusedAdapter = adapter;
+            state.FocusedSlot = adapter.Slot;
+            state.ActiveFocusSource = FocusSource.Mouse;
             state.PressedAdapter = adapter;
             state.PressedButton = eventData.button;
             state.PressedTime = Time.unscaledTime;
@@ -223,6 +260,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
                 return;
 
+            MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
             state.FocusedSlot = adapter.Slot;
@@ -254,6 +292,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
+            MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Submit);
         }
 
@@ -262,6 +301,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
+            MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
         }
 
@@ -336,7 +376,10 @@ namespace DragAndDropSystem.Interaction
                 return;
 
             var state = GetOrCreateState(inventory);
-            var adapter = state.FocusedAdapter ?? ResolveAdapterFromSlot(state.FocusedSlot);
+            var adapter = state.FocusedAdapter
+                          ?? ResolveAdapterFromSlot(state.FocusedSlot)
+                          ?? state.HoveredAdapter
+                          ?? ResolveAdapterFromSlot(state.HoveredSlot);
 
             for (int i = 0; i < bindings.Count; i++)
             {
@@ -468,6 +511,12 @@ namespace DragAndDropSystem.Interaction
             return state;
         }
 
+        private void MarkInventoryActive(UniversalInventory inventory)
+        {
+            if (inventory != null)
+                _activeInventory = inventory;
+        }
+
         private void CleanupStaleInventories()
         {
             if (_runtimeStateByInventory.Count == 0 && _overridesByInventory.Count == 0 && _actionSubscriptionsByInventory.Count == 0)
@@ -502,6 +551,9 @@ namespace DragAndDropSystem.Interaction
                 _runtimeStateByInventory.Remove(stale);
                 _overridesByInventory.Remove(stale);
                 _actionSubscriptionsByInventory.Remove(stale);
+
+                if (ReferenceEquals(_activeInventory, stale))
+                    _activeInventory = null;
             }
         }
 
@@ -584,7 +636,11 @@ namespace DragAndDropSystem.Interaction
                 return;
 
             var state = GetOrCreateState(inventory);
-            var adapter = state.PressedAdapter ?? state.FocusedAdapter ?? ResolveAdapterFromSlot(state.FocusedSlot);
+            var adapter = state.PressedAdapter
+                          ?? state.FocusedAdapter
+                          ?? ResolveAdapterFromSlot(state.FocusedSlot)
+                          ?? state.HoveredAdapter
+                          ?? ResolveAdapterFromSlot(state.HoveredSlot);
             var eventData = new PointerEventData(EventSystem.current) { button = button };
 
             _pointerUpHandledThisFrame.Add(button);
@@ -655,6 +711,8 @@ namespace DragAndDropSystem.Interaction
         {
             public ISlot FocusedSlot;
             public SlotInputAdapter FocusedAdapter;
+            public ISlot HoveredSlot;
+            public SlotInputAdapter HoveredAdapter;
             public FocusSource ActiveFocusSource;
             public SlotInputAdapter PressedAdapter;
             public PointerEventData.InputButton PressedButton;
