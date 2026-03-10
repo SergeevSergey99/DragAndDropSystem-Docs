@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using CodeUtils;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Interaction;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Extentions = DragAndDropSystem.Tools.Extentions;
 
 namespace DragAndDropSystem.UI
@@ -43,7 +45,7 @@ namespace DragAndDropSystem.UI
         private void Update()
         {
             if (_activeVisual != null && DragAndDropManager.IsInstanceExist && DragAndDropManager.Instance.IsDragging)
-                _activeVisual.UpdatePosition(GetMousePosition());
+                _activeVisual.UpdatePosition(GetDragAnchorPosition());
         }
 
         public void RegisterBinder(InventoryDragVisualBinder binder)
@@ -112,7 +114,7 @@ namespace DragAndDropSystem.UI
                 return;
 
             _activeVisual = visual;
-            _activeVisual.UpdatePosition(GetMousePosition());
+            _activeVisual.UpdatePosition(GetDragAnchorPosition());
             _activeVisual.Show(context.Entries);
         }
 
@@ -175,6 +177,57 @@ namespace DragAndDropSystem.UI
             Debug.LogError($"Prefab {prefab.name} does not implement IDragVisual!");
             Destroy(instance.gameObject);
             return null;
+        }
+
+        private Vector3 GetDragAnchorPosition()
+        {
+            if (InputEventRouter.IsInstanceExist &&
+                InputEventRouter.Instance.TryGetCurrentNavigationAnchor(out var selectedObject))
+            {
+                if (TryGetSelectableCenter(selectedObject, out var selectedPosition))
+                    return selectedPosition;
+            }
+
+            return GetMousePosition();
+        }
+
+        private bool TryGetSelectableCenter(GameObject selectedObject, out Vector3 position)
+        {
+            position = default;
+            if (selectedObject == null)
+                return false;
+
+            var selectedTransform = selectedObject.transform as RectTransform;
+            if (selectedTransform == null)
+                return false;
+
+            var worldCenter = selectedTransform.TransformPoint(selectedTransform.rect.center);
+            if (_canvas == null || _canvas.renderMode == RenderMode.WorldSpace)
+            {
+                position = worldCenter;
+                return true;
+            }
+
+            if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                var screenPoint = RectTransformUtility.WorldToScreenPoint(null, worldCenter);
+                position = screenPoint;
+                return true;
+            }
+
+            var camera = _canvas.worldCamera != null ? _canvas.worldCamera : Camera.main;
+            var canvasRect = _canvas.GetComponent<RectTransform>();
+            if (canvasRect == null)
+                return false;
+
+            var screen = RectTransformUtility.WorldToScreenPoint(camera, worldCenter);
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screen, camera, out var localPoint))
+            {
+                position = canvasRect.TransformPoint(localPoint);
+                return true;
+            }
+
+            return false;
         }
 
         private Vector3 GetMousePosition()

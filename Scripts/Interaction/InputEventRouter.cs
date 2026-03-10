@@ -4,6 +4,7 @@ using CodeUtils;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
+using DragAndDropSystem.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -116,6 +117,20 @@ namespace DragAndDropSystem.Interaction
                 return state.ActiveFocusSource;
 
             return FocusSource.Gamepad;
+        }
+
+        public bool TryGetCurrentNavigationAnchor(out GameObject selectedObject)
+        {
+            selectedObject = null;
+            if (!_navigationModeActive)
+                return false;
+
+            var es = EventSystem.current;
+            if (es == null || es.currentSelectedGameObject == null || !es.currentSelectedGameObject.activeInHierarchy)
+                return false;
+
+            selectedObject = es.currentSelectedGameObject;
+            return true;
         }
 
         public UniversalSlot ResolveFocusedSlot(UniversalInventory inventory)
@@ -291,6 +306,24 @@ namespace DragAndDropSystem.Interaction
                 DragAndDropManager.Instance.PushDropTarget(adapter);
         }
 
+        public void RouteDropAreaFocusEnter(InventoryDropArea dropArea, FocusSource source)
+        {
+            if (dropArea == null || dropArea.Inventory == null)
+                return;
+
+            if (source == FocusSource.Gamepad)
+                _navigationModeActive = true;
+
+            var inventory = dropArea.Inventory;
+            MarkInventoryActive(inventory);
+            var state = GetOrCreateState(inventory);
+            state.FocusedDropArea = dropArea;
+            state.ActiveFocusSource = source;
+
+            if (DragAndDropManager.Instance.IsDragging)
+                dropArea.TryActivateAsFocusedTarget();
+        }
+
         public void RouteFocusExit(SlotInputAdapter adapter, FocusSource source)
         {
             if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
@@ -308,6 +341,24 @@ namespace DragAndDropSystem.Interaction
                 DragAndDropManager.Instance.PopDropTarget(adapter);
         }
 
+        public void RouteDropAreaFocusExit(InventoryDropArea dropArea, FocusSource source)
+        {
+            if (dropArea == null || dropArea.Inventory == null)
+                return;
+
+            var inventory = dropArea.Inventory;
+            var state = GetOrCreateState(inventory);
+            if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedDropArea, dropArea))
+            {
+                state.FocusedDropArea = null;
+                if (state.FocusedSlot == null)
+                    state.ActiveFocusSource = FocusSource.None;
+            }
+
+            if (DragAndDropManager.Instance.IsDragging)
+                DragAndDropManager.Instance.PopDropTarget(dropArea);
+        }
+
         public void RouteSubmit(SlotInputAdapter adapter, BaseEventData eventData)
         {
             if (!TryGetInventory(adapter, out var inventory))
@@ -318,6 +369,16 @@ namespace DragAndDropSystem.Interaction
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Submit);
         }
 
+        public void RouteSubmit(InventoryDropArea dropArea, BaseEventData eventData)
+        {
+            if (dropArea?.Inventory == null)
+                return;
+
+            _navigationModeActive = true;
+            MarkInventoryActive(dropArea.Inventory);
+            ExecuteNavigationBindings(dropArea.Inventory, null, NavigationEventType.Submit);
+        }
+
         public void RouteCancel(SlotInputAdapter adapter, BaseEventData eventData)
         {
             if (!TryGetInventory(adapter, out var inventory))
@@ -326,6 +387,16 @@ namespace DragAndDropSystem.Interaction
             _navigationModeActive = true;
             MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
+        }
+
+        public void RouteCancel(InventoryDropArea dropArea, BaseEventData eventData)
+        {
+            if (dropArea?.Inventory == null)
+                return;
+
+            _navigationModeActive = true;
+            MarkInventoryActive(dropArea.Inventory);
+            ExecuteNavigationBindings(dropArea.Inventory, null, NavigationEventType.Cancel);
         }
 
         private bool ExecutePointerBindings(
@@ -779,26 +850,30 @@ namespace DragAndDropSystem.Interaction
             return false;
         }
 
-        private SlotInputAdapter FindBestFocusTarget()
+        private Selectable FindBestFocusTarget()
         {
             if (_activeInventory != null && _activeInventory.isActiveAndEnabled)
             {
-                var adapter = FindFirstActiveAdapter(_activeInventory);
-                if (adapter != null)
-                    return adapter;
+                var target = FindFirstActiveNavigationTarget(_activeInventory);
+                if (target != null)
+                    return target;
             }
 
             var allSelectables = Selectable.allSelectablesArray;
             for (int i = 0; i < Selectable.allSelectableCount; i++)
             {
-                if (allSelectables[i] is SlotInputAdapter candidate && candidate.isActiveAndEnabled)
+                var candidate = allSelectables[i];
+                if (candidate == null || !candidate.isActiveAndEnabled)
+                    continue;
+
+                if (candidate is SlotInputAdapter || candidate is InventoryDropArea)
                     return candidate;
             }
 
             return null;
         }
 
-        private static SlotInputAdapter FindFirstActiveAdapter(UniversalInventory inventory)
+        private static Selectable FindFirstActiveNavigationTarget(UniversalInventory inventory)
         {
             var slots = inventory.Slots;
             for (int i = 0; i < slots.Count; i++)
@@ -810,6 +885,10 @@ namespace DragAndDropSystem.Interaction
                         return adapter;
                 }
             }
+
+            var dropArea = inventory.GetComponentInChildren<InventoryDropArea>(includeInactive: false);
+            if (dropArea != null && dropArea.isActiveAndEnabled)
+                return dropArea;
 
             return null;
         }
@@ -832,6 +911,7 @@ namespace DragAndDropSystem.Interaction
         {
             public ISlot FocusedSlot;
             public SlotInputAdapter FocusedAdapter;
+            public InventoryDropArea FocusedDropArea;
             public ISlot HoveredSlot;
             public SlotInputAdapter HoveredAdapter;
             public FocusSource ActiveFocusSource;

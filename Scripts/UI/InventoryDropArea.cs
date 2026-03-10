@@ -1,9 +1,11 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.UI
 {
@@ -12,7 +14,7 @@ namespace DragAndDropSystem.UI
     /// Позволяет дропать предметы в любое место инвентаря, а не только в конкретный слот
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class InventoryDropArea : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget
+    public class InventoryDropArea : Selectable, IDropTarget, ISubmitHandler, ICancelHandler
     {
         private DragAndDropManager _dragManager => DragAndDropManager.Instance;
 
@@ -34,6 +36,8 @@ namespace DragAndDropSystem.UI
         private bool _isHighlighted;
         private UnityEngine.UI.Graphic _raycastGraphic;
 
+        public UniversalInventory Inventory => _inventory;
+
         private void OnValidate()
         {
             // Автоматически находим инвентарь на этом объекте или родителе
@@ -48,8 +52,17 @@ namespace DragAndDropSystem.UI
             }
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
+            if (navigation.mode == Navigation.Mode.None)
+            {
+                var nav = navigation;
+                nav.mode = Navigation.Mode.Automatic;
+                navigation = nav;
+            }
+
             if (_raycastGraphic == null)
             {
                 _raycastGraphic = GetComponent<UnityEngine.UI.Graphic>();
@@ -68,35 +81,14 @@ namespace DragAndDropSystem.UI
             }
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public override void OnPointerEnter(PointerEventData eventData)
         {
+            base.OnPointerEnter(eventData);
+
             if (_dragManager == null || !_dragManager.IsDragging || _inventory == null)
                 return;
 
-            var context = _dragManager.CurrentContext;
-            if (context == null || context.Entries.Count == 0)
-                return;
-
-            var stack = context.Entries[0].Stack;
-            if (stack == null || stack.Item == null)
-                return;
-
-            // Проверяем может ли инвентарь принять этот предмет
-            bool canAccept = _inventory.CanAcceptItem(stack.Item, stack.Count, out ISlot suggestedSlot);
-
-            if (!canAccept)
-            {
-                Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
-                return;
-            }
-
-            // Сохраняем найденный слот (может быть null для создания нового)
-            _foundSlot = suggestedSlot;
-
-            // Добавляем себя в стек целей
-            _dragManager.PushDropTarget(this);
-
-            Extentions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={_foundSlot?.Index.ToString() ?? "AREA"}, inventory={_inventory.name}</color>");
+            TryActivateAsFocusedTarget();
         }
 
         /// <summary>
@@ -111,8 +103,10 @@ namespace DragAndDropSystem.UI
             _areaHighlight.color = highlight ? _highlightColor : _normalColor;
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public override void OnPointerExit(PointerEventData eventData)
         {
+            base.OnPointerExit(eventData);
+
             if (_dragManager == null || !_dragManager.IsDragging)
                 return;
 
@@ -124,14 +118,50 @@ namespace DragAndDropSystem.UI
             Extentions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Exited</color>");
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             if (!DragAndDropManager.IsInstanceExist) return;
             // Удаляем себя из стека при отключении
             if (_dragManager != null && _dragManager.IsDragging)
             {
                 _dragManager.PopDropTarget(this);
             }
+        }
+
+        public override void OnSelect(BaseEventData eventData)
+        {
+            base.OnSelect(eventData);
+            InputEventRouter.Instance.RouteDropAreaFocusEnter(this, FocusSource.Gamepad);
+        }
+
+        public override void OnDeselect(BaseEventData eventData)
+        {
+            base.OnDeselect(eventData);
+            InputEventRouter.Instance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
+        }
+
+        public void OnSubmit(BaseEventData eventData)
+        {
+            InputEventRouter.Instance.RouteSubmit(this, eventData);
+        }
+
+        public void OnCancel(BaseEventData eventData)
+        {
+            InputEventRouter.Instance.RouteCancel(this, eventData);
+        }
+
+        public bool TryActivateAsFocusedTarget()
+        {
+            if (_dragManager == null || !_dragManager.IsDragging || _inventory == null)
+                return false;
+
+            if (!TryResolveFocusedTargetSlot(out _foundSlot))
+                return false;
+
+            _dragManager.PushDropTarget(this);
+            Extentions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={_foundSlot?.Index.ToString() ?? "AREA"}, inventory={_inventory.name}</color>");
+            return true;
         }
 
         // ===== IDropTarget Implementation =====
@@ -167,6 +197,28 @@ namespace DragAndDropSystem.UI
         {
             // Снимаем подсветку когда перестаём быть активной целью
             HighlightArea(false);
+        }
+
+        private bool TryResolveFocusedTargetSlot(out ISlot suggestedSlot)
+        {
+            suggestedSlot = null;
+
+            var context = _dragManager.CurrentContext;
+            if (context == null || context.Entries.Count == 0)
+                return false;
+
+            var stack = context.Entries[0].Stack;
+            if (stack == null || stack.Item == null)
+                return false;
+
+            bool canAccept = _inventory.CanAcceptItem(stack.Item, stack.Count, out suggestedSlot);
+            if (!canAccept)
+            {
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
+                return false;
+            }
+
+            return true;
         }
     }
 }
