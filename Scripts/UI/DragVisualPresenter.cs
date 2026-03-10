@@ -5,7 +5,6 @@ using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Interaction;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Extentions = DragAndDropSystem.Tools.Extentions;
 
 namespace DragAndDropSystem.UI
 {
@@ -15,12 +14,15 @@ namespace DragAndDropSystem.UI
         [SerializeField] private Canvas _canvas;
         [SerializeField] private DefaultDragVisual _defaultDragVisualPrefab;
         [SerializeField] private Transform _visualContainer;
+        [Header("Batch Layout")]
+        [SerializeField, Min(0f)] private float _batchVisualRadius = 36f;
+        [SerializeField, Min(0.1f)] private float _batchVisualMinScale = 0.65f;
+        [SerializeField, Min(0f)] private float _batchVisualScaleStep = 0.08f;
 
-        private readonly Dictionary<MonoBehaviour, IDragVisual> _visualCache = new Dictionary<MonoBehaviour, IDragVisual>();
+        private readonly Dictionary<MonoBehaviour, List<VisualInstance>> _visualPool = new Dictionary<MonoBehaviour, List<VisualInstance>>();
         private readonly Dictionary<UniversalInventory, InventoryDragVisualBinder> _bindersByInventory = new Dictionary<UniversalInventory, InventoryDragVisualBinder>();
 
-        private IDragVisual _defaultVisualInstance;
-        private IDragVisual _activeVisual;
+        private readonly List<ActiveVisual> _activeVisuals = new List<ActiveVisual>();
         private bool _subscribed;
 
         public Canvas PresentationCanvas => _canvas;
@@ -44,8 +46,8 @@ namespace DragAndDropSystem.UI
 
         private void Update()
         {
-            if (_activeVisual != null && DragAndDropManager.IsInstanceExist && DragAndDropManager.Instance.IsDragging)
-                _activeVisual.UpdatePosition(GetDragAnchorPosition());
+            if (_activeVisuals.Count > 0 && DragAndDropManager.IsInstanceExist && DragAndDropManager.Instance.IsDragging)
+                UpdateActiveVisualPositions(GetDragAnchorScreenPosition());
         }
 
         public void RegisterBinder(InventoryDragVisualBinder binder)
@@ -104,94 +106,133 @@ namespace DragAndDropSystem.UI
 
         private void HandleDragStarted(DragContext context)
         {
-            HideActiveVisual();
+            HideActiveVisuals();
 
             if (context?.Entries == null || context.Entries.Count == 0)
                 return;
 
-            var visual = GetDragVisual(context.Entries[0].SourceInventory);
-            if (visual == null)
+            var visualPrefab = ResolveVisualPrefab(context.Entries[0].SourceInventory);
+            if (visualPrefab == null)
                 return;
 
-            _activeVisual = visual;
-            _activeVisual.UpdatePosition(GetDragAnchorPosition());
-            _activeVisual.Show(context.Entries);
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var visual = GetDragVisualInstance(visualPrefab, i);
+                if (visual == null)
+                    continue;
+
+                var entryPayload = new List<DragEntry>(1) { context.Entries[i] };
+                visual.View.Show(entryPayload);
+                _activeVisuals.Add(new ActiveVisual(visual, i));
+            }
+
+            UpdateActiveVisualPositions(GetDragAnchorScreenPosition());
         }
 
         private void HandleDragFinished(DragContext _)
         {
-            HideActiveVisual();
+            HideActiveVisuals();
         }
 
-        private void HideActiveVisual()
+        private void HideActiveVisuals()
         {
-            if (_activeVisual == null)
-                return;
+            for (int i = 0; i < _activeVisuals.Count; i++)
+            {
+                var visual = _activeVisuals[i];
+                if (visual.Instance == null)
+                    continue;
 
-            _activeVisual.Hide();
-            _activeVisual = null;
+                visual.Instance.View.Hide();
+                visual.Instance.Transform.localScale = visual.Instance.BaseScale;
+            }
+
+            _activeVisuals.Clear();
         }
 
-        private IDragVisual GetDragVisual(IInventory inventory)
+        private VisualInstance GetDragVisualInstance(MonoBehaviour visualPrefab, int index)
         {
-            var visualPrefab = ResolveVisualPrefab(inventory);
             if (visualPrefab == null)
                 return null;
 
-            if (!ReferenceEquals(visualPrefab, _defaultDragVisualPrefab))
+            if (!_visualPool.TryGetValue(visualPrefab, out var pool))
             {
-                if (_visualCache.TryGetValue(visualPrefab, out var cachedVisual))
-                {
-                    Extentions.DragAndDropLog($"<color=cyan>Using cached custom visual from {inventory?.GetType().Name ?? "UnknownInventory"}</color>");
-                    return cachedVisual;
-                }
-
-                var visualInstance = InstantiateVisual(visualPrefab);
-                if (visualInstance != null)
-                {
-                    _visualCache[visualPrefab] = visualInstance;
-                    Extentions.DragAndDropLog($"<color=cyan>Created new custom visual from {inventory?.GetType().Name ?? "UnknownInventory"}</color>");
-                    return visualInstance;
-                }
+                pool = new List<VisualInstance>();
+                _visualPool[visualPrefab] = pool;
             }
 
-            if (_defaultVisualInstance == null && _defaultDragVisualPrefab != null)
+            while (pool.Count <= index)
             {
-                _defaultVisualInstance = InstantiateVisual(_defaultDragVisualPrefab);
-                Extentions.DragAndDropLog("<color=cyan>Created default drag visual</color>");
+                var instance = InstantiateVisual(visualPrefab);
+                if (instance == null)
+                    return null;
+
+                pool.Add(instance);
             }
 
-            Extentions.DragAndDropLog("<color=cyan>Using default drag visual</color>");
-            return _defaultVisualInstance;
+            return pool[index];
         }
 
-        private IDragVisual InstantiateVisual(MonoBehaviour prefab)
+        private VisualInstance InstantiateVisual(MonoBehaviour prefab)
         {
             if (prefab == null)
                 return null;
 
             var instance = Instantiate(prefab, VisualContainer);
             if (instance is IDragVisual dragVisual)
-                return dragVisual;
+                return new VisualInstance(instance, dragVisual);
 
             Debug.LogError($"Prefab {prefab.name} does not implement IDragVisual!");
             Destroy(instance.gameObject);
             return null;
         }
 
-        private Vector3 GetDragAnchorPosition()
+        private void UpdateActiveVisualPositions(Vector2 anchorScreenPosition)
+        {
+            int total = _activeVisuals.Count;
+            if (total == 0)
+                return;
+
+            float visualScale = Mathf.Max(_batchVisualMinScale, 1f - ((total - 1) * _batchVisualScaleStep));
+
+            for (int i = 0; i < total; i++)
+            {
+                var activeVisual = _activeVisuals[i];
+                if (activeVisual.Instance == null)
+                    continue;
+
+                Vector2 screenPosition = anchorScreenPosition + ResolveBatchOffset(activeVisual.Index, total);
+                Vector3 position = ConvertScreenPointToPresentationPosition(screenPosition);
+                activeVisual.Instance.Transform.localScale = new Vector3(
+                    activeVisual.Instance.BaseScale.x * visualScale,
+                    activeVisual.Instance.BaseScale.y * visualScale,
+                    activeVisual.Instance.BaseScale.z);
+                activeVisual.Instance.View.UpdatePosition(position);
+            }
+        }
+
+        private Vector2 ResolveBatchOffset(int index, int total)
+        {
+            if (total <= 1 || _batchVisualRadius <= 0f)
+                return Vector2.zero;
+
+            float angleStep = 360f / total;
+            float angleRadians = ((angleStep * index) - 90f) * Mathf.Deg2Rad;
+            return new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians)) * _batchVisualRadius;
+        }
+
+        private Vector2 GetDragAnchorScreenPosition()
         {
             if (InputEventRouter.IsInstanceExist &&
                 InputEventRouter.Instance.TryGetCurrentNavigationAnchor(out var selectedObject))
             {
-                if (TryGetSelectableCenter(selectedObject, out var selectedPosition))
+                if (TryGetSelectableCenterScreenPoint(selectedObject, out var selectedPosition))
                     return selectedPosition;
             }
 
-            return GetMousePosition();
+            return GetMouseScreenPosition();
         }
 
-        private bool TryGetSelectableCenter(GameObject selectedObject, out Vector3 position)
+        private bool TryGetSelectableCenterScreenPoint(GameObject selectedObject, out Vector2 position)
         {
             position = default;
             if (selectedObject == null)
@@ -202,53 +243,65 @@ namespace DragAndDropSystem.UI
                 return false;
 
             var worldCenter = selectedTransform.TransformPoint(selectedTransform.rect.center);
-            if (_canvas == null || _canvas.renderMode == RenderMode.WorldSpace)
-            {
-                position = worldCenter;
-                return true;
-            }
-
-            if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
-            {
-                var screenPoint = RectTransformUtility.WorldToScreenPoint(null, worldCenter);
-                position = screenPoint;
-                return true;
-            }
-
             var camera = _canvas.worldCamera != null ? _canvas.worldCamera : Camera.main;
-            var canvasRect = _canvas.GetComponent<RectTransform>();
-            if (canvasRect == null)
-                return false;
-
-            var screen = RectTransformUtility.WorldToScreenPoint(camera, worldCenter);
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screen, camera, out var localPoint))
-            {
-                position = canvasRect.TransformPoint(localPoint);
-                return true;
-            }
-
-            return false;
+            position = RectTransformUtility.WorldToScreenPoint(
+                _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay ? camera : null,
+                worldCenter);
+            return true;
         }
 
-        private Vector3 GetMousePosition()
+        private Vector3 ConvertScreenPointToPresentationPosition(Vector2 screenPoint)
         {
             if (_canvas == null)
-                return Input.mousePosition;
+                return screenPoint;
 
             if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
-                return Input.mousePosition;
+                return screenPoint;
 
             if (_canvas.renderMode == RenderMode.ScreenSpaceCamera || _canvas.renderMode == RenderMode.WorldSpace)
             {
                 RectTransform canvasRect = _canvas.GetComponent<RectTransform>();
-                Vector2 localPoint;
+                if (canvasRect == null)
+                    return screenPoint;
 
                 Camera cam = _canvas.renderMode == RenderMode.ScreenSpaceCamera ? _canvas.worldCamera : Camera.main;
-                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, cam, out localPoint))
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPoint, cam, out var localPoint))
                     return canvasRect.TransformPoint(localPoint);
             }
 
+            return screenPoint;
+        }
+
+        private Vector2 GetMouseScreenPosition()
+        {
             return Input.mousePosition;
+        }
+
+        private sealed class VisualInstance
+        {
+            public VisualInstance(MonoBehaviour behaviour, IDragVisual view)
+            {
+                Behaviour = behaviour;
+                View = view;
+                BaseScale = behaviour != null ? behaviour.transform.localScale : Vector3.one;
+            }
+
+            public MonoBehaviour Behaviour { get; }
+            public IDragVisual View { get; }
+            public Vector3 BaseScale { get; }
+            public Transform Transform => Behaviour != null ? Behaviour.transform : null;
+        }
+
+        private readonly struct ActiveVisual
+        {
+            public ActiveVisual(VisualInstance instance, int index)
+            {
+                Instance = instance;
+                Index = index;
+            }
+
+            public VisualInstance Instance { get; }
+            public int Index { get; }
         }
     }
 }

@@ -18,7 +18,7 @@ MonoBehaviour:
     _modifier: 0
     _triggerPhase: 1
     _action:
-      rid: 6676588759005003857
+      rid: 6676588890579796076
   - _label: MMB Drag
     _button: 2
     _modifier: 0
@@ -30,19 +30,19 @@ MonoBehaviour:
     _modifier: 1
     _triggerPhase: 4
     _action:
-      rid: 1002
+      rid: 6676588890579796071
   - _label: LMB Shift Range
     _button: 0
     _modifier: 2
     _triggerPhase: 4
     _action:
-      rid: 1003
+      rid: 1002
   - _label: RMB Select
     _button: 1
     _modifier: 0
     _triggerPhase: 4
     _action:
-      rid: 1004
+      rid: 1003
   _navigationBindings:
   - _label: Submit Drag
     _eventType: 0
@@ -52,10 +52,16 @@ MonoBehaviour:
     _eventType: 1
     _action:
       rid: 1006
+  - _label: 
+    _eventType: 0
+    _action:
+      rid: 6676588890579796042
   _inputActionBindings: []
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 1002
       type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
@@ -66,11 +72,6 @@ MonoBehaviour:
       data:
         _operation:
           rid: 2002
-    - rid: 1004
-      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        _operation:
-          rid: 2003
     - rid: 1005
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data: 
@@ -83,12 +84,23 @@ MonoBehaviour:
     - rid: 2002
       type: {class: RangeSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data: 
-    - rid: 2003
-      type: {class: ClearAndSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
-    - rid: 6676588759005003857
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data: 
     - rid: 6676588777423765576
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data: 
+    - rid: 6676588890579796042
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 6676588890579796071
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data:
+        _operation:
+          rid: 6676588890579796072
+    - rid: 6676588890579796072
+      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 6676588890579796076
+      type: {class: StartMultiDragAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data:
+        _completeOnPointerUp: 1
+        _fallbackToActiveSlotIfSelectionEmpty: 1
+        _restrictToSameInventory: 1
