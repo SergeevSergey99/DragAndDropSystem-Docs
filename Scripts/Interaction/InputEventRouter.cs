@@ -183,7 +183,14 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
-            _navigationModeActive = false;
+            if (_navigationModeActive)
+            {
+                _navigationModeActive = false;
+                var es = EventSystem.current;
+                if (es != null && es.currentSelectedGameObject != null)
+                    es.SetSelectedGameObject(null);
+            }
+
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
@@ -711,6 +718,12 @@ namespace DragAndDropSystem.Interaction
 
         private void MaintainNavigationFocus()
         {
+            if (WasMouseClickedThisFrame())
+            {
+                _navigationModeActive = false;
+                return;
+            }
+
             // Детектим холодный старт: пользователь нажал d-pad/стрелки, но ничего не выбрано,
             // поэтому EventSystem не доставил Move/Select и _navigationModeActive ещё false.
             if (!_navigationModeActive)
@@ -732,6 +745,15 @@ namespace DragAndDropSystem.Interaction
             var target = FindBestFocusTarget();
             if (target != null)
                 es.SetSelectedGameObject(target.gameObject);
+        }
+
+        private static bool WasMouseClickedThisFrame()
+        {
+            var mouse = Mouse.current;
+            return mouse != null &&
+                   (mouse.leftButton.wasPressedThisFrame ||
+                    mouse.rightButton.wasPressedThisFrame ||
+                    mouse.middleButton.wasPressedThisFrame);
         }
 
         private static bool DetectNavigationInput()
