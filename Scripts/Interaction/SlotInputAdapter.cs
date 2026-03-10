@@ -106,7 +106,9 @@ namespace DragAndDropSystem.Interaction
 
         public override void OnPointerDown(PointerEventData eventData)
         {
-            base.OnPointerDown(eventData);
+            // Не вызываем base.OnPointerDown — он делает EventSystem.SetSelectedGameObject,
+            // что не нужно при работе мышью. Selection управляется только через navigation
+            // (OnSelect/OnDeselect для gamepad/keyboard).
             if (_slot == null)
                 return;
 
