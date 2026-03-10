@@ -16,7 +16,7 @@ namespace DragAndDropSystem.UI
     [RequireComponent(typeof(RectTransform))]
     public class InventoryDropArea : Selectable, IDropTarget, ISubmitHandler, ICancelHandler
     {
-        private DragAndDropManager _dragManager => DragAndDropManager.Instance;
+        private DragAndDropManager _dragManager => DragAndDropManager.IsInstanceExist ? DragAndDropManager.Instance : null;
 
         [SerializeField, Tooltip("Инвентарь, к которому привязана эта область")]
         private UniversalInventory _inventory;
@@ -69,29 +69,11 @@ namespace DragAndDropSystem.UI
             }
         }
 
-        private void LateUpdate()
+        protected override void OnEnable()
         {
-            if (_raycastGraphic == null)
-                return;
-
-            bool shouldReceiveRaycast = _dragManager != null && _dragManager.IsDragging;
-            if (_raycastGraphic.raycastTarget != shouldReceiveRaycast)
-            {
-                _raycastGraphic.raycastTarget = shouldReceiveRaycast;
-            }
-
-            bool shouldBeInteractable = ShouldAllowNavigationInteraction();
-            if (interactable != shouldBeInteractable)
-            {
-                interactable = shouldBeInteractable;
-
-                if (!shouldBeInteractable &&
-                    EventSystem.current != null &&
-                    EventSystem.current.currentSelectedGameObject == gameObject)
-                {
-                    EventSystem.current.SetSelectedGameObject(null);
-                }
-            }
+            base.OnEnable();
+            SubscribeToStateEvents();
+            RefreshInteractionState();
         }
 
         public override void OnPointerEnter(PointerEventData eventData)
@@ -133,6 +115,7 @@ namespace DragAndDropSystem.UI
 
         protected override void OnDisable()
         {
+            UnsubscribeFromStateEvents();
             base.OnDisable();
             if (!DragAndDropManager.IsInstanceExist) return;
             // Удаляем себя из стека при отключении
@@ -243,6 +226,50 @@ namespace DragAndDropSystem.UI
                 return false;
 
             return InputEventRouter.Instance.IsNavigationModeActive;
+        }
+
+        private void SubscribeToStateEvents()
+        {
+            DragAndDropManager.Instance.OnDragStarted += HandleDragStateChanged;
+            DragAndDropManager.Instance.OnDragCancelled += HandleDragStateChanged;
+            DragAndDropManager.Instance.OnDropCompleted += HandleDragStateChanged;
+
+            InputEventRouter.Instance.OnNavigationModeChanged += HandleNavigationModeChanged;
+        }
+
+        private void UnsubscribeFromStateEvents()
+        {
+            if (DragAndDropManager.IsInstanceExist)
+            {
+                DragAndDropManager.Instance.OnDragStarted -= HandleDragStateChanged;
+                DragAndDropManager.Instance.OnDragCancelled -= HandleDragStateChanged;
+                DragAndDropManager.Instance.OnDropCompleted -= HandleDragStateChanged;
+            }
+
+            if (InputEventRouter.IsInstanceExist)
+                InputEventRouter.Instance.OnNavigationModeChanged -= HandleNavigationModeChanged;
+        }
+
+        private void HandleDragStateChanged(DragContext _) => RefreshInteractionState();
+        private void HandleNavigationModeChanged(bool _) => RefreshInteractionState();
+
+        private void RefreshInteractionState()
+        {
+            if (_raycastGraphic != null)
+                _raycastGraphic.raycastTarget = _dragManager != null && _dragManager.IsDragging;
+
+            bool shouldBeInteractable = ShouldAllowNavigationInteraction();
+            if (interactable == shouldBeInteractable)
+                return;
+
+            interactable = shouldBeInteractable;
+
+            if (!shouldBeInteractable &&
+                EventSystem.current != null &&
+                EventSystem.current.currentSelectedGameObject == gameObject)
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+            }
         }
     }
 }

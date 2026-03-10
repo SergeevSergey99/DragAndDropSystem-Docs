@@ -19,6 +19,7 @@ namespace DragAndDropSystem.Interaction
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
         public bool IsNavigationModeActive => _navigationModeActive;
+        public event Action<bool> OnNavigationModeChanged;
 
         [Header("Navigation Focus")]
         [SerializeField, Tooltip("Автоматически поддерживать фокус на слоте для gamepad/keyboard навигации")]
@@ -202,7 +203,7 @@ namespace DragAndDropSystem.Interaction
 
             if (_navigationModeActive)
             {
-                _navigationModeActive = false;
+                SetNavigationModeActive(false);
                 var es = EventSystem.current;
                 if (es != null && es.currentSelectedGameObject != null)
                     es.SetSelectedGameObject(null);
@@ -296,7 +297,7 @@ namespace DragAndDropSystem.Interaction
                 return;
 
             if (source == FocusSource.Gamepad)
-                _navigationModeActive = true;
+                SetNavigationModeActive(true);
 
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
@@ -314,7 +315,7 @@ namespace DragAndDropSystem.Interaction
                 return;
 
             if (source == FocusSource.Gamepad)
-                _navigationModeActive = true;
+                SetNavigationModeActive(true);
 
             var inventory = dropArea.Inventory;
             MarkInventoryActive(inventory);
@@ -366,7 +367,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
-            _navigationModeActive = true;
+            SetNavigationModeActive(true);
             MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Submit);
         }
@@ -376,7 +377,7 @@ namespace DragAndDropSystem.Interaction
             if (dropArea?.Inventory == null)
                 return;
 
-            _navigationModeActive = true;
+            SetNavigationModeActive(true);
             MarkInventoryActive(dropArea.Inventory);
             ExecuteNavigationBindings(dropArea.Inventory, null, NavigationEventType.Submit);
         }
@@ -386,7 +387,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
-            _navigationModeActive = true;
+            SetNavigationModeActive(true);
             MarkInventoryActive(inventory);
             ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
         }
@@ -396,7 +397,7 @@ namespace DragAndDropSystem.Interaction
             if (dropArea?.Inventory == null)
                 return;
 
-            _navigationModeActive = true;
+            SetNavigationModeActive(true);
             MarkInventoryActive(dropArea.Inventory);
             ExecuteNavigationBindings(dropArea.Inventory, null, NavigationEventType.Cancel);
         }
@@ -789,7 +790,7 @@ namespace DragAndDropSystem.Interaction
         {
             if (WasMouseClickedThisFrame())
             {
-                _navigationModeActive = false;
+                SetNavigationModeActive(false);
                 return;
             }
 
@@ -800,7 +801,7 @@ namespace DragAndDropSystem.Interaction
                 if (!DetectNavigationInput())
                     return;
 
-                _navigationModeActive = true;
+                SetNavigationModeActive(true);
             }
 
             var es = EventSystem.current;
@@ -921,6 +922,15 @@ namespace DragAndDropSystem.Interaction
             public PointerEventData.InputButton PressedButton;
             public float PressedTime;
             public Vector2 PressedPosition;
+        }
+
+        private void SetNavigationModeActive(bool isActive)
+        {
+            if (_navigationModeActive == isActive)
+                return;
+
+            _navigationModeActive = isActive;
+            OnNavigationModeChanged?.Invoke(isActive);
         }
 
         private readonly struct IntentDedupKey
