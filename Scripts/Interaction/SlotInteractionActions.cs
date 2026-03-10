@@ -30,6 +30,9 @@ namespace DragAndDropSystem.Interaction
         public override bool IsDragBinding() => true;
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
+            if (DragAndDropManager.Instance.IsDragging)
+                return true;
+
             var slot = adapter?.Slot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }

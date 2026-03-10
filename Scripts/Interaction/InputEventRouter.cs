@@ -369,9 +369,6 @@ namespace DragAndDropSystem.Interaction
         {
             var bindings = ResolveNavigationBindings(inventory);
 
-            if (DragAndDropManager.Instance.IsDragging && eventType != NavigationEventType.Cancel)
-                return;
-
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
@@ -381,9 +378,8 @@ namespace DragAndDropSystem.Interaction
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
                     _ = binding.Action.Execute(inventory, adapter, null);
+                    return;
                 }
-                
-                return;
             }
         }
 
