@@ -18,6 +18,8 @@ namespace DragAndDropSystem.Interaction
         [field: SerializeField] 
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
+        public bool IsNavigationModeActive => _navigationModeActive;
+
         [Header("Navigation Focus")]
         [SerializeField, Tooltip("Автоматически поддерживать фокус на слоте для gamepad/keyboard навигации")]
         private bool _autoMaintainFocus = true;

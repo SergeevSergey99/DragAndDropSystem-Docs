@@ -79,6 +79,19 @@ namespace DragAndDropSystem.UI
             {
                 _raycastGraphic.raycastTarget = shouldReceiveRaycast;
             }
+
+            bool shouldBeInteractable = ShouldAllowNavigationInteraction();
+            if (interactable != shouldBeInteractable)
+            {
+                interactable = shouldBeInteractable;
+
+                if (!shouldBeInteractable &&
+                    EventSystem.current != null &&
+                    EventSystem.current.currentSelectedGameObject == gameObject)
+                {
+                    EventSystem.current.SetSelectedGameObject(null);
+                }
+            }
         }
 
         public override void OnPointerEnter(PointerEventData eventData)
@@ -219,6 +232,17 @@ namespace DragAndDropSystem.UI
             }
 
             return true;
+        }
+
+        private bool ShouldAllowNavigationInteraction()
+        {
+            if (_dragManager == null || !_dragManager.IsDragging)
+                return false;
+
+            if (!InputEventRouter.IsInstanceExist)
+                return false;
+
+            return InputEventRouter.Instance.IsNavigationModeActive;
         }
     }
 }
