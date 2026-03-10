@@ -230,6 +230,7 @@ namespace DragAndDropSystem.UI
             DragAndDropManager.Instance.OnDragStarted += HandleDragStateChanged;
             DragAndDropManager.Instance.OnDragCancelled += HandleDragStateChanged;
             DragAndDropManager.Instance.OnDropCompleted += HandleDragStateChanged;
+            DragAndDropManager.Instance.OnDragEnded += HandleDragEnded;
 
             InputEventRouter.Instance.OnNavigationModeChanged += HandleNavigationModeChanged;
         }
@@ -241,6 +242,7 @@ namespace DragAndDropSystem.UI
                 DragAndDropManager.Instance.OnDragStarted -= HandleDragStateChanged;
                 DragAndDropManager.Instance.OnDragCancelled -= HandleDragStateChanged;
                 DragAndDropManager.Instance.OnDropCompleted -= HandleDragStateChanged;
+                DragAndDropManager.Instance.OnDragEnded -= HandleDragEnded;
             }
 
             if (InputEventRouter.IsInstanceExist)
@@ -248,6 +250,7 @@ namespace DragAndDropSystem.UI
         }
 
         private void HandleDragStateChanged(DragContext _) => RefreshInteractionState();
+        private void HandleDragEnded() => RefreshInteractionState();
         private void HandleNavigationModeChanged(bool _) => RefreshInteractionState();
 
         private void RefreshInteractionState()

@@ -65,6 +65,7 @@ namespace DragAndDropSystem
         public event Action<DragContext> OnDropAttempting;
         public event Action<DragContext> OnDropCompleted;
         public event Action<DragContext> OnDragCancelled;
+        public event Action OnDragEnded;
 
         // События автопереноса
         public event Action<DragContext> OnAutoTransferAttempting;
@@ -369,6 +370,7 @@ namespace DragAndDropSystem
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
+            OnDragEnded?.Invoke();
         }
 
         /// <summary>
