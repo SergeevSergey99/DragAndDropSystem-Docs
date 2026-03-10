@@ -1,6 +1,6 @@
 # Shaped Items Architecture Plan
 
-**Last Updated**: 2026-03-08
+**Last Updated**: 2026-03-10
 
 Документ описывает рекомендуемую архитектуру для поддержки предметов разного размера и формы, занимающих несколько ячеек инвентаря.
 
@@ -91,7 +91,11 @@ Occupancy layer проверяет `item as IShapedItem`. Если `null` — п
 - mapping `index <-> x,y`;
 - проверки выхода за границы.
 
+**Система координат: row-major.** Индекс слота вычисляется как `index = y * columns + x`, где `x` — колонка (0..columns-1), `y` — строка (0..rows-1). Это решение фиксируется в Phase 1, т.к. от него зависят все вычисления covered cells, footprint bounds checking и сериализация.
+
 Текущий `UniversalInventory` уже хранит список слотов, но не знает топологию grid на уровне данных. Это нужно добавить отдельно, а не выводить каждый раз из UI.
+
+**Ограничение: grid inventory работает только с `Fixed` slot management.** `Dynamic` слоты несовместимы с фиксированной NxM топологией. При попытке включить grid mode с `SlotManagementType.Dynamic` — ошибка инициализации. Динамический рост grid (добавление строк/колонок) можно рассмотреть как отдельную фичу Phase 4+.
 
 ### 4. Occupancy layer
 
@@ -100,7 +104,7 @@ Occupancy layer проверяет `item as IShapedItem`. Если `null` — п
 Он должен отвечать на вопросы:
 - можно ли разместить предмет с footprint в anchor cell;
 - какие ячейки будут заняты;
-- какой existing item блокирует placement;
+- какие existing items блокируют placement (список, не один — covered cells могут перекрывать несколько разных placements);
 - какие placements конфликтуют.
 
 **Ключевое решение: occupancy layer — производное состояние.**
@@ -177,13 +181,17 @@ Occupancy пересчитывается при загрузке из этого
 
 ### ISlot / UniversalSlot
 
-Желательно добавить состояние вида:
-- `IsAnchorSlot`;
-- `AnchorSlot` или `AnchorIndex`;
-- `IsOccupiedByCompositeItem`;
-- возможность визуализировать occupied follower cells без собственного stack.
+**Важно: не добавлять placement-состояние в интерфейс `ISlot`.** `ISlot` — публичный интерфейс, изменение которого сломает все существующие реализации. Placement-aware запросы должны идти через occupancy layer / grid inventory:
 
-Слот должен оставаться легкой единицей UI, не центром правил размещения.
+- `gridInventory.GetPlacement(slot)` → `Placement?` (anchor, orientation, covered cells);
+- `gridInventory.IsFollowerSlot(slot)` → `bool`;
+- `gridInventory.ResolveAnchorSlot(slot)` → `ISlot` (для follower возвращает anchor, для anchor — себя).
+
+Слот остаётся лёгкой единицей UI и не знает о placement. Код, которому нужна placement-информация, обращается к инвентарю, а не к слоту.
+
+На уровне `UniversalSlot` может потребоваться визуальная поддержка:
+- возможность визуализировать occupied follower cells без собственного stack;
+- отключение hover/selection визуала для follower cells (делегирование anchor-у).
 
 Важно: follower-slot не должен притворяться полноценным владельцем `ItemStack`.
 
@@ -192,9 +200,10 @@ Occupancy пересчитывается при загрузке из этого
 Текущий `DragContext` несёт source slot и target slot. Для shaped items drag context должен дополнительно нести:
 - footprint перетаскиваемого предмета (из `IShapedItem`);
 - текущую orientation;
-- какая ячейка является anchor под курсором (не обязательно верхний левый угол footprint).
+- какая ячейка является anchor под курсором (не обязательно верхний левый угол footprint);
+- **grab offset** — смещение от anchor до точки захвата. Когда пользователь хватает предмет 3x2 за ячейку (2,1), drag preview должен сохранять этот offset, иначе предмет «прыгнет» так, что anchor окажется под курсором. Grab offset хранится как `Vector2Int` в координатах footprint.
 
-Без этого planner не сможет валидировать placement по всем covered cells. Расширение `DragContext` нужно сделать обратно совместимым: для 1x1 предметов anchor = target slot, footprint = 1x1.
+Без этого planner не сможет валидировать placement по всем covered cells. Расширение `DragContext` нужно сделать обратно совместимым: для 1x1 предметов anchor = target slot, footprint = 1x1, grab offset = (0,0).
 
 ### TransferPlanner
 
@@ -242,6 +251,48 @@ Rules должны начать получать расширенный конт
 
 При этом старые slot rules должны не исчезнуть, а стать частным случаем placement validation.
 
+**Механизм расширения**: вводится отдельный интерфейс `IPlacementRule` (рядом с существующим `IDragRule`). Placement rule получает расширенный контекст: anchor index, orientation, covered cells, конфликтующие placements. Существующие `IDragRule` продолжают работать для 1x1 предметов и обычных инвентарей. Grid inventory при валидации вызывает оба набора правил: сначала placement rules, затем стандартные slot rules для anchor slot. Выбор этого подхода нужно зафиксировать в Phase 1, чтобы Phase 2 не потребовала переделки.
+
+### Swap для shaped items — зафиксированное ограничение
+
+**Решение для Phase 1–3: swap для shaped items отключён.**
+
+Текущий `TrySwapSlots` обменивает стеки двух одиночных слотов. Для shaped items swap становится комбинаторно сложным:
+- covered cells нового placement могут перекрывать несколько разных existing items (не один);
+- нужно проверить, что каждый вытесненный предмет поместится на освободившееся место;
+- порядок вытеснения и валидации зависит от формы всех участников.
+
+При дропе shaped item на occupied cell — reject (через `OccupiedTargetPolicy.Reject`). Shaped item swap — отдельная фича Phase 4.
+
+### Batch drag + shaped items — зафиксированное ограничение
+
+**Решение для Phase 1–3: batch drag для shaped items отключён.**
+
+Поиск валидных placements для нескольких shaped items одновременно — комбинаторная задача (каждый следующий placement зависит от уже размещённых). При попытке batch drag, содержащего shaped item, система должна отклонить операцию на этапе planner.
+
+### GetAcceptableCount — зависимость от позиции
+
+Текущий `IInventory.GetAcceptableCount(item, count)` — flat API, не учитывающий позицию. Для grid inventory acceptance зависит от того, **куда** кладётся предмет: 2x3 предмет может поместиться в одном углу grid, но не в другом.
+
+`IGridInventoryStrategy` должен предоставлять position-aware API: `CanPlace(item, anchorIndex, orientation)`. Flat `GetAcceptableCount` для grid inventory возвращает ответ в смысле «есть ли хотя бы одна позиция, куда предмет поместится», без привязки к конкретному anchor.
+
+## Визуал размещённого предмета
+
+Документ описывает drag preview и ghost overlay, но не фиксирует базовый вопрос: **как рендерится уже размещённый shaped item на grid**.
+
+### Выбранный подход: anchor renders full icon
+
+Anchor slot отвечает за отрисовку иконки предмета. Иконка масштабируется на весь footprint (визуально перекрывает follower cells). Follower slots не рендерят собственную иконку — они отображают только «занятый» визуал (затемнение, рамка, или полностью прозрачны).
+
+Это стиль Diablo / Escape from Tarkov и наиболее естественный для grid inventory.
+
+Технически это означает:
+- anchor slot рендерит `Image` с размером `cellSize * footprintSize` (выходит за пределы своего RectTransform);
+- или используется отдельный UI-объект (overlay), порождаемый поверх grid при placement;
+- follower cells подавляют hover highlight и tooltip — делегируют anchor-у.
+
+Выбор конкретной реализации (растянутый Image vs overlay) — Phase 3, но принципиальное решение «anchor рендерит весь предмет» фиксируется сейчас, т.к. оно влияет на архитектуру `UniversalSlot.UpdateVisuals()`.
+
 ## Drag and UI
 
 ### Drag preview
@@ -287,24 +338,29 @@ Selection должна работать на уровне placement, а не о�
 
 Сначала добавить только основу:
 - `IShapedItem` интерфейс;
-- grid metadata и topology;
+- grid metadata и topology (row-major координаты, Fixed slot management);
 - `PlacementData` и список placements в инвентаре;
 - occupancy layer как производное состояние;
-- anchor + follower state на слотах;
-- placement queries (CanPlace, GetPlacement, GetCoveredSlots);
+- placement queries через grid inventory (CanPlace, GetPlacement, GetCoveredSlots, ResolveAnchorSlot);
 - `IGridInventoryStrategy` как отдельная стратегия;
-- сериализация `PlacementData`.
+- `IPlacementRule` интерфейс (рядом с `IDragRule`);
+- сериализация `PlacementData`;
+- валидация: grid + Dynamic = ошибка; shaped item + Count > 1 = ошибка.
 
 Без drag UI, без rotation, без fancy preview. Без изменений в `DragContext` и transfer pipeline.
+
+**Тестируемость Phase 1**: фаза не даёт user-visible функциональности. Тестирование — через play-mode / unit тесты на API уровне: создание grid inventory, placement через код (`TryAddItem`), проверка occupancy, сериализация/десериализация. Это валидирует фундамент до интеграции с drag pipeline.
 
 ### Phase 2. Planner/Executor integration
 
 Потом внедрить shaped placement в transfer pipeline:
-- расширить `DragContext` footprint + orientation;
+- расширить `DragContext`: footprint, orientation, grab offset;
 - planner строит placement-aware allocations через occupancy layer;
 - executor применяет placement transaction;
 - rollback работает на multi-cell state через расширенный `InventorySnapshot`;
-- расширить `InventoryTransferResult` полями anchor/covered.
+- расширить `InventoryTransferResult` полями anchor/covered;
+- swap для shaped items → reject;
+- batch drag с shaped items → reject.
 
 ### Phase 3. UI/UX
 
@@ -323,7 +379,10 @@ Selection должна работать на уровне placement, а не о�
 - shape-aware auto-sort (2D bin packing — нетривиальная задача, отдельный scope);
 - полноценная auto-transfer анимация для shaped items;
 - стекуемые shaped items (если нужно);
-- rule presets for equipment-like grid inventories.
+- rule presets for equipment-like grid inventories;
+- swap для shaped items (multi-item displacement при дропе);
+- batch drag с shaped items (комбинаторный поиск placements);
+- динамический рост grid (добавление строк/колонок).
 
 ## Что важно не сломать
 
@@ -356,15 +415,19 @@ Selection должна работать на уровне placement, а не о�
 
 Если нужен не идеальный, а реалистичный первый релиз фичи, то MVP может быть таким:
 - только прямоугольные предметы (`IShapedItem` с width/height);
-- только grid inventory;
+- только grid inventory с Fixed slot management;
+- row-major coordinate system;
 - rotation 0/90;
 - shaped items всегда Count = 1;
 - один anchor slot хранит stack;
 - occupancy layer как производное состояние из placement list;
 - planner проверяет footprint по occupied cells;
 - selection и context menu работают по anchor placement;
+- drag preview с grab offset;
 - auto-sort явно отключён для grid inventory (2D bin packing — отдельная задача);
-- auto-transfer для shaped items явно отключён.
+- auto-transfer для shaped items явно отключён;
+- swap при дропе shaped item на occupied cell — reject;
+- batch drag с shaped items — reject.
 
 Это уже даст сильную пользовательскую ценность и не потребует сразу решать все сложные edge-case для произвольных форм.
 
@@ -376,7 +439,14 @@ Selection должна работать на уровне placement, а не о�
 - footprint через опциональный `IShapedItem`, без изменения `IInventoryItem`;
 - occupancy как производное состояние от списка placements;
 - `IGridInventoryStrategy` отдельно от существующих стратегий;
+- `IPlacementRule` рядом с `IDragRule` для placement-aware валидации;
+- placement-запросы через grid inventory, не через `ISlot`;
 - shaped items Count = 1 (Phase 1–3);
+- swap и batch drag для shaped items отключены (Phase 1–3);
+- grid inventory только с Fixed slot management;
+- row-major coordinate system (`index = y * columns + x`);
+- anchor renders full icon, followers — occupied overlay;
+- drag с grab offset для корректного UX;
 - с резолвом любых slot-driven действий через anchor placement.
 
 Если когда-либо понадобится модель со shared runtime entity на несколько ячеек, ее лучше делать как отдельную placement-сущность, а не как один `ItemStack`, напрямую лежащий в нескольких слотах.
