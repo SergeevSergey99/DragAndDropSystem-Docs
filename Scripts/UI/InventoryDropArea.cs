@@ -217,15 +217,12 @@ namespace DragAndDropSystem.UI
             return true;
         }
 
-        private bool ShouldAllowNavigationInteraction()
+        private bool ShouldAllowInteraction()
         {
             if (_dragManager == null || !_dragManager.IsDragging)
                 return false;
 
-            if (!InputEventRouter.IsInstanceExist)
-                return false;
-
-            return InputEventRouter.Instance.IsNavigationModeActive;
+            return true;
         }
 
         private void SubscribeToStateEvents()
@@ -258,7 +255,7 @@ namespace DragAndDropSystem.UI
             if (_raycastGraphic != null)
                 _raycastGraphic.raycastTarget = _dragManager != null && _dragManager.IsDragging;
 
-            bool shouldBeInteractable = ShouldAllowNavigationInteraction();
+            bool shouldBeInteractable = ShouldAllowInteraction();
             if (interactable == shouldBeInteractable)
                 return;
 
