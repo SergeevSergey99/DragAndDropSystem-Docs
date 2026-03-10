@@ -4,6 +4,7 @@ using CodeUtils;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
+using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.UI;
 using UnityEngine;
@@ -319,6 +320,9 @@ namespace DragAndDropSystem
                         {
                             _currentContext.SetTarget(result.TargetSlot, result.TargetInventory);
                         }
+
+                        if (_currentContext.IsBatchDrag && SelectionManager.IsInstanceExist)
+                            SelectionManager.Instance.Clear();
 
                         OnDropCompleted?.Invoke(_currentContext);
                     }
