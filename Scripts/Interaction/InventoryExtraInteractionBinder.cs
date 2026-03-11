@@ -24,6 +24,9 @@ namespace DragAndDropSystem.Interaction
 
         private readonly List<PointerBinding> _resolvedPointerBindings = new();
         private readonly List<InputActionBinding> _resolvedInputActionBindings = new();
+        // Только локальные + profile биндинги (без global profile).
+        // Используется для подписок на InputAction — глобальные подписки делает InputEventRouter.
+        private readonly List<InputActionBinding> _localInputActionBindings = new();
 
         private bool _runtimeDirty = true;
 
@@ -38,12 +41,29 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
+        /// <summary>
+        /// Полный список InputAction биндингов (local + profile + global).
+        /// Используется для резолва при обработке событий.
+        /// </summary>
         public IReadOnlyList<InputActionBinding> InputActionBindingsResolved
         {
             get
             {
                 if (_runtimeDirty) RebuildResolvedBindings();
                 return _resolvedInputActionBindings;
+            }
+        }
+
+        /// <summary>
+        /// Только собственные InputAction биндинги (local + profile, без global).
+        /// Используется для подписок — глобальные InputAction подписывает InputEventRouter.
+        /// </summary>
+        public IReadOnlyList<InputActionBinding> LocalInputActionBindings
+        {
+            get
+            {
+                if (_runtimeDirty) RebuildResolvedBindings();
+                return _localInputActionBindings;
             }
         }
 
@@ -74,14 +94,17 @@ namespace DragAndDropSystem.Interaction
         {
             _resolvedPointerBindings.Clear();
             _resolvedInputActionBindings.Clear();
+            _localInputActionBindings.Clear();
 
             AppendValidBindings(_pointerBindings, _resolvedPointerBindings);
             AppendValidBindings(_inputActionBindings, _resolvedInputActionBindings);
+            AppendValidBindings(_inputActionBindings, _localInputActionBindings);
 
             if (_bindingsProfile != null)
             {
                 AppendValidBindings(_bindingsProfile.PointerBindingsRuntime, _resolvedPointerBindings);
                 AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
+                AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _localInputActionBindings);
             }
 
             if (_useGlobalBindingsProfile)
@@ -90,6 +113,8 @@ namespace DragAndDropSystem.Interaction
                 if (globalProfile != null)
                 {
                     AppendValidBindings(globalProfile.PointerBindingsRuntime, _resolvedPointerBindings);
+                    // Глобальные InputAction добавляем только в resolved (для резолва),
+                    // но НЕ в local (подписки на них делает InputEventRouter глобально).
                     AppendValidBindings(globalProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
                 }
             }

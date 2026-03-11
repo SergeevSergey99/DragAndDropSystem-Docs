@@ -454,10 +454,6 @@ namespace DragAndDropSystem.Interaction
             if (_activeInventory == null)
                 return;
 
-            // Если у активного инвентаря есть свой ExtraBinder — его подписки уже обработают этот InputAction
-            if (_overridesByInventory.ContainsKey(_activeInventory))
-                return;
-
             HandleExtraInputAction(_activeInventory, context);
         }
 
@@ -527,7 +523,9 @@ namespace DragAndDropSystem.Interaction
 
             if (binder == null) return;
 
-            var bindings = binder.InputActionBindingsResolved;
+            // Подписываем только локальные InputAction (local + profile).
+            // Глобальные подписки делает HandleDefaultProfileInputAction.
+            var bindings = binder.LocalInputActionBindings;
             var subs = new List<InputActionSubscription>();
             _actionSubscriptionsByInventory[inventory] = subs;
 
