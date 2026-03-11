@@ -33,7 +33,7 @@ Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigg
 
 Роль:
 - хранит runtime-state по инвентарям;
-- разрешает pointer/navigation/input-action bindings;
+- разрешает pointer и input-action bindings (включая navigation-trigger биндинги);
 - отслеживает focus/pressed state;
 - классифицирует pointer phases: `Down`, `Up`, `Click`, `ClickShort`, `ClickLong`;
 - изолирует drag-only обработку на pointer-up;
@@ -44,7 +44,7 @@ Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigg
 Файл: `Scripts/Interaction/InventoryExtraInteractionBinder.cs`
 
 Роль:
-- хранит локальные `PointerBinding`, `NavigationBinding`, `InputActionBinding`;
+- хранит локальные `PointerBinding` и `InputActionBinding`;
 - опционально добавляет bindings из profile asset;
 - может подключать глобальный `InputEventRouter.DefaultBindingsProfile`;
 - используется как per-inventory override.

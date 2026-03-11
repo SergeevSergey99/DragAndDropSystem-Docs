@@ -43,20 +43,17 @@ MonoBehaviour:
     _triggerPhase: 4
     _action:
       rid: 1003
-  _navigationBindings:
-  - _label: Submit Drag
-    _eventType: 0
+  _inputActionBindings:
+  - _label: Submit
+    _actionReference: {fileID: 392368643174621059, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    _triggerPhase: 1
     _action:
-      rid: 1005
-  - _label: Cancel Drag
-    _eventType: 1
+      rid: 6676588913277272146
+  - _label: Cancel
+    _actionReference: {fileID: 7727032971491509709, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    _triggerPhase: 1
     _action:
-      rid: 1006
-  - _label: 
-    _eventType: 0
-    _action:
-      rid: 6676588890579796042
-  _inputActionBindings: []
+      rid: 6676588913277272160
   references:
     version: 2
     RefIds:
@@ -72,12 +69,6 @@ MonoBehaviour:
       data:
         _operation:
           rid: 2002
-    - rid: 1005
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data: 
-    - rid: 1006
-      type: {class: CancelDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data: 
     - rid: 2001
       type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data: 
@@ -85,9 +76,6 @@ MonoBehaviour:
       type: {class: RangeSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data: 
     - rid: 6676588777423765576
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data: 
-    - rid: 6676588890579796042
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data: 
     - rid: 6676588890579796071
@@ -104,3 +92,9 @@ MonoBehaviour:
         _completeOnPointerUp: 1
         _fallbackToActiveSlotIfSelectionEmpty: 1
         _restrictToSameInventory: 1
+    - rid: 6676588913277272146
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 6676588913277272160
+      type: {class: CancelDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 

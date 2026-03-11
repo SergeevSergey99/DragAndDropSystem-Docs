@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,10 +9,10 @@ namespace DragAndDropSystem.Interaction
     {
         [SerializeField, Tooltip("Название для читаемости в инспекторе")]
         private string _label;
-        
+
         [SerializeField, Tooltip("Действие Input System")]
         private InputActionReference _actionReference;
-        
+
         [SerializeField, Tooltip("Стадия действия, на которой выполняется действие")]
         private TriggerPhaseEnum _triggerPhase = TriggerPhaseEnum.Performed;
 
@@ -55,10 +55,9 @@ namespace DragAndDropSystem.Interaction
             return (ReferenceEquals(configured, context.action) || configured.id == context.action.id)
                    && ShouldProcess(context);
         }
-        
+
         bool ShouldProcess(InputAction.CallbackContext context)
         {
-            // Фильтруем лишние вызовы по фазе.
             switch (_triggerPhase)
             {
                 case TriggerPhaseEnum.Started:

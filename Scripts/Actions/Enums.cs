@@ -25,9 +25,4 @@
         Alt = 3
     }
 
-    public enum NavigationEventType
-    {
-        Submit = 0,
-        Cancel = 1
-    }
 }

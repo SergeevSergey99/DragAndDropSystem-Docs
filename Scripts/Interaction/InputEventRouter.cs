@@ -4,6 +4,7 @@ using CodeUtils;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
+using DragAndDropSystem.Tools;
 using DragAndDropSystem.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,7 +16,7 @@ namespace DragAndDropSystem.Interaction
     [DisallowMultipleComponent]
     public class InputEventRouter : MonoSingleton<InputEventRouter>
     {
-        [field: SerializeField] 
+        [field: SerializeField]
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
         public bool IsNavigationModeActive => _navigationModeActive;
@@ -35,6 +36,8 @@ namespace DragAndDropSystem.Interaction
         private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
         // Словарь для хранения подписок на InputAction для каждого инвентаря, чтобы можно было отписаться при необходимости
         private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
+        // Подписки на InputAction из default profile (глобальные, роутятся в _activeInventory)
+        private readonly List<InputActionSubscription> _defaultProfileSubscriptions = new();
         // Последний инвентарь, с которым пользователь явно взаимодействовал. Используется только для inventory-scoped quick actions.
         private UniversalInventory _activeInventory;
 
@@ -46,6 +49,18 @@ namespace DragAndDropSystem.Interaction
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
         // Глобальный флаг: пользователь сейчас в режиме навигации (gamepad/keyboard) а не мыши
         private bool _navigationModeActive;
+
+        protected override void Init()
+        {
+            base.Init();
+            RebindDefaultProfileInputActions();
+        }
+
+        protected override void DeInit()
+        {
+            UnbindDefaultProfileInputActions();
+            base.DeInit();
+        }
 
         private void Update()
         {
@@ -68,7 +83,7 @@ namespace DragAndDropSystem.Interaction
 
             var inventory = extraBinder.Inventory;
             _overridesByInventory[inventory] = extraBinder;
-            
+
             RebindExtraInputActions(inventory, extraBinder);
         }
 
@@ -362,46 +377,6 @@ namespace DragAndDropSystem.Interaction
                 DragAndDropManager.Instance.PopDropTarget(dropArea);
         }
 
-        public void RouteSubmit(SlotInputAdapter adapter, BaseEventData eventData)
-        {
-            if (!TryGetInventory(adapter, out var inventory))
-                return;
-
-            SetNavigationModeActive(true);
-            MarkInventoryActive(inventory);
-            ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Submit);
-        }
-
-        public void RouteSubmit(InventoryDropArea dropArea, BaseEventData eventData)
-        {
-            if (dropArea?.Inventory == null)
-                return;
-
-            SetNavigationModeActive(true);
-            MarkInventoryActive(dropArea.Inventory);
-            ExecuteNavigationBindings(dropArea.Inventory, null, NavigationEventType.Submit);
-        }
-
-        public void RouteCancel(SlotInputAdapter adapter, BaseEventData eventData)
-        {
-            if (!TryGetInventory(adapter, out var inventory))
-                return;
-
-            SetNavigationModeActive(true);
-            MarkInventoryActive(inventory);
-            ExecuteNavigationBindings(inventory, adapter, NavigationEventType.Cancel);
-        }
-
-        public void RouteCancel(InventoryDropArea dropArea, BaseEventData eventData)
-        {
-            if (dropArea?.Inventory == null)
-                return;
-
-            SetNavigationModeActive(true);
-            MarkInventoryActive(dropArea.Inventory);
-            ExecuteNavigationBindings(dropArea.Inventory, null, NavigationEventType.Cancel);
-        }
-
         private bool ExecutePointerBindings(
             UniversalInventory inventory,
             SlotInputAdapter adapter,
@@ -410,7 +385,7 @@ namespace DragAndDropSystem.Interaction
             bool dragOnly)
         {
             if (eventData == null) return false;
-            
+
             var bindings = ResolvePointerBindings(inventory);
 
             if (!dragOnly && adapter?.Slot == null)
@@ -436,30 +411,15 @@ namespace DragAndDropSystem.Interaction
             return false;
         }
 
-        private void ExecuteNavigationBindings(
-            UniversalInventory inventory,
-            SlotInputAdapter adapter,
-            NavigationEventType eventType)
-        {
-            var bindings = ResolveNavigationBindings(inventory);
-
-            for (int i = 0; i < bindings.Count; i++)
-            {
-                var binding = bindings[i];
-                if (binding == null || !binding.IsValid() || !binding.Matches(eventType))
-                    continue;
-
-                if (binding.Action.CanExecute(inventory, adapter, null))
-                {
-                    _ = binding.Action.Execute(inventory, adapter, null);
-                    return;
-                }
-            }
-        }
-
         private void HandleExtraInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
         {
             if (inventory == null)
+                return;
+
+            // InputAction — глобальный: подписки есть на все инвентари с ExtraBinder.
+            // Обрабатываем только активный инвентарь, иначе Submit на одном инвентаре
+            // вызовет действия на всех остальных.
+            if (!ReferenceEquals(inventory, _activeInventory))
                 return;
 
             var bindings = ResolveInputActionBindings(inventory);
@@ -489,10 +449,82 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
+        private void HandleDefaultProfileInputAction(InputAction.CallbackContext context)
+        {
+            if (_activeInventory == null)
+                return;
+
+            // Если у активного инвентаря есть свой ExtraBinder — его подписки уже обработают этот InputAction
+            if (_overridesByInventory.ContainsKey(_activeInventory))
+                return;
+
+            HandleExtraInputAction(_activeInventory, context);
+        }
+
+        private void RebindDefaultProfileInputActions()
+        {
+            UnbindDefaultProfileInputActions();
+
+            if (DefaultBindingsProfile == null)
+                return;
+
+            var bindings = DefaultBindingsProfile.InputActionBindingsRuntime;
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+
+                var inputAction = binding.ActionReference.action;
+                if (inputAction == null)
+                    continue;
+
+                Action<InputAction.CallbackContext> handler = HandleDefaultProfileInputAction;
+                switch (binding.TriggerPhase)
+                {
+                    case TriggerPhaseEnum.Started:
+                        inputAction.started += handler;
+                        break;
+                    case TriggerPhaseEnum.Performed:
+                        inputAction.performed += handler;
+                        break;
+                    case TriggerPhaseEnum.Canceled:
+                        inputAction.canceled += handler;
+                        break;
+                }
+                _defaultProfileSubscriptions.Add(new InputActionSubscription(inputAction, handler, binding.TriggerPhase));
+            }
+        }
+
+        private void UnbindDefaultProfileInputActions()
+        {
+            for (int i = 0; i < _defaultProfileSubscriptions.Count; i++)
+            {
+                var sub = _defaultProfileSubscriptions[i];
+                if (sub.Action == null)
+                    continue;
+
+                switch (sub.Phase)
+                {
+                    case TriggerPhaseEnum.Started:
+                        sub.Action.started -= sub.Handler;
+                        break;
+                    case TriggerPhaseEnum.Performed:
+                        sub.Action.performed -= sub.Handler;
+                        break;
+                    case TriggerPhaseEnum.Canceled:
+                        sub.Action.canceled -= sub.Handler;
+                        break;
+                }
+            }
+
+            _defaultProfileSubscriptions.Clear();
+        }
+
         private void RebindExtraInputActions(UniversalInventory inventory, InventoryExtraInteractionBinder binder)
         {
             UnbindExtraInputActions(inventory);
-            
+
             if (binder == null) return;
 
             var bindings = binder.InputActionBindingsResolved;
@@ -563,22 +595,10 @@ namespace DragAndDropSystem.Interaction
             {
                 return overrideBinder.PointerBindingsResolved;
             }
-            
+
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.PointerBindingsRuntime
                 : Array.Empty<PointerBinding>();
-        }
-
-        private IReadOnlyList<NavigationBinding> ResolveNavigationBindings(UniversalInventory inventory)
-        {
-            if (_overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
-            {
-                return overrideBinder.NavigationBindingsResolved;
-            }
-            
-            return DefaultBindingsProfile != null
-                ? DefaultBindingsProfile.NavigationBindingsRuntime
-                : Array.Empty<NavigationBinding>();
         }
 
         private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(UniversalInventory inventory)
@@ -587,7 +607,7 @@ namespace DragAndDropSystem.Interaction
             {
                 return overrideBinder.InputActionBindingsResolved;
             }
-            
+
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.InputActionBindingsRuntime
                 : Array.Empty<InputActionBinding>();

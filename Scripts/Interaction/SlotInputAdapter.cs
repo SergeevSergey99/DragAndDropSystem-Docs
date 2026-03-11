@@ -15,9 +15,7 @@ namespace DragAndDropSystem.Interaction
     /// Доменную логику не содержит.
     /// </summary>
     public class SlotInputAdapter : Selectable,
-        IBeginDragHandler, IDragHandler,
-        ISubmitHandler, ICancelHandler,
-        IDropTarget
+        IBeginDragHandler, IDropTarget
     {
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverEnter;
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverExit;
@@ -137,12 +135,6 @@ namespace DragAndDropSystem.Interaction
             InputEventRouter.Instance.RouteBeginDrag(this, eventData);
         }
 
-        public void OnDrag(PointerEventData eventData)
-        {
-            // Intentionally no-op.
-            // Unity UI drag pipeline may require IDragHandler for stable BeginDrag dispatch.
-        }
-
         public override void OnMove(AxisEventData eventData)
         {
             var next = eventData.moveDir switch
@@ -168,16 +160,6 @@ namespace DragAndDropSystem.Interaction
         {
             base.OnDeselect(eventData);
             InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
-        }
-
-        public void OnSubmit(BaseEventData eventData)
-        {
-            InputEventRouter.Instance.RouteSubmit(this, eventData);
-        }
-
-        public void OnCancel(BaseEventData eventData)
-        {
-            InputEventRouter.Instance.RouteCancel(this, eventData);
         }
 
         // ===== IDropTarget =====
@@ -209,30 +191,6 @@ namespace DragAndDropSystem.Interaction
         {
             if (_slot != null)
                 _slot.Highlight(false);
-        }
-
-        public bool GetIsHovering() => IsHovering;
-
-        public void SimulateHoverEnter()
-        {
-            if (IsHovering)
-                return;
-
-            TryRaiseHoverEnter(new PointerEventData(EventSystem.current)
-            {
-                position = Input.mousePosition
-            });
-        }
-
-        public void SimulateHoverExit()
-        {
-            if (!IsHovering)
-                return;
-
-            TryRaiseHoverExit(new PointerEventData(EventSystem.current)
-            {
-                position = Input.mousePosition
-            });
         }
 
         private void TryRaiseHoverEnter(PointerEventData eventData)

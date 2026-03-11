@@ -14,7 +14,7 @@ namespace DragAndDropSystem.UI
     /// Позволяет дропать предметы в любое место инвентаря, а не только в конкретный слот
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class InventoryDropArea : Selectable, IDropTarget, ISubmitHandler, ICancelHandler
+    public class InventoryDropArea : Selectable, IDropTarget
     {
         private DragAndDropManager _dragManager => DragAndDropManager.IsInstanceExist ? DragAndDropManager.Instance : null;
 
@@ -135,16 +135,6 @@ namespace DragAndDropSystem.UI
         {
             base.OnDeselect(eventData);
             InputEventRouter.Instance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
-        }
-
-        public void OnSubmit(BaseEventData eventData)
-        {
-            InputEventRouter.Instance.RouteSubmit(this, eventData);
-        }
-
-        public void OnCancel(BaseEventData eventData)
-        {
-            InputEventRouter.Instance.RouteCancel(this, eventData);
         }
 
         public bool TryActivateAsFocusedTarget()

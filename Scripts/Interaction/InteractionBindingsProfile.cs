@@ -8,16 +8,13 @@ namespace DragAndDropSystem.Interaction
     public sealed class InteractionBindingsProfile : ScriptableObject
     {
         [SerializeField] private List<AssetPointerBinding> _pointerBindings = new();
-        [SerializeField] private List<AssetNavigationBinding> _navigationBindings = new();
         [SerializeField] private List<AssetInputActionBinding> _inputActionBindings = new();
 
         private readonly List<PointerBinding> _runtimePointerBindings = new();
-        private readonly List<NavigationBinding> _runtimeNavigationBindings = new();
         private readonly List<InputActionBinding> _runtimeInputActionBindings = new();
         private bool _runtimeDirty = true;
 
         public IReadOnlyList<AssetPointerBinding> PointerBindings => _pointerBindings;
-        public IReadOnlyList<AssetNavigationBinding> NavigationBindings => _navigationBindings;
         public IReadOnlyList<AssetInputActionBinding> InputActionBindings => _inputActionBindings;
 
         public IReadOnlyList<PointerBinding> PointerBindingsRuntime
@@ -26,15 +23,6 @@ namespace DragAndDropSystem.Interaction
             {
                 RebuildRuntimeIfNeeded();
                 return _runtimePointerBindings;
-            }
-        }
-
-        public IReadOnlyList<NavigationBinding> NavigationBindingsRuntime
-        {
-            get
-            {
-                RebuildRuntimeIfNeeded();
-                return _runtimeNavigationBindings;
             }
         }
 
@@ -64,11 +52,9 @@ namespace DragAndDropSystem.Interaction
 
             _runtimeDirty = false;
             _runtimePointerBindings.Clear();
-            _runtimeNavigationBindings.Clear();
             _runtimeInputActionBindings.Clear();
 
             AppendRuntimeBindings(_pointerBindings, _runtimePointerBindings, b => b.ToRuntimeBinding());
-            AppendRuntimeBindings(_navigationBindings, _runtimeNavigationBindings, b => b.ToRuntimeBinding());
             AppendRuntimeBindings(_inputActionBindings, _runtimeInputActionBindings, b => b.ToRuntimeBinding());
         }
 

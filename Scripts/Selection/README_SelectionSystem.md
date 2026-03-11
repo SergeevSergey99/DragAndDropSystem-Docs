@@ -79,7 +79,7 @@ Asset-safe action для interaction bindings.
 
 ## Как настраивать
 
-Selection настраивается через `PointerBinding` / `NavigationBinding` / `InputActionBinding`.
+Selection настраивается через `PointerBinding` / `InputActionBinding`.
 
 Типовой набор:
 - `LMB + None + ClickShort -> SelectionSlotAction(ClearAndSelectOperation)`

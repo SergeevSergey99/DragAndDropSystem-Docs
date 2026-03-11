@@ -20,11 +20,9 @@ namespace DragAndDropSystem.Interaction
 
         [Header("Local Bindings")]
         [SerializeField] private List<PointerBinding> _pointerBindings = new();
-        [SerializeField] private List<NavigationBinding> _navigationBindings = new();
         [SerializeField] private List<InputActionBinding> _inputActionBindings = new();
 
         private readonly List<PointerBinding> _resolvedPointerBindings = new();
-        private readonly List<NavigationBinding> _resolvedNavigationBindings = new();
         private readonly List<InputActionBinding> _resolvedInputActionBindings = new();
 
         private bool _runtimeDirty = true;
@@ -40,14 +38,6 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        public IReadOnlyList<NavigationBinding> NavigationBindingsResolved
-        {
-            get
-            {
-                if (_runtimeDirty) RebuildResolvedBindings();
-                return _resolvedNavigationBindings;
-            }
-        }
         public IReadOnlyList<InputActionBinding> InputActionBindingsResolved
         {
             get
@@ -83,27 +73,23 @@ namespace DragAndDropSystem.Interaction
         private void RebuildResolvedBindings()
         {
             _resolvedPointerBindings.Clear();
-            _resolvedNavigationBindings.Clear();
             _resolvedInputActionBindings.Clear();
-            
+
             AppendValidBindings(_pointerBindings, _resolvedPointerBindings);
-            AppendValidBindings(_navigationBindings, _resolvedNavigationBindings);
             AppendValidBindings(_inputActionBindings, _resolvedInputActionBindings);
-            
+
             if (_bindingsProfile != null)
             {
                 AppendValidBindings(_bindingsProfile.PointerBindingsRuntime, _resolvedPointerBindings);
-                AppendValidBindings(_bindingsProfile.NavigationBindingsRuntime, _resolvedNavigationBindings);
                 AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
             }
-            
+
             if (_useGlobalBindingsProfile)
             {
                 var globalProfile = InputEventRouter.Instance.DefaultBindingsProfile;
                 if (globalProfile != null)
                 {
                     AppendValidBindings(globalProfile.PointerBindingsRuntime, _resolvedPointerBindings);
-                    AppendValidBindings(globalProfile.NavigationBindingsRuntime, _resolvedNavigationBindings);
                     AppendValidBindings(globalProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
                 }
             }
