@@ -1,6 +1,6 @@
 # Interaction Input System
 
-**Last Updated**: 2026-03-06
+**Last Updated**: 2026-03-12
 
 Документ описывает актуальный input pipeline для UI-инвентарей после миграции с legacy listeners.
 
@@ -22,7 +22,7 @@ Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigg
 Файл: `Scripts/Interaction/SlotInputAdapter.cs`
 
 Роль:
-- принимает `IPointer*`, `IBeginDrag`, `ISelect/IDeselect`, `ISubmit/ICancel`;
+- принимает `IPointer*`, `IBeginDrag`, `ISelect/IDeselect`;
 - прокидывает события в `InputEventRouter`;
 - реализует `IDropTarget` и создает `InventoryDropProcessor` для slot-drop;
 - не содержит доменной логики drag, selection или context menu.
@@ -33,7 +33,7 @@ Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigg
 
 Роль:
 - хранит runtime-state по инвентарям;
-- разрешает pointer и input-action bindings (включая navigation-trigger биндинги);
+- разрешает pointer и input-action bindings;
 - отслеживает focus/pressed state;
 - классифицирует pointer phases: `Down`, `Up`, `Click`, `ClickShort`, `ClickLong`;
 - изолирует drag-only обработку на pointer-up;
@@ -128,7 +128,7 @@ Pointer bindings поддерживают:
 - `LMB + Down -> DragSlotAction`
 - `LMB + Up -> CompleteDragAction`
 
-`Navigation Bindings`:
+`InputAction Bindings`:
 - `Submit -> DragSlotAction`
 - `Cancel -> CancelDragAction`
 
@@ -146,7 +146,7 @@ Pointer bindings поддерживают:
 `Pointer Bindings`:
 - `RMB + ClickShort -> ShowContextMenuAction`
 
-`Navigation Bindings`:
+`InputAction Bindings`:
 - `Cancel -> ShowContextMenuAction`
 
 ### Scene-specific inventory actions
@@ -160,6 +160,16 @@ Pointer bindings поддерживают:
 - `InventorySlotAction` и `ShowContextMenuAction` используют `adapter?.Slot ?? inventory.ResolveAutoTransferSlot()`.
 - `ResolveAutoTransferSlot()` сейчас ищет слот в порядке: `hover -> EventSystem.currentSelectedGameObject -> lastInteracted`.
 - `InputEventRouter` хранит текущий `FocusSource`, который используется и для context menu actions без pointer event.
+- При navigation drag visual якорится к текущему `EventSystem.currentSelectedGameObject`, а не к позиции мыши.
+
+## Navigation через InputAction
+
+Отдельный `NavigationBinding` больше не используется.
+
+Теперь navigation-сценарии настраиваются через обычные `InputActionBinding`:
+- `Submit`, `Cancel`, `QuickMove`, `Sort` и другие кнопки keyboard/gamepad живут в одном списке;
+- глобальные bindings подписывает `InputEventRouter.DefaultBindingsProfile`;
+- локальные overrides задаются через `InventoryExtraInteractionBinder`.
 
 ## Prefabs и сцены
 

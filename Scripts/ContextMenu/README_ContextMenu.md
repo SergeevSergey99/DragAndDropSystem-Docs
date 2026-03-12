@@ -98,9 +98,10 @@ Pointer Bindings → [+]
 
 **Геймпад / клавиатура:**
 ```
-Navigation Bindings → [+]
-  Event Type: Cancel   (или другая кнопка)
-  Action:     ShowContextMenuAction
+InputAction Bindings → [+]
+  Action Reference: UI/Cancel   (или другая action)
+  Trigger Phase:    Performed
+  Action:           ShowContextMenuAction
 ```
 
 ---
