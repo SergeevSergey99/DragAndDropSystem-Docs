@@ -22,10 +22,10 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public abstract class AssetOnlySlotInteractionAction : SlotInteractionAction {}
+    public abstract class AssetSafeSlotInteractionAction : SlotInteractionAction {}
 
     [Serializable]
-    public sealed class DragSlotAction : AssetOnlySlotInteractionAction
+    public sealed class DragSlotAction : AssetSafeSlotInteractionAction
     {
         public override bool IsDragBinding() => true;
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
@@ -56,7 +56,7 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class CompleteDragAction : AssetOnlySlotInteractionAction
+    public sealed class CompleteDragAction : AssetSafeSlotInteractionAction
     {
         [field: SerializeField] public bool CancelOnNoSlots { get; private set; } = true;
 
@@ -82,7 +82,7 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
-    public sealed class CancelDragAction : AssetOnlySlotInteractionAction
+    public sealed class CancelDragAction : AssetSafeSlotInteractionAction
     {
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.Instance.IsDragging;

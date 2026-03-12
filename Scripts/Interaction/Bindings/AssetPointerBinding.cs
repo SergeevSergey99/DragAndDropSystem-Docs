@@ -11,7 +11,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private PointerEventData.InputButton _button = PointerEventData.InputButton.Left;
         [SerializeField] private ModifierKey _modifier = ModifierKey.None;
         [SerializeField] private PointerTriggerPhase _triggerPhase = PointerTriggerPhase.Any;
-        [SerializeReference] private AssetOnlySlotInteractionAction _action;
+        [SerializeReference] private AssetSafeSlotInteractionAction _action;
 
         public string Label => string.IsNullOrEmpty(_label)
             ? (_action != null ? _action.DisplayName : "Pointer Binding")

@@ -13,7 +13,7 @@ namespace DragAndDropSystem.ContextMenu
     /// Требует <see cref="ContextMenuManager"/> на сцене.
     /// </summary>
     [Serializable]
-    public sealed class ShowContextMenuAction : AssetOnlySlotInteractionAction
+    public sealed class ShowContextMenuAction : AssetSafeSlotInteractionAction
     {
         public override string DisplayName => "Show Context Menu";
 

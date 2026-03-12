@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.Selection
 {
     [Serializable]
-    public sealed class SelectionSlotAction : AssetOnlySlotInteractionAction
+    public sealed class SelectionSlotAction : AssetSafeSlotInteractionAction
     {
         [UnityEngine.SerializeReference] private SelectionOperationBase _operation;
 

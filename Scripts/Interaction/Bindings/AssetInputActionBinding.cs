@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField, Tooltip("Стадия действия, на которой выполняется действие")]
         private TriggerPhaseEnum _triggerPhase = TriggerPhaseEnum.Performed;
 
-        [SerializeReference] private AssetOnlySlotInteractionAction _action;
+        [SerializeReference] private AssetSafeSlotInteractionAction _action;
 
         public string Label => string.IsNullOrEmpty(_label)
             ? (_action != null ? _action.DisplayName : "InputAction Binding")

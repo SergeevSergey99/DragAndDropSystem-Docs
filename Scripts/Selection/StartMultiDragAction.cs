@@ -10,7 +10,7 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.Selection
 {
     [Serializable]
-    public sealed class StartMultiDragAction : AssetOnlySlotInteractionAction
+    public sealed class StartMultiDragAction : AssetSafeSlotInteractionAction
     {
         [SerializeField] private bool _completeOnPointerUp = true;
         [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
