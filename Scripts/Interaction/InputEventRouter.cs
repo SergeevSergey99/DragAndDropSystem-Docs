@@ -207,6 +207,8 @@ namespace DragAndDropSystem.Interaction
                     state.ActiveFocusSource = FocusSource.None;
             }
 
+            TryClearActiveInventory(inventory);
+
             if (DragAndDropManager.Instance.IsDragging)
                 DragAndDropManager.Instance.PopDropTarget(adapter);
         }
@@ -355,6 +357,8 @@ namespace DragAndDropSystem.Interaction
                 state.ActiveFocusSource = FocusSource.None;
             }
 
+            TryClearActiveInventory(inventory);
+
             if (DragAndDropManager.Instance.IsDragging)
                 DragAndDropManager.Instance.PopDropTarget(adapter);
         }
@@ -372,6 +376,8 @@ namespace DragAndDropSystem.Interaction
                 if (state.FocusedSlot == null)
                     state.ActiveFocusSource = FocusSource.None;
             }
+
+            TryClearActiveInventory(inventory);
 
             if (DragAndDropManager.Instance.IsDragging)
                 DragAndDropManager.Instance.PopDropTarget(dropArea);
@@ -626,6 +632,16 @@ namespace DragAndDropSystem.Interaction
         {
             if (inventory != null)
                 _activeInventory = inventory;
+        }
+
+        private void TryClearActiveInventory(UniversalInventory inventory)
+        {
+            if (!ReferenceEquals(_activeInventory, inventory))
+                return;
+
+            var state = GetOrCreateState(inventory);
+            if (state.HoveredSlot == null && state.FocusedSlot == null && state.FocusedDropArea == null)
+                _activeInventory = null;
         }
 
         private void CleanupStaleInventories()

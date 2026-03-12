@@ -2,7 +2,6 @@ using DragAndDropSystem.Inventories;
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -127,7 +126,11 @@ namespace DragAndDropSystem.Interaction
             if (source == null)
                 return;
 
-            destination.AddRange(source.Where(binding => binding != null));
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (source[i] != null)
+                    destination.Add(source[i]);
+            }
         }
     }
 }

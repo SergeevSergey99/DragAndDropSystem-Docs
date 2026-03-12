@@ -21,6 +21,9 @@ namespace DragAndDropSystem.Interaction
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverExit;
 
         [SerializeField] private UniversalSlot _slot;
+        [Header("Pointer Down")]
+        [SerializeField, Tooltip("Вызывать base.OnPointerDown (устанавливает EventSystem.selectedGameObject). Включить, если нужны Selectable transitions при нажатии мышью.")]
+        private bool _callBaseOnPointerDown = false;
         [Header("Hover Events")]
         [SerializeField, Tooltip("Вызывать hover-события только если слот не пустой")]
         private bool _onlyWhenNotEmpty = true;
@@ -104,9 +107,13 @@ namespace DragAndDropSystem.Interaction
 
         public override void OnPointerDown(PointerEventData eventData)
         {
-            // Не вызываем base.OnPointerDown — он делает EventSystem.SetSelectedGameObject,
+            // По умолчанию не вызываем base.OnPointerDown — он делает EventSystem.SetSelectedGameObject,
             // что не нужно при работе мышью. Selection управляется только через navigation
             // (OnSelect/OnDeselect для gamepad/keyboard).
+            // Включается через _callBaseOnPointerDown, если нужны Selectable transitions при нажатии.
+            if (_callBaseOnPointerDown)
+                base.OnPointerDown(eventData);
+
             if (_slot == null)
                 return;
 
