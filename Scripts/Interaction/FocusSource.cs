@@ -4,7 +4,6 @@ namespace DragAndDropSystem.Interaction
     {
         None = 0,
         Mouse = 1,
-        Gamepad = 2,
-        VirtualCursor = 3
+        Gamepad = 2
     }
 }

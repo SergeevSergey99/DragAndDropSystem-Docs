@@ -20,7 +20,7 @@ namespace DragAndDropSystem.Interaction
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
         public bool IsNavigationModeActive => _navigationModeActive;
-        public event Action<bool> OnNavigationModeChanged;
+        public static event Action<bool> OnNavigationModeChanged;
 
         [Header("Navigation Focus")]
         [SerializeField, Tooltip("Автоматически поддерживать фокус на слоте для gamepad/keyboard навигации")]

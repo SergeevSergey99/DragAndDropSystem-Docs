@@ -59,23 +59,23 @@ namespace DragAndDropSystem
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
 
         // События drag-and-drop
-        public event Action<DragContext> OnDragStarting;
-        public event Action<DragContext> OnDragStarted;
-        public event Action<DragContext> OnDragEnterSlot;
-        public event Action<DragContext> OnDragExitSlot;
-        public event Action<DragContext> OnDropAttempting;
-        public event Action<DragContext> OnDropCompleted;
-        public event Action<DragContext> OnDragCancelled;
-        public event Action OnDragEnded;
+        public static event Action<DragContext> OnDragStarting;
+        public static event Action<DragContext> OnDragStarted;
+        public static event Action<DragContext> OnDragEnterSlot;
+        public static event Action<DragContext> OnDragExitSlot;
+        public static event Action<DragContext> OnDropAttempting;
+        public static event Action<DragContext> OnDropCompleted;
+        public static event Action<DragContext> OnDragCancelled;
+        public static event Action OnDragEnded;
 
         // События автопереноса
-        public event Action<DragContext> OnAutoTransferAttempting;
-        public event Action<DragContext> OnAutoTransferCompleted;
-        public event Action<DragContext> OnAutoTransferFailed;
+        public static event Action<DragContext> OnAutoTransferAttempting;
+        public static event Action<DragContext> OnAutoTransferCompleted;
+        public static event Action<DragContext> OnAutoTransferFailed;
 
         // События обмена предметов (swap)
-        public event Action<InventorySwapContext> OnSwapAttempting;
-        public event Action<InventorySwapContext> OnSwapCompleted;
+        public static event Action<InventorySwapContext> OnSwapAttempting;
+        public static event Action<InventorySwapContext> OnSwapCompleted;
 
         protected override void Init()
         {

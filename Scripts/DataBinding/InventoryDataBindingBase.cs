@@ -103,12 +103,8 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         private void SubscribeToSwapEvents()
         {
-            var manager = DragAndDropManager.Instance;
-            if (manager != null)
-            {
-                manager.OnSwapAttempting += HandleSwapAttempting;
-                manager.OnSwapCompleted += HandleSwapCompleted;
-            }
+            DragAndDropManager.OnSwapAttempting += HandleSwapAttempting;
+            DragAndDropManager.OnSwapCompleted += HandleSwapCompleted;
         }
 
         /// <summary>
@@ -116,16 +112,8 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         private void UnsubscribeFromSwapEvents()
         {
-            // Проверяем существование инстанса через статическое свойство
-            if (DragAndDropManager.IsInstanceExist)
-            {
-                var manager = DragAndDropManager.Instance;
-                if (manager != null)
-                {
-                    manager.OnSwapAttempting -= HandleSwapAttempting;
-                    manager.OnSwapCompleted -= HandleSwapCompleted;
-                }
-            }
+            DragAndDropManager.OnSwapAttempting -= HandleSwapAttempting;
+            DragAndDropManager.OnSwapCompleted -= HandleSwapCompleted;
         }
 
         /// <summary>

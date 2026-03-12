@@ -85,10 +85,9 @@ namespace DragAndDropSystem.UI
             if (_subscribed)
                 return;
 
-            var manager = DragAndDropManager.Instance;
-            manager.OnDragStarted += HandleDragStarted;
-            manager.OnDragCancelled += HandleDragFinished;
-            manager.OnDropCompleted += HandleDragFinished;
+            DragAndDropManager.OnDragStarted += HandleDragStarted;
+            DragAndDropManager.OnDragCancelled += HandleDragFinished;
+            DragAndDropManager.OnDropCompleted += HandleDragFinished;
             _subscribed = true;
         }
 
@@ -97,10 +96,9 @@ namespace DragAndDropSystem.UI
             if (!_subscribed || !DragAndDropManager.IsInstanceExist)
                 return;
 
-            var manager = DragAndDropManager.Instance;
-            manager.OnDragStarted -= HandleDragStarted;
-            manager.OnDragCancelled -= HandleDragFinished;
-            manager.OnDropCompleted -= HandleDragFinished;
+            DragAndDropManager.OnDragStarted -= HandleDragStarted;
+            DragAndDropManager.OnDragCancelled -= HandleDragFinished;
+            DragAndDropManager.OnDropCompleted -= HandleDragFinished;
             _subscribed = false;
         }
 
