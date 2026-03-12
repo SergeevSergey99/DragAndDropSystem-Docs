@@ -77,28 +77,22 @@ namespace DragAndDropSystem.Interaction
         private static bool IsCtrlPressed()
         {
             var keyboard = Keyboard.current;
-            if (keyboard != null)
-                return keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed;
-
-            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            return keyboard != null
+                   && (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed);
         }
 
         private static bool IsShiftPressed()
         {
             var keyboard = Keyboard.current;
-            if (keyboard != null)
-                return keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
-
-            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            return keyboard != null
+                   && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
         }
 
         private static bool IsAltPressed()
         {
             var keyboard = Keyboard.current;
-            if (keyboard != null)
-                return keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed;
-
-            return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+            return keyboard != null
+                   && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed);
         }
     }
 }

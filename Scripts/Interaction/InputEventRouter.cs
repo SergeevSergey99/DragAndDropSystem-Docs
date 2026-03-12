@@ -778,27 +778,17 @@ namespace DragAndDropSystem.Interaction
         private static bool WasPointerButtonReleasedThisFrame(PointerEventData.InputButton button)
         {
             var mouse = Mouse.current;
-            if (mouse != null)
-            {
-                switch (button)
-                {
-                    case PointerEventData.InputButton.Left:
-                        return mouse.leftButton.wasReleasedThisFrame;
-                    case PointerEventData.InputButton.Right:
-                        return mouse.rightButton.wasReleasedThisFrame;
-                    case PointerEventData.InputButton.Middle:
-                        return mouse.middleButton.wasReleasedThisFrame;
-                }
-            }
+            if (mouse == null)
+                return false;
 
             switch (button)
             {
                 case PointerEventData.InputButton.Left:
-                    return Input.GetMouseButtonUp(0);
+                    return mouse.leftButton.wasReleasedThisFrame;
                 case PointerEventData.InputButton.Right:
-                    return Input.GetMouseButtonUp(1);
+                    return mouse.rightButton.wasReleasedThisFrame;
                 case PointerEventData.InputButton.Middle:
-                    return Input.GetMouseButtonUp(2);
+                    return mouse.middleButton.wasReleasedThisFrame;
                 default:
                     return false;
             }
@@ -951,7 +941,7 @@ namespace DragAndDropSystem.Interaction
             OnNavigationModeChanged?.Invoke(isActive);
         }
 
-        private readonly struct IntentDedupKey
+        private readonly struct IntentDedupKey : IEquatable<IntentDedupKey>
         {
             public IntentDedupKey(int type, object scope, object token)
             {
@@ -963,6 +953,24 @@ namespace DragAndDropSystem.Interaction
             public int Type { get; }
             public object Scope { get; }
             public object Token { get; }
+
+            public bool Equals(IntentDedupKey other)
+                => Type == other.Type
+                   && ReferenceEquals(Scope, other.Scope)
+                   && ReferenceEquals(Token, other.Token);
+
+            public override bool Equals(object obj) => obj is IntentDedupKey other && Equals(other);
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = Type;
+                    hash = (hash * 397) ^ System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Scope);
+                    hash = (hash * 397) ^ System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Token);
+                    return hash;
+                }
+            }
         }
     }
 }
