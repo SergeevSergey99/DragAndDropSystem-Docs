@@ -55,10 +55,28 @@ namespace DragAndDropSystem.ContextMenu.UI
                 var newNavigation = slotInputAdapter.navigation;
                 newNavigation.mode = Navigation.Mode.Explicit;
                 
-                newNavigation.selectOnUp = entryViews[0].Selectable;
-                newNavigation.selectOnDown = entryViews[entries.Count - 1].Selectable;
+                newNavigation.selectOnLeft = entryViews[0].Selectable;
+                newNavigation.selectOnDown = entryViews[0].Selectable;
+                newNavigation.selectOnUp = entryViews[entries.Count - 1].Selectable;
+                newNavigation.selectOnRight = entryViews[entries.Count - 1].Selectable;
                 
                 slotInputAdapter.navigation = newNavigation;
+            }
+
+            // Навигация между entryViews: вверх/вниз — соседние записи (с wrap-around),
+            // влево/вправо — исходный слот
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var selectable = entryViews[i].Selectable;
+                var nav = selectable.navigation;
+                nav.mode = Navigation.Mode.Explicit;
+
+                nav.selectOnUp    = entryViews[(i - 1 + entries.Count) % entries.Count].Selectable;
+                nav.selectOnDown  = entryViews[(i + 1) % entries.Count].Selectable;
+                nav.selectOnLeft  = slotInputAdapter;
+                nav.selectOnRight = slotInputAdapter;
+
+                selectable.navigation = nav;
             }
         }
 
