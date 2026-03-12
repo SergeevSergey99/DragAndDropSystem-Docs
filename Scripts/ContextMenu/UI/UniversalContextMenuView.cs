@@ -19,6 +19,35 @@ namespace DragAndDropSystem.ContextMenu.UI
         public override void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx)
         {
             gameObject.SetActive(true);
+            var slotRect = ctx.Slot.transform as RectTransform;
+            if (slotRect != null)
+            {
+                var rt = transform as RectTransform;
+                var canvas = rt.GetComponentInParent<Canvas>().rootCanvas;
+                Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+
+                // Позиция центра слота в экранных пикселях
+                Vector2 slotScreenPos = RectTransformUtility.WorldToScreenPoint(uiCamera, slotRect.position);
+
+                // Конвертируем в локальные координаты родителя меню
+                var parentRT = rt.parent as RectTransform;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    parentRT, slotScreenPos, uiCamera, out Vector2 localPos);
+
+                float halfSlotW = slotRect.rect.width * 0.5f;
+                float halfMenuW = rt.rect.width * 0.5f;
+
+                if (slotScreenPos.x < Screen.width * 0.5f)
+                {
+                    // Слот слева — показываем меню справа от него
+                    rt.anchoredPosition = new Vector2(localPos.x + halfSlotW + halfMenuW, localPos.y);
+                }
+                else
+                {
+                    // Слот справа — показываем меню слева от него
+                    rt.anchoredPosition = new Vector2(localPos.x - halfSlotW - halfMenuW, localPos.y);
+                }
+            }
             try
             {
                 label.text = ctx.Slot.Stack.Item.DisplayName;

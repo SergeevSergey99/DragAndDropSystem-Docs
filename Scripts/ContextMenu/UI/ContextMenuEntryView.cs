@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace DragAndDropSystem.ContextMenu.UI
@@ -16,7 +17,12 @@ namespace DragAndDropSystem.ContextMenu.UI
             _button.interactable = entry.CanShow(ctx);
             
             _button.onClick.RemoveAllListeners();
-            _button.onClick.AddListener(() => entry.Execute(ctx));
+            _button.onClick.AddListener(() => Click(entry, ctx));
+        }
+
+        void Click(IContextMenuEntry entry, ContextMenuContext ctx)
+        {
+            entry.Execute(ctx);
         }
     }
 }
