@@ -9,9 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de98b364b17422e43a6306334b95221d, type: 3}
-  m_Name: ContextMenuPreset
+  m_Script: {fileID: 11500000, guid: 0a9841cc683a008489551243e11117f3, type: 3}
+  m_Name: SortEntry rev
   m_EditorClassIdentifier: 
-  _entries:
-  - {fileID: 11400000, guid: 31678a88a4b2f5a459562fccd0cd019e, type: 2}
-  - {fileID: 11400000, guid: 2b6695366851d034693ba5a4f221bb61, type: 2}
+  _label: Sort by name rev
+  _icon: {fileID: 0}
+  _order: 0
+  _sortType: 0
+  _reverse: 1

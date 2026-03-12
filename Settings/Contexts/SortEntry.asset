@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a9841cc683a008489551243e11117f3, type: 3}
   m_Name: SortEntry
   m_EditorClassIdentifier: 
-  _label: Sort
+  _label: Sort by name
   _icon: {fileID: 0}
   _order: 0
   _sortType: 0
