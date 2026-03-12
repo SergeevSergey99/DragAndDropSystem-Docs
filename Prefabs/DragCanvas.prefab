@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1460896741492025917}
   - component: {fileID: 2723276657636712345}
   - component: {fileID: -4959539374365011389}
+  - component: {fileID: 1146916505490786135}
   m_Layer: 5
   m_Name: DragCanvas
   m_TagString: Untagged
@@ -126,6 +127,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InputEventRouter
   <DefaultBindingsProfile>k__BackingField: {fileID: 11400000, guid: 4f9345350f0328246b2aba8386a06f49, type: 2}
+  _autoMaintainFocus: 1
   _longClickThresholdSeconds: 0.35
   _clickMoveTolerancePixels: 8
 --- !u!114 &-4959539374365011389
@@ -143,3 +145,18 @@ MonoBehaviour:
   _canvas: {fileID: 3953592695543780856}
   _defaultDragVisualPrefab: {fileID: 6982264044130136322, guid: f5e3548879788e14eb2a101626053976, type: 3}
   _visualContainer: {fileID: 0}
+  _batchVisualRadius: 36
+  _batchVisualMinScale: 0.65
+  _batchVisualScaleStep: 0.08
+--- !u!114 &1146916505490786135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2246638230345617431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 688a74ff5d833a644ac2eab66a38a13d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

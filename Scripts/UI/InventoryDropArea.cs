@@ -250,7 +250,7 @@ namespace DragAndDropSystem.UI
             DragAndDropManager.OnDropCompleted += HandleDragStateChanged;
             DragAndDropManager.OnDragEnded += HandleDragEnded;
 
-            InputEventRouter.OnNavigationModeChanged += HandleNavigationModeChanged;
+            InputModalityTracker.OnNavigationModeChanged += HandleNavigationModeChanged;
         }
 
         private void UnsubscribeFromStateEvents()
@@ -260,7 +260,7 @@ namespace DragAndDropSystem.UI
             DragAndDropManager.OnDropCompleted -= HandleDragStateChanged;
             DragAndDropManager.OnDragEnded -= HandleDragEnded;
 
-            InputEventRouter.OnNavigationModeChanged -= HandleNavigationModeChanged;
+            InputModalityTracker.OnNavigationModeChanged -= HandleNavigationModeChanged;
         }
 
         private void HandleDragStateChanged(DragContext _) => RefreshInteractionState();

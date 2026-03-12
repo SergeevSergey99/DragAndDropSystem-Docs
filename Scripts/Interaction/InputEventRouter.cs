@@ -19,9 +19,6 @@ namespace DragAndDropSystem.Interaction
         [field: SerializeField]
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
-        public bool IsNavigationModeActive => _navigationModeActive;
-        public static event Action<bool> OnNavigationModeChanged;
-
         [Header("Navigation Focus")]
         [SerializeField, Tooltip("Автоматически поддерживать фокус на слоте для gamepad/keyboard навигации")]
         private bool _autoMaintainFocus = true;
@@ -47,8 +44,6 @@ namespace DragAndDropSystem.Interaction
         private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame = new ();
         // Временный список для очистки словарей от невалидных (уничтоженных) инвентарей
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
-        // Глобальный флаг: пользователь сейчас в режиме навигации (gamepad/keyboard) а не мыши
-        private bool _navigationModeActive;
 
         protected override void Init()
         {
@@ -140,7 +135,7 @@ namespace DragAndDropSystem.Interaction
         public bool TryGetCurrentNavigationAnchor(out GameObject selectedObject)
         {
             selectedObject = null;
-            if (!_navigationModeActive)
+            if (!InputModalityTracker.IsNavigationModeActive)
                 return false;
 
             var es = EventSystem.current;
@@ -218,9 +213,8 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
-            if (_navigationModeActive)
+            if (InputModalityTracker.IsNavigationModeActive)
             {
-                SetNavigationModeActive(false);
                 var es = EventSystem.current;
                 if (es != null && es.currentSelectedGameObject != null)
                     es.SetSelectedGameObject(null);
@@ -313,9 +307,6 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || adapter?.Slot == null)
                 return;
 
-            if (source == FocusSource.Gamepad)
-                SetNavigationModeActive(true);
-
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
@@ -330,9 +321,6 @@ namespace DragAndDropSystem.Interaction
         {
             if (dropArea == null || dropArea.Inventory == null)
                 return;
-
-            if (source == FocusSource.Gamepad)
-                SetNavigationModeActive(true);
 
             var inventory = dropArea.Inventory;
             MarkInventoryActive(inventory);
@@ -812,21 +800,8 @@ namespace DragAndDropSystem.Interaction
 
         private void MaintainNavigationFocus()
         {
-            if (WasMouseClickedThisFrame())
-            {
-                SetNavigationModeActive(false);
+            if (!InputModalityTracker.IsNavigationModeActive)
                 return;
-            }
-
-            // Детектим холодный старт: пользователь нажал d-pad/стрелки, но ничего не выбрано,
-            // поэтому EventSystem не доставил Move/Select и _navigationModeActive ещё false.
-            if (!_navigationModeActive)
-            {
-                if (!DetectNavigationInput())
-                    return;
-
-                SetNavigationModeActive(true);
-            }
 
             var es = EventSystem.current;
             if (es == null)
@@ -839,42 +814,6 @@ namespace DragAndDropSystem.Interaction
             var target = FindBestFocusTarget();
             if (target != null)
                 es.SetSelectedGameObject(target.gameObject);
-        }
-
-        private static bool WasMouseClickedThisFrame()
-        {
-            var mouse = Mouse.current;
-            return mouse != null &&
-                   (mouse.leftButton.wasPressedThisFrame ||
-                    mouse.rightButton.wasPressedThisFrame ||
-                    mouse.middleButton.wasPressedThisFrame);
-        }
-
-        private static bool DetectNavigationInput()
-        {
-            var gamepad = Gamepad.current;
-            if (gamepad != null)
-            {
-                var dpad = gamepad.dpad;
-                if (dpad.up.wasPressedThisFrame || dpad.down.wasPressedThisFrame ||
-                    dpad.left.wasPressedThisFrame || dpad.right.wasPressedThisFrame)
-                    return true;
-
-                var stick = gamepad.leftStick;
-                if (stick.up.wasPressedThisFrame || stick.down.wasPressedThisFrame ||
-                    stick.left.wasPressedThisFrame || stick.right.wasPressedThisFrame)
-                    return true;
-            }
-
-            var keyboard = Keyboard.current;
-            if (keyboard != null)
-            {
-                if (keyboard.upArrowKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame ||
-                    keyboard.leftArrowKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
-                    return true;
-            }
-
-            return false;
         }
 
         private Selectable FindBestFocusTarget()
@@ -946,15 +885,6 @@ namespace DragAndDropSystem.Interaction
             public PointerEventData.InputButton PressedButton;
             public float PressedTime;
             public Vector2 PressedPosition;
-        }
-
-        private void SetNavigationModeActive(bool isActive)
-        {
-            if (_navigationModeActive == isActive)
-                return;
-
-            _navigationModeActive = isActive;
-            OnNavigationModeChanged?.Invoke(isActive);
         }
 
         private readonly struct IntentDedupKey : IEquatable<IntentDedupKey>
