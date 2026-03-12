@@ -156,6 +156,11 @@ namespace DragAndDropSystem.UI
 
         public IDropProcessor GetDropProcessor()
         {
+            return CreateDropProcessor(_foundSlot);
+        }
+
+        private InventoryDropProcessor CreateDropProcessor(ISlot targetSlot)
+        {
             System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
                 ? _dragManager.RaiseSwapAttempting
                 : null;
@@ -164,7 +169,7 @@ namespace DragAndDropSystem.UI
                 : null;
 
             return new InventoryDropProcessor(
-                _foundSlot,
+                targetSlot,
                 _inventory,
                 _dragManager?.GlobalRules,
                 _dragManager?.TransferService,
@@ -193,17 +198,40 @@ namespace DragAndDropSystem.UI
             if (context == null || context.Entries.Count == 0)
                 return false;
 
-            var stack = context.Entries[0].Stack;
-            if (stack == null || stack.Item == null)
+            if (!TryBuildValidationContext(context, out var validationContext, out suggestedSlot))
                 return false;
 
-            bool canAccept = _inventory.CanAcceptItem(stack.Item, stack.Count, out suggestedSlot);
+            var processor = CreateDropProcessor(suggestedSlot);
+            bool canAccept = processor.CanAcceptDrop(validationContext);
             if (!canAccept)
-            {
-                Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Planner rejected drop in {_inventory.name}</color>");
+
+            return canAccept;
+        }
+
+        private bool TryBuildValidationContext(DragContext context, out DragContext validationContext, out ISlot suggestedSlot)
+        {
+            validationContext = null;
+            suggestedSlot = null;
+
+            if (context == null || context.Entries.Count == 0)
                 return false;
+
+            if (!context.IsBatchDrag)
+            {
+                var stack = context.Entries[0].Stack;
+                if (stack == null || stack.Item == null)
+                    return false;
+
+                bool canAccept = _inventory.CanAcceptItem(stack.Item, stack.Count, out suggestedSlot);
+                if (!canAccept)
+                {
+                    Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
+                    return false;
+                }
             }
 
+            validationContext = context.WithTarget(suggestedSlot, _inventory);
             return true;
         }
 
