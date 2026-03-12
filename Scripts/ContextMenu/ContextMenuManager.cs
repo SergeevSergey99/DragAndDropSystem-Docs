@@ -16,13 +16,17 @@ namespace DragAndDropSystem.ContextMenu
     {
         [SerializeField] private ContextMenuViewBase _defaultViewPrefab;
         [SerializeField] private Transform _viewContainer;
+        [SerializeField] private ContextMenuPreset _defaultPreset;
 
         private readonly Dictionary<ContextMenuViewBase, ContextMenuViewBase> _viewCache = new Dictionary<ContextMenuViewBase, ContextMenuViewBase>();
         private readonly Dictionary<UniversalInventory, InventoryContextMenuViewBinder> _viewBindersByInventory = new Dictionary<UniversalInventory, InventoryContextMenuViewBinder>();
         private ContextMenuViewBase _activeView;
 
         public bool IsOpen { get; private set; }
-
+        public ContextMenuPreset DefaultPreset => _defaultPreset;
+        
+        ContextMenuContext _lastContext;
+            
         /// <summary>Вызывается после открытия меню.</summary>
         public event Action OnOpened;
 
@@ -60,7 +64,14 @@ namespace DragAndDropSystem.ContextMenu
             }
 
             if (IsOpen)
+            {
                 Hide();
+                if (ctx.Slot == _lastContext.Slot && ctx.Inventory == _lastContext.Inventory)
+                {
+                    return;
+                }
+            }
+            _lastContext = ctx;
 
             var visible = entries
                 .Where(e => e != null && e.CanShow(ctx))

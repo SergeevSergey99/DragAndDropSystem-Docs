@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Inventories;
@@ -20,7 +21,8 @@ namespace DragAndDropSystem.ContextMenu
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null
             && ContextMenuManager.IsInstanceExist
-            && inventory.GetComponent<ContextMenuBinder>() != null;
+            && (ContextMenuManager.Instance.DefaultPreset != null 
+                || inventory.GetComponent<ContextMenuBinder>() != null);
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
@@ -28,12 +30,24 @@ namespace DragAndDropSystem.ContextMenu
                 return ActionResult.Failed("Inventory is null");
 
             var binder = inventory.GetComponent<ContextMenuBinder>();
-            if (binder == null)
-                return ActionResult.Failed("No ContextMenuBinder on inventory");
-
+            
             var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
-            var isEmpty = slot == null || slot.IsEmpty;
-            var entries = binder.GetEntries(isEmpty);
+            
+            List<IContextMenuEntry> entries = new();
+            if (binder == null)
+            {
+                if (ContextMenuManager.IsInstanceExist && ContextMenuManager.Instance.DefaultPreset != null)
+                {
+                    entries.AddRange(ContextMenuManager.Instance.DefaultPreset.Entries);
+                }
+                else 
+                    return ActionResult.Failed("No ContextMenuBinder on inventory");
+            }
+            else
+            {
+                var isEmpty = slot == null || slot.IsEmpty;
+                entries = binder.GetEntries(isEmpty);
+            }
 
             if (entries.Count == 0)
                 return ActionResult.Failed("No context menu entries configured");

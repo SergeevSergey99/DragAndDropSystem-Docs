@@ -54,6 +54,11 @@ MonoBehaviour:
     _triggerPhase: 1
     _action:
       rid: 6676588913277272160
+  - _label: 
+    _actionReference: {fileID: -2099379676528639254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    _triggerPhase: 1
+    _action:
+      rid: 6676588936962506824
   references:
     version: 2
     RefIds:
@@ -97,4 +102,7 @@ MonoBehaviour:
       data: 
     - rid: 6676588913277272160
       type: {class: CancelDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 6676588936962506824
+      type: {class: ShowContextMenuAction, ns: DragAndDropSystem.ContextMenu, asm: Assembly-CSharp-firstpass}
       data: 
