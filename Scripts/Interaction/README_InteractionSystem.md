@@ -13,7 +13,7 @@
 3. Bindings из `InventoryExtraInteractionBinder` или `InteractionBindingsProfile` выбирают `SlotInteractionAction`.
 4. Action вызывает drag, selection, context menu или scene inventory action.
 
-Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) больше не являются целевой схемой.
+Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) удалены из проекта.
 
 ## Компоненты
 

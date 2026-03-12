@@ -14,9 +14,7 @@
 
 2. `InventoryInputHandler` переведен на router-only маршрут.
 
-3. Legacy-компоненты удалены из slot prefab:
-- `DragDropEventListener`
-- `SlotPointerSelectionTrigger`
+3. Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) удалены из проекта.
 
 4. Demo-сцены обновлены:
 - на `UniversalInventory` добавлены `InventoryInteractionCoordinator`

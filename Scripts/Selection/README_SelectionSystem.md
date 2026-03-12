@@ -11,7 +11,7 @@ Selection работает поверх interaction pipeline и не имеет 
 - `SelectionSlotAction` вызывает operation из bindings.
 - `SlotSelectionView` визуализирует результат на UI.
 
-Отдельный `SlotPointerSelectionTrigger` не является целевой схемой для новых prefab/configuration.
+Legacy-компонент `SlotPointerSelectionTrigger` удалён из проекта.
 
 ## Архитектура
 
