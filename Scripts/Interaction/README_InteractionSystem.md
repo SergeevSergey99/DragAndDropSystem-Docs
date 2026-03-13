@@ -1,6 +1,6 @@
 # Interaction Input System
 
-**Last Updated**: 2026-03-12
+**Last Updated**: 2026-03-13
 
 Документ описывает актуальный input pipeline для UI-инвентарей после миграции с legacy listeners.
 
@@ -9,9 +9,10 @@
 Свести мышь, navigation и `InputAction` к одному маршруту:
 
 1. `SlotInputAdapter` собирает raw UI-события.
-2. `InputEventRouter` маршрутизирует их в контекст нужного инвентаря.
-3. Bindings из `InventoryExtraInteractionBinder` или `InteractionBindingsProfile` выбирают `SlotInteractionAction`.
-4. Action вызывает drag, selection, context menu или scene inventory action.
+2. `InputModalityTracker` отслеживает текущий режим взаимодействия: `Mouse` или `Navigation`.
+3. `InputEventRouter` маршрутизирует события в контекст нужного инвентаря или в global input context.
+4. Bindings из `InventoryExtraInteractionBinder` или `InteractionBindingsProfile` выбирают `SlotInteractionAction`.
+5. Action вызывает drag, selection, context menu или scene inventory action.
 
 Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigger`) удалены из проекта.
 
@@ -37,7 +38,18 @@ Legacy-компоненты (`DragDropEventListener`, `SlotPointerSelectionTrigg
 - отслеживает focus/pressed state;
 - классифицирует pointer phases: `Down`, `Up`, `Click`, `ClickShort`, `ClickLong`;
 - изолирует drag-only обработку на pointer-up;
-- выполняет anti-dup для action intents.
+- выполняет anti-dup для action intents;
+- умеет исполнять `DefaultBindingsProfile.InputActionBindings` даже без active inventory, если action допускает global context.
+
+### InputModalityTracker
+
+Файл: `Scripts/Interaction/InputModalityTracker.cs`
+
+Роль:
+- хранит текущую modality: `Mouse` или `Navigation`;
+- переключает modality по фактическим pointer/focus/input-action сигналам;
+- держит минимальный device-level fallback для cold-start navigation;
+- публикует `OnNavigationModeChanged` для UI-компонентов вроде `InventoryDropArea`.
 
 ### InventoryExtraInteractionBinder
 
@@ -100,9 +112,15 @@ SO-профиль для переиспользуемых bindings.
 
 `InputAction -> InputEventRouter (bindings from InventoryExtraInteractionBinder or profile) -> SlotInteractionAction`
 
+Если `activeInventory == null`, роутер все равно может выполнить action из `DefaultBindingsProfile`, если сам action корректно работает в global context.
+
 ### Navigation focus
 
 `ISelect/IDeselect -> SlotInputAdapter -> InputEventRouter`
+
+### Modality
+
+`Pointer/Focus/InputAction signals -> InputModalityTracker -> Mouse/Navigation mode`
 
 ## Pointer phases
 
@@ -149,6 +167,10 @@ Pointer bindings поддерживают:
 `InputAction Bindings`:
 - `Cancel -> ShowContextMenuAction`
 
+Примечание:
+- если контекстное меню уже открыто, `ShowContextMenuAction` может закрыть его даже без active inventory/slot;
+- это работает через global context `DefaultBindingsProfile`.
+
 ### Scene-specific inventory actions
 
 `InputAction Bindings`:
@@ -161,6 +183,7 @@ Pointer bindings поддерживают:
 - `ResolveAutoTransferSlot()` сейчас ищет слот в порядке: `hover -> EventSystem.currentSelectedGameObject -> lastInteracted`.
 - `InputEventRouter` хранит текущий `FocusSource`, который используется и для context menu actions без pointer event.
 - При navigation drag visual якорится к текущему `EventSystem.currentSelectedGameObject`, а не к позиции мыши.
+- `InputModalityTracker` является источником истины для переключения `Mouse/Navigation`, а `InputEventRouter` больше не гадает modality самостоятельно.
 
 ## Navigation через InputAction
 
@@ -170,6 +193,7 @@ Pointer bindings поддерживают:
 - `Submit`, `Cancel`, `QuickMove`, `Sort` и другие кнопки keyboard/gamepad живут в одном списке;
 - глобальные bindings подписывает `InputEventRouter.DefaultBindingsProfile`;
 - локальные overrides задаются через `InventoryExtraInteractionBinder`.
+- global-only сценарии вроде "закрыть контекстное меню" лучше настраивать в `DefaultBindingsProfile`, а не в per-inventory binder.
 
 ## Prefabs и сцены
 
@@ -181,7 +205,11 @@ Slot prefabs:
 - `UniversalSlot`
 - `SlotInputAdapter`
 
-В сцене должен присутствовать `InputEventRouter` обычно через `Prefabs/DragCanvas.prefab`.
+В сцене должны присутствовать:
+- `InputEventRouter`
+- `InputModalityTracker`
+
+Обычно они живут через `Prefabs/DragCanvas.prefab` или на соседнем scene-level UI root.
 
 Для live drag visual в сцене также должен присутствовать `DragVisualPresenter` с настроенными:
 - `Canvas`
@@ -201,5 +229,6 @@ Live drag visual теперь обрабатывается отдельным `D
 1. На слоте есть `UniversalSlot` и `SlotInputAdapter`.
 2. На инвентаре есть `InventoryExtraInteractionBinder`, если нужны локальные bindings.
 3. В сцене есть `InputEventRouter`.
-4. Для drag completion настроен отдельный binding на `Up`.
-5. Для selection/context menu pointer binding использует `ClickShort`, а не `Any`.
+4. В сцене есть `InputModalityTracker`.
+5. Для drag completion настроен отдельный binding на `Up`.
+6. Для selection/context menu pointer binding использует `ClickShort`, а не `Any`.

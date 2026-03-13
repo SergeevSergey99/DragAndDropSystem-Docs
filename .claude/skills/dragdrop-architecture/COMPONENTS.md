@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-13
 
 ## DragAndDropManager
 
@@ -14,6 +14,18 @@ Responsibilities:
 - public swap events (`OnSwapAttempting`, `OnSwapCompleted`)
 
 Note: manager no longer owns all transfer branching logic directly.
+
+## InputModalityTracker / InputEventRouter
+
+Locations:
+- `Scripts/Interaction/InputModalityTracker.cs`
+- `Scripts/Interaction/InputEventRouter.cs`
+
+Responsibilities:
+- `InputModalityTracker`: scene-level `Mouse` vs `Navigation` state and modality-change events
+- `InputEventRouter`: binding resolution, inventory runtime-state, pointer phase classification, global/default `InputAction` routing
+
+Note: modality detection is intentionally separated from inventory action routing.
 
 ## InventoryDropProcessor
 

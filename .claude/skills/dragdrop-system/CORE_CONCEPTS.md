@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-13
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -74,3 +74,12 @@ Responsibilities:
 - request plan
 - execute plan with options (global rules, swap callbacks)
 - return `DropResult`
+
+## 8. Input Layers Are Separated
+
+Input responsibilities are split:
+- `InputModalityTracker` decides whether the user is currently in `Mouse` or `Navigation` mode
+- `InputEventRouter` resolves bindings and routes actions into inventory context or global context
+- `SlotInputAdapter` and `InventoryDropArea` only forward raw UI events
+
+This separation is intentional: modality detection should not be mixed into transfer or slot-domain logic.

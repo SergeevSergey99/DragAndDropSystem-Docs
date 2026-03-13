@@ -35,6 +35,10 @@ ShowContextMenuAction          — AssetOnlySlotInteractionAction, запуск�
 При выборе пункта View вызывает `entry.Execute(ctx)` напрямую.
 Это одинаково работает и для asset-based, и для scene-based entries.
 
+Если меню уже открыто, `ShowContextMenuAction` может быть вызвано и без active inventory/slot:
+- `CanExecute()` вернет `true`, если `ContextMenuManager.IsOpen`;
+- `Execute(null, null, ...)` в этом случае просто закроет меню через `ContextMenuManager.Hide()`.
+
 ---
 
 ## Быстрый старт
@@ -103,6 +107,9 @@ InputAction Bindings → [+]
   Trigger Phase:    Performed
   Action:           ShowContextMenuAction
 ```
+
+Рекомендация:
+- для сценария "закрыть уже открытое меню даже без active inventory" такой binding лучше держать в `DefaultInteractionBindingsProfile`, а не в per-inventory binder.
 
 ---
 
@@ -264,3 +271,4 @@ public class MyContextMenuView : ContextMenuViewBase
 - При начале перетаскивания (`DragAndDropManager.OnDragStarted`)
 - При клике вне меню (обработка в самом View)
 - В `ContextMenuViewBase.Hide()` после выбора пункта
+- Через `ShowContextMenuAction` по `InputAction` вроде `Cancel`, даже если active inventory/slot отсутствует

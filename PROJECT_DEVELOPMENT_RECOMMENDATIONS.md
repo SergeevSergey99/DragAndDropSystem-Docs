@@ -1,6 +1,6 @@
 # Project Development Recommendations
 
-**Last Updated**: 2026-03-06
+**Last Updated**: 2026-03-13
 
 Документ фиксирует рекомендуемые следующие шаги по развитию DragAndDropSystem после стабилизации текущей архитектуры.
 
@@ -9,7 +9,7 @@
 Проект уже близок к состоянию, в котором его можно показывать и готовить к публикации как первую зрелую версию.
 
 Сильные стороны текущего состояния:
-- единый input pipeline через `SlotInputAdapter` + `InputEventRouter`;
+- единый input pipeline через `SlotInputAdapter` + `InputModalityTracker` + `InputEventRouter`;
 - отделение selection от input через `SelectionOperationBase` и `SelectionSlotAction`;
 - policy/planner/executor модель для transfer pipeline;
 - поддержка context menu через asset-based и scene-based entries;
@@ -57,6 +57,7 @@
 - selection operations;
 - context menu resolution (`asset + scene entries`);
 - `ResolveAutoTransferSlot()` и focus-sensitive actions.
+- global input actions без active inventory (например, закрытие context menu).
 
 Причина проста: без этого следующая большая фича, особенно shaped items, будет ломать текущую систему слишком дорого.
 

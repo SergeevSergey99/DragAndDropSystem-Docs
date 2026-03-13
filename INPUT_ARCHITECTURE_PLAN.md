@@ -1,6 +1,6 @@
 # Input Architecture Plan (Completed)
 
-**Last Updated**: 2026-03-02
+**Last Updated**: 2026-03-13
 **Status**: Implemented
 
 Этот файл больше не является "планом работ". Миграция завершена, ниже зафиксировано итоговое состояние.
@@ -9,6 +9,7 @@
 
 1. Введен единый interaction pipeline:
 - `SlotInputAdapter` (per-slot)
+- `InputModalityTracker` (scene-level modality state)
 - `InputEventRouter` (singleton)
 - `InventoryInteractionCoordinator` (per-inventory)
 
@@ -36,8 +37,10 @@
 ## Текущее целевое состояние
 
 - Ввод/интеракции идут только через interaction pipeline.
+- Переключение `Mouse/Navigation` вынесено в `InputModalityTracker`, а не размазано по `InputEventRouter`.
 - Slot prefab содержит `SlotInputAdapter` и не содержит legacy listeners.
 - `InventoryDropArea` не блокирует слоты в idle и работает как цель drop во время drag.
+- `DefaultInteractionBindingsProfile` может обслуживать global input actions без active inventory, если action поддерживает global context.
 
 ## Примечание
 

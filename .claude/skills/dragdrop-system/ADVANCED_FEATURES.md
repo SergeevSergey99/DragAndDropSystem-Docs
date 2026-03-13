@@ -1,11 +1,22 @@
 # Advanced Features
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-13
 
 ## Quick Click Auto-Transfer
 
-- Implemented through `InputEventRouter`, pointer phases, and bound actions.
+- Implemented through `SlotInputAdapter` -> `InputEventRouter`, pointer phases, and bound actions.
 - Distinguishes click vs drag by time and distance thresholds.
+
+## Input Modality Tracking
+
+- `InputModalityTracker` is the source of truth for `Mouse` vs `Navigation` mode.
+- `InputEventRouter` no longer guesses modality on its own.
+- Device-level keyboard/gamepad polling is only a minimal fallback for cold-start navigation.
+
+## Global Input Actions
+
+- `DefaultBindingsProfile` can execute some `InputAction` bindings without active inventory/slot.
+- This is intended for global UI behaviors such as closing an already open context menu.
 
 ## Atomic Batch Execution
 
