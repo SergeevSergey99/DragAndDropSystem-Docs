@@ -416,17 +416,38 @@ namespace DragAndDropSystem.Interaction
             if (!ReferenceEquals(inventory, _activeInventory))
                 return;
 
-            var bindings = ResolveInputActionBindings(inventory);
-
-            var action = context.action;
-            if (action == null)
-                return;
-
             var state = GetOrCreateState(inventory);
             var adapter = state.FocusedAdapter
                           ?? ResolveAdapterFromSlot(state.FocusedSlot)
                           ?? state.HoveredAdapter
                           ?? ResolveAdapterFromSlot(state.HoveredSlot);
+
+            ExecuteInputActionBindings(ResolveInputActionBindings(inventory), inventory, adapter, context);
+        }
+
+        private void HandleDefaultProfileInputAction(InputAction.CallbackContext context)
+        {
+            if (_activeInventory != null)
+            {
+                HandleExtraInputAction(_activeInventory, context);
+                return;
+            }
+
+            if (DefaultBindingsProfile == null)
+                return;
+
+            ExecuteInputActionBindings(DefaultBindingsProfile.InputActionBindingsRuntime, null, null, context);
+        }
+
+        private void ExecuteInputActionBindings(
+            IReadOnlyList<InputActionBinding> bindings,
+            UniversalInventory inventory,
+            SlotInputAdapter adapter,
+            InputAction.CallbackContext context)
+        {
+            var action = context.action;
+            if (action == null || bindings == null)
+                return;
 
             for (int i = 0; i < bindings.Count; i++)
             {
@@ -435,20 +456,10 @@ namespace DragAndDropSystem.Interaction
                     continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
-                {
                     _ = binding.Action.Execute(inventory, adapter, null);
-                }
 
                 return;
             }
-        }
-
-        private void HandleDefaultProfileInputAction(InputAction.CallbackContext context)
-        {
-            if (_activeInventory == null)
-                return;
-
-            HandleExtraInputAction(_activeInventory, context);
         }
 
         private void RebindDefaultProfileInputActions()

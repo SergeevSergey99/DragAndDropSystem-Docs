@@ -19,8 +19,16 @@ namespace DragAndDropSystem.ContextMenu
         public override string DisplayName => "Show Context Menu";
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => ContextMenuManager.IsInstanceExist && 
-               (ContextMenuManager.Instance.DefaultPreset != null || inventory != null && inventory.GetComponent<ContextMenuBinder>() != null);
+        {
+            if (!ContextMenuManager.IsInstanceExist)
+                return false;
+
+            if (ContextMenuManager.Instance.IsOpen)
+                return true;
+
+            return ContextMenuManager.Instance.DefaultPreset != null
+                   || inventory != null && inventory.GetComponent<ContextMenuBinder>() != null;
+        }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
