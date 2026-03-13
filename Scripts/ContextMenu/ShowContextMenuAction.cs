@@ -19,15 +19,16 @@ namespace DragAndDropSystem.ContextMenu
         public override string DisplayName => "Show Context Menu";
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => inventory != null
-            && ContextMenuManager.IsInstanceExist
-            && (ContextMenuManager.Instance.DefaultPreset != null 
-                || inventory.GetComponent<ContextMenuBinder>() != null);
+            => ContextMenuManager.IsInstanceExist && 
+               (ContextMenuManager.Instance.DefaultPreset != null || inventory != null && inventory.GetComponent<ContextMenuBinder>() != null);
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (inventory == null)
+            {
+                ContextMenuManager.Instance.Hide();
                 return ActionResult.Failed("Inventory is null");
+            }
 
             var binder = inventory.GetComponent<ContextMenuBinder>();
             
@@ -40,8 +41,11 @@ namespace DragAndDropSystem.ContextMenu
                 {
                     entries.AddRange(ContextMenuManager.Instance.DefaultPreset.Entries);
                 }
-                else 
+                else
+                {
+                    ContextMenuManager.Instance.Hide();
                     return ActionResult.Failed("No ContextMenuBinder on inventory");
+                }
             }
             else
             {
@@ -50,7 +54,10 @@ namespace DragAndDropSystem.ContextMenu
             }
 
             if (entries.Count == 0)
+            {
+                ContextMenuManager.Instance.Hide();
                 return ActionResult.Failed("No context menu entries configured");
+            }
 
             var ctx = new ContextMenuContext
             {
