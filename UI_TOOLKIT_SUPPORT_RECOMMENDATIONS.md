@@ -1,6 +1,6 @@
 # UI Toolkit Support Recommendations
 
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-14
 
 Документ фиксирует практические рекомендации по добавлению поддержки Unity UI Toolkit в `DragAndDropSystem`.
 
@@ -32,30 +32,34 @@
 - `InventoryDropProcessor` уже выступает границей между UI target layer и transfer core;
 - `TransferPlanner` / `TransferPlanExecutor` / `InventoryTransferService` в целом не зависят от UI-фреймворка;
 - правила (`Global`, `Inventory`, `Slot`) уже отделены от конкретного UI;
+- `SelectionManager` и `SelectionContext` — чисто data-driven, работают с `HashSet<ISlot>` и `Dictionary<IInventory, List<ISlot>>` без каких-либо uGUI-зависимостей. Визуальный feedback (`SlotSelectionView`) привязан к uGUI, но state management полностью переносим;
 - `InputEventRouter` концептуально отделяет raw input от действий;
 - `.claude`-документация прямо фиксирует намерение держать input отдельно от transfer/domain logic.
 
-Это значит, что **переписывать ядро drag/drop не нужно**.
+Это значит, что **переписывать ядро drag/drop и selection state не нужно** — только визуальные компоненты.
 
 ## Что сейчас мешает UI Toolkit
 
-### 1. `ISlot` является `MonoBehaviour`
+### 1. `ISlot` является `abstract class : MonoBehaviour`
 
 Файл: `Scripts/Slots/ISlot.cs`
 
+Важно: несмотря на имя, `ISlot` — это **не интерфейс, а abstract class**, наследующий `MonoBehaviour`.
+Это значит, что UITK `VisualElement` не может реализовать `ISlot` даже теоретически — наследование от двух классов невозможно в C#.
+
 Сейчас слот одновременно является:
 - доменной сущностью;
-- view-компонентом;
-- сценовым объектом;
+- view-компонентом (`UniversalSlot` использует `Image`, `CanvasGroup`);
+- сценовым объектом (expose `Transform` через `virtual Transform Transform => transform`);
 - объектом, на который завязаны selection, drag source и drop target.
 
 Для uGUI это удобно.
-Для UI Toolkit это ограничение, потому что `VisualElement` не может стать наследником `MonoBehaviour`.
+Для UI Toolkit это **фундаментальный блокер**, потому что `VisualElement` не может стать наследником `MonoBehaviour`.
 
 Следствие:
 - текущий слот нельзя напрямую переиспользовать как UITK element;
-- либо нужен отдельный bridge-слой;
-- либо нужно разделить `slot state` и `slot view`.
+- **первым шагом** должно быть превращение `ISlot` из abstract class в настоящий `interface`, с выносом MonoBehaviour-реализации в отдельный `SlotBase : MonoBehaviour, ISlot`;
+- без этого шага ни bridge-слой, ни разделение state/view не будут чистыми.
 
 ### 2. `UniversalInventory` ожидает scene/prefab slots
 
@@ -83,9 +87,10 @@
 - `SlotInputAdapter` наследуется от `Selectable`;
 - pointer flow использует `PointerEventData`;
 - focus/navigation опираются на `EventSystem.currentSelectedGameObject`;
-- actions принимают `SlotInputAdapter` и `PointerEventData`, то есть контракты уже завязаны на uGUI.
+- actions принимают `SlotInputAdapter` и `PointerEventData`, то есть контракты уже завязаны на uGUI;
+- **критично**: `InputEventRouter.FindBestFocusTarget()` итерирует `Selectable.allSelectablesArray` — глобальный реестр uGUI. Для UITK потребуется полностью альтернативная система focus tracking, а не просто замена типов в сигнатурах.
 
-Это главный участок, который придется рефакторить, если нужна качественная cross-UI поддержка.
+Это главный и **самый сложный** участок рефакторинга. Простая замена `PointerEventData` на нейтральную структуру недостаточна — нужна замена механизма обнаружения и переключения focus targets.
 
 ### 4. Presentation layer тоже uGUI-specific
 
@@ -165,8 +170,8 @@
 
 ### Оценка
 
-- Базовый drag/drop: **5-10 рабочих дней**
-- C tooltip/context menu/navigation parity: **2-4 недели**
+- Базовый drag/drop: **1-2 недели**
+- С tooltip/context menu/navigation parity: **3-5 недель**
 
 ---
 
@@ -235,12 +240,13 @@
 
 ### Оценка
 
-- Архитектурный рефакторинг contracts: **1-2 недели**
+- Этап 0 (ISlot → interface): **1 неделя** (высокий риск регрессий, много зависимого кода)
+- Архитектурный рефакторинг contracts + focus system: **2-3 недели** (замена `Selectable.allSelectablesArray` и построение альтернативного focus tracking — основная сложность)
 - Базовый UITK backend: **1-2 недели**
-- Tooltip/context menu/navigation parity: **1-2 недели**
+- Tooltip/context menu/navigation parity: **2-4 недели** (navigation parity — самый сложный UX-этап)
 
 Итого:
-- **3-6 недель** на качественную поддержку.
+- **6-10 недель** на качественную поддержку.
 
 ---
 
@@ -289,7 +295,7 @@
 
 ### Оценка
 
-- **4-8+ недель**, в зависимости от глубины переписывания и обратной совместимости.
+- **6-12+ недель**, в зависимости от глубины переписывания и обратной совместимости.
 
 ---
 
@@ -344,6 +350,26 @@ UI Toolkit support не должен приводить к переписыва�
 ## Конкретный план реализации
 
 Ниже минимальный рекомендуемый поэтапный план.
+
+### Этап 0. Превратить `ISlot` из abstract class в interface
+
+Цель:
+- устранить фундаментальный блокер: `VisualElement` не может наследовать `MonoBehaviour`.
+
+Сделать:
+- извлечь из `abstract class ISlot : MonoBehaviour` чистый `interface ISlot`;
+- создать `SlotBase : MonoBehaviour, ISlot` с текущей реализацией;
+- перевести `UniversalSlot` на наследование от `SlotBase`;
+- обновить все места, которые используют `ISlot` как `MonoBehaviour` (кастинг, `GetComponent<ISlot>()`, `GetComponentsInChildren<ISlot>()`).
+
+Риски:
+- **самый рискованный этап** с точки зрения регрессий — `ISlot` используется повсеместно;
+- `GetComponentsInChildren<ISlot>()` в `UniversalInventory` продолжит работать, т.к. Unity поддерживает поиск по интерфейсам;
+- нужна тщательная проверка всех мест, где `ISlot` кастится к `MonoBehaviour`, `Component` или `Transform`.
+
+Результат:
+- UITK-слоты смогут реализовать `ISlot` без наследования от `MonoBehaviour`;
+- существующий uGUI-код продолжит работать через `SlotBase`.
 
 ### Этап 1. Выделить framework-neutral interaction context
 
@@ -439,6 +465,17 @@ UI Toolkit support не должен приводить к переписыва�
 - `InteractionPhase Phase`
 - `bool IsPrimary`
 
+### `ISlotViewHandle`
+
+Минимальный контракт для связи interaction layer с конкретным UI-элементом без привязки к фреймворку:
+- `Vector2 ScreenPosition { get; }` — позиция элемента на экране
+- `bool IsVisible { get; }` — виден ли элемент (для виртуализации списков)
+- `void SetVisualState(SlotVisualState state)` — hover/pressed/focused/selected
+
+Реализации:
+- `UguiSlotViewHandle` — обёртка над `RectTransform`
+- `UitkSlotViewHandle` — обёртка над `VisualElement`
+
 ### `InventoryInteractionContext`
 
 Поля:
@@ -446,14 +483,17 @@ UI Toolkit support не должен приводить к переписыва�
 - `ISlot Slot`
 - `FocusSource FocusSource`
 - `InventoryPointerEvent Pointer`
-- `object ViewHandle`
+- `ISlotViewHandle ViewHandle`
 
 ### `IInventoryViewBridge`
 
 Ответственность:
 - сообщать focused/hovered slot;
 - предоставлять anchor position;
-- отправлять raw UI events в router.
+- отправлять raw UI events в router;
+- управлять focus tracking (замена `Selectable.allSelectablesArray` для UITK).
+
+Lifecycle: создаётся и владеется inventory view (uGUI или UITK). Регистрируется в `InputEventRouter` при `OnEnable`, снимается при `OnDisable`.
 
 ### `IInventoryOverlayPresenter`
 
@@ -461,6 +501,8 @@ UI Toolkit support не должен приводить к переписыва�
 - drag visual;
 - tooltip;
 - context menu.
+
+Lifecycle: создаётся на уровне сцены (один на canvas / UIDocument). Инвентари используют его через DI или singleton-доступ.
 
 Можно иметь две реализации:
 - `UguiInventoryOverlayPresenter`
@@ -501,6 +543,19 @@ Pointer support сделать сравнительно просто.
 Если UI Toolkit внедрить хаком, shaped items потом станут дороже.
 
 Если делать аккуратно через abstraction layer, наоборот получится хорошая база.
+
+### 5. Гибридные сцены uGUI + UITK
+
+Unity позволяет смешивать `Canvas` и `UIDocument` в одной сцене. Пользователи могут захотеть перетаскивать предметы между uGUI-инвентарём и UITK-инвентарём.
+
+**Рекомендация: явно не поддерживать на первом этапе.**
+
+Cross-framework drag потребует:
+- единого coordinate space для drag visual (overlay поверх обоих систем);
+- маршрутизации drop events между двумя разными event pipeline;
+- сложного определения hover target при пересечении Canvas и UIDocument.
+
+Это edge case, который кратно увеличит сложность. Стоит зафиксировать в документации: "одна сцена — один UI framework для inventory system".
 
 ## Связь с roadmap проекта
 
