@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: DefaultInteractionBindingsProfile
   m_EditorClassIdentifier: 
   _pointerBindings:
-  - _label: MMB Drag
-    _button: 2
+  - _label: LMB Drag
+    _button: 0
     _modifier: 0
     _triggerPhase: 1
     _action:
       rid: 6676588890579796076
-  - _label: MMB Drag
-    _button: 2
+  - _label: LMB Drop
+    _button: 0
     _modifier: 0
     _triggerPhase: 2
     _action:
@@ -31,55 +31,31 @@ MonoBehaviour:
     _triggerPhase: 4
     _action:
       rid: 6676588890579796071
-  - _label: LMB Shift Range
-    _button: 0
-    _modifier: 2
-    _triggerPhase: 4
-    _action:
-      rid: 1002
-  - _label: RMB Select
+  - _label: RMB Context
     _button: 1
     _modifier: 0
-    _triggerPhase: 4
+    _triggerPhase: 3
     _action:
-      rid: 1003
+      rid: 6676588977941643265
   _inputActionBindings:
   - _label: Submit
-    _actionReference: {fileID: 392368643174621059, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    _actionReference: {fileID: 0}
     _triggerPhase: 1
     _action:
       rid: 6676588913277272146
   - _label: Cancel
-    _actionReference: {fileID: 7727032971491509709, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    _actionReference: {fileID: 0}
     _triggerPhase: 1
     _action:
       rid: 6676588913277272160
-  - _label: 
-    _actionReference: {fileID: 2459504025777702228, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  - _label: Select
+    _actionReference: {fileID: 0}
     _triggerPhase: 1
     _action:
-      rid: 6676588936962506824
+      rid: 6676588962069872740
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 1002
-      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        _operation:
-          rid: 2001
-    - rid: 1003
-      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
-      data:
-        _operation:
-          rid: 2002
-    - rid: 2001
-      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
-    - rid: 2002
-      type: {class: RangeSelectOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
     - rid: 6676588777423765576
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data: 
@@ -87,10 +63,7 @@ MonoBehaviour:
       type: {class: SelectionSlotAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data:
         _operation:
-          rid: 6676588890579796072
-    - rid: 6676588890579796072
-      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
+          rid: 6676588977941643341
     - rid: 6676588890579796076
       type: {class: StartMultiDragAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data:
@@ -103,6 +76,17 @@ MonoBehaviour:
     - rid: 6676588913277272160
       type: {class: CancelDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data: 
-    - rid: 6676588936962506824
+    - rid: 6676588962069872740
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data:
+        _operation:
+          rid: 6676588977941643264
+    - rid: 6676588977941643264
+      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 6676588977941643265
       type: {class: ShowContextMenuAction, ns: DragAndDropSystem.ContextMenu, asm: Assembly-CSharp-firstpass}
+      data: 
+    - rid: 6676588977941643341
+      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
       data: 

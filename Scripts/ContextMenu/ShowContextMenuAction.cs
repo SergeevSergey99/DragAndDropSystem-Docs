@@ -26,8 +26,9 @@ namespace DragAndDropSystem.ContextMenu
             if (ContextMenuManager.Instance.IsOpen)
                 return true;
 
-            return ContextMenuManager.Instance.DefaultPreset != null
-                   || inventory != null && inventory.GetComponent<ContextMenuBinder>() != null;
+            return inventory != null
+                   && (ContextMenuManager.Instance.DefaultPreset != null
+                       || inventory.GetComponent<ContextMenuBinder>() != null);
         }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)

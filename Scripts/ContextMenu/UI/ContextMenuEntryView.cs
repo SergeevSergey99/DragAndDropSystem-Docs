@@ -25,10 +25,14 @@ namespace DragAndDropSystem.ContextMenu.UI
         void Click(IContextMenuEntry entry, ContextMenuContext ctx)
         {
             entry.Execute(ctx);
-            
+
+            if (ContextMenuManager.IsInstanceExist)
+                ContextMenuManager.Instance.Hide();
+
             if (InputModalityTracker.CurrentModality == InputModalityTracker.InputModality.Mouse)
             {
-                EventSystem.current.SetSelectedGameObject(null);
+                if (EventSystem.current != null)
+                    EventSystem.current.SetSelectedGameObject(null);
             }
         }
 
