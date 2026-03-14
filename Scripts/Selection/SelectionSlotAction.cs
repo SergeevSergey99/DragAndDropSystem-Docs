@@ -1,5 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Inventories;
 using UnityEngine.EventSystems;
@@ -9,7 +10,7 @@ namespace DragAndDropSystem.Selection
     [Serializable]
     public sealed class SelectionSlotAction : AssetSafeSlotInteractionAction
     {
-        [UnityEngine.SerializeReference] private SelectionOperationBase _operation;
+        [UnityEngine.SerializeReference, ManagedReferencePicker] private SelectionOperationBase _operation;
 
         public SelectionSlotAction() {}
 

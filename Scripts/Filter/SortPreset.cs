@@ -1,7 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Slots;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Filter

@@ -1,5 +1,5 @@
 using DragAndDropSystem.Examples.Trading.Data;
-using Sirenix.OdinInspector;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Trading

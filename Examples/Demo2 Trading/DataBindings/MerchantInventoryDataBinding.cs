@@ -1,10 +1,10 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.Trading.Data;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Tools;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
-using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 

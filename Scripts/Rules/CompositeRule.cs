@@ -1,5 +1,5 @@
 using DragAndDropSystem.Core;
-using Sirenix.OdinInspector;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Rules

@@ -1,4 +1,5 @@
 using System;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,7 +17,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField, Tooltip("Стадия действия, на которой выполняется действие")]
         private TriggerPhaseEnum _triggerPhase = TriggerPhaseEnum.Performed;
 
-        [SerializeReference] private AssetSafeSlotInteractionAction _action;
+        [SerializeReference, ManagedReferencePicker] private AssetSafeSlotInteractionAction _action;
 
         public string Label => string.IsNullOrEmpty(_label)
             ? (_action != null ? _action.DisplayName : "InputAction Binding")

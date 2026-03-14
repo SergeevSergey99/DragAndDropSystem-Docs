@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Filter
@@ -232,7 +232,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Применить текущий фильтр и сортировку
         /// </summary>
-        [Button("Apply Filter & Sort")]
+        [UnityEngine.ContextMenu("Apply Filter & Sort")]
         public void ApplyFilterAndSort()
         {
             if (_inventory == null)
@@ -468,19 +468,19 @@ namespace DragAndDropSystem.Filter
         }
 
 #if UNITY_EDITOR
-        [Button("Test: Filter Weapons"), FoldoutGroup("Debug Actions")]
+        [UnityEngine.ContextMenu("Test Filter Weapons")]
         private void TestFilterWeapons()
         {
             SetCategoryFilter("Weapon");
         }
 
-        [Button("Test: Sort by Name"), FoldoutGroup("Debug Actions")]
+        [UnityEngine.ContextMenu("Test Sort By Name")]
         private void TestSortByName()
         {
             SetSortMode(SortMode.ByName);
         }
 
-        [Button("Test: Clear All"), FoldoutGroup("Debug Actions")]
+        [UnityEngine.ContextMenu("Test Clear All")]
         private void TestClearAll()
         {
             ClearAll();

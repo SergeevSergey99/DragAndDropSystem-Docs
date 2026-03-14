@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Examples.Trading;
 using UnityEngine;
 
@@ -21,16 +22,16 @@ namespace Plugins.DragAndDropSystem.Examples.Trading.Data
         public IReadOnlyList<TradableItemModel> Inventory => _inventory.AsReadOnly();
 
         [Header("Equipment")]
-        [SerializeReference]
+        [SerializeReference, ManagedReferencePicker]
         private TradableItemModel _equippedWeapon;
 
-        [SerializeReference]
+        [SerializeReference, ManagedReferencePicker]
         private TradableItemModel _equippedArmor;
 
-        [SerializeReference]
+        [SerializeReference, ManagedReferencePicker]
         private TradableItemModel _equippedArtifact1;
 
-        [SerializeReference]
+        [SerializeReference, ManagedReferencePicker]
         private TradableItemModel _equippedArtifact2;
 
         public TradableItemModel EquippedWeapon => _equippedWeapon;

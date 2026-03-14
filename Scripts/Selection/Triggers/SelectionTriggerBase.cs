@@ -1,4 +1,5 @@
 using DragAndDropSystem.Slots;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Selection
@@ -10,7 +11,7 @@ namespace DragAndDropSystem.Selection
     /// </summary>
     public abstract class SelectionTriggerBase : MonoBehaviour
     {
-        [SerializeField, SerializeReference]
+        [SerializeField, SerializeReference, ManagedReferencePicker]
         protected SelectionOperationBase _operation;
 
         [SerializeField] protected bool _logWarnings;

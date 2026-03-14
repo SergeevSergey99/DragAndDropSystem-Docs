@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Slots;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.UI

@@ -1,5 +1,4 @@
 using DragAndDropSystem.Inventories;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Demo3Loot
@@ -174,7 +173,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Закрыть UI лута
         /// </summary>
-        [Button("Close Loot UI"), DisableInEditorMode]
+        [UnityEngine.ContextMenu("Close Loot UI")]
         public void CloseLootUI()
         {
             if (!_isLootUIOpen)

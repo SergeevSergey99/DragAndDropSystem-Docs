@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CodeUtils;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Selection;
@@ -27,7 +28,7 @@ namespace DragAndDropSystem
         private float _quickClickDistanceThreshold = 5f;
 
         [Header("Auto-Transfer Animation")]
-        [SerializeReference, Tooltip("Стратегия анимации автопереноса. Null = мгновенный перенос")]
+        [SerializeReference, ManagedReferencePicker, Tooltip("Стратегия анимации автопереноса. Null = мгновенный перенос")]
         private AutoTransferAnimationStrategy _autoTransferAnimation;
 
         // Список активных анимационных визуалов для поддержки множественных анимаций

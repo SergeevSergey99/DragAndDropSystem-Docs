@@ -1,4 +1,4 @@
-﻿using Sirenix.OdinInspector;
+﻿using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples

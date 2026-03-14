@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using CodeUtils;
 using DragAndDropSystem.Examples.Trading.Data;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Tools;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Trading

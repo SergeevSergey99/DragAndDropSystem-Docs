@@ -2,8 +2,8 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples.DataBindings

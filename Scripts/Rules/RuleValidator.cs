@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
-using Sirenix.OdinInspector;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -26,7 +26,7 @@ namespace DragAndDropSystem.Rules
         [Tooltip("Наборы правил, задаваемые через ScriptableObject пресеты")]
         private List<RulePreset<TRule>> _presets = new List<RulePreset<TRule>>();
 
-        [SerializeReference, Title("Inline Rules", TitleAlignment = TitleAlignments.Centered)]
+        [SerializeReference, ManagedReferencePicker, Title("Inline Rules", TitleAlignment = TitleAlignments.Centered)]
         [ListDrawerSettings(
             DraggableItems = true,
             ShowPaging = false,

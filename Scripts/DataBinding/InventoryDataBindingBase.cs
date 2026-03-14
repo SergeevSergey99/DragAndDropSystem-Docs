@@ -1,9 +1,9 @@
 using System;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Tools;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.DataBinding

@@ -1,8 +1,8 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Tools;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;

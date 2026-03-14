@@ -1,6 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
-using Sirenix.OdinInspector;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Filter
@@ -17,18 +17,18 @@ namespace DragAndDropSystem.Filter
         private FilterType _filterType = FilterType.None;
 
         [Header("Category Filter")]
-        [SerializeField, ShowIf(nameof(_filterType), FilterType.Category)]
+        [SerializeField, ShowIf(nameof(_filterType), nameof(FilterType.Category))]
         private string _category;
 
         [Header("Rarity Filter")]
-        [SerializeField, ShowIf(nameof(_filterType), FilterType.Rarity)]
+        [SerializeField, ShowIf(nameof(_filterType), nameof(FilterType.Rarity))]
         private int _minRarity = 0;
 
-        [SerializeField, ShowIf(nameof(_filterType), FilterType.Rarity)]
+        [SerializeField, ShowIf(nameof(_filterType), nameof(FilterType.Rarity))]
         private int _maxRarity = 100;
 
         [Header("Name Filter")]
-        [SerializeField, ShowIf(nameof(_filterType), FilterType.Name)]
+        [SerializeField, ShowIf(nameof(_filterType), nameof(FilterType.Name))]
         private string _searchText;
 
         public FilterType Type => _filterType;

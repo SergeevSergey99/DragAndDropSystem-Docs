@@ -1,4 +1,5 @@
 ﻿using System;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -12,7 +13,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField] private PointerEventData.InputButton _button = PointerEventData.InputButton.Left;
         [SerializeField] private ModifierKey _modifier = ModifierKey.None;
         [SerializeField] private PointerTriggerPhase _triggerPhase = PointerTriggerPhase.Any;
-        [SerializeReference] private SlotInteractionAction _action;
+        [SerializeReference, ManagedReferencePicker] private SlotInteractionAction _action;
 
         public PointerBinding()
         {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
@@ -49,12 +49,12 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Strategy")]
         [SerializeField, Tooltip("Автоматически объединять предметы при дропе в пустой слот")]
-        [ShowIf(nameof(_itemBehavior), ItemBehaviorType.Stackable)]
+        [ShowIf(nameof(_itemBehavior), nameof(ItemBehaviorType.Stackable))]
         private bool _autoMergeOnDrop = true;
 
         [FoldoutGroup("Strategy")]
         [SerializeField, Tooltip("Объединять предметы при дропе на такой же предмет")]
-        [ShowIf(nameof(_itemBehavior), ItemBehaviorType.SeparableStacks)]
+        [ShowIf(nameof(_itemBehavior), nameof(ItemBehaviorType.SeparableStacks))]
         private bool _allowMergeOnDrop = true;
 
         [FoldoutGroup("Strategy")]
@@ -63,12 +63,12 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Strategy")]
         [SerializeField, Range(1, 200), Tooltip("Максимальное количество слотов (для Dynamic)")]
-        [ShowIf(nameof(_slotManagement), SlotManagementType.Dynamic)]
+        [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxDynamicSlots = 100;
 
         [FoldoutGroup("Strategy")]
         [SerializeField, Range(0, 20), Tooltip("Минимальное количество свободных слотов (для Dynamic). 0 = создавать только при TryAddItem, не при переносе в слоты")]
-        [ShowIf(nameof(_slotManagement), SlotManagementType.Dynamic)]
+        [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxFreeSlots = 1;
 
         private bool ShowDragAmountSettings => _itemBehavior == ItemBehaviorType.Stackable || _itemBehavior == ItemBehaviorType.SeparableStacks;
@@ -204,7 +204,7 @@ namespace DragAndDropSystem.Inventories
             _lastInteractedSlot = null;
         }
 
-        [FoldoutGroup("Slot Setup", expanded: true), Button]
+        [UnityEngine.ContextMenu("Cache Slots")]
         private void CacheSlots()
         {
             if (_slotContainer == null)

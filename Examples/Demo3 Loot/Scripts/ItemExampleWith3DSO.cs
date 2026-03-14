@@ -1,5 +1,4 @@
 using DragAndDropSystem.Examples.Demo3Loot;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples
