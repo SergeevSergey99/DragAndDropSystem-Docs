@@ -204,7 +204,7 @@ namespace DragAndDropSystem.Inventories
             _lastInteractedSlot = null;
         }
 
-        [UnityEngine.ContextMenu("Cache Slots")]
+        [FoldoutGroup("Slot Setup", expanded: true), Button("Cache Slots")]
         private void CacheSlots()
         {
             if (_slotContainer == null)

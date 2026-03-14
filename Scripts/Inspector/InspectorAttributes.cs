@@ -18,7 +18,7 @@ namespace DragAndDropSystem.Inspector
         Right
     }
 
-    [AttributeUsage(AttributeTargets.Field, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, Inherited = true)]
     public sealed class FoldoutGroupAttribute : PropertyAttribute
     {
         public string GroupName { get; }

@@ -232,7 +232,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Применить текущий фильтр и сортировку
         /// </summary>
-        [UnityEngine.ContextMenu("Apply Filter & Sort")]
+        [Button("Apply Filter & Sort")]
         public void ApplyFilterAndSort()
         {
             if (_inventory == null)
@@ -468,19 +468,19 @@ namespace DragAndDropSystem.Filter
         }
 
 #if UNITY_EDITOR
-        [UnityEngine.ContextMenu("Test Filter Weapons")]
+        [Button("Test: Filter Weapons"), FoldoutGroup("Debug Actions")]
         private void TestFilterWeapons()
         {
             SetCategoryFilter("Weapon");
         }
 
-        [UnityEngine.ContextMenu("Test Sort By Name")]
+        [Button("Test: Sort by Name"), FoldoutGroup("Debug Actions")]
         private void TestSortByName()
         {
             SetSortMode(SortMode.ByName);
         }
 
-        [UnityEngine.ContextMenu("Test Clear All")]
+        [Button("Test: Clear All"), FoldoutGroup("Debug Actions")]
         private void TestClearAll()
         {
             ClearAll();

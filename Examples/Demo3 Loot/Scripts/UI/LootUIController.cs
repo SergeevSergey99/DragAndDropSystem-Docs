@@ -1,4 +1,5 @@
 using DragAndDropSystem.Inventories;
+using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Demo3Loot
@@ -173,7 +174,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// <summary>
         /// Закрыть UI лута
         /// </summary>
-        [UnityEngine.ContextMenu("Close Loot UI")]
+        [Button("Close Loot UI"), DisableInEditorMode]
         public void CloseLootUI()
         {
             if (!_isLootUIOpen)

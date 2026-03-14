@@ -153,6 +153,32 @@ namespace DragAndDropSystem.Inspector.Editor
             return members;
         }
 
+        public static IEnumerable<MethodInfo> GetButtonMethods(Type type)
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+            var methods = new List<MethodInfo>();
+
+            Type currentType = type;
+            while (currentType != null && currentType != typeof(UnityEngine.Object))
+            {
+                MethodInfo[] declaredMethods = currentType.GetMethods(flags);
+                for (int i = 0; i < declaredMethods.Length; i++)
+                {
+                    MethodInfo method = declaredMethods[i];
+                    if (method.IsSpecialName || method.GetParameters().Length != 0)
+                        continue;
+
+                    if (Attribute.IsDefined(method, typeof(ButtonAttribute), true))
+                        methods.Add(method);
+                }
+
+                currentType = currentType.BaseType;
+            }
+
+            methods.Sort((a, b) => a.MetadataToken.CompareTo(b.MetadataToken));
+            return methods;
+        }
+
         public static object GetMemberValue(object source, MemberInfo member)
         {
             var field = member as FieldInfo;
@@ -293,14 +319,17 @@ namespace DragAndDropSystem.Inspector.Editor
     internal abstract class GroupedInspectorEditorBase : UnityEditor.Editor
     {
         private const string ScriptPropertyName = "m_Script";
+        private readonly HashSet<string> _renderedGroupNames = new HashSet<string>();
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            _renderedGroupNames.Clear();
 
             DrawScriptReference();
             DrawSerializedProperties();
             DrawShowInInspectorMembers();
+            DrawButtonMethods();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -321,9 +350,9 @@ namespace DragAndDropSystem.Inspector.Editor
         {
             SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
-            string currentGroupName = null;
-            FoldoutGroupAttribute currentGroupAttr = null;
-            List<SerializedProperty> currentGroupProps = null;
+            var orderedEntries = new List<object>();
+            var groupedProperties = new Dictionary<string, List<SerializedProperty>>();
+            var groupAttributes = new Dictionary<string, FoldoutGroupAttribute>();
 
             while (iterator.NextVisible(enterChildren))
             {
@@ -339,49 +368,43 @@ namespace DragAndDropSystem.Inspector.Editor
                 FoldoutGroupAttribute group = InspectorReflectionUtility.GetAttribute<FoldoutGroupAttribute>(property);
                 string groupName = group?.GroupName;
 
-                if (groupName != currentGroupName)
+                if (group == null)
                 {
-                    FlushPropertyGroup(currentGroupAttr, currentGroupProps);
-
-                    if (group != null)
-                    {
-                        currentGroupName = groupName;
-                        currentGroupAttr = group;
-                        currentGroupProps = new List<SerializedProperty> { property };
-                    }
-                    else
-                    {
-                        currentGroupName = null;
-                        currentGroupAttr = null;
-                        currentGroupProps = null;
-                        EditorGUILayout.PropertyField(property, true);
-                    }
+                    orderedEntries.Add(property);
                     continue;
                 }
 
-                if (group != null)
+                if (!groupedProperties.TryGetValue(groupName, out List<SerializedProperty> properties))
                 {
-                    currentGroupProps.Add(property);
+                    properties = new List<SerializedProperty>();
+                    groupedProperties[groupName] = properties;
+                    groupAttributes[groupName] = group;
+                    orderedEntries.Add(groupName);
                 }
-                else
-                {
-                    EditorGUILayout.PropertyField(property, true);
-                }
+
+                properties.Add(property);
             }
 
-            FlushPropertyGroup(currentGroupAttr, currentGroupProps);
-        }
-
-        private void FlushPropertyGroup(FoldoutGroupAttribute group, List<SerializedProperty> properties)
-        {
-            if (group == null || properties == null || properties.Count == 0)
-                return;
-
-            DrawGroupBox(group, () =>
+            for (int i = 0; i < orderedEntries.Count; i++)
             {
-                foreach (var prop in properties)
-                    EditorGUILayout.PropertyField(prop, true);
-            });
+                string groupedName = orderedEntries[i] as string;
+                if (groupedName != null)
+                {
+                    FoldoutGroupAttribute group = groupAttributes[groupedName];
+                    List<SerializedProperty> properties = groupedProperties[groupedName];
+                    DrawGroupBox(group, () =>
+                    {
+                        for (int j = 0; j < properties.Count; j++)
+                            EditorGUILayout.PropertyField(properties[j], true);
+
+                        DrawButtonsForGroup(groupedName);
+                    });
+                    _renderedGroupNames.Add(groupedName);
+                    continue;
+                }
+
+                EditorGUILayout.PropertyField((SerializedProperty)orderedEntries[i], true);
+            }
         }
 
         private bool ShouldShowProperty(SerializedProperty property)
@@ -459,7 +482,10 @@ namespace DragAndDropSystem.Inspector.Editor
             {
                 foreach (var member in members)
                     DrawShowInInspectorMember(member);
+
+                DrawButtonsForGroup(group.GroupName);
             });
+            _renderedGroupNames.Add(group.GroupName);
         }
 
         private void DrawGroupBox(FoldoutGroupAttribute group, Action drawContent)
@@ -570,6 +596,121 @@ namespace DragAndDropSystem.Inspector.Editor
             }
 
             EditorGUILayout.LabelField(label, value.ToString());
+        }
+
+        private void DrawButtonMethods()
+        {
+            IEnumerable<MethodInfo> methods = InspectorReflectionUtility.GetButtonMethods(target.GetType());
+            string currentGroupName = null;
+            FoldoutGroupAttribute currentGroupAttr = null;
+            List<MethodInfo> currentGroupMethods = null;
+
+            foreach (MethodInfo method in methods)
+            {
+                FoldoutGroupAttribute group = Attribute.GetCustomAttribute(method, typeof(FoldoutGroupAttribute), true) as FoldoutGroupAttribute;
+                string groupName = group?.GroupName;
+
+                if (groupName != null && _renderedGroupNames.Contains(groupName))
+                    continue;
+
+                if (groupName != currentGroupName)
+                {
+                    FlushButtonGroup(currentGroupAttr, currentGroupMethods);
+
+                    if (group != null)
+                    {
+                        currentGroupName = groupName;
+                        currentGroupAttr = group;
+                        currentGroupMethods = new List<MethodInfo> { method };
+                    }
+                    else
+                    {
+                        currentGroupName = null;
+                        currentGroupAttr = null;
+                        currentGroupMethods = null;
+                        DrawButtonMethod(method);
+                    }
+
+                    continue;
+                }
+
+                if (group != null)
+                {
+                    currentGroupMethods.Add(method);
+                }
+                else
+                {
+                    DrawButtonMethod(method);
+                }
+            }
+
+            FlushButtonGroup(currentGroupAttr, currentGroupMethods);
+        }
+
+        private void FlushButtonGroup(FoldoutGroupAttribute group, List<MethodInfo> methods)
+        {
+            if (group == null || methods == null || methods.Count == 0)
+                return;
+
+            DrawGroupBox(group, () =>
+            {
+                for (int i = 0; i < methods.Count; i++)
+                    DrawButtonMethod(methods[i]);
+            });
+            _renderedGroupNames.Add(group.GroupName);
+        }
+
+        private void DrawButtonMethod(MethodInfo method)
+        {
+            ButtonAttribute button = Attribute.GetCustomAttribute(method, typeof(ButtonAttribute), true) as ButtonAttribute;
+            if (button == null)
+                return;
+
+            string label = string.IsNullOrEmpty(button.Label)
+                ? ObjectNames.NicifyVariableName(method.Name)
+                : button.Label;
+
+            bool disableInEditMode = Attribute.IsDefined(method, typeof(DisableInEditorModeAttribute), true);
+            bool shouldDisable = disableInEditMode && !Application.isPlaying;
+
+            using (new EditorGUI.DisabledScope(shouldDisable))
+            {
+                if (!GUILayout.Button(label, GUILayout.Height(22f)))
+                    return;
+            }
+
+            for (int i = 0; i < targets.Length; i++)
+            {
+                UnityEngine.Object currentTarget = targets[i];
+                Undo.RecordObject(currentTarget, label);
+                method.Invoke(currentTarget, null);
+                EditorUtility.SetDirty(currentTarget);
+            }
+        }
+
+        private void DrawButtonsForGroup(string groupName)
+        {
+            if (string.IsNullOrEmpty(groupName))
+                return;
+
+            List<MethodInfo> methods = GetGroupedButtonMethods(groupName);
+            for (int i = 0; i < methods.Count; i++)
+            {
+                DrawButtonMethod(methods[i]);
+            }
+        }
+
+        private List<MethodInfo> GetGroupedButtonMethods(string groupName)
+        {
+            var result = new List<MethodInfo>();
+            foreach (MethodInfo method in InspectorReflectionUtility.GetButtonMethods(target.GetType()))
+            {
+                FoldoutGroupAttribute group = Attribute.GetCustomAttribute(method, typeof(FoldoutGroupAttribute), true) as FoldoutGroupAttribute;
+                if (group != null && group.GroupName == groupName)
+                    result.Add(method);
+            }
+
+            return result;
         }
     }
 
