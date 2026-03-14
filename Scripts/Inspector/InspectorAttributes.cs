@@ -31,6 +31,19 @@ namespace DragAndDropSystem.Inspector
             GroupName = groupName;
             this.expanded = expanded;
         }
+        public FoldoutGroupAttribute(string groupName, string headerColor, bool expanded = true)
+        {
+            GroupName = groupName;
+            this.expanded = expanded;
+            HeaderColor = headerColor;
+        }
+        public FoldoutGroupAttribute(string groupName, string headerColor, string contentColor, bool expanded = true)
+        {
+            GroupName = groupName;
+            this.expanded = expanded;
+            HeaderColor = headerColor;
+            ContentColor = contentColor;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true)]

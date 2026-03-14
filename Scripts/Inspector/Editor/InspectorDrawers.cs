@@ -234,7 +234,7 @@ namespace DragAndDropSystem.Inspector.Editor
                 if (_boxStyle == null)
                 {
                     _boxStyle = new GUIStyle(EditorStyles.helpBox);
-                    _boxStyle.padding = new RectOffset(1, 1, 1, 0);
+                    _boxStyle.padding = new RectOffset(1, 1, 1, 1);
                     _boxStyle.margin = new RectOffset(0, 0, 4, 4);
                 }
                 return _boxStyle;
@@ -255,8 +255,8 @@ namespace DragAndDropSystem.Inspector.Editor
         }
 
         public static Color DefaultHeaderColor => EditorGUIUtility.isProSkin
-            ? new Color(0.24f, 0.24f, 0.24f)
-            : new Color(0.76f, 0.76f, 0.76f);
+            ? new Color(0.28f, 0.28f, 0.28f)
+            : new Color(0.72f, 0.72f, 0.72f);
 
         public static Color DefaultContentColor => EditorGUIUtility.isProSkin
             ? new Color(0.22f, 0.22f, 0.22f, 0.35f)
