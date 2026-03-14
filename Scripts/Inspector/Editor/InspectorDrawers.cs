@@ -262,6 +262,10 @@ namespace DragAndDropSystem.Inspector.Editor
                     continue;
 
                 SerializedProperty property = iterator.Copy();
+
+                if (!ShouldShowProperty(property))
+                    continue;
+
                 FoldoutGroupAttribute group = InspectorReflectionUtility.GetAttribute<FoldoutGroupAttribute>(property);
 
                 if (group == null)
@@ -285,6 +289,24 @@ namespace DragAndDropSystem.Inspector.Editor
                     }
                 }
             }
+        }
+
+        private bool ShouldShowProperty(SerializedProperty property)
+        {
+            ShowIfAttribute showIf = InspectorReflectionUtility.GetAttribute<ShowIfAttribute>(property);
+            if (showIf == null)
+                return true;
+
+            object parent = InspectorReflectionUtility.GetParentObject(property);
+            object conditionValue = InspectorReflectionUtility.GetMemberValue(parent, showIf.ConditionMemberName);
+
+            if (conditionValue == null)
+                return false;
+
+            if (string.IsNullOrEmpty(showIf.ExpectedValue))
+                return conditionValue is bool boolValue && boolValue;
+
+            return string.Equals(conditionValue.ToString(), showIf.ExpectedValue, StringComparison.Ordinal);
         }
 
         private void DrawShowInInspectorMembers()
