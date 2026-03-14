@@ -511,6 +511,39 @@ namespace DragAndDropSystem.Inspector.Editor
         }
     }
 
+    [CustomPropertyDrawer(typeof(EnumToggleButtonsAttribute))]
+    public sealed class EnumToggleButtonsPropertyDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            if (property.propertyType != SerializedPropertyType.Enum)
+            {
+                EditorGUI.PropertyField(position, property, label, true);
+                return;
+            }
+
+            Rect labelRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth, position.height);
+            Rect buttonsRect = new Rect(
+                position.x + EditorGUIUtility.labelWidth + 2f,
+                position.y,
+                position.width - EditorGUIUtility.labelWidth - 2f,
+                position.height);
+
+            EditorGUI.LabelField(labelRect, label);
+
+            string[] names = property.enumDisplayNames;
+            int selected = property.enumValueIndex;
+            int newSelected = GUI.Toolbar(buttonsRect, selected, names);
+            if (newSelected != selected)
+                property.enumValueIndex = newSelected;
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return EditorGUIUtility.singleLineHeight;
+        }
+    }
+
     [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
     public sealed class ReadOnlyPropertyDrawer : PropertyDrawer
     {
