@@ -1071,7 +1071,7 @@ namespace DragAndDropSystem.Inspector.Editor
                 headerRect.height);
 
             // Type name field (fills space between label and pick button)
-            float typeFieldX = headerRect.x + EditorGUIUtility.labelWidth;
+            float typeFieldX = position.x + EditorGUIUtility.labelWidth-12;
             Rect typeNameRect = new Rect(
                 typeFieldX,
                 headerRect.y,
@@ -1094,11 +1094,12 @@ namespace DragAndDropSystem.Inspector.Editor
             if (!hasChildren || !property.isExpanded)
                 return;
 
+            float indent = 15f;
             float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             foreach (var child in EnumerateChildren(property))
             {
                 float childHeight = EditorGUI.GetPropertyHeight(child, true);
-                Rect childRect = new Rect(position.x, y, position.width, childHeight);
+                Rect childRect = new Rect(position.x + indent, y, position.width - indent, childHeight);
                 EditorGUI.PropertyField(childRect, child, true);
                 y = childRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             }
