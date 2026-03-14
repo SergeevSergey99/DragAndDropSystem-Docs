@@ -511,12 +511,57 @@ namespace DragAndDropSystem.Inspector.Editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.PropertyField(position, property, GUIContent.none, true);
+            if (!property.hasVisibleChildren)
+            {
+                EditorGUI.PropertyField(position, property, GUIContent.none, false);
+                return;
+            }
+
+            // Complex property — draw children directly without foldout or label indent
+            float y = position.y;
+            var iterator = property.Copy();
+            var end = iterator.GetEndProperty();
+
+            if (!iterator.NextVisible(true))
+                return;
+
+            do
+            {
+                if (SerializedProperty.EqualContents(iterator, end))
+                    break;
+
+                float childHeight = EditorGUI.GetPropertyHeight(iterator, true);
+                Rect childRect = new Rect(position.x, y, position.width, childHeight);
+                EditorGUI.PropertyField(childRect, iterator, true);
+                y = childRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            while (iterator.NextVisible(false));
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUI.GetPropertyHeight(property, label, true);
+            if (!property.hasVisibleChildren)
+                return EditorGUIUtility.singleLineHeight;
+
+            float height = 0f;
+            var iterator = property.Copy();
+            var end = iterator.GetEndProperty();
+
+            if (!iterator.NextVisible(true))
+                return EditorGUIUtility.singleLineHeight;
+
+            do
+            {
+                if (SerializedProperty.EqualContents(iterator, end))
+                    break;
+
+                if (height > 0f)
+                    height += EditorGUIUtility.standardVerticalSpacing;
+                height += EditorGUI.GetPropertyHeight(iterator, true);
+            }
+            while (iterator.NextVisible(false));
+
+            return Mathf.Max(height, EditorGUIUtility.singleLineHeight);
         }
     }
 
