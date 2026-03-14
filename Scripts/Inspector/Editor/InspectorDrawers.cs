@@ -221,6 +221,75 @@ namespace DragAndDropSystem.Inspector.Editor
         }
     }
 
+    internal static class FoldoutGroupStyles
+    {
+        private static GUIStyle _boxStyle;
+        private static GUIStyle _headerFoldoutStyle;
+        private static readonly Dictionary<Color, GUIStyle> ContentStyleCache = new Dictionary<Color, GUIStyle>();
+
+        public static GUIStyle BoxStyle
+        {
+            get
+            {
+                if (_boxStyle == null)
+                {
+                    _boxStyle = new GUIStyle(EditorStyles.helpBox);
+                    _boxStyle.padding = new RectOffset(1, 1, 1, 0);
+                    _boxStyle.margin = new RectOffset(0, 0, 4, 4);
+                }
+                return _boxStyle;
+            }
+        }
+
+        public static GUIStyle HeaderFoldoutStyle
+        {
+            get
+            {
+                if (_headerFoldoutStyle == null)
+                {
+                    _headerFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+                    _headerFoldoutStyle.fontStyle = FontStyle.Bold;
+                }
+                return _headerFoldoutStyle;
+            }
+        }
+
+        public static Color DefaultHeaderColor => EditorGUIUtility.isProSkin
+            ? new Color(0.24f, 0.24f, 0.24f)
+            : new Color(0.76f, 0.76f, 0.76f);
+
+        public static Color DefaultContentColor => EditorGUIUtility.isProSkin
+            ? new Color(0.22f, 0.22f, 0.22f, 0.35f)
+            : new Color(0.84f, 0.84f, 0.84f, 0.35f);
+
+        public static Color SeparatorColor => EditorGUIUtility.isProSkin
+            ? new Color(0.1f, 0.1f, 0.1f, 0.6f)
+            : new Color(0.5f, 0.5f, 0.5f, 0.6f);
+
+        public static Color ParseColor(string hex, Color fallback)
+        {
+            if (string.IsNullOrEmpty(hex))
+                return fallback;
+            return ColorUtility.TryParseHtmlString(hex, out Color c) ? c : fallback;
+        }
+
+        public static GUIStyle GetContentStyle(Color color)
+        {
+            if (ContentStyleCache.TryGetValue(color, out var style) && style?.normal?.background != null)
+                return style;
+
+            style = new GUIStyle();
+            style.padding = new RectOffset(6, 4, 0, 0);
+            var tex = new Texture2D(1, 1);
+            tex.SetPixel(0, 0, color);
+            tex.Apply();
+            tex.hideFlags = HideFlags.DontSave;
+            style.normal.background = tex;
+            ContentStyleCache[color] = style;
+            return style;
+        }
+    }
+
     internal abstract class GroupedInspectorEditorBase : UnityEditor.Editor
     {
         private const string ScriptPropertyName = "m_Script";
@@ -252,8 +321,9 @@ namespace DragAndDropSystem.Inspector.Editor
         {
             SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
-            string activeGroup = null;
-            bool activeGroupExpanded = false;
+            string currentGroupName = null;
+            FoldoutGroupAttribute currentGroupAttr = null;
+            List<SerializedProperty> currentGroupProps = null;
 
             while (iterator.NextVisible(enterChildren))
             {
@@ -267,28 +337,51 @@ namespace DragAndDropSystem.Inspector.Editor
                     continue;
 
                 FoldoutGroupAttribute group = InspectorReflectionUtility.GetAttribute<FoldoutGroupAttribute>(property);
+                string groupName = group?.GroupName;
 
-                if (group == null)
+                if (groupName != currentGroupName)
                 {
-                    activeGroup = null;
-                    EditorGUILayout.PropertyField(property, true);
+                    FlushPropertyGroup(currentGroupAttr, currentGroupProps);
+
+                    if (group != null)
+                    {
+                        currentGroupName = groupName;
+                        currentGroupAttr = group;
+                        currentGroupProps = new List<SerializedProperty> { property };
+                    }
+                    else
+                    {
+                        currentGroupName = null;
+                        currentGroupAttr = null;
+                        currentGroupProps = null;
+                        EditorGUILayout.PropertyField(property, true);
+                    }
                     continue;
                 }
 
-                if (activeGroup != group.GroupName)
+                if (group != null)
                 {
-                    activeGroup = group.GroupName;
-                    activeGroupExpanded = DrawGroupHeader(group);
+                    currentGroupProps.Add(property);
                 }
-
-                if (activeGroupExpanded)
+                else
                 {
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        EditorGUILayout.PropertyField(property, true);
-                    }
+                    EditorGUILayout.PropertyField(property, true);
                 }
             }
+
+            FlushPropertyGroup(currentGroupAttr, currentGroupProps);
+        }
+
+        private void FlushPropertyGroup(FoldoutGroupAttribute group, List<SerializedProperty> properties)
+        {
+            if (group == null || properties == null || properties.Count == 0)
+                return;
+
+            DrawGroupBox(group, () =>
+            {
+                foreach (var prop in properties)
+                    EditorGUILayout.PropertyField(prop, true);
+            });
         }
 
         private bool ShouldShowProperty(SerializedProperty property)
@@ -312,8 +405,9 @@ namespace DragAndDropSystem.Inspector.Editor
         private void DrawShowInInspectorMembers()
         {
             IEnumerable<MemberInfo> members = InspectorReflectionUtility.GetShowInInspectorMembers(target.GetType());
-            string activeGroup = null;
-            bool activeGroupExpanded = false;
+            string currentGroupName = null;
+            FoldoutGroupAttribute currentGroupAttr = null;
+            List<MemberInfo> currentGroupMembers = null;
 
             foreach (MemberInfo member in members)
             {
@@ -321,37 +415,92 @@ namespace DragAndDropSystem.Inspector.Editor
                     continue;
 
                 FoldoutGroupAttribute group = Attribute.GetCustomAttribute(member, typeof(FoldoutGroupAttribute), true) as FoldoutGroupAttribute;
-                if (group == null)
+                string groupName = group?.GroupName;
+
+                if (groupName != currentGroupName)
                 {
-                    activeGroup = null;
-                    DrawShowInInspectorMember(member);
+                    FlushMemberGroup(currentGroupAttr, currentGroupMembers);
+
+                    if (group != null)
+                    {
+                        currentGroupName = groupName;
+                        currentGroupAttr = group;
+                        currentGroupMembers = new List<MemberInfo> { member };
+                    }
+                    else
+                    {
+                        currentGroupName = null;
+                        currentGroupAttr = null;
+                        currentGroupMembers = null;
+                        DrawShowInInspectorMember(member);
+                    }
                     continue;
                 }
 
-                if (activeGroup != group.GroupName)
+                if (group != null)
                 {
-                    activeGroup = group.GroupName;
-                    activeGroupExpanded = DrawGroupHeader(group);
+                    currentGroupMembers.Add(member);
                 }
-
-                if (activeGroupExpanded)
+                else
                 {
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        DrawShowInInspectorMember(member);
-                    }
+                    DrawShowInInspectorMember(member);
                 }
             }
+
+            FlushMemberGroup(currentGroupAttr, currentGroupMembers);
         }
 
-        private bool DrawGroupHeader(FoldoutGroupAttribute group)
+        private void FlushMemberGroup(FoldoutGroupAttribute group, List<MemberInfo> members)
         {
+            if (group == null || members == null || members.Count == 0)
+                return;
+
+            DrawGroupBox(group, () =>
+            {
+                foreach (var member in members)
+                    DrawShowInInspectorMember(member);
+            });
+        }
+
+        private void DrawGroupBox(FoldoutGroupAttribute group, Action drawContent)
+        {
+            Color headerColor = FoldoutGroupStyles.ParseColor(group.HeaderColor, FoldoutGroupStyles.DefaultHeaderColor);
+            Color contentColor = FoldoutGroupStyles.ParseColor(group.ContentColor, FoldoutGroupStyles.DefaultContentColor);
+
+            EditorGUILayout.Space(2f);
+            EditorGUILayout.BeginVertical(FoldoutGroupStyles.BoxStyle);
+
+            // Header bar
+            Rect headerRect = GUILayoutUtility.GetRect(0f, 22f, GUILayout.ExpandWidth(true));
+            if (Event.current.type == EventType.Repaint)
+                EditorGUI.DrawRect(headerRect, headerColor);
+
+            // Foldout
+            Rect foldoutRect = new Rect(headerRect.x + 14f, headerRect.y + 1f, headerRect.width - 18f, headerRect.height - 2f);
             bool expanded = FoldoutGroupStateCache.Get(target, group);
-            EditorGUILayout.Space(3f);
-            Rect rect = EditorGUILayout.GetControlRect();
-            expanded = EditorGUI.Foldout(rect, expanded, group.GroupName, true);
+            expanded = EditorGUI.Foldout(foldoutRect, expanded, group.GroupName, true, FoldoutGroupStyles.HeaderFoldoutStyle);
             FoldoutGroupStateCache.Set(target, group.GroupName, expanded);
-            return expanded;
+
+            if (expanded)
+            {
+                // Separator line
+                Rect separatorRect = new Rect(headerRect.x, headerRect.yMax, headerRect.width, 1f);
+                if (Event.current.type == EventType.Repaint)
+                    EditorGUI.DrawRect(separatorRect, FoldoutGroupStyles.SeparatorColor);
+
+                // Content with background
+                GUIStyle contentStyle = FoldoutGroupStyles.GetContentStyle(contentColor);
+                EditorGUILayout.BeginVertical(contentStyle);
+                EditorGUILayout.Space(4f);
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    drawContent();
+                }
+                EditorGUILayout.Space(4f);
+                EditorGUILayout.EndVertical();
+            }
+
+            EditorGUILayout.EndVertical();
         }
 
         private bool HasSerializedBacking(MemberInfo member)

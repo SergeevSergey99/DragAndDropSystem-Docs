@@ -23,6 +23,8 @@ namespace DragAndDropSystem.Inspector
     {
         public string GroupName { get; }
         public bool expanded;
+        public string HeaderColor { get; set; }
+        public string ContentColor { get; set; }
 
         public FoldoutGroupAttribute(string groupName, bool expanded = true)
         {
