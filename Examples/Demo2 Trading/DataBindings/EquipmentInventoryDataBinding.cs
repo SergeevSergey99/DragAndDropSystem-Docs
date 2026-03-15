@@ -106,9 +106,6 @@ namespace DragAndDropSystem.Examples.Trading
         /// </summary>
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            // Если мы сейчас синхронизируем UI - не обновляем данные
-            if (_isSyncing) return;
-
             // Пытаемся получить адаптер правильного типа
             TradableItemModelAdapter modelAdapter = context.Item as TradableItemModelAdapter;
             TradableSoAdapter soAdapter = context.Item as TradableSoAdapter;
@@ -165,9 +162,6 @@ namespace DragAndDropSystem.Examples.Trading
         /// </summary>
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            // Если мы сейчас синхронизируем UI - не обновляем данные
-            if (_isSyncing) return;
-
             // Если предмет ушел к торговцу - продаем ему
             TryHandleSellToMerchant(context);
 
@@ -202,10 +196,7 @@ namespace DragAndDropSystem.Examples.Trading
         {
             if (_inventory == null || PlayerData == null) return;
 
-            // Устанавливаем флаг синхронизации
-            _isSyncing = true;
-
-            try
+            using (BeginSync())
             {
                 _inventory.ClearAll();
 
@@ -213,35 +204,29 @@ namespace DragAndDropSystem.Examples.Trading
                 if (PlayerData.EquippedWeapon != null)
                 {
                     var adapter = new TradableItemModelAdapter(PlayerData.EquippedWeapon);
-                    // Добавляем в конкретный слот по индексу
-                    _inventory.TryAddItem(adapter, 1, _weaponSlot.Index);
+                    AddToUIQuiet(adapter, 1, _weaponSlot.Index);
                 }
 
                 // Синхронизируем броню
                 if (PlayerData.EquippedArmor != null)
                 {
                     var adapter = new TradableItemModelAdapter(PlayerData.EquippedArmor);
-                    _inventory.TryAddItem(adapter, 1, _armorSlot.Index);
+                    AddToUIQuiet(adapter, 1, _armorSlot.Index);
                 }
 
                 // Синхронизируем артефакт 1
                 if (PlayerData.EquippedArtifact1 != null)
                 {
                     var adapter = new TradableItemModelAdapter(PlayerData.EquippedArtifact1);
-                    _inventory.TryAddItem(adapter, 1, _artifact1Slot.Index);
+                    AddToUIQuiet(adapter, 1, _artifact1Slot.Index);
                 }
 
                 // Синхронизируем артефакт 2
                 if (PlayerData.EquippedArtifact2 != null)
                 {
                     var adapter = new TradableItemModelAdapter(PlayerData.EquippedArtifact2);
-                    _inventory.TryAddItem(adapter, 1, _artifact2Slot.Index);
+                    AddToUIQuiet(adapter, 1, _artifact2Slot.Index);
                 }
-            }
-            finally
-            {
-                // Всегда сбрасываем флаг синхронизации
-                _isSyncing = false;
             }
         }
 

@@ -77,9 +77,6 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            // Если мы сейчас синхронизируем UI - не обновляем данные
-            if (_isSyncing) return;
-
             var sourceBinding = context.SourceInventory?.DataBinding;
 
             // Если предмет пришел от игрока или из экипировки - покупаем у него
@@ -102,9 +99,6 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            // Если мы сейчас синхронизируем UI - не обновляем данные
-            if (_isSyncing) return;
-
             // Проверяем куда ушел предмет
             var targetBinding = context.TargetInventory?.DataBinding;
 
@@ -122,10 +116,7 @@ namespace DragAndDropSystem.Examples.Trading
         {
             if (_inventory == null || MerchantData == null) return;
 
-            // Устанавливаем флаг синхронизации
-            _isSyncing = true;
-
-            try
+            using (BeginSync())
             {
                 _inventory.ClearAll();
 
@@ -139,11 +130,6 @@ namespace DragAndDropSystem.Examples.Trading
                 }
 
                 UpdateMoneyUI();
-            }
-            finally
-            {
-                // Всегда сбрасываем флаг синхронизации
-                _isSyncing = false;
             }
         }
 

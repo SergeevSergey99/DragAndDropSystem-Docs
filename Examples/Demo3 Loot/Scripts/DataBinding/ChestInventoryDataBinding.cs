@@ -65,30 +65,29 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
             Debug.Log($"[ChestInventoryDataBinding] Syncing chest '{_chest.gameObject.name}' to UI");
 
-            // Очищаем UI
-            _isSyncing = true;
-            _inventory.ClearAll();
-
-            // Загружаем предметы из сундука
-            var items = _chest.GetItems();
-            if (items != null && items.Count > 0)
+            using (BeginSync())
             {
-                foreach (var itemSO in items)
+                _inventory.ClearAll();
+
+                // Загружаем предметы из сундука
+                var items = _chest.GetItems();
+                if (items != null && items.Count > 0)
                 {
-                    if (itemSO == null)
-                        continue;
+                    foreach (var itemSO in items)
+                    {
+                        if (itemSO == null)
+                            continue;
 
-                    // Создаем адаптер для предмета
-                    IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
+                        // Создаем адаптер для предмета
+                        IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
 
-                    // Добавляем в UI
-                    AddToUIQuiet(itemAdapter, 1);
+                        // Добавляем в UI
+                        AddToUIQuiet(itemAdapter, 1);
+                    }
+
+                    Debug.Log($"[ChestInventoryDataBinding] Loaded {items.Count} items from chest to UI");
                 }
-
-                Debug.Log($"[ChestInventoryDataBinding] Loaded {items.Count} items from chest to UI");
             }
-
-            _isSyncing = false;
         }
 
         /// <summary>
@@ -97,9 +96,6 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// </summary>
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (_isSyncing)
-                return;
-
             if (_chest == null)
             {
                 Debug.LogWarning("[ChestInventoryDataBinding] Cannot add item - chest is null");
@@ -129,9 +125,6 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// </summary>
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (_isSyncing)
-                return;
-
             if (_chest == null)
             {
                 Debug.LogWarning("[ChestInventoryDataBinding] Cannot remove item - chest is null");

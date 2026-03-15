@@ -51,9 +51,6 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            // Если мы сейчас синхронизируем UI - не обновляем данные
-            if (_isSyncing) return;
-
             // Если предмет пришел от торговца - покупаем у него
             if (TryHandlePurchaseFromMerchant(context))
             {
@@ -75,9 +72,6 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            // Если мы сейчас синхронизируем UI - не обновляем данные
-            if (_isSyncing) return;
-
             // Если предмет ушел к торговцу - продаем ему
             TryHandleSellToMerchant(context);
 
@@ -92,10 +86,7 @@ namespace DragAndDropSystem.Examples.Trading
         {
             if (_inventory == null || PlayerData == null) return;
 
-            // Устанавливаем флаг синхронизации
-            _isSyncing = true;
-
-            try
+            using (BeginSync())
             {
                 _inventory.ClearAll();
 
@@ -109,11 +100,6 @@ namespace DragAndDropSystem.Examples.Trading
                 }
 
                 UpdateMoneyUI();
-            }
-            finally
-            {
-                // Всегда сбрасываем флаг синхронизации
-                _isSyncing = false;
             }
         }
 

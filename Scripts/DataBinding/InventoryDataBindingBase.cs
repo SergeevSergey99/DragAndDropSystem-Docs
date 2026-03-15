@@ -25,8 +25,37 @@ namespace DragAndDropSystem.DataBinding
         [Tooltip("Правила для проверки возможности переноса предметов в этот инвентарь")]
         private InventoryRuleValidator _ruleValidator = new InventoryRuleValidator();
 
-        protected bool _isSyncing = false; // Флаг для предотвращения циклической синхронизации
+        private int _syncDepth = 0;
         private DataBindingInventoryRule _internalRule;
+
+        /// <summary>
+        /// Находимся ли мы в режиме синхронизации (Data → UI).
+        /// Когда true, события OnItemAddedToUI/OnItemRemovedFromUI не вызываются.
+        /// </summary>
+        protected bool IsSyncing => _syncDepth > 0;
+
+        /// <summary>
+        /// Начать scope синхронизации. Используйте с using:
+        /// using (BeginSync()) { ... }
+        /// Exception-safe и поддерживает вложенность.
+        /// </summary>
+        protected SyncScope BeginSync() => new SyncScope(this);
+
+        protected readonly struct SyncScope : IDisposable
+        {
+            private readonly InventoryDataBindingBase _owner;
+
+            public SyncScope(InventoryDataBindingBase owner)
+            {
+                _owner = owner;
+                _owner._syncDepth++;
+            }
+
+            public void Dispose()
+            {
+                _owner._syncDepth--;
+            }
+        }
 
         private void Awake()
         {
@@ -165,7 +194,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         private void OnInventoryItemAdded(InventoryItemEventContext context)
         {
-            if (_isSyncing) return;
+            if (IsSyncing) return;
 
             Extentions.DragAndDropLog($"[{GetType().Name}] Item added: {context.Item.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
             OnItemAddedToUI(context);
@@ -176,7 +205,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         private void OnInventoryItemRemoved(InventoryItemEventContext context)
         {
-            if (_isSyncing) return;
+            if (IsSyncing) return;
 
             Extentions.DragAndDropLog($"[{GetType().Name}] Item removed: {context.Item.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
 
@@ -218,32 +247,31 @@ namespace DragAndDropSystem.DataBinding
         {
             if (_inventory != null)
             {
-                _inventory.ClearAll();
+                using (BeginSync())
+                    _inventory.ClearAll();
             }
         }
 
         /// <summary>
         /// Добавить предмет в UI без триггера событий
         /// </summary>
-        protected void AddToUIQuiet(IInventoryItem item, int count)
+        protected void AddToUIQuiet(IInventoryItem item, int count, int targetSlotIndex = -1)
         {
             if (_inventory == null) return;
 
-            _isSyncing = true;
-            _inventory.TryAddItem(item, count);
-            _isSyncing = false;
+            using (BeginSync())
+                _inventory.TryAddItem(item, count, targetSlotIndex);
         }
 
         /// <summary>
         /// Удалить предмет из UI без триггера событий
         /// </summary>
-        protected void RemoveFromUIQuiet(IInventoryItem item, int count)
+        protected void RemoveFromUIQuiet(IInventoryItem item, int count, int sourceSlotIndex = -1)
         {
             if (_inventory == null) return;
 
-            _isSyncing = true;
-            _inventory.TryRemoveItem(item, count);
-            _isSyncing = false;
+            using (BeginSync())
+                _inventory.TryRemoveItem(item, count, sourceSlotIndex);
         }
 
         #endregion

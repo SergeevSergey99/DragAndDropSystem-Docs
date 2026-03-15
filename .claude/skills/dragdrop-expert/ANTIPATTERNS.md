@@ -79,9 +79,11 @@ Comprehensive catalog of anti-patterns and how to avoid them.
 
 **Why It's Bad**: Crashes or freezes game.
 
-**Solution**: Use `_isSyncing` flag:
-- Set `_isSyncing = true` before calling `inventory.TryAddItem()` in `SyncToUI()`
-- Check `if (_isSyncing) return;` in `OnItemAddedToUI()` and `OnItemRemovedFromUI()`
+**Solution**: Use `BeginSync()` scope in `ReloadUI()`:
+- Wrap Data→UI sync code with `using (BeginSync()) { ... }` — exception-safe and supports nesting
+- Base class automatically skips `OnItemAddedToUI()`/`OnItemRemovedFromUI()` when `IsSyncing == true`
+- Use `AddToUIQuiet()` helper which internally uses `BeginSync()`
+- Do NOT check `IsSyncing` manually in subclass overrides — base class already handles this
 
 **Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` for base class implementation.
 
