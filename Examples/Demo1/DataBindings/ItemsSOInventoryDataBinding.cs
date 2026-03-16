@@ -71,7 +71,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         /// - Запретить перетаскивание определенных предметов
         /// - Проверить условия игры (заблокирован ли инвентарь, достаточно ли прав у игрока и т.д.)
         /// </summary>
-        protected override RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             // Пример: запрещаем перетаскивание из этого инвентаря
             if (_preventDragFromInventory)
@@ -80,7 +80,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
             }
 
             // Вызываем базовую реализацию (по умолчанию разрешает)
-            return base.CanStartDragInternal(context, entry);
+            return base.CanStartDrag(context, entry);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         /// - Проверить уровень игрока
         /// - Запретить сброс предметов определенного типа
         /// </summary>
-        protected override RuleResult CanDropInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // Пример: запрещаем сброс предметов в этот инвентарь
             if (_preventDropToInventory)
@@ -99,7 +99,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
             }
 
             // Вызываем базовую реализацию (по умолчанию разрешает)
-            return base.CanDropInternal(context, entry);
+            return base.CanDrop(context, entry);
         }
 
         #endregion

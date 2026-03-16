@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Examples.Trading
     /// DataBinding для инвентаря игрока в системе торговли
     /// Синхронизирует UI инвентаря с PlayerEconomyData в TradingEconomyManager
     ///
-    /// ПРИМЕР: Демонстрирует работу с централизованной моделью данных и проверку условий в CanDropInternal
+    /// ПРИМЕР: Демонстрирует работу с централизованной моделью данных и проверку условий в CanDrop
     /// </summary>
     public class PlayerInventoryDataBinding : TradingInventoryDataBinding
     {
@@ -111,7 +111,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности начать перетаскивание
         /// Для игрока всегда разрешаем перетаскивание своих предметов
         /// </summary>
-        protected override RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             // Разрешаем игроку перетаскивать свои предметы
             return RuleResult.Success();
@@ -121,7 +121,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности сбросить предмет в инвентарь игрока
         /// Здесь проверяем что предмет идет от торговца и у игрока достаточно денег
         /// </summary>
-        protected override RuleResult CanDropInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // Если это программное добавление (SyncToUI) - разрешаем
             if (IsProgrammaticOperation(context, entry))

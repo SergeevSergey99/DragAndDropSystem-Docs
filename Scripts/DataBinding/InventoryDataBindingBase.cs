@@ -147,7 +147,7 @@ namespace DragAndDropSystem.DataBinding
 
         /// <summary>
         /// Обработчик события попытки swap
-        /// Вызывает CanSwapInternal если swap затрагивает этот инвентарь
+        /// Вызывает CanSwap если swap затрагивает этот инвентарь
         /// </summary>
         private void HandleSwapAttempting(InventorySwapContext context)
         {
@@ -162,10 +162,10 @@ namespace DragAndDropSystem.DataBinding
                 return;
 
             // Вызываем кастомную валидацию
-            var result = CanSwapInternal(context);
+            var result = CanSwap(context);
             if (!result.IsValid)
             {
-                Extentions.DragAndDropLog($"[{GetType().Name}] CanSwapInternal rejected: {result.FailureReason}");
+                Extentions.DragAndDropLog($"[{GetType().Name}] CanSwap rejected: {result.FailureReason}");
                 context.Cancel = true;
             }
         }
@@ -318,7 +318,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         /// <param name="context">Контекст перетаскивания</param>
         /// <returns>Результат валидации</returns>
-        protected virtual RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
+        protected virtual RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             // По умолчанию разрешаем
             return RuleResult.Success();
@@ -331,7 +331,7 @@ namespace DragAndDropSystem.DataBinding
         /// <param name="context">Контекст перетаскивания</param>
         /// <param name="entry">Конкретный элемент перетаскивания</param>
         /// <returns>Результат валидации</returns>
-        protected virtual RuleResult CanDropInternal(DragContext context, DragEntry entry)
+        protected virtual RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // По умолчанию разрешаем
             return RuleResult.Success();
@@ -347,7 +347,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         /// <param name="args">Аргументы события swap с информацией об обоих стаках и слотах</param>
         /// <returns>Результат валидации. Если вернуть Failure - swap будет отменен</returns>
-        protected virtual RuleResult CanSwapInternal(InventorySwapContext args)
+        protected virtual RuleResult CanSwap(InventorySwapContext args)
         {
             // По умолчанию разрешаем (базовая валидация уже выполнена)
             return RuleResult.Success();
@@ -395,7 +395,7 @@ namespace DragAndDropSystem.DataBinding
                 if (_owner == null)
                     return RuleResult.Success();
 
-                return _owner.CanStartDragInternal(context, entry);
+                return _owner.CanStartDrag(context, entry);
             }
 
             public RuleResult CanDrop(DragContext context, DragEntry entry)
@@ -403,7 +403,7 @@ namespace DragAndDropSystem.DataBinding
                 if (_owner == null)
                     return RuleResult.Success();
 
-                return _owner.CanDropInternal(context, entry);
+                return _owner.CanDrop(context, entry);
             }
         }
 

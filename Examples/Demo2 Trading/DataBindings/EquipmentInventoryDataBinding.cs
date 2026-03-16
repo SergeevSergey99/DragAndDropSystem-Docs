@@ -38,7 +38,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности сбросить предмет в слот экипировки
         /// Проверяем соответствие типа предмета типу слота
         /// </summary>
-        protected override RuleResult CanDropInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // Если это программное добавление (SyncToUI) - разрешаем
             if (IsProgrammaticOperation(context, entry))
@@ -92,7 +92,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности начать перетаскивание из слота экипировки
         /// Разрешаем снимать экипировку
         /// </summary>
-        protected override RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             return RuleResult.Success();
         }

@@ -143,7 +143,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности начать перетаскивание из инвентаря торговца
         /// Проверяем что у игрока достаточно денег для покупки
         /// </summary>
-        protected override RuleResult CanStartDragInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             if (entry.Stack.Item is not ITradableItem tradable)
             {
@@ -166,7 +166,7 @@ namespace DragAndDropSystem.Examples.Trading
         /// Проверка возможности сбросить предмет в инвентарь торговца
         /// Проверяем что предмет идет от игрока и у торговца достаточно денег
         /// </summary>
-        protected override RuleResult CanDropInternal(DragContext context, DragEntry entry)
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // Если SourceInventory == null, то это программное добавление (SyncToUI)
             // Разрешаем такие операции
