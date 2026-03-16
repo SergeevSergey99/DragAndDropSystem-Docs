@@ -54,12 +54,10 @@ namespace DragAndDropSystem.Examples.Trading
             // Если предмет пришел от торговца - покупаем у него
             if (TryHandlePurchaseFromMerchant(context))
             {
-                // Заменяем адаптер SO на адаптер модели в слоте игрока
-                // ConvertAndReplaceSOAdapter создает TradableItemModel, который мы добавляем в данные
-                var soAdapter = context.Item as TradableSoAdapter;
-                if (context.TargetSlot != null)
+                // Конвертируем адаптер в Model адаптер в слоте игрока
+                if (context.Item is ITradableItem tradable && context.TargetSlot != null)
                 {
-                    var itemModel = ConvertAndReplaceSOAdapter(context.TargetSlot, soAdapter);
+                    var itemModel = ConvertToModelAdapter(context.TargetSlot, tradable);
                     PlayerData.AddItem(itemModel);
                 }
             }

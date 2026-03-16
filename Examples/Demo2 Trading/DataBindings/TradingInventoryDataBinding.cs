@@ -22,17 +22,17 @@ namespace DragAndDropSystem.Examples.Trading
         protected RuleResult? ValidatePurchaseFromMerchant(DragContext context, DragEntry entry)
         {
             // Если источник не торговец - возвращаем null (не наша ответственность)
-            if (entry.SourceInventory?.DataBinding is not MerchantInventoryDataBinding)
+            if (entry.SourceInventory?.DataBinding is not IMerchantInventory)
                 return null;
 
             // Проверяем тип адаптера
-            if (entry.Stack.Item is not TradableSoAdapter adapter)
+            if (entry.Stack.Item is not ITradableItem tradable)
             {
                 return RuleResult.Failure("Неверный тип предмета");
             }
 
             // Вычисляем стоимость покупки
-            int totalPrice = adapter.BuyPrice * entry.Stack.Count;
+            int totalPrice = tradable.BuyPrice * entry.Stack.Count;
 
             // Проверяем достаточно ли денег у игрока
             if (!TradingEconomyManager.Instance.CanPlayerAfford(totalPrice))
@@ -49,12 +49,12 @@ namespace DragAndDropSystem.Examples.Trading
         /// </summary>
         protected bool TryHandlePurchaseFromMerchant(InventoryItemEventContext context)
         {
-            if (context.SourceInventory?.DataBinding is not MerchantInventoryDataBinding)
+            if (context.SourceInventory?.DataBinding is not IMerchantInventory)
                 return false;
 
-            if (context.Item is TradableSoAdapter adapter)
+            if (context.Item is ITradableItem tradable)
             {
-                int totalPrice = adapter.BuyPrice * context.Count;
+                int totalPrice = tradable.BuyPrice * context.Count;
                 PlayerData.TrySpendMoney(totalPrice);
                 return true;
             }
@@ -68,12 +68,12 @@ namespace DragAndDropSystem.Examples.Trading
         /// </summary>
         protected bool TryHandleSellToMerchant(InventoryItemEventContext context)
         {
-            if (context.TargetInventory?.DataBinding is not MerchantInventoryDataBinding)
+            if (context.TargetInventory?.DataBinding is not IMerchantInventory)
                 return false;
 
-            if (context.Item is TradableItemModelAdapter adapter)
+            if (context.Item is ITradableItem tradable)
             {
-                int totalPrice = adapter.SellPrice * context.Count;
+                int totalPrice = tradable.SellPrice * context.Count;
                 PlayerData.AddMoney(totalPrice);
                 return true;
             }
@@ -85,9 +85,9 @@ namespace DragAndDropSystem.Examples.Trading
         /// Конвертирует SO адаптер в Model адаптер и заменяет в слоте
         /// Это важно, чтобы в UI игрока/экипировки всегда были Model адаптеры
         /// </summary>
-        protected TradableItemModel ConvertAndReplaceSOAdapter(ISlot slot, TradableSoAdapter soAdapter)
+        protected TradableItemModel ConvertToModelAdapter(ISlot slot, ITradableItem tradable)
         {
-            var itemModel = new TradableItemModel(soAdapter.Item);
+            var itemModel = new TradableItemModel(tradable.OriginalSO);
             var modelAdapter = new TradableItemModelAdapter(itemModel);
             slot.ReplaceItem(modelAdapter);
             return itemModel;

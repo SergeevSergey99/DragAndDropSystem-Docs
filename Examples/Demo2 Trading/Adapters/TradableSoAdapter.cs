@@ -8,9 +8,10 @@ namespace DragAndDropSystem.Examples.Trading
     /// Адаптер для TradableItemSO, реализующий интерфейс IInventoryItem
     /// Используется для интеграции торговых предметов с системой drag and drop
     /// </summary>
-    public class TradableSoAdapter : IInventoryItem, IDescribable
+    public class TradableSoAdapter : IInventoryItem, IDescribable, ITradableItem
     {
         public TradableItemSO Item { get; }
+        public TradableItemSO OriginalSO => Item;
 
         public TradableSoAdapter(TradableItemSO item)
         {

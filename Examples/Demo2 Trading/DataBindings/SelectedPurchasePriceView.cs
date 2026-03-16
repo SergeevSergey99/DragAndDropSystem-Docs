@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Examples.Trading
             foreach (var inventoryEntry in context.ByInventory)
             {
                 var inventory = inventoryEntry.Key;
-                if (inventory == null || !(inventory.DataBinding is MerchantInventoryDataBinding))
+                if (inventory == null || inventory.DataBinding is not IMerchantInventory)
                     continue;
 
                 var selectedSlots = inventoryEntry.Value;
@@ -68,13 +68,9 @@ namespace DragAndDropSystem.Examples.Trading
                 return 0;
 
             int unitPrice = 0;
-            if (slot.Stack.Item is TradableSoAdapter soAdapter)
+            if (slot.Stack.Item is ITradableItem tradable)
             {
-                unitPrice = soAdapter.BuyPrice;
-            }
-            else if (slot.Stack.Item is TradableItemModelAdapter modelAdapter)
-            {
-                unitPrice = modelAdapter.BuyPrice;
+                unitPrice = tradable.BuyPrice;
             }
 
             if (unitPrice <= 0)

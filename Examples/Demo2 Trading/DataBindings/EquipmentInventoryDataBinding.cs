@@ -46,11 +46,8 @@ namespace DragAndDropSystem.Examples.Trading
                 return RuleResult.Success();
             }
 
-            // Поддерживаем оба типа адаптеров: от игрока (Model) и от торговца (SO)
-            TradableItemModelAdapter modelAdapter = entry.Stack.Item as TradableItemModelAdapter;
-            TradableSoAdapter soAdapter = entry.Stack.Item as TradableSoAdapter;
-
-            if (modelAdapter == null && soAdapter == null)
+            // Проверяем что предмет торговый
+            if (entry.Stack.Item is not ITradableItem tradable)
             {
                 return RuleResult.Failure("Неверный тип предмета");
             }
@@ -63,7 +60,7 @@ namespace DragAndDropSystem.Examples.Trading
             }
 
             // Определяем тип предмета для проверки соответствия слоту
-            ItemType itemType = modelAdapter?.ItemType ?? soAdapter.ItemType;
+            ItemType itemType = tradable.ItemType;
             var targetSlot = context.TargetSlot;
 
             // Проверяем соответствие типа предмета слоту
@@ -106,13 +103,9 @@ namespace DragAndDropSystem.Examples.Trading
         /// </summary>
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            // Пытаемся получить адаптер правильного типа
-            TradableItemModelAdapter modelAdapter = context.Item as TradableItemModelAdapter;
-            TradableSoAdapter soAdapter = context.Item as TradableSoAdapter;
-
-            if (modelAdapter == null && soAdapter == null)
+            if (context.Item is not ITradableItem tradable)
             {
-                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Cannot equip - item is not TradableItemAdapter");
+                Extentions.DragAndDropLog($"[EquipmentInventoryDataBinding] Cannot equip - item is not ITradableItem");
                 return;
             }
 
@@ -122,15 +115,14 @@ namespace DragAndDropSystem.Examples.Trading
             var slot = context.TargetSlot;
             TradableItemModel item;
 
-            // Получаем модель предмета
-            if (modelAdapter != null)
+            // Получаем модель предмета или конвертируем из SO
+            if (context.Item is TradableItemModelAdapter modelAdapter)
             {
                 item = modelAdapter.Item;
             }
-            else // soAdapter != null
+            else
             {
-                // Конвертируем SO адаптер в Model адаптер
-                item = ConvertAndReplaceSOAdapter(context.TargetSlot, soAdapter);
+                item = ConvertToModelAdapter(context.TargetSlot, tradable);
             }
 
             // Экипируем предмет в соответствующий слот
