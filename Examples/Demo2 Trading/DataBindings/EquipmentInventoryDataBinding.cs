@@ -184,41 +184,32 @@ namespace DragAndDropSystem.Examples.Trading
         /// <summary>
         /// Синхронизация UI с данными экипировки из PlayerData
         /// </summary>
-        public override void ReloadUI()
+        protected override void OnReloadUI()
         {
-            if (_inventory == null || PlayerData == null) return;
+            if (PlayerData == null) return;
 
-            using (BeginSync())
+            if (PlayerData.EquippedWeapon != null)
             {
-                _inventory.ClearAll();
+                var adapter = new TradableItemModelAdapter(PlayerData.EquippedWeapon);
+                AddToUIQuiet(adapter, 1, _weaponSlot.Index);
+            }
 
-                // Синхронизируем оружие
-                if (PlayerData.EquippedWeapon != null)
-                {
-                    var adapter = new TradableItemModelAdapter(PlayerData.EquippedWeapon);
-                    AddToUIQuiet(adapter, 1, _weaponSlot.Index);
-                }
+            if (PlayerData.EquippedArmor != null)
+            {
+                var adapter = new TradableItemModelAdapter(PlayerData.EquippedArmor);
+                AddToUIQuiet(adapter, 1, _armorSlot.Index);
+            }
 
-                // Синхронизируем броню
-                if (PlayerData.EquippedArmor != null)
-                {
-                    var adapter = new TradableItemModelAdapter(PlayerData.EquippedArmor);
-                    AddToUIQuiet(adapter, 1, _armorSlot.Index);
-                }
+            if (PlayerData.EquippedArtifact1 != null)
+            {
+                var adapter = new TradableItemModelAdapter(PlayerData.EquippedArtifact1);
+                AddToUIQuiet(adapter, 1, _artifact1Slot.Index);
+            }
 
-                // Синхронизируем артефакт 1
-                if (PlayerData.EquippedArtifact1 != null)
-                {
-                    var adapter = new TradableItemModelAdapter(PlayerData.EquippedArtifact1);
-                    AddToUIQuiet(adapter, 1, _artifact1Slot.Index);
-                }
-
-                // Синхронизируем артефакт 2
-                if (PlayerData.EquippedArtifact2 != null)
-                {
-                    var adapter = new TradableItemModelAdapter(PlayerData.EquippedArtifact2);
-                    AddToUIQuiet(adapter, 1, _artifact2Slot.Index);
-                }
+            if (PlayerData.EquippedArtifact2 != null)
+            {
+                var adapter = new TradableItemModelAdapter(PlayerData.EquippedArtifact2);
+                AddToUIQuiet(adapter, 1, _artifact2Slot.Index);
             }
         }
 

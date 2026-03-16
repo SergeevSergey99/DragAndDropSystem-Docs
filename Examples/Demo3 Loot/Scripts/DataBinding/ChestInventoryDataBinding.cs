@@ -45,49 +45,27 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// Синхронизация: данные сундука → UI
         /// Вызывается когда открывается сундук или меняются его данные извне
         /// </summary>
-        public override void ReloadUI()
+        protected override void OnReloadUI()
         {
-            if (!Application.isPlaying)
-                return;
-
-            if (_inventory == null)
-            {
-                Debug.LogWarning($"[ChestInventoryDataBinding] Cannot sync - inventory is null");
-                return;
-            }
-
             if (_chest == null)
-            {
-                Debug.LogWarning($"[ChestInventoryDataBinding] Cannot sync - chest is null");
-                ClearUI();
                 return;
-            }
 
             Debug.Log($"[ChestInventoryDataBinding] Syncing chest '{_chest.gameObject.name}' to UI");
 
-            using (BeginSync())
+            var items = _chest.GetItems();
+            if (items == null || items.Count == 0)
+                return;
+
+            foreach (var itemSO in items)
             {
-                _inventory.ClearAll();
+                if (itemSO == null)
+                    continue;
 
-                // Загружаем предметы из сундука
-                var items = _chest.GetItems();
-                if (items != null && items.Count > 0)
-                {
-                    foreach (var itemSO in items)
-                    {
-                        if (itemSO == null)
-                            continue;
-
-                        // Создаем адаптер для предмета
-                        IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
-
-                        // Добавляем в UI
-                        AddToUIQuiet(itemAdapter, 1);
-                    }
-
-                    Debug.Log($"[ChestInventoryDataBinding] Loaded {items.Count} items from chest to UI");
-                }
+                IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
+                AddToUIQuiet(itemAdapter, 1);
             }
+
+            Debug.Log($"[ChestInventoryDataBinding] Loaded {items.Count} items from chest to UI");
         }
 
         /// <summary>

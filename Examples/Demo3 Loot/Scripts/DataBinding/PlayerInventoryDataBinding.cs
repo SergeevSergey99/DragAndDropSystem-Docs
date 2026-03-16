@@ -21,32 +21,23 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         /// Синхронизация: данные игрока → UI
         /// Восстанавливает предметы в тех же слотах, где они были
         /// </summary>
-        public override void ReloadUI()
+        protected override void OnReloadUI()
         {
-            using (BeginSync())
+            var slots = _playerData.Slots;
+            int loadedCount = 0;
+
+            for (int i = 0; i < slots.Count; i++)
             {
-                _inventory.ClearAll();
+                var itemSO = slots[i];
+                if (itemSO == null)
+                    continue;
 
-                // Загружаем предметы в соответствующие слоты
-                var slots = _playerData.Slots;
-                int loadedCount = 0;
-
-                for (int i = 0; i < slots.Count; i++)
-                {
-                    var itemSO = slots[i];
-                    if (itemSO == null)
-                        continue;
-
-                    // Создаем адаптер для предмета
-                    IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
-
-                    // Добавляем в конкретный слот UI
-                    AddToUIQuiet(itemAdapter, 1, i);
-                    loadedCount++;
-                }
-
-                Debug.Log($"[PlayerInventoryDataBinding] Loaded {loadedCount} items from player data to UI");
+                IInventoryItem itemAdapter = new ItemSOWith3DAdapter(itemSO);
+                AddToUIQuiet(itemAdapter, 1, i);
+                loadedCount++;
             }
+
+            Debug.Log($"[PlayerInventoryDataBinding] Loaded {loadedCount} items from player data to UI");
         }
 
         /// <summary>

@@ -231,10 +231,26 @@ namespace DragAndDropSystem.DataBinding
         protected abstract void OnItemRemovedFromUI(InventoryItemEventContext context);
 
         /// <summary>
-        /// Синхронизировать UI с внешними данными
-        /// Читает данные из GameManager и обновляет UI
+        /// Синхронизировать UI с внешними данными.
+        /// Очищает UI и вызывает OnReloadUI() внутри sync scope.
         /// </summary>
-        public abstract void ReloadUI();
+        public void ReloadUI()
+        {
+            if (!Application.isPlaying || _inventory == null) return;
+
+            using (BeginSync())
+            {
+                _inventory.ClearAll();
+                OnReloadUI();
+            }
+        }
+
+        /// <summary>
+        /// Заполнить UI данными из внешнего источника.
+        /// Вызывается внутри sync scope — события подавлены, UI уже очищен.
+        /// Используйте AddToUIQuiet() для добавления предметов.
+        /// </summary>
+        protected abstract void OnReloadUI();
 
         #endregion
 

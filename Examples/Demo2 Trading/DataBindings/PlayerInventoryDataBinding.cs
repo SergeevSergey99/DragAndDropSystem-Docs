@@ -80,25 +80,20 @@ namespace DragAndDropSystem.Examples.Trading
             }
         }
 
-        public override void ReloadUI()
+        protected override void OnReloadUI()
         {
-            if (_inventory == null || PlayerData == null) return;
+            if (PlayerData == null) return;
 
-            using (BeginSync())
+            foreach (var itemModel in PlayerData.Inventory)
             {
-                _inventory.ClearAll();
+                if (itemModel.originalSO == null)
+                    continue;
 
-                foreach (var itemModel in PlayerData.Inventory)
-                {
-                    if (itemModel.originalSO == null)
-                        continue;
-
-                    var adapter = new TradableItemModelAdapter(itemModel);
-                    AddToUIQuiet(adapter, 1);
-                }
-
-                UpdateMoneyUI();
+                var adapter = new TradableItemModelAdapter(itemModel);
+                AddToUIQuiet(adapter, 1);
             }
+
+            UpdateMoneyUI();
         }
 
         /// <summary>

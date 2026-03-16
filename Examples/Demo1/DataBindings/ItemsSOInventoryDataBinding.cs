@@ -48,31 +48,17 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
             }
         }
 
-        public override void ReloadUI()
+        protected override void OnReloadUI()
         {
-            if (Application.isPlaying == false)
-                return;
-
-            if (_inventory == null)
-            {
-                Debug.LogWarning($"[{GetType().Name}] Cannot sync - inventory is null");
-                return;
-            }
-
-            _inventory.ClearAll();
-
             if (items == null || items.Count == 0)
                 return;
 
             foreach (var itemSO in items)
             {
-                // Пропускаем null элементы
                 if (itemSO == null)
                     continue;
 
-                // Автоматический выбор правильного адаптера
                 IInventoryItem itemAdapter = new ItemSOAdapter(itemSO);
-
                 AddToUIQuiet(itemAdapter, 1);
             }
         }
