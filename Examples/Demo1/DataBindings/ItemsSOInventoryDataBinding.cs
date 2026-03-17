@@ -14,7 +14,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
     ///
     /// ПРИМЕР: Демонстрирует использование правил инвентаря и переопределение методов проверки переноса
     /// </summary>
-    public class ItemsSOInventoryDataBinding : InventoryDataBindingBase
+    public class ItemsSOInventoryDataBinding : ListInventoryDataBinding<ItemExampleSO, ItemSOAdapter>
     {
         [FoldoutGroup("Data")]
         [SerializeField]
@@ -30,38 +30,11 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         [SerializeField, Tooltip("Пример: запретить сброс предметов в этот инвентарь")]
         private bool _preventDropToInventory = false;
 
-        protected override void OnItemAddedToUI(InventoryItemEventContext context)
-        {
-            if (context.Item is ItemSOAdapter adapter)
-            {
-                var itemSO = adapter.item;
-                items.Add(itemSO);
-            }
-        }
-
-        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
-        {
-            if (context.Item is ItemSOAdapter adapter)
-            {
-                var itemSO = adapter.item;
-                items.Remove(itemSO);
-            }
-        }
-
-        protected override void OnReloadUI()
-        {
-            if (items == null || items.Count == 0)
-                return;
-
-            foreach (var itemSO in items)
-            {
-                if (itemSO == null)
-                    continue;
-
-                IInventoryItem itemAdapter = new ItemSOAdapter(itemSO);
-                AddToUIQuiet(itemAdapter, 1);
-            }
-        }
+        protected override IReadOnlyList<ItemExampleSO> GetItems() => items;
+        protected override ItemSOAdapter CreateAdapter(ItemExampleSO item) => new ItemSOAdapter(item);
+        protected override ItemExampleSO ExtractData(ItemSOAdapter adapter) => adapter.item;
+        protected override void AddToData(ItemExampleSO item) => items.Add(item);
+        protected override void RemoveFromData(ItemExampleSO item) => items.Remove(item);
 
         #region Custom Validation Examples
 
