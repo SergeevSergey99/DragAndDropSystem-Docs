@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
+using DragAndDropSystem.Rules;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
@@ -28,5 +30,21 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         protected override ItemExampleWith3DSO ExtractData(ItemSOWith3DAdapter adapter) => adapter.item;
         protected override void AddToSlotData(int index, ItemExampleWith3DSO item, int count) => _playerData.SetItem(index, item);
         protected override void RemoveFromSlotData(int index, ItemExampleWith3DSO item, int count) => _playerData.ClearSlot(index);
+        
+        // Дополнительно запрещаем класть в слот в любом режиме инвентаря
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+        {
+            // Получаем индекс слота, на который пытаются сбросить предмет
+            int targetIndex = context.TargetSlot.Index;
+
+            // Проверяем, занят ли этот слот
+            if (_playerData.GetItem(targetIndex) != null)
+            {
+                return RuleResult.Failure("Этот слот уже занят!");
+            }
+
+            // Если слот свободен, разрешаем сброс
+            return RuleResult.Success();
+        }
     }
 }
