@@ -373,14 +373,28 @@ namespace DragAndDropSystem.Inventories
 
         bool TryConvertIncomingItem(ItemStack stack)
         {
-            // Конвертируем входящий предмет через DataBinding (если задан)
             if (DataBinding != null)
             {
                 var converted = DataBinding.ConvertIncomingItem(stack.Item);
-                
+
                 if (converted == null)
                     return false;
-                
+
+                if (!ReferenceEquals(converted, stack.Item))
+                    stack.ReplaceItem(converted);
+            }
+            return true;
+        }
+
+        internal bool TryConvertOutgoingItem(ItemStack stack)
+        {
+            if (DataBinding != null)
+            {
+                var converted = DataBinding.ConvertOutgoingItem(stack.Item);
+
+                if (converted == null)
+                    return false;
+
                 if (!ReferenceEquals(converted, stack.Item))
                     stack.ReplaceItem(converted);
             }
@@ -920,6 +934,10 @@ namespace DragAndDropSystem.Inventories
             SlotOperationContext operationContext = null)
         {
             if (stack == null || stack.IsEmpty || targetSlot == null)
+                return false;
+
+            // Цепочка конвертации: source.ConvertOutgoing → target.ConvertIncoming
+            if (sourceInventory is UniversalInventory srcInv && !srcInv.TryConvertOutgoingItem(stack))
                 return false;
 
             if (!TryConvertIncomingItem(stack))

@@ -284,6 +284,15 @@ namespace DragAndDropSystem.DataBinding
         internal virtual IInventoryItem ConvertIncomingItem(IInventoryItem item) => item;
 
         /// <summary>
+        /// Конвертировать исходящий предмет перед передачей в целевой инвентарь.
+        /// Вызывается автоматически при TryAddToSlot на стороне источника.
+        /// Цепочка: source.ConvertOutgoing → target.ConvertIncoming.
+        /// По умолчанию возвращает адаптер без изменений.
+        /// Верните null чтобы отменить удаление.
+        /// </summary>
+        internal virtual IInventoryItem ConvertOutgoingItem(IInventoryItem item) => item;
+
+        /// <summary>
         /// Проверить, можно ли начать перетаскивание из этого инвентаря
         /// Переопределите этот метод для добавления кастомной логики проверки
         /// </summary>
