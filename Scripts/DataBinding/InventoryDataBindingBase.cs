@@ -107,10 +107,9 @@ namespace DragAndDropSystem.DataBinding
             {
                 _inventory.OnItemAdded += OnInventoryItemAdded;
                 _inventory.OnItemRemoved += OnInventoryItemRemoved;
+                _inventory.OnSwapAttempting += HandleSwapAttempting;
+                _inventory.OnSwapCompleted += HandleSwapCompleted;
             }
-
-            // Подписываемся на события swap от DragAndDropManager
-            SubscribeToSwapEvents();
 
             ReloadUI();
         }
@@ -121,47 +120,19 @@ namespace DragAndDropSystem.DataBinding
             {
                 _inventory.OnItemAdded -= OnInventoryItemAdded;
                 _inventory.OnItemRemoved -= OnInventoryItemRemoved;
+                _inventory.OnSwapAttempting -= HandleSwapAttempting;
+                _inventory.OnSwapCompleted -= HandleSwapCompleted;
             }
-
-            // Отписываемся от событий swap
-            UnsubscribeFromSwapEvents();
         }
 
         /// <summary>
-        /// Подписаться на события swap от DragAndDropManager
-        /// </summary>
-        private void SubscribeToSwapEvents()
-        {
-            DragAndDropManager.OnSwapAttempting += HandleSwapAttempting;
-            DragAndDropManager.OnSwapCompleted += HandleSwapCompleted;
-        }
-
-        /// <summary>
-        /// Отписаться от событий swap
-        /// </summary>
-        private void UnsubscribeFromSwapEvents()
-        {
-            DragAndDropManager.OnSwapAttempting -= HandleSwapAttempting;
-            DragAndDropManager.OnSwapCompleted -= HandleSwapCompleted;
-        }
-
-        /// <summary>
-        /// Обработчик события попытки swap
-        /// Вызывает CanSwap если swap затрагивает этот инвентарь
+        /// Обработчик события попытки swap (inventory-scoped — фильтрация не нужна)
         /// </summary>
         private void HandleSwapAttempting(InventorySwapContext context)
         {
             if (context.Cancel)
                 return;
 
-            // Проверяем участвует ли наш инвентарь в swap
-            bool isSourceInventory = ReferenceEquals(context.SourceInventory, _inventory);
-            bool isTargetInventory = ReferenceEquals(context.TargetInventory, _inventory);
-
-            if (!isSourceInventory && !isTargetInventory)
-                return;
-
-            // Вызываем кастомную валидацию
             var result = CanSwap(context);
             if (!result.IsValid)
             {
@@ -171,19 +142,10 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Обработчик события успешного swap
-        /// Вызывает OnSwapCompleted если swap затрагивает этот инвентарь
+        /// Обработчик события успешного swap (inventory-scoped — фильтрация не нужна)
         /// </summary>
         private void HandleSwapCompleted(InventorySwapContext context)
         {
-            // Проверяем участвует ли наш инвентарь в swap
-            bool isSourceInventory = ReferenceEquals(context.SourceInventory, _inventory);
-            bool isTargetInventory = ReferenceEquals(context.TargetInventory, _inventory);
-
-            if (!isSourceInventory && !isTargetInventory)
-                return;
-
-            // Вызываем кастомную обработку
             OnSwapCompleted(context);
         }
 

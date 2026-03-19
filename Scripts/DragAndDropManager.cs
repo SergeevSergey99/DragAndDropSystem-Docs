@@ -551,12 +551,31 @@ namespace DragAndDropSystem
 
         public bool RaiseSwapAttempting(InventorySwapContext context)
         {
+            // Inventory-scoped events (specific) — fire on both participating inventories
+            var source = context.SourceInventory as UniversalInventory;
+            var target = context.TargetInventory as UniversalInventory;
+
+            source?.EmitSwapAttempting(context);
+            if (target != null && !ReferenceEquals(target, source))
+                target.EmitSwapAttempting(context);
+
+            // Global event (general)
             OnSwapAttempting?.Invoke(context);
+
             return context != null && !context.Cancel;
         }
 
         public void RaiseSwapCompleted(InventorySwapContext context)
         {
+            // Inventory-scoped events (specific)
+            var source = context.SourceInventory as UniversalInventory;
+            var target = context.TargetInventory as UniversalInventory;
+
+            source?.EmitSwapCompleted(context);
+            if (target != null && !ReferenceEquals(target, source))
+                target.EmitSwapCompleted(context);
+
+            // Global event (general)
             OnSwapCompleted?.Invoke(context);
         }
     }

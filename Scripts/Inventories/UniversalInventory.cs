@@ -131,6 +131,17 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         public event Action<InventoryItemEventContext> OnItemRemoved;
 
+        /// <summary>
+        /// Событие попытки обмена предметов, затрагивающего этот инвентарь.
+        /// Подписчик может отменить swap через context.Cancel = true.
+        /// </summary>
+        public event Action<InventorySwapContext> OnSwapAttempting;
+
+        /// <summary>
+        /// Событие успешного обмена предметов, затрагивающего этот инвентарь.
+        /// </summary>
+        public event Action<InventorySwapContext> OnSwapCompleted;
+
         internal void EmitItemAdded(IInventoryItem item, int count, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
         {
             OnItemAdded?.Invoke(new InventoryItemEventContext(
@@ -153,6 +164,16 @@ namespace DragAndDropSystem.Inventories
                 targetInventory,
                 sourceSlot,
                 targetSlot));
+        }
+
+        internal void EmitSwapAttempting(InventorySwapContext context)
+        {
+            OnSwapAttempting?.Invoke(context);
+        }
+
+        internal void EmitSwapCompleted(InventorySwapContext context)
+        {
+            OnSwapCompleted?.Invoke(context);
         }
 
         public enum ItemBehaviorType
