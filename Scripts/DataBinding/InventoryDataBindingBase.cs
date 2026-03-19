@@ -275,6 +275,15 @@ namespace DragAndDropSystem.DataBinding
         #region Virtual Methods for Transfer Validation
 
         /// <summary>
+        /// Конвертировать входящий предмет перед размещением в инвентаре.
+        /// Вызывается автоматически при TryAddStack/TryAddToSlot.
+        /// Переопределите для замены адаптеров (например, SO → Model при торговле).
+        /// По умолчанию возвращает адаптер без изменений.
+        /// Верните null чтобы отменить добавление.
+        /// </summary>
+        internal virtual IInventoryItem ConvertIncomingItem(IInventoryItem item) => item;
+
+        /// <summary>
         /// Проверить, можно ли начать перетаскивание из этого инвентаря
         /// Переопределите этот метод для добавления кастомной логики проверки
         /// </summary>

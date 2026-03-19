@@ -371,9 +371,27 @@ namespace DragAndDropSystem.Inventories
             return TryAddStack(stack, targetSlotIndex);
         }
 
+        bool TryConvertIncomingItem(ItemStack stack)
+        {
+            // Конвертируем входящий предмет через DataBinding (если задан)
+            if (DataBinding != null)
+            {
+                var converted = DataBinding.ConvertIncomingItem(stack.Item);
+                
+                if (converted == null)
+                    return false;
+                
+                if (!ReferenceEquals(converted, stack.Item))
+                    stack.ReplaceItem(converted);
+            }
+            return true;
+        }
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
         {
             if (stack == null || stack.IsEmpty)
+                return false;
+
+            if (!TryConvertIncomingItem(stack))
                 return false;
 
             // Ленивая инициализация на случай если TryAddStack вызван до Awake
@@ -902,6 +920,9 @@ namespace DragAndDropSystem.Inventories
             SlotOperationContext operationContext = null)
         {
             if (stack == null || stack.IsEmpty || targetSlot == null)
+                return false;
+
+            if (!TryConvertIncomingItem(stack))
                 return false;
 
             bool raiseEvents = operationContext == null || !operationContext.SuppressEvents;
