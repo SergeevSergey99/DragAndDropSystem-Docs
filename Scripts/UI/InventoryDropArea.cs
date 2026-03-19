@@ -38,8 +38,9 @@ namespace DragAndDropSystem.UI
 
         public UniversalInventory Inventory => _inventory;
 
-        private void OnValidate()
+        protected override void OnValidate()
         {
+            base.OnValidate();
             // Автоматически находим инвентарь на этом объекте или родителе
             if (_inventory == null)
             {

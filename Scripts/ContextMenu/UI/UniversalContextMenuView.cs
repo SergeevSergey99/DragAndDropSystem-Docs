@@ -53,7 +53,7 @@ namespace DragAndDropSystem.ContextMenu.UI
                 label.text = ctx.Slot.Stack.Item.DisplayName;
                 label.gameObject.SetActive(true);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 label.gameObject.SetActive(false);
             }
