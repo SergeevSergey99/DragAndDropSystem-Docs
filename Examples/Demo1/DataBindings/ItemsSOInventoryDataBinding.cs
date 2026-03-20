@@ -33,8 +33,8 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         protected override IReadOnlyList<ItemExampleSO> GetItems() => items;
         protected override ItemSOAdapter CreateAdapter(ItemExampleSO item) => new ItemSOAdapter(item);
         protected override ItemExampleSO ExtractData(ItemSOAdapter adapter) => adapter.item;
-        protected override void AddToData(ItemExampleSO item) => items.Add(item);
-        protected override void RemoveFromData(ItemExampleSO item) => items.Remove(item);
+        protected override void AddToData(InventoryItemEventContext context, ItemExampleSO item) => items.Add(item);
+        protected override void RemoveFromData(InventoryItemEventContext context, ItemExampleSO item) => items.Remove(item);
 
         #region Custom Validation Examples
 

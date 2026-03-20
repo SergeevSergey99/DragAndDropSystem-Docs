@@ -35,17 +35,18 @@ namespace DragAndDropSystem.Examples.Trading
         protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
         protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
-        protected override void AddToData(TradableItemModel item) => PlayerData.AddItem(item);
-        protected override void RemoveFromData(TradableItemModel item) => PlayerData.TryRemoveItem(item);
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
 
-        // --- Конвертация: SO-адаптер торговца → Model-адаптер игрока ---
-
-        internal override IInventoryItem ConvertIncomingItem(IInventoryItem item)
+        protected override void AddToData(InventoryItemEventContext context, TradableItemModel item)
         {
-            if (item is TradableItemModelAdapter) return item;
-            if (item is ITradableItem tradable)
-                return new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
-            return item;
+            if (TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData))
+                PlayerData.AddItem(item);
+        }
+
+        protected override void RemoveFromData(InventoryItemEventContext context, TradableItemModel item)
+        {
+            if (TradingHelper.TryHandleSellToMerchant(context, PlayerData))
+                PlayerData.TryRemoveItem(item);
         }
 
         // --- Lifecycle ---
@@ -65,29 +66,10 @@ namespace DragAndDropSystem.Examples.Trading
                 PlayerData.OnMoneyChanged -= UpdateMoneyUI;
         }
 
-        // --- Торговая логика поверх базовой синхронизации ---
-
-        protected override void OnItemAddedToUI(InventoryItemEventContext context)
-        {
-            TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData);
-            base.OnItemAddedToUI(context);
-        }
-
-        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
-        {
-            TradingHelper.TryHandleSellToMerchant(context, PlayerData);
-            base.OnItemRemovedFromUI(context);
-        }
-
         protected override void OnReloadUI()
         {
             base.OnReloadUI();
             UpdateMoneyUI();
-        }
-
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
-        {
-            return TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
         }
 
         private void UpdateMoneyUI()
@@ -95,5 +77,15 @@ namespace DragAndDropSystem.Examples.Trading
             if (_moneyText != null && PlayerData != null)
                 _moneyText.text = $"{_moneyPrefix}{PlayerData.Money}{_moneySuffix}";
         }
+        
+        // --- Конвертация: SO-адаптер торговца → Model-адаптер игрока ---
+        internal override IInventoryItem ConvertIncomingItem(IInventoryItem item)
+        {
+            if (item is TradableItemModelAdapter) return item;
+            if (item is ITradableItem tradable)
+                return new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
+            return item;
+        }
+
     }
 }

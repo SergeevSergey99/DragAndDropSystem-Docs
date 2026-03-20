@@ -51,13 +51,13 @@ namespace DragAndDropSystem.DataBinding
         /// Добавить элемент во внешний источник данных.
         /// Вызывается когда предмет добавлен в UI через drag&amp;drop.
         /// </summary>
-        protected abstract void AddToData(TData item);
+        protected abstract void AddToData(InventoryItemEventContext context, TData item);
 
         /// <summary>
         /// Удалить элемент из внешнего источника данных.
         /// Вызывается когда предмет удалён из UI через drag&amp;drop.
         /// </summary>
-        protected abstract void RemoveFromData(TData item);
+        protected abstract void RemoveFromData(InventoryItemEventContext context, TData item);
 
         protected override void OnReloadUI()
         {
@@ -79,7 +79,7 @@ namespace DragAndDropSystem.DataBinding
 
             var data = ExtractData(adapter);
             if (data != null)
-                AddToData(data);
+                AddToData(context, data);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
@@ -88,7 +88,7 @@ namespace DragAndDropSystem.DataBinding
 
             var data = ExtractData(adapter);
             if (data != null)
-                RemoveFromData(data);
+                RemoveFromData(context, data);
         }
     }
 }
