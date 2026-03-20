@@ -146,7 +146,7 @@ namespace DragAndDropSystem.Inventories
             var transferStack = new ItemStack(stackItem, transferAmount);
             sourceSlot.UpdateVisuals();
 
-            var operationContext = new SlotOperationContext { SuppressEvents = true };
+            var operationContext = new SlotOperationContext();
 
             bool added = TryAddToTargetInventory(
                 targetInventory,

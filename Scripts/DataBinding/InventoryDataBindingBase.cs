@@ -105,8 +105,6 @@ namespace DragAndDropSystem.DataBinding
         {
             if (_inventory != null)
             {
-                _inventory.OnItemAdded += OnInventoryItemAdded;
-                _inventory.OnItemRemoved += OnInventoryItemRemoved;
                 _inventory.OnSwapAttempting += HandleSwapAttempting;
                 _inventory.OnSwapCompleted += HandleSwapCompleted;
             }
@@ -118,8 +116,6 @@ namespace DragAndDropSystem.DataBinding
         {
             if (_inventory != null)
             {
-                _inventory.OnItemAdded -= OnInventoryItemAdded;
-                _inventory.OnItemRemoved -= OnInventoryItemRemoved;
                 _inventory.OnSwapAttempting -= HandleSwapAttempting;
                 _inventory.OnSwapCompleted -= HandleSwapCompleted;
             }
@@ -149,12 +145,10 @@ namespace DragAndDropSystem.DataBinding
             OnSwapCompleted(context);
         }
 
-        #region Inventory Events
-
         /// <summary>
-        /// Обработчик события добавления предмета в инвентарь
+        /// Вызывается напрямую из UniversalInventory при добавлении предмета.
         /// </summary>
-        private void OnInventoryItemAdded(InventoryItemEventContext context)
+        internal void HandleItemAdded(InventoryItemEventContext context)
         {
             if (IsSyncing) return;
 
@@ -163,18 +157,15 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Обработчик события удаления предмета из инвентаря
+        /// Вызывается напрямую из UniversalInventory при удалении предмета.
         /// </summary>
-        private void OnInventoryItemRemoved(InventoryItemEventContext context)
+        internal void HandleItemRemoved(InventoryItemEventContext context)
         {
             if (IsSyncing) return;
 
             Extentions.DragAndDropLog($"[{GetType().Name}] Item removed: {context.Item.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
-
             OnItemRemovedFromUI(context);
         }
-
-        #endregion
 
         #region Abstract Methods
 

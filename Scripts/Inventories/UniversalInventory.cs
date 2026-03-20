@@ -144,26 +144,20 @@ namespace DragAndDropSystem.Inventories
 
         internal void EmitItemAdded(IInventoryItem item, int count, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
         {
-            OnItemAdded?.Invoke(new InventoryItemEventContext(
-                item,
-                count,
-                slotIndex,
-                sourceInventory,
-                this,
-                sourceSlot,
-                targetSlot));
+            var context = new InventoryItemEventContext(
+                item, count, slotIndex, sourceInventory, this, sourceSlot, targetSlot);
+
+            DataBinding?.HandleItemAdded(context);
+            OnItemAdded?.Invoke(context);
         }
 
         internal void EmitItemRemoved(IInventoryItem item, int count, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
         {
-            OnItemRemoved?.Invoke(new InventoryItemEventContext(
-                item,
-                count,
-                slotIndex,
-                this,
-                targetInventory,
-                sourceSlot,
-                targetSlot));
+            var context = new InventoryItemEventContext(
+                item, count, slotIndex, this, targetInventory, sourceSlot, targetSlot);
+
+            DataBinding?.HandleItemRemoved(context);
+            OnItemRemoved?.Invoke(context);
         }
 
         internal void EmitSwapAttempting(InventorySwapContext context)
@@ -943,21 +937,6 @@ namespace DragAndDropSystem.Inventories
             if (!TryConvertIncomingItem(stack))
                 return false;
 
-            bool raiseEvents = operationContext == null || !operationContext.SuppressEvents;
-
-            // Копируем данные ДО модификации для событий
-            var itemForEvent = stack.Item;
-            var countForEvent = stack.Count;
-            var targetSlotIndexForEvent = targetSlot.Index;
-            var sourceSlotIndexForEvent = sourceSlotIndex;
-
-            // Получаем ссылку на исходный слот для событий
-            ISlot sourceSlotForEvent = null;
-            if (sourceInventory != null && sourceSlotIndex >= 0)
-            {
-                sourceSlotForEvent = sourceInventory.GetSlot(sourceSlotIndex);
-            }
-
             // Если целевой слот не пустой - пытаемся объединить
             if (!targetSlot.IsEmpty)
             {
@@ -988,23 +967,8 @@ namespace DragAndDropSystem.Inventories
 
                     Extentions.DragAndDropLog($"<color=green>[{name}] Merged {added} items into slot {targetSlot.Index}</color>");
 
-                    if (raiseEvents && added > 0)
-                    {
-                        // Генерируем событие удаления в исходном инвентаре (сначала)
-                        if (sourceInventory is UniversalInventory srcUniversal)
-                        {
-                            srcUniversal.EmitItemRemoved(itemForEvent, added, sourceSlotIndexForEvent, this, sourceSlotForEvent, targetSlot);
-                        }
-
-                        // Генерируем событие добавления в целевой инвентарь (потом)
-                        EmitItemAdded(itemForEvent, added, targetSlotIndexForEvent, sourceInventory, sourceSlotForEvent, targetSlot);
-                    }
-
-                    // После добавления обеспечиваем минимум свободных слотов (для Dynamic)
                     if (added > 0)
-                    {
                         EnsureFreeSlots();
-                    }
 
                     return added > 0;
                 }
@@ -1026,36 +990,20 @@ namespace DragAndDropSystem.Inventories
                     }
                 }
 
-                    if (existingSlot != null)
-                    {
-                        Extentions.DragAndDropLog($"<color=green>[{name}] Auto-merging with existing stack in slot {existingSlot.Index}</color>");
+                if (existingSlot != null)
+                {
+                    Extentions.DragAndDropLog($"<color=green>[{name}] Auto-merging with existing stack in slot {existingSlot.Index}</color>");
 
-                        // Добавляем к существующему стаку
-                        int countBefore = stack.Count;
-                        existingSlot.Stack.AddToStack(stack.Count);
-                        int added = countBefore;
-                        stack.RemoveFromStack(added);
-                        existingSlot.UpdateVisuals();
+                    int countBefore = stack.Count;
+                    existingSlot.Stack.AddToStack(stack.Count);
+                    int added = countBefore;
+                    stack.RemoveFromStack(added);
+                    existingSlot.UpdateVisuals();
 
-                        operationContext?.RecordResult(existingSlot, false, added);
+                    operationContext?.RecordResult(existingSlot, false, added);
 
-                        if (raiseEvents && added > 0)
-                        {
-                            // Генерируем событие удаления в исходном инвентаре (сначала)
-                            if (sourceInventory is UniversalInventory srcUniversal)
-                            {
-                                srcUniversal.EmitItemRemoved(itemForEvent, countForEvent, sourceSlotIndexForEvent, this, sourceSlotForEvent, existingSlot);
-                            }
-
-                            // Генерируем событие добавления в целевой инвентарь (потом)
-                            EmitItemAdded(itemForEvent, countForEvent, existingSlot.Index, sourceInventory, sourceSlotForEvent, existingSlot);
-                        }
-
-                    // После добавления обеспечиваем минимум свободных слотов (для Dynamic)
                     if (added > 0)
-                    {
                         EnsureFreeSlots();
-                    }
 
                     return added > 0;
                 }
@@ -1074,19 +1022,6 @@ namespace DragAndDropSystem.Inventories
 
             Extentions.DragAndDropLog($"<color=green>[{name}] Added {newStack.Count} items to slot {targetSlot.Index}</color>");
 
-            // Генерируем событие удаления в исходном инвентаре (сначала)
-            if (raiseEvents && sourceInventory is UniversalInventory srcUniversal2)
-            {
-                srcUniversal2.EmitItemRemoved(itemForEvent, countForEvent, sourceSlotIndexForEvent, this, sourceSlotForEvent, targetSlot);
-            }
-
-            // Генерируем событие добавления в целевой инвентарь (потом)
-            if (raiseEvents)
-            {
-                EmitItemAdded(itemForEvent, countForEvent, targetSlotIndexForEvent, sourceInventory, sourceSlotForEvent, targetSlot);
-            }
-
-            // После добавления обеспечиваем минимум свободных слотов (для Dynamic)
             EnsureFreeSlots();
 
             return true;
