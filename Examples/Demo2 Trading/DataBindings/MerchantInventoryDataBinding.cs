@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.Trading.Data;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
-using DragAndDropSystem.Tools;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
 using TMPro;
 using UnityEngine;
@@ -11,13 +11,11 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// DataBinding для инвентаря торговца в системе торговли
-    /// Синхронизирует UI инвентаря с MerchantData в TradingEconomyManager
-    ///
-    /// ПРИМЕР: Демонстрирует работу с централизованной моделью данных, проверку разных условий в CanStartDrag/CanDrop,
-    /// и выполнение транзакций через централизованный менеджер
+    /// DataBinding для инвентаря торговца в системе торговли.
+    /// Использует ListInventoryDataBinding для автоматической синхронизации списка предметов.
+    /// ConvertIncomingItem конвертирует Model-адаптеры игрока в SO-адаптеры торговца.
     /// </summary>
-    public class MerchantInventoryDataBinding : InventoryDataBindingBase, IMerchantInventory
+    public class MerchantInventoryDataBinding : ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>, IMerchantInventory
     {
         [FoldoutGroup("Merchant Settings")]
         [SerializeField, Tooltip("ID торговца (должен совпадать с ID в TradingEconomyManager)")]
@@ -40,97 +38,90 @@ namespace DragAndDropSystem.Examples.Trading
         private string _moneySuffix = "g";
 
         private MerchantData _merchantData;
-        private MerchantData MerchantData
-        {
-            get
-            {
-                if (_merchantData == null)
-                    _merchantData = TradingEconomyManager.Instance.GetMerchant(_merchantId);
-                return _merchantData;
-            }
-        }
+        private MerchantData MerchantData => _merchantData ??= TradingEconomyManager.Instance.GetMerchant(_merchantId);
         private PlayerData PlayerData => TradingEconomyManager.Instance.PlayerData;
+
+        // --- ListInventoryDataBinding примитивы ---
+
+        protected override IReadOnlyList<TradableItemSO> GetItems() => MerchantData?.Inventory;
+        protected override TradableSoAdapter CreateAdapter(TradableItemSO item) => new(item);
+        protected override TradableItemSO ExtractData(TradableSoAdapter adapter) => adapter.Item;
+        protected override void AddToData(TradableItemSO item) => MerchantData.AddItem(item);
+        protected override void RemoveFromData(TradableItemSO item) => MerchantData.TryRemoveItem(item);
+
+        // --- Конвертация: Model-адаптер игрока → SO-адаптер торговца ---
+
+        internal override IInventoryItem ConvertIncomingItem(IInventoryItem item)
+        {
+            if (item is TradableSoAdapter) return item;
+            if (item is ITradableItem tradable)
+                return new TradableSoAdapter(tradable.OriginalSO);
+            return null; // Неизвестный тип предмета, не конвертируем, запрещаем
+        }
+
+        // --- Lifecycle ---
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            
+
             if (MerchantData != null)
             {
                 MerchantData.OnMoneyChanged += UpdateMoneyUI;
                 _merchantNameText.text = MerchantData.DisplayName;
             }
 
-            // Обновляем UI сразу
             UpdateMoneyUI();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            
+
             if (MerchantData != null)
             {
                 MerchantData.OnMoneyChanged -= UpdateMoneyUI;
             }
         }
 
+        // --- Торговая логика поверх базовой синхронизации ---
+
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
             var sourceBinding = context.SourceInventory?.DataBinding;
 
-            // Если предмет пришел не от торговца (т.е. от игрока) - покупаем у него
+            // Если предмет пришел от игрока — торговец платит за выкуп
             if (sourceBinding != null && sourceBinding is not IMerchantInventory
                 && context.Item is ITradableItem tradable)
             {
                 int totalPrice = tradable.SellPrice * context.Count;
                 MerchantData.TrySpendMoney(totalPrice);
-                MerchantData.AddItem(tradable.OriginalSO);
-
-                // Заменяем адаптер модели на адаптер SO в слоте торговца
-                // Это важно, чтобы в UI торговца всегда были SO адаптеры
-                if (context.TargetSlot != null)
-                {
-                    var soAdapter = new TradableSoAdapter(tradable.OriginalSO);
-                    context.TargetSlot.ReplaceItem(soAdapter);
-                }
             }
+
+            base.OnItemAddedToUI(context);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            // Проверяем куда ушел предмет
             var targetBinding = context.TargetInventory?.DataBinding;
 
-            // Если предмет ушел не к торговцу (т.е. к игроку) - продаем ему
+            // Если предмет ушел к игроку — торговец получает деньги за продажу
             if (targetBinding != null && targetBinding is not IMerchantInventory
                 && context.Item is ITradableItem tradable)
             {
                 int totalPrice = tradable.BuyPrice * context.Count;
                 MerchantData.AddMoney(totalPrice);
-                MerchantData.TryRemoveItem(tradable.OriginalSO);
             }
+
+            base.OnItemRemovedFromUI(context);
         }
 
         protected override void OnReloadUI()
         {
-            if (MerchantData == null) return;
-
-            foreach (var itemSo in MerchantData.Inventory)
-            {
-                if (itemSo == null)
-                    continue;
-
-                var adapter = new TradableSoAdapter(itemSo);
-                AddToUIQuiet(adapter, 1);
-            }
-
+            base.OnReloadUI();
             UpdateMoneyUI();
         }
 
-        /// <summary>
-        /// Обновить UI отображения денег
-        /// </summary>
         private void UpdateMoneyUI()
         {
             if (_moneyText != null && MerchantData != null)
@@ -139,63 +130,43 @@ namespace DragAndDropSystem.Examples.Trading
             }
         }
 
+        // --- Правила ---
+
         /// <summary>
-        /// Проверка возможности начать перетаскивание из инвентаря торговца
-        /// Проверяем что у игрока достаточно денег для покупки
+        /// Проверка возможности начать перетаскивание из инвентаря торговца.
+        /// Проверяем что у игрока достаточно денег для покупки.
         /// </summary>
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             if (entry.Stack.Item is not ITradableItem tradable)
-            {
                 return RuleResult.Failure("Неверный тип предмета");
-            }
-
-            // Вычисляем стоимость покупки
+            
             int totalPrice = tradable.BuyPrice * entry.Stack.Count;
 
-            // Проверяем достаточно ли денег у игрока
             if (!TradingEconomyManager.Instance.CanPlayerAfford(totalPrice))
-            {
                 return RuleResult.Failure($"Недостаточно денег! Нужно {totalPrice}g, у вас {PlayerData.Money}g");
-            }
-
+            
             return RuleResult.Success();
         }
 
         /// <summary>
-        /// Проверка возможности сбросить предмет в инвентарь торговца
-        /// Проверяем что предмет идет от игрока и у торговца достаточно денег
+        /// Проверка возможности сбросить предмет в инвентарь торговца.
+        /// Проверяем что предмет идет от игрока и у торговца достаточно денег.
         /// </summary>
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            // Если SourceInventory == null, то это программное добавление (SyncToUI)
-            // Разрешаем такие операции
-            if (entry.SourceInventory == null)
-            {
-                return RuleResult.Success();
-            }
-
-            // ВАЖНО: Запрещаем торговлю между торговцами
+            // Запрещаем торговлю между торговцами
             if (entry.SourceInventory.DataBinding is IMerchantInventory)
-            {
                 return RuleResult.Failure("Нельзя торговать между торговцами!");
-            }
-
-            // Получаем предмет как торговый
+            
             if (entry.Stack.Item is not ITradableItem tradable)
-            {
                 return RuleResult.Failure("Неверный тип предмета");
-            }
 
-            // Вычисляем стоимость продажи
             int totalPrice = tradable.SellPrice * entry.Stack.Count;
 
-            // Проверяем достаточно ли денег у торговца
             if (MerchantData.Money < totalPrice)
-            {
                 return RuleResult.Failure($"У торговца недостаточно денег! Нужно {totalPrice}g, у него {MerchantData.Money}g");
-            }
-
+            
             return RuleResult.Success();
         }
     }

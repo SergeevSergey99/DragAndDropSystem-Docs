@@ -1,9 +1,8 @@
-using System.Linq;
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
-using DragAndDropSystem.Tools;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
 using TMPro;
 using UnityEngine;
@@ -11,133 +10,90 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// DataBinding для инвентаря игрока в системе торговли
-    /// Синхронизирует UI инвентаря с PlayerEconomyData в TradingEconomyManager
-    ///
-    /// ПРИМЕР: Демонстрирует работу с централизованной моделью данных и проверку условий в CanDrop
+    /// DataBinding для инвентаря игрока в системе торговли.
+    /// Использует ListInventoryDataBinding для автоматической синхронизации списка предметов.
+    /// ConvertIncomingItem конвертирует SO-адаптеры торговца в Model-адаптеры игрока.
     /// </summary>
-    public class PlayerInventoryDataBinding : TradingInventoryDataBinding
+    public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>
     {
         [FoldoutGroup("UI References")]
         [SerializeField, Tooltip("Текст для отображения денег игрока")]
         private TextMeshProUGUI _moneyText;
 
         [FoldoutGroup("Settings")]
-        [SerializeField, Tooltip("Префикс для отображения денег (например, 'Gold: ')")]
+        [SerializeField, Tooltip("Префикс для отображения денег")]
         private string _moneyPrefix = "Gold: ";
 
         [FoldoutGroup("Settings")]
-        [SerializeField, Tooltip("Суффикс для отображения денег (например, 'g')")]
+        [SerializeField, Tooltip("Суффикс для отображения денег")]
         private string _moneySuffix = "g";
+
+        private PlayerData PlayerData => TradingEconomyManager.Instance.PlayerData;
+
+        // --- ListInventoryDataBinding примитивы ---
+
+        protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
+        protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
+        protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
+        protected override void AddToData(TradableItemModel item) => PlayerData.AddItem(item);
+        protected override void RemoveFromData(TradableItemModel item) => PlayerData.TryRemoveItem(item);
+
+        // --- Конвертация: SO-адаптер торговца → Model-адаптер игрока ---
+
+        internal override IInventoryItem ConvertIncomingItem(IInventoryItem item)
+        {
+            if (item is TradableItemModelAdapter) return item;
+            if (item is ITradableItem tradable)
+                return new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
+            return item;
+        }
+
+        // --- Lifecycle ---
 
         protected override void OnEnable()
         {
             base.OnEnable();
             if (PlayerData != null)
-            {
                 PlayerData.OnMoneyChanged += UpdateMoneyUI;
-            }
-            // Обновляем UI денег сразу
             UpdateMoneyUI();
         }
 
         protected override void OnDisable()
         {
+            base.OnDisable();
             if (TradingEconomyManager.IsInstanceExist && PlayerData != null)
-            {
                 PlayerData.OnMoneyChanged -= UpdateMoneyUI;
-            }
         }
+
+        // --- Торговая логика поверх базовой синхронизации ---
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            // Если предмет пришел от торговца - покупаем у него
-            if (TryHandlePurchaseFromMerchant(context))
-            {
-                // Конвертируем адаптер в Model адаптер в слоте игрока
-                if (context.Item is ITradableItem tradable && context.TargetSlot != null)
-                {
-                    var itemModel = ConvertToModelAdapter(context.TargetSlot, tradable);
-                    PlayerData.AddItem(itemModel);
-                }
-            }
-            else if (context.Item is TradableItemModelAdapter adapter)
-            {
-                // Добавляем предмет в данные (включая внутренние перемещения для сохранения порядка)
-                PlayerData.AddItem(adapter.Item);
-            }
+            TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData);
+            base.OnItemAddedToUI(context);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            // Если предмет ушел к торговцу - продаем ему
-            TryHandleSellToMerchant(context);
-
-            // Удаляем предмет из данных (включая внутренние перемещения для сохранения порядка)
-            if (context.Item is TradableItemModelAdapter adapter)
-            {
-                PlayerData.TryRemoveItem(adapter.Item);
-            }
+            TradingHelper.TryHandleSellToMerchant(context, PlayerData);
+            base.OnItemRemovedFromUI(context);
         }
 
         protected override void OnReloadUI()
         {
-            if (PlayerData == null) return;
-
-            foreach (var itemModel in PlayerData.Inventory)
-            {
-                if (itemModel.originalSO == null)
-                    continue;
-
-                var adapter = new TradableItemModelAdapter(itemModel);
-                AddToUIQuiet(adapter, 1);
-            }
-
+            base.OnReloadUI();
             UpdateMoneyUI();
         }
 
-        /// <summary>
-        /// Обновить UI отображения денег
-        /// </summary>
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+        {
+            return TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
+        }
+
         private void UpdateMoneyUI()
         {
             if (_moneyText != null && PlayerData != null)
-            {
                 _moneyText.text = $"{_moneyPrefix}{PlayerData.Money}{_moneySuffix}";
-            }
-        }
-
-        /// <summary>
-        /// Проверка возможности начать перетаскивание
-        /// Для игрока всегда разрешаем перетаскивание своих предметов
-        /// </summary>
-        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
-        {
-            // Разрешаем игроку перетаскивать свои предметы
-            return RuleResult.Success();
-        }
-
-        /// <summary>
-        /// Проверка возможности сбросить предмет в инвентарь игрока
-        /// Здесь проверяем что предмет идет от торговца и у игрока достаточно денег
-        /// </summary>
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
-        {
-            // Если это программное добавление (SyncToUI) - разрешаем
-            if (IsProgrammaticOperation(context, entry))
-            {
-                return RuleResult.Success();
-            }
-
-            // Проверяем покупку у торговца (если применимо)
-            var purchaseResult = ValidatePurchaseFromMerchant(context, entry);
-            if (purchaseResult.HasValue)
-            {
-                return purchaseResult.Value;
-            }
-
-            // Если это не торговец, значит просто перемещение внутри инвентаря игрока
-            return RuleResult.Success();
         }
     }
 }
