@@ -29,6 +29,41 @@ namespace DragAndDropSystem.Inventories
         /// Проверить наличие предмета
         /// </summary>
         bool Contains(List<ISlot> slots, IInventoryItem item);
+
+        /// <summary>
+        /// Рассчитать количество предметов для drag операции.
+        /// </summary>
+        int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount);
+
+        /// <summary>
+        /// Требуется ли разместить стак через стратегию, а не в один конкретный слот.
+        /// </summary>
+        bool RequiresStrategyPlacement(ItemStack stack);
+
+        /// <summary>
+        /// Использует ли стратегия поштучное распределение по слотам при планировании.
+        /// </summary>
+        bool UsesPerItemSlotPlanning { get; }
+
+        /// <summary>
+        /// Проверить, может ли слот использоваться как альтернативный target.
+        /// </summary>
+        bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item);
+
+        /// <summary>
+        /// Попытаться добавить стак в конкретный слот по правилам стратегии.
+        /// </summary>
+        bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
+
+        /// <summary>
+        /// Проверить, может ли инвентарь принять предмет и вернуть suggested slot.
+        /// </summary>
+        bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
+
+        /// <summary>
+        /// Получить количество предметов, которое стратегия может принять.
+        /// </summary>
+        int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
     }
 
     /// <summary>
@@ -38,6 +73,9 @@ namespace DragAndDropSystem.Inventories
     {
         public abstract bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex);
         public abstract bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex);
+        public abstract bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
+        public abstract bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
+        public abstract int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
 
         public virtual int GetItemCount(List<ISlot> slots, IInventoryItem item)
         {
@@ -62,6 +100,41 @@ namespace DragAndDropSystem.Inventories
                 }
             }
             return false;
+        }
+
+        public virtual int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount)
+        {
+            switch (dragAmount)
+            {
+                case UniversalInventory.DragAmountType.One:
+                    return 1;
+
+                case UniversalInventory.DragAmountType.Half:
+                    return UnityEngine.Mathf.Max(1, stackCount / 2);
+
+                case UniversalInventory.DragAmountType.All:
+                    return stackCount;
+
+                case UniversalInventory.DragAmountType.Custom:
+                    return UnityEngine.Mathf.Min(customDragAmount, stackCount);
+
+                default:
+                    return stackCount;
+            }
+        }
+
+        public virtual bool RequiresStrategyPlacement(ItemStack stack) => false;
+        public virtual bool UsesPerItemSlotPlanning => false;
+
+        public virtual bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        {
+            if (slot == null || item == null)
+                return false;
+
+            if (slot.IsEmpty)
+                return true;
+
+            return slot.Stack != null && slot.Stack.CanStack(item);
         }
 
         protected bool PassesRules(ISlot slot, IInventoryItem item, int previewCount)
@@ -96,6 +169,47 @@ namespace DragAndDropSystem.Inventories
             }
             return -1;
         }
+
+        protected bool PrefabPassesRules(ISlot slotPrefab, IInventoryItem item, int previewCount)
+        {
+            if (slotPrefab?.SlotRuleValidator == null || item == null || previewCount <= 0)
+                return true;
+
+            var context = new DragContext(new ItemStack(item, previewCount), null, null);
+            var entry = context.Entries[0];
+            return slotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
+        }
+
+        protected static bool TryMergeIntoSlot(ItemStack stack, ISlot slot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        {
+            int countBefore = stack.Count;
+            slot.Stack.AddToStack(stack.Count);
+            int added = countBefore;
+            stack.RemoveFromStack(added);
+            slot.UpdateVisuals();
+            operationContext?.RecordResult(slot, false, added);
+
+            if (added > 0)
+                ensureFreeSlots?.Invoke();
+
+            return added > 0;
+        }
+
+        protected static bool TryPlaceIntoEmptySlot(ItemStack stack, ISlot slot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        {
+            bool slotWasEmpty = slot.IsEmpty;
+            var newStack = new ItemStack(stack.Item, stack.Count);
+            slot.SetStack(newStack);
+            slot.UpdateVisuals();
+            int placed = stack.Count;
+            stack.RemoveFromStack(stack.Count);
+            operationContext?.RecordResult(slot, slotWasEmpty, placed);
+
+            if (placed > 0)
+                ensureFreeSlots?.Invoke();
+
+            return placed > 0;
+        }
     }
 
     /// <summary>
@@ -104,6 +218,18 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public class UniqueItemStrategy : InventoryStrategyBase
     {
+        public override int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount) => 1;
+        public override bool RequiresStrategyPlacement(ItemStack stack) => stack != null && !stack.IsEmpty && stack.Count > 1;
+        public override bool UsesPerItemSlotPlanning => true;
+
+        public override bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        {
+            if (slot == null || item == null)
+                return false;
+
+            return slot.IsEmpty;
+        }
+
         public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
         {
             if (stack == null || stack.IsEmpty)
@@ -165,6 +291,53 @@ namespace DragAndDropSystem.Inventories
 
             return false;
         }
+
+        public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        {
+            if (stack == null || stack.IsEmpty || targetSlot == null || !targetSlot.IsEmpty)
+                return false;
+
+            if (!PassesRules(targetSlot, stack.Item, 1))
+                return false;
+
+            return TryPlaceIntoEmptySlot(stack, targetSlot, ensureFreeSlots, operationContext);
+        }
+
+        public override bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        {
+            suggestedSlot = null;
+            if (item == null || desiredCount <= 0)
+                return false;
+
+            foreach (var slot in slots)
+            {
+                if (slot.IsEmpty && PassesRules(slot, item, 1))
+                {
+                    suggestedSlot = slot;
+                    return true;
+                }
+            }
+
+            return canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slotPrefab, item, 1);
+        }
+
+        public override int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        {
+            if (item == null || desiredCount <= 0)
+                return 0;
+
+            int acceptableCount = 0;
+            foreach (var slot in slots)
+            {
+                if (slot.IsEmpty && PassesRules(slot, item, 1))
+                    acceptableCount++;
+            }
+
+            if (canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slotPrefab, item, 1))
+                acceptableCount += potentialNewSlots;
+
+            return System.Math.Min(acceptableCount, desiredCount);
+        }
     }
 
     /// <summary>
@@ -174,6 +347,13 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public class StackableItemStrategy : InventoryStrategyBase
     {
+        private readonly bool _autoMergeOnDrop;
+
+        public StackableItemStrategy(bool autoMergeOnDrop = true)
+        {
+            _autoMergeOnDrop = autoMergeOnDrop;
+        }
+
         public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
         {
             if (stack == null || stack.IsEmpty)
@@ -281,6 +461,91 @@ namespace DragAndDropSystem.Inventories
             }
 
             return remaining < count;
+        }
+
+        public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        {
+            if (stack == null || stack.IsEmpty || targetSlot == null)
+                return false;
+
+            if (!targetSlot.IsEmpty)
+            {
+                if (!targetSlot.Stack.CanStack(stack.Item) || !PassesRules(targetSlot, stack.Item, stack.Count))
+                    return false;
+
+                return TryMergeIntoSlot(stack, targetSlot, ensureFreeSlots, operationContext);
+            }
+
+            if (_autoMergeOnDrop)
+            {
+                foreach (var slot in slots)
+                {
+                    if (slot == targetSlot || slot.IsEmpty || !slot.Stack.CanStack(stack.Item))
+                        continue;
+
+                    if (!PassesRules(slot, stack.Item, stack.Count))
+                        continue;
+
+                    return TryMergeIntoSlot(stack, slot, ensureFreeSlots, operationContext);
+                }
+            }
+
+            if (!PassesRules(targetSlot, stack.Item, stack.Count))
+                return false;
+
+            return TryPlaceIntoEmptySlot(stack, targetSlot, ensureFreeSlots, operationContext);
+        }
+
+        public override bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        {
+            suggestedSlot = null;
+            if (item == null || desiredCount <= 0)
+                return false;
+
+            foreach (var slot in slots)
+            {
+                if (!slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, 1))
+                {
+                    suggestedSlot = slot;
+                    return true;
+                }
+
+                if (slot.IsEmpty && suggestedSlot == null && PassesRules(slot, item, 1))
+                {
+                    suggestedSlot = slot;
+                }
+            }
+
+            if (suggestedSlot != null)
+                return true;
+
+            return canCreateNewSlot && PrefabPassesRules(slotPrefab, item, 1);
+        }
+
+        public override int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        {
+            if (item == null || desiredCount <= 0)
+                return 0;
+
+            if (canCreateNewSlot)
+                return desiredCount;
+
+            bool hasStackableSlot = false;
+            bool hasEmptySlot = false;
+
+            foreach (var slot in slots)
+            {
+                if (!slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, 1))
+                {
+                    hasStackableSlot = true;
+                    break;
+                }
+
+                if (slot.IsEmpty && PassesRules(slot, item, 1))
+                    hasEmptySlot = true;
+            }
+
+            return (hasStackableSlot || hasEmptySlot) ? desiredCount : 0;
         }
     }
 
@@ -407,6 +672,38 @@ namespace DragAndDropSystem.Inventories
         {
             return _baseStrategy.Contains(slots, item);
         }
+
+        public int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount)
+        {
+            return _baseStrategy.ResolveDragAmount(stackCount, dragAmount, customDragAmount);
+        }
+
+        public bool RequiresStrategyPlacement(ItemStack stack)
+        {
+            return _baseStrategy.RequiresStrategyPlacement(stack);
+        }
+
+        public bool UsesPerItemSlotPlanning => _baseStrategy.UsesPerItemSlotPlanning;
+
+        public bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        {
+            return _baseStrategy.CanUseAlternativeSlot(slot, item);
+        }
+
+        public bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        {
+            return _baseStrategy.TryAddToSlot(slots, stack, targetSlot, ensureFreeSlots, operationContext);
+        }
+
+        public bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        {
+            return _baseStrategy.CanAcceptItem(slots, item, desiredCount, canCreateNewSlot, potentialNewSlots, slotPrefab, out suggestedSlot);
+        }
+
+        public int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        {
+            return _baseStrategy.GetAcceptableCount(slots, item, desiredCount, canCreateNewSlot, potentialNewSlots, slotPrefab);
+        }
     }
 
     /// <summary>
@@ -532,6 +829,80 @@ namespace DragAndDropSystem.Inventories
             }
 
             return remaining < count;
+        }
+
+        public override bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        {
+            if (slot == null || item == null)
+                return false;
+
+            if (slot.IsEmpty)
+                return true;
+
+            return _allowMergeOnDrop && slot.Stack != null && slot.Stack.CanStack(item);
+        }
+
+        public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        {
+            if (stack == null || stack.IsEmpty || targetSlot == null)
+                return false;
+
+            if (!targetSlot.IsEmpty)
+            {
+                if (!_allowMergeOnDrop || !targetSlot.Stack.CanStack(stack.Item) || !PassesRules(targetSlot, stack.Item, stack.Count))
+                    return false;
+
+                return TryMergeIntoSlot(stack, targetSlot, ensureFreeSlots, operationContext);
+            }
+
+            if (!PassesRules(targetSlot, stack.Item, stack.Count))
+                return false;
+
+            return TryPlaceIntoEmptySlot(stack, targetSlot, ensureFreeSlots, operationContext);
+        }
+
+        public override bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        {
+            suggestedSlot = null;
+            if (item == null || desiredCount <= 0)
+                return false;
+
+            foreach (var slot in slots)
+            {
+                if (slot.IsEmpty && PassesRules(slot, item, desiredCount))
+                {
+                    suggestedSlot = slot;
+                    return true;
+                }
+
+                if (_allowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, desiredCount))
+                {
+                    suggestedSlot = slot;
+                    return true;
+                }
+            }
+
+            return canCreateNewSlot && PrefabPassesRules(slotPrefab, item, desiredCount);
+        }
+
+        public override int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        {
+            if (item == null || desiredCount <= 0)
+                return 0;
+
+            if (canCreateNewSlot)
+                return desiredCount;
+
+            foreach (var slot in slots)
+            {
+                if (slot.IsEmpty && PassesRules(slot, item, desiredCount))
+                    return desiredCount;
+
+                if (_allowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, desiredCount))
+                    return desiredCount;
+            }
+
+            return 0;
         }
     }
 }

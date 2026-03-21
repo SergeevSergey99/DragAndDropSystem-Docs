@@ -266,13 +266,26 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this item");
             }
 
+            var operation = new EntryPlanningOperation(
+                context,
+                entry,
+                policy,
+                targetInventory,
+                targetSlotHint,
+                preferHint: targetSlotHint != null && isFirstEntry,
+                virtualSlots,
+                globalRules,
+                targetItem,
+                requested,
+                acceptableByInventory);
+
             // Inventory-area drop (no target slot) into dynamic inventory can start with 0 slots.
             // In this case actual slot is resolved during execution via TryAddStack/TryAddToSlot.
-            if ((virtualSlots == null || virtualSlots.Count == 0) && targetSlotHint == null)
+            if ((operation.VirtualSlots == null || operation.VirtualSlots.Count == 0) && operation.TargetSlotHint == null)
             {
-                int deferredAmount = policy.Capacity == CapacityPolicy.Partial
-                    ? Min(requested, acceptableByInventory)
-                    : requested;
+                int deferredAmount = operation.Policy.Capacity == CapacityPolicy.Partial
+                    ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
+                    : operation.RequestedAmount;
 
                 if (deferredAmount <= 0)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No capacity for deferred placement");
@@ -284,10 +297,9 @@ namespace DragAndDropSystem.Inventories
                     new[] { new PlannedSlotAllocation(null, deferredAmount) });
             }
 
-            bool preferHint = targetSlotHint != null && isFirstEntry;
-            var allocations = IsUniqueInventory(targetInventory)
-                ? AllocateForUniqueInventory(context, entry, targetItem, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules)
-                : AllocateForDefaultInventory(context, entry, targetItem, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules);
+            var allocations = IsUniqueInventory(operation.TargetInventory)
+                ? AllocateForUniqueInventory(operation)
+                : AllocateForDefaultInventory(operation);
 
             int plannedAmount = 0;
             foreach (var allocation in allocations)
@@ -296,11 +308,11 @@ namespace DragAndDropSystem.Inventories
             // Inventory-area drop into dynamic inventories:
             // when existing slots are all unsuitable/occupied, inventory may still accept items
             // by creating new slots during execution (TryAddStack path).
-            if (plannedAmount == 0 && targetSlotHint == null && acceptableByInventory > 0)
+            if (plannedAmount == 0 && operation.TargetSlotHint == null && operation.AcceptableByInventory > 0)
             {
-                int deferredAmount = policy.Capacity == CapacityPolicy.Partial
-                    ? Min(requested, acceptableByInventory)
-                    : requested;
+                int deferredAmount = operation.Policy.Capacity == CapacityPolicy.Partial
+                    ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
+                    : operation.RequestedAmount;
 
                 if (deferredAmount > 0)
                 {
@@ -314,7 +326,7 @@ namespace DragAndDropSystem.Inventories
 
             if (plannedAmount == 0)
             {
-                if (ShouldPlanSwap(context, entry, policy, targetSlotHint, preferHint))
+                if (ShouldPlanSwap(operation.Context, operation.Entry, operation.Policy, operation.TargetSlotHint, operation.PreferHint))
                 {
                     return new PlannedEntryTransfer(
                         entry,
@@ -356,66 +368,44 @@ namespace DragAndDropSystem.Inventories
             return CanPlanSwap(entry, targetSlotHint);
         }
 
-        private IReadOnlyList<PlannedSlotAllocation> AllocateForDefaultInventory(
-            DragContext context,
-            DragEntry entry,
-            IInventoryItem item,
-            int requested,
-            int acceptableByInventory,
-            DropPolicy policy,
-            IInventory targetInventory,
-            ISlot targetSlotHint,
-            bool preferHint,
-            IReadOnlyList<VirtualSlotState> virtualSlots,
-            GlobalRuleValidator globalRules)
+        private IReadOnlyList<PlannedSlotAllocation> AllocateForDefaultInventory(EntryPlanningOperation operation)
         {
-            int amountToAllocate = policy.Capacity == CapacityPolicy.Partial
-                ? Min(requested, acceptableByInventory)
-                : requested;
+            int amountToAllocate = operation.Policy.Capacity == CapacityPolicy.Partial
+                ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
+                : operation.RequestedAmount;
 
-            var slot = ResolveSlot(context, entry, item, amountToAllocate, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules);
+            var slot = ResolveSlot(operation, amountToAllocate);
             if (slot == null)
                 return EmptyAllocations;
 
-            slot.Apply(item, amountToAllocate);
+            slot.Apply(operation.TargetItem, amountToAllocate);
             return new[] { new PlannedSlotAllocation(slot.Slot, amountToAllocate) };
         }
 
-        private IReadOnlyList<PlannedSlotAllocation> AllocateForUniqueInventory(
-            DragContext context,
-            DragEntry entry,
-            IInventoryItem item,
-            int requested,
-            int acceptableByInventory,
-            DropPolicy policy,
-            IInventory targetInventory,
-            ISlot targetSlotHint,
-            bool preferHint,
-            IReadOnlyList<VirtualSlotState> virtualSlots,
-            GlobalRuleValidator globalRules)
+        private IReadOnlyList<PlannedSlotAllocation> AllocateForUniqueInventory(EntryPlanningOperation operation)
         {
-            int desiredAmount = policy.Capacity == CapacityPolicy.Partial
-                ? Min(requested, acceptableByInventory)
-                : requested;
+            int desiredAmount = operation.Policy.Capacity == CapacityPolicy.Partial
+                ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
+                : operation.RequestedAmount;
 
             var allocations = new List<PlannedSlotAllocation>(desiredAmount);
 
             // Для первого entry можно попробовать попасть в слот-хинт как в приоритетную цель.
-            if (preferHint && targetSlotHint != null)
+            if (operation.PreferHint && operation.TargetSlotHint != null)
             {
-                var preferred = FindVirtualSlot(targetSlotHint, virtualSlots);
+                var preferred = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
                 if (preferred != null &&
-                    preferred.CanAccept(item, uniqueMode: true) &&
-                        IsCandidateAllowedByRules(context, entry, targetInventory, preferred.Slot, globalRules, item, 1))
+                    preferred.CanAccept(operation.TargetItem, uniqueMode: true) &&
+                    IsCandidateAllowedByRules(operation, preferred.Slot, 1))
                 {
-                    preferred.Apply(item, 1);
+                    preferred.Apply(operation.TargetItem, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
                 }
-                else if (policy.TargetUsage == TargetUsagePolicy.StrictTarget)
+                else if (operation.Policy.TargetUsage == TargetUsagePolicy.StrictTarget)
                 {
                     return EmptyAllocations;
                 }
-                else if (policy.OccupiedTarget == OccupiedTargetPolicy.Reject)
+                else if (operation.Policy.OccupiedTarget == OccupiedTargetPolicy.Reject)
                 {
                     return EmptyAllocations;
                 }
@@ -423,48 +413,38 @@ namespace DragAndDropSystem.Inventories
 
             while (allocations.Count < desiredAmount)
             {
-                var slot = FindNextAcceptingSlot(context, entry, targetInventory, item, 1, virtualSlots, uniqueMode: true, preferredSlot: null, globalRules);
+                var slot = FindNextAcceptingSlot(operation, 1, uniqueMode: true);
                 if (slot == null)
                     break;
 
-                slot.Apply(item, 1);
+                slot.Apply(operation.TargetItem, 1);
                 allocations.Add(new PlannedSlotAllocation(slot.Slot, 1));
             }
 
             return allocations;
         }
 
-        private VirtualSlotState ResolveSlot(
-            DragContext context,
-            DragEntry entry,
-            IInventoryItem item,
-            int amountForValidation,
-            DropPolicy policy,
-            IInventory targetInventory,
-            ISlot targetSlotHint,
-            bool preferHint,
-            IReadOnlyList<VirtualSlotState> virtualSlots,
-            GlobalRuleValidator globalRules)
+        private VirtualSlotState ResolveSlot(EntryPlanningOperation operation, int amountForValidation)
         {
-            if (preferHint && targetSlotHint != null)
+            if (operation.PreferHint && operation.TargetSlotHint != null)
             {
-                var hinted = FindVirtualSlot(targetSlotHint, virtualSlots);
+                var hinted = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
                 if (hinted != null &&
-                    hinted.CanAccept(item, uniqueMode: false) &&
-                    IsCandidateAllowedByRules(context, entry, targetInventory, hinted.Slot, globalRules, item, amountForValidation))
+                    hinted.CanAccept(operation.TargetItem, uniqueMode: false) &&
+                    IsCandidateAllowedByRules(operation, hinted.Slot, amountForValidation))
                     return hinted;
 
-                if (policy.TargetUsage == TargetUsagePolicy.StrictTarget)
+                if (operation.Policy.TargetUsage == TargetUsagePolicy.StrictTarget)
                     return null;
 
-                if (policy.OccupiedTarget == OccupiedTargetPolicy.Reject)
+                if (operation.Policy.OccupiedTarget == OccupiedTargetPolicy.Reject)
                     return null;
 
-                if (policy.OccupiedTarget == OccupiedTargetPolicy.TrySwap)
+                if (operation.Policy.OccupiedTarget == OccupiedTargetPolicy.TrySwap)
                     return null; // swap будет поддержан на этапе executor/policy resolution
             }
 
-            return FindNextAcceptingSlot(context, entry, targetInventory, item, amountForValidation, virtualSlots, uniqueMode: false, preferredSlot: null, globalRules);
+            return FindNextAcceptingSlot(operation, amountForValidation, uniqueMode: false);
         }
 
         private static VirtualSlotState FindVirtualSlot(ISlot slot, IReadOnlyList<VirtualSlotState> states)
@@ -482,31 +462,26 @@ namespace DragAndDropSystem.Inventories
         }
 
         private VirtualSlotState FindNextAcceptingSlot(
-            DragContext context,
-            DragEntry entry,
-            IInventory targetInventory,
-            IInventoryItem item,
+            EntryPlanningOperation operation,
             int amountForValidation,
-            IReadOnlyList<VirtualSlotState> states,
             bool uniqueMode,
-            ISlot preferredSlot,
-            GlobalRuleValidator globalRules)
+            ISlot preferredSlot = null)
         {
             if (preferredSlot != null)
             {
-                foreach (var state in states)
+                foreach (var state in operation.VirtualSlots)
                 {
                     if (ReferenceEquals(state.Slot, preferredSlot) &&
-                        state.CanAccept(item, uniqueMode) &&
-                        IsCandidateAllowedByRules(context, entry, targetInventory, state.Slot, globalRules, item, amountForValidation))
+                        state.CanAccept(operation.TargetItem, uniqueMode) &&
+                        IsCandidateAllowedByRules(operation, state.Slot, amountForValidation))
                         return state;
                 }
             }
 
-            foreach (var state in states)
+            foreach (var state in operation.VirtualSlots)
             {
-                if (state.CanAccept(item, uniqueMode) &&
-                    IsCandidateAllowedByRules(context, entry, targetInventory, state.Slot, globalRules, item, amountForValidation))
+                if (state.CanAccept(operation.TargetItem, uniqueMode) &&
+                    IsCandidateAllowedByRules(operation, state.Slot, amountForValidation))
                     return state;
             }
 
@@ -529,7 +504,7 @@ namespace DragAndDropSystem.Inventories
 
         private static bool IsUniqueInventory(IInventory inventory) =>
             inventory is UniversalInventory universal &&
-            universal.ItemBehavior == UniversalInventory.ItemBehaviorType.Unique;
+            universal.UsesPerItemSlotPlanning();
 
         private static int Min(int a, int b) => a < b ? a : b;
 
@@ -555,30 +530,29 @@ namespace DragAndDropSystem.Inventories
         }
 
         private bool IsCandidateAllowedByRules(
-            DragContext context,
-            DragEntry entry,
-            IInventory targetInventory,
+            EntryPlanningOperation operation,
             ISlot targetSlot,
-            GlobalRuleValidator globalRules,
-            IInventoryItem targetItem,
             int plannedAmount)
         {
-            if (plannedAmount <= 0 || targetItem == null)
+            if (plannedAmount <= 0 || operation.TargetItem == null)
                 return false;
 
-            DragEntry validationEntry = entry;
-            if (entry.Stack == null ||
-                entry.Stack.Item == null ||
-                entry.Stack.Count != plannedAmount ||
-                !ReferenceEquals(entry.Stack.Item, targetItem))
+            DragEntry validationEntry = operation.Entry;
+            if (operation.Entry.Stack == null ||
+                operation.Entry.Stack.Item == null ||
+                operation.Entry.Stack.Count != plannedAmount ||
+                !ReferenceEquals(operation.Entry.Stack.Item, operation.TargetItem))
             {
                 validationEntry = new DragEntry(
-                    new ItemStack(targetItem, plannedAmount),
-                    entry.SourceSlot,
-                    entry.SourceInventory);
+                    new ItemStack(operation.TargetItem, plannedAmount),
+                    operation.Entry.SourceSlot,
+                    operation.Entry.SourceInventory);
             }
 
-            var result = _ruleEvaluationService.ValidateEntryDrop(context.WithTarget(targetSlot, targetInventory), validationEntry, globalRules);
+            var result = _ruleEvaluationService.ValidateEntryDrop(
+                operation.Context.WithTarget(targetSlot, operation.TargetInventory),
+                validationEntry,
+                operation.GlobalRules);
             return result.IsValid;
         }
 
@@ -601,57 +575,5 @@ namespace DragAndDropSystem.Inventories
                 failure: new PlanFailure(code, reason, failedEntry));
         }
 
-        private sealed class VirtualSlotState
-        {
-            public VirtualSlotState(ISlot slot)
-            {
-                Slot = slot;
-                if (slot == null || slot.IsEmpty || slot.Stack?.Item == null)
-                {
-                    _item = null;
-                    _count = 0;
-                    return;
-                }
-
-                _item = slot.Stack.Item;
-                _count = slot.Stack.Count;
-            }
-
-            private IInventoryItem _item;
-            private int _count;
-
-            public ISlot Slot { get; }
-            public bool IsEmpty => _item == null || _count <= 0;
-
-            public bool CanAccept(IInventoryItem item, bool uniqueMode)
-            {
-                if (Slot == null || item == null || !Slot.IsInteractable)
-                    return false;
-
-                if (uniqueMode)
-                    return IsEmpty;
-
-                if (IsEmpty)
-                    return true;
-
-                return _item.ItemId == item.ItemId;
-            }
-
-            public void Apply(IInventoryItem item, int amount)
-            {
-                if (amount <= 0 || item == null)
-                    return;
-
-                if (IsEmpty)
-                {
-                    _item = item;
-                    _count = amount;
-                }
-                else
-                {
-                    _count += amount;
-                }
-            }
-        }
     }
 }

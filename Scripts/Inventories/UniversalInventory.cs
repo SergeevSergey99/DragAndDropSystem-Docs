@@ -300,7 +300,7 @@ namespace DragAndDropSystem.Inventories
                     Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: UniqueItemStrategy</color>");
                     break;
                 case ItemBehaviorType.Stackable:
-                    baseStrategy = new StackableItemStrategy();
+                    baseStrategy = new StackableItemStrategy(_autoMergeOnDrop);
                     Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy</color>");
                     break;
                 case ItemBehaviorType.SeparableStacks:
@@ -308,7 +308,7 @@ namespace DragAndDropSystem.Inventories
                     Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: SeparableStacksStrategy (allowMerge: {_allowMergeOnDrop})</color>");
                     break;
                 default:
-                    baseStrategy = new StackableItemStrategy();
+                    baseStrategy = new StackableItemStrategy(_autoMergeOnDrop);
                     Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (default)</color>");
                     break;
             }
@@ -332,6 +332,17 @@ namespace DragAndDropSystem.Inventories
         public void SetStrategy(IInventoryStrategy strategy)
         {
             _strategy = strategy;
+        }
+
+        private void EnsureStrategyInitialized()
+        {
+            if (_strategy != null)
+                return;
+
+            Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy not initialized, initializing now...</color>");
+            InitializeSlots();
+            InitializeStrategy();
+            EnsureFreeSlots();
         }
 
         /// <summary>
@@ -414,6 +425,25 @@ namespace DragAndDropSystem.Inventories
 
             return true;
         }
+
+        internal bool RequiresStrategyPlacement(ItemStack stack)
+        {
+            EnsureStrategyInitialized();
+            return _strategy.RequiresStrategyPlacement(stack);
+        }
+
+        internal bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        {
+            EnsureStrategyInitialized();
+            return _strategy.CanUseAlternativeSlot(slot, item);
+        }
+
+        internal bool UsesPerItemSlotPlanning()
+        {
+            EnsureStrategyInitialized();
+            return _strategy.UsesPerItemSlotPlanning;
+        }
+
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
         {
             if (stack == null || stack.IsEmpty)
@@ -422,14 +452,7 @@ namespace DragAndDropSystem.Inventories
             if (!TryConvertIncomingItem(stack))
                 return false;
 
-            // Ленивая инициализация на случай если TryAddStack вызван до Awake
-            if (_strategy == null)
-            {
-                Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy not initialized, initializing now...</color>");
-                InitializeSlots();
-                InitializeStrategy();
-                EnsureFreeSlots(); // Создаем начальные свободные слоты для Dynamic
-            }
+            EnsureStrategyInitialized();
 
             Extentions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.Item.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
@@ -908,29 +931,8 @@ namespace DragAndDropSystem.Inventories
             if (slot == null || slot.IsEmpty)
                 return 0;
 
-            // Для Unique всегда берем 1 предмет
-            if (_itemBehavior == ItemBehaviorType.Unique)
-                return 1;
-
-            int stackCount = slot.Stack.Count;
-
-            switch (_dragAmount)
-            {
-                case DragAmountType.One:
-                    return 1;
-
-                case DragAmountType.Half:
-                    return Mathf.Max(1, stackCount / 2);
-
-                case DragAmountType.All:
-                    return stackCount;
-
-                case DragAmountType.Custom:
-                    return Mathf.Min(_customDragAmount, stackCount);
-
-                default:
-                    return stackCount;
-            }
+            EnsureStrategyInitialized();
+            return _strategy.ResolveDragAmount(slot.Stack.Count, _dragAmount, _customDragAmount);
         }
 
         /// <summary>
@@ -957,94 +959,8 @@ namespace DragAndDropSystem.Inventories
             if (!TryConvertIncomingItem(stack))
                 return false;
 
-            // Если целевой слот не пустой - пытаемся объединить
-            if (!targetSlot.IsEmpty)
-            {
-                // Для Unique режима нельзя объединять предметы
-                if (_itemBehavior == ItemBehaviorType.Unique)
-                {
-                    Extentions.DragAndDropLog($"<color=yellow>[{name}] Cannot merge in Unique mode - slot {targetSlot.Index} is occupied</color>");
-                    return false;
-                }
-
-                // Для SeparableStacks - проверяем флаг allowMergeOnDrop
-                if (_itemBehavior == ItemBehaviorType.SeparableStacks && !_allowMergeOnDrop)
-                {
-                    Extentions.DragAndDropLog($"<color=yellow>[{name}] Cannot merge in SeparableStacks mode - merge on drop is disabled</color>");
-                    return false;
-                }
-
-                // Для Stackable и SeparableStacks (если разрешён мерж) - пытаемся объединить
-                if (targetSlot.Stack.CanStack(stack.Item))
-                {
-                    int countBefore = stack.Count;
-                    targetSlot.Stack.AddToStack(stack.Count);
-                    int added = countBefore;
-                    stack.RemoveFromStack(added);
-                    targetSlot.UpdateVisuals();
-
-                    operationContext?.RecordResult(targetSlot, false, added);
-
-                    Extentions.DragAndDropLog($"<color=green>[{name}] Merged {added} items into slot {targetSlot.Index}</color>");
-
-                    if (added > 0)
-                        EnsureFreeSlots();
-
-                    return added > 0;
-                }
-                return false;
-            }
-
-            // Целевой слот пустой
-            // Если включено автоматическое объединение - ищем существующий стак
-            if (_autoMergeOnDrop && _itemBehavior == ItemBehaviorType.Stackable)
-            {
-                ISlot existingSlot = null;
-                foreach (var slot in _slots)
-                {
-                    if (slot != targetSlot && !slot.IsEmpty &&
-                        slot.Stack.CanStack(stack.Item))
-                    {
-                        existingSlot = slot;
-                        break;
-                    }
-                }
-
-                if (existingSlot != null)
-                {
-                    Extentions.DragAndDropLog($"<color=green>[{name}] Auto-merging with existing stack in slot {existingSlot.Index}</color>");
-
-                    int countBefore = stack.Count;
-                    existingSlot.Stack.AddToStack(stack.Count);
-                    int added = countBefore;
-                    stack.RemoveFromStack(added);
-                    existingSlot.UpdateVisuals();
-
-                    operationContext?.RecordResult(existingSlot, false, added);
-
-                    if (added > 0)
-                        EnsureFreeSlots();
-
-                    return added > 0;
-                }
-            }
-
-            // Не нашли существующий стак или автоматическое объединение отключено
-            // Создаем новый стак в целевом слоте
-            bool slotWasEmpty = targetSlot.IsEmpty;
-            var newStack = new ItemStack(stack.Item, stack.Count);
-            targetSlot.SetStack(newStack);
-            targetSlot.UpdateVisuals();
-            int placed = stack.Count;
-            stack.RemoveFromStack(stack.Count);
-
-            operationContext?.RecordResult(targetSlot, slotWasEmpty, placed);
-
-            Extentions.DragAndDropLog($"<color=green>[{name}] Added {newStack.Count} items to slot {targetSlot.Index}</color>");
-
-            EnsureFreeSlots();
-
-            return true;
+            EnsureStrategyInitialized();
+            return _strategy.TryAddToSlot(_slots, stack, targetSlot, EnsureFreeSlots, operationContext);
         }
 
         /// <summary>
@@ -1077,77 +993,18 @@ namespace DragAndDropSystem.Inventories
                 }
             }
 
-            // 2. Ищем подходящий существующий слот
-            foreach (var slot in _slots)
-            {
-                // Слот для стакинга (только для Stackable режима и если AutoMergeOnDrop)
-                if (_itemBehavior == ItemBehaviorType.Stackable && _autoMergeOnDrop)
-                {
-                    if (!slot.IsEmpty && slot.Stack.CanStack(item))
-                    {
-                        context.SetTarget(slot, this);
+            EnsureStrategyInitialized();
 
-                        // Проверяем правила этого слота
-                        if (slot.SlotRuleValidator != null)
-                        {
-                            var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);
-                            if (!slotResult.IsValid)
-                                continue;
-                        }
+            bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
+            int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
+            bool canAccept = _strategy.CanAcceptItem(_slots, item, count, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
 
-                        // Нашли подходящий слот для стакинга!
-                        suggestedSlot = slot;
-                        Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: Found stackable slot {slot.Index}</color>");
-                        return true;
-                    }
-                }
+            if (canAccept)
+                Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
+            else
+                Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: No suitable slots and cannot create new</color>");
 
-                // Пустой слот
-                if (slot.IsEmpty)
-                {
-                    context.SetTarget(slot, this);
-
-                    // Проверяем правила этого слота
-                    if (slot.SlotRuleValidator != null)
-                    {
-                        var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);
-                        if (!slotResult.IsValid)
-                            continue; // Этот слот не подходит
-                    }
-
-                    // Нашли подходящий пустой слот!
-                    suggestedSlot = slot;
-                    Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: Found empty slot {slot.Index}</color>");
-                    return true;
-                }
-            }
-
-            // 3. Нет подходящих свободных слотов - проверяем можем ли создать новый
-            if (_slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots)
-            {
-                // Проверяем правила префаба слота (если есть)
-                if (_slotPrefab != null && _slotPrefab.SlotRuleValidator != null)
-                {
-                    // Создаем временный контекст с виртуальным слотом
-                    var virtualSlotContext = new DragContext(previewStack, null, null);
-                    virtualSlotContext.TargetInventory = this;
-                    var virtualEntry = virtualSlotContext.Entries[0];
-
-                    var prefabSlotResult = _slotPrefab.SlotRuleValidator.ValidateDrop(virtualSlotContext, virtualEntry);
-                    if (!prefabSlotResult.IsValid)
-                    {
-                        Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: Slot prefab rules rejected: {prefabSlotResult.FailureReason}</color>");
-                        return false;
-                    }
-                }
-
-                // Можем создать новый слот!
-                Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: Can create new slot ({_slots.Count}/{_maxDynamicSlots})</color>");
-                return true;
-            }
-
-            Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: No suitable slots and cannot create new</color>");
-            return false;
+            return canAccept;
         }
 
         /// <summary>
@@ -1176,96 +1033,13 @@ namespace DragAndDropSystem.Inventories
                 }
             }
 
-            int acceptableCount = 0;
+            EnsureStrategyInitialized();
 
-            switch (_itemBehavior)
-            {
-                case ItemBehaviorType.Unique:
-                    // Для Unique: считаем пустые слоты, которые могут принять этот предмет
-                    acceptableCount = CountAcceptableSlotsForItem(item);
-                    break;
-
-                case ItemBehaviorType.Stackable:
-                    // Для Stackable: можем принять всё (стратегия сама распределит)
-                    // Но ограничиваем количеством доступных слотов если нет динамических
-                    if (_slotManagement == SlotManagementType.Dynamic)
-                    {
-                        acceptableCount = desiredCount; // Без ограничений
-                    }
-                    else
-                    {
-                        // Проверяем есть ли хоть один слот для стакинга или пустой слот
-                        bool hasStackableSlot = false;
-                        bool hasEmptySlot = false;
-                        foreach (var slot in _slots)
-                        {
-                            if (!slot.IsEmpty && slot.Stack.CanStack(item) && CanAcceptByRules(slot, item, 1))
-                            {
-                                hasStackableSlot = true;
-                                break;
-                            }
-                            if (slot.IsEmpty && CanAcceptByRules(slot, item, 1))
-                            {
-                                hasEmptySlot = true;
-                            }
-                        }
-                        acceptableCount = (hasStackableSlot || hasEmptySlot) ? desiredCount : 0;
-                    }
-                    break;
-
-                case ItemBehaviorType.SeparableStacks:
-                    // Для SeparableStacks: можем принять всё в один слот (если есть пустой или совместимый)
-                    if (_slotManagement == SlotManagementType.Dynamic)
-                    {
-                        acceptableCount = desiredCount;
-                    }
-                    else
-                    {
-                        bool canAccept = false;
-                        foreach (var slot in _slots)
-                        {
-                            if (slot.IsEmpty && CanAcceptByRules(slot, item, desiredCount))
-                            {
-                                canAccept = true;
-                                break;
-                            }
-                            if (!slot.IsEmpty && _allowMergeOnDrop && slot.Stack.CanStack(item) && CanAcceptByRules(slot, item, desiredCount))
-                            {
-                                canAccept = true;
-                                break;
-                            }
-                        }
-                        acceptableCount = canAccept ? desiredCount : 0;
-                    }
-                    break;
-            }
-
-            // Учитываем возможность создания новых слотов для Dynamic
-            if (_slotManagement == SlotManagementType.Dynamic && _itemBehavior == ItemBehaviorType.Unique)
-            {
-                int potentialNewSlots = _maxDynamicSlots - _slots.Count;
-                acceptableCount += potentialNewSlots;
-            }
-
-            int result = Math.Min(acceptableCount, desiredCount);
+            bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
+            int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
+            int result = _strategy.GetAcceptableCount(_slots, item, desiredCount, canCreateNewSlot, potentialNewSlots, _slotPrefab);
             Extentions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={item.DisplayName}, desired={desiredCount}, acceptable={result}</color>");
             return result;
-        }
-
-        /// <summary>
-        /// Подсчитать количество слотов, которые могут принять данный предмет (для Unique стратегии)
-        /// </summary>
-        private int CountAcceptableSlotsForItem(IInventoryItem item)
-        {
-            int count = 0;
-            foreach (var slot in _slots)
-            {
-                if (slot.IsEmpty && CanAcceptByRules(slot, item, 1))
-                {
-                    count++;
-                }
-            }
-            return count;
         }
 
         /// <summary>

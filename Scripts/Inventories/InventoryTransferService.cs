@@ -158,7 +158,7 @@ namespace DragAndDropSystem.Inventories
 
             var operationContext = new SlotOperationContext();
 
-            bool added = TryAddToTargetInventory(
+            var placementOperation = new TargetPlacementOperation(
                 targetInventory,
                 targetSlot,
                 sourceInventory,
@@ -168,6 +168,8 @@ namespace DragAndDropSystem.Inventories
                 targetInventorySnapshot,
                 request.AllowAlternativeSlots,
                 operationContext);
+
+            bool added = TryAddToTargetInventory(placementOperation);
 
             if (!added)
             {
@@ -224,79 +226,80 @@ namespace DragAndDropSystem.Inventories
             return true;
         }
 
-        private bool TryAddToTargetInventory(
-            IInventory targetInventory,
-            ISlot requestedSlot,
-            IInventory sourceInventory,
-            ISlot sourceSlot,
-            ItemStack transferStack,
-            int transferAmount,
-            InventorySnapshot targetSnapshot,
-            bool allowAlternativeSlots,
-            SlotOperationContext operationContext)
+        private bool TryAddToTargetInventory(TargetPlacementOperation operation)
         {
-            if (targetInventory == null)
+            if (operation.TargetInventory == null)
                 return false;
 
-            operationContext?.ResetResult();
+            operation.OperationContext?.ResetResult();
 
             // Проверяем, нужно ли распределять предметы по нескольким слотам
-            // Это необходимо для Unique инвентарей, когда переносим более 1 предмета
-            bool needsDistribution = targetInventory is UniversalInventory univTarget
-                && univTarget.ItemBehavior == UniversalInventory.ItemBehaviorType.Unique
-                && transferStack.Count > 1;
-
-            if (needsDistribution)
+            if (operation.RequiresStrategyPlacement)
             {
-                Extentions.DragAndDropLog($"<color=cyan>[InventoryTransferService] Using distribution mode for Unique inventory ({transferStack.Count} items)</color>");
+                Extentions.DragAndDropLog($"<color=cyan>[InventoryTransferService] Using strategy placement mode ({operation.TransferStack.Count} items)</color>");
 
-                // Для Unique инвентарей используем TryAddStack, который распределит предметы по слотам через стратегию
-                targetInventory.TryAddStack(transferStack, -1);
+                operation.TargetInventory.TryAddStack(operation.TransferStack, -1);
 
                 // TryAddStack уменьшает transferStack по мере добавления
                 // Проверяем, добавилось ли хоть что-то
-                int added = transferAmount - transferStack.Count;
+                int added = operation.TransferAmount - operation.TransferStack.Count;
                 if (added > 0)
                 {
-                    if (operationContext != null && InventorySnapshotUtility.TryResolveSlotChange(targetInventory, targetSnapshot, out var slot, out var wasEmptyBefore))
+                    if (operation.OperationContext != null &&
+                        InventorySnapshotUtility.TryResolveSlotChange(operation.TargetInventory, operation.TargetSnapshot, out var slot, out var wasEmptyBefore))
                     {
-                        operationContext.RecordResult(slot, wasEmptyBefore, added);
+                        operation.OperationContext.RecordResult(slot, wasEmptyBefore, added);
                     }
                     return true; // Частичный или полный успех
                 }
                 return false;
             }
 
-            if (requestedSlot != null)
+            if (operation.RequestedSlot != null)
             {
-                bool wasEmpty = requestedSlot.IsEmpty;
-                if (targetInventory.TryAddToSlot(transferStack, requestedSlot, sourceInventory, sourceSlot.Index, operationContext))
+                bool wasEmpty = operation.RequestedSlot.IsEmpty;
+                if (operation.TargetInventory.TryAddToSlot(
+                        operation.TransferStack,
+                        operation.RequestedSlot,
+                        operation.SourceInventory,
+                        operation.SourceSlot.Index,
+                        operation.OperationContext))
                 {
-                    if (operationContext?.ResolvedSlot == null)
+                    if (operation.OperationContext?.ResolvedSlot == null)
                     {
-                        operationContext?.RecordResult(requestedSlot, wasEmpty, transferAmount);
+                        operation.OperationContext?.RecordResult(operation.RequestedSlot, wasEmpty, operation.TransferAmount);
                     }
-                    return transferStack.IsEmpty;
+                    return operation.TransferStack.IsEmpty;
                 }
 
                 // Целевой слот не принял предмет. Пытаемся найти альтернативный слот с полной валидацией правил.
-                if (allowAlternativeSlots && targetInventory is UniversalInventory universalInventory && transferStack != null && !transferStack.IsEmpty)
+                if (operation.CanSearchAlternativeSlot)
                 {
                     // Ищем альтернативный слот с проверкой ВСЕХ правил (включая inventory-level и DataBinding)
-                    var alternativeSlot = FindValidAlternativeSlot(universalInventory, transferStack, sourceInventory, sourceSlot);
+                    var alternativeSearch = new AlternativeSlotSearchOperation(
+                        operation.AlternativeTargetInventory,
+                        operation.TransferStack,
+                        operation.SourceInventory,
+                        operation.SourceSlot);
+                    var alternativeSlot = FindValidAlternativeSlot(alternativeSearch);
 
                     if (alternativeSlot != null)
                     {
                         Extentions.DragAndDropLog($"<color=cyan>[InventoryTransferService] Found valid alternative slot {alternativeSlot.Index}</color>");
-                        operationContext?.ResetResult();
+                        operation.OperationContext?.ResetResult();
                         bool altWasEmpty = alternativeSlot.IsEmpty;
-                        if (targetInventory.TryAddToSlot(transferStack, alternativeSlot, sourceInventory, sourceSlot.Index, operationContext))
+                        if (operation.TargetInventory.TryAddToSlot(
+                                operation.TransferStack,
+                                alternativeSlot,
+                                operation.SourceInventory,
+                                operation.SourceSlot.Index,
+                                operation.OperationContext))
                         {
-                            if (operationContext?.ResolvedSlot == null)
+                            if (operation.OperationContext?.ResolvedSlot == null)
                             {
-                                operationContext?.RecordResult(alternativeSlot, altWasEmpty, transferAmount);
+                                operation.OperationContext?.RecordResult(alternativeSlot, altWasEmpty, operation.TransferAmount);
                             }
-                            return transferStack.IsEmpty;
+                            return operation.TransferStack.IsEmpty;
                         }
                     }
                     else
@@ -305,15 +308,16 @@ namespace DragAndDropSystem.Inventories
                     }
                 }
             }
-            else if (targetInventory.TryAddStack(transferStack, -1))
+            else if (operation.TargetInventory.TryAddStack(operation.TransferStack, -1))
             {
                 // TryAddStack может добавить частично (для Unique стратегии)
-                int added = transferAmount - transferStack.Count;
+                int added = operation.TransferAmount - operation.TransferStack.Count;
                 if (added > 0)
                 {
-                    if (operationContext != null && InventorySnapshotUtility.TryResolveSlotChange(targetInventory, targetSnapshot, out var slot, out var wasEmptyBefore))
+                    if (operation.OperationContext != null &&
+                        InventorySnapshotUtility.TryResolveSlotChange(operation.TargetInventory, operation.TargetSnapshot, out var slot, out var wasEmptyBefore))
                     {
-                        operationContext.RecordResult(slot, wasEmptyBefore, added);
+                        operation.OperationContext.RecordResult(slot, wasEmptyBefore, added);
                     }
                     return true;
                 }
@@ -326,37 +330,25 @@ namespace DragAndDropSystem.Inventories
         /// Ищет альтернативный слот для размещения предмета с полной валидацией правил.
         /// Проверяет как slot-level правила, так и inventory-level правила (включая DataBinding).
         /// </summary>
-        private ISlot FindValidAlternativeSlot(
-            UniversalInventory targetInventory,
-            ItemStack transferStack,
-            IInventory sourceInventory,
-            ISlot sourceSlot)
+        private ISlot FindValidAlternativeSlot(AlternativeSlotSearchOperation operation)
         {
-            if (targetInventory == null || transferStack == null || transferStack.IsEmpty)
+            if (operation.TargetInventory == null || operation.TransferStack == null || operation.TransferStack.IsEmpty)
                 return null;
 
             // Создаем контекст для валидации правил
-            var validationContext = new DragContext(transferStack, sourceSlot, sourceInventory);
+            var validationContext = new DragContext(operation.TransferStack, operation.SourceSlot, operation.SourceInventory);
             var validationEntry = validationContext.Entries[0];
 
-            foreach (var slot in targetInventory.Slots)
+            foreach (var slot in operation.TargetInventory.Slots)
             {
-                // Пропускаем занятые слоты (для Unique) или слоты с несовместимыми предметами
-                if (!slot.IsEmpty)
-                {
-                    // Для стакуемых режимов проверяем можно ли стакать
-                    if (targetInventory.ItemBehavior == UniversalInventory.ItemBehaviorType.Unique)
-                        continue;
-
-                    if (!slot.Stack.CanStack(transferStack.Item))
-                        continue;
-                }
+                if (!operation.TargetInventory.CanUseAlternativeSlot(slot, operation.TransferStack.Item))
+                    continue;
 
                 // Устанавливаем целевой слот в контексте для валидации
-                validationContext.SetTarget(slot, targetInventory);
+                validationContext.SetTarget(slot, operation.TargetInventory);
 
                 // Проверяем inventory-level правила (включая DataBinding правила)
-                var inventoryResult = targetInventory.RuleValidator.ValidateDrop(validationContext, validationEntry);
+                var inventoryResult = operation.TargetInventory.RuleValidator.ValidateDrop(validationContext, validationEntry);
                 if (!inventoryResult.IsValid)
                 {
                     Extentions.DragAndDropLog($"<color=gray>[InventoryTransferService] Slot {slot.Index} rejected by inventory rules: {inventoryResult.FailureReason}</color>");
@@ -380,5 +372,6 @@ namespace DragAndDropSystem.Inventories
 
             return null;
         }
+
     }
 }
