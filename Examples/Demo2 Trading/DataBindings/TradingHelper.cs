@@ -38,7 +38,7 @@ namespace DragAndDropSystem.Examples.Trading
         public static RuleResult ValidateSellToMerchant(DragEntry entry, MerchantData merchantData)
         {
             // Запрещаем торговлю между торговцами
-            if (entry.SourceInventory.DataBinding is IMerchantInventory)
+            if (entry.SourceInventory?.DataBinding is IMerchantInventory)
                 return RuleResult.Failure("Нельзя торговать между торговцами!");
             
             if (entry.Stack.Item is not ITradableItem tradable)
@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Examples.Trading
 
             int totalPrice = tradable.SellPrice * entry.Stack.Count;
 
-            if (merchantData.Money < totalPrice)
+            if (merchantData.Money <= totalPrice)
                 return RuleResult.Failure($"У торговца недостаточно денег! Нужно {totalPrice}g, у него {merchantData.Money}g");
             
             return RuleResult.Success();
