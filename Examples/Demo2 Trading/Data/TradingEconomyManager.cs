@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Examples.Trading
         private PlayerData _playerData;
 
         [TitleGroup("Merchants"), SerializeField]
-        private MerchantDictionary _merchants = new ();
+        private List<Merchant> _merchants = new ();
 
         public PlayerData PlayerData => _playerData;
 
@@ -31,9 +31,10 @@ namespace DragAndDropSystem.Examples.Trading
         /// </summary>
         public MerchantData GetMerchant(string merchantId)
         {
-            if (_merchants.TryGetValue(merchantId, out var merchant))
+            var merchant = _merchants.Find(x => x.id.Equals(merchantId));
+            if (merchant != null)
             {
-                return merchant;
+                return merchant.data;
             }
             
             Debug.LogError($"[TradingEconomyManager] Merchant '{merchantId}' not found!");
@@ -79,6 +80,12 @@ namespace DragAndDropSystem.Examples.Trading
         }
 
         [Serializable]
-        public class MerchantDictionary : UnitySerializedDictionary<string, MerchantData> {}
+        public class Merchant
+        { 
+            [field: SerializeField]
+            public string id  { get; private set; }
+            [field: SerializeField]
+            public MerchantData  data { get; private set; }
+        }
     }
 }
