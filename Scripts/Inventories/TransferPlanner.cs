@@ -249,13 +249,18 @@ namespace DragAndDropSystem.Inventories
             }
 
             int requested = entry.Stack.Count;
-            var item = entry.Stack.Item;
-            if (item == null || requested <= 0)
+            var sourceItem = entry.Stack.Item;
+            if (sourceItem == null || requested <= 0)
             {
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Invalid stack");
             }
 
-            int acceptableByInventory = targetInventory.GetAcceptableCount(item, requested);
+            if (!TransferItemConversionUtility.TryResolveTargetItem(entry.SourceInventory, targetInventory, sourceItem, out var targetItem))
+            {
+                return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected item conversion");
+            }
+
+            int acceptableByInventory = targetInventory.GetAcceptableCount(targetItem, requested);
             if (acceptableByInventory <= 0)
             {
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this item");
@@ -281,8 +286,8 @@ namespace DragAndDropSystem.Inventories
 
             bool preferHint = targetSlotHint != null && isFirstEntry;
             var allocations = IsUniqueInventory(targetInventory)
-                ? AllocateForUniqueInventory(context, entry, item, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules)
-                : AllocateForDefaultInventory(context, entry, item, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules);
+                ? AllocateForUniqueInventory(context, entry, targetItem, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules)
+                : AllocateForDefaultInventory(context, entry, targetItem, requested, acceptableByInventory, policy, targetInventory, targetSlotHint, preferHint, virtualSlots, globalRules);
 
             int plannedAmount = 0;
             foreach (var allocation in allocations)
@@ -401,7 +406,7 @@ namespace DragAndDropSystem.Inventories
                 var preferred = FindVirtualSlot(targetSlotHint, virtualSlots);
                 if (preferred != null &&
                     preferred.CanAccept(item, uniqueMode: true) &&
-                    IsCandidateAllowedByRules(context, entry, targetInventory, preferred.Slot, globalRules, 1))
+                        IsCandidateAllowedByRules(context, entry, targetInventory, preferred.Slot, globalRules, item, 1))
                 {
                     preferred.Apply(item, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
@@ -446,7 +451,7 @@ namespace DragAndDropSystem.Inventories
                 var hinted = FindVirtualSlot(targetSlotHint, virtualSlots);
                 if (hinted != null &&
                     hinted.CanAccept(item, uniqueMode: false) &&
-                    IsCandidateAllowedByRules(context, entry, targetInventory, hinted.Slot, globalRules, amountForValidation))
+                    IsCandidateAllowedByRules(context, entry, targetInventory, hinted.Slot, globalRules, item, amountForValidation))
                     return hinted;
 
                 if (policy.TargetUsage == TargetUsagePolicy.StrictTarget)
@@ -493,7 +498,7 @@ namespace DragAndDropSystem.Inventories
                 {
                     if (ReferenceEquals(state.Slot, preferredSlot) &&
                         state.CanAccept(item, uniqueMode) &&
-                        IsCandidateAllowedByRules(context, entry, targetInventory, state.Slot, globalRules, amountForValidation))
+                        IsCandidateAllowedByRules(context, entry, targetInventory, state.Slot, globalRules, item, amountForValidation))
                         return state;
                 }
             }
@@ -501,7 +506,7 @@ namespace DragAndDropSystem.Inventories
             foreach (var state in states)
             {
                 if (state.CanAccept(item, uniqueMode) &&
-                    IsCandidateAllowedByRules(context, entry, targetInventory, state.Slot, globalRules, amountForValidation))
+                    IsCandidateAllowedByRules(context, entry, targetInventory, state.Slot, globalRules, item, amountForValidation))
                     return state;
             }
 
@@ -555,16 +560,20 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             ISlot targetSlot,
             GlobalRuleValidator globalRules,
+            IInventoryItem targetItem,
             int plannedAmount)
         {
-            if (plannedAmount <= 0 || entry.Stack == null || entry.Stack.Item == null)
+            if (plannedAmount <= 0 || targetItem == null)
                 return false;
 
             DragEntry validationEntry = entry;
-            if (entry.Stack.Count != plannedAmount)
+            if (entry.Stack == null ||
+                entry.Stack.Item == null ||
+                entry.Stack.Count != plannedAmount ||
+                !ReferenceEquals(entry.Stack.Item, targetItem))
             {
                 validationEntry = new DragEntry(
-                    new ItemStack(entry.Stack.Item, plannedAmount),
+                    new ItemStack(targetItem, plannedAmount),
                     entry.SourceSlot,
                     entry.SourceInventory);
             }

@@ -365,33 +365,53 @@ namespace DragAndDropSystem.Inventories
             return TryAddStack(stack, targetSlotIndex);
         }
 
+        internal bool TryPreviewIncomingItem(IInventoryItem item, out IInventoryItem converted)
+        {
+            converted = item;
+
+            if (item == null)
+                return false;
+
+            if (DataBinding == null)
+                return true;
+
+            converted = DataBinding.ConvertIncomingItem(item);
+            return converted != null;
+        }
+
+        internal bool TryPreviewOutgoingItem(IInventoryItem item, out IInventoryItem converted)
+        {
+            converted = item;
+
+            if (item == null)
+                return false;
+
+            if (DataBinding == null)
+                return true;
+
+            converted = DataBinding.ConvertOutgoingItem(item);
+            return converted != null;
+        }
+
         bool TryConvertIncomingItem(ItemStack stack)
         {
-            if (DataBinding != null)
-            {
-                var converted = DataBinding.ConvertIncomingItem(stack.Item);
+            if (!TryPreviewIncomingItem(stack.Item, out var converted))
+                return false;
 
-                if (converted == null)
-                    return false;
+            if (!ReferenceEquals(converted, stack.Item))
+                stack.ReplaceItem(converted);
 
-                if (!ReferenceEquals(converted, stack.Item))
-                    stack.ReplaceItem(converted);
-            }
             return true;
         }
 
         internal bool TryConvertOutgoingItem(ItemStack stack)
         {
-            if (DataBinding != null)
-            {
-                var converted = DataBinding.ConvertOutgoingItem(stack.Item);
+            if (!TryPreviewOutgoingItem(stack.Item, out var converted))
+                return false;
 
-                if (converted == null)
-                    return false;
+            if (!ReferenceEquals(converted, stack.Item))
+                stack.ReplaceItem(converted);
 
-                if (!ReferenceEquals(converted, stack.Item))
-                    stack.ReplaceItem(converted);
-            }
             return true;
         }
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)

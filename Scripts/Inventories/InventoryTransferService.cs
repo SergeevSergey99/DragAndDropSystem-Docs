@@ -45,7 +45,8 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             ISlot sourceSlot,
             ISlot targetSlot,
-            IInventoryItem item,
+            IInventoryItem sourceItem,
+            IInventoryItem targetItem,
             int amount,
             bool targetWasEmptyBefore,
             int remainingInSource = 0)
@@ -54,7 +55,8 @@ namespace DragAndDropSystem.Inventories
             TargetInventory = targetInventory;
             SourceSlot = sourceSlot;
             TargetSlot = targetSlot;
-            Item = item;
+            SourceItem = sourceItem;
+            TargetItem = targetItem ?? sourceItem;
             Amount = amount;
             TargetWasEmptyBefore = targetWasEmptyBefore;
             RemainingInSource = remainingInSource;
@@ -64,7 +66,9 @@ namespace DragAndDropSystem.Inventories
         public IInventory TargetInventory { get; }
         public ISlot SourceSlot { get; }
         public ISlot TargetSlot { get; }
-        public IInventoryItem Item { get; }
+        public IInventoryItem SourceItem { get; }
+        public IInventoryItem TargetItem { get; }
+        public IInventoryItem Item => TargetItem;
         /// <summary>
         /// Количество предметов, которые были успешно перенесены
         /// </summary>
@@ -114,8 +118,14 @@ namespace DragAndDropSystem.Inventories
             int requestedAmount = draggedStack.Count;
             var stackItem = draggedStack.Item;
 
+            if (!TransferItemConversionUtility.TryResolveTargetItem(sourceInventory, targetInventory, stackItem, out var targetPreviewItem))
+            {
+                Extentions.DragAndDropLog("<color=red>[InventoryTransferService] Target inventory rejected item conversion</color>");
+                return false;
+            }
+
             // Определяем, сколько предметов целевой инвентарь может принять
-            int acceptableCount = targetInventory.GetAcceptableCount(stackItem, requestedAmount);
+            int acceptableCount = targetInventory.GetAcceptableCount(targetPreviewItem, requestedAmount);
 
             if (acceptableCount <= 0)
             {
@@ -204,6 +214,7 @@ namespace DragAndDropSystem.Inventories
                 sourceSlot,
                 resolvedSlot,
                 stackItem,
+                resolvedSlot?.Stack?.Item ?? targetPreviewItem,
                 actuallyAdded,
                 targetWasEmpty,
                 actualRemaining);

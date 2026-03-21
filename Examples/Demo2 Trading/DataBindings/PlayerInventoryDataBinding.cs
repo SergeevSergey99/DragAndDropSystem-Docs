@@ -39,14 +39,14 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override void AddToData(InventoryItemEventContext context, TradableItemModel item)
         {
-            if (TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData))
-                PlayerData.AddItem(item);
+            TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData);
+            PlayerData.AddItem(item);
         }
 
         protected override void RemoveFromData(InventoryItemEventContext context, TradableItemModel item)
         {
-            if (TradingHelper.TryHandleSellToMerchant(context, PlayerData))
-                PlayerData.TryRemoveItem(item);
+            TradingHelper.TryHandleSellToMerchant(context, PlayerData);
+            PlayerData.TryRemoveItem(item);
         }
 
         // --- Lifecycle ---

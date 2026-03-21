@@ -382,13 +382,13 @@ namespace DragAndDropSystem.Inventories
 
             foreach (var outcome in outcomes)
             {
-                if (outcome.Item == null || outcome.Amount <= 0)
+                if (outcome.SourceItem == null || outcome.TargetItem == null || outcome.Amount <= 0)
                     continue;
 
                 if (outcome.SourceInventory is UniversalInventory sourceUniversal)
                 {
                     sourceUniversal.EmitItemRemoved(
-                        outcome.Item,
+                        outcome.SourceItem,
                         outcome.Amount,
                         outcome.SourceSlot?.Index ?? -1,
                         outcome.TargetInventory,
@@ -400,7 +400,7 @@ namespace DragAndDropSystem.Inventories
                 if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null)
                 {
                     targetUniversal.EmitItemAdded(
-                        outcome.Item,
+                        outcome.TargetItem,
                         outcome.Amount,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,

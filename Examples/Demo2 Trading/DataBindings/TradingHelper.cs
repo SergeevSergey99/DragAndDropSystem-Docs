@@ -56,38 +56,32 @@ namespace DragAndDropSystem.Examples.Trading
         /// Обработка покупки у торговца, если применимо.
         /// Возвращает true если покупка была обработана.
         /// </summary>
-        public static bool TryHandlePurchaseFromMerchant(InventoryItemEventContext context, PlayerData playerData)
+        public static void TryHandlePurchaseFromMerchant(InventoryItemEventContext context, PlayerData playerData)
         {
             if (context.SourceInventory?.DataBinding is not IMerchantInventory)
-                return false;
+                return;
 
             if (context.Item is ITradableItem tradable)
             {
                 int totalPrice = tradable.BuyPrice * context.Count;
                 playerData.TrySpendMoney(totalPrice);
-                return true;
             }
-
-            return false;
         }
 
         /// <summary>
         /// Обработка продажи торговцу, если применимо.
         /// Возвращает true если продажа была обработана.
         /// </summary>
-        public static bool TryHandleSellToMerchant(InventoryItemEventContext context, PlayerData playerData)
+        public static void TryHandleSellToMerchant(InventoryItemEventContext context, PlayerData playerData)
         {
             if (context.TargetInventory?.DataBinding is not IMerchantInventory)
-                return false;
+                return;
 
             if (context.Item is ITradableItem tradable)
             {
                 int totalPrice = tradable.SellPrice * context.Count;
                 playerData.AddMoney(totalPrice);
-                return true;
             }
-
-            return false;
         }
     }
 }
