@@ -105,6 +105,15 @@ namespace DragAndDropSystem.Inventories
         public ItemBehaviorType ItemBehavior => _itemBehavior;
         public SlotManagementType SlotManagement => _slotManagement;
         public UniversalSlot SlotPrefab => _slotPrefab;
+
+        public IInventoryStrategy Strategy
+        {
+            get
+            {
+                EnsureStrategyInitialized();
+                return _strategy;
+            }
+        }
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
@@ -424,24 +433,6 @@ namespace DragAndDropSystem.Inventories
                 stack.ReplaceItem(converted);
 
             return true;
-        }
-
-        internal bool RequiresStrategyPlacement(ItemStack stack)
-        {
-            EnsureStrategyInitialized();
-            return _strategy.RequiresStrategyPlacement(stack);
-        }
-
-        internal bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
-        {
-            EnsureStrategyInitialized();
-            return _strategy.CanUseAlternativeSlot(slot, item);
-        }
-
-        internal bool UsesPerItemSlotPlanning()
-        {
-            EnsureStrategyInitialized();
-            return _strategy.UsesPerItemSlotPlanning;
         }
 
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)

@@ -504,7 +504,7 @@ namespace DragAndDropSystem.Inventories
 
         private static bool IsUniqueInventory(IInventory inventory) =>
             inventory is UniversalInventory universal &&
-            universal.UsesPerItemSlotPlanning();
+            universal.Strategy.UsesPerItemSlotPlanning;
 
         private static int Min(int a, int b) => a < b ? a : b;
 

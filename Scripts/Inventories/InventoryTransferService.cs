@@ -341,7 +341,7 @@ namespace DragAndDropSystem.Inventories
 
             foreach (var slot in operation.TargetInventory.Slots)
             {
-                if (!operation.TargetInventory.CanUseAlternativeSlot(slot, operation.TransferStack.Item))
+                if (!operation.TargetInventory.Strategy.CanUseAlternativeSlot(slot, operation.TransferStack.Item))
                     continue;
 
                 // Устанавливаем целевой слот в контексте для валидации
