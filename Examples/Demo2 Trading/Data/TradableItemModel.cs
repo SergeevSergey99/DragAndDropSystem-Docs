@@ -13,12 +13,12 @@ namespace DragAndDropSystem.Examples.Trading
     public class TradableItemModel
     {
         public TradableItemSO originalSO;
-        public DateTime GetTimestamp;
+        public string GetTimestamp;
 
         public TradableItemModel(TradableItemSO originalSo)
         {
             originalSO = originalSo;
-            GetTimestamp = DateTime.Now;
+            GetTimestamp = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
         }
     }
 }
