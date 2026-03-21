@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-21
 
 ## Quick Click Auto-Transfer
 
@@ -25,17 +25,49 @@
 
 ## Swap Callbacks for Integrations
 
-Swap is integrated via callbacks in execution options:
-- `SwapAttempting(InventorySwapContext)` (cancelable)
-- `SwapCompleted(InventorySwapContext)`
+Swap is integrated via inventory-scoped events (not direct calls):
+- `OnSwapAttempting(InventorySwapContext)` (cancelable)
+- `OnSwapCompleted(InventorySwapContext)`
 
-Used by DataBinding and gameplay systems to apply business rules.
+Used by DataBinding (subscribed in `OnEnable`/`OnDisable`) and gameplay systems.
+Swap remains event-based because two inventories participate and cancellation via `context.Cancel` is needed.
 
 ## DataBinding Integration
 
-`InventoryDataBindingBase` can react to:
-- regular transfer events (`OnItemAddedToUI` / `OnItemRemovedFromUI`)
-- swap callbacks (custom `CanSwapInternal` and post-swap handling)
+### Direct Notification (Add/Remove)
+
+`UniversalInventory` calls DataBinding directly (not through events):
+- `DataBinding.HandleItemAdded(context)` — called from `EmitItemAdded()`
+- `DataBinding.HandleItemRemoved(context)` — called from `EmitItemRemoved()`
+
+This is possible because DataBinding has a 1:1 relationship with UniversalInventory.
+The `IsSyncing` guard in base class prevents re-entrant callbacks during `ReloadUI()`.
+
+### Swap (Event-Based)
+
+DataBinding subscribes to swap events via `OnEnable`/`OnDisable`:
+- `OnSwapAttempting` — delegates to virtual `CanSwap()` method
+- `OnSwapCompleted` — delegates to virtual `OnSwapCompleted()` method
+
+### Item Conversion Pipeline
+
+DataBinding supports item conversion during transfers:
+- `ConvertIncomingItem(item)` — convert before placement (e.g., SO → Model adapter)
+- `ConvertOutgoingItem(item)` — convert before removal to target
+- Chain: source.ConvertOutgoing → target.ConvertIncoming
+
+### Template DataBindings
+
+Two template base classes automate common patterns:
+
+**`ListInventoryDataBinding<TData, TAdapter>`** — for list-based data sources:
+- 5 primitives: `GetItems()`, `CreateAdapter()`, `ExtractData()`, `AddToData()`, `RemoveFromData()`
+- Automates `OnReloadUI`, `OnItemAddedToUI`, `OnItemRemovedFromUI`
+
+**`MappedSlotInventoryDataBinding<TData, TAdapter>`** — for slot-mapped data:
+- Uses `Dictionary<ISlot, SlotBinding<TData>>` via abstract `CreateBindingMap()`
+- `SlotBinding` has: `Get`, `Set`, `Clear`, `CanAccept` (optional validation)
+- CanAccept enables declarative slot-type validation co-located with binding definition
 
 ## World 3D and Optional UI Systems
 

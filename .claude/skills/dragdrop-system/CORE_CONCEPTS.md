@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-21
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -59,7 +59,25 @@ Current flow:
 - `UniversalInventory.TrySwapSlots` performs swap
 - `SwapCompleted` callback runs after successful plan completion
 
-## 6. Event Consistency
+## 6. Event Architecture
+
+### Transfer Events (Direct Calls)
+
+`UniversalInventory.TryAddToSlot()` is pure mutation — no events emitted internally.
+Events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()` after all mutations complete:
+- `EmitItemAdded()` → calls `DataBinding.HandleItemAdded()` directly, then fires `OnItemAdded` event
+- `EmitItemRemoved()` → calls `DataBinding.HandleItemRemoved()` directly, then fires `OnItemRemoved` event
+
+DataBinding direct call is possible because of 1:1 relationship with UniversalInventory.
+External subscribers (e.g., `FilterSortController`) still use events.
+
+### Swap Events (Event Subscriptions)
+
+Swap uses traditional event subscriptions because two inventories participate:
+- `OnSwapAttempting` — cancelable via `context.Cancel`
+- `OnSwapCompleted` — post-swap notification
+
+### Deferred Dispatch
 
 The system prefers deferred event dispatch for consistency:
 - no false-positive events on atomic rollback

@@ -1,107 +1,87 @@
 # Trading System - Краткое описание
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-21
 
 ## Актуальность
 
-- Дроп-логика в проекте использует pipeline (`DropPolicy` + planner + executor).
+- Дроп-логика использует pipeline (`DropPolicy` + planner + executor).
 - Swap настраивается policy (`OccupiedTargetPolicy.TrySwap`), не manager-флагом.
-- Для swap-хуков используйте `InventorySwapContext`.
+- DataBinding уведомляется напрямую из `UniversalInventory` (не через события).
+- Все биндинги используют шаблонные базовые классы.
 
-## Созданные файлы
+## Файлы
 
-### 📦 ScriptableObject
-- **TradableItemSO.cs** - SO для торговых предметов с ценами покупки (BuyPrice) и продажи (SellPrice)
+### Данные
+- **TradableItemSO.cs** — SO для торговых предметов с ценами (BuyPrice, SellPrice)
+- **ITradableItem.cs** — общий интерфейс торговых адаптеров
+- **TradableItemModel.cs** — runtime модель предмета
+- **ItemType.cs** — типы предметов (Weapon, Armor, Artifact и т.д.)
 
-### 🔌 Адаптеры
-- **TradableItemAdapter.cs** - адаптер для интеграции TradableItemSO с системой drag and drop
+### Адаптеры
+- **TradableSoAdapter.cs** — адаптер для TradableItemSO (используется торговцами)
+- **TradableItemModelAdapter.cs** — адаптер для TradableItemModel (используется игроком)
 
-### 💰 Централизованная модель экономики
-- **EconomyData.cs** - классы данных:
-  - `PlayerEconomyData` - деньги и инвентарь игрока
-  - `MerchantData` - деньги и инвентарь торговца
-  - `TradableItemStack` - стек предметов с количеством
-  - `TransactionData` - данные транзакции для логирования
+### Экономика
+- **PlayerData** — деньги, инвентарь и экипировка игрока
+- **MerchantData** — деньги и инвентарь торговца
+- **TradingEconomyManager.cs** — синглтон, хранит данные всех участников
 
-- **TradingEconomyManager.cs** - централизованный синглтон для управления экономикой:
-  - Хранит данные игрока и всех торговцев
-  - Методы `TryBuyFromMerchant()` и `TrySellToMerchant()`
-  - Проверка достаточности средств
-  - Логирование всех транзакций
-  - Инструменты отладки в Inspector
+### DataBindings
+- **PlayerInventoryDataBinding.cs** — `ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`
+  - Синхронизация с PlayerData
+  - Торговая логика через TradingHelper
+  - ConvertIncomingItem: SO → Model
 
-### 🎨 DataBindings
-- **PlayerInventoryDataBinding.cs** - биндинг для инвентаря игрока:
-  - Синхронизация с PlayerEconomyData
-  - Отображение денег игрока
-  - Проверка денег при покупке (CanDropInternal)
-
-- **MerchantInventoryDataBinding.cs** - биндинг для инвентаря торговца:
+- **MerchantInventoryDataBinding.cs** — `ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>`
   - Синхронизация с MerchantData
-  - Отображение имени и денег торговца
-  - Проверка денег игрока при начале перетаскивания (CanStartDragInternal)
-  - Проверка денег торговца при продаже (CanDropInternal)
-  - Запрет торговли между торговцами
+  - Торговая логика в AddToData/RemoveFromData
+  - ConvertIncomingItem: Model → SO
+
+- **EquipmentInventoryDataBinding.cs** — `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`
+  - CreateBindingMap() со слотами и canAccept
+  - ConvertIncomingItem: SO → Model
+
+- **TradingHelper.cs** — статический хелпер:
+  - ValidatePurchaseFromMerchant / ValidateSellToMerchant
+  - TryHandlePurchaseFromMerchant / TryHandleSellToMerchant
+
+### UI
+- **SelectedPurchasePriceView.cs** — показывает суммарную стоимость выделенных предметов
+- **IMerchantInventory.cs** — маркер-интерфейс для определения инвентарей торговцев
 
 ## Ключевые отличия от первого примера
 
 | Первый пример | Trading пример |
 |---------------|----------------|
 | Простой List<ItemSO> | Централизованный TradingEconomyManager |
-| Базовые примеры проверок | Реальные проверки денег и условий |
-| Нет связи между инвентарями | Транзакции между игроком и торговцами |
-| Демонстрация основ | Демонстрация продвинутых возможностей |
-
-## Что демонстрирует этот пример
-
-✅ **Централизованная модель данных** - все данные в одном месте (TradingEconomyManager)
-
-✅ **Разные источники данных** - PlayerData и MerchantData в одной системе
-
-✅ **ScriptableObject с дополнительными данными** - цены покупки/продажи
-
-✅ **Переопределение методов проверки** - CanStartDragInternal() и CanDropInternal()
-
-✅ **Транзакции между субъектами** - покупка/продажа с проверкой средств
-
-✅ **Проверка источника перетаскивания** - запрет торговли между торговцами
-
-✅ **Логирование операций** - полный лог всех транзакций
-
-✅ **UI интеграция** - отображение денег и имен
-
-## Быстрый старт
-
-1. Создайте несколько TradableItemSO (ПКМ → Create → DragAndDrop → Examples → Trading → Tradable Item)
-2. Добавьте TradingEconomyManager на сцену и настройте торговцев в Inspector
-3. Создайте UI инвентари с PlayerInventoryDataBinding и MerchantInventoryDataBinding
-4. Запустите игру и перетаскивайте предметы между инвентарями
-
-Подробная инструкция в **README.md**
+| Прямое наследование от Base | Шаблоны (List + Mapped) |
+| Нет конвертации | SO ↔ Model через ConvertIncomingItem |
+| Базовые проверки | TradingHelper + canAccept в слотах |
 
 ## Механики
 
 ### Покупка (Торговец → Игрок)
-1. Начало перетаскивания: проверка денег игрока
-2. Сброс в инвентарь: списание денег у игрока, начисление торговцу
-3. Перемещение товара
+1. CanStartDrag: проверка денег игрока (TradingHelper)
+2. CanDrop: проверка денег игрока (TradingHelper)
+3. ConvertIncomingItem: SO → Model
+4. AddToData: списание денег, добавление в PlayerData
+5. RemoveFromData: начисление торговцу, удаление из MerchantData
 
 ### Продажа (Игрок → Торговец)
-1. Начало перетаскивания: разрешено
-2. Сброс в инвентарь: проверка денег торговца, начисление игроку
-3. Перемещение товара
+1. CanDrop: проверка денег торговца + запрет торговец→торговец
+2. ConvertIncomingItem: Model → SO
+3. AddToData: списание денег торговца, добавление в MerchantData
+4. RemoveFromData: начисление игроку, удаление из PlayerData
+
+### Экипировка (Инвентарь → Слот)
+1. CanDrop: проверка типа предмета через canAccept + покупка
+2. ConvertIncomingItem: SO → Model (если из торговца)
+3. Set: привязка к PlayerData.EquippedWeapon и т.д.
 
 ### Запреты
-- ❌ Торговля между торговцами
-- ❌ Покупка без денег
-- ❌ Продажа торговцу без денег
+- Торговля между торговцами
+- Покупка без денег
+- Продажа торговцу без денег
+- Неверный тип предмета в слот экипировки
 
-## Расширяемость
-
-Систему легко расширить:
-- Репутация с торговцами
-- Динамические цены
-- Скидки и наценки
-- Фильтры по типам товаров
-- Квесты от торговцев
-- Обменный курс валют
+Подробная инструкция в **README.md**

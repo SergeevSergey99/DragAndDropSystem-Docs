@@ -1,6 +1,6 @@
 # Swap Functionality - Updated Examples
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-21
 
 ## Включение swap
 
@@ -20,10 +20,10 @@ Policy может приходить:
 ### Пример 1: запрет swap с торговцем
 
 ```csharp
-protected override RuleResult CanSwapInternal(InventorySwapContext args)
+protected override RuleResult CanSwap(InventorySwapContext args)
 {
-    if (args.SourceInventory?.DataBinding is MerchantInventoryDataBinding ||
-        args.TargetInventory?.DataBinding is MerchantInventoryDataBinding)
+    if (args.SourceInventory?.DataBinding is IMerchantInventory ||
+        args.TargetInventory?.DataBinding is IMerchantInventory)
     {
         return RuleResult.Failure("Нельзя обменивать предметы с торговцем. Используйте покупку/продажу.");
     }

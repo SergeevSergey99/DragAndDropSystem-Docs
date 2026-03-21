@@ -1,6 +1,6 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-21
 
 ## Core Manual Tests
 
@@ -26,7 +26,9 @@
 ### Events and Rollback
 - [ ] atomic failure emits no false transfer/swap completion events
 - [ ] best effort emits events only for successful entries
-- [ ] DataBinding subscribers receive consistent slot/item payloads
+- [ ] DataBinding receives direct notifications (HandleItemAdded/HandleItemRemoved)
+- [ ] external event subscribers (OnItemAdded/OnItemRemoved) receive consistent payloads
+- [ ] IsSyncing guard prevents re-entrant callbacks during ReloadUI
 
 ## Integration Tests
 

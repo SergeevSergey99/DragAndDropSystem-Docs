@@ -81,9 +81,13 @@ Comprehensive catalog of anti-patterns and how to avoid them.
 
 **Solution**: Use `BeginSync()` scope in `ReloadUI()`:
 - Wrap Data→UI sync code with `using (BeginSync()) { ... }` — exception-safe and supports nesting
-- Base class automatically skips `OnItemAddedToUI()`/`OnItemRemovedFromUI()` when `IsSyncing == true`
+- Base class `HandleItemAdded()`/`HandleItemRemoved()` automatically skips when `IsSyncing == true`
 - Use `AddToUIQuiet()` helper which internally uses `BeginSync()`
 - Do NOT check `IsSyncing` manually in subclass overrides — base class already handles this
+
+**Note**: DataBinding is notified via direct calls from UniversalInventory (not events), but the
+re-entrancy guard via `IsSyncing` still applies. The `HandleItemAdded()`/`HandleItemRemoved()` internal
+methods check `IsSyncing` before calling virtual `OnItemAddedToUI()`/`OnItemRemovedFromUI()`.
 
 **Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` for base class implementation.
 

@@ -1,6 +1,6 @@
 # Transfer Pipeline Architecture
 
-**Last Updated**: 2026-03-06
+**Last Updated**: 2026-03-21
 
 Документ описывает текущую архитектуру drop/transfer pipeline, включая batch transfer и swap.
 
@@ -55,7 +55,9 @@
 - выполняет обычные переносы через `InventoryTransferService`;
 - исполняет swap-ветку;
 - поддерживает rollback в atomic mode;
-- откладывает события до успешного завершения плана.
+- откладывает события до успешного завершения плана;
+- уведомляет DataBinding напрямую через `HandleItemAdded()`/`HandleItemRemoved()` (не через события);
+- публикует `OnItemAdded`/`OnItemRemoved` для внешних подписчиков.
 
 ### InventoryDropProcessor
 

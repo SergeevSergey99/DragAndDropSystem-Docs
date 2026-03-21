@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-21
 
 ## DragAndDropManager
 
@@ -93,3 +93,24 @@ Responsibilities:
 - run inventory/slot rule checks
 - provide concrete slot-level mutations and visuals
 - support `TrySwapSlots` for swap execution
+- notify DataBinding directly via `HandleItemAdded()`/`HandleItemRemoved()` (not events)
+- apply item conversion pipeline via DataBinding's `ConvertIncomingItem()`/`ConvertOutgoingItem()`
+
+Note: `TryAddToSlot` is pure mutation — no events emitted internally. Events are only emitted
+by `TransferPlanExecutor.DispatchTransferEvents()` which calls `EmitItemAdded()`/`EmitItemRemoved()`.
+
+## DataBinding System
+
+Location: `Scripts/DataBinding/`
+
+Key classes:
+- `InventoryDataBindingBase` — base class with direct notification (`HandleItemAdded`/`HandleItemRemoved`),
+  swap event subscriptions, sync scope, rule integration, and item conversion pipeline
+- `ListInventoryDataBinding<TData, TAdapter>` — template for list-based data sources
+- `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<ISlot, SlotBinding<TData>>`
+
+Responsibilities:
+- bidirectional sync between UI (UniversalInventory) and external data
+- item conversion (ConvertIncomingItem / ConvertOutgoingItem)
+- rule integration (virtual CanStartDrag, CanDrop, CanSwap)
+- swap handling via event subscriptions (OnSwapAttempting / OnSwapCompleted)

@@ -4,8 +4,8 @@ description: Expert guidance for reviewing and extending DragAndDropSystem with 
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-02-28
-**Version**: 2.0
+**Last Updated**: 2026-03-21
+**Version**: 2.1
 
 ## Expert Baseline
 

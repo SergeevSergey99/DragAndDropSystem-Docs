@@ -1,6 +1,6 @@
 # Demo3: Loot System - Персонаж взаимодействует с сундуками
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-21
 
 ## Актуальность под transfer pipeline
 
@@ -153,21 +153,18 @@
 
 2. DragAndDropManager
    → проверяет правила
-   → выполняет перенос
+   → выполняет перенос через pipeline (planner → executor)
 
-3. UniversalInventory (chest)
-   → OnItemRemoved.Invoke(args)
+3. TransferPlanExecutor.DispatchTransferEvents()
+   → UniversalInventory (chest).EmitItemRemoved()
+      → DataBinding.HandleItemRemoved() [прямой вызов]
+      → ChestInventoryDataBinding.OnItemRemovedFromUI()
+         → _chest.RemoveItem(itemSO)
 
-4. ChestInventoryDataBinding
-   → OnItemRemovedFromUI(args)
-   → _chest.RemoveItem(itemSO)
-
-5. UniversalInventory (player)
-   → OnItemAdded.Invoke(args)
-
-6. PlayerInventoryDataBinding
-   → OnItemAddedToUI(args)
-   → _playerData.AddItem(itemSO)
+   → UniversalInventory (player).EmitItemAdded()
+      → DataBinding.HandleItemAdded() [прямой вызов]
+      → PlayerInventoryDataBinding.OnItemAddedToUI()
+         → _playerData.AddItem(itemSO)
 ```
 
 ## ⚙️ Настройка в Unity

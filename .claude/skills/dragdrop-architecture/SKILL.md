@@ -4,8 +4,8 @@ description: Architecture reference for DragAndDropSystem with policy-driven pla
 ---
 # DragDrop Architecture
 
-**Version**: 2.0
-**Last Updated**: 2026-02-28
+**Version**: 2.1
+**Last Updated**: 2026-03-21
 
 ## Architectural Baseline
 
@@ -30,3 +30,5 @@ This replaces fragmented decision logic in manager-level transfer handling.
 3. Keep swap execution in the same pipeline as regular transfers.
 4. Keep event emission rollback-safe in atomic mode.
 5. Keep UI target code thin (`InventoryDropProcessor` as boundary).
+6. Keep DataBinding notification direct (not event-based) for add/remove; events only for swap.
+7. Keep `TryAddToSlot` as pure mutation — no event emission inside.

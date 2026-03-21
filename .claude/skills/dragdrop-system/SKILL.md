@@ -4,8 +4,8 @@ description: Quick reference for Unity Drag & Drop Inventory System with policy/
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 2.0
-**Last Updated**: 2026-02-28
+**Version**: 2.1
+**Last Updated**: 2026-03-21
 
 ## System Overview
 
