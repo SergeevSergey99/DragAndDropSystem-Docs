@@ -125,7 +125,14 @@ namespace DragAndDropSystem.Inventories
             }
 
             // Определяем, сколько предметов целевой инвентарь может принять
-            int acceptableCount = targetInventory.GetAcceptableCount(targetPreviewItem, requestedAmount);
+            var previewStack = new ItemStack(targetPreviewItem, requestedAmount);
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                targetInventory,
+                targetPreviewItem,
+                requestedAmount,
+                new DragContext(previewStack, sourceSlot, sourceInventory, targetSlot, targetInventory),
+                new DragEntry(previewStack, sourceSlot, sourceInventory));
+            int acceptableCount = targetInventory.GetAcceptableCount(acceptanceRequest);
 
             if (acceptableCount <= 0)
             {

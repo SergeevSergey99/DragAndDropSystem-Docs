@@ -84,5 +84,11 @@ namespace DragAndDropSystem.Inventories
         /// <param name="desiredCount">Желаемое количество</param>
         /// <returns>Количество предметов, которое реально может быть принято (0 до desiredCount)</returns>
         int GetAcceptableCount(IInventoryItem item, int desiredCount);
+
+        /// <summary>
+        /// Получить количество предметов, которое инвентарь может принять
+        /// в контексте конкретной drag/drop операции.
+        /// </summary>
+        int GetAcceptableCount(InventoryAcceptanceRequest request);
     }
 }

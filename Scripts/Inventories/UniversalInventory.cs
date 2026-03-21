@@ -470,25 +470,30 @@ namespace DragAndDropSystem.Inventories
             return success;
         }
 
-        internal bool CanAcceptByRules(ISlot slot, IInventoryItem item, int previewCount)
+        internal bool CanAcceptByRules(
+            ISlot slot,
+            IInventoryItem item,
+            int previewCount,
+            InventoryAcceptanceRequest request = null,
+            bool allowForeignSlot = false)
         {
             if (slot == null || item == null || previewCount <= 0)
                 return false;
 
-            if (!ReferenceEquals(slot.Inventory, this))
+            if (!allowForeignSlot && !ReferenceEquals(slot.Inventory, this))
                 return false;
 
             var previewStack = new ItemStack(item, previewCount);
-            return ValidateRulesForPreview(slot, previewStack);
+            return ValidateRulesForPreview(slot, previewStack, request);
         }
 
-        private bool ValidateRulesForPreview(ISlot slot, ItemStack previewStack)
+        private bool ValidateRulesForPreview(ISlot slot, ItemStack previewStack, InventoryAcceptanceRequest request)
         {
             if (slot == null || previewStack == null || previewStack.IsEmpty)
                 return false;
 
-            var context = new DragContext(previewStack, null, null);
-            context.SetTarget(slot, this);
+            var context = request?.CreateValidationContext(slot, previewStack.Count, previewStack.Item)
+                ?? new DragContext(previewStack, null, null, slot, this);
             var entry = context.Entries[0];
 
             if (_ruleValidator != null)
@@ -959,36 +964,23 @@ namespace DragAndDropSystem.Inventories
         /// Проверяет правила инвентаря + наличие подходящих слотов или возможность создания нового
         /// </summary>
         public bool CanAcceptItem(IInventoryItem item, int count, out ISlot suggestedSlot)
+            => CanAcceptItem(new InventoryAcceptanceRequest(this, item, count), out suggestedSlot);
+
+        /// <summary>
+        /// Проверить, может ли инвентарь принять предмет в контексте текущей drag/drop операции.
+        /// </summary>
+        public bool CanAcceptItem(InventoryAcceptanceRequest request, out ISlot suggestedSlot)
         {
             suggestedSlot = null;
 
-            if (item == null || count <= 0)
+            if (request?.Item == null || request.DesiredCount <= 0)
                 return false;
-
-            // Создаем временный стак для проверки
-            var previewStack = new ItemStack(item, count);
-
-            // 1. Проверяем правила инвентаря (без привязки к слоту)
-            // Создаем контекст без целевого слота
-            var context = new DragContext(previewStack, null, null);
-            context.TargetInventory = this;
-            var entry = context.Entries[0];
-
-            if (_ruleValidator != null)
-            {
-                var inventoryResult = _ruleValidator.ValidateDrop(context, entry);
-                if (!inventoryResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: Inventory rules rejected: {inventoryResult.FailureReason}</color>");
-                    return false;
-                }
-            }
 
             EnsureStrategyInitialized();
 
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
-            bool canAccept = _strategy.CanAcceptItem(_slots, item, count, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
+            bool canAccept = _strategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
 
             if (canAccept)
                 Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
@@ -1004,32 +996,19 @@ namespace DragAndDropSystem.Inventories
         /// свободные слоты и правила валидации.
         /// </summary>
         public int GetAcceptableCount(IInventoryItem item, int desiredCount)
+            => GetAcceptableCount(new InventoryAcceptanceRequest(this, item, desiredCount));
+
+        public int GetAcceptableCount(InventoryAcceptanceRequest request)
         {
-            if (item == null || desiredCount <= 0)
+            if (request?.Item == null || request.DesiredCount <= 0)
                 return 0;
-
-            // Проверяем правила инвентаря (без привязки к слоту)
-            var previewStack = new ItemStack(item, 1);
-            var context = new DragContext(previewStack, null, null);
-            context.TargetInventory = this;
-            var entry = context.Entries[0];
-
-            if (_ruleValidator != null)
-            {
-                var inventoryResult = _ruleValidator.ValidateDrop(context, entry);
-                if (!inventoryResult.IsValid)
-                {
-                    Extentions.DragAndDropLog($"<color=red>[{name}] GetAcceptableCount: Inventory rules rejected</color>");
-                    return 0;
-                }
-            }
 
             EnsureStrategyInitialized();
 
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
-            int result = _strategy.GetAcceptableCount(_slots, item, desiredCount, canCreateNewSlot, potentialNewSlots, _slotPrefab);
-            Extentions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={item.DisplayName}, desired={desiredCount}, acceptable={result}</color>");
+            int result = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab);
+            Extentions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={request.Item.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }
 

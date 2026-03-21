@@ -94,6 +94,18 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected abstract TData ExtractData(TAdapter adapter);
 
+        protected bool TryGetTargetBinding(ISlot targetSlot, out SlotBinding<TData> binding)
+        {
+            binding = default;
+            return targetSlot != null && BindingMap.TryGetValue(targetSlot, out binding);
+        }
+
+        protected bool TryGetSourceBinding(ISlot sourceSlot, out SlotBinding<TData> binding)
+        {
+            binding = default;
+            return sourceSlot != null && BindingMap.TryGetValue(sourceSlot, out binding);
+        }
+
         protected override void OnReloadUI()
         {
             foreach (var (slot, binding) in BindingMap)
@@ -112,13 +124,13 @@ namespace DragAndDropSystem.DataBinding
             var data = ExtractData(adapter);
             if (data == null) return;
 
-            if (BindingMap.TryGetValue(context.TargetSlot, out var binding))
+            if (TryGetTargetBinding(context.TargetSlot, out var binding))
                 binding.Set(data);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (BindingMap.TryGetValue(context.SourceSlot, out var binding))
+            if (TryGetSourceBinding(context.SourceSlot, out var binding))
                 binding.Clear();
         }
 
@@ -127,7 +139,7 @@ namespace DragAndDropSystem.DataBinding
             if (entry.Stack.Item is not TAdapter adapter)
                 return RuleResult.Failure("Неверный тип предмета");
 
-            if (!BindingMap.TryGetValue(context.TargetSlot, out var binding))
+            if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
                 return RuleResult.Failure("Неизвестный слот");
 
             if (binding.CanAccept == null)

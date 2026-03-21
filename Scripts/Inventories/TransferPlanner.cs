@@ -260,7 +260,13 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected item conversion");
             }
 
-            int acceptableByInventory = targetInventory.GetAcceptableCount(targetItem, requested);
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                targetInventory,
+                targetItem,
+                requested,
+                context,
+                entry);
+            int acceptableByInventory = targetInventory.GetAcceptableCount(acceptanceRequest);
             if (acceptableByInventory <= 0)
             {
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this item");

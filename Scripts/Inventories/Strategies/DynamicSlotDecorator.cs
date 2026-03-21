@@ -151,14 +151,14 @@ namespace DragAndDropSystem.Inventories
             return _baseStrategy.TryAddToSlot(slots, stack, targetSlot, ensureFreeSlots, operationContext);
         }
 
-        public bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        public bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
         {
-            return _baseStrategy.CanAcceptItem(slots, item, desiredCount, canCreateNewSlot, potentialNewSlots, slotPrefab, out suggestedSlot);
+            return _baseStrategy.CanAcceptItem(slots, request, canCreateNewSlot, potentialNewSlots, slotPrefab, out suggestedSlot);
         }
 
-        public int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        public int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
         {
-            return _baseStrategy.GetAcceptableCount(slots, item, desiredCount, canCreateNewSlot, potentialNewSlots, slotPrefab);
+            return _baseStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, slotPrefab);
         }
     }
 }

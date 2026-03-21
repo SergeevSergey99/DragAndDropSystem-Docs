@@ -105,7 +105,7 @@ namespace DragAndDropSystem.Examples.Trading
                 return RuleResult.Failure("Неверный тип предмета");
 
             // Проверяем соответствие типа предмета слоту через canAccept из BindingMap
-            if (!BindingMap.TryGetValue(context.TargetSlot, out var binding))
+            if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
                 return RuleResult.Failure("Неизвестный слот экипировки");
             
             if (binding.CanAccept?.Invoke(new TradableItemModel(tradable.OriginalSO)).IsValid == false)

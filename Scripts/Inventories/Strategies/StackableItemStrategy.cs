@@ -160,21 +160,23 @@ namespace DragAndDropSystem.Inventories
             return TryPlaceIntoEmptySlot(stack, targetSlot, ensureFreeSlots, operationContext);
         }
 
-        public override bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        public override bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
         {
             suggestedSlot = null;
+            var item = request?.Item;
+            var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
                 return false;
 
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, 1))
+                if (!slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, 1, request))
                 {
                     suggestedSlot = slot;
                     return true;
                 }
 
-                if (slot.IsEmpty && suggestedSlot == null && PassesRules(slot, item, 1))
+                if (slot.IsEmpty && suggestedSlot == null && PassesRules(slot, item, 1, request))
                 {
                     suggestedSlot = slot;
                 }
@@ -183,33 +185,37 @@ namespace DragAndDropSystem.Inventories
             if (suggestedSlot != null)
                 return true;
 
-            return canCreateNewSlot && PrefabPassesRules(slotPrefab, item, 1);
+            return canCreateNewSlot && PrefabPassesRules(slots, slotPrefab, item, 1, request);
         }
 
-        public override int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        public override int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
         {
+            var item = request?.Item;
+            var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
                 return 0;
-
-            if (canCreateNewSlot)
-                return desiredCount;
 
             bool hasStackableSlot = false;
             bool hasEmptySlot = false;
 
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, 1))
+                if (!slot.IsEmpty && slot.Stack.CanStack(item) && PassesRules(slot, item, 1, request))
                 {
                     hasStackableSlot = true;
                     break;
                 }
 
-                if (slot.IsEmpty && PassesRules(slot, item, 1))
+                if (slot.IsEmpty && PassesRules(slot, item, 1, request))
                     hasEmptySlot = true;
             }
 
-            return (hasStackableSlot || hasEmptySlot) ? desiredCount : 0;
+            if (hasStackableSlot || hasEmptySlot)
+                return desiredCount;
+
+            return canCreateNewSlot && PrefabPassesRules(slots, slotPrefab, item, 1, request)
+                ? desiredCount
+                : 0;
         }
     }
 }

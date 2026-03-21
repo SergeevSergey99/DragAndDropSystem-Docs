@@ -224,7 +224,17 @@ namespace DragAndDropSystem.UI
                 if (stack == null || stack.Item == null)
                     return false;
 
-                bool canAccept = _inventory.CanAcceptItem(stack.Item, stack.Count, out suggestedSlot);
+                if (!TransferItemConversionUtility.TryResolveTargetItem(context.Entries[0].SourceInventory, _inventory, stack.Item, out var targetPreviewItem))
+                    return false;
+
+                var acceptanceRequest = new InventoryAcceptanceRequest(
+                    _inventory,
+                    targetPreviewItem,
+                    stack.Count,
+                    context,
+                    context.Entries[0]);
+
+                bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out suggestedSlot);
                 if (!canAccept)
                 {
                     Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");

@@ -12,8 +12,8 @@ namespace DragAndDropSystem.Inventories
         public abstract bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex);
         public abstract bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
-        public abstract bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
-        public abstract int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
+        public abstract bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
+        public abstract int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
 
         public virtual int GetItemCount(List<ISlot> slots, IInventoryItem item)
         {
@@ -75,13 +75,13 @@ namespace DragAndDropSystem.Inventories
             return slot.Stack != null && slot.Stack.CanStack(item);
         }
 
-        protected bool PassesRules(ISlot slot, IInventoryItem item, int previewCount)
+        protected bool PassesRules(ISlot slot, IInventoryItem item, int previewCount, InventoryAcceptanceRequest request = null)
         {
             if (slot == null || item == null || previewCount <= 0)
                 return false;
 
             if (slot.Inventory is UniversalInventory inventory)
-                return inventory.CanAcceptByRules(slot, item, previewCount);
+                return inventory.CanAcceptByRules(slot, item, previewCount, request);
 
             return true;
         }
@@ -108,12 +108,30 @@ namespace DragAndDropSystem.Inventories
             return -1;
         }
 
-        protected bool PrefabPassesRules(ISlot slotPrefab, IInventoryItem item, int previewCount)
+        protected bool PrefabPassesRules(List<ISlot> slots, ISlot slotPrefab, IInventoryItem item, int previewCount, InventoryAcceptanceRequest request)
         {
-            if (slotPrefab?.SlotRuleValidator == null || item == null || previewCount <= 0)
+            if (item == null || previewCount <= 0)
+                return false;
+
+            UniversalInventory inventory = request?.TargetInventory as UniversalInventory;
+            if (inventory == null)
+            {
+                foreach (var slot in slots)
+                {
+                    inventory = slot?.Inventory as UniversalInventory;
+                    if (inventory != null)
+                        break;
+                }
+            }
+
+            if (inventory != null)
+                return inventory.CanAcceptByRules(slotPrefab, item, previewCount, request, allowForeignSlot: true);
+
+            if (slotPrefab?.SlotRuleValidator == null)
                 return true;
 
-            var context = new DragContext(new ItemStack(item, previewCount), null, null);
+            var context = request?.CreateValidationContext(slotPrefab, previewCount, item)
+                ?? new DragContext(new ItemStack(item, previewCount), null, null, slotPrefab, null);
             var entry = context.Entries[0];
             return slotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
         }

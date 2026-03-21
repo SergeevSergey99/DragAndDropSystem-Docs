@@ -58,12 +58,12 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Проверить, может ли инвентарь принять предмет и вернуть suggested slot.
         /// </summary>
-        bool CanAcceptItem(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
+        bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
 
         /// <summary>
         /// Получить количество предметов, которое стратегия может принять.
         /// </summary>
-        int GetAcceptableCount(List<ISlot> slots, IInventoryItem item, int desiredCount, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
+        int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
     }
 
 }
