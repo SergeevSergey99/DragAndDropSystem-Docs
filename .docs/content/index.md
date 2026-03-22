@@ -85,6 +85,7 @@ flowchart LR
 - [Пример: экипировка](examples/equipment.md) — фиксированные слоты
 - [Пример: торговля](examples/trading.md) — конвертация предметов и денежные проверки
 - [Привязка данных](architecture/data-binding.md) — где писать sync, rules и business hooks
+- [Обратная связь](feedback.md) — куда писать о багах, идеях и проблемах интеграции
 
 ---
 

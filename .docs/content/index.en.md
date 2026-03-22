@@ -85,3 +85,4 @@ For most projects, this is enough:
 - [Equipment Example](examples/equipment.md)
 - [Trading Example](examples/trading.md)
 - [Data Binding](architecture/data-binding.md)
+- [Feedback](feedback.md)

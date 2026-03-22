@@ -36,9 +36,19 @@ plugins:
           name: Русский
           default: true
           build: true
+          nav_translations:
+            Examples: Примеры
+            Core Concepts: Основные концепции
+            Advanced Systems: Продвинутые системы
+            Reference: Справочник
         - locale: en
           name: English
           build: true
+          nav_translations:
+            Examples: Examples
+            Core Concepts: Core Concepts
+            Advanced Systems: Advanced Systems
+            Reference: Reference
 
 nav:
   - index.md
@@ -62,6 +72,7 @@ nav:
   - Reference:
     - reference/file-map.md
     - reference/events.md
+  - feedback.md
 
 markdown_extensions:
   - admonition
