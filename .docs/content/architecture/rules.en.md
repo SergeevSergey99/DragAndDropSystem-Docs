@@ -8,6 +8,10 @@ Rules control what can be dragged and where it can be dropped. The system valida
 
 Rules separate constraint logic from placement logic. Instead of embedding checks into inventory code, you declaratively describe constraints --- through the Inspector or code --- and the system automatically applies them on every transfer.
 
+!!! note "Rules are not the same as business hooks"
+    Rules handle mechanical transfer constraints: can the item be dragged, can it be dropped into this target, does the slot accept this type.
+    If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (`CanCommitTransfer`, `OnTransferSucceeded`) instead of `CanDrop`.
+
 ---
 
 ## Three Validation Levels

@@ -43,21 +43,22 @@ plugins:
 nav:
   - index.md
   - getting-started/quick-start.md
-  - Architecture:
+  - Examples:
+    - examples/equipment.md
+    - examples/trading.md
+    - examples/loot.md
+  - Core Concepts:
+    - architecture/data-binding.md
     - architecture/transfer-pipeline.md
     - architecture/strategies.md
-    - architecture/data-binding.md
     - architecture/rules.md
-  - Systems:
+  - Advanced Systems:
     - systems/selection.md
     - systems/context-menu.md
     - systems/tooltips.md
     - systems/filter-sort.md
     - systems/interaction.md
     - systems/world-3d.md
-  - Examples:
-    - examples/trading.md
-    - examples/loot.md
   - Reference:
     - reference/file-map.md
     - reference/events.md

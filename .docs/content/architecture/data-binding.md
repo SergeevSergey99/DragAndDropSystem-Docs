@@ -1,204 +1,177 @@
 # Привязка данных (DataBinding)
 
-DataBinding --- мост между вашими игровыми данными и UI инвентарём. Он автоматически синхронизирует изменения в обоих направлениях: когда игрок перетаскивает предметы в UI и когда данные меняются из кода.
+`DataBinding` связывает `UniversalInventory` с вашими данными.
+
+Это главный слой, который отвечает на вопрос:
+"что в этой системе должно обновлять UI, а что должно обновлять мою игровую модель?"
 
 ---
 
-## Зачем нужен DataBinding
-
-Инвентарь в UI (`UniversalInventory`) не хранит ваши данные --- он только отображает их. DataBinding связывает ваши данные (списки, поля, модели) с визуальным представлением, обеспечивая двустороннюю синхронизацию.
-
----
-
-## Как это связано
+## Простая ментальная модель
 
 ```mermaid
 flowchart LR
-    DATA["Ваши данные<br/>(List, поля, БД)"] <-->|"синхронизация"| DB["DataBinding"]
-    DB <-->|"синхронизация"| UI["UI Инвентарь<br/>(UniversalInventory)"]
+    Data["Ваши данные"] <--> Binding["DataBinding"]
+    Binding <--> UI["UniversalInventory"]
 ```
+
+- `UniversalInventory` управляет слотами, переносом и событиями
+- `DataBinding` переводит эти события в изменения ваших данных
+- ваши данные остаются в вашей модели, а не внутри UI-инвентаря
 
 ---
 
-## Жизненный цикл
+## Два основных шаблона
+
+| Шаблон | Когда использовать |
+|---|---|
+| `ListInventoryDataBinding<TData, TAdapter>` | обычные списки предметов, рюкзак, сундук, лут |
+| `MappedSlotInventoryDataBinding<TData, TAdapter>` | экипировка, quickbar, фиксированные именованные слоты |
+
+---
+
+## Жизненный цикл переноса
+
+Вот самое важное, что нужно понимать пользователю ассета:
 
 ```mermaid
 sequenceDiagram
-    participant Данные as Ваши данные
+    participant UI as UniversalInventory
     participant DB as DataBinding
-    participant UI as UI Инвентарь
+    participant Domain as Transfer Hooks
+    participant Data as Ваши данные
 
-    Note over DB,UI: Инициализация
-    DB->>UI: Регистрируется при Awake
-    DB->>Данные: Читает данные
-    DB->>UI: Загружает предметы в UI
-
-    Note over DB,UI: Игрок перетащил предмет
-    UI->>DB: Предмет добавлен/убран
-    DB->>Данные: Обновляет ваши данные
-
-    Note over DB,UI: Данные изменились извне
-    Данные->>DB: Вызов ReloadUI()
-    DB->>UI: Очищает и заполняет заново
+    UI->>DB: CanStartDrag
+    UI->>DB: CanDrop
+    UI->>Domain: CanCommitTransfer
+    UI->>UI: Выполнить перенос
+    UI->>Domain: OnTransferSucceeded
+    UI->>DB: OnItemRemoved / OnItemAdded
+    DB->>Data: RemoveFromData / AddToData
 ```
 
 ---
 
-## Два шаблона
+## Что где писать
 
-### Список (ListInventoryDataBinding)
+| Точка | Когда вызывается | Для чего использовать |
+|---|---|---|
+| `CanStartDrag` | перед началом drag | запретить взять предмет из источника |
+| `CanDrop` | во время preview и planning | механические ограничения: тип слота, лок, базовая совместимость |
+| `CanCommitTransfer` | перед реальным commit | деньги, серверная валидация, доменный veto |
+| `OnTransferSucceeded` | после успешного commit | списание/начисление валюты, аналитика, доменные side effects |
+| `AddToData` / `RemoveFromData` | после inventory events | синхронизация ваших данных с уже подтверждённым результатом |
 
-Для инвентарей на основе списка --- рюкзак, лут, торговля.
+Главное правило:
 
-```mermaid
-flowchart LR
-    LIST["List&lt;T&gt;<br/>(ваши данные)"] <-->|"адаптер"| INV["Инвентарь<br/>(слоты с предметами)"]
-```
+- `CanDrop` отвечает за механическую совместимость
+- `CanCommitTransfer` отвечает за бизнес-смысл операции
+- `AddToData/RemoveFromData` отвечают только за sync
 
-Наследник определяет 5 методов:
+---
+
+## Пример обычного list-binding
 
 ```csharp
-public class MyInventoryBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
+public class BackpackBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 {
     [SerializeField] private List<ItemSO> _items;
 
-    // Откуда читать данные
     protected override IReadOnlyList<ItemSO> GetItems() => _items;
-
-    // Как создать адаптер (обёртку IInventoryItem) из данных
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
-
-    // Как извлечь данные из адаптера
-    protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.Item;
-
-    // Что делать, когда предмет добавлен в UI
-    protected override void AddToData(InventoryItemEventContext ctx, ItemSO item)
-        => _items.Add(item);
-
-    // Что делать, когда предмет убран из UI
-    protected override void RemoveFromData(InventoryItemEventContext ctx, ItemSO item)
-        => _items.Remove(item);
+    protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.Data;
+    protected override void AddToData(InventoryItemEventContext ctx, ItemSO item) => _items.Add(item);
+    protected override void RemoveFromData(InventoryItemEventContext ctx, ItemSO item) => _items.Remove(item);
 }
 ```
 
-### Слоты экипировки (MappedSlotInventoryDataBinding)
+Здесь нет бизнес-логики. Только чтение и запись данных.
 
-Для инвентарей с фиксированными именованными слотами --- экипировка, панель быстрого доступа.
+---
 
-```mermaid
-flowchart LR
-    FIELD1["Поле: Оружие"] <--> SLOT1["Слот оружия"]
-    FIELD2["Поле: Броня"] <--> SLOT2["Слот брони"]
-    FIELD3["Поле: Аксессуар"] <--> SLOT3["Слот аксессуара"]
-```
+## Пример бизнес-хука уровня переноса
 
-Каждый слот декларативно привязывается к данным через словарь:
+Если binding должен участвовать в бизнес-логике операции, реализуйте `ITransferDomainHandler`:
 
 ```csharp
-public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemModelAdapter>
+public class ShopInventoryBinding
+    : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
-    [SerializeField] private UniversalSlot _weaponSlot, _armorSlot;
-
-    protected override Dictionary<ISlot, SlotBinding<ItemModel>> CreateBindingMap() => new()
+    public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
-        [_weaponSlot] = new(
-            get:   () => _data.Weapon,        // Откуда читать
-            set:   item => _data.Weapon = item, // Куда писать
-            clear: () => _data.Weapon = null,   // Как очистить
-            canAccept: item => item.Type == ItemType.Weapon  // Валидация
-                ? RuleResult.Success()
-                : RuleResult.Failure("Только оружие")),
+        return ValidateBusinessRules(context)
+            ? RuleResult.Success()
+            : RuleResult.Failure("Transfer is not allowed");
+    }
 
-        [_armorSlot] = new(
-            get:   () => _data.Armor,
-            set:   item => _data.Armor = item,
-            clear: () => _data.Armor = null),
-    };
-
-    protected override ItemModelAdapter CreateAdapter(ItemModel item) => new(item);
-    protected override ItemModel ExtractData(ItemModelAdapter a) => a.Item;
+    public void OnTransferSucceeded(TransferDomainContext context)
+    {
+        ApplyDomainEffects(context);
+    }
 }
 ```
+
+Сюда стоит помещать:
+
+- денежные проверки
+- серверные проверки перед коммитом
+- доменные ограничения уровня всей операции
+
+Сюда не стоит помещать:
+
+- обычный sync списка
+- slot compatibility
+- типовые UI-проверки
 
 ---
 
 ## Конвертация предметов
 
-При переносе между инвентарями с разными типами данных предмет конвертируется автоматически.
-
-```mermaid
-flowchart LR
-    A["Инвентарь А<br/>(тип: SO)"] -->|"перетаскивание"| CONV["Конвертация"]
-    CONV --> B["Инвентарь Б<br/>(тип: Model)"]
-```
-
-Для настройки конвертации переопределите `CreateItemConverter()` в DataBinding:
+Если два инвентаря используют разные представления предмета, binding может предоставить converter:
 
 ```csharp
 protected override IInventoryItemConverter CreateItemConverter()
 {
-    return new MyConverter(); // Преобразует SO → Model и обратно
+    return new MyInventoryItemConverter();
 }
 ```
 
+Это нужно, например, для торговли, где:
+
+- торговец хранит `ScriptableObject`
+- игрок хранит runtime-модель
+
 ---
 
-## Хуки валидации
+## Когда обновлять UI из данных
 
-DataBinding предоставляет виртуальные методы для контроля переноса:
+Если данные изменились вне конвейера drag & drop, вызовите:
 
 ```csharp
-// Можно ли начать перетаскивание из этого инвентаря?
-protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
-{
-    if (IsLocked) return RuleResult.Failure("Инвентарь заблокирован");
-    return RuleResult.Success();
-}
-
-// Можно ли бросить предмет в этот инвентарь?
-protected override RuleResult CanDrop(DragContext context, DragEntry entry)
-{
-    if (!HasEnoughGold(entry)) return RuleResult.Failure("Не хватает золота");
-    return RuleResult.Success();
-}
-
-// Можно ли выполнить обмен?
-protected override RuleResult CanSwap(InventorySwapContext context)
-{
-    return RuleResult.Success(); // По умолчанию разрешено
-}
+ReloadUI();
 ```
 
-Эти методы автоматически интегрируются в систему правил инвентаря.
-
----
-
-## Scope синхронизации
-
-При массовых изменениях данных используйте `BeginSync()`, чтобы подавить события:
+Если вы хотите явно подчеркнуть намерение синхронизации:
 
 ```csharp
-// Массовое обновление без лишних событий
-using (BeginSync())
-{
-    _inventory.ClearAll();
-    foreach (var item in newItems)
-        _inventory.TryAddItem(CreateAdapter(item), 1);
-}
-// После выхода из scope --- одно обновление UI
+ForceSyncToUI();
 ```
 
-`ReloadUI()` автоматически использует sync scope: очищает UI и заполняет заново из ваших данных.
+Для массовых операций используйте `BeginSync()`, чтобы не реагировать на промежуточные события.
 
 ---
 
-## Ключевые классы
+## Что пользователю обычно не нужно знать
 
-| Концепция | Класс | Описание |
-|---|---|---|
-| Базовый класс | `InventoryDataBindingBase` | Общая логика синхронизации и хуков |
-| Шаблон списка | `ListInventoryDataBinding<TData, TAdapter>` | Для инвентарей на основе списка |
-| Шаблон слотов | `MappedSlotInventoryDataBinding<TData, TAdapter>` | Для фиксированных именованных слотов |
-| Привязка слота | `SlotBinding<TData>` | Декларативная привязка: get/set/clear/validate |
-| Конвертер | `IInventoryItemConverter` | Преобразование предметов между инвентарями |
-| Контекст события | `InventoryItemEventContext` | Информация о добавлении/удалении предмета |
+В обычном проекте вам не нужно лезть в:
+
+- внутренние inventory events ассета
+- вспомогательные структуры этапа планирования
+- низкоуровневые классы выполнения переноса
+
+Чаще всего достаточно:
+
+1. выбрать подходящий binding
+2. описать adapter
+3. реализовать sync в `AddToData/RemoveFromData`
+4. при необходимости добавить `CanDrop` и `CanCommitTransfer`
