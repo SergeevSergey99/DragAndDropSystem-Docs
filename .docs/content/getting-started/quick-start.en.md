@@ -2,6 +2,12 @@
 
 This walkthrough creates two regular inventories that support drag & drop between each other.
 
+Set the expectation correctly from the start: even in the basic scenario, you will usually write a small amount of integration code for your own data. In this guide that means:
+
+- `ItemSO` as your item data
+- `ItemSOAdapter` as the inventory-facing representation
+- `BackpackBinding` as the bridge between UI and your data list
+
 ```mermaid
 flowchart LR
     A["Backpack"] <-->|drag & drop| B["Chest"]
