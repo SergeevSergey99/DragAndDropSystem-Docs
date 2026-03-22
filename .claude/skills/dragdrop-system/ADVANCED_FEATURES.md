@@ -24,6 +24,10 @@ Swap remains inventory-scoped and event-based:
 - `OnSwapAttempting(InventorySwapContext)` (cancelable)
 - `OnSwapCompleted(InventorySwapContext)`
 
+Transfer-level domain hooks now also run for swap path:
+- domain validation executes before swap commit
+- domain success hooks are deferred until the whole plan succeeds
+
 ## DataBinding Integration
 
 ### Direct Notification (Add/Remove)

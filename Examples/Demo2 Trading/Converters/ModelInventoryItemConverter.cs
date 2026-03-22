@@ -20,8 +20,8 @@ namespace DragAndDropSystem.Examples.Trading
                     converted = new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
                     return true;
                 default:
-                    converted = item;
-                    return item != null;
+                    converted = null;
+                    return false;
             }
         }
 

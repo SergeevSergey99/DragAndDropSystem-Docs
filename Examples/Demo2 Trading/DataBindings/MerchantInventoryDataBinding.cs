@@ -38,7 +38,6 @@ namespace DragAndDropSystem.Examples.Trading
 
         private MerchantData _merchantData;
         private MerchantData MerchantData => _merchantData ??= TradingEconomyManager.Instance.GetMerchant(_merchantId);
-        private PlayerData PlayerData => TradingEconomyManager.Instance.PlayerData;
 
         protected override IInventoryItemConverter CreateItemConverter() => new MerchantInventoryItemConverter();
 
@@ -49,8 +48,8 @@ namespace DragAndDropSystem.Examples.Trading
         protected override TradableItemSO ExtractData(TradableSoAdapter adapter) => adapter.Item;
 
         // --- Правила ---
-        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry) => TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidateSellToMerchant(entry, MerchantData);
+        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry) => RuleResult.Success();
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidateMerchantDrop(entry);
 
         protected override void AddToData(InventoryItemEventContext context, TradableItemSO item)
         {

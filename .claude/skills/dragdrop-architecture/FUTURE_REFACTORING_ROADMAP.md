@@ -331,6 +331,8 @@ Already done:
 - `TransferDomainContext` and `ITransferDomainHandler` exist
 - `TransferPlanExecutor` runs domain validation before commit and defers success hooks until the whole plan succeeds
 - Demo2 Trading money side effects were moved out of item-added/item-removed reactions into transfer-level hooks
+- swap path now also participates in domain validation/success hooks
+- trading demo no longer keeps money checks in rule-layer `CanDrop`/`CanStartDrag`
 
 Still pending:
 - generic feature modules still discover handlers through `DataBinding` ownership

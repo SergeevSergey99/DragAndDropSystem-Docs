@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Examples.Trading
         protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
         protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry) => RuleResult.Success();
 
         protected override void AddToData(InventoryItemEventContext context, TradableItemModel item)
         {

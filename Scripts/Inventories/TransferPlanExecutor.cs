@@ -124,6 +124,8 @@ namespace DragAndDropSystem.Inventories
                 {
                     if (TryExecuteSwap(plannedEntry, plan.TargetInventory, options, out var swapOutcome, out var swapFailure))
                     {
+                        foreach (var domainContext in swapOutcome.DomainContexts)
+                            successfulDomainContexts.Add(domainContext);
                         successfulSwaps.Add(swapOutcome);
                         succeededEntries++;
                         entryTransferred = swapOutcome.MovedAmount;
@@ -164,7 +166,7 @@ namespace DragAndDropSystem.Inventories
                             allowAlternativeSlots: false);
 
                         string domainFailure = null;
-                        if (!TryBuildDomainContext(request, out var domainContext))
+                        if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItem, out var domainContext))
                         {
                             domainFailure = "Failed to build domain context";
                             Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
@@ -279,15 +281,17 @@ namespace DragAndDropSystem.Inventories
                 executedEntries);
         }
 
-        private static bool TryBuildDomainContext(InventoryTransferRequest request, out TransferDomainContext context)
+        private static bool TryBuildDomainContext(InventoryTransferRequest request, IInventoryItem previewTargetItem, out TransferDomainContext context)
         {
             context = null;
 
-            if (!TransferItemConversionUtility.TryResolveTargetItem(
+            var targetPreviewItem = previewTargetItem;
+            if (targetPreviewItem == null &&
+                !TransferItemConversionUtility.TryResolveTargetItem(
                     request.SourceInventory,
                     request.TargetInventory,
                     request.DraggedStack.Item,
-                    out var targetPreviewItem))
+                    out targetPreviewItem))
             {
                 return false;
             }
@@ -299,7 +303,8 @@ namespace DragAndDropSystem.Inventories
                 request.TargetSlot,
                 request.DraggedStack.Item,
                 targetPreviewItem,
-                request.DraggedStack.Count);
+                request.DraggedStack.Count,
+                DetermineTransferKind(request));
             return true;
         }
 
@@ -350,16 +355,14 @@ namespace DragAndDropSystem.Inventories
 
         private static System.Collections.Generic.IEnumerable<ITransferDomainHandler> EnumerateDomainHandlers(TransferDomainContext context)
         {
-            var emitted = new HashSet<ITransferDomainHandler>();
-
-            if (context.SourceInventory?.DataBinding is ITransferDomainHandler sourceHandler &&
-                emitted.Add(sourceHandler))
+            var sourceHandler = context.SourceInventory?.DataBinding as ITransferDomainHandler;
+            if (sourceHandler != null)
             {
                 yield return sourceHandler;
             }
 
-            if (context.TargetInventory?.DataBinding is ITransferDomainHandler targetHandler &&
-                emitted.Add(targetHandler))
+            var targetHandler = context.TargetInventory?.DataBinding as ITransferDomainHandler;
+            if (targetHandler != null && targetHandler != sourceHandler)
             {
                 yield return targetHandler;
             }
@@ -409,6 +412,21 @@ namespace DragAndDropSystem.Inventories
                 sourceInventory,
                 targetInventory);
 
+            var swapDomainContexts = BuildSwapDomainContexts(
+                sourceInventory,
+                targetInventory,
+                sourceSlot,
+                targetSlot,
+                sourceStackBefore,
+                targetStackBefore);
+
+            if (!ValidateDomainHandlers(swapDomainContexts[0], out validationFailure) ||
+                !ValidateDomainHandlers(swapDomainContexts[1], out validationFailure))
+            {
+                failureReason = validationFailure;
+                return false;
+            }
+
             if (options?.SwapAttempting != null && !options.SwapAttempting(swapContext))
             {
                 failureReason = "Swap cancelled by listener";
@@ -428,14 +446,60 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
+            swapDomainContexts[0].MarkCommitted(targetSlot, sourceStackBefore.Item, sourceStackBefore.Count);
+            swapDomainContexts[1].MarkCommitted(sourceSlot, targetStackBefore.Item, targetStackBefore.Count);
+
             swapOutcome = new PendingSwapOutcome(
                 swapContext,
                 targetUniversal,
                 sourceUniversal,
                 targetSlot,
                 sourceSlot,
-                swapResult);
+                swapResult,
+                swapDomainContexts);
             return true;
+        }
+
+        private static TransferDomainContext[] BuildSwapDomainContexts(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            ISlot sourceSlot,
+            ISlot targetSlot,
+            ItemStack sourceStackBefore,
+            ItemStack targetStackBefore)
+        {
+            return new[]
+            {
+                new TransferDomainContext(
+                    sourceInventory,
+                    targetInventory,
+                    sourceSlot,
+                    targetSlot,
+                    sourceStackBefore.Item,
+                    sourceStackBefore.Item,
+                    sourceStackBefore.Count,
+                    TransferKind.Swap),
+                new TransferDomainContext(
+                    targetInventory,
+                    sourceInventory,
+                    targetSlot,
+                    sourceSlot,
+                    targetStackBefore.Item,
+                    targetStackBefore.Item,
+                    targetStackBefore.Count,
+                    TransferKind.Swap)
+            };
+        }
+
+        private static TransferKind DetermineTransferKind(InventoryTransferRequest request)
+        {
+            if (request.TargetSlot != null && !request.TargetSlot.IsEmpty)
+                return TransferKind.Merge;
+
+            if (request.SourceSlot?.Stack != null && request.SourceSlot.Stack.Count > request.DraggedStack.Count)
+                return TransferKind.Split;
+
+            return TransferKind.Move;
         }
 
         private bool ValidateSwapRules(
@@ -633,7 +697,8 @@ namespace DragAndDropSystem.Inventories
                 UniversalInventory sourceInventory,
                 ISlot targetSlot,
                 ISlot sourceSlot,
-                SwapOperationResult swapResult)
+                SwapOperationResult swapResult,
+                IReadOnlyList<TransferDomainContext> domainContexts)
             {
                 SwapContext = swapContext;
                 TargetInventory = targetInventory;
@@ -641,6 +706,7 @@ namespace DragAndDropSystem.Inventories
                 TargetSlot = targetSlot;
                 SourceSlot = sourceSlot;
                 SwapResult = swapResult;
+                DomainContexts = domainContexts;
             }
 
             public InventorySwapContext SwapContext { get; }
@@ -649,6 +715,7 @@ namespace DragAndDropSystem.Inventories
             public ISlot TargetSlot { get; }
             public ISlot SourceSlot { get; }
             public SwapOperationResult SwapResult { get; }
+            public IReadOnlyList<TransferDomainContext> DomainContexts { get; }
             public int MovedAmount => SwapResult.SourceStackBefore?.Count ?? 0;
         }
     }

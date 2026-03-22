@@ -51,7 +51,8 @@ namespace DragAndDropSystem.Inventories
             IReadOnlyList<PlannedSlotAllocation> allocations,
             string failureReason = null,
             bool requiresSwap = false,
-            ISlot swapTargetSlot = null)
+            ISlot swapTargetSlot = null,
+            IInventoryItem previewTargetItem = null)
         {
             Entry = entry;
             RequestedAmount = requestedAmount;
@@ -60,6 +61,7 @@ namespace DragAndDropSystem.Inventories
             FailureReason = failureReason;
             RequiresSwap = requiresSwap;
             SwapTargetSlot = swapTargetSlot;
+            PreviewTargetItem = previewTargetItem ?? entry.Stack?.Item;
         }
 
         public DragEntry Entry { get; }
@@ -69,6 +71,7 @@ namespace DragAndDropSystem.Inventories
         public string FailureReason { get; }
         public bool RequiresSwap { get; }
         public ISlot SwapTargetSlot { get; }
+        public IInventoryItem PreviewTargetItem { get; }
         public bool IsPlanned => RequiresSwap || (PlannedAmount > 0 && Allocations.Count > 0);
         public bool IsPartial => PlannedAmount > 0 && PlannedAmount < RequestedAmount;
     }
@@ -300,7 +303,8 @@ namespace DragAndDropSystem.Inventories
                     entry,
                     requested,
                     deferredAmount,
-                    new[] { new PlannedSlotAllocation(null, deferredAmount) });
+                    new[] { new PlannedSlotAllocation(null, deferredAmount) },
+                    previewTargetItem: targetItem);
             }
 
             var allocations = IsUniqueInventory(operation.TargetInventory)
@@ -326,7 +330,8 @@ namespace DragAndDropSystem.Inventories
                         entry,
                         requested,
                         deferredAmount,
-                        new[] { new PlannedSlotAllocation(null, deferredAmount) });
+                        new[] { new PlannedSlotAllocation(null, deferredAmount) },
+                        previewTargetItem: targetItem);
                 }
             }
 
@@ -341,7 +346,8 @@ namespace DragAndDropSystem.Inventories
                         EmptyAllocations,
                         failureReason: null,
                         requiresSwap: true,
-                        swapTargetSlot: targetSlotHint);
+                        swapTargetSlot: targetSlotHint,
+                        previewTargetItem: targetItem);
                 }
 
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
@@ -352,7 +358,7 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Entry cannot be placed fully");
             }
 
-            return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations);
+            return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItem: targetItem);
         }
 
         private static bool ShouldPlanSwap(

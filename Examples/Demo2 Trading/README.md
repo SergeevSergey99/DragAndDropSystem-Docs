@@ -74,19 +74,19 @@ TradableItemModelAdapter
 **PlayerInventoryDataBinding** — `ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`:
 - синхронизация с `PlayerData`
 - торговая логика через `TradingHelper`
-- `CanDrop()` — валидация покупки через `TradingHelper.ValidatePurchaseFromMerchant()`
+- `CanDrop()` — не содержит бизнес-валидации денег
 - `ModelInventoryItemConverter` — конвертация SO -> Model
 
 **MerchantInventoryDataBinding** — `ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>`:
 - синхронизация с `MerchantData`
 - торговая логика в `AddToData()` / `RemoveFromData()`
-- `CanStartDrag()` — проверка денег игрока
-- `CanDrop()` — проверка денег торговца + запрет торговли между торговцами
+- `CanStartDrag()` — не содержит бизнес-валидации денег
+- `CanDrop()` — только механическая проверка + запрет торговли между торговцами
 - `MerchantInventoryItemConverter` — конвертация Model -> SO
 
 **EquipmentInventoryDataBinding** — `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`:
 - `CreateBindingMap()` — словарь слотов с декларативными `canAccept`
-- `CanDrop()` — проверяет тип предмета через `canAccept` + валидацию покупки
+- `CanDrop()` — проверяет только slot/type compatibility
 - `ModelInventoryItemConverter` — конвертация SO -> Model
 - использует shared preview infrastructure, а не отдельные preview guards
 
@@ -110,7 +110,7 @@ TradableItemModelAdapter
 ### 4. Общую торговую логику
 
 `TradingHelper` содержит переиспользуемую логику валидации и transfer-level side effects для торговых операций.
-Денежные изменения теперь проходят через `ITransferDomainHandler`, а не через item-added/item-removed callbacks.
+Денежные изменения и `swap`-сценарии теперь проходят через `ITransferDomainHandler`, а не через item-added/item-removed callbacks.
 
 ### 5. Разные типы транзакций
 

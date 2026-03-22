@@ -93,8 +93,7 @@ namespace DragAndDropSystem.Examples.Trading
             if (binding.CanAccept?.Invoke(new TradableItemModel(tradable.OriginalSO)).IsValid == false)
                 return RuleResult.Failure("Этот предмет нельзя положить в этот слот");
             
-            // Проверяем покупку у торговца
-            return TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
+            return RuleResult.Success();
         }
     }
 }

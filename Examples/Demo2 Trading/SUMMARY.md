@@ -49,8 +49,7 @@
   - preview slot validation работает через общий acceptance pipeline
 
 - `TradingHelper.cs`
-  - `ValidatePurchaseFromMerchant`
-  - `ValidateSellToMerchant`
+  - `ValidateMerchantDrop`
   - `ValidatePlayerTransfer` / `ValidateMerchantTransfer`
   - `ApplyPlayerTransferEffects` / `ApplyMerchantTransferEffects`
 
