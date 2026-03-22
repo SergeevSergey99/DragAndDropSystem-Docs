@@ -8,6 +8,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/"/>
     </url>
     <url>
+        <loc>Nonefeedback/</loc>
+        <lastmod>2026-03-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonefeedback/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/feedback/"/>
+    </url>
+    <url>
         <loc>Nonearchitecture/data-binding/</loc>
         <lastmod>2026-03-22</lastmod>
         <changefreq>daily</changefreq>
@@ -125,6 +132,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="None"/>
+    </url>
+    <url>
+        <loc>Noneen/feedback/</loc>
+        <lastmod>2026-03-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/feedback/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonefeedback/"/>
     </url>
     <url>
         <loc>Noneen/architecture/data-binding/</loc>
