@@ -1398,6 +1398,9 @@
     Rules-&gt;&gt;Rules: CanDrop и остальные механические проверки
     Pipeline-&gt;&gt;Pipeline: Построить план
     Pipeline-&gt;&gt;Rules: CanCommitTransfer
+    opt binding реализует IAsyncTransferDomainHandler
+        Pipeline-&gt;&gt;Rules: CanCommitTransferAsync
+    end
     Pipeline-&gt;&gt;UI: Выполнить перенос
     Pipeline-&gt;&gt;Rules: OnTransferSucceeded
     UI-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
@@ -1427,8 +1430,15 @@
 <p>Именно поэтому:</p>
 <ul>
 <li><code>CanDrop</code> хорошо подходит для preview и механических ограничений</li>
-<li><code>CanCommitTransfer</code> нужен для проверок, которые должны выполняться один раз перед реальным commit</li>
+<li><code>CanCommitTransfer</code> нужен для быстрых локальных pre-commit проверок</li>
+<li><code>CanCommitTransferAsync</code> нужен для внешних асинхронных проверок, если binding реализует этот интерфейс</li>
 </ul>
+<p>Если доступны обе версии, порядок всегда такой:</p>
+<ol>
+<li><code>CanCommitTransfer</code></li>
+<li><code>CanCommitTransferAsync</code></li>
+<li>commit</li>
+</ol>
 <hr />
 <h2 id="_5">Конвертация предметов</h2>
 <p>Если источник и цель используют разные представления предметов, конвертация происходит до размещения в целевом инвентаре.</p>

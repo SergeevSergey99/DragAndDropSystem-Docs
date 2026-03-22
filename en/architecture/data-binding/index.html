@@ -777,6 +777,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-pre-commit-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async pre-commit validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1337,6 +1348,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#async-pre-commit-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async pre-commit validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1415,6 +1437,9 @@
     UI-&gt;&gt;DB: CanStartDrag
     UI-&gt;&gt;DB: CanDrop
     UI-&gt;&gt;Domain: CanCommitTransfer
+    opt binding implements IAsyncTransferDomainHandler
+        UI-&gt;&gt;Domain: CanCommitTransferAsync
+    end
     UI-&gt;&gt;UI: Execute transfer
     UI-&gt;&gt;Domain: OnTransferSucceeded
     UI-&gt;&gt;DB: OnItemRemoved / OnItemAdded
@@ -1443,7 +1468,12 @@
 <tr>
 <td><code>CanCommitTransfer</code></td>
 <td>before real commit</td>
-<td>money, server checks, domain veto</td>
+<td>fast local pre-commit checks, money, domain veto</td>
+</tr>
+<tr>
+<td><code>CanCommitTransferAsync</code></td>
+<td>optionally after sync pre-commit and before commit</td>
+<td>server, file, database, external profile, any external async checks</td>
 </tr>
 <tr>
 <td><code>OnTransferSucceeded</code></td>
@@ -1460,9 +1490,16 @@
 <p>The important split is:</p>
 <ul>
 <li><code>CanDrop</code> is for mechanics</li>
-<li><code>CanCommitTransfer</code> is for business logic</li>
+<li><code>CanCommitTransfer</code> and <code>CanCommitTransferAsync</code> together handle pre-commit business validation</li>
 <li><code>AddToData/RemoveFromData</code> are for sync only</li>
 </ul>
+<p>If a binding implements both versions, the order is:</p>
+<ol>
+<li><code>CanCommitTransfer</code></li>
+<li><code>CanCommitTransferAsync</code></li>
+<li>real commit</li>
+</ol>
+<p>If the sync check fails, the async check is not called.</p>
 <hr />
 <h2 id="regular-list-binding-example">Regular list binding example</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">BackpackBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
@@ -1495,20 +1532,64 @@
 <a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">}</span>
 </code></pre></div>
 <hr />
+<h2 id="async-pre-commit-validation">Async pre-commit validation</h2>
+<p>If a transfer must wait for an external check before commit, for example:</p>
+<ul>
+<li>a server response</li>
+<li>reading a file</li>
+<li>a database query</li>
+<li>loading external profile or save data</li>
+</ul>
+<p>implement <code>IAsyncTransferDomainHandler</code> on the binding as well.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ServerBackedInventoryBinding</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span><span class="n">ITransferDomainHandler</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="n">IAsyncTransferDomainHandler</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">{</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanCommitTransfer</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nf">ValidateLocalState</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;Local validation failed&quot;</span><span class="p">);</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">RuleResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CanCommitTransferAsync</span><span class="p">(</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">        </span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">cancellationToken</span><span class="p">)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">allowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="n">_serverApi</span><span class="p">.</span><span class="n">ValidateTransferAsync</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">cancellationToken</span><span class="p">);</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">allowed</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;Server rejected the transfer&quot;</span><span class="p">);</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="p">}</span>
+</code></pre></div>
+<p>How it works:</p>
+<ul>
+<li><code>CanDrop</code> stays a fast synchronous preview hook</li>
+<li><code>CanCommitTransfer</code> handles local pre-commit checks</li>
+<li><code>CanCommitTransferAsync</code> does not replace the sync version, it extends it</li>
+<li>if the binding implements both, <code>CanCommitTransfer</code> runs first and <code>CanCommitTransferAsync</code> runs second</li>
+<li><code>CanCommitTransferAsync</code> runs once before the real commit if the binding implements the interface</li>
+<li>if async validation returns <code>RuleResult.Failure(...)</code>, the transfer is cancelled</li>
+</ul>
+<p>Use <code>IAsyncTransferDomainHandler</code> when the answer cannot be produced immediately.
+If the check is local and fast, regular <code>CanCommitTransfer</code> is enough.</p>
+<hr />
 <h2 id="item-conversion">Item conversion</h2>
 <p>If two inventories use different item representations, a binding can provide a converter:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IInventoryItemConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyInventoryItemConverter</span><span class="p">();</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IInventoryItemConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyInventoryItemConverter</span><span class="p">();</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 </code></pre></div>
 <hr />
 <h2 id="reloading-from-data">Reloading from data</h2>
 <p>If your data changes outside the drag &amp; drop pipeline, call:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">ReloadUI</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">ReloadUI</span><span class="p">();</span>
 </code></pre></div>
 <p>Or explicitly:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">ForceSyncToUI</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">ForceSyncToUI</span><span class="p">();</span>
 </code></pre></div>
 
 

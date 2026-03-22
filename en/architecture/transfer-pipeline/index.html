@@ -1376,6 +1376,9 @@
     Rules-&gt;&gt;Rules: CanDrop and mechanical checks
     Pipeline-&gt;&gt;Pipeline: Build plan
     Pipeline-&gt;&gt;Rules: CanCommitTransfer
+    opt binding implements IAsyncTransferDomainHandler
+        Pipeline-&gt;&gt;Rules: CanCommitTransferAsync
+    end
     Pipeline-&gt;&gt;UI: Execute transfer
     Pipeline-&gt;&gt;Rules: OnTransferSucceeded
     UI-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
@@ -1398,8 +1401,15 @@
 <p>That is why:</p>
 <ul>
 <li><code>CanDrop</code> is good for preview and mechanics</li>
-<li><code>CanCommitTransfer</code> is the right place for checks that must run once before commit</li>
+<li><code>CanCommitTransfer</code> is the right place for fast local pre-commit checks</li>
+<li><code>CanCommitTransferAsync</code> is the right place for external async checks if the binding implements the interface</li>
 </ul>
+<p>If both versions exist, the order is always:</p>
+<ol>
+<li><code>CanCommitTransfer</code></li>
+<li><code>CanCommitTransferAsync</code></li>
+<li>commit</li>
+</ol>
 <hr />
 <h2 id="item-conversion">Item conversion</h2>
 <pre class="mermaid"><code>flowchart LR

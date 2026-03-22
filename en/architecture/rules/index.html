@@ -1361,7 +1361,7 @@
 <div class="admonition note">
 <p class="admonition-title">Rules are not the same as business hooks</p>
 <p>Rules handle mechanical transfer constraints: can the item be dragged, can it be dropped into this target, does the slot accept this type.
-If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (<code>CanCommitTransfer</code>, <code>OnTransferSucceeded</code>) instead of <code>CanDrop</code>.</p>
+If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>) instead of <code>CanDrop</code>.</p>
 </div>
 <hr />
 <h2 id="three-validation-levels">Three Validation Levels</h2>

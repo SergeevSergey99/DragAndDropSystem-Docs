@@ -1361,7 +1361,7 @@
 <div class="admonition note">
 <p class="admonition-title">Rules и business hooks — не одно и то же</p>
 <p>Rules отвечают за механические ограничения переноса: можно ли взять предмет, можно ли бросить его в слот, подходит ли тип.
-Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (<code>CanCommitTransfer</code>, <code>OnTransferSucceeded</code>), а не <code>CanDrop</code>.</p>
+Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>), а не <code>CanDrop</code>.</p>
 </div>
 <hr />
 <h2 id="_2">Три уровня проверки</h2>
