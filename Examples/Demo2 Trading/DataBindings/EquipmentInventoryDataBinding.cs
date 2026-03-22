@@ -77,7 +77,7 @@ namespace DragAndDropSystem.Examples.Trading
         protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
 
-        public RuleResult Validate(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
+        public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
         public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyPlayerTransferEffects(context, PlayerData);
 

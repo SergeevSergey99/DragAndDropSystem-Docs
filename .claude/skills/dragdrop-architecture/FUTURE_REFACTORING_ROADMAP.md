@@ -262,14 +262,14 @@ Calling it as-is would duplicate data changes.
 ```csharp
 public interface ITransferDomainHandler
 {
-    RuleResult Validate(TransferDomainContext context);
+    RuleResult CanCommitTransfer(TransferDomainContext context);
     void OnTransferSucceeded(TransferDomainContext context);
 }
 ```
 
-### Validate Stage Semantics
+### Commit Gate Semantics
 
-`ITransferDomainHandler.Validate(...)` should be treated as a **domain veto stage**, not as a replacement
+`ITransferDomainHandler.CanCommitTransfer(...)` should be treated as a **domain veto stage**, not as a replacement
 for `RuleValidator` and not as a generic extra rule layer.
 
 Recommended execution order:
@@ -280,7 +280,7 @@ Recommended execution order:
 
 This keeps responsibilities clean:
 - `RuleValidator` handles inventory mechanics and drop legality
-- `ITransferDomainHandler.Validate(...)` handles business meaning of the transfer
+- `ITransferDomainHandler.CanCommitTransfer(...)` handles business meaning of the transfer
 
 ### TransferDomainContext Should Include
 

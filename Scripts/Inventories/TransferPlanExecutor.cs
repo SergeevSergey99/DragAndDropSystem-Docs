@@ -316,7 +316,7 @@ namespace DragAndDropSystem.Inventories
             {
                 try
                 {
-                    var result = handler.Validate(context);
+                    var result = handler.CanCommitTransfer(context);
                     if (!result.IsValid)
                     {
                         failureReason = string.IsNullOrEmpty(result.FailureReason)

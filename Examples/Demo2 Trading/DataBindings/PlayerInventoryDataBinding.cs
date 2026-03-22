@@ -49,7 +49,7 @@ namespace DragAndDropSystem.Examples.Trading
             PlayerData.TryRemoveItem(item);
         }
 
-        public RuleResult Validate(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
+        public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
         public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyPlayerTransferEffects(context, PlayerData);
 

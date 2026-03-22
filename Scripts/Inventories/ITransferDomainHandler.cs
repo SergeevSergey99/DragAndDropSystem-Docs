@@ -7,7 +7,7 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public interface ITransferDomainHandler
     {
-        RuleResult Validate(TransferDomainContext context);
+        RuleResult CanCommitTransfer(TransferDomainContext context);
         void OnTransferSucceeded(TransferDomainContext context);
     }
 }

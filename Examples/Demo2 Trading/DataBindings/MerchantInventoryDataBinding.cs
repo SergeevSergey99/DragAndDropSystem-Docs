@@ -61,7 +61,7 @@ namespace DragAndDropSystem.Examples.Trading
             MerchantData.TryRemoveItem(item);
         }
 
-        public RuleResult Validate(TransferDomainContext context) => TradingHelper.ValidateMerchantTransfer(context, MerchantData);
+        public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidateMerchantTransfer(context, MerchantData);
 
         public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyMerchantTransferEffects(context, MerchantData);
 
