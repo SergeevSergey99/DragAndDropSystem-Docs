@@ -1374,6 +1374,12 @@
 
 <h1 id="quick-start">Quick Start</h1>
 <p>This walkthrough creates two regular inventories that support drag &amp; drop between each other.</p>
+<p>Set the expectation correctly from the start: even in the basic scenario, you will usually write a small amount of integration code for your own data. In this guide that means:</p>
+<ul>
+<li><code>ItemSO</code> as your item data</li>
+<li><code>ItemSOAdapter</code> as the inventory-facing representation</li>
+<li><code>BackpackBinding</code> as the bridge between UI and your data list</li>
+</ul>
 <pre class="mermaid"><code>flowchart LR
     A["Backpack"] &lt;--&gt;|drag &amp; drop| B["Chest"]</code></pre>
 <hr />
