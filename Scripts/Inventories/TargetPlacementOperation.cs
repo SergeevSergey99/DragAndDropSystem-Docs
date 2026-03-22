@@ -47,6 +47,6 @@ namespace DragAndDropSystem.Inventories
 
         public bool RequiresStrategyPlacement =>
             AlternativeTargetInventory != null &&
-            AlternativeTargetInventory.Strategy.RequiresStrategyPlacement(TransferStack);
+            AlternativeTargetInventory.PlacementStrategy.RequiresStrategyPlacement(TransferStack);
     }
 }

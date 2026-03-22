@@ -89,6 +89,10 @@ namespace DragAndDropSystem.Inventories
         [FoldoutGroup("Debug")]
         [ReadOnly, ShowInInspector]
         private IInventoryStrategy _strategy;
+        private IPlacementStrategy _placementStrategy;
+        private IAcceptanceStrategy _acceptanceStrategy;
+        private IDragPolicy _dragPolicy;
+        private IInventoryQueryStrategy _queryStrategy;
 
         [FoldoutGroup("Debug")]
         [ShowInInspector, ReadOnly]
@@ -112,6 +116,42 @@ namespace DragAndDropSystem.Inventories
             {
                 EnsureStrategyInitialized();
                 return _strategy;
+            }
+        }
+
+        public IPlacementStrategy PlacementStrategy
+        {
+            get
+            {
+                EnsureStrategyInitialized();
+                return _placementStrategy;
+            }
+        }
+
+        public IAcceptanceStrategy AcceptanceStrategy
+        {
+            get
+            {
+                EnsureStrategyInitialized();
+                return _acceptanceStrategy;
+            }
+        }
+
+        public IDragPolicy DragPolicy
+        {
+            get
+            {
+                EnsureStrategyInitialized();
+                return _dragPolicy;
+            }
+        }
+
+        public IInventoryQueryStrategy QueryStrategy
+        {
+            get
+            {
+                EnsureStrategyInitialized();
+                return _queryStrategy;
             }
         }
         
@@ -325,12 +365,12 @@ namespace DragAndDropSystem.Inventories
             // Оборачиваем в декоратор для динамических слотов, если нужно
             if (_slotManagement == SlotManagementType.Dynamic)
             {
-                _strategy = new DynamicSlotDecorator(baseStrategy, CreateSlot, _maxDynamicSlots, _maxFreeSlots, () => _slots, EnsureFreeSlots);
+                SetStrategy(new DynamicSlotDecorator(baseStrategy, CreateSlot, _maxDynamicSlots, _maxFreeSlots, () => _slots, EnsureFreeSlots));
                 Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy wrapped in DynamicSlotDecorator (max: {_maxDynamicSlots}, maxFree: {_maxFreeSlots})</color>");
             }
             else
             {
-                _strategy = baseStrategy;
+                SetStrategy(baseStrategy);
                 Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: Fixed slots</color>");
             }
         }
@@ -341,6 +381,10 @@ namespace DragAndDropSystem.Inventories
         public void SetStrategy(IInventoryStrategy strategy)
         {
             _strategy = strategy;
+            _placementStrategy = strategy;
+            _acceptanceStrategy = strategy;
+            _dragPolicy = strategy;
+            _queryStrategy = strategy;
         }
 
         private void EnsureStrategyInitialized()
@@ -447,7 +491,7 @@ namespace DragAndDropSystem.Inventories
 
             Extentions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.Item.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
-            bool success = _strategy.TryAdd(_slots as List<ISlot>, stack, targetSlotIndex);
+            bool success = _placementStrategy.TryAdd(_slots as List<ISlot>, stack, targetSlotIndex);
             bool stackConsumed = stack == null || stack.IsEmpty;
 
             if ((!success || !stackConsumed) && stack != null && !stack.IsEmpty)
@@ -539,7 +583,7 @@ namespace DragAndDropSystem.Inventories
                     continue;
 
                 // Если нужно больше гибкости — можно заменить на полный пересчет (matching).
-                if (_strategy.TryAdd(_slots as List<ISlot>, stack, targetSlotIndex))
+                if (_placementStrategy.TryAdd(_slots as List<ISlot>, stack, targetSlotIndex))
                 {
                     Extentions.DragAndDropLog($"<color=green>[{name}] TryAddStack recovered via relocation</color>");
                     return true;
@@ -785,7 +829,7 @@ namespace DragAndDropSystem.Inventories
                 snapshot = CaptureSnapshot();
             }
 
-            bool success = _strategy.TryRemove(_slots as List<ISlot>, item, count, sourceSlotIndex);
+            bool success = _placementStrategy.TryRemove(_slots as List<ISlot>, item, count, sourceSlotIndex);
 
             if (success)
             {
@@ -801,12 +845,12 @@ namespace DragAndDropSystem.Inventories
 
         public bool Contains(IInventoryItem item)
         {
-            return _strategy.Contains(_slots as List<ISlot>, item);
+            return _queryStrategy.Contains(_slots as List<ISlot>, item);
         }
 
         public int GetItemCount(IInventoryItem item)
         {
-            return _strategy.GetItemCount(_slots as List<ISlot>, item);
+            return _queryStrategy.GetItemCount(_slots as List<ISlot>, item);
         }
 
         public void UpdateAllVisuals()
@@ -928,7 +972,7 @@ namespace DragAndDropSystem.Inventories
                 return 0;
 
             EnsureStrategyInitialized();
-            return _strategy.ResolveDragAmount(slot.Stack.Count, _dragAmount, _customDragAmount);
+            return _dragPolicy.ResolveDragAmount(slot.Stack.Count, _dragAmount, _customDragAmount);
         }
 
         /// <summary>
@@ -956,7 +1000,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            return _strategy.TryAddToSlot(_slots, stack, targetSlot, EnsureFreeSlots, operationContext);
+            return _placementStrategy.TryAddToSlot(_slots, stack, targetSlot, EnsureFreeSlots, operationContext);
         }
 
         /// <summary>
@@ -980,7 +1024,7 @@ namespace DragAndDropSystem.Inventories
 
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
-            bool canAccept = _strategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
+            bool canAccept = _acceptanceStrategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
 
             if (canAccept)
                 Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
@@ -1007,7 +1051,7 @@ namespace DragAndDropSystem.Inventories
 
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
-            int result = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab);
+            int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab);
             Extentions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={request.Item.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }

@@ -13,6 +13,7 @@ Recent changes already moved the system in a better direction:
 - target-side preview conversion happens before planning/execution
 - mapped-slot preview no longer relies on ad-hoc `null` guards in feature bindings
 - operation objects were extracted into dedicated files
+- Phase 1 has started: strategy capabilities are now split at the dependency level inside `UniversalInventory`
 
 Main remaining pressure points:
 - item conversion still lives in `DataBinding`
@@ -34,10 +35,11 @@ Main remaining pressure points:
 
 ### Problem
 
-`IInventoryStrategy` currently mixes three different responsibilities:
+`IInventoryStrategy` currently mixes four different responsibilities:
 - placement and removal logic
 - acceptance preview logic
 - drag amount policy
+- inventory content queries
 
 This makes `UniversalInventory` depend on one large abstraction and forces every concrete strategy
 to know about concerns that are only needed by planner, UI drag logic, or slot placement.
@@ -74,14 +76,22 @@ public interface IDragPolicy
 }
 ```
 
+```csharp
+public interface IInventoryQueryStrategy
+{
+    int GetItemCount(List<ISlot> slots, IInventoryItem item);
+    bool Contains(List<ISlot> slots, IInventoryItem item);
+}
+```
+
 ### Concrete Implementations
 
 Two implementation styles are acceptable.
 
 Option A: keep one concrete class implementing multiple small interfaces
-- `UniqueInventoryBehavior : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy`
-- `StackableInventoryBehavior : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy`
-- `SeparableInventoryBehavior : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy`
+- `UniqueInventoryBehavior : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy`
+- `StackableInventoryBehavior : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy`
+- `SeparableInventoryBehavior : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy`
 
 Option B: split even concrete implementations
 - `UniquePlacementStrategy`
@@ -104,6 +114,7 @@ Use:
 private IPlacementStrategy _placementStrategy;
 private IAcceptanceStrategy _acceptanceStrategy;
 private IDragPolicy _dragPolicy;
+private IInventoryQueryStrategy _queryStrategy;
 ```
 
 ### Benefits
@@ -111,8 +122,21 @@ private IDragPolicy _dragPolicy;
 - planner depends on acceptance logic only
 - executor depends on placement logic only
 - drag UI depends on drag policy only
+- read-only inventory queries stop piggybacking on mutation-oriented interfaces
 - strategy API becomes easier to understand and extend
 - future custom behaviors can override only the capability they need
+
+### Current Implementation Status
+
+Already done:
+- `IPlacementStrategy`, `IAcceptanceStrategy`, `IDragPolicy`, and `IInventoryQueryStrategy` exist as separate interfaces
+- `UniversalInventory` now keeps separate references for placement, acceptance, drag, and query capabilities
+- planner/service runtime calls use narrow capability references instead of the wide strategy where possible
+
+Still intentionally kept for compatibility:
+- `IInventoryStrategy` remains as an aggregate interface
+- concrete strategy classes still implement the aggregate interface through `InventoryStrategyBase`
+- external custom code using `SetStrategy(IInventoryStrategy strategy)` keeps working unchanged
 
 ## 2. Move Item Conversion Out of DataBinding
 
@@ -536,6 +560,7 @@ This is useful, but not urgent.
 ### Phase 1
 
 - split `IInventoryStrategy` into capability interfaces
+- add `IInventoryQueryStrategy` for read-only inventory queries
 - keep existing concrete behavior classes implementing multiple capabilities
 - do not change runtime semantics
 

@@ -7,14 +7,22 @@ Detailed documentation of current inventory strategies.
 ## Strategy Hierarchy
 
 ```text
-IInventoryStrategy
-  ├─ UniqueItemStrategy
-  ├─ StackableItemStrategy
-  ├─ SeparableStacksStrategy
-  └─ DynamicSlotDecorator
+IPlacementStrategy
+IAcceptanceStrategy
+IDragPolicy
+IInventoryQueryStrategy
+  └─ IInventoryStrategy
+      ├─ UniqueItemStrategy
+      ├─ StackableItemStrategy
+      ├─ SeparableStacksStrategy
+      └─ DynamicSlotDecorator
 ```
 
 Key files:
+- `Scripts/Inventories/Strategies/IPlacementStrategy.cs`
+- `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs`
+- `Scripts/Inventories/Strategies/IDragPolicy.cs`
+- `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs`
 - `Scripts/Inventories/Strategies/IInventoryStrategy.cs`
 - `Scripts/Inventories/Strategies/InventoryStrategyBase.cs`
 - `Scripts/Inventories/Strategies/UniqueItemStrategy.cs`
@@ -23,9 +31,9 @@ Key files:
 - `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs`
 
 Current note:
-- strategies are still behind one interface
+- capability interfaces already exist and are used by `UniversalInventory`
 - acceptance preview already uses `InventoryAcceptanceRequest`
-- roadmap proposes splitting this wide interface into smaller capabilities later
+- `IInventoryStrategy` is kept as an aggregate compatibility layer for now
 
 ## UniqueItemStrategy
 
@@ -133,6 +141,7 @@ Current runtime delegation from `UniversalInventory`:
 - target placement → `TryAddToSlot(...)`
 - preview acceptance → `CanAcceptItem(...)` / `GetAcceptableCount(...)`
 - planning hint → `UsesPerItemSlotPlanning`
+- read-only queries → `Contains(...)` / `GetItemCount(...)`
 
 ## Custom Strategy Development
 

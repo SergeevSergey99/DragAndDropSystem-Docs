@@ -11,19 +11,24 @@ Complete guide for extending the system and optimization strategies.
 **Purpose**: Create custom inventory behavior (e.g., weight limits, volume-based, durability).
 
 **Locations**:
+- `Scripts/Inventories/Strategies/IPlacementStrategy.cs`
+- `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs`
+- `Scripts/Inventories/Strategies/IDragPolicy.cs`
+- `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs`
 - `Scripts/Inventories/Strategies/IInventoryStrategy.cs`
 - `Scripts/Inventories/Strategies/InventoryStrategyBase.cs`
 - `Scripts/Inventories/Strategies/*.cs`
 
 **How to Create**:
-1. Inherit from `InventoryStrategyBase` or existing strategy
+1. Inherit from `InventoryStrategyBase` or an existing concrete strategy
 2. Override `TryAdd(slots, stack, targetIndex)` method
 3. Override `TryRemove(slots, item, count, sourceIndex)` method (optional)
 4. Override `TryAddToSlot(...)` if slot-target semantics differ
 5. Override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
-6. Add custom validation logic before calling base methods
-7. Use `PassesRules(slot, item, count, request)` for rule validation
-8. Return true if operation succeeds, false otherwise
+6. Override `ResolveDragAmount(...)` only if drag semantics differ
+7. Override `Contains(...)` / `GetItemCount(...)` only if query semantics differ
+8. Use `PassesRules(slot, item, count, request)` for rule validation
+9. Return true if operation succeeds, false otherwise
 
 **Example Use Cases**:
 - Weight limit system (check total weight before adding)
