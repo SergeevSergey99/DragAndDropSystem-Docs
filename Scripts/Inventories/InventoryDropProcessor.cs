@@ -10,7 +10,7 @@ namespace DragAndDropSystem.Inventories
 {
     /// <summary>
     /// Drop processor for inventory-based targets (slots and inventory areas).
-    /// Encapsulates 3-tier rule validation and delegates to InventoryTransferService.
+    /// Encapsulates 3-tier rule validation and delegates to the planner/executor pipeline.
     /// </summary>
     public class InventoryDropProcessor : IDropProcessor
     {
@@ -32,7 +32,6 @@ namespace DragAndDropSystem.Inventories
             ISlot targetSlot,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            InventoryTransferService transferService,
             DropPolicy policyOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
             Action<InventorySwapContext> swapCompleted = null)
@@ -41,7 +40,7 @@ namespace DragAndDropSystem.Inventories
             _targetInventory = targetInventory;
             _globalRules = globalRules;
             _planner = new TransferPlanner();
-            _executor = new TransferPlanExecutor(transferService);
+            _executor = new TransferPlanExecutor();
             _policyOverride = policyOverride;
             _swapAttempting = swapAttempting;
             _swapCompleted = swapCompleted;
@@ -53,11 +52,10 @@ namespace DragAndDropSystem.Inventories
         public InventoryDropProcessor(
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            InventoryTransferService transferService,
             DropPolicy policyOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
             Action<InventorySwapContext> swapCompleted = null)
-            : this(null, targetInventory, globalRules, transferService, policyOverride, swapAttempting, swapCompleted)
+            : this(null, targetInventory, globalRules, policyOverride, swapAttempting, swapCompleted)
         {
         }
 

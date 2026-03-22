@@ -44,7 +44,6 @@ namespace DragAndDropSystem
         // Стек целей drop операций (для корректной обработки вложенных областей и слотов)
         private List<IDropTarget> _dropTargetStack = new List<IDropTarget>();
 
-        private readonly InventoryTransferService _transferService = new InventoryTransferService();
         private readonly AutoTransferService _autoTransferService = new AutoTransferService();
         private bool _isCompletingDrag;
 
@@ -55,7 +54,6 @@ namespace DragAndDropSystem
 
         // Exposed for IDropProcessor implementations
         public GlobalRuleValidator GlobalRules => _globalRules;
-        public InventoryTransferService TransferService => _transferService;
 
         // Quick click auto-transfer properties
         public bool IsQuickClickAutoTransferEnabled => _enableQuickClickAutoTransfer;
@@ -459,7 +457,6 @@ namespace DragAndDropSystem
                 context,
                 targetInventory,
                 _globalRules,
-                _transferService,
                 RaiseSwapAttempting,
                 RaiseSwapCompleted,
                 out var executionSummary);
@@ -514,7 +511,6 @@ namespace DragAndDropSystem
                 context,
                 targetInventory,
                 _globalRules,
-                _transferService,
                 RaiseSwapAttempting,
                 RaiseSwapCompleted,
                 cancellationToken,

@@ -93,13 +93,7 @@ namespace DragAndDropSystem.Inventories
             public string FailureReason { get; }
         }
 
-        private readonly InventoryTransferService _transferService;
         private readonly RuleEvaluationService _ruleEvaluationService = new RuleEvaluationService();
-
-        public TransferPlanExecutor(InventoryTransferService transferService = null)
-        {
-            _transferService = transferService ?? new InventoryTransferService();
-        }
 
         public TransferExecutionSummary Execute(TransferPlan plan, TransferExecutionOptions options = null)
             => ExecuteCoreAsync(plan, options, allowAsyncDomainValidation: false, CancellationToken.None).GetAwaiter().GetResult();
@@ -228,7 +222,7 @@ namespace DragAndDropSystem.Inventories
                             break;
                         }
 
-                        if (!_transferService.TryExecuteTransfer(request, out var outcome) || outcome.Amount <= 0)
+                        if (!TryExecuteTransfer(request, out var outcome) || outcome.Amount <= 0)
                         {
                             entryFailed = true;
                             break;
@@ -668,6 +662,274 @@ namespace DragAndDropSystem.Inventories
                 return TransferKind.Split;
 
             return TransferKind.Move;
+        }
+
+        private bool TryExecuteTransfer(InventoryTransferRequest request, out InventoryTransferResult result)
+        {
+            result = default;
+
+            if (!request.IsValid)
+            {
+                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Invalid transfer request</color>");
+                return false;
+            }
+
+            var sourceInventory = request.SourceInventory;
+            var targetInventory = request.TargetInventory;
+            var sourceSlot = request.SourceSlot;
+            var targetSlot = request.TargetSlot;
+            var draggedStack = request.DraggedStack;
+
+            var sourceSnapshotProvider = sourceInventory as IInventorySnapshotProvider;
+            var targetSnapshotProvider = targetInventory as IInventorySnapshotProvider;
+
+            var sourceInventorySnapshot = sourceSnapshotProvider?.CaptureSnapshot();
+            var targetInventorySnapshot = targetSnapshotProvider?.CaptureSnapshot();
+            var sourceSlotState = InventorySnapshotUtility.CaptureSlotState(sourceSlot);
+
+            int requestedAmount = draggedStack.Count;
+            var stackItem = draggedStack.Item;
+
+            if (!TransferItemConversionUtility.TryResolveTargetItem(sourceInventory, targetInventory, stackItem, out var targetPreviewItem))
+            {
+                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory rejected item conversion</color>");
+                return false;
+            }
+
+            var previewStack = new ItemStack(targetPreviewItem, requestedAmount);
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                targetInventory,
+                targetPreviewItem,
+                requestedAmount,
+                new DragContext(previewStack, sourceSlot, sourceInventory, targetSlot, targetInventory),
+                new DragEntry(previewStack, sourceSlot, sourceInventory));
+            int acceptableCount = targetInventory.GetAcceptableCount(acceptanceRequest);
+
+            if (acceptableCount <= 0)
+            {
+                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory cannot accept any items</color>");
+                return false;
+            }
+
+            int transferAmount = Math.Min(requestedAmount, acceptableCount);
+            int remainingAmount = requestedAmount - transferAmount;
+
+            Extentions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Acceptable: {acceptableCount}, Transfer: {transferAmount}, Remaining: {remainingAmount}</color>");
+
+            int removed = sourceSlot.Stack.RemoveFromStack(transferAmount);
+            if (removed <= 0)
+            {
+                InventorySnapshotUtility.RestoreSlotState(sourceSlot, sourceSlotState);
+                return false;
+            }
+
+            if (removed != transferAmount)
+            {
+                transferAmount = removed;
+                remainingAmount = requestedAmount - transferAmount;
+            }
+
+            var transferStack = new ItemStack(stackItem, transferAmount);
+            sourceSlot.UpdateVisuals();
+
+            var operationContext = new SlotOperationContext();
+            var placementOperation = new TargetPlacementOperation(
+                targetInventory,
+                targetSlot,
+                sourceInventory,
+                sourceSlot,
+                transferStack,
+                transferAmount,
+                targetInventorySnapshot,
+                request.AllowAlternativeSlots,
+                operationContext);
+
+            bool added = TryAddToTargetInventory(placementOperation);
+            if (!added)
+            {
+                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to add to target, rolling back</color>");
+                InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot, sourceSlot, sourceSlotState);
+                InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot, null, default);
+                return false;
+            }
+
+            int actuallyAdded = transferAmount - (transferStack?.Count ?? 0);
+            int actualRemaining = requestedAmount - actuallyAdded;
+
+            if (transferStack != null && !transferStack.IsEmpty)
+            {
+                Extentions.DragAndDropLog($"<color=yellow>[TransferPlanExecutor] {transferStack.Count} items not placed, returning to source</color>");
+                if (sourceSlot.IsEmpty)
+                {
+                    sourceSlot.SetStack(new ItemStack(stackItem, transferStack.Count));
+                }
+                else
+                {
+                    sourceSlot.Stack.AddToStack(transferStack.Count);
+                }
+
+                sourceSlot.UpdateVisuals();
+            }
+
+            var resolvedSlot = operationContext.ResolvedSlot ?? targetSlot;
+            bool targetWasEmpty = resolvedSlot != null && operationContext.TargetWasEmptyBefore;
+
+            if (resolvedSlot == null && targetInventorySnapshot != null &&
+                InventorySnapshotUtility.TryResolveSlotChange(targetInventory, targetInventorySnapshot, out var changedSlot, out var wasEmptyBefore))
+            {
+                resolvedSlot = changedSlot;
+                targetWasEmpty = wasEmptyBefore;
+            }
+
+            result = new InventoryTransferResult(
+                sourceInventory,
+                targetInventory,
+                sourceSlot,
+                resolvedSlot,
+                stackItem,
+                resolvedSlot?.Stack?.Item ?? targetPreviewItem,
+                actuallyAdded,
+                targetWasEmpty,
+                actualRemaining);
+
+            Extentions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Transfer complete: {actuallyAdded} transferred, {actualRemaining} remaining in source</color>");
+            return true;
+        }
+
+        private bool TryAddToTargetInventory(TargetPlacementOperation operation)
+        {
+            if (operation.TargetInventory == null)
+                return false;
+
+            operation.OperationContext?.ResetResult();
+
+            if (operation.RequiresStrategyPlacement)
+            {
+                Extentions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Using strategy placement mode ({operation.TransferStack.Count} items)</color>");
+
+                operation.TargetInventory.TryAddStack(operation.TransferStack, -1);
+                int added = operation.TransferAmount - operation.TransferStack.Count;
+                if (added > 0)
+                {
+                    if (operation.OperationContext != null &&
+                        InventorySnapshotUtility.TryResolveSlotChange(operation.TargetInventory, operation.TargetSnapshot, out var slot, out var wasEmptyBefore))
+                    {
+                        operation.OperationContext.RecordResult(slot, wasEmptyBefore, added);
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (operation.RequestedSlot != null)
+            {
+                bool wasEmpty = operation.RequestedSlot.IsEmpty;
+                if (operation.TargetInventory.TryAddToSlot(
+                        operation.TransferStack,
+                        operation.RequestedSlot,
+                        operation.SourceInventory,
+                        operation.SourceSlot.Index,
+                        operation.OperationContext))
+                {
+                    if (operation.OperationContext?.ResolvedSlot == null)
+                    {
+                        operation.OperationContext.RecordResult(operation.RequestedSlot, wasEmpty, operation.TransferAmount);
+                    }
+
+                    return operation.TransferStack.IsEmpty;
+                }
+
+                if (operation.CanSearchAlternativeSlot)
+                {
+                    var alternativeSearch = new AlternativeSlotSearchOperation(
+                        operation.AlternativeTargetInventory,
+                        operation.TransferStack,
+                        operation.SourceInventory,
+                        operation.SourceSlot);
+                    var alternativeSlot = FindValidAlternativeSlot(alternativeSearch);
+
+                    if (alternativeSlot != null)
+                    {
+                        Extentions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Found valid alternative slot {alternativeSlot.Index}</color>");
+                        operation.OperationContext?.ResetResult();
+                        bool altWasEmpty = alternativeSlot.IsEmpty;
+                        if (operation.TargetInventory.TryAddToSlot(
+                                operation.TransferStack,
+                                alternativeSlot,
+                                operation.SourceInventory,
+                                operation.SourceSlot.Index,
+                                operation.OperationContext))
+                        {
+                            if (operation.OperationContext?.ResolvedSlot == null)
+                            {
+                                operation.OperationContext.RecordResult(alternativeSlot, altWasEmpty, operation.TransferAmount);
+                            }
+
+                            return operation.TransferStack.IsEmpty;
+                        }
+                    }
+                    else
+                    {
+                        Extentions.DragAndDropLog("<color=yellow>[TransferPlanExecutor] No valid alternative slot found</color>");
+                    }
+                }
+            }
+            else if (operation.TargetInventory.TryAddStack(operation.TransferStack, -1))
+            {
+                int added = operation.TransferAmount - operation.TransferStack.Count;
+                if (added > 0)
+                {
+                    if (operation.OperationContext != null &&
+                        InventorySnapshotUtility.TryResolveSlotChange(operation.TargetInventory, operation.TargetSnapshot, out var slot, out var wasEmptyBefore))
+                    {
+                        operation.OperationContext.RecordResult(slot, wasEmptyBefore, added);
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private ISlot FindValidAlternativeSlot(AlternativeSlotSearchOperation operation)
+        {
+            if (operation.TargetInventory == null || operation.TransferStack == null || operation.TransferStack.IsEmpty)
+                return null;
+
+            var validationContext = new DragContext(operation.TransferStack, operation.SourceSlot, operation.SourceInventory);
+            var validationEntry = validationContext.Entries[0];
+
+            foreach (var slot in operation.TargetInventory.Slots)
+            {
+                if (!operation.TargetInventory.PlacementStrategy.CanUseAlternativeSlot(slot, operation.TransferStack.Item))
+                    continue;
+
+                validationContext.SetTarget(slot, operation.TargetInventory);
+
+                var inventoryResult = operation.TargetInventory.RuleValidator.ValidateDrop(validationContext, validationEntry);
+                if (!inventoryResult.IsValid)
+                {
+                    Extentions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by inventory rules: {inventoryResult.FailureReason}</color>");
+                    continue;
+                }
+
+                if (slot.SlotRuleValidator != null)
+                {
+                    var slotResult = slot.SlotRuleValidator.ValidateDrop(validationContext, validationEntry);
+                    if (!slotResult.IsValid)
+                    {
+                        Extentions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");
+                        continue;
+                    }
+                }
+
+                return slot;
+            }
+
+            return null;
         }
 
         private bool ValidateSwapRules(

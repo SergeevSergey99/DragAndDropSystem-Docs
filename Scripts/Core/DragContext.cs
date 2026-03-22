@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Core
         /// <b>null</b> — цель не задана (авто-перенос, дроп на область инвентаря, вызов из кода).<br/>
         /// <b>Single drag:</b> точный финальный слот — slot-правила применяются напрямую.<br/>
         /// <b>Batch drag:</b> UI-хинт (слот под курсором). Финальный слот каждого entry неизвестен
-        /// до реального переноса — определяется в <see cref="DragAndDropSystem.Inventories.InventoryTransferService"/>.
+        /// до реального переноса — определяется execution pipeline (`TransferPlanExecutor`).
         /// Правила должны использовать <see cref="IsBatchDrag"/> чтобы игнорировать TargetSlot при batch-валидации.
         /// </para>
         /// </summary>

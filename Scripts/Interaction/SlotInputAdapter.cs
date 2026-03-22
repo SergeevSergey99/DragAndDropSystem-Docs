@@ -182,7 +182,6 @@ namespace DragAndDropSystem.Interaction
                 _slot,
                 _slot?.Inventory,
                 DragAndDropManager.Instance.GlobalRules,
-                DragAndDropManager.Instance.TransferService,
                 policyOverride: null,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);

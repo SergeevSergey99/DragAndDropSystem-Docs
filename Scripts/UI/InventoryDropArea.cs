@@ -173,7 +173,6 @@ namespace DragAndDropSystem.UI
                 targetSlot,
                 _inventory,
                 _dragManager?.GlobalRules,
-                _dragManager?.TransferService,
                 _dropPolicyOverride?.BuildOrNull(),
                 swapAttempting,
                 swapCompleted);

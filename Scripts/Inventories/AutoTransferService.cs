@@ -79,7 +79,6 @@ namespace DragAndDropSystem.Inventories
             DragContext context,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            InventoryTransferService transferService,
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
             out TransferExecutionSummary executionSummary,
@@ -97,7 +96,6 @@ namespace DragAndDropSystem.Inventories
                 targetSlot: null,
                 targetInventory: targetInventory,
                 globalRules: globalRules,
-                transferService: transferService,
                 policyOverride: policyOverride,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);
@@ -113,7 +111,6 @@ namespace DragAndDropSystem.Inventories
             DragContext context,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            InventoryTransferService transferService,
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
             CancellationToken cancellationToken,
@@ -130,7 +127,6 @@ namespace DragAndDropSystem.Inventories
                 targetSlot: null,
                 targetInventory: targetInventory,
                 globalRules: globalRules,
-                transferService: transferService,
                 policyOverride: policyOverride,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);
