@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 ## Manual Drop Flow
 
@@ -37,7 +37,7 @@ Internal helper objects:
 ## Executor Flow
 
 For each planned entry:
-- if allocation entry: execute transfer allocations through `InventoryTransferService`
+- if allocation entry: execute transfer allocations through executor internal transfer helpers
 - if swap entry: validate + execute swap
 
 Batch policy:
@@ -83,7 +83,7 @@ During preview/planning/execution, target-side item is resolved without mutating
 TransferItemConversionUtility.TryResolveTargetItem(...)
   → sourceUniversal.TryPreviewOutgoingItem(item)
   → targetUniversal.TryPreviewIncomingItem(convertedItem)
-  → planner/service/executor work with target preview item
+  → planner/executor work with target preview item
 ```
 
 Actual stack mutation later uses the same conversion chain inside `UniversalInventory`.

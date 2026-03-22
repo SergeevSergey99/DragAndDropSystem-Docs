@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -46,7 +46,7 @@ Policy defines:
 `Scripts/Inventories/TransferPlanExecutor.cs`
 
 - mutation layer
-- executes normal allocations through `InventoryTransferService`
+- executes normal allocations through internal placement helpers
 - executes swap branch when planned
 - supports rollback in `Atomic` mode
 - emits transfer/swap events only after successful completion
@@ -95,7 +95,7 @@ This matters for:
 
 - source inventory preview-converts outgoing item
 - target inventory preview-converts incoming item
-- planner, drop area, and transfer service all work with target-side preview item
+- planner, drop area, and executor all work with target-side preview item
 
 Current note:
 - conversion now lives on inventory-side `ItemConverter`

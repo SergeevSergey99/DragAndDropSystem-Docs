@@ -5,7 +5,7 @@ description: Quick reference for Unity Drag & Drop Inventory System with policy/
 # Unity Drag & Drop Inventory System - Quick Reference
 
 **Version**: 2.2
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 ## System Overview
 
@@ -34,7 +34,7 @@ Main benefits:
 - `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`)
   - applies transfers/swaps in `Atomic` or `BestEffort` mode
 - `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`)
-  - transactional slot/inventory transfer primitive
+  - transfer request/result models used by executor
 - `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`)
   - resolves target preview item before planning/execution
 

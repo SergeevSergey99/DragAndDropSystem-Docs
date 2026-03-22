@@ -40,7 +40,7 @@ These files are usually unnecessary unless you are modifying the asset itself:
 
 | File | Role |
 |---|---|
-| `Scripts/Inventories/InventoryTransferService.cs` | low-level transfer helper |
+| `Scripts/Inventories/InventoryTransferService.cs` | `InventoryTransferRequest` / `InventoryTransferResult` models |
 | `Scripts/Inventories/EntryPlanningOperation.cs` | planning operation object |
 | `Scripts/Inventories/TargetPlacementOperation.cs` | placement operation object |
 | `Scripts/Inventories/AlternativeSlotSearchOperation.cs` | alternative slot search |

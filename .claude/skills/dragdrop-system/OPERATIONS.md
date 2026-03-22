@@ -1,6 +1,6 @@
 # Operations
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 ## Manual Drag & Drop (Pipeline)
 
@@ -45,8 +45,7 @@ This keeps slot-specific rules and mapped-slot bindings consistent between hover
 
 ## Auto-Transfer (Quick Click / Actions)
 
-Auto-transfer still uses `InventoryTransferService` for concrete movement,
-but manual drop semantics are centralized through plan/executor pipeline.
+Auto-transfer uses the same planner/executor pipeline as manual drag & drop.
 
 ## Key Files
 

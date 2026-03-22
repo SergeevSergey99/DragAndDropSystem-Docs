@@ -51,7 +51,7 @@
 
 | Файл | Роль |
 |---|---|
-| `Scripts/Inventories/InventoryTransferService.cs` | низкоуровневый сервис переноса |
+| `Scripts/Inventories/InventoryTransferService.cs` | модели `InventoryTransferRequest` / `InventoryTransferResult` |
 | `Scripts/Inventories/EntryPlanningOperation.cs` | объект операции для planning |
 | `Scripts/Inventories/TargetPlacementOperation.cs` | объект операции размещения |
 | `Scripts/Inventories/AlternativeSlotSearchOperation.cs` | поиск альтернативного слота |

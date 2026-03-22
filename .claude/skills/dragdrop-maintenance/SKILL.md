@@ -140,8 +140,8 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 - `Scripts/Inventories/Strategies/` - Strategy implementations
 - `Scripts/Inventories/InventoryAcceptanceRequest.cs` - Context-aware preview request
 - `Scripts/Inventories/TransferItemConversionUtility.cs` - Target-side preview conversion
-- `Scripts/Inventories/InventoryTransferService.cs` - Transaction handling
-- `Scripts/Inventories/TransferPlanExecutor.cs` - Event dispatch
+- `Scripts/Inventories/InventoryTransferService.cs` - Transfer request/result models
+- `Scripts/Inventories/TransferPlanExecutor.cs` - Execution, rollback, and event dispatch
 - `Scripts/Inventories/TransferPlanner.cs` - Planning and acceptance flow
 - `Scripts/DataBinding/InventoryDataBindingBase.cs` - DataBinding base (direct notifications, sync, conversion)
 - `Scripts/DataBinding/ListInventoryDataBinding.cs` - Template for list-based DataBindings
@@ -172,7 +172,7 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
    - Strategy Pattern
    - InventoryAcceptanceRequest
    - Preview Conversion Pipeline
-   - InventoryTransferService
+   - TransferPlanExecutor
    - ISlot
    - Dynamic Slot Management
    - DataBinding System

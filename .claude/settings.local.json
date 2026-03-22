@@ -6,7 +6,19 @@
       "Skill(dragdrop-system)",
       "Skill(dragdrop-architecture)",
       "Bash(mkdir:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(python3 -m venv .venv)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(\"/mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/docs/systems/filter-sort.en.md\":*)",
+      "Bash(wc:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/docs/**)",
+      "Bash(done)",
+      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build -f .docs\\\\mkdocs.yml 2>&1\")"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 ## DragAndDropManager
 
@@ -71,23 +71,22 @@ Location: `Scripts/Inventories/TransferPlanExecutor.cs`
 
 Responsibilities:
 - execute plan entries in sequence
-- run normal transfers via `InventoryTransferService`
+- run normal transfers through internal execution helpers
 - run swap branch with bidirectional rule validation
 - support atomic rollback through snapshots
 - defer transfer/swap event dispatch until operation success
 - dispatch remove/add with final transfer outcomes
 
-## InventoryTransferService
+## InventoryTransfer Models
 
 Location: `Scripts/Inventories/InventoryTransferService.cs`
 
 Responsibilities:
-- transactional source->target movement primitive
-- target-side preview conversion and acceptable-count calculation
-- target placement (direct/alternative paths)
-- snapshot rollback on failure
+- define `InventoryTransferRequest`
+- define `InventoryTransferResult`
+- carry concrete transfer payload between executor helpers and event dispatch
 
-Key helper objects:
+Related execution helpers:
 - `TargetPlacementOperation`
 - `AlternativeSlotSearchOperation`
 - `InventoryAcceptanceRequest`

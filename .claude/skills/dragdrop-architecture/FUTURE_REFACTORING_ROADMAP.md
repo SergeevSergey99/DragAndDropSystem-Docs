@@ -1,6 +1,6 @@
 # Future Refactoring Roadmap
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 This document collects architecture changes discussed during the recent refactoring pass.
 It focuses on future work, why it is needed, and how it can be implemented incrementally
@@ -17,7 +17,6 @@ Recent changes already moved the system in a better direction:
 
 Main remaining pressure points:
 - `IInventoryStrategy` is too wide
-- transfer orchestration is still split between `TransferPlanExecutor` and `InventoryTransferService`
 - domain-specific workflows like trading still piggyback on `OnItemAdded` / `OnItemRemoved`
 - there is no clean extension point for server-authoritative or transaction-like flows
 
@@ -26,9 +25,8 @@ Main remaining pressure points:
 1. Split `IInventoryStrategy` into narrower capabilities
 2. Move item conversion out of `DataBinding`
 3. Add transfer-domain hooks for post-success logic such as trading
-4. Merge `InventoryTransferService` into `TransferPlanExecutor`
-5. Add transaction/authority abstraction for server-backed flows only if server authority is actually needed
-6. Consider extracting dynamic slot lifecycle out of `UniversalInventory` if it keeps growing
+4. Add transaction/authority abstraction for server-backed flows only if server authority is actually needed
+5. Consider extracting dynamic slot lifecycle out of `UniversalInventory` if it keeps growing
 
 ## 1. Split `IInventoryStrategy`
 
@@ -479,44 +477,22 @@ This is another reason to keep server authority as a dedicated milestone.
 
 ## 5. Merge InventoryTransferService Into TransferPlanExecutor
 
-### Problem
+### Status
 
-Transfer orchestration is still split:
-- `TransferPlanner` builds the plan
-- `TransferPlanExecutor` runs plan entries
-- `InventoryTransferService` performs concrete transfer primitive with rollback
+Done on 2026-03-23.
 
-This leaves the flow harder to read than necessary.
-
-### Goal
-
-Reduce the execution pipeline to:
+Current execution pipeline is now:
 - planner
 - executor
 - inventory facade
 
-### Suggested Change
+What changed:
+- normal transfer execution moved into internal helper methods of `TransferPlanExecutor`
+- rollback for single allocation transfers now lives next to swap execution and deferred event dispatch
+- `InventoryDropProcessor`, `DragAndDropManager`, `AutoTransferService`, `SlotInputAdapter`, and `InventoryDropArea` no longer pass around `InventoryTransferService`
+- `InventoryTransferService.cs` now only contains `InventoryTransferRequest` and `InventoryTransferResult`
 
-Move `InventoryTransferService` logic into `TransferPlanExecutor` as internal execution helpers:
-- target placement
-- acceptable count handling
-- snapshot rollback for a single transfer entry
-
-Possible helper names:
-- `ExecutePlannedAllocation(...)`
-- `ExecuteSingleTransfer(...)`
-- `TryPlaceTransferStack(...)`
-
-Important constraint:
-- rollback logic should remain isolated in executor-level helpers
-- do not spread rollback branches across the main execution path
-
-### Why It Makes Sense Now
-
-Recent refactors already introduced operation objects and clarified preview conversion.
-That means `InventoryTransferService` is now mostly an intermediate execution layer rather than a distinct domain boundary.
-
-### Benefits
+### Result
 
 - simpler execution flow
 - fewer classes to jump through during debugging
@@ -603,6 +579,7 @@ Current status:
 
 - merge `InventoryTransferService` into `TransferPlanExecutor`
 - simplify operation ordering and rollback ownership
+- completed on 2026-03-23
 
 ### Phase 5
 

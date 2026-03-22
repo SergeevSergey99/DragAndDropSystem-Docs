@@ -1,6 +1,6 @@
 # Transfer Pipeline Architecture
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-23
 
 Документ описывает текущую архитектуру drop/transfer pipeline, включая batch transfer, swap и target-aware preview.
 
@@ -18,7 +18,7 @@
 
 1. `DropPolicy` определяет поведение
 2. `TransferPlanner` строит план без мутаций
-3. `TransferPlanExecutor` применяет план
+3. `TransferPlanExecutor` применяет план, выполняет placement helpers и rollback
 4. `InventoryDropProcessor` связывает UI drop-target с planner/executor
 
 ## Основные компоненты
@@ -60,7 +60,7 @@
 
 Роль:
 - исполняет `TransferPlan`
-- выполняет обычные переносы через `InventoryTransferService`
+- выполняет обычные переносы через внутренние execution helpers
 - исполняет swap-ветку
 - поддерживает rollback в atomic mode
 - откладывает события до успешного завершения плана
@@ -74,18 +74,16 @@
 
 Это критично для корректной работы adapter conversion между разными инвентарями.
 
-### InventoryTransferService
+### Transfer Execution Models
 
 Файл: `Scripts/Inventories/InventoryTransferService.cs`
 
 Роль:
-- выполняет транзакционный source -> target перенос
-- резолвит target-side preview item
-- считает acceptable count через `InventoryAcceptanceRequest`
-- пытается разместить transfer stack в target inventory
-- откатывает source/target snapshot при неудаче
+- хранит `InventoryTransferRequest`
+- хранит `InventoryTransferResult`
+- используется executor'ом как transport-модель для обычного allocation transfer
 
-Связанные helper-объекты:
+Связанные helper-объекты исполнения:
 - `TargetPlacementOperation`
 - `AlternativeSlotSearchOperation`
 
