@@ -1,5 +1,6 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Examples.Trading.Data;
+using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
 
@@ -52,35 +53,68 @@ namespace DragAndDropSystem.Examples.Trading
             return RuleResult.Success();
         }
 
-        /// <summary>
-        /// Обработка покупки у торговца, если применимо.
-        /// Возвращает true если покупка была обработана.
-        /// </summary>
-        public static void TryHandlePurchaseFromMerchant(InventoryItemEventContext context, PlayerData playerData)
+        public static RuleResult ValidatePlayerTransfer(TransferDomainContext context, PlayerData playerData)
         {
             if (context.SourceInventory?.DataBinding is not IMerchantInventory)
-                return;
+                return RuleResult.Success();
 
-            if (context.Item is ITradableItem tradable)
+            if (context.SourceItem is not ITradableItem tradable)
+                return RuleResult.Failure("Неверный тип предмета");
+
+            int totalPrice = tradable.BuyPrice * context.RequestedAmount;
+            if (!TradingEconomyManager.Instance.CanPlayerAfford(totalPrice))
+                return RuleResult.Failure($"Недостаточно денег! Нужно {totalPrice}g, у вас {playerData.Money}g");
+
+            return RuleResult.Success();
+        }
+
+        public static RuleResult ValidateMerchantTransfer(TransferDomainContext context, MerchantData merchantData)
+        {
+            if (context.TargetInventory?.DataBinding is not IMerchantInventory)
+                return RuleResult.Success();
+
+            if (context.SourceInventory?.DataBinding is IMerchantInventory)
+                return RuleResult.Failure("Нельзя торговать между торговцами!");
+
+            if (context.SourceItem is not ITradableItem tradable)
+                return RuleResult.Failure("Неверный тип предмета");
+
+            int totalPrice = tradable.SellPrice * context.RequestedAmount;
+            if (merchantData.Money <= totalPrice)
+                return RuleResult.Failure($"У торговца недостаточно денег! Нужно {totalPrice}g, у него {merchantData.Money}g");
+
+            return RuleResult.Success();
+        }
+
+        public static void ApplyPlayerTransferEffects(TransferDomainContext context, PlayerData playerData)
+        {
+            if (context.SourceInventory?.DataBinding is IMerchantInventory &&
+                context.SourceItem is ITradableItem buyItem)
             {
-                int totalPrice = tradable.BuyPrice * context.Count;
-                playerData.TrySpendMoney(totalPrice);
+                playerData.TrySpendMoney(buyItem.BuyPrice * context.CommittedAmount);
+                return;
+            }
+
+            if (context.TargetInventory?.DataBinding is IMerchantInventory &&
+                context.SourceItem is ITradableItem sellItem)
+            {
+                playerData.AddMoney(sellItem.SellPrice * context.CommittedAmount);
             }
         }
 
-        /// <summary>
-        /// Обработка продажи торговцу, если применимо.
-        /// Возвращает true если продажа была обработана.
-        /// </summary>
-        public static void TryHandleSellToMerchant(InventoryItemEventContext context, PlayerData playerData)
+        public static void ApplyMerchantTransferEffects(TransferDomainContext context, MerchantData merchantData)
         {
-            if (context.TargetInventory?.DataBinding is not IMerchantInventory)
-                return;
-
-            if (context.Item is ITradableItem tradable)
+            if (context.SourceInventory?.DataBinding is IMerchantInventory &&
+                context.SourceItem is ITradableItem soldByMerchant)
             {
-                int totalPrice = tradable.SellPrice * context.Count;
-                playerData.AddMoney(totalPrice);
+                merchantData.AddMoney(soldByMerchant.BuyPrice * context.CommittedAmount);
+                return;
+            }
+
+            if (context.TargetInventory?.DataBinding is IMerchantInventory &&
+                context.SourceItem is ITradableItem boughtByMerchant)
+            {
+                merchantData.TrySpendMoney(boughtByMerchant.SellPrice * context.CommittedAmount);
             }
         }
     }

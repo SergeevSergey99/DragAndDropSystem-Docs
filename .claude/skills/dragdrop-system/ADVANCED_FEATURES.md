@@ -42,12 +42,13 @@ DataBinding subscribes to swap events via `OnEnable` / `OnDisable`:
 
 ### Item Conversion Pipeline
 
-Current implementation keeps item conversion in `DataBinding`, but preview/execution now goes through
+Current implementation keeps item conversion on `UniversalInventory` via `ItemConverter`, and preview/execution go through
 shared transfer helpers:
-- `ConvertIncomingItem(item)`
-- `ConvertOutgoingItem(item)`
+- `IInventoryItemConverter`
+- `IdentityInventoryItemConverter`
 - preview chain: `TransferItemConversionUtility` → `TryPreviewOutgoingItem` → `TryPreviewIncomingItem`
 - mutation chain: source inventory applies outgoing conversion, target inventory applies incoming conversion
+- `InventoryDataBindingBase` can still bridge legacy conversion overrides through `LegacyDataBindingItemConverter`
 
 ### Template DataBindings
 

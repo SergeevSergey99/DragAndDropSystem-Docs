@@ -35,24 +35,24 @@
 - `PlayerInventoryDataBinding.cs`
   - синхронизация с `PlayerData`
   - торговая логика через `TradingHelper`
-  - `ConvertIncomingItem`: SO -> Model
+  - `ModelInventoryItemConverter`: SO -> Model
 
 - `MerchantInventoryDataBinding.cs`
   - синхронизация с `MerchantData`
   - торговая логика в `AddToData` / `RemoveFromData`
-  - `ConvertIncomingItem`: Model -> SO
+  - `MerchantInventoryItemConverter`: Model -> SO
 
 - `EquipmentInventoryDataBinding.cs`
   - `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`
   - `CreateBindingMap()` со слотами и `canAccept`
-  - `ConvertIncomingItem`: SO -> Model
+  - `ModelInventoryItemConverter`: SO -> Model
   - preview slot validation работает через общий acceptance pipeline
 
 - `TradingHelper.cs`
   - `ValidatePurchaseFromMerchant`
   - `ValidateSellToMerchant`
-  - `TryHandlePurchaseFromMerchant`
-  - `TryHandleSellToMerchant`
+  - `ValidatePlayerTransfer` / `ValidateMerchantTransfer`
+  - `ApplyPlayerTransferEffects` / `ApplyMerchantTransferEffects`
 
 ## Ключевые отличия от первого примера
 

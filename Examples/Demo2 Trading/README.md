@@ -42,8 +42,8 @@ TradingEconomyManager (Singleton)
 - торговец: `TradableItemSO` -> `TradableSoAdapter`
 - игрок: `TradableItemModel` -> `TradableItemModelAdapter`
 
-Конвертация между ними сейчас выполняется через `ConvertIncomingItem` / `ConvertOutgoingItem`,
-но важно, что planner и area-drop preview уже работают с target-side preview item до фактического переноса.
+Конвертация между ними сейчас выполняется через inventory-side converter classes,
+а planner и area-drop preview уже работают с target-side preview item до фактического переноса.
 
 Примеры:
 
@@ -75,19 +75,19 @@ TradableItemModelAdapter
 - синхронизация с `PlayerData`
 - торговая логика через `TradingHelper`
 - `CanDrop()` — валидация покупки через `TradingHelper.ValidatePurchaseFromMerchant()`
-- `ConvertIncomingItem()` — конвертация SO -> Model
+- `ModelInventoryItemConverter` — конвертация SO -> Model
 
 **MerchantInventoryDataBinding** — `ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>`:
 - синхронизация с `MerchantData`
 - торговая логика в `AddToData()` / `RemoveFromData()`
 - `CanStartDrag()` — проверка денег игрока
 - `CanDrop()` — проверка денег торговца + запрет торговли между торговцами
-- `ConvertIncomingItem()` — конвертация Model -> SO
+- `MerchantInventoryItemConverter` — конвертация Model -> SO
 
 **EquipmentInventoryDataBinding** — `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`:
 - `CreateBindingMap()` — словарь слотов с декларативными `canAccept`
 - `CanDrop()` — проверяет тип предмета через `canAccept` + валидацию покупки
-- `ConvertIncomingItem()` — конвертация SO -> Model
+- `ModelInventoryItemConverter` — конвертация SO -> Model
 - использует shared preview infrastructure, а не отдельные preview guards
 
 ## Что демонстрирует этот пример
@@ -100,7 +100,7 @@ TradableItemModelAdapter
 
 ### 2. Конвертацию между разными инвентарями
 
-`ConvertIncomingItem` / `ConvertOutgoingItem` позволяют разным инвентарям работать с разными типами адаптеров.
+`IInventoryItemConverter` позволяет разным инвентарям работать с разными типами адаптеров.
 При этом preview теперь тоже знает о target-side conversion ещё до размещения в слот.
 
 ### 3. Декларативную валидацию слотов
@@ -109,7 +109,8 @@ TradableItemModelAdapter
 
 ### 4. Общую торговую логику
 
-`TradingHelper` содержит переиспользуемую логику валидации и обработки торговых операций.
+`TradingHelper` содержит переиспользуемую логику валидации и transfer-level side effects для торговых операций.
+Денежные изменения теперь проходят через `ITransferDomainHandler`, а не через item-added/item-removed callbacks.
 
 ### 5. Разные типы транзакций
 

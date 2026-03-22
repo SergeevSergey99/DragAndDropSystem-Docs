@@ -16,7 +16,6 @@ Recent changes already moved the system in a better direction:
 - Phase 1 has started: strategy capabilities are now split at the dependency level inside `UniversalInventory`
 
 Main remaining pressure points:
-- item conversion still lives in `DataBinding`
 - `IInventoryStrategy` is too wide
 - transfer orchestration is still split between `TransferPlanExecutor` and `InventoryTransferService`
 - domain-specific workflows like trading still piggyback on `OnItemAdded` / `OnItemRemoved`
@@ -326,6 +325,17 @@ This keeps the hook:
 - preserves current remove/add-based data binding model
 - avoids packing game-specific logic into generic inventory events
 
+### Current Implementation Status
+
+Already done:
+- `TransferDomainContext` and `ITransferDomainHandler` exist
+- `TransferPlanExecutor` runs domain validation before commit and defers success hooks until the whole plan succeeds
+- Demo2 Trading money side effects were moved out of item-added/item-removed reactions into transfer-level hooks
+
+Still pending:
+- generic feature modules still discover handlers through `DataBinding` ownership
+- trading validation still partially exists in classic binding rules as an additional safety layer
+
 ## 4. Add Transaction / Authority Layer For Server Flows
 
 ### Problem
@@ -569,6 +579,13 @@ This is useful, but not urgent.
 - introduce `IInventoryItemConverter`
 - move conversion responsibilities out of `DataBinding`
 - keep `TransferItemConversionUtility` as the central pipeline entry point
+
+Current status:
+- core converter API exists on `UniversalInventory`
+- `IdentityInventoryItemConverter` is the default implementation
+- `InventoryDataBindingBase` now configures inventory converter via `CreateItemConverter()`
+- old `ConvertIncomingItem` / `ConvertOutgoingItem` remain only as compatibility fallback through `LegacyDataBindingItemConverter`
+- Demo2 Trading converters were moved into dedicated converter classes
 
 ### Phase 3
 

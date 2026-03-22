@@ -93,6 +93,7 @@ namespace DragAndDropSystem.Inventories
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
+        private IInventoryItemConverter _itemConverter = IdentityInventoryItemConverter.Instance;
 
         [FoldoutGroup("Debug")]
         [ShowInInspector, ReadOnly]
@@ -154,6 +155,8 @@ namespace DragAndDropSystem.Inventories
                 return _queryStrategy;
             }
         }
+
+        public IInventoryItemConverter ItemConverter => _itemConverter ?? IdentityInventoryItemConverter.Instance;
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
@@ -254,6 +257,11 @@ namespace DragAndDropSystem.Inventories
         public void Initialize(InventoryDataBindingBase inventoryDataBindingBase)
         {
             DataBinding = inventoryDataBindingBase;
+        }
+
+        public void SetItemConverter(IInventoryItemConverter itemConverter)
+        {
+            _itemConverter = itemConverter ?? IdentityInventoryItemConverter.Instance;
         }
 
         private void OnValidate()
@@ -436,11 +444,7 @@ namespace DragAndDropSystem.Inventories
             if (item == null)
                 return false;
 
-            if (DataBinding == null)
-                return true;
-
-            converted = DataBinding.ConvertIncomingItem(item);
-            return converted != null;
+            return ItemConverter.TryConvertIncoming(item, out converted);
         }
 
         internal bool TryPreviewOutgoingItem(IInventoryItem item, out IInventoryItem converted)
@@ -450,11 +454,7 @@ namespace DragAndDropSystem.Inventories
             if (item == null)
                 return false;
 
-            if (DataBinding == null)
-                return true;
-
-            converted = DataBinding.ConvertOutgoingItem(item);
-            return converted != null;
+            return ItemConverter.TryConvertOutgoing(item, out converted);
         }
 
         bool TryConvertIncomingItem(ItemStack stack)

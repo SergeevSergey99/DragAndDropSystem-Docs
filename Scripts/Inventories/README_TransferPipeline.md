@@ -98,6 +98,18 @@
 - содержит target inventory, preview item, desired count, source entry и исходный `DragContext`
 - позволяет strategy-проверкам валидировать реальные candidate slots, а не абстрактный item без контекста
 
+### Item Conversion
+
+Current conversion ownership:
+- `UniversalInventory` owns `ItemConverter`
+- `IdentityInventoryItemConverter` is used by default
+- `TransferItemConversionUtility` remains the common preview entry point
+- `InventoryDataBindingBase` can still bridge old conversion overrides through `LegacyDataBindingItemConverter`
+
+Preferred direction:
+- feature-specific conversion lives in dedicated converter classes
+- `DataBinding` only wires converter into inventory during initialization
+
 ### InventoryDropProcessor
 
 Файл: `Scripts/Inventories/InventoryDropProcessor.cs`

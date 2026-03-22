@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
 using TMPro;
@@ -12,9 +13,9 @@ namespace DragAndDropSystem.Examples.Trading
     /// <summary>
     /// DataBinding для инвентаря игрока в системе торговли.
     /// Использует ListInventoryDataBinding для автоматической синхронизации списка предметов.
-    /// ConvertIncomingItem конвертирует SO-адаптеры торговца в Model-адаптеры игрока.
+    /// Conversion вынесен в отдельный inventory-side converter.
     /// </summary>
-    public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>
+    public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>, ITransferDomainHandler
     {
         [FoldoutGroup("UI References")]
         [SerializeField, Tooltip("Текст для отображения денег игрока")]
@@ -35,19 +36,22 @@ namespace DragAndDropSystem.Examples.Trading
         protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
         protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
+        protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
         protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidatePurchaseFromMerchant(entry, PlayerData);
 
         protected override void AddToData(InventoryItemEventContext context, TradableItemModel item)
         {
-            TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData);
             PlayerData.AddItem(item);
         }
 
         protected override void RemoveFromData(InventoryItemEventContext context, TradableItemModel item)
         {
-            TradingHelper.TryHandleSellToMerchant(context, PlayerData);
             PlayerData.TryRemoveItem(item);
         }
+
+        public RuleResult Validate(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
+
+        public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyPlayerTransferEffects(context, PlayerData);
 
         // --- Lifecycle ---
 
@@ -77,15 +81,5 @@ namespace DragAndDropSystem.Examples.Trading
             if (_moneyText != null && PlayerData != null)
                 _moneyText.text = $"{_moneyPrefix}{PlayerData.Money}{_moneySuffix}";
         }
-        
-        // --- Конвертация: SO-адаптер торговца → Model-адаптер игрока ---
-        internal override IInventoryItem ConvertIncomingItem(IInventoryItem item)
-        {
-            if (item is TradableItemModelAdapter) return item;
-            if (item is ITradableItem tradable)
-                return new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
-            return item;
-        }
-
     }
 }

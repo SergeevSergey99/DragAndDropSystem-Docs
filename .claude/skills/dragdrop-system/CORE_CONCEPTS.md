@@ -98,8 +98,8 @@ This matters for:
 - planner, drop area, and transfer service all work with target-side preview item
 
 Current note:
-- conversion still lives in `DataBinding`
-- roadmap proposes moving it to dedicated converters later
+- conversion now lives on inventory-side `ItemConverter`
+- `DataBinding` only provides wiring plus legacy fallback when needed
 
 ## 9. Handler Boundary
 

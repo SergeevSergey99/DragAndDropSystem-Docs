@@ -96,6 +96,7 @@ namespace DragAndDropSystem.Inventories
             ISlot lastTargetSlot = null;
             bool hadPartialTransfer = false;
             var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
+            var successfulDomainContexts = new List<TransferDomainContext>(plan.Entries.Count);
             var successfulSwaps = new List<PendingSwapOutcome>(plan.Entries.Count);
             var executedEntries = new List<ExecutedTransferEntry>(plan.Entries.Count);
 
@@ -162,6 +163,14 @@ namespace DragAndDropSystem.Inventories
                             new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount),
                             allowAlternativeSlots: false);
 
+                        if (!TryBuildDomainContext(request, out var domainContext) ||
+                            !ValidateDomainHandlers(domainContext, out var domainFailure))
+                        {
+                            Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
+                            entryFailed = true;
+                            break;
+                        }
+
                         if (!_transferService.TryExecuteTransfer(request, out var outcome) || outcome.Amount <= 0)
                         {
                             entryFailed = true;
@@ -173,7 +182,9 @@ namespace DragAndDropSystem.Inventories
                         lastItem = outcome.Item;
                         lastTargetSlot = outcome.TargetSlot ?? allocation.Slot;
                         hadPartialTransfer |= outcome.IsPartialTransfer;
+                        domainContext.MarkCommitted(outcome);
                         successfulOutcomes.Add(outcome);
+                        successfulDomainContexts.Add(domainContext);
                         executedEntries.Add(new ExecutedTransferEntry(
                             outcome.SourceSlot,
                             outcome.TargetSlot ?? allocation.Slot,
@@ -245,6 +256,7 @@ namespace DragAndDropSystem.Inventories
 
             // Эмитим события только после успешного завершения всей операции.
             // В Atomic это предотвращает "ложные" события при последующем откате.
+            DispatchDomainSuccessHooks(successfulDomainContexts);
             DispatchTransferEvents(successfulOutcomes);
             DispatchSwapEvents(successfulSwaps, options);
 
@@ -257,6 +269,90 @@ namespace DragAndDropSystem.Inventories
                 isPartial,
                 result,
                 executedEntries);
+        }
+
+        private static bool TryBuildDomainContext(InventoryTransferRequest request, out TransferDomainContext context)
+        {
+            context = null;
+
+            if (!TransferItemConversionUtility.TryResolveTargetItem(
+                    request.SourceInventory,
+                    request.TargetInventory,
+                    request.DraggedStack.Item,
+                    out var targetPreviewItem))
+            {
+                return false;
+            }
+
+            context = new TransferDomainContext(
+                request.SourceInventory,
+                request.TargetInventory,
+                request.SourceSlot,
+                request.TargetSlot,
+                request.DraggedStack.Item,
+                targetPreviewItem,
+                request.DraggedStack.Count);
+            return true;
+        }
+
+        private static bool ValidateDomainHandlers(TransferDomainContext context, out string failureReason)
+        {
+            failureReason = null;
+
+            foreach (var handler in EnumerateDomainHandlers(context))
+            {
+                try
+                {
+                    var result = handler.Validate(context);
+                    if (!result.IsSuccess)
+                    {
+                        failureReason = result.Message ?? "Domain validation failed";
+                        return false;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    failureReason = ex.Message;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static void DispatchDomainSuccessHooks(IReadOnlyList<TransferDomainContext> contexts)
+        {
+            foreach (var context in contexts)
+            {
+                foreach (var handler in EnumerateDomainHandlers(context))
+                {
+                    try
+                    {
+                        handler.OnTransferSucceeded(context);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain success hook threw: {ex.Message}</color>");
+                    }
+                }
+            }
+        }
+
+        private static System.Collections.Generic.IEnumerable<ITransferDomainHandler> EnumerateDomainHandlers(TransferDomainContext context)
+        {
+            var emitted = new HashSet<ITransferDomainHandler>();
+
+            if (context.SourceInventory?.DataBinding is ITransferDomainHandler sourceHandler &&
+                emitted.Add(sourceHandler))
+            {
+                yield return sourceHandler;
+            }
+
+            if (context.TargetInventory?.DataBinding is ITransferDomainHandler targetHandler &&
+                emitted.Add(targetHandler))
+            {
+                yield return targetHandler;
+            }
         }
 
         private bool TryExecuteSwap(

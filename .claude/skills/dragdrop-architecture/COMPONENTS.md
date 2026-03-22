@@ -137,10 +137,10 @@ Key classes:
 
 Responsibilities:
 - bidirectional sync between UI (`UniversalInventory`) and external data
-- current item conversion ownership (`ConvertIncomingItem` / `ConvertOutgoingItem`)
+- converter wiring during inventory initialization
 - rule integration (`CanStartDrag`, `CanDrop`, `CanSwap`)
 - swap handling via event subscriptions (`OnSwapAttempting` / `OnSwapCompleted`)
 
 Current note:
-- conversion still lives in `DataBinding` in the current implementation
-- roadmap proposes moving it to a dedicated inventory-side collaborator later
+- conversion now lives on inventory-side `ItemConverter`
+- `DataBinding` only wires converter in and provides a legacy fallback path

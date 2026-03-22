@@ -3,6 +3,7 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.Trading.Data;
 using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
@@ -13,9 +14,9 @@ namespace DragAndDropSystem.Examples.Trading
     /// <summary>
     /// DataBinding для инвентаря экипировки игрока.
     /// Использует MappedSlotInventoryDataBinding для декларативной привязки слотов к данным.
-    /// ConvertIncomingItem конвертирует SO-адаптеры торговца в Model-адаптеры.
+    /// Conversion вынесен в отдельный inventory-side converter.
     /// </summary>
-    public class EquipmentInventoryDataBinding : MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>
+    public class EquipmentInventoryDataBinding : MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>, ITransferDomainHandler
     {
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Слот для оружия")]
@@ -34,6 +35,7 @@ namespace DragAndDropSystem.Examples.Trading
         private UniversalSlot _artifact2Slot;
 
         private PlayerData PlayerData => TradingEconomyManager.Instance.PlayerData;
+        protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
 
         // --- MappedSlotInventoryDataBinding примитивы ---
 
@@ -75,29 +77,9 @@ namespace DragAndDropSystem.Examples.Trading
         protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
 
-        // --- Конвертация: SO-адаптер торговца → Model-адаптер ---
+        public RuleResult Validate(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
-        internal override IInventoryItem ConvertIncomingItem(IInventoryItem item)
-        {
-            if (item is TradableItemModelAdapter) return item;
-            if (item is ITradableItem tradable)
-                return new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
-            return item;
-        }
-
-        // --- Торговая логика поверх базовой синхронизации ---
-
-        protected override void OnItemAddedToUI(InventoryItemEventContext context)
-        {
-            TradingHelper.TryHandlePurchaseFromMerchant(context, PlayerData);
-            base.OnItemAddedToUI(context);
-        }
-
-        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
-        {
-            TradingHelper.TryHandleSellToMerchant(context, PlayerData);
-            base.OnItemRemovedFromUI(context);
-        }
+        public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyPlayerTransferEffects(context, PlayerData);
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
