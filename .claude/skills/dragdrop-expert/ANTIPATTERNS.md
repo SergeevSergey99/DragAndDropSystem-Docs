@@ -2,6 +2,8 @@
 
 Comprehensive catalog of anti-patterns and how to avoid them.
 
+**Last Updated**: 2026-03-22
+
 ## Anti-Pattern #1: Adding Locks Instead of Checking DragContext
 
 **Problem**: Adding `_isLocked` or `_isProcessing` flags when DragContext already tracks drag state.
@@ -61,15 +63,24 @@ Comprehensive catalog of anti-patterns and how to avoid them.
 
 ---
 
-## Anti-Pattern #5: Forgetting Null Checks for TargetSlot
+## Anti-Pattern #5: Mixing Slot-Specific Validation With Slot-Less Preview
 
-**Problem**: Accessing `context.TargetSlot.Index` without null check.
+**Problem**: Writing feature validation that assumes `context.TargetSlot` always exists, even during area-drop or inventory-level preview.
 
-**Why It Crashes**: `TargetSlot` can be null for area drops (dropping to InventoryDropArea without specific slot).
+**Why It's Bad**:
+- `TargetSlot` can be null during some preview stages
+- generic preview should be driven by `InventoryAcceptanceRequest`, not ad-hoc binding guards
+- feature code becomes brittle and starts duplicating infrastructure concerns
 
-**Solution**: Always check `if (context.TargetSlot != null)` before accessing.
+**Solution**:
+- if logic is truly slot-specific, validate it only when a concrete slot is known
+- for shared preview paths, rely on acceptance infrastructure (`InventoryAcceptanceRequest`, strategy slot iteration)
+- use helper methods like `TryGetTargetBinding()` in mapped-slot bindings instead of raw dictionary lookup
 
-**Common Places**: Rule validation, custom drop handlers, event subscribers.
+**Common Places**:
+- mapped-slot data bindings
+- custom drop handlers
+- manual preview code in area targets
 
 ---
 

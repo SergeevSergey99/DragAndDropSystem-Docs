@@ -1,185 +1,154 @@
 # Strategy Pattern - Deep Dive
 
-Detailed documentation of all inventory strategies.
+Detailed documentation of current inventory strategies.
+
+**Last Updated**: 2026-03-22
 
 ## Strategy Hierarchy
 
-```
+```text
 IInventoryStrategy
   ├─ UniqueItemStrategy
   ├─ StackableItemStrategy
-  ├─ SeparableStacksStrategy (NEW!)
-  └─ DynamicSlotDecorator (wraps any of above)
+  ├─ SeparableStacksStrategy
+  └─ DynamicSlotDecorator
 ```
 
-**Location**: → `Scripts/Inventories/InventoryStrategy.cs`
+Key files:
+- `Scripts/Inventories/Strategies/IInventoryStrategy.cs`
+- `Scripts/Inventories/Strategies/InventoryStrategyBase.cs`
+- `Scripts/Inventories/Strategies/UniqueItemStrategy.cs`
+- `Scripts/Inventories/Strategies/StackableItemStrategy.cs`
+- `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs`
+- `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs`
 
----
+Current note:
+- strategies are still behind one interface
+- acceptance preview already uses `InventoryAcceptanceRequest`
+- roadmap proposes splitting this wide interface into smaller capabilities later
 
 ## UniqueItemStrategy
 
-**Behavior**: One item per slot, count always 1.
+Behavior:
+- one item per slot
+- drag amount always resolves to `1`
+- planning uses `UsesPerItemSlotPlanning = true`
 
-**Location**: → `Scripts/Inventories/InventoryStrategy.cs`
+Location:
+- `Scripts/Inventories/Strategies/UniqueItemStrategy.cs`
 
-**How It Works**:
-- Always creates single-item stacks (count = 1)
-- Each item gets its own slot
-- If targetIndex specified → tries that slot
-- Otherwise → finds first empty slot
-- Removes 1 from incoming stack per placement
+How it works:
+- creates single-item stacks only
+- tries target slot first when provided
+- otherwise fills empty valid slots one by one
+- preview acceptance validates each slot with `PassesRules(..., request)`
 
-**Use Cases**:
-- Equipment slots (weapon, armor, accessory)
-- Unique items (quest items, artifacts)
-- Character inventories where each item is distinct
-
-Check `UniqueItemStrategy` class in `Scripts/Inventories/InventoryStrategy.cs`.
-
----
+Use cases:
+- equipment slots
+- artifacts
+- truly unique items
 
 ## StackableItemStrategy
 
-**Behavior**: Automatic merging of same items.
+Behavior:
+- automatic merging of same items
+- can also place into empty slots
 
-**Location**: → `Scripts/Inventories/InventoryStrategy.cs`
+Location:
+- `Scripts/Inventories/Strategies/StackableItemStrategy.cs`
 
-**How It Works**:
-1. **Fill existing stacks first** - Finds slots with same item, adds until full
-2. **Create new stacks** - If remaining items, creates new stacks in empty slots
-3. **Respects MaxStackSize** - Never exceeds item's max stack limit
+How it works:
+1. fill existing matching stacks
+2. create new stack in empty slot if needed
+3. validate each candidate through rules
 
-**Two-Phase Algorithm**:
-- **Phase 1**: Loop through occupied slots, try to stack with matching items
-- **Phase 2**: Loop through empty slots, create new stacks
+Current preview behavior:
+- uses `InventoryAcceptanceRequest`
+- validates merge candidates and empty candidates through real slot rules
+- when dynamic slots are allowed, prefab-slot rules are checked before reporting acceptable count
 
-**Use Cases**:
-- Resources (wood, stone, ore)
-- Consumables (potions, food)
-- Minecraft-style inventories
-- Crafting materials
+Use cases:
+- resources
+- consumables
+- crafting materials
 
-Check `StackableItemStrategy` class in `Scripts/Inventories/InventoryStrategy.cs`.
+## SeparableStacksStrategy
 
----
+Behavior:
+- multiple stacks of the same item are allowed
+- merge only on explicit drop when `_allowMergeOnDrop` is enabled
 
-## SeparableStacksStrategy (NEW!)
+Location:
+- `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs`
 
-**Behavior**: Heroes of Might & Magic style - multiple stacks allowed, merge only on explicit drop.
+How it works:
+- explicit drop to empty slot creates a new stack
+- explicit drop to same-item occupied slot merges only if `_allowMergeOnDrop`
+- programmatic add prefers creating a new stack instead of auto-merging all the time
 
-**Location**: → `Scripts/Inventories/InventoryStrategy.cs`
+Current preview behavior:
+- uses `InventoryAcceptanceRequest`
+- checks empty slots first
+- optionally checks mergeable occupied slots if `_allowMergeOnDrop` is enabled
 
-**Configuration**:
-- `_allowMergeOnDrop` (bool) - Controls whether merge on drop is allowed
-
-**How It Works**:
-
-**MODE 1: Explicit drag to slot** (targetIndex >= 0):
-- If target slot empty → Place as new stack
-- If target slot occupied + `_allowMergeOnDrop` = true + same item → Merge stacks
-- If target slot occupied but can't merge → Fail
-
-**MODE 2: TryAddItem** (no target):
-- Finds first empty slot
-- Creates new stack
-- Does NOT auto-merge with existing stacks
-
-**Key Difference**: Does NOT auto-merge with `TryAddItem()`, only on explicit drop to occupied slot (if allowed).
-
-**Use Cases**:
-- Strategy games (Heroes of M&M, King's Bounty)
-- Tactical RPGs (Fire Emblem style)
-- When player needs fine control over stack separation
-- Army unit management systems
-
-Check `SeparableStacksStrategy` class in `Scripts/Inventories/InventoryStrategy.cs`.
-
----
+Use cases:
+- Heroes-style army stacks
+- tactical RPG inventories
+- systems where stack separation is gameplay-relevant
 
 ## DynamicSlotDecorator
 
-**Behavior**: Wraps any strategy, adds dynamic slot creation/removal.
+Behavior:
+- wraps any base strategy
+- adds dynamic slot creation behavior
 
-**Location**: → `Scripts/Inventories/InventoryStrategy.cs`
+Location:
+- `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs`
 
-**Configuration**:
-- `_maxSlots` - Maximum total slots
-- `_maxFreeSlots` - Target number of empty slots
-- `_initialSlotCount` - Minimum slots (never removed below this)
+How it works:
+- during `TryAdd` with a specific target index, it can create slots up to that index
+- during generic add, it creates new slots while items remain and limits allow it
+- delegates drag amount, acceptance preview, and placement behavior to wrapped strategy
 
-**How It Works**:
-
-### During TryAdd
-
-**MODE 1: Explicit drag to slot** (targetIndex >= 0):
-- Creates slots UP TO targetIndex only if `_maxFreeSlots > 0`
-- Prevents infinite growth from spam clicking
-- Respects `_maxSlots` limit
-
-**MODE 2: TryAddItem** (targetIndex < 0):
-- ALWAYS creates slots as needed
-- Ensures programmatic additions never fail
-- Continues until item fully added or `_maxSlots` reached
-
-### After TryAdd: EnsureFreeSlots
-
-- Counts current free slots
-- Creates additional slots to reach `_maxFreeSlots` target
-- Respects `_maxSlots` limit
-
-### After TryRemove: TrimExcessFreeSlots
-
-- Counts free slots
-- Removes excess empty slots beyond `_maxFreeSlots`
-- NEVER removes below `_initialSlotCount`
-- Removes from end of list
-
-**Wrapping Example**:
-UniversalInventory wraps base strategy in decorator when `SlotManagementType.Dynamic` is selected.
-
-Check `DynamicSlotDecorator` class in `Scripts/Inventories/InventoryStrategy.cs`.
-
----
+Important current detail:
+- `DynamicSlotDecorator` is creation-oriented
+- trimming/removing excess empty slots still happens in `UniversalInventory.HandleSlotEmptied()` and `TrimExcessFreeSlots()`
 
 ## Strategy Selection in UniversalInventory
 
-**Location**: → `Scripts/Inventories/UniversalInventory.cs`
+Location:
+- `Scripts/Inventories/UniversalInventory.cs`
 
-**Configuration Enum**: `ItemBehaviorType`
-- Unique
-- Stackable
-- SeparableStacks
+Configuration enums:
+- `ItemBehaviorType`
+  - `Unique`
+  - `Stackable`
+  - `SeparableStacks`
+- `SlotManagementType`
+  - `Fixed`
+  - `Dynamic`
 
-**Strategy Creation**:
-1. Based on `_itemBehavior` enum, creates base strategy
-2. If `_slotManagement = Dynamic`, wraps in `DynamicSlotDecorator`
-3. Assigns to `_strategy` field
-
-**Benefits of Strategy Pattern**:
-- Behavior change without modifying UniversalInventory
-- Easy to add new strategies
-- Testable in isolation
-- Composable with decorators
-
----
+Current runtime delegation from `UniversalInventory`:
+- drag amount → `ResolveDragAmount(...)`
+- target placement → `TryAddToSlot(...)`
+- preview acceptance → `CanAcceptItem(...)` / `GetAcceptableCount(...)`
+- planning hint → `UsesPerItemSlotPlanning`
 
 ## Custom Strategy Development
 
-**Steps**:
-1. Inherit from `InventoryStrategyBase`
-2. Override `TryAdd(slots, stack, targetIndex)` method
-3. Override `TryRemove(slots, itemId, count)` method
-4. Use `PassesRules(slot, item, count)` for validation
-5. Return true if operation succeeds, false otherwise
+Recommended steps:
+1. inherit from `InventoryStrategyBase`
+2. override `TryAdd(slots, stack, targetIndex)`
+3. override `TryRemove(slots, item, count, sourceIndex)` as needed
+4. override `TryAddToSlot(...)` if slot-target semantics differ
+5. override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
+6. use `PassesRules(slot, item, count, request)` for validation
 
-**Example Use Cases**:
-- Weight limit strategy
-- Volume-based inventory
-- Durability tracking
-- Custom stacking rules
+Typical use cases:
+- weight/volume inventories
+- class-restricted placement
+- custom stacking rules
+- durability-aware behavior
 
-Check base class in `Scripts/Inventories/InventoryStrategy.cs`.
-
----
-
-**[Back to SKILL.md](./SKILL.md)**
+Base class:
+- `Scripts/Inventories/Strategies/InventoryStrategyBase.cs`

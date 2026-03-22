@@ -1,21 +1,21 @@
 # Core Concepts
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## 1. DragContext Is Runtime Source of Truth
 
 `Scripts/Core/DragContext.cs`
 
-- Contains drag entry data (source, stack, target hints).
-- Must be treated as ephemeral runtime state.
-- Do not duplicate drag state with extra lock flags unless strictly required.
+- contains drag entry data, source and target hints
+- must be treated as ephemeral runtime state
+- should not be duplicated with extra lock flags unless strictly required
 
 ## 2. Rule Validation Is Layered
 
-Validation order stays:
-1. Global rules (`DragAndDropManager.GlobalRules`)
-2. Inventory-level rules (`UniversalInventory` / DataBinding)
-3. Slot-level rules (`ISlot.SlotRuleValidator`)
+Validation order:
+1. global rules
+2. inventory-level rules
+3. slot-level rules
 
 `RuleEvaluationService` is used by planner/executor to validate candidates and swap directions.
 
@@ -23,7 +23,7 @@ Validation order stays:
 
 `Scripts/Core/DropPolicy.cs`
 
-Policy is no longer an optional side behavior; it is the contract for transfer semantics:
+Policy defines:
 - occupied target handling
 - partial vs strict capacity
 - atomic vs best effort batch
@@ -32,28 +32,33 @@ Policy is no longer an optional side behavior; it is the contract for transfer s
 ## 4. Planner/Executor Split
 
 ### Planner
+
 `Scripts/Inventories/TransferPlanner.cs`
 
-- Pure planning layer (no mutations).
-- Builds `TransferPlan` with `PlannedEntryTransfer` entries.
-- Uses virtual slot state to avoid overbooking in batch planning.
-- Can mark entry as `RequiresSwap`.
+- pure planning layer
+- uses target-side preview conversion and `InventoryAcceptanceRequest`
+- builds `TransferPlan` with `PlannedEntryTransfer` entries
+- uses virtual slot state to avoid overbooking in batch planning
+- can mark entry as `RequiresSwap`
 
 ### Executor
+
 `Scripts/Inventories/TransferPlanExecutor.cs`
 
-- Mutation layer.
-- Executes normal allocations through `InventoryTransferService`.
-- Executes swap branch when planned.
-- Supports rollback in `Atomic` mode.
-- Emits transfer/swap events only after successful completion.
+- mutation layer
+- executes normal allocations through `InventoryTransferService`
+- executes swap branch when planned
+- supports rollback in `Atomic` mode
+- emits transfer/swap events only after successful completion
+
+Important current detail:
+- transfer outcomes distinguish `SourceItem` and `TargetItem`
+- this keeps event payloads correct for cross-inventory adapter conversion
 
 ## 5. Swap Is First-Class in Pipeline
 
-Swap is not a legacy side branch anymore.
-
 Current flow:
-- planner marks swap candidate (`RequiresSwap`)
+- planner marks swap candidate
 - executor validates reverse and forward drop legality
 - `SwapAttempting` callback can cancel
 - `UniversalInventory.TrySwapSlots` performs swap
@@ -61,43 +66,56 @@ Current flow:
 
 ## 6. Event Architecture
 
-### Transfer Events (Direct Calls)
+`UniversalInventory.TryAddToSlot()` is pure mutation, no events emitted internally.
 
-`UniversalInventory.TryAddToSlot()` is pure mutation — no events emitted internally.
-Events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()` after all mutations complete:
-- `EmitItemAdded()` → calls `DataBinding.HandleItemAdded()` directly, then fires `OnItemAdded` event
-- `EmitItemRemoved()` → calls `DataBinding.HandleItemRemoved()` directly, then fires `OnItemRemoved` event
-
-DataBinding direct call is possible because of 1:1 relationship with UniversalInventory.
-External subscribers (e.g., `FilterSortController`) still use events.
-
-### Swap Events (Event Subscriptions)
-
-Swap uses traditional event subscriptions because two inventories participate:
-- `OnSwapAttempting` — cancelable via `context.Cancel`
-- `OnSwapCompleted` — post-swap notification
-
-### Deferred Dispatch
+Events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()`:
+- `EmitItemAdded()` → direct `DataBinding.HandleItemAdded()` call, then `OnItemAdded`
+- `EmitItemRemoved()` → direct `DataBinding.HandleItemRemoved()` call, then `OnItemRemoved`
 
 The system prefers deferred event dispatch for consistency:
 - no false-positive events on atomic rollback
 - predictable order for DataBinding consumers
 
-## 7. Handler Boundary
+## 7. Preview Acceptance Is Context-Aware
+
+`Scripts/Inventories/InventoryAcceptanceRequest.cs`
+
+- acceptance preview is no longer just `(item, count)`
+- request can carry source inventory, source slot, target inventory and original drag context
+- strategies validate actual candidate slots through `UniversalInventory.CanAcceptByRules(...)`
+
+This matters for:
+- area drops
+- mapped-slot inventories
+- cross-inventory adapter conversion
+
+## 8. Conversion Is Previewed Before Planning
+
+`Scripts/Inventories/TransferItemConversionUtility.cs`
+
+- source inventory preview-converts outgoing item
+- target inventory preview-converts incoming item
+- planner, drop area, and transfer service all work with target-side preview item
+
+Current note:
+- conversion still lives in `DataBinding`
+- roadmap proposes moving it to dedicated converters later
+
+## 9. Handler Boundary
 
 `InventoryDropProcessor` is the adapter between UI/manager targets and pipeline internals.
 
 Responsibilities:
-- resolve effective target+policy
+- resolve effective target and policy
 - request plan
-- execute plan with options (global rules, swap callbacks)
+- execute plan with options
 - return `DropResult`
 
-## 8. Input Layers Are Separated
+## 10. Input Layers Are Separated
 
 Input responsibilities are split:
-- `InputModalityTracker` decides whether the user is currently in `Mouse` or `Navigation` mode
-- `InputEventRouter` resolves bindings and routes actions into inventory context or global context
-- `SlotInputAdapter` and `InventoryDropArea` only forward raw UI events
+- `InputModalityTracker`
+- `InputEventRouter`
+- `SlotInputAdapter` / `InventoryDropArea`
 
-This separation is intentional: modality detection should not be mixed into transfer or slot-domain logic.
+This keeps modality detection out of transfer and slot-domain logic.

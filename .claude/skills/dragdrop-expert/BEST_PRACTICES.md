@@ -2,21 +2,28 @@
 
 Complete guide for extending the system and optimization strategies.
 
+**Last Updated**: 2026-03-22
+
 ## Extension Points
 
 ### Custom Strategy
 
 **Purpose**: Create custom inventory behavior (e.g., weight limits, volume-based, durability).
 
-**Location**: → `Scripts/Inventories/InventoryStrategy.cs`
+**Locations**:
+- `Scripts/Inventories/Strategies/IInventoryStrategy.cs`
+- `Scripts/Inventories/Strategies/InventoryStrategyBase.cs`
+- `Scripts/Inventories/Strategies/*.cs`
 
 **How to Create**:
 1. Inherit from `InventoryStrategyBase` or existing strategy
 2. Override `TryAdd(slots, stack, targetIndex)` method
-3. Override `TryRemove(slots, itemId, count)` method (optional)
-4. Add custom validation logic before calling base methods
-5. Use `PassesRules(slot, item, count)` for rule validation
-6. Return true if operation succeeds, false otherwise
+3. Override `TryRemove(slots, item, count, sourceIndex)` method (optional)
+4. Override `TryAddToSlot(...)` if slot-target semantics differ
+5. Override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
+6. Add custom validation logic before calling base methods
+7. Use `PassesRules(slot, item, count, request)` for rule validation
+8. Return true if operation succeeds, false otherwise
 
 **Example Use Cases**:
 - Weight limit system (check total weight before adding)
@@ -25,7 +32,7 @@ Complete guide for extending the system and optimization strategies.
 - Durability tracking (items degrade on use)
 - Class-specific inventories (warrior vs mage items)
 
-**Check Implementation**: `Scripts/Inventories/InventoryStrategy.cs` for base classes and examples.
+**Check Implementation**: `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` and concrete strategy files in `Scripts/Inventories/Strategies/`.
 
 ---
 
@@ -141,7 +148,7 @@ Complete guide for extending the system and optimization strategies.
 
 **Benefits**:
 - O(1) lookup instead of O(n) search
-- Major improvement for FindValidAutoTransferSlot
+- Major improvement for acceptance preview and slot search paths
 - Trade-off: Memory overhead for large inventories
 
 ---

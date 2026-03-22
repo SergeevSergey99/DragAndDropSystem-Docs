@@ -1,79 +1,76 @@
 # Advanced Features
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## Quick Click Auto-Transfer
 
-- Implemented through `SlotInputAdapter` -> `InputEventRouter`, pointer phases, and bound actions.
-- Distinguishes click vs drag by time and distance thresholds.
+- implemented through `SlotInputAdapter` -> `InputEventRouter`, pointer phases, and bound actions
+- distinguishes click vs drag by time and distance thresholds
 
 ## Input Modality Tracking
 
-- `InputModalityTracker` is the source of truth for `Mouse` vs `Navigation` mode.
-- `InputEventRouter` no longer guesses modality on its own.
-- Device-level keyboard/gamepad polling is only a minimal fallback for cold-start navigation.
-
-## Global Input Actions
-
-- `DefaultBindingsProfile` can execute some `InputAction` bindings without active inventory/slot.
-- This is intended for global UI behaviors such as closing an already open context menu.
+- `InputModalityTracker` is the source of truth for `Mouse` vs `Navigation` mode
+- `InputEventRouter` no longer guesses modality on its own
 
 ## Atomic Batch Execution
 
-- Implemented via `TransferPlanExecutor` + snapshot providers.
-- Prevents partial side effects for atomic policy.
+- implemented via `TransferPlanExecutor` + snapshot providers
+- prevents partial side effects for atomic policy
+- uses deferred event dispatch so DataBinding and subscribers see only committed outcomes
 
 ## Swap Callbacks for Integrations
 
-Swap is integrated via inventory-scoped events (not direct calls):
+Swap remains inventory-scoped and event-based:
 - `OnSwapAttempting(InventorySwapContext)` (cancelable)
 - `OnSwapCompleted(InventorySwapContext)`
-
-Used by DataBinding (subscribed in `OnEnable`/`OnDisable`) and gameplay systems.
-Swap remains event-based because two inventories participate and cancellation via `context.Cancel` is needed.
 
 ## DataBinding Integration
 
 ### Direct Notification (Add/Remove)
 
-`UniversalInventory` calls DataBinding directly (not through events):
-- `DataBinding.HandleItemAdded(context)` — called from `EmitItemAdded()`
-- `DataBinding.HandleItemRemoved(context)` — called from `EmitItemRemoved()`
+`UniversalInventory` calls DataBinding directly:
+- `DataBinding.HandleItemAdded(context)`
+- `DataBinding.HandleItemRemoved(context)`
 
-This is possible because DataBinding has a 1:1 relationship with UniversalInventory.
-The `IsSyncing` guard in base class prevents re-entrant callbacks during `ReloadUI()`.
+This is possible because DataBinding has a 1:1 relationship with `UniversalInventory`.
 
 ### Swap (Event-Based)
 
-DataBinding subscribes to swap events via `OnEnable`/`OnDisable`:
-- `OnSwapAttempting` — delegates to virtual `CanSwap()` method
-- `OnSwapCompleted` — delegates to virtual `OnSwapCompleted()` method
+DataBinding subscribes to swap events via `OnEnable` / `OnDisable`:
+- `OnSwapAttempting` → virtual `CanSwap()`
+- `OnSwapCompleted` → virtual `OnSwapCompleted()`
 
 ### Item Conversion Pipeline
 
-DataBinding supports item conversion during transfers:
-- `ConvertIncomingItem(item)` — convert before placement (e.g., SO → Model adapter)
-- `ConvertOutgoingItem(item)` — convert before removal to target
-- Chain: source.ConvertOutgoing → target.ConvertIncoming
+Current implementation keeps item conversion in `DataBinding`, but preview/execution now goes through
+shared transfer helpers:
+- `ConvertIncomingItem(item)`
+- `ConvertOutgoingItem(item)`
+- preview chain: `TransferItemConversionUtility` → `TryPreviewOutgoingItem` → `TryPreviewIncomingItem`
+- mutation chain: source inventory applies outgoing conversion, target inventory applies incoming conversion
 
 ### Template DataBindings
 
-Two template base classes automate common patterns:
+`ListInventoryDataBinding<TData, TAdapter>`:
+- list-based data source template
+- automates reload/add/remove sync
 
-**`ListInventoryDataBinding<TData, TAdapter>`** — for list-based data sources:
-- 5 primitives: `GetItems()`, `CreateAdapter()`, `ExtractData()`, `AddToData()`, `RemoveFromData()`
-- Automates `OnReloadUI`, `OnItemAddedToUI`, `OnItemRemovedFromUI`
+`MappedSlotInventoryDataBinding<TData, TAdapter>`:
+- slot-mapped data template
+- uses `Dictionary<ISlot, SlotBinding<TData>>`
+- `SlotBinding` contains `Get`, `Set`, `Clear`, `CanAccept`
+- `TryGetTargetBinding()` / `TryGetSourceBinding()` centralize slot lookup safety
 
-**`MappedSlotInventoryDataBinding<TData, TAdapter>`** — for slot-mapped data:
-- Uses `Dictionary<ISlot, SlotBinding<TData>>` via abstract `CreateBindingMap()`
-- `SlotBinding` has: `Get`, `Set`, `Clear`, `CanAccept` (optional validation)
-- CanAccept enables declarative slot-type validation co-located with binding definition
+### Context-Aware Acceptance Preview
 
-## World 3D and Optional UI Systems
+`InventoryAcceptanceRequest` allows:
+- area-drop preview without hand-written guards in feature bindings
+- strategy-side slot iteration with real drag context
+- consistent validation for planner and `InventoryDropArea`
+
+## Optional UI / World Systems
 
 Optional modules remain independent from transfer core:
 - `Scripts/World3D/*`
-- `Scripts/Slots/SlotHoverEventListener.cs`
 - `Scripts/UI/TooltipManager.cs`
-
-Core transfer pipeline does not require these systems.
+- hover/listener helpers

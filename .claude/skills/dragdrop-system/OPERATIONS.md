@@ -1,6 +1,6 @@
 # Operations
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## Manual Drag & Drop (Pipeline)
 
@@ -9,6 +9,7 @@
 3. `InventoryDropProcessor.CanAcceptDrop()` validates drop possibility.
 4. `InventoryDropProcessor.ProcessDrop()`:
    - resolves effective `DropPolicy`
+   - resolves target-side preview item where needed
    - builds `TransferPlan` via `TransferPlanner`
    - executes plan via `TransferPlanExecutor`
 5. Manager emits final completion/cancel events.
@@ -16,30 +17,36 @@
 ## Transfer Plan Execution Modes
 
 `BatchExecutionPolicy`:
-- `Atomic`: capture snapshots, rollback whole operation on first failure.
-- `BestEffort`: execute each planned entry independently.
+- `Atomic`: capture snapshots, rollback whole operation on first failure
+- `BestEffort`: execute each planned entry independently
 
 ## Occupied Target Behaviors
 
 `OccupiedTargetPolicy`:
-- `Reject`: fail on occupied target.
-- `TryAlternativeSlots`: search valid alternatives.
-- `TrySwap`: allow swap planning if allocation fails.
+- `Reject`
+- `TryAlternativeSlots`
+- `TrySwap`
 
 ## Swap Flow (Current)
 
 1. Planner marks entry as `RequiresSwap` when policy+conditions allow.
-2. Executor validates:
-   - reverse start/drop (target item -> source slot)
-   - forward drop (source item -> target slot)
+2. Executor validates reverse and forward directions.
 3. `SwapAttempting(InventorySwapContext)` callback can cancel.
 4. Executor invokes `UniversalInventory.TrySwapSlots(...)`.
 5. Swap events are dispatched after successful execution completion.
 
+## Preview Acceptance
+
+Area-drop and planning preview use:
+- `TransferItemConversionUtility`
+- `InventoryAcceptanceRequest`
+
+This keeps slot-specific rules and mapped-slot bindings consistent between hover preview and final execution.
+
 ## Auto-Transfer (Quick Click / Actions)
 
 Auto-transfer still uses `InventoryTransferService` for concrete movement,
-but manual drop semantics are now centralized through plan/executor pipeline.
+but manual drop semantics are centralized through plan/executor pipeline.
 
 ## Key Files
 
@@ -48,3 +55,4 @@ but manual drop semantics are now centralized through plan/executor pipeline.
 - `Scripts/Inventories/TransferPlanner.cs`
 - `Scripts/Inventories/TransferPlanExecutor.cs`
 - `Scripts/Inventories/InventoryTransferService.cs`
+- `Scripts/Inventories/InventoryAcceptanceRequest.cs`

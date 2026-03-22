@@ -1,6 +1,6 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## Core Manual Tests
 
@@ -29,6 +29,7 @@
 - [ ] DataBinding receives direct notifications (HandleItemAdded/HandleItemRemoved)
 - [ ] external event subscribers (OnItemAdded/OnItemRemoved) receive consistent payloads
 - [ ] IsSyncing guard prevents re-entrant callbacks during ReloadUI
+- [ ] cross-inventory add/remove events use correct `SourceItem` vs `TargetItem` payloads
 
 ## Integration Tests
 
@@ -40,6 +41,7 @@
 ### Demo Flows
 - [ ] Demo1 basic item movement and rules
 - [ ] Demo2 trading restrictions + swap constraints
+- [ ] Demo2 merchant -> player / equipment adapter conversion remains correct
 - [ ] Demo3 loot/world interaction still works
 
 ## Regression Focus
@@ -47,5 +49,6 @@
 After transfer/swap changes always re-check:
 - [ ] `TransferPlanner` output for policy matrix
 - [ ] `TransferPlanExecutor` atomic rollback
+- [ ] `InventoryAcceptanceRequest` path for area-drop and planner preview
 - [ ] `InventoryDropProcessor` effective policy resolution
 - [ ] no compile errors due to delegate/nullability syntax on Unity C# profile

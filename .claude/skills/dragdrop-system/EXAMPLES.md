@@ -1,38 +1,42 @@
 # Examples
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## Demo1 - Basic Inventory
 
-Location: `Examples/Demo1/`
+Location:
+- `Examples/Demo1/`
 
 Focus:
 - basic drag/drop
-- slot/inventory rules
-- adapters for item models/SO
+- slot and inventory rules
+- adapters for item models / SOs
 
 ## Demo2 - Trading
 
-Location: `Examples/Demo2 Trading/`
+Location:
+- `Examples/Demo2 Trading/`
 
 Focus:
 - economy constraints via template DataBindings
 - merchant/player transfer restrictions with `TradingHelper`
 - equipment slots with `MappedSlotInventoryDataBinding` and declarative `canAccept`
-- item conversion pipeline (SO-adapter ↔ Model-adapter)
+- item conversion pipeline (SO-adapter ↔ Model-adapter) through target-side preview before planning
 
 Key DataBindings:
-- `PlayerInventoryDataBinding` extends `ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`
-- `MerchantInventoryDataBinding` extends `ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>`
-- `EquipmentInventoryDataBinding` extends `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`
-- `TradingHelper` — static class for shared validation/transaction logic
+- `PlayerInventoryDataBinding`
+- `MerchantInventoryDataBinding`
+- `EquipmentInventoryDataBinding`
+- `TradingHelper`
 
-Important: swap behavior should be configured by policy (`DropPolicy`) and/or binding rules,
-not by legacy boolean flags.
+Current note:
+- mapped-slot preview now relies on shared acceptance infrastructure, not per-binding preview guards
+- `TryGetTargetBinding()` / `TryGetSourceBinding()` are the preferred access pattern in mapped bindings
 
 ## Demo3 - Loot / World Interaction
 
-Location: `Examples/Demo3 Loot/`
+Location:
+- `Examples/Demo3 Loot/`
 
 Focus:
 - event-driven UI open/close
@@ -44,4 +48,5 @@ Focus:
 - verify `DropPolicy` preset per target type
 - verify batch behavior (`Atomic` vs `BestEffort`)
 - verify swap callbacks and cancellation path
-- verify DataBinding direct notifications work (HandleItemAdded/HandleItemRemoved)
+- verify direct DataBinding notifications
+- verify cross-inventory adapter conversion produces correct target payloads

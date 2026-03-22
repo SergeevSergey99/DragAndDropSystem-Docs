@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## DragAndDropManager
 
@@ -13,7 +13,7 @@ Responsibilities:
 - routing to `IDropProcessor`
 - public swap events (`OnSwapAttempting`, `OnSwapCompleted`)
 
-Note: manager no longer owns all transfer branching logic directly.
+Note: manager no longer owns transfer branching logic directly.
 
 ## InputModalityTracker / InputEventRouter
 
@@ -24,8 +24,6 @@ Locations:
 Responsibilities:
 - `InputModalityTracker`: scene-level `Mouse` vs `Navigation` state and modality-change events
 - `InputEventRouter`: binding resolution, inventory runtime-state, pointer phase classification, global/default `InputAction` routing
-
-Note: modality detection is intentionally separated from inventory action routing.
 
 ## InventoryDropProcessor
 
@@ -57,9 +55,15 @@ Location: `Scripts/Inventories/TransferPlanner.cs`
 
 Responsibilities:
 - pure planning from drag context and policy
+- target-side preview conversion via `TransferItemConversionUtility`
+- inventory acceptance preview via `InventoryAcceptanceRequest`
 - virtual-slot allocation for batch operations
 - rule-aware target candidate selection
 - planning swap entries (`RequiresSwap` + `SwapTargetSlot`)
+
+Key helper objects:
+- `EntryPlanningOperation`
+- `VirtualSlotState`
 
 ## TransferPlanExecutor
 
@@ -71,6 +75,7 @@ Responsibilities:
 - run swap branch with bidirectional rule validation
 - support atomic rollback through snapshots
 - defer transfer/swap event dispatch until operation success
+- dispatch remove/add with final transfer outcomes
 
 ## InventoryTransferService
 
@@ -78,9 +83,14 @@ Location: `Scripts/Inventories/InventoryTransferService.cs`
 
 Responsibilities:
 - transactional source->target movement primitive
-- acceptable count calculation
+- target-side preview conversion and acceptable-count calculation
 - target placement (direct/alternative paths)
 - snapshot rollback on failure
+
+Key helper objects:
+- `TargetPlacementOperation`
+- `AlternativeSlotSearchOperation`
+- `InventoryAcceptanceRequest`
 
 ## UniversalInventory / ISlot
 
@@ -94,10 +104,25 @@ Responsibilities:
 - provide concrete slot-level mutations and visuals
 - support `TrySwapSlots` for swap execution
 - notify DataBinding directly via `HandleItemAdded()`/`HandleItemRemoved()` (not events)
-- apply item conversion pipeline via DataBinding's `ConvertIncomingItem()`/`ConvertOutgoingItem()`
+- preview and apply item conversion via `TryPreviewIncomingItem()` / `TryPreviewOutgoingItem()`
+- evaluate slot rules for acceptance preview using `InventoryAcceptanceRequest`
 
-Note: `TryAddToSlot` is pure mutation — no events emitted internally. Events are only emitted
-by `TransferPlanExecutor.DispatchTransferEvents()` which calls `EmitItemAdded()`/`EmitItemRemoved()`.
+Notes:
+- `TryAddToSlot` is pure mutation, no events emitted internally
+- events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()`
+- dynamic slot creation is still split between strategy wrapping (`DynamicSlotDecorator`)
+  and inventory-level slot lifecycle methods such as `EnsureFreeSlots()` / `HandleSlotEmptied()`
+
+## Acceptance Preview
+
+Key classes:
+- `InventoryAcceptanceRequest`
+- `TransferItemConversionUtility`
+
+Responsibilities:
+- keep slot-specific preview validation out of feature bindings
+- let strategies ask "can this inventory accept this transfer in this context?"
+- support area-drop and planner preview with the same request model
 
 ## DataBinding System
 
@@ -108,9 +133,14 @@ Key classes:
   swap event subscriptions, sync scope, rule integration, and item conversion pipeline
 - `ListInventoryDataBinding<TData, TAdapter>` — template for list-based data sources
 - `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<ISlot, SlotBinding<TData>>`
+  plus `TryGetTargetBinding()` / `TryGetSourceBinding()` helpers
 
 Responsibilities:
-- bidirectional sync between UI (UniversalInventory) and external data
-- item conversion (ConvertIncomingItem / ConvertOutgoingItem)
-- rule integration (virtual CanStartDrag, CanDrop, CanSwap)
-- swap handling via event subscriptions (OnSwapAttempting / OnSwapCompleted)
+- bidirectional sync between UI (`UniversalInventory`) and external data
+- current item conversion ownership (`ConvertIncomingItem` / `ConvertOutgoingItem`)
+- rule integration (`CanStartDrag`, `CanDrop`, `CanSwap`)
+- swap handling via event subscriptions (`OnSwapAttempting` / `OnSwapCompleted`)
+
+Current note:
+- conversion still lives in `DataBinding` in the current implementation
+- roadmap proposes moving it to a dedicated inventory-side collaborator later

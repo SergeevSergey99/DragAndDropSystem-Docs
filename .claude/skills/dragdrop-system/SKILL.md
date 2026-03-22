@@ -4,35 +4,39 @@ description: Quick reference for Unity Drag & Drop Inventory System with policy/
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 2.1
-**Last Updated**: 2026-03-21
+**Version**: 2.2
+**Last Updated**: 2026-03-22
 
 ## System Overview
 
-Core drag & drop now works through a single transfer pipeline:
+Core drag & drop works through a single transfer pipeline:
 
 1. `DropPolicy` (`Scripts/Core/DropPolicy.cs`) - defines behavior.
 2. `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`) - builds immutable plan.
 3. `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`) - executes plan with rollback options.
+4. `InventoryAcceptanceRequest` (`Scripts/Inventories/InventoryAcceptanceRequest.cs`) - carries context-aware preview data.
 
 Main benefits:
-- Unified behavior for single and batch drag.
-- Atomic mode with snapshot rollback.
-- Swap integrated into the same execution pipeline.
+- unified behavior for single and batch drag
+- atomic mode with snapshot rollback
+- swap integrated into the same execution pipeline
+- slot-specific preview works for area-drops and mapped inventories
 
 ## Main Components
 
 - `DragAndDropManager` (`Scripts/DragAndDropManager.cs`)
-  - Coordinates drag lifecycle and drop targets.
-  - Exposes swap events: `OnSwapAttempting`, `OnSwapCompleted`.
+  - coordinates drag lifecycle and drop targets
+  - exposes swap events
 - `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`)
-  - Entry point for plan+execute flow for inventory drops.
+  - entry point for plan+execute flow for inventory drops
 - `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`)
-  - Produces `TransferPlan` and per-entry actions.
+  - produces `TransferPlan` and per-entry actions
 - `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`)
-  - Applies transfers/swaps in `Atomic` or `BestEffort` mode.
+  - applies transfers/swaps in `Atomic` or `BestEffort` mode
 - `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`)
-  - Transactional slot/inventory transfer primitive.
+  - transactional slot/inventory transfer primitive
+- `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`)
+  - resolves target preview item before planning/execution
 
 ## Policy Model
 
@@ -42,25 +46,15 @@ Main benefits:
 - `BatchExecutionPolicy`: `Atomic`, `BestEffort`
 - `TargetUsagePolicy`: `StrictTarget`, `TargetAsHint`
 
-Presets:
-- `DropPolicy.SingleDefault`
-- `DropPolicy.BatchAtomic`
-- `DropPolicy.BatchBestEffort`
+## Preview Model
 
-## Swap Model (Current)
-
-- Swap is planned when allocation is impossible and policy allows `TrySwap`.
-- Executor validates both directions via rules before swap.
-- Swap can be canceled by listeners through `InventorySwapContext.Cancel`.
-- Swap events are dispatched only after successful execution completion.
-
-Current scope:
-- Single-entry full-stack swap is supported.
-- Batch swap orchestration is not enabled as separate mode yet.
+- area-drops and planner preview resolve target-side item before capacity checks
+- `InventoryAcceptanceRequest` lets strategies validate concrete candidate slots
+- mapped-slot bindings no longer need ad-hoc preview guards in feature code
 
 ## Operation References
 
-- Detailed flows: `OPERATIONS.md`
-- Concepts and constraints: `CORE_CONCEPTS.md`
-- Advanced capabilities: `ADVANCED_FEATURES.md`
-- Demo mappings: `EXAMPLES.md`
+- detailed flows: `OPERATIONS.md`
+- concepts and constraints: `CORE_CONCEPTS.md`
+- advanced capabilities: `ADVANCED_FEATURES.md`
+- demo mappings: `EXAMPLES.md`

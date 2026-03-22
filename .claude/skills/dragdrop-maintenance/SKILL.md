@@ -7,7 +7,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 **Purpose**: Keep Claude skills synchronized with codebase changes
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 **When to use this skill**:
 - After implementing major architectural changes
@@ -92,7 +92,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 ### Signs of Outdated Skills
 
 🚩 **Immediate Update Required**:
-- New core component added (e.g., InventoryTransferService)
+- New core component added (e.g., `InventoryAcceptanceRequest`, `TransferItemConversionUtility`)
 - Existing component refactored (e.g., ISlot → abstract class)
 - New public API methods added
 - Breaking changes to existing APIs
@@ -137,9 +137,12 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 - `Scripts/DragAndDropManager.cs` - Core orchestrator
 - `Scripts/Core/DragContext.cs` - State management
 - `Scripts/Inventories/UniversalInventory.cs` - Main inventory
-- `Scripts/Inventories/InventoryStrategy.cs` - Strategy implementations
+- `Scripts/Inventories/Strategies/` - Strategy implementations
+- `Scripts/Inventories/InventoryAcceptanceRequest.cs` - Context-aware preview request
+- `Scripts/Inventories/TransferItemConversionUtility.cs` - Target-side preview conversion
 - `Scripts/Inventories/InventoryTransferService.cs` - Transaction handling
 - `Scripts/Inventories/TransferPlanExecutor.cs` - Event dispatch
+- `Scripts/Inventories/TransferPlanner.cs` - Planning and acceptance flow
 - `Scripts/DataBinding/InventoryDataBindingBase.cs` - DataBinding base (direct notifications, sync, conversion)
 - `Scripts/DataBinding/ListInventoryDataBinding.cs` - Template for list-based DataBindings
 - `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` - Template for slot-mapped DataBindings
@@ -167,6 +170,8 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
    - DragContext
    - Three-Level Rule Validation
    - Strategy Pattern
+   - InventoryAcceptanceRequest
+   - Preview Conversion Pipeline
    - InventoryTransferService
    - ISlot
    - Dynamic Slot Management
