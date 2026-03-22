@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 1239150888032833351}
   - component: {fileID: 3691492171055251600}
   - component: {fileID: 4150830045029605676}
-  - component: {fileID: 8131773999468770581}
   - component: {fileID: 3768956763668302545}
   m_Layer: 5
   m_Name: TooltipCanvas
@@ -85,23 +84,6 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
---- !u!114 &8131773999468770581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8071404392599537586}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 55
 --- !u!114 &3768956763668302545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,4 +101,5 @@ MonoBehaviour:
   _offset: {x: 15, y: -15}
   _anchor: 0
   _screenPadding: 100
+  _cursorMargin: 5
   _showDelay: 0

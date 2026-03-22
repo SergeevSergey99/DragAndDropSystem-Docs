@@ -85,6 +85,15 @@ namespace DragAndDropSystem.Inspector
             ConditionMemberName = conditionMemberName;
             ExpectedValue = expectedValue;
         }
+
+        /// <summary>
+        /// Поддержка enum и других значимых типов: ShowIf(nameof(field), MyEnum.Value)
+        /// </summary>
+        public ShowIfAttribute(string conditionMemberName, object expectedValue)
+        {
+            ConditionMemberName = conditionMemberName;
+            ExpectedValue = expectedValue?.ToString();
+        }
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true)]

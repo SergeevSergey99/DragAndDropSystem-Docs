@@ -27,9 +27,12 @@ namespace DragAndDropSystem.UI
         [SerializeField, Tooltip("Смещение tooltip от курсора")]
         private Vector2 _offset = new Vector2(15, -15);
 
-        [SerializeField, Tooltip("Якорь позиционирования tooltip")]
+        [SerializeField, Tooltip("Тип позиционирования tooltip")]
         private TooltipAnchor _anchor = TooltipAnchor.Cursor;
 
+        [SerializeField, Tooltip("Pivot tooltip (0,0 = левый нижний угол, 1,1 = правый верхний)"), ShowIf(nameof(_anchor), TooltipAnchor.SlotPivot)]
+        private Vector2 pivot;
+        
         [SerializeField, Tooltip("Отступы от краев экрана")]
         private float _screenPadding = 10f;
 
@@ -68,10 +71,13 @@ namespace DragAndDropSystem.UI
         private void Update()
         {
             // Если tooltip виден и привязан к курсору, обновляем позицию
-            if (_anchor == TooltipAnchor.Cursor && _currentBaseTooltipView != null)
+            if (_currentBaseTooltipView != null)
             {
-                _currentHoverArgs.ScreenPosition = Input.mousePosition;
-                UpdateTooltipPosition(_currentHoverArgs);
+                if (_anchor == TooltipAnchor.Cursor)
+                {
+                    _currentHoverArgs.ScreenPosition = Input.mousePosition;
+                    UpdateTooltipPosition(_currentHoverArgs);
+                }
             }
         }
 
@@ -316,8 +322,6 @@ namespace DragAndDropSystem.UI
 
         #endregion
 
-        #region Utility
-
         /// <summary>
         /// Остановить все корутины tooltip
         /// </summary>
@@ -330,19 +334,10 @@ namespace DragAndDropSystem.UI
             }
         }
 
-        #endregion
-
-        #region Data Structures
-
-        public enum TooltipAnchor
+        enum TooltipAnchor
         {
             Cursor,
-            SlotTopRight,
-            SlotTopLeft,
-            SlotBottomRight,
-            SlotBottomLeft
+            SlotPivot
         }
-
-        #endregion
     }
 }
