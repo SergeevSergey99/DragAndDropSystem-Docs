@@ -1,0 +1,87 @@
+site_name: Drag & Drop Inventory System
+site_description: Unity inventory system with drag & drop, stacking, swapping, and trading
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+    - scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tabs
+    - content.code.copy
+    - search.highlight
+  icon:
+    logo: material/package-variant-closed
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: ru
+          name: Русский
+          default: true
+          build: true
+        - locale: en
+          name: English
+          build: true
+
+nav:
+  - index.md
+  - getting-started/quick-start.md
+  - Architecture:
+    - architecture/transfer-pipeline.md
+    - architecture/strategies.md
+    - architecture/data-binding.md
+    - architecture/rules.md
+  - Systems:
+    - systems/selection.md
+    - systems/context-menu.md
+    - systems/tooltips.md
+    - systems/filter-sort.md
+    - systems/interaction.md
+    - systems/world-3d.md
+  - Examples:
+    - examples/trading.md
+    - examples/loot.md
+  - Reference:
+    - reference/file-map.md
+    - reference/events.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - def_list
+  - tables
+
+site_dir: .site
+
+extra_css:
+  - stylesheets/extra.css

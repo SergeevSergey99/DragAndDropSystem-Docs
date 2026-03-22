@@ -1,0 +1,9 @@
+/* Mermaid diagram sizing */
+.mermaid {
+  text-align: center;
+}
+
+/* Admonition tweaks */
+.md-typeset .admonition {
+  margin-bottom: 1.2em;
+}
