@@ -163,8 +163,16 @@ namespace DragAndDropSystem.Inventories
                             new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount),
                             allowAlternativeSlots: false);
 
-                        if (!TryBuildDomainContext(request, out var domainContext) ||
-                            !ValidateDomainHandlers(domainContext, out var domainFailure))
+                        string domainFailure = null;
+                        if (!TryBuildDomainContext(request, out var domainContext))
+                        {
+                            domainFailure = "Failed to build domain context";
+                            Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
+                            entryFailed = true;
+                            break;
+                        }
+
+                        if (!ValidateDomainHandlers(domainContext, out domainFailure))
                         {
                             Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
                             entryFailed = true;
@@ -304,9 +312,11 @@ namespace DragAndDropSystem.Inventories
                 try
                 {
                     var result = handler.Validate(context);
-                    if (!result.IsSuccess)
+                    if (!result.IsValid)
                     {
-                        failureReason = result.Message ?? "Domain validation failed";
+                        failureReason = string.IsNullOrEmpty(result.FailureReason)
+                            ? "Domain validation failed"
+                            : result.FailureReason;
                         return false;
                     }
                 }
