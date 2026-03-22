@@ -44,6 +44,9 @@ sequenceDiagram
     UI->>DB: CanStartDrag
     UI->>DB: CanDrop
     UI->>Domain: CanCommitTransfer
+    opt binding реализует IAsyncTransferDomainHandler
+        UI->>Domain: CanCommitTransferAsync
+    end
     UI->>UI: Выполнить перенос
     UI->>Domain: OnTransferSucceeded
     UI->>DB: OnItemRemoved / OnItemAdded
@@ -58,15 +61,24 @@ sequenceDiagram
 |---|---|---|
 | `CanStartDrag` | перед началом drag | запретить взять предмет из источника |
 | `CanDrop` | во время preview и planning | механические ограничения: тип слота, лок, базовая совместимость |
-| `CanCommitTransfer` | перед реальным commit | деньги, серверная валидация, доменный veto |
+| `CanCommitTransfer` | перед реальным commit | быстрые локальные pre-commit проверки, деньги, доменный veto |
+| `CanCommitTransferAsync` | опционально, после sync pre-commit и до commit | сервер, файл, база данных, внешний профиль, любые внешние async-проверки |
 | `OnTransferSucceeded` | после успешного commit | списание/начисление валюты, аналитика, доменные side effects |
 | `AddToData` / `RemoveFromData` | после inventory events | синхронизация ваших данных с уже подтверждённым результатом |
 
 Главное правило:
 
 - `CanDrop` отвечает за механическую совместимость
-- `CanCommitTransfer` отвечает за бизнес-смысл операции
+- `CanCommitTransfer` и `CanCommitTransferAsync` вместе отвечают за pre-commit бизнес-проверки
 - `AddToData/RemoveFromData` отвечают только за sync
+
+Если binding реализует обе версии проверки, порядок такой:
+
+1. `CanCommitTransfer`
+2. `CanCommitTransferAsync`
+3. реальный commit
+
+Если синхронная проверка вернула отказ, асинхронная уже не вызывается.
 
 ---
 
@@ -122,6 +134,56 @@ public class ShopInventoryBinding
 - обычный sync списка
 - slot compatibility
 - типовые UI-проверки
+
+---
+
+## Асинхронная проверка перед commit
+
+Если перед переносом нужно дождаться внешней проверки, например:
+
+- ответа сервера
+- чтения файла
+- обращения к базе данных
+- загрузки сохранения или внешнего профиля
+
+реализуйте для binding ещё и `IAsyncTransferDomainHandler`.
+
+```csharp
+public class ServerBackedInventoryBinding
+    : ListInventoryDataBinding<ItemModel, ItemModelAdapter>,
+      ITransferDomainHandler,
+      IAsyncTransferDomainHandler
+{
+    public RuleResult CanCommitTransfer(TransferDomainContext context)
+    {
+        return ValidateLocalState(context)
+            ? RuleResult.Success()
+            : RuleResult.Failure("Local validation failed");
+    }
+
+    public async Task<RuleResult> CanCommitTransferAsync(
+        TransferDomainContext context,
+        CancellationToken cancellationToken)
+    {
+        bool allowed = await _serverApi.ValidateTransferAsync(context, cancellationToken);
+        return allowed
+            ? RuleResult.Success()
+            : RuleResult.Failure("Server rejected the transfer");
+    }
+}
+```
+
+Как это работает:
+
+- `CanDrop` остаётся быстрым синхронным preview-хуком
+- `CanCommitTransfer` выполняет локальные pre-commit проверки
+- `CanCommitTransferAsync` не заменяет sync-версию, а дополняет её
+- если binding реализует обе версии, сначала вызывается `CanCommitTransfer`, потом `CanCommitTransferAsync`
+- `CanCommitTransferAsync` вызывается один раз перед реальным commit, если binding реализует этот интерфейс
+- если async-проверка вернула `RuleResult.Failure(...)`, перенос отменяется
+
+Используйте `IAsyncTransferDomainHandler`, когда решение нельзя получить мгновенно.
+Если проверка локальная и быстрая, достаточно обычного `CanCommitTransfer`.
 
 ---
 

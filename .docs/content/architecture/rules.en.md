@@ -10,7 +10,7 @@ Rules separate constraint logic from placement logic. Instead of embedding check
 
 !!! note "Rules are not the same as business hooks"
     Rules handle mechanical transfer constraints: can the item be dragged, can it be dropped into this target, does the slot accept this type.
-    If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (`CanCommitTransfer`, `OnTransferSucceeded`) instead of `CanDrop`.
+    If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (`CanCommitTransfer`, `CanCommitTransferAsync`, `OnTransferSucceeded`) instead of `CanDrop`.
 
 ---
 

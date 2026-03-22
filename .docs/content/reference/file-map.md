@@ -18,6 +18,7 @@
 | `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | кастомное поведение размещения |
 | `Scripts/Rules/IDragRule.cs` | интерфейс `IDragRule` и базовый `DragRuleBase` |
 | `Scripts/Inventories/ITransferDomainHandler.cs` | хуки перед коммитом и после успеха |
+| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | асинхронная pre-commit проверка для сервера, файлов и внешних источников |
 | `Scripts/Interaction/InputEventRouter.cs` | кастомные input bindings |
 
 ---

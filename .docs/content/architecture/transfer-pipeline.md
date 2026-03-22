@@ -32,6 +32,9 @@ sequenceDiagram
     Rules->>Rules: CanDrop и остальные механические проверки
     Pipeline->>Pipeline: Построить план
     Pipeline->>Rules: CanCommitTransfer
+    opt binding реализует IAsyncTransferDomainHandler
+        Pipeline->>Rules: CanCommitTransferAsync
+    end
     Pipeline->>UI: Выполнить перенос
     Pipeline->>Rules: OnTransferSucceeded
     UI->>Data: AddToData / RemoveFromData
@@ -67,7 +70,14 @@ sequenceDiagram
 Именно поэтому:
 
 - `CanDrop` хорошо подходит для preview и механических ограничений
-- `CanCommitTransfer` нужен для проверок, которые должны выполняться один раз перед реальным commit
+- `CanCommitTransfer` нужен для быстрых локальных pre-commit проверок
+- `CanCommitTransferAsync` нужен для внешних асинхронных проверок, если binding реализует этот интерфейс
+
+Если доступны обе версии, порядок всегда такой:
+
+1. `CanCommitTransfer`
+2. `CanCommitTransferAsync`
+3. commit
 
 ---
 

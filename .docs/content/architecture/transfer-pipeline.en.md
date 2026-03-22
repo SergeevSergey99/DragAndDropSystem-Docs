@@ -32,6 +32,9 @@ sequenceDiagram
     Rules->>Rules: CanDrop and mechanical checks
     Pipeline->>Pipeline: Build plan
     Pipeline->>Rules: CanCommitTransfer
+    opt binding implements IAsyncTransferDomainHandler
+        Pipeline->>Rules: CanCommitTransferAsync
+    end
     Pipeline->>UI: Execute transfer
     Pipeline->>Rules: OnTransferSucceeded
     UI->>Data: AddToData / RemoveFromData
@@ -59,7 +62,14 @@ Before any real mutation, the system decides:
 That is why:
 
 - `CanDrop` is good for preview and mechanics
-- `CanCommitTransfer` is the right place for checks that must run once before commit
+- `CanCommitTransfer` is the right place for fast local pre-commit checks
+- `CanCommitTransferAsync` is the right place for external async checks if the binding implements the interface
+
+If both versions exist, the order is always:
+
+1. `CanCommitTransfer`
+2. `CanCommitTransferAsync`
+3. commit
 
 ---
 

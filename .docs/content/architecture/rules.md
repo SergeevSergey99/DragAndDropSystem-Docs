@@ -10,7 +10,7 @@
 
 !!! note "Rules и business hooks — не одно и то же"
     Rules отвечают за механические ограничения переноса: можно ли взять предмет, можно ли бросить его в слот, подходит ли тип.
-    Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (`CanCommitTransfer`, `OnTransferSucceeded`), а не `CanDrop`.
+    Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (`CanCommitTransfer`, `CanCommitTransferAsync`, `OnTransferSucceeded`), а не `CanDrop`.
 
 ---
 

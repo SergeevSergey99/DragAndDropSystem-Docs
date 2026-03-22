@@ -18,6 +18,7 @@ Internal helper files are grouped separately.
 | `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | custom placement behavior |
 | `Scripts/Rules/IDragRule.cs` | `IDragRule` interface and the `DragRuleBase` base class |
 | `Scripts/Inventories/ITransferDomainHandler.cs` | pre-commit and post-success hooks |
+| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | async pre-commit validation for servers, files, and external sources |
 | `Scripts/Interaction/InputEventRouter.cs` | custom input bindings |
 
 ---
