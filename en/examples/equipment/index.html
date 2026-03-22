@@ -11,14 +11,14 @@
       
       
       
-        <link rel="prev" href="../filter-sort/">
+        <link rel="prev" href="../../getting-started/quick-start/">
       
       
-        <link rel="next" href="../world-3d/">
+        <link rel="next" href="../trading/">
       
       
         
-          <link rel="alternate" href="../../../systems/interaction/" hreflang="ru">
+          <link rel="alternate" href="../../../examples/equipment/" hreflang="ru">
         
           <link rel="alternate" href="./" hreflang="en">
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Input and Interaction - Drag & Drop Inventory System</title>
+        <title>Equipment - Drag & Drop Inventory System</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#input-and-interaction" class="md-skip">
+        <a href="#equipment" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Input and Interaction
+              Equipment
             
           </span>
         </div>
@@ -163,7 +163,7 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../systems/interaction/" hreflang="ru" class="md-select__link">
+            <a href="../../../examples/equipment/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
@@ -277,11 +277,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../examples/equipment/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -317,13 +319,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../selection/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../systems/selection/" class="md-tabs__link">
           
   
   
@@ -446,28 +446,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -485,7 +488,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -500,10 +503,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../examples/equipment/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equipment
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -519,6 +549,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-matters-here" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What matters here
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typical-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typical flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -531,7 +636,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/trading/" class="md-nav__link">
+      <a href="../trading/" class="md-nav__link">
         
   
   
@@ -559,7 +664,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/loot/" class="md-nav__link">
+      <a href="../loot/" class="md-nav__link">
         
   
   
@@ -764,31 +869,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -806,7 +908,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -824,7 +926,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selection/" class="md-nav__link">
+      <a href="../../systems/selection/" class="md-nav__link">
         
   
   
@@ -852,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../context-menu/" class="md-nav__link">
+      <a href="../../systems/context-menu/" class="md-nav__link">
         
   
   
@@ -880,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tooltips/" class="md-nav__link">
+      <a href="../../systems/tooltips/" class="md-nav__link">
         
   
   
@@ -908,7 +1010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../filter-sort/" class="md-nav__link">
+      <a href="../../systems/filter-sort/" class="md-nav__link">
         
   
   
@@ -933,37 +1035,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Input and Interaction
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../systems/interaction/" class="md-nav__link">
         
   
   
@@ -979,120 +1054,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#how-input-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How Input Works
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#press-phases" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Press Phases
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#binding-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Binding Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Binding Profiles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pointer-bindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pointer Bindings
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#input-action-bindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Input Action Bindings
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Input Mode
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#overriding-bindings-per-inventory" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overriding Bindings Per Inventory
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#class-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Class Reference
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1105,7 +1066,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../world-3d/" class="md-nav__link">
+      <a href="../../systems/world-3d/" class="md-nav__link">
         
   
   
@@ -1277,10 +1238,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-input-works" class="md-nav__link">
+  <a href="#when-to-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How Input Works
+        When to use it
       
     </span>
   </a>
@@ -1288,10 +1249,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#press-phases" class="md-nav__link">
+  <a href="#visual-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Press Phases
+        Visual model
       
     </span>
   </a>
@@ -1299,49 +1260,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-profiles" class="md-nav__link">
+  <a href="#basic-template" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Binding Profiles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pointer-bindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pointer Bindings
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#input-action-bindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Input Action Bindings
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Input Mode
+        Basic template
       
     </span>
   </a>
@@ -1349,10 +1271,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#overriding-bindings-per-inventory" class="md-nav__link">
+  <a href="#what-matters-here" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overriding Bindings Per Inventory
+        What matters here
       
     </span>
   </a>
@@ -1360,10 +1282,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#class-reference" class="md-nav__link">
+  <a href="#typical-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Class Reference
+        Typical flow
       
     </span>
   </a>
@@ -1387,192 +1309,90 @@
 
 
 
-<h1 id="input-and-interaction">Input and Interaction</h1>
-<p>The input system separates input detection (mouse, keyboard, gamepad) from actions (dragging, selection, context menu). This allows changing bindings without rewriting logic and supporting different input devices.</p>
+<h1 id="equipment">Equipment</h1>
+<p>Use this pattern when you have fixed-purpose slots such as weapon, armor, accessories, or a quickbar.</p>
 <hr />
-<h2 id="how-input-works">How Input Works</h2>
+<h2 id="when-to-use-it">When to use it</h2>
+<p>Choose <code>MappedSlotInventoryDataBinding</code> when:</p>
+<ul>
+<li>each slot maps to a specific data field</li>
+<li>slots accept only specific item types</li>
+<li>slot identity matters and should not be reordered automatically</li>
+</ul>
+<p>If you only need a regular item list, use <code>ListInventoryDataBinding</code> from the <a href="../../getting-started/quick-start/">Quick Start</a>.</p>
+<hr />
+<h2 id="visual-model">Visual model</h2>
 <pre class="mermaid"><code>flowchart LR
-    A["Mouse /\nKeyboard /\nGamepad"] --&gt; B["Determine\ninput mode"]
-    B --&gt; C["Recognize\ngesture"]
-    C --&gt; D{"Which\naction?"}
-    D --&gt; E["Dragging"]
-    D --&gt; F["Context menu"]
-    D --&gt; G["Selection"]
-    D --&gt; H["Auto-transfer"]
-</code></pre>
-<p>The slot itself does not know what to do with input. It forwards raw events (press, release, hover) to <code>InputEventRouter</code>, which finds the appropriate binding and executes the action.</p>
+    W["Data field: Weapon"] &lt;--&gt; SW["Weapon slot"]
+    A["Data field: Armor"] &lt;--&gt; SA["Armor slot"]
+    R["Data field: Ring"] &lt;--&gt; SR["Ring slot"]</code></pre>
 <hr />
-<h2 id="press-phases">Press Phases</h2>
-<p>The system distinguishes several press types by duration and cursor movement:</p>
-<pre class="mermaid"><code>stateDiagram-v2
-    [*] --&gt; Press
-    Press --&gt; Quick_click : Released quickly,\ncursor did not move
-    Press --&gt; Long_press : Held longer\nthan threshold (0.35 sec)
-    Press --&gt; Dragging : Cursor moved\nbeyond threshold (8 px)
+<h2 id="basic-template">Basic template</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.DataBinding</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Rules</span><span class="p">;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Slots</span><span class="p">;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">EquipmentBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MappedSlotInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">{</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">UniversalSlot</span><span class="w"> </span><span class="n">_weaponSlot</span><span class="p">;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">UniversalSlot</span><span class="w"> </span><span class="n">_armorSlot</span><span class="p">;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="p">;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">ISlot</span><span class="p">,</span><span class="w"> </span><span class="n">SlotBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">CreateBindingMap</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">()</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="na">[_weaponSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">            </span><span class="n">canAccept</span><span class="p">:</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">ItemType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Weapon&quot;</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">                </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">                </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;Weapon only&quot;</span><span class="p">)),</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">        </span><span class="na">[_armorSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">            </span><span class="n">canAccept</span><span class="p">:</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">ItemType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Armor&quot;</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">                </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">                </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;Armor only&quot;</span><span class="p">)),</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="p">};</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="what-matters-here">What matters here</h2>
+<ul>
+<li><code>get</code> reads from your model</li>
+<li><code>set</code> writes into the matching field</li>
+<li><code>clear</code> resets that field when the slot is emptied</li>
+<li><code>canAccept</code> is for slot compatibility only</li>
+</ul>
+<p>Use <code>canAccept</code> for rules like:</p>
+<ul>
+<li>only weapons in a weapon slot</li>
+<li>only armor in an armor slot</li>
+<li>only artifacts in special artifact slots</li>
+</ul>
+<p>Do not put transfer-wide business logic there. For pricing, server checks, or domain-specific commit checks, use the transfer-level hooks described in <a href="../../architecture/data-binding/">Data Binding Lifecycle</a>.</p>
+<hr />
+<h2 id="typical-flow">Typical flow</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant PI as Player Inventory
+    participant EQ as EquipmentBinding
+    participant Slot as SlotBinding
+    participant Data as Player Data
 
-    Quick_click --&gt; [*]
-    Long_press --&gt; [*]
-    Dragging --&gt; [*]</code></pre>
-<table>
-<thead>
-<tr>
-<th>Phase</th>
-<th>Condition</th>
-<th>Typical Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>ClickShort</strong></td>
-<td>Pressed and released quickly, cursor did not move</td>
-<td>Auto-transfer, selection</td>
-</tr>
-<tr>
-<td><strong>ClickLong</strong></td>
-<td>Held longer than threshold, cursor did not move</td>
-<td>Context menu</td>
-</tr>
-<tr>
-<td><strong>Down</strong></td>
-<td>Moment of press</td>
-<td>Start dragging</td>
-</tr>
-<tr>
-<td><strong>Up</strong></td>
-<td>Moment of release</td>
-<td>Finish dragging</td>
-</tr>
-</tbody>
-</table>
-<p>Thresholds are configured in <code>InputEventRouter</code>: <code>_longClickThresholdSeconds</code> (default 0.35 sec) and <code>_clickMoveTolerancePixels</code> (default 8 pixels).</p>
-<hr />
-<h2 id="binding-profiles">Binding Profiles</h2>
-<p>Bindings are configured via the ScriptableObject <code>InteractionBindingsProfile</code>. It contains two lists:</p>
-<h3 id="pointer-bindings">Pointer Bindings</h3>
-<p>Each binding consists of: mouse button + modifier + phase + action.</p>
-<table>
-<thead>
-<tr>
-<th>Button</th>
-<th>Modifier</th>
-<th>Phase</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>LMB</td>
-<td>---</td>
-<td>ClickShort</td>
-<td>Auto-transfer</td>
-</tr>
-<tr>
-<td>LMB</td>
-<td>---</td>
-<td>Down</td>
-<td>Start dragging</td>
-</tr>
-<tr>
-<td>LMB</td>
-<td>---</td>
-<td>Up</td>
-<td>Finish dragging</td>
-</tr>
-<tr>
-<td>LMB</td>
-<td>Ctrl</td>
-<td>ClickShort</td>
-<td>Toggle selection</td>
-</tr>
-<tr>
-<td>LMB</td>
-<td>Shift</td>
-<td>ClickShort</td>
-<td>Range selection</td>
-</tr>
-<tr>
-<td>RMB</td>
-<td>---</td>
-<td>ClickShort</td>
-<td>Context menu</td>
-</tr>
-</tbody>
-</table>
-<h3 id="input-action-bindings">Input Action Bindings</h3>
-<p>For hotkeys and gamepad: binding an Input System Action to an inventory action.</p>
-<hr />
-<h2 id="input-mode">Input Mode</h2>
-<p>The system automatically determines the current input mode:</p>
-<table>
-<thead>
-<tr>
-<th>Mode</th>
-<th>How It Activates</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Mouse</strong></td>
-<td>Any mouse click</td>
-<td>Focus via hover, standard pointer events</td>
-</tr>
-<tr>
-<td><strong>Navigation</strong></td>
-<td>Arrows, WASD, gamepad D-pad</td>
-<td>Focus via EventSystem.selectedGameObject, navigation between slots</td>
-</tr>
-</tbody>
-</table>
-<p>Switching happens automatically. When Navigation mode is active, <code>InputEventRouter</code> maintains focus on a slot --- if the currently selected object becomes inactive, the system finds the nearest available slot.</p>
-<hr />
-<h2 id="overriding-bindings-per-inventory">Overriding Bindings Per Inventory</h2>
-<p>Each inventory can have its own bindings via the <code>InventoryExtraInteractionBinder</code> component. This is useful when a merchant and a player have different click behavior.</p>
-<p>If an inventory does not have an <code>InventoryExtraInteractionBinder</code>, the default <code>InteractionBindingsProfile</code> from <code>InputEventRouter</code> is used.</p>
-<hr />
-<h2 id="class-reference">Class Reference</h2>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>InputEventRouter</code></td>
-<td>Singleton: routes input to bindings</td>
-</tr>
-<tr>
-<td><code>InteractionBindingsProfile</code></td>
-<td>SO profile with pointer and Input Action bindings</td>
-</tr>
-<tr>
-<td><code>SlotInputAdapter</code></td>
-<td>Component on a slot: forwards raw events</td>
-</tr>
-<tr>
-<td><code>InputModalityTracker</code></td>
-<td>Determines the current input mode (Mouse / Navigation)</td>
-</tr>
-<tr>
-<td><code>PointerBinding</code></td>
-<td>Binding: button + modifier + phase + action</td>
-</tr>
-<tr>
-<td><code>InputActionBinding</code></td>
-<td>Input System Action binding to an action</td>
-</tr>
-<tr>
-<td><code>InventoryExtraInteractionBinder</code></td>
-<td>Binding override for a specific inventory</td>
-</tr>
-<tr>
-<td><code>SlotInteractionAction</code></td>
-<td>Base class for actions (inherit for custom ones)</td>
-</tr>
-</tbody>
-</table>
+    PI-&gt;&gt;EQ: CanDrop
+    EQ-&gt;&gt;Slot: canAccept(item)
+    Slot--&gt;&gt;EQ: Success / Failure
+    PI-&gt;&gt;PI: Transfer executes
+    PI-&gt;&gt;EQ: OnItemRemoved / OnItemAdded
+    EQ-&gt;&gt;Data: Update Weapon / Armor fields</code></pre>
 
 
 

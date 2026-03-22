@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../systems/world-3d/">
+        <link rel="prev" href="../equipment/">
       
       
         <link rel="next" href="../loot/">
@@ -29,7 +29,7 @@
     
     
       
-        <title>Торговля (Demo 2) - Drag & Drop Inventory System</title>
+        <title>Торговля - Drag & Drop Inventory System</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#demo-2" class="md-skip">
+        <a href="#_1" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Торговля (Demo 2)
+              Торговля
             
           </span>
         </div>
@@ -277,15 +277,37 @@
   
   
   
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../equipment/" class="md-tabs__link">
+          
+  
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
   
     
     
       <li class="md-tabs__item">
-        <a href="../../architecture/transfer-pipeline/" class="md-tabs__link">
+        <a href="../../architecture/data-binding/" class="md-tabs__link">
           
   
   
-  Architecture
+  Core Concepts
 
         </a>
       </li>
@@ -305,29 +327,7 @@
           
   
   
-  Systems
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-    
-  
-  
-    
-    
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
-          
-  
-  
-  Examples
+  Advanced Systems
 
         </a>
       </li>
@@ -446,6 +446,300 @@
       
   
   
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../equipment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Экипировка
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Торговля
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Торговля
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Содержание
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что участвует в операции
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что здесь важно понять
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Покупка: правильная последовательность
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Где писать какую логику
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#candrop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Почему это лучше, чем всё делать в CanDrop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Конвертация предметов
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ограничения примера
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что смотреть в коде
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Куда идти дальше
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Система лута (Demo 3)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
   
   
     
@@ -464,17 +758,17 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Architecture
+    Core Concepts
   
 
     
@@ -485,16 +779,44 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Architecture
+    Core Concepts
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/data-binding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Привязка данных (DataBinding)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -539,34 +861,6 @@
     
   
     Стратегии размещения
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../architecture/data-binding/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Привязка данных (DataBinding)
   
 
     
@@ -637,17 +931,17 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Systems
+    Advanced Systems
   
 
     
@@ -658,12 +952,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Systems
+    Advanced Systems
   
 
           </label>
@@ -848,250 +1142,6 @@
       
   
   
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Examples
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Торговля (Demo 2)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Торговля (Demo 2)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Содержание
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Общая схема
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Покупка
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Продажа
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Экипировка
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Конвертация предметов
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ограничения
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Файлы
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../loot/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Система лута (Demo 3)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
   
   
     
@@ -1232,21 +1282,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Общая схема
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Покупка
+        Что участвует в операции
       
     </span>
   </a>
@@ -1257,7 +1296,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Продажа
+        Что здесь важно понять
       
     </span>
   </a>
@@ -1268,7 +1307,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Экипировка
+        Покупка: правильная последовательность
       
     </span>
   </a>
@@ -1279,7 +1318,18 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Конвертация предметов
+        Где писать какую логику
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#candrop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Почему это лучше, чем всё делать в CanDrop
       
     </span>
   </a>
@@ -1290,7 +1340,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ограничения
+        Конвертация предметов
       
     </span>
   </a>
@@ -1301,7 +1351,29 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Файлы
+        Ограничения примера
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что смотреть в коде
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Куда идти дальше
       
     </span>
   </a>
@@ -1325,147 +1397,130 @@
 
 
 
-<h1 id="demo-2">Торговля (Demo 2)</h1>
-<p>Полноценная система покупки, продажи и экипировки с двумя типами инвентарей и экономическими правилами.</p>
+<h1 id="_1">Торговля</h1>
+<p>Этот пример показывает сценарий, где два инвентаря используют разные типы данных и одна операция переноса ещё и меняет золото.</p>
 <hr />
-<h2 id="_1">Общая схема</h2>
+<h2 id="_2">Что участвует в операции</h2>
 <pre class="mermaid"><code>flowchart TB
-    subgraph Игрок
-        ИИ["Инвентарь игрока"]
-        СЭ["Слоты экипировки"]
-        ЗИ["Золото игрока"]
-    end
+    Merchant["Инвентарь торговца&lt;br/&gt;ScriptableObject items"]
+    Player["Инвентарь игрока&lt;br/&gt;Runtime model items"]
+    Equipment["Слоты экипировки"]
+    Economy["Экономика&lt;br/&gt;золото и цены"]
 
-    subgraph Торговец
-        ИТ["Инвентарь торговца"]
-        ЗТ["Золото торговца"]
-    end
-
-    subgraph Экономика
-        МЭ["Менеджер экономики"]
-    end
-
-    ИИ &lt;--&gt;|"купить / продать"| ИТ
-    ИИ &lt;--&gt;|"экипировать"| СЭ
-    МЭ --- ЗИ
-    МЭ --- ЗТ
-    МЭ --&gt;|"контролирует цены"| ИИ
-    МЭ --&gt;|"контролирует цены"| ИТ</code></pre>
+    Merchant &lt;--&gt;|покупка / продажа| Player
+    Player &lt;--&gt;|экипировка| Equipment
+    Economy --- Merchant
+    Economy --- Player</code></pre>
 <hr />
-<h2 id="_2">Покупка</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant И as Игрок
-    participant Т as Инвентарь торговца
-    participant П as Проверка
-    participant ИИ as Инвентарь игрока
-
-    И-&gt;&gt;Т: Перетаскивает товар от торговца
-    Т-&gt;&gt;П: Хватает ли золота?
-    П--&gt;&gt;Т: Достаточно
-    Т-&gt;&gt;ИИ: Предмет конвертируется (SO -&gt; Model)
-    ИИ--&gt;&gt;ИИ: Предмет попадает в инвентарь
-    П-&gt;&gt;П: Золото списывается у игрока
-    П-&gt;&gt;П: Золото зачисляется торговцу</code></pre>
-<p>Конвейер проверок:</p>
+<h2 id="_3">Что здесь важно понять</h2>
+<p>В торговом примере есть три разных слоя логики:</p>
 <ol>
-<li>Игрок перетаскивает товар из инвентаря торговца.</li>
-<li>Система проверяет, хватает ли у игрока золота на покупку.</li>
-<li>Предмет автоматически конвертируется из формата торговца (ScriptableObject) в формат игрока (runtime-модель).</li>
-<li>Предмет появляется в инвентаре игрока, золото списывается.</li>
+<li>механика слота и инвентаря</li>
+<li>конвертация предмета между двумя моделями данных</li>
+<li>бизнес-логика операции: хватает ли золота и что делать после покупки/продажи</li>
 </ol>
+<p>Их лучше не смешивать.</p>
 <hr />
-<h2 id="_3">Продажа</h2>
-<p>Обратный процесс: игрок перетаскивает предмет из своего инвентаря в инвентарь торговца.</p>
-<ul>
-<li>Предмет конвертируется обратно (Model -&gt; SO).</li>
-<li>Золото зачисляется игроку, списывается у торговца.</li>
-<li>Если у торговца недостаточно золота --- продажа отклоняется.</li>
-</ul>
+<h2 id="_4">Покупка: правильная последовательность</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as Игрок
+    participant M as Merchant Inventory
+    participant P as Player Inventory
+    participant D as Domain Hook
+    participant Data as Player / Merchant Data
+
+    U-&gt;&gt;P: Бросает товар торговца
+    P-&gt;&gt;P: CanDrop (механика, совместимость)
+    M-&gt;&gt;P: Конвертация предмета в формат игрока
+    P-&gt;&gt;D: CanCommitTransfer (хватает ли золота?)
+    P-&gt;&gt;P: Выполнить перенос
+    P-&gt;&gt;D: OnTransferSucceeded (обновить золото)
+    P-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
 <hr />
-<h2 id="_4">Экипировка</h2>
-<pre class="mermaid"><code>flowchart LR
-    ИИ["Инвентарь игрока"] --&gt;|"перетащить в слот"| СЭ["Слот экипировки"]
-    СЭ --&gt; П{"Тип предмета\nсовпадает?"}
-    П --&gt;|Да| Э["Экипировать"]
-    П --&gt;|Нет| О["Отклонить"]</code></pre>
-<p>Каждый слот экипировки принимает только определённый тип предмета:</p>
+<h2 id="_5">Где писать какую логику</h2>
 <table>
 <thead>
 <tr>
-<th>Слот</th>
-<th>Допустимый тип</th>
+<th>Задача</th>
+<th>Где писать</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Оружие</td>
-<td>Weapon</td>
+<td>Только подходящий тип в слот экипировки</td>
+<td><code>canAccept</code> или <code>CanDrop</code></td>
 </tr>
 <tr>
-<td>Броня</td>
-<td>Armor</td>
+<td>Проверка, хватает ли денег</td>
+<td><code>CanCommitTransfer</code></td>
 </tr>
 <tr>
-<td>Артефакт 1</td>
-<td>Artifact</td>
+<td>Списание и начисление золота</td>
+<td><code>OnTransferSucceeded</code></td>
 </tr>
 <tr>
-<td>Артефакт 2</td>
-<td>Artifact</td>
+<td>Конвертация <code>SO &lt;-&gt; Model</code></td>
+<td><code>CreateItemConverter()</code></td>
+</tr>
+<tr>
+<td>Синхронизация списков и полей данных</td>
+<td><code>AddToData</code> / <code>RemoveFromData</code></td>
 </tr>
 </tbody>
 </table>
-<p>Если тип не совпадает, перенос отклоняется с сообщением об ошибке.</p>
+<p>Это и есть главная идея примера.</p>
 <hr />
-<h2 id="_5">Конвертация предметов</h2>
+<h2 id="candrop">Почему это лучше, чем всё делать в CanDrop</h2>
+<p>Потому что <code>CanDrop</code> вызывается как часть preview/planning.</p>
+<p>А денежная логика и другие доменные проверки часто должны:</p>
+<ul>
+<li>выполняться один раз перед commit</li>
+<li>видеть целую операцию, а не только hover-preview</li>
+<li>иметь post-success hook после реального успеха</li>
+</ul>
+<p>Именно поэтому торговля опирается на <code>CanCommitTransfer</code> и <code>OnTransferSucceeded</code>.</p>
+<hr />
+<h2 id="_6">Конвертация предметов</h2>
 <pre class="mermaid"><code>flowchart LR
-    subgraph Торговец
-        SO["ScriptableObject"]
-    end
-
-    subgraph Конвертация
-        К["Конвертер предметов"]
-    end
-
-    subgraph Игрок
-        М["Runtime-модель"]
-    end
-
-    SO --&gt;|"покупка"| К
-    К --&gt; М
-    М --&gt;|"продажа"| К
-    К --&gt; SO</code></pre>
-<p>Торговец хранит предметы как ScriptableObject (неизменяемые ассеты). Игрок работает с runtime-моделями (изменяемые данные). При пересечении границы инвентарей конвейер автоматически преобразует предмет в нужный формат через конвертер.</p>
+    SO["Товар торговца&lt;br/&gt;ScriptableObject"] --&gt; Conv["Item Converter"]
+    Conv --&gt; Model["Предмет игрока&lt;br/&gt;Runtime model"]
+    Model --&gt; Conv
+    Conv --&gt; SO</code></pre>
+<ul>
+<li>торговец хранит более статичное представление предметов</li>
+<li>игрок хранит runtime-модель</li>
+<li>при переносе через границу инвентаря предмет конвертируется автоматически</li>
+</ul>
 <hr />
-<h2 id="_6">Ограничения</h2>
+<h2 id="_7">Ограничения примера</h2>
 <table>
 <thead>
 <tr>
 <th>Ограничение</th>
-<th>Что происходит</th>
+<th>Где выражается</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Недостаточно золота</td>
-<td>Покупка отклоняется с сообщением</td>
+<td>Недостаточно золота у игрока</td>
+<td><code>CanCommitTransfer</code></td>
 </tr>
 <tr>
-<td>Нельзя продать экипированное</td>
-<td>Предмет не перетаскивается из слота экипировки</td>
+<td>Недостаточно золота у торговца</td>
+<td><code>CanCommitTransfer</code></td>
 </tr>
 <tr>
-<td>Слот проверяет тип предмета</td>
-<td>Только оружие в слот оружия, броня в слот брони и т.д.</td>
+<td>Нельзя положить броню в слот оружия</td>
+<td><code>canAccept</code> / <code>CanDrop</code></td>
 </tr>
 <tr>
-<td>У торговца нет денег</td>
-<td>Продажа отклоняется</td>
+<td>Нельзя продать неподходящий предмет торговцу</td>
+<td>target-side mechanical validation</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="_7">Файлы</h2>
+<h2 id="_8">Что смотреть в коде</h2>
 <table>
 <thead>
 <tr>
@@ -1475,55 +1530,37 @@
 </thead>
 <tbody>
 <tr>
-<td><code>TradingEconomyManager.cs</code></td>
-<td>Централизованное управление золотом и ценами</td>
-</tr>
-<tr>
 <td><code>TradingHelper.cs</code></td>
-<td>Валидация торговых операций (хватает ли денег? правильный тип?)</td>
+<td>торговые проверки и side effects</td>
 </tr>
 <tr>
 <td><code>PlayerInventoryDataBinding.cs</code></td>
-<td>Синхронизация инвентаря игрока</td>
+<td>sync игрока и player-side domain hooks</td>
 </tr>
 <tr>
 <td><code>MerchantInventoryDataBinding.cs</code></td>
-<td>Синхронизация товаров торговца</td>
+<td>sync торговца и merchant-side domain hooks</td>
 </tr>
 <tr>
 <td><code>EquipmentInventoryDataBinding.cs</code></td>
-<td>Слоты экипировки с ограничениями по типу</td>
-</tr>
-<tr>
-<td><code>TradableItemSO.cs</code></td>
-<td>ScriptableObject-определение предмета</td>
-</tr>
-<tr>
-<td><code>TradableItemModel.cs</code></td>
-<td>Runtime-данные предмета</td>
-</tr>
-<tr>
-<td><code>TradableSoAdapter.cs</code></td>
-<td>Адаптер ScriptableObject для системы инвентаря</td>
-</tr>
-<tr>
-<td><code>TradableItemModelAdapter.cs</code></td>
-<td>Адаптер runtime-модели для системы инвентаря</td>
+<td>fixed-slot экипировка</td>
 </tr>
 <tr>
 <td><code>ModelInventoryItemConverter.cs</code></td>
-<td>Конвертер: SO -&gt; Model (при покупке)</td>
+<td>converter в формат игрока</td>
 </tr>
 <tr>
 <td><code>MerchantInventoryItemConverter.cs</code></td>
-<td>Конвертер: Model -&gt; SO (при продаже)</td>
-</tr>
-<tr>
-<td><code>ITradableItem.cs</code></td>
-<td>Общий интерфейс для торговых предметов</td>
+<td>converter в формат торговца</td>
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="_9">Куда идти дальше</h2>
+<ul>
+<li><a href="../../architecture/data-binding/">Привязка данных</a> — полный lifecycle hooks</li>
+<li><a href="../equipment/">Экипировка</a> — если нужны только fixed slots без торговли</li>
+</ul>
 
 
 

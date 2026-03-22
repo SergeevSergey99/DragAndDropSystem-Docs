@@ -36,6 +36,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/transfer-pipeline/"/>
     </url>
     <url>
+        <loc>Noneexamples/equipment/</loc>
+        <lastmod>2026-03-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneexamples/equipment/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/examples/equipment/"/>
+    </url>
+    <url>
         <loc>Noneexamples/loot/</loc>
         <lastmod>2026-03-22</lastmod>
         <changefreq>daily</changefreq>
@@ -146,6 +153,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/transfer-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="Nonearchitecture/transfer-pipeline/"/>
+    </url>
+    <url>
+        <loc>Noneen/examples/equipment/</loc>
+        <lastmod>2026-03-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/examples/equipment/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Noneexamples/equipment/"/>
     </url>
     <url>
         <loc>Noneen/examples/loot/</loc>

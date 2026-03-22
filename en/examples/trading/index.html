@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../systems/world-3d/">
+        <link rel="prev" href="../equipment/">
       
       
         <link rel="next" href="../loot/">
@@ -29,7 +29,7 @@
     
     
       
-        <title>Trading (Demo 2) - Drag & Drop Inventory System</title>
+        <title>Trading - Drag & Drop Inventory System</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trading-demo-2" class="md-skip">
+        <a href="#trading" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Trading (Demo 2)
+              Trading
             
           </span>
         </div>
@@ -277,15 +277,37 @@
   
   
   
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../equipment/" class="md-tabs__link">
+          
+  
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
   
     
     
       <li class="md-tabs__item">
-        <a href="../../architecture/transfer-pipeline/" class="md-tabs__link">
+        <a href="../../architecture/data-binding/" class="md-tabs__link">
           
   
   
-  Architecture
+  Core Concepts
 
         </a>
       </li>
@@ -305,29 +327,7 @@
           
   
   
-  Systems
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-    
-  
-  
-    
-    
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
-          
-  
-  
-  Examples
+  Advanced Systems
 
         </a>
       </li>
@@ -446,6 +446,245 @@
       
   
   
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../equipment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equipment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trading
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-participates-in-the-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What participates in the operation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-important-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The important split
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#purchase-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purchase flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-each-piece-belongs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where each piece belongs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loot System (Demo 3)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
   
   
     
@@ -464,17 +703,17 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Architecture
+    Core Concepts
   
 
     
@@ -485,16 +724,44 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Architecture
+    Core Concepts
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/data-binding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Binding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -539,34 +806,6 @@
     
   
     Placement Strategies
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../architecture/data-binding/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Data Binding
   
 
     
@@ -637,17 +876,17 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    Systems
+    Advanced Systems
   
 
     
@@ -658,12 +897,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Systems
+    Advanced Systems
   
 
           </label>
@@ -848,250 +1087,6 @@
       
   
   
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Examples
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Trading (Demo 2)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Trading (Demo 2)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#buying" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Buying
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#selling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Selling
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#equipping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Equipping
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#item-conversion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Item Conversion
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#restrictions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Restrictions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Files
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../loot/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Loot System (Demo 3)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
   
   
     
@@ -1232,10 +1227,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#what-participates-in-the-operation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        What participates in the operation
       
     </span>
   </a>
@@ -1243,10 +1238,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#buying" class="md-nav__link">
+  <a href="#the-important-split" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Buying
+        The important split
       
     </span>
   </a>
@@ -1254,10 +1249,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#selling" class="md-nav__link">
+  <a href="#purchase-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Selling
+        Purchase flow
       
     </span>
   </a>
@@ -1265,43 +1260,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#equipping" class="md-nav__link">
+  <a href="#where-each-piece-belongs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Equipping
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#item-conversion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Item Conversion
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#restrictions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Restrictions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Files
+        Where each piece belongs
       
     </span>
   </a>
@@ -1325,202 +1287,74 @@
 
 
 
-<h1 id="trading-demo-2">Trading (Demo 2)</h1>
-<p>A full-featured buying, selling, and equipping system with two inventory types and economic rules.</p>
+<h1 id="trading">Trading</h1>
+<p>This example shows a case where two inventories use different item models and a transfer also changes gold.</p>
 <hr />
-<h2 id="overview">Overview</h2>
+<h2 id="what-participates-in-the-operation">What participates in the operation</h2>
 <pre class="mermaid"><code>flowchart TB
-    subgraph Player
-        PI["Player inventory"]
-        ES["Equipment slots"]
-        PG["Player gold"]
-    end
+    Merchant["Merchant inventory&lt;br/&gt;ScriptableObject items"]
+    Player["Player inventory&lt;br/&gt;Runtime model items"]
+    Equipment["Equipment slots"]
+    Economy["Economy&lt;br/&gt;gold and prices"]
 
-    subgraph Merchant
-        MI["Merchant inventory"]
-        MG["Merchant gold"]
-    end
-
-    subgraph Economy
-        EM["Economy manager"]
-    end
-
-    PI &lt;--&gt;|"buy / sell"| MI
-    PI &lt;--&gt;|"equip"| ES
-    EM --- PG
-    EM --- MG
-    EM --&gt;|"controls prices"| PI
-    EM --&gt;|"controls prices"| MI</code></pre>
+    Merchant &lt;--&gt;|buy / sell| Player
+    Player &lt;--&gt;|equip| Equipment
+    Economy --- Merchant
+    Economy --- Player</code></pre>
 <hr />
-<h2 id="buying">Buying</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant P as Player
-    participant M as Merchant inventory
-    participant V as Validation
-    participant PI as Player inventory
-
-    P-&gt;&gt;M: Drags item from merchant
-    M-&gt;&gt;V: Enough gold?
-    V--&gt;&gt;M: Sufficient
-    M-&gt;&gt;PI: Item is converted (SO -&gt; Model)
-    PI--&gt;&gt;PI: Item enters inventory
-    V-&gt;&gt;V: Gold deducted from player
-    V-&gt;&gt;V: Gold credited to merchant</code></pre>
-<p>Validation pipeline:</p>
+<h2 id="the-important-split">The important split</h2>
+<p>There are three separate concerns:</p>
 <ol>
-<li>The player drags an item from the merchant's inventory.</li>
-<li>The system checks whether the player has enough gold for the purchase.</li>
-<li>The item is automatically converted from the merchant's format (ScriptableObject) to the player's format (runtime model).</li>
-<li>The item appears in the player's inventory; gold is deducted.</li>
+<li>inventory and slot mechanics</li>
+<li>item conversion between two data models</li>
+<li>business logic for the operation: enough gold, what to do after purchase/sale</li>
 </ol>
+<p>These should not be mixed together.</p>
 <hr />
-<h2 id="selling">Selling</h2>
-<p>The reverse process: the player drags an item from their inventory into the merchant's inventory.</p>
-<ul>
-<li>The item is converted back (Model -&gt; SO).</li>
-<li>Gold is credited to the player and deducted from the merchant.</li>
-<li>If the merchant does not have enough gold, the sale is rejected.</li>
-</ul>
+<h2 id="purchase-flow">Purchase flow</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as Player
+    participant M as Merchant Inventory
+    participant P as Player Inventory
+    participant D as Domain Hook
+    participant Data as Player / Merchant Data
+
+    U-&gt;&gt;P: Drops merchant item
+    P-&gt;&gt;P: CanDrop (mechanics, compatibility)
+    M-&gt;&gt;P: Convert item into player format
+    P-&gt;&gt;D: CanCommitTransfer (enough gold?)
+    P-&gt;&gt;P: Execute transfer
+    P-&gt;&gt;D: OnTransferSucceeded (update gold)
+    P-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
 <hr />
-<h2 id="equipping">Equipping</h2>
-<pre class="mermaid"><code>flowchart LR
-    PI["Player inventory"] --&gt;|"drag to slot"| ES["Equipment slot"]
-    ES --&gt; C{"Item type\nmatches?"}
-    C --&gt;|Yes| E["Equip"]
-    C --&gt;|No| R["Reject"]</code></pre>
-<p>Each equipment slot accepts only a specific item type:</p>
+<h2 id="where-each-piece-belongs">Where each piece belongs</h2>
 <table>
 <thead>
 <tr>
-<th>Slot</th>
-<th>Allowed type</th>
+<th>Task</th>
+<th>Where it belongs</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Weapon</td>
-<td>Weapon</td>
+<td>Only valid item type in equipment slot</td>
+<td><code>canAccept</code> or <code>CanDrop</code></td>
 </tr>
 <tr>
-<td>Armor</td>
-<td>Armor</td>
+<td>Check available gold</td>
+<td><code>CanCommitTransfer</code></td>
 </tr>
 <tr>
-<td>Artifact 1</td>
-<td>Artifact</td>
+<td>Apply gold changes</td>
+<td><code>OnTransferSucceeded</code></td>
 </tr>
 <tr>
-<td>Artifact 2</td>
-<td>Artifact</td>
-</tr>
-</tbody>
-</table>
-<p>If the type does not match, the transfer is rejected with an error message.</p>
-<hr />
-<h2 id="item-conversion">Item Conversion</h2>
-<pre class="mermaid"><code>flowchart LR
-    subgraph Merchant
-        SO["ScriptableObject"]
-    end
-
-    subgraph Conversion
-        C["Item converter"]
-    end
-
-    subgraph Player
-        M["Runtime model"]
-    end
-
-    SO --&gt;|"purchase"| C
-    C --&gt; M
-    M --&gt;|"sale"| C
-    C --&gt; SO</code></pre>
-<p>The merchant stores items as ScriptableObjects (immutable assets). The player works with runtime models (mutable data). When crossing inventory boundaries, the pipeline automatically converts the item to the required format via the converter.</p>
-<hr />
-<h2 id="restrictions">Restrictions</h2>
-<table>
-<thead>
-<tr>
-<th>Restriction</th>
-<th>What happens</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Not enough gold</td>
-<td>Purchase is rejected with a message</td>
+<td>Convert <code>SO &lt;-&gt; Model</code></td>
+<td><code>CreateItemConverter()</code></td>
 </tr>
 <tr>
-<td>Cannot sell equipped items</td>
-<td>Item cannot be dragged from the equipment slot</td>
-</tr>
-<tr>
-<td>Slot checks item type</td>
-<td>Only weapons in the weapon slot, armor in the armor slot, etc.</td>
-</tr>
-<tr>
-<td>Merchant has no money</td>
-<td>Sale is rejected</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="files">Files</h2>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>TradingEconomyManager.cs</code></td>
-<td>Centralized gold and price management</td>
-</tr>
-<tr>
-<td><code>TradingHelper.cs</code></td>
-<td>Trade operation validation (enough money? correct type?)</td>
-</tr>
-<tr>
-<td><code>PlayerInventoryDataBinding.cs</code></td>
-<td>Player inventory synchronization</td>
-</tr>
-<tr>
-<td><code>MerchantInventoryDataBinding.cs</code></td>
-<td>Merchant goods synchronization</td>
-</tr>
-<tr>
-<td><code>EquipmentInventoryDataBinding.cs</code></td>
-<td>Equipment slots with type restrictions</td>
-</tr>
-<tr>
-<td><code>TradableItemSO.cs</code></td>
-<td>ScriptableObject item definition</td>
-</tr>
-<tr>
-<td><code>TradableItemModel.cs</code></td>
-<td>Runtime item data</td>
-</tr>
-<tr>
-<td><code>TradableSoAdapter.cs</code></td>
-<td>ScriptableObject adapter for the inventory system</td>
-</tr>
-<tr>
-<td><code>TradableItemModelAdapter.cs</code></td>
-<td>Runtime model adapter for the inventory system</td>
-</tr>
-<tr>
-<td><code>ModelInventoryItemConverter.cs</code></td>
-<td>Converter: SO -&gt; Model (on purchase)</td>
-</tr>
-<tr>
-<td><code>MerchantInventoryItemConverter.cs</code></td>
-<td>Converter: Model -&gt; SO (on sale)</td>
-</tr>
-<tr>
-<td><code>ITradableItem.cs</code></td>
-<td>Common interface for tradable items</td>
+<td>Sync lists and fields</td>
+<td><code>AddToData</code> / <code>RemoveFromData</code></td>
 </tr>
 </tbody>
 </table>
