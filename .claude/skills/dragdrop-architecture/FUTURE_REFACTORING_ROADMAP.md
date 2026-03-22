@@ -26,8 +26,8 @@ Main remaining pressure points:
 1. Split `IInventoryStrategy` into narrower capabilities
 2. Move item conversion out of `DataBinding`
 3. Add transfer-domain hooks for post-success logic such as trading
-4. Add transaction/authority abstraction for server-backed flows
-5. Merge `InventoryTransferService` into `TransferPlanExecutor`
+4. Merge `InventoryTransferService` into `TransferPlanExecutor`
+5. Add transaction/authority abstraction for server-backed flows only if server authority is actually needed
 6. Consider extracting dynamic slot lifecycle out of `UniversalInventory` if it keeps growing
 
 ## 1. Split `IInventoryStrategy`
@@ -139,6 +139,27 @@ public interface IInventoryItemConverter
 }
 ```
 
+### Default Implementation
+
+Provide an identity converter by default so inventories without conversion do not require explicit setup.
+
+```csharp
+public sealed class IdentityInventoryItemConverter : IInventoryItemConverter
+{
+    public bool TryConvertIncoming(IInventoryItem item, out IInventoryItem converted)
+    {
+        converted = item;
+        return item != null;
+    }
+
+    public bool TryConvertOutgoing(IInventoryItem item, out IInventoryItem converted)
+    {
+        converted = item;
+        return item != null;
+    }
+}
+```
+
 ### Example Concrete Converters
 
 - `PlayerInventoryItemConverter`
@@ -223,6 +244,21 @@ public interface ITransferDomainHandler
 }
 ```
 
+### Validate Stage Semantics
+
+`ITransferDomainHandler.Validate(...)` should be treated as a **domain veto stage**, not as a replacement
+for `RuleValidator` and not as a generic extra rule layer.
+
+Recommended execution order:
+1. built-in/global/inventory/slot rules
+2. domain validation hook
+3. commit / execution
+4. domain success hook
+
+This keeps responsibilities clean:
+- `RuleValidator` handles inventory mechanics and drop legality
+- `ITransferDomainHandler.Validate(...)` handles business meaning of the transfer
+
 ### TransferDomainContext Should Include
 
 - source inventory
@@ -235,6 +271,9 @@ public interface ITransferDomainHandler
 - target item
 - amount
 - transfer kind (move, split, merge, swap)
+
+`TransferDomainContext` should be created once per transfer operation at executor level and then reused.
+It should not be reconstructed independently by each hook stage.
 
 ### How Trading Should Use It
 
@@ -274,6 +313,9 @@ In that world, local remove/add plus fire-and-forget events are not enough:
 - client may be predictive or pessimistic
 
 This cannot be modeled cleanly as "send request inside `OnItemAdded` / `OnItemRemoved`".
+
+This should be treated as a separate milestone, not as part of the baseline refactoring,
+unless server-authoritative inventory flows are an immediate project requirement.
 
 ### Core Principle
 
@@ -322,6 +364,9 @@ public interface ITransferTransactionHandler
 - correlation id / request id
 - optional full plan snapshot
 
+`TransferTransactionContext` should also be created once per transaction and passed through the authority pipeline.
+Avoid rebuilding it separately in validation, commit, and rollback stages.
+
 ### Execution Modes
 
 #### Local Authoritative
@@ -361,6 +406,9 @@ Cons:
 - more complexity
 - needs pending state and rollback-safe events
 
+This mode should be considered optional and deferred until there is a concrete product need for it.
+For many inventory-driven games, pessimistic server authority is sufficient and much safer.
+
 ### Event Model Changes For Server Mode
 
 Current `OnItemAdded` / `OnItemRemoved` should remain committed-state events.
@@ -379,6 +427,15 @@ This avoids feature code mistaking a predicted local change for a final committe
 3. Add async execution branch to `TransferPlanExecutor`
 4. Support `Local` and `ExternalPessimistic` modes first
 5. Keep optimistic mode out until the transaction lifecycle is stable
+
+### UI Impact
+
+Async authority introduces UI concerns:
+- drag/drop completion may need pending visuals
+- input may need temporary locking for the affected slots
+- user feedback for rejected server commits must be explicit
+
+This is another reason to keep server authority as a dedicated milestone.
 
 ## 5. Merge InventoryTransferService Into TransferPlanExecutor
 
@@ -409,6 +466,10 @@ Possible helper names:
 - `ExecutePlannedAllocation(...)`
 - `ExecuteSingleTransfer(...)`
 - `TryPlaceTransferStack(...)`
+
+Important constraint:
+- rollback logic should remain isolated in executor-level helpers
+- do not spread rollback branches across the main execution path
 
 ### Why It Makes Sense Now
 
@@ -513,4 +574,5 @@ This is useful, but not urgent.
 - feature code should plug in through explicit extension points, not hidden event coupling
 - data binding should synchronize data, not orchestrate transfer transactions
 - server integration should operate on transfer transactions, not separate local item-added/item-removed callbacks
-
+- default implementations should exist for optional infrastructure pieces such as converters
+- operation contexts should be created once and reused across the pipeline
