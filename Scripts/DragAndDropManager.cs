@@ -8,6 +8,8 @@ using DragAndDropSystem.Rules;
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.UI;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using Extentions = DragAndDropSystem.Tools.Extentions;
 
@@ -44,6 +46,7 @@ namespace DragAndDropSystem
 
         private readonly InventoryTransferService _transferService = new InventoryTransferService();
         private readonly AutoTransferService _autoTransferService = new AutoTransferService();
+        private bool _isCompletingDrag;
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
@@ -294,56 +297,79 @@ namespace DragAndDropSystem
         /// <summary>
         /// Complete the drag operation
         /// </summary>
-        public void CompleteDrag()
+        public async void CompleteDrag()
         {
-            if (!IsDragging)
+            if (!IsDragging || _isCompletingDrag)
                 return;
 
+            _isCompletingDrag = true;
             bool success = false;
             DropResult result = default;
             IDropProcessor processorToUse = _currentProcessor;
+            var dragContext = _currentContext;
 
-            if (processorToUse != null)
+            try
             {
-                OnDropAttempting?.Invoke(_currentContext);
-
-                bool canDrop = processorToUse.CanAcceptDrop(_currentContext);
-
-                if (canDrop)
+                if (processorToUse != null)
                 {
-                    result = processorToUse.ProcessDrop(_currentContext);
-                    success = result.Success;
+                    OnDropAttempting?.Invoke(dragContext);
 
-                    if (success)
+                    bool canDrop = processorToUse.CanAcceptDrop(dragContext);
+
+                    if (canDrop)
                     {
-                        // Update context with result info for events
-                        if (result.TargetSlot != null && result.TargetInventory != null)
+                        if (processorToUse is InventoryDropProcessor inventoryProcessor)
                         {
-                            _currentContext.SetTarget(result.TargetSlot, result.TargetInventory);
+                            result = (await inventoryProcessor.ProcessDropWithSummaryAsync(dragContext, CancellationToken.None)).DropResult;
+                        }
+                        else
+                        {
+                            result = processorToUse.ProcessDrop(dragContext);
                         }
 
-                        if (_currentContext.IsBatchDrag && SelectionManager.IsInstanceExist)
-                            SelectionManager.Instance.Clear();
+                        success = result.Success;
 
-                        OnDropCompleted?.Invoke(_currentContext);
+                        if (success)
+                        {
+                            if (result.TargetSlot != null && result.TargetInventory != null)
+                            {
+                                dragContext.SetTarget(result.TargetSlot, result.TargetInventory);
+                            }
+
+                            if (dragContext.IsBatchDrag && SelectionManager.IsInstanceExist)
+                                SelectionManager.Instance.Clear();
+
+                            OnDropCompleted?.Invoke(dragContext);
+                        }
+                        else
+                        {
+                            Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.ProcessDrop failed: {result.FailureReason}</color>");
+                        }
                     }
                     else
                     {
-                        Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.ProcessDrop failed: {result.FailureReason}</color>");
+                        Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
                     }
                 }
-                else
+
+                if (!success)
                 {
-                    Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
+                    OnDragCancelled?.Invoke(dragContext);
                 }
             }
-
-            if (!success)
+            catch (System.Exception ex)
             {
-                OnDragCancelled?.Invoke(_currentContext);
+                Extentions.DragAndDropLog($"<color=red>CompleteDrag failed with exception: {ex.Message}</color>");
+                if (!success)
+                {
+                    OnDragCancelled?.Invoke(dragContext);
+                }
             }
-
-            EndDrag();
+            finally
+            {
+                EndDrag();
+                _isCompletingDrag = false;
+            }
         }
 
         /// <summary>
@@ -351,7 +377,7 @@ namespace DragAndDropSystem
         /// </summary>
         public void CancelDrag()
         {
-            if (!IsDragging)
+            if (!IsDragging || _isCompletingDrag)
                 return;
 
             OnDragCancelled?.Invoke(_currentContext);
@@ -403,6 +429,12 @@ namespace DragAndDropSystem
                 return false;
             }
 
+            if (RequiresAsyncTransferCommit(sourceInventory, targetInventory))
+            {
+                _ = TryAutoTransferAsync(sourceSlots, sourceInventory, targetInventory, CancellationToken.None);
+                return true;
+            }
+
             if (IsDragging && _currentContext != null && _currentContext.Entries.Count > 0)
             {
                 for (int i = 0; i < sourceSlots.Count; i++)
@@ -440,7 +472,95 @@ namespace DragAndDropSystem
             }
 
             NotifyAutoTransferSourceSlots(context);
+            FinalizeAutoTransferSuccess(context, targetInventory, dropResult, executionSummary);
 
+            return true;
+        }
+
+        public async Task<bool> TryAutoTransferAsync(
+            IReadOnlyList<ISlot> sourceSlots,
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            CancellationToken cancellationToken = default)
+        {
+            if (sourceSlots == null || sourceSlots.Count == 0 || sourceInventory == null || targetInventory == null)
+            {
+                Extentions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Invalid parameters</color>");
+                return false;
+            }
+
+            if (IsDragging && _currentContext != null && _currentContext.Entries.Count > 0)
+            {
+                for (int i = 0; i < sourceSlots.Count; i++)
+                {
+                    if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
+                    {
+                        Extentions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Source slot is currently dragged manually</color>");
+                        return false;
+                    }
+                }
+            }
+
+            if (!_autoTransferService.TryCreateContext(sourceSlots, sourceInventory, targetInventory, out var context, out var createFailure))
+            {
+                Extentions.DragAndDropLog($"<color=red>TryAutoTransferAsync(batch): {createFailure}</color>");
+                return false;
+            }
+
+            OnAutoTransferAttempting?.Invoke(context);
+
+            TransferExecutionSummary executionSummary = null;
+            var dropResult = await _autoTransferService.ExecuteAsync(
+                context,
+                targetInventory,
+                _globalRules,
+                _transferService,
+                RaiseSwapAttempting,
+                RaiseSwapCompleted,
+                cancellationToken,
+                summary => executionSummary = summary);
+
+            if (!dropResult.Success)
+            {
+                Extentions.DragAndDropLog($"<color=red>AutoTransfer async failed: {dropResult.FailureReason}</color>");
+                OnAutoTransferFailed?.Invoke(context);
+                return false;
+            }
+
+            NotifyAutoTransferSourceSlots(context);
+            FinalizeAutoTransferSuccess(context, targetInventory, dropResult, executionSummary);
+            return true;
+        }
+
+        private static void NotifyAutoTransferSourceSlots(DragContext context)
+        {
+            if (context?.Entries == null)
+                return;
+
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var entry = context.Entries[i];
+                if (entry.SourceInventory is UniversalInventory sourceUniversal &&
+                    entry.SourceSlot != null &&
+                    entry.SourceSlot.IsEmpty)
+                {
+                    sourceUniversal.HandleSlotEmptied(entry.SourceSlot);
+                }
+            }
+        }
+
+        private static bool RequiresAsyncTransferCommit(IInventory sourceInventory, IInventory targetInventory)
+        {
+            return sourceInventory?.DataBinding is IAsyncTransferDomainHandler ||
+                   targetInventory?.DataBinding is IAsyncTransferDomainHandler;
+        }
+
+        private void FinalizeAutoTransferSuccess(
+            DragContext context,
+            IInventory targetInventory,
+            DropResult dropResult,
+            TransferExecutionSummary executionSummary)
+        {
             var transferredItem = dropResult.Item;
             int transferredAmount = dropResult.Amount;
             var finalTargetSlot = dropResult.TargetSlot;
@@ -512,25 +632,6 @@ namespace DragAndDropSystem
             {
                 OnDropCompleted?.Invoke(context);
                 OnAutoTransferCompleted?.Invoke(context);
-            }
-
-            return true;
-        }
-
-        private static void NotifyAutoTransferSourceSlots(DragContext context)
-        {
-            if (context?.Entries == null)
-                return;
-
-            for (int i = 0; i < context.Entries.Count; i++)
-            {
-                var entry = context.Entries[i];
-                if (entry.SourceInventory is UniversalInventory sourceUniversal &&
-                    entry.SourceSlot != null &&
-                    entry.SourceSlot.IsEmpty)
-                {
-                    sourceUniversal.HandleSlotEmptied(entry.SourceSlot);
-                }
             }
         }
 

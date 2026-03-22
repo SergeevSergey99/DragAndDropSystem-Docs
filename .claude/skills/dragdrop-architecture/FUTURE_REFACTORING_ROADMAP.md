@@ -329,10 +329,14 @@ This keeps the hook:
 
 Already done:
 - `TransferDomainContext` and `ITransferDomainHandler` exist
+- `IAsyncTransferDomainHandler` now exists for optional async pre-commit veto checks
 - `TransferPlanExecutor` runs domain validation before commit and defers success hooks until the whole plan succeeds
+- `TransferPlanExecutor` now has an async execution path so async `CanCommitTransferAsync(...)` can participate before local commit
 - Demo2 Trading money side effects were moved out of item-added/item-removed reactions into transfer-level hooks
 - swap path now also participates in domain validation/success hooks
 - trading demo no longer keeps money checks in rule-layer `CanDrop`/`CanStartDrag`
+- manual drag completion now uses the async drop path when available
+- auto-transfer has an explicit async execution path, and the legacy sync `TryAutoTransfer(...)` forwards to it when async domain handlers are present
 
 Still pending:
 - generic feature modules still discover handlers through `DataBinding` ownership

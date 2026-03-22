@@ -3,6 +3,8 @@ using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DragAndDropSystem.Inventories
 {
@@ -97,27 +99,59 @@ namespace DragAndDropSystem.Inventories
 
         public TransferExecutionSummary ProcessDropWithSummary(DragContext context)
         {
+            if (!TryPrepareExecution(context, "ProcessDrop", out var plan, out var failureSummary))
+            {
+                LastExecutionSummary = failureSummary;
+                return failureSummary;
+            }
+
+            var summary = _executor.Execute(plan, new TransferExecutionOptions
+            {
+                GlobalRules = _globalRules,
+                SwapAttempting = _swapAttempting,
+                SwapCompleted = _swapCompleted
+            });
+            return FinalizeExecution(context, summary, "Execute failed", "Executed plan");
+        }
+
+        public async Task<TransferExecutionSummary> ProcessDropWithSummaryAsync(
+            DragContext context,
+            CancellationToken cancellationToken = default)
+        {
+            if (!TryPrepareExecution(context, "ProcessDropAsync", out var plan, out var failureSummary))
+            {
+                LastExecutionSummary = failureSummary;
+                return failureSummary;
+            }
+
+            var summary = await _executor.ExecuteAsync(plan, new TransferExecutionOptions
+            {
+                GlobalRules = _globalRules,
+                SwapAttempting = _swapAttempting,
+                SwapCompleted = _swapCompleted
+            }, cancellationToken);
+            return FinalizeExecution(context, summary, "ExecuteAsync failed", "Executed async plan");
+        }
+
+        private bool TryPrepareExecution(
+            DragContext context,
+            string operationName,
+            out TransferPlan plan,
+            out TransferExecutionSummary failureSummary)
+        {
+            plan = null;
+            failureSummary = null;
+
             if (context == null)
             {
-                LastExecutionSummary = new TransferExecutionSummary(
-                    success: false,
-                    succeededEntries: 0,
-                    failedEntries: 0,
-                    transferredAmount: 0,
-                    isPartial: false,
-                    dropResult: DropResult.Failed("Null drag context"));
-                return LastExecutionSummary;
+                failureSummary = BuildFailureSummary("Null drag context");
+                return false;
             }
+
             if (context.Entries == null || context.Entries.Count == 0)
             {
-                LastExecutionSummary = new TransferExecutionSummary(
-                    success: false,
-                    succeededEntries: 0,
-                    failedEntries: 0,
-                    transferredAmount: 0,
-                    isPartial: false,
-                    dropResult: DropResult.Failed("Drag context has no entries"));
-                return LastExecutionSummary;
+                failureSummary = BuildFailureSummary("Drag context has no entries");
+                return false;
             }
 
             var entry = context.Entries[0];
@@ -127,33 +161,21 @@ namespace DragAndDropSystem.Inventories
 
             if (source == null || sourceSlot == null || draggedStack == null)
             {
-                Extentions.DragAndDropLog("<color=red>[InventoryDropProcessor] ProcessDrop: Invalid context</color>");
-                LastExecutionSummary = new TransferExecutionSummary(
-                    success: false,
-                    succeededEntries: 0,
-                    failedEntries: 0,
-                    transferredAmount: 0,
-                    isPartial: false,
-                    dropResult: DropResult.Failed("Invalid drag context"));
-                return LastExecutionSummary;
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropProcessor] {operationName}: Invalid context</color>");
+                failureSummary = BuildFailureSummary("Invalid drag context");
+                return false;
             }
 
             if (_targetInventory == null)
             {
-                LastExecutionSummary = new TransferExecutionSummary(
-                    success: false,
-                    succeededEntries: 0,
-                    failedEntries: 0,
-                    transferredAmount: 0,
-                    isPartial: false,
-                    dropResult: DropResult.Failed("Target inventory is null"));
-                return LastExecutionSummary;
+                failureSummary = BuildFailureSummary("Target inventory is null");
+                return false;
             }
 
             var effectivePolicy = ResolveEffectivePolicy(context);
             context.Policy = effectivePolicy;
 
-            var plan = _cachedPlan ?? _planner.BuildPlan(
+            plan = _cachedPlan ?? _planner.BuildPlan(
                 context,
                 effectivePolicy,
                 _targetInventory,
@@ -163,29 +185,25 @@ namespace DragAndDropSystem.Inventories
 
             if (plan == null || !plan.IsValid)
             {
-                LastExecutionSummary = new TransferExecutionSummary(
-                    success: false,
-                    succeededEntries: 0,
-                    failedEntries: 0,
-                    transferredAmount: 0,
-                    isPartial: false,
-                    dropResult: DropResult.Failed(plan?.Failure?.Reason ?? "Transfer plan is invalid"));
-                return LastExecutionSummary;
+                failureSummary = BuildFailureSummary(plan?.Failure?.Reason ?? "Transfer plan is invalid");
+                return false;
             }
 
             var policy = context.Policy;
-            Extentions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] ProcessDrop: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
+            Extentions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
+            return true;
+        }
 
-            var summary = _executor.Execute(plan, new TransferExecutionOptions
-            {
-                GlobalRules = _globalRules,
-                SwapAttempting = _swapAttempting,
-                SwapCompleted = _swapCompleted
-            });
+        private TransferExecutionSummary FinalizeExecution(
+            DragContext context,
+            TransferExecutionSummary summary,
+            string failureLogPrefix,
+            string successLogPrefix)
+        {
             LastExecutionSummary = summary;
             if (!summary.Success)
             {
-                Extentions.DragAndDropLog($"<color=red>[InventoryDropProcessor] Execute failed: {summary.DropResult.FailureReason}</color>");
+                Extentions.DragAndDropLog($"<color=red>[InventoryDropProcessor] {failureLogPrefix}: {summary.DropResult.FailureReason}</color>");
                 return summary;
             }
 
@@ -194,8 +212,19 @@ namespace DragAndDropSystem.Inventories
                 context.SetTarget(summary.DropResult.TargetSlot, summary.DropResult.TargetInventory);
             }
 
-            Extentions.DragAndDropLog($"<color=green>[InventoryDropProcessor] Executed plan: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
+            Extentions.DragAndDropLog($"<color=green>[InventoryDropProcessor] {successLogPrefix}: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
             return summary;
+        }
+
+        private static TransferExecutionSummary BuildFailureSummary(string reason)
+        {
+            return new TransferExecutionSummary(
+                success: false,
+                succeededEntries: 0,
+                failedEntries: 0,
+                transferredAmount: 0,
+                isPartial: false,
+                dropResult: DropResult.Failed(reason));
         }
 
         private DropPolicy ResolveEffectivePolicy(DragContext context)
