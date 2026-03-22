@@ -1,6 +1,6 @@
 # Swap Functionality - Updated Examples
 
-**Last Updated**: 2026-03-21
+**Last Updated**: 2026-03-22
 
 ## Включение swap
 
@@ -9,9 +9,9 @@ Swap включается не отдельным флагом менеджер�
 - `DropPolicy.OccupiedTarget = OccupiedTargetPolicy.TrySwap`
 
 Policy может приходить:
-- из override drop-area/slot target
+- из override drop-area / slot target
 - из inventory-level настроек
-- из policy в `DragContext`/default
+- из policy в `DragContext` / default
 
 ## DataBinding: кастомная валидация swap
 
@@ -44,7 +44,6 @@ protected override void OnSwapCompleted(InventorySwapContext args)
 
     if (isOurSource && isOurTarget)
     {
-        // swap внутри одного инвентаря
         UpdateEquipmentData(args.SourceSlot, args.TargetStack.Item);
         UpdateEquipmentData(args.TargetSlot, args.SourceStack.Item);
     }
@@ -53,18 +52,18 @@ protected override void OnSwapCompleted(InventorySwapContext args)
 
 ## Актуальный внутренний flow
 
-1. `InventoryDropHandler` строит `TransferPlan` через `TransferPlanner`.
-2. Если обычное размещение не удалось и policy = `TrySwap`, planner помечает entry как `RequiresSwap`.
+1. `InventoryDropProcessor` строит `TransferPlan` через `TransferPlanner`
+2. Если обычное размещение не удалось и policy = `TrySwap`, planner помечает entry как `RequiresSwap`
 3. `TransferPlanExecutor`:
-   - валидирует swap в обе стороны правилами;
-   - вызывает `SwapAttempting` (cancelable через `args.Cancel = true`);
-   - выполняет `UniversalInventory.TrySwapSlots(...)`;
-   - после успешного завершения execution dispatch-ит swap events и вызывает `SwapCompleted`.
+   - валидирует swap в обе стороны правилами
+   - вызывает `SwapAttempting` (cancelable через `args.Cancel = true`)
+   - выполняет `UniversalInventory.TrySwapSlots(...)`
+   - после успешного completion dispatch-ит swap events и вызывает `SwapCompleted`
 
 ## Важное про события
 
-- Swap события в pipeline отправляются отложенно (после успешного execution).
-- Это защищает от ложных событий при `BatchExecutionPolicy.Atomic` и rollback.
+- swap события в pipeline отправляются отложенно, после успешного execution
+- это защищает от ложных событий при `BatchExecutionPolicy.Atomic` и rollback
 
 ## Отладка
 
@@ -72,7 +71,6 @@ protected override void OnSwapCompleted(InventorySwapContext args)
 DragAndDropManager.Instance.OnSwapAttempting += context =>
 {
     Debug.Log($"[SWAP] Attempt: {context.SourceStack.Item.DisplayName} <-> {context.TargetStack.Item.DisplayName}");
-    // context.Cancel = true; // если нужно отменить
 };
 
 DragAndDropManager.Instance.OnSwapCompleted += context =>

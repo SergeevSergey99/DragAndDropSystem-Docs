@@ -167,6 +167,10 @@
          → _playerData.AddItem(itemSO)
 ```
 
+Примечание:
+- add/remove события отправляются только после успешного completion pipeline
+- в atomic-сценариях это защищает от ложных side effects при rollback
+
 ## ⚙️ Настройка в Unity
 
 ### 1. Настройка игрока
