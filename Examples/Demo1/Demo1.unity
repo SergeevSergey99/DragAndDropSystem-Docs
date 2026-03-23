@@ -5262,17 +5262,18 @@ MonoBehaviour:
   _inventory: {fileID: 1818827037}
   _useGlobalBindingsProfile: 1
   _bindingsProfile: {fileID: 0}
-  _pointerBindings: []
-  _inputActionBindings:
+  _pointerBindings:
   - _label: Auto Transfer
-    _actionReference: {fileID: -2099379676528639254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
-    _triggerPhase: 1
+    _button: 2
+    _modifier: 0
+    _triggerPhase: 0
     _action:
-      rid: 6676588759005003856
+      rid: 6676589188124770375
+  _inputActionBindings: []
   references:
     version: 2
     RefIds:
-    - rid: 6676588759005003856
+    - rid: 6676589188124770375
       type: {class: InventorySlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
         _sceneAction: {fileID: 1818827040}
@@ -6494,7 +6495,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1358364175}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
   m_Name: 
@@ -6502,17 +6503,18 @@ MonoBehaviour:
   _inventory: {fileID: 1358364178}
   _useGlobalBindingsProfile: 1
   _bindingsProfile: {fileID: 0}
-  _pointerBindings: []
-  _inputActionBindings:
+  _pointerBindings:
   - _label: Auto Transfer
-    _actionReference: {fileID: -2099379676528639254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
-    _triggerPhase: 1
+    _button: 2
+    _modifier: 0
+    _triggerPhase: 0
     _action:
-      rid: 6676588759005003853
+      rid: 6676589188124770376
+  _inputActionBindings: []
   references:
     version: 2
     RefIds:
-    - rid: 6676588759005003853
+    - rid: 6676589188124770376
       type: {class: InventorySlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
         _sceneAction: {fileID: 1358364181}

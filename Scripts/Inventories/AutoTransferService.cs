@@ -75,53 +75,20 @@ namespace DragAndDropSystem.Inventories
             return true;
         }
 
-        public DropResult Execute(
-            DragContext context,
-            IInventory targetInventory,
-            GlobalRuleValidator globalRules,
-            System.Func<InventorySwapContext, bool> swapAttempting,
-            System.Action<InventorySwapContext> swapCompleted,
-            out TransferExecutionSummary executionSummary,
-            DropPolicy policyOverride = null)
-        {
-            executionSummary = null;
-
-            if (context == null)
-                return DropResult.Failed("Auto-transfer context is null");
-
-            if (targetInventory == null)
-                return DropResult.Failed("Auto-transfer target inventory is null");
-
-            var handler = new InventoryDropProcessor(
-                targetSlot: null,
-                targetInventory: targetInventory,
-                globalRules: globalRules,
-                policyOverride: policyOverride,
-                swapAttempting: swapAttempting,
-                swapCompleted: swapCompleted);
-
-            if (!handler.CanAcceptDrop(context))
-                return DropResult.Failed("Auto-transfer plan rejected");
-
-            executionSummary = handler.ProcessDropWithSummary(context);
-            return executionSummary.DropResult;
-        }
-
-        public async Task<DropResult> ExecuteAsync(
+        public async Task<(DropResult result, TransferExecutionSummary summary)> ExecuteAsync(
             DragContext context,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
             CancellationToken cancellationToken,
-            System.Action<TransferExecutionSummary> summarySink = null,
             DropPolicy policyOverride = null)
         {
             if (context == null)
-                return DropResult.Failed("Auto-transfer context is null");
+                return (DropResult.Failed("Auto-transfer context is null"), null);
 
             if (targetInventory == null)
-                return DropResult.Failed("Auto-transfer target inventory is null");
+                return (DropResult.Failed("Auto-transfer target inventory is null"), null);
 
             var handler = new InventoryDropProcessor(
                 targetSlot: null,
@@ -132,11 +99,10 @@ namespace DragAndDropSystem.Inventories
                 swapCompleted: swapCompleted);
 
             if (!handler.CanAcceptDrop(context))
-                return DropResult.Failed("Auto-transfer plan rejected");
+                return (DropResult.Failed("Auto-transfer plan rejected"), null);
 
-            var executionSummary = await handler.ProcessDropWithSummaryAsync(context, cancellationToken);
-            summarySink?.Invoke(executionSummary);
-            return executionSummary.DropResult;
+            var summary = await handler.ProcessDropWithSummaryAsync(context, cancellationToken);
+            return (summary.DropResult, summary);
         }
     }
 }
