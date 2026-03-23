@@ -44,7 +44,6 @@ namespace DragAndDropSystem.Core
     /// <summary>
     /// Политика дропа. Один объект описывает поведение single и batch переноса.
     /// </summary>
-    [Serializable]
     public sealed class DropPolicy
     {
         public OccupiedTargetPolicy OccupiedTarget { get; }

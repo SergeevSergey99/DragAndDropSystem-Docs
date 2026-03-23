@@ -64,7 +64,7 @@ namespace DragAndDropSystem.DataBinding
 
             // Инициализируем инвентарь
             _inventory.Initialize(this);
-            _inventory.SetItemConverter(CreateItemConverter() ?? new LegacyDataBindingItemConverter(this));
+            _inventory.SetItemConverter(CreateItemConverter());
 
             // Добавляем правила DataBinding в инвентарь
             IntegrateRulesWithInventory();
@@ -267,22 +267,10 @@ namespace DragAndDropSystem.DataBinding
         #region Virtual Methods for Transfer Validation
 
         /// <summary>
-        /// Создать inventory-side converter для текущего binding.
-        /// Предпочтительный путь для новой логики conversion.
+        /// Создать converter для преобразования предметов при входе/выходе из инвентаря.
+        /// Верните null если конвертация не нужна.
         /// </summary>
         protected virtual IInventoryItemConverter CreateItemConverter() => null;
-
-        /// <summary>
-        /// Legacy compatibility path.
-        /// Используется только если CreateItemConverter() не переопределен.
-        /// </summary>
-        internal virtual IInventoryItem ConvertIncomingItem(IInventoryItem item) => item;
-
-        /// <summary>
-        /// Legacy compatibility path.
-        /// Используется только если CreateItemConverter() не переопределен.
-        /// </summary>
-        internal virtual IInventoryItem ConvertOutgoingItem(IInventoryItem item) => item;
 
         /// <summary>
         /// Проверить, можно ли начать перетаскивание из этого инвентаря

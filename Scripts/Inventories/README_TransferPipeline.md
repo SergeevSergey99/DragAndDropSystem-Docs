@@ -102,11 +102,7 @@ Current conversion ownership:
 - `UniversalInventory` owns `ItemConverter`
 - `IdentityInventoryItemConverter` is used by default
 - `TransferItemConversionUtility` remains the common preview entry point
-- `InventoryDataBindingBase` can still bridge old conversion overrides through `LegacyDataBindingItemConverter`
-
-Preferred direction:
-- feature-specific conversion lives in dedicated converter classes
-- `DataBinding` only wires converter into inventory during initialization
+- `DataBinding` wires converter into inventory via `CreateItemConverter()` during initialization
 
 ### InventoryDropProcessor
 
