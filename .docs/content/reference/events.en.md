@@ -15,12 +15,18 @@ stateDiagram-v2
     
     DragOver: OnDragEnterSlot/OnDragExitSlot
 
+    state join_state <<join>>
+
     [*] --> OnDragAttempting: Player begins dragging
     OnDragAttempting --> OnDragStarted: Not cancelled
     OnDragAttempting --> OnDragCancelled: Cancelled
     OnDragStarted --> DragOver: Dragging over slots
     DragOver --> OnDropAttempting: Released over target
-    OnDragStarted --> OnDragCancelled: No suitable target
+
+    DragOver --> join_state
+    OnDragStarted --> join_state
+    join_state --> OnDragCancelled: No suitable target
+
     OnDropAttempting --> OnDropCompleted: Success
     OnDropAttempting --> OnDragCancelled: Failure
     OnDropCompleted --> OnDragEnded

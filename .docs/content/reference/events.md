@@ -15,12 +15,18 @@ stateDiagram-v2
 
     DragOver: OnDragEnterSlot/OnDragExitSlot
 
+    state join_state <<join>>
+
     [*] --> OnDragAttempting: Игрок начинает перетаскивание
     OnDragAttempting --> OnDragStarted: Не отменено
     OnDragAttempting --> OnDragCancelled: Отменено
     OnDragStarted --> DragOver: Перетаскивание над слотами
     DragOver --> OnDropAttempting: Отпускание над слотом
-    OnDragStarted --> OnDragCancelled: Нет подходящей цели
+    
+    DragOver --> join_state
+    OnDragStarted --> join_state
+    join_state --> OnDragCancelled: Нет подходящей цели
+
     OnDropAttempting --> OnDropCompleted: Успешно
     OnDropAttempting --> OnDragCancelled: Неудача
     OnDropCompleted --> OnDragEnded
