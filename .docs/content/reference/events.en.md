@@ -8,19 +8,26 @@ All events provided by `DragAndDropManager` and `UniversalInventory`.
 
 ```mermaid
 stateDiagram-v2
+    classDef dragEnded fill:#f4f4,stroke-width:2px
+    classDef dragCancelled fill:#f444,stroke-width:2px
+    classDef dragStarted fill:#4F44,stroke-width:2px
+    classDef dragOver fill:#8884,stroke-width:2px
+
     [*] --> OnDragStarting: Player begins dragging
     OnDragStarting --> OnDragStarted: Not cancelled
     OnDragStarting --> OnDragCancelled: Cancelled
-    OnDragStarted --> OnDragEnterSlot: Cursor enters slot
-    OnDragEnterSlot --> OnDragExitSlot: Cursor leaves slot
-    OnDragExitSlot --> OnDragEnterSlot: Cursor enters another slot
-    OnDragStarted --> OnDropAttempting: Released over target
-    OnDragEnterSlot --> OnDropAttempting: Released over slot
+    OnDragStarted --> OnDragEnterSlot/OnDragExitSlot: Dragging over slots
+    OnDragEnterSlot/OnDragExitSlot --> OnDropAttempting: Released over target
     OnDragStarted --> OnDragCancelled: No suitable target
     OnDropAttempting --> OnDropCompleted: Success
     OnDropAttempting --> OnDragCancelled: Failure
     OnDropCompleted --> OnDragEnded
     OnDragCancelled --> OnDragEnded
+
+   class OnDragEnterSlot/OnDragExitSlot dragOver
+   class OnDragStarting dragStarted
+   class OnDragCancelled dragCancelled
+   class OnDragEnded dragEnded
 ```
 
 ---

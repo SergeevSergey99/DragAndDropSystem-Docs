@@ -8,19 +8,28 @@
 
 ```mermaid
 stateDiagram-v2
+    classDef dragEnded fill:#f4f4,stroke-width:2px
+    classDef dragCancelled fill:#f444,stroke-width:2px
+    classDef dragStarted fill:#4F44,stroke-width:2px
+    classDef dragOver fill:#8884,stroke-width:0px
+
+    DragOver: OnDragEnterSlot/OnDragExitSlot
+
     [*] --> OnDragStarting: Игрок начинает перетаскивание
     OnDragStarting --> OnDragStarted: Не отменено
     OnDragStarting --> OnDragCancelled: Отменено
-    OnDragStarted --> OnDragEnterSlot: Курсор входит в слот
-    OnDragEnterSlot --> OnDragExitSlot: Курсор покидает слот
-    OnDragExitSlot --> OnDragEnterSlot: Курсор входит в другой слот
-    OnDragStarted --> OnDropAttempting: Отпускание над целью
-    OnDragEnterSlot --> OnDropAttempting: Отпускание над слотом
+    OnDragStarted --> DragOver: Перетаскивание над слотами
+    DragOver --> OnDropAttempting: Отпускание над слотом
     OnDragStarted --> OnDragCancelled: Нет подходящей цели
     OnDropAttempting --> OnDropCompleted: Успешно
     OnDropAttempting --> OnDragCancelled: Неудача
     OnDropCompleted --> OnDragEnded
     OnDragCancelled --> OnDragEnded
+
+    class DragOver dragOver
+    class OnDragStarting dragStarted
+    class OnDragCancelled dragCancelled
+    class OnDragEnded dragEnded
 ```
 
 ---
