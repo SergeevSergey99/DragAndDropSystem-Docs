@@ -52,7 +52,7 @@ namespace DragAndDropSystem.Inventories
                         var newSlot = _createSlotFunc();
                         if (newSlot == null)
                             break;
-                        Extentions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} to reach targetIndex {targetIndex}</color>");
+                        Extensions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} to reach targetIndex {targetIndex}</color>");
                     }
                 }
 
@@ -77,7 +77,7 @@ namespace DragAndDropSystem.Inventories
             // Если не поместилось - создаем новые слоты и продолжаем
             if (!stack.IsEmpty && slots.Count < _maxSlots)
             {
-                Extentions.DragAndDropLog($"<color=yellow>[DynamicSlots] Stack not empty ({stack.Count} remaining), creating new slots...</color>");
+                Extensions.DragAndDropLog($"<color=yellow>[DynamicSlots] Stack not empty ({stack.Count} remaining), creating new slots...</color>");
 
                 int createdSlots = 0;
                 while (!stack.IsEmpty && slots.Count < _maxSlots)
@@ -87,13 +87,13 @@ namespace DragAndDropSystem.Inventories
                         break;
 
                     createdSlots++;
-                    Extentions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} for remaining items</color>");
+                    Extensions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} for remaining items</color>");
 
                     // Пытаемся добавить в новый слот
                     _baseStrategy.TryAdd(slots, stack, slots.Count - 1);
                 }
 
-                Extentions.DragAndDropLog($"<color=cyan>[DynamicSlots] Created {createdSlots} new slots, {stack.Count} items still remaining</color>");
+                Extensions.DragAndDropLog($"<color=cyan>[DynamicSlots] Created {createdSlots} new slots, {stack.Count} items still remaining</color>");
             }
 
             // После добавления обеспечиваем минимум свободных слотов

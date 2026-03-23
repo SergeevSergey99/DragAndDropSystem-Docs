@@ -66,7 +66,7 @@ namespace DragAndDropSystem.World3D
             // Добавляем себя в стек целей
             _dragManager.PushDropTarget(this);
 
-            Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] Entered, canAccept={_canAcceptCurrentItem}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[WorldDropZone] Entered, canAccept={_canAcceptCurrentItem}</color>");
         }
 
         public void OnPointerExit(PointerEventData eventData)
@@ -79,7 +79,7 @@ namespace DragAndDropSystem.World3D
 
             _canAcceptCurrentItem = false;
 
-            Extentions.DragAndDropLog("<color=cyan>[WorldDropZone] Exited</color>");
+            Extensions.DragAndDropLog("<color=cyan>[WorldDropZone] Exited</color>");
         }
 
         private void OnDisable()
@@ -155,12 +155,12 @@ namespace DragAndDropSystem.World3D
 
                 if (entry.Stack.Item is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
                 {
-                    Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: false (entry missing 3D adapter)</color>");
+                    Extensions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: false (entry missing 3D adapter)</color>");
                     return false;
                 }
             }
 
-            Extentions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: true</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: true</color>");
             return true;
         }
 
@@ -193,7 +193,7 @@ namespace DragAndDropSystem.World3D
                 {
                     sourceSlot.Stack.RemoveFromStack(amountToSpawn);
                     sourceSlot.UpdateVisuals();
-                    Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {amountToSpawn} items from source slot {sourceSlot.Index}</color>");
+                    Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {amountToSpawn} items from source slot {sourceSlot.Index}</color>");
                 }
 
                 totalSpawned += amountToSpawn;
@@ -220,21 +220,21 @@ namespace DragAndDropSystem.World3D
         {
             if (stack == null || stack.IsEmpty || stack.Item == null)
             {
-                Extentions.DragAndDropLog("<color=red>[WorldDropZone] Cannot spawn: invalid stack</color>");
+                Extensions.DragAndDropLog("<color=red>[WorldDropZone] Cannot spawn: invalid stack</color>");
                 return false;
             }
 
             // Проверяем, есть ли у предмета 3D префаб
             if (stack.Item is not IWorld3DAdapter adapter)
             {
-                Extentions.DragAndDropLog($"<color=red>[WorldDropZone] Item {stack.Item.DisplayName} has no world prefab</color>");
+                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] Item {stack.Item.DisplayName} has no world prefab</color>");
                 return false;
             }
 
             GameObject prefab = adapter.WorldPrefab;
             if (prefab == null)
             {
-                Extentions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.Item.DisplayName}</color>");
+                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.Item.DisplayName}</color>");
                 return false;
             }
 
@@ -268,7 +268,7 @@ namespace DragAndDropSystem.World3D
                 }
             }
 
-            Extentions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.Item.DisplayName} in world</color>");
+            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.Item.DisplayName} in world</color>");
 
             return true;
         }

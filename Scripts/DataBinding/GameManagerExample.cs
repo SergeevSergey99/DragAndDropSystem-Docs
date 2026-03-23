@@ -27,7 +27,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public void AddToInventory(IInventoryItem item, int count)
         {
-            Extentions.DragAndDropLog($"[GameManager] AddToInventory: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] AddToInventory: {item.DisplayName} x{count}");
 
             // Ищем существующий предмет
             var existing = _itemsInInventory.Find(x => x.ItemId == item.ItemId);
@@ -52,7 +52,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public void RemoveFromInventory(IInventoryItem item, int count)
         {
-            Extentions.DragAndDropLog($"[GameManager] RemoveFromInventory: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] RemoveFromInventory: {item.DisplayName} x{count}");
 
             var existing = _itemsInInventory.Find(x => x.ItemId == item.ItemId);
 
@@ -97,7 +97,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public void AddToCraftTable(IInventoryItem item, int count)
         {
-            Extentions.DragAndDropLog($"[GameManager] AddToCraftTable: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] AddToCraftTable: {item.DisplayName} x{count}");
 
             // Ищем существующий предмет
             var existing = _itemsOnCraftTable.Find(x => x.ItemId == item.ItemId);
@@ -122,7 +122,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public void RemoveFromCraftTable(IInventoryItem item, int count)
         {
-            Extentions.DragAndDropLog($"[GameManager] RemoveFromCraftTable: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] RemoveFromCraftTable: {item.DisplayName} x{count}");
 
             var existing = _itemsOnCraftTable.Find(x => x.ItemId == item.ItemId);
 

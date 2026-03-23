@@ -119,7 +119,7 @@ namespace DragAndDropSystem.Interaction
 
             if (!_slot.IsInteractable)
             {
-                Extentions.DragAndDropLog($"OnPointerDown blocked - slot {name} is not interactable (filtered)");
+                Extensions.DragAndDropLog($"OnPointerDown blocked - slot {name} is not interactable (filtered)");
                 return;
             }
 
@@ -152,14 +152,14 @@ namespace DragAndDropSystem.Interaction
                 MoveDirection.Down => FindSelectableOnDown(),
                 _ => null
             };
-            Extentions.DragAndDropLog($"OnMove: {name}, dir={eventData.moveDir}, found={next?.name ?? "NULL"}, allSelectables={Selectable.allSelectableCount}");
+            Extensions.DragAndDropLog($"OnMove: {name}, dir={eventData.moveDir}, found={next?.name ?? "NULL"}, allSelectables={Selectable.allSelectableCount}");
             base.OnMove(eventData);
         }
 
         public override void OnSelect(BaseEventData eventData)
         {
             base.OnSelect(eventData);
-            Extentions.DragAndDropLog($"OnSelect: {name}, nav mode: {navigation.mode}");
+            Extensions.DragAndDropLog($"OnSelect: {name}, nav mode: {navigation.mode}");
             InputEventRouter.Instance.RouteFocusEnter(this, FocusSource.Gamepad);
         }
 

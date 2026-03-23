@@ -10,8 +10,8 @@ using DragAndDropSystem.Slots;
 using DragAndDropSystem.UI;
 using System.Threading;
 using System.Threading.Tasks;
+using DragAndDropSystem.Tools;
 using UnityEngine;
-using Extentions = DragAndDropSystem.Tools.Extentions;
 
 namespace DragAndDropSystem
 {
@@ -156,7 +156,7 @@ namespace DragAndDropSystem
                 var globalResult = _globalRules.ValidateStartDrag(_currentContext, entry);
                 if (!globalResult.IsValid)
                 {
-                    Extentions.DragAndDropLog($"Cannot start batch drag: {globalResult.FailureReason}");
+                    Extensions.DragAndDropLog($"Cannot start batch drag: {globalResult.FailureReason}");
                     _currentContext = null;
                     return false;
                 }
@@ -166,7 +166,7 @@ namespace DragAndDropSystem
                     var inventoryResult = universalInventory.RuleValidator.ValidateStartDrag(_currentContext, entry);
                     if (!inventoryResult.IsValid)
                     {
-                        Extentions.DragAndDropLog($"Cannot start batch drag: {inventoryResult.FailureReason}");
+                        Extensions.DragAndDropLog($"Cannot start batch drag: {inventoryResult.FailureReason}");
                         _currentContext = null;
                         return false;
                     }
@@ -174,7 +174,7 @@ namespace DragAndDropSystem
             }
 
             OnDragStarted?.Invoke(_currentContext);
-            Extentions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
+            Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
         }
 
@@ -190,7 +190,7 @@ namespace DragAndDropSystem
             // Защита от дублей
             if (_dropTargetStack.Contains(target))
             {
-                Extentions.DragAndDropLog($"<color=yellow>PushDropTarget: Target already in stack, ignoring</color>");
+                Extensions.DragAndDropLog($"<color=yellow>PushDropTarget: Target already in stack, ignoring</color>");
                 return;
             }
 
@@ -204,7 +204,7 @@ namespace DragAndDropSystem
             // Добавляем новый target
             _dropTargetStack.Add(target);
 
-            Extentions.DragAndDropLog($"<color=cyan>PushDropTarget: Added to stack (size={_dropTargetStack.Count})</color>");
+            Extensions.DragAndDropLog($"<color=cyan>PushDropTarget: Added to stack (size={_dropTargetStack.Count})</color>");
 
             // Активируем новый top
             ActivateTopTarget();
@@ -222,7 +222,7 @@ namespace DragAndDropSystem
             int index = _dropTargetStack.IndexOf(target);
             if (index == -1)
             {
-                Extentions.DragAndDropLog($"<color=yellow>PopDropTarget: Target not in stack, ignoring</color>");
+                Extensions.DragAndDropLog($"<color=yellow>PopDropTarget: Target not in stack, ignoring</color>");
                 return;
             }
 
@@ -237,7 +237,7 @@ namespace DragAndDropSystem
             // Удаляем из стека
             _dropTargetStack.RemoveAt(index);
 
-            Extentions.DragAndDropLog($"<color=cyan>PopDropTarget: Removed from stack (size={_dropTargetStack.Count})</color>");
+            Extensions.DragAndDropLog($"<color=cyan>PopDropTarget: Removed from stack (size={_dropTargetStack.Count})</color>");
 
             // Если убрали top - активируем новый top (или очищаем)
             if (wasTop)
@@ -276,7 +276,7 @@ namespace DragAndDropSystem
                 // Activate visual target
                 top.OnBecomeActiveTarget();
 
-                Extentions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, processor={processor?.GetType().Name}</color>");
+                Extensions.DragAndDropLog($"<color=green>ActivateTopTarget: slot={slot?.Index.ToString() ?? "AREA"}, processor={processor?.GetType().Name}</color>");
             }
             else
             {
@@ -288,7 +288,7 @@ namespace DragAndDropSystem
                 _currentProcessor = null;
                 _currentContext?.ClearTarget();
 
-                Extentions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared active target</color>");
+                Extensions.DragAndDropLog("<color=yellow>ActivateTopTarget: Stack empty, cleared active target</color>");
             }
         }
 
@@ -341,12 +341,12 @@ namespace DragAndDropSystem
                         }
                         else
                         {
-                            Extentions.DragAndDropLog($"<color=red>CompleteDrag: Handler.ProcessDrop failed: {result.FailureReason}</color>");
+                            Extensions.DragAndDropLog($"<color=red>CompleteDrag: Handler.ProcessDrop failed: {result.FailureReason}</color>");
                         }
                     }
                     else
                     {
-                        Extentions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
+                        Extensions.DragAndDropLog("<color=red>CompleteDrag: Handler.CanAcceptDrop returned false</color>");
                     }
                 }
 
@@ -357,7 +357,7 @@ namespace DragAndDropSystem
             }
             catch (System.Exception ex)
             {
-                Extentions.DragAndDropLog($"<color=red>CompleteDrag failed with exception: {ex.Message}</color>");
+                Extensions.DragAndDropLog($"<color=red>CompleteDrag failed with exception: {ex.Message}</color>");
                 if (!success)
                 {
                     OnDragCancelled?.Invoke(dragContext);
@@ -423,7 +423,7 @@ namespace DragAndDropSystem
         {
             if (sourceSlots == null || sourceSlots.Count == 0 || sourceInventory == null || targetInventory == null)
             {
-                Extentions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Invalid parameters</color>");
+                Extensions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Invalid parameters</color>");
                 return false;
             }
 
@@ -439,7 +439,7 @@ namespace DragAndDropSystem
                 {
                     if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
                     {
-                        Extentions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Source slot is currently dragged manually</color>");
+                        Extensions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Source slot is currently dragged manually</color>");
                         return false;
                     }
                 }
@@ -447,7 +447,7 @@ namespace DragAndDropSystem
 
             if (!_autoTransferService.TryCreateContext(sourceSlots, sourceInventory, targetInventory, out var context, out var createFailure))
             {
-                Extentions.DragAndDropLog($"<color=red>TryAutoTransfer(batch): {createFailure}</color>");
+                Extensions.DragAndDropLog($"<color=red>TryAutoTransfer(batch): {createFailure}</color>");
                 return false;
             }
 
@@ -463,7 +463,7 @@ namespace DragAndDropSystem
 
             if (!dropResult.Success)
             {
-                Extentions.DragAndDropLog($"<color=red>AutoTransfer failed: {dropResult.FailureReason}</color>");
+                Extensions.DragAndDropLog($"<color=red>AutoTransfer failed: {dropResult.FailureReason}</color>");
                 OnAutoTransferFailed?.Invoke(context);
                 return false;
             }
@@ -482,7 +482,7 @@ namespace DragAndDropSystem
         {
             if (sourceSlots == null || sourceSlots.Count == 0 || sourceInventory == null || targetInventory == null)
             {
-                Extentions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Invalid parameters</color>");
+                Extensions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Invalid parameters</color>");
                 return false;
             }
 
@@ -492,7 +492,7 @@ namespace DragAndDropSystem
                 {
                     if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
                     {
-                        Extentions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Source slot is currently dragged manually</color>");
+                        Extensions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Source slot is currently dragged manually</color>");
                         return false;
                     }
                 }
@@ -500,7 +500,7 @@ namespace DragAndDropSystem
 
             if (!_autoTransferService.TryCreateContext(sourceSlots, sourceInventory, targetInventory, out var context, out var createFailure))
             {
-                Extentions.DragAndDropLog($"<color=red>TryAutoTransferAsync(batch): {createFailure}</color>");
+                Extensions.DragAndDropLog($"<color=red>TryAutoTransferAsync(batch): {createFailure}</color>");
                 return false;
             }
 
@@ -518,7 +518,7 @@ namespace DragAndDropSystem
 
             if (!dropResult.Success)
             {
-                Extentions.DragAndDropLog($"<color=red>AutoTransfer async failed: {dropResult.FailureReason}</color>");
+                Extensions.DragAndDropLog($"<color=red>AutoTransfer async failed: {dropResult.FailureReason}</color>");
                 OnAutoTransferFailed?.Invoke(context);
                 return false;
             }
@@ -567,7 +567,7 @@ namespace DragAndDropSystem
 
             string itemName = transferredItem?.DisplayName ?? "Unknown";
             string targetName = targetInventory?.GetType().Name ?? "Unknown";
-            Extentions.DragAndDropLog($"<color=green>AutoTransfer success: {transferredAmount}x {itemName} → {targetName} (slot {finalTargetSlot?.Index.ToString() ?? "-"})</color>");
+            Extensions.DragAndDropLog($"<color=green>AutoTransfer success: {transferredAmount}x {itemName} → {targetName} (slot {finalTargetSlot?.Index.ToString() ?? "-"})</color>");
 
             if (canAnimate)
             {

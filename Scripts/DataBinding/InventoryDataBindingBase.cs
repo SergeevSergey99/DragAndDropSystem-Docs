@@ -87,7 +87,7 @@ namespace DragAndDropSystem.DataBinding
             if (_internalRule != null)
             {
                 _inventory.RuleValidator.AddRule(_internalRule);
-                Extentions.DragAndDropLog($"[{GetType().Name}] Added internal rule to inventory");
+                Extensions.DragAndDropLog($"[{GetType().Name}] Added internal rule to inventory");
             }
 
             // Копируем все правила из DataBinding в инвентарь
@@ -97,7 +97,7 @@ namespace DragAndDropSystem.DataBinding
                 if (rule != null)
                 {
                     _inventory.RuleValidator.AddRule(rule);
-                    Extentions.DragAndDropLog($"[{GetType().Name}] Added rule '{rule.RuleName}' to inventory");
+                    Extensions.DragAndDropLog($"[{GetType().Name}] Added rule '{rule.RuleName}' to inventory");
                 }
             }
         }
@@ -133,7 +133,7 @@ namespace DragAndDropSystem.DataBinding
             var result = CanSwap(context);
             if (!result.IsValid)
             {
-                Extentions.DragAndDropLog($"[{GetType().Name}] CanSwap rejected: {result.FailureReason}");
+                Extensions.DragAndDropLog($"[{GetType().Name}] CanSwap rejected: {result.FailureReason}");
                 context.Cancel = true;
             }
         }
@@ -153,7 +153,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (IsSyncing) return;
 
-            Extentions.DragAndDropLog($"[{GetType().Name}] Item added: {context.Item.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
+            Extensions.DragAndDropLog($"[{GetType().Name}] Item added: {context.Item.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
             OnItemAddedToUI(context);
         }
 
@@ -164,7 +164,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (IsSyncing) return;
 
-            Extentions.DragAndDropLog($"[{GetType().Name}] Item removed: {context.Item.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
+            Extensions.DragAndDropLog($"[{GetType().Name}] Item removed: {context.Item.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
             OnItemRemovedFromUI(context);
         }
 

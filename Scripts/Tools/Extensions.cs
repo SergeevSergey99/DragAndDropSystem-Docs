@@ -2,7 +2,7 @@
 
 namespace DragAndDropSystem.Tools
 {
-    public static class Extentions
+    public static class Extensions
     {
         public static void DragAndDropLog(string message)
         {

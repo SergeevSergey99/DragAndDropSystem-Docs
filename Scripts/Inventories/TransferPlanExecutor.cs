@@ -185,7 +185,7 @@ namespace DragAndDropSystem.Inventories
                     else
                     {
                         entryFailed = true;
-                        Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Swap failed: {swapAttempt.FailureReason}</color>");
+                        Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Swap failed: {swapAttempt.FailureReason}</color>");
                     }
                 }
                 else
@@ -209,7 +209,7 @@ namespace DragAndDropSystem.Inventories
                         if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItem, out var domainContext))
                         {
                             var domainFailure = "Failed to build domain context";
-                            Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
+                            Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
                             entryFailed = true;
                             break;
                         }
@@ -217,7 +217,7 @@ namespace DragAndDropSystem.Inventories
                         var validationResult = await ValidateDomainHandlersAsync(domainContext, allowAsyncDomainValidation, cancellationToken);
                         if (!validationResult.IsValid)
                         {
-                            Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {validationResult.FailureReason}</color>");
+                            Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {validationResult.FailureReason}</color>");
                             entryFailed = true;
                             break;
                         }
@@ -311,7 +311,7 @@ namespace DragAndDropSystem.Inventories
             DispatchTransferEvents(successfulOutcomes);
             DispatchSwapEvents(successfulSwaps, options);
 
-            Extentions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Executed plan: successEntries={succeededEntries}, failedEntries={failedEntries}, amount={transferredAmount}</color>");
+            Extensions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Executed plan: successEntries={succeededEntries}, failedEntries={failedEntries}, amount={transferredAmount}</color>");
             return new TransferExecutionSummary(
                 success,
                 succeededEntries,
@@ -434,7 +434,7 @@ namespace DragAndDropSystem.Inventories
                     }
                     catch (System.Exception ex)
                     {
-                        Extentions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain success hook threw: {ex.Message}</color>");
+                        Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain success hook threw: {ex.Message}</color>");
                     }
                 }
             }
@@ -670,7 +670,7 @@ namespace DragAndDropSystem.Inventories
 
             if (!request.IsValid)
             {
-                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Invalid transfer request</color>");
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Invalid transfer request</color>");
                 return false;
             }
 
@@ -692,7 +692,7 @@ namespace DragAndDropSystem.Inventories
 
             if (!TransferItemConversionUtility.TryResolveTargetItem(sourceInventory, targetInventory, stackItem, out var targetPreviewItem))
             {
-                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory rejected item conversion</color>");
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory rejected item conversion</color>");
                 return false;
             }
 
@@ -707,14 +707,14 @@ namespace DragAndDropSystem.Inventories
 
             if (acceptableCount <= 0)
             {
-                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory cannot accept any items</color>");
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory cannot accept any items</color>");
                 return false;
             }
 
             int transferAmount = Math.Min(requestedAmount, acceptableCount);
             int remainingAmount = requestedAmount - transferAmount;
 
-            Extentions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Acceptable: {acceptableCount}, Transfer: {transferAmount}, Remaining: {remainingAmount}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Acceptable: {acceptableCount}, Transfer: {transferAmount}, Remaining: {remainingAmount}</color>");
 
             int removed = sourceSlot.Stack.RemoveFromStack(transferAmount);
             if (removed <= 0)
@@ -747,7 +747,7 @@ namespace DragAndDropSystem.Inventories
             bool added = TryAddToTargetInventory(placementOperation);
             if (!added)
             {
-                Extentions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to add to target, rolling back</color>");
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to add to target, rolling back</color>");
                 InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot, sourceSlot, sourceSlotState);
                 InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot, null, default);
                 return false;
@@ -758,7 +758,7 @@ namespace DragAndDropSystem.Inventories
 
             if (transferStack != null && !transferStack.IsEmpty)
             {
-                Extentions.DragAndDropLog($"<color=yellow>[TransferPlanExecutor] {transferStack.Count} items not placed, returning to source</color>");
+                Extensions.DragAndDropLog($"<color=yellow>[TransferPlanExecutor] {transferStack.Count} items not placed, returning to source</color>");
                 if (sourceSlot.IsEmpty)
                 {
                     sourceSlot.SetStack(new ItemStack(stackItem, transferStack.Count));
@@ -792,7 +792,7 @@ namespace DragAndDropSystem.Inventories
                 targetWasEmpty,
                 actualRemaining);
 
-            Extentions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Transfer complete: {actuallyAdded} transferred, {actualRemaining} remaining in source</color>");
+            Extensions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Transfer complete: {actuallyAdded} transferred, {actualRemaining} remaining in source</color>");
             return true;
         }
 
@@ -805,7 +805,7 @@ namespace DragAndDropSystem.Inventories
 
             if (operation.RequiresStrategyPlacement)
             {
-                Extentions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Using strategy placement mode ({operation.TransferStack.Count} items)</color>");
+                Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Using strategy placement mode ({operation.TransferStack.Count} items)</color>");
 
                 operation.TargetInventory.TryAddStack(operation.TransferStack, -1);
                 int added = operation.TransferAmount - operation.TransferStack.Count;
@@ -852,7 +852,7 @@ namespace DragAndDropSystem.Inventories
 
                     if (alternativeSlot != null)
                     {
-                        Extentions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Found valid alternative slot {alternativeSlot.Index}</color>");
+                        Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Found valid alternative slot {alternativeSlot.Index}</color>");
                         operation.OperationContext?.ResetResult();
                         bool altWasEmpty = alternativeSlot.IsEmpty;
                         if (operation.TargetInventory.TryAddToSlot(
@@ -872,7 +872,7 @@ namespace DragAndDropSystem.Inventories
                     }
                     else
                     {
-                        Extentions.DragAndDropLog("<color=yellow>[TransferPlanExecutor] No valid alternative slot found</color>");
+                        Extensions.DragAndDropLog("<color=yellow>[TransferPlanExecutor] No valid alternative slot found</color>");
                     }
                 }
             }
@@ -912,7 +912,7 @@ namespace DragAndDropSystem.Inventories
                 var inventoryResult = operation.TargetInventory.RuleValidator.ValidateDrop(validationContext, validationEntry);
                 if (!inventoryResult.IsValid)
                 {
-                    Extentions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by inventory rules: {inventoryResult.FailureReason}</color>");
+                    Extensions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by inventory rules: {inventoryResult.FailureReason}</color>");
                     continue;
                 }
 
@@ -921,7 +921,7 @@ namespace DragAndDropSystem.Inventories
                     var slotResult = slot.SlotRuleValidator.ValidateDrop(validationContext, validationEntry);
                     if (!slotResult.IsValid)
                     {
-                        Extentions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");
+                        Extensions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");
                         continue;
                     }
                 }

@@ -301,7 +301,7 @@ namespace DragAndDropSystem.Inventories
                     _slots.Add(slot);
                 }
             }
-            Extentions.DragAndDropLog($"<color=magenta>[{name}] CacheSlots completed! Found {_slots.Count} slots.</color>");
+            Extensions.DragAndDropLog($"<color=magenta>[{name}] CacheSlots completed! Found {_slots.Count} slots.</color>");
         }
         private void InitializeSlots()
         {
@@ -324,17 +324,17 @@ namespace DragAndDropSystem.Inventories
 
         private ISlot CreateSlot()
         {
-            Extentions.DragAndDropLog($"<color=magenta>[{name}] CreateSlot called! Current count: {_slots.Count}</color>");
+            Extensions.DragAndDropLog($"<color=magenta>[{name}] CreateSlot called! Current count: {_slots.Count}</color>");
 
             if (_slotPrefab == null)
             {
-                Extentions.DragAndDropLog($"[{name}] CreateSlot: _slotPrefab is NULL!");
+                Extensions.DragAndDropLog($"[{name}] CreateSlot: _slotPrefab is NULL!");
                 return null;
             }
 
             if (_slotContainer == null)
             {
-                Extentions.DragAndDropLog($"[{name}] CreateSlot: _slotContainer is NULL!");
+                Extensions.DragAndDropLog($"[{name}] CreateSlot: _slotContainer is NULL!");
                 return null;
             }
 
@@ -342,7 +342,7 @@ namespace DragAndDropSystem.Inventories
             slotGO.Initialize(_slots.Count, this);
             _slots.Add(slotGO);
 
-            Extentions.DragAndDropLog($"<color=magenta>[{name}] CreateSlot SUCCESS! New count: {_slots.Count}</color>");
+            Extensions.DragAndDropLog($"<color=magenta>[{name}] CreateSlot SUCCESS! New count: {_slots.Count}</color>");
             return slotGO;
         }
 
@@ -354,19 +354,19 @@ namespace DragAndDropSystem.Inventories
             {
                 case ItemBehaviorType.Unique:
                     baseStrategy = new UniqueItemStrategy();
-                    Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: UniqueItemStrategy</color>");
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: UniqueItemStrategy</color>");
                     break;
                 case ItemBehaviorType.Stackable:
                     baseStrategy = new StackableItemStrategy(_autoMergeOnDrop);
-                    Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy</color>");
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy</color>");
                     break;
                 case ItemBehaviorType.SeparableStacks:
                     baseStrategy = new SeparableStacksStrategy(_allowMergeOnDrop);
-                    Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: SeparableStacksStrategy (allowMerge: {_allowMergeOnDrop})</color>");
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: SeparableStacksStrategy (allowMerge: {_allowMergeOnDrop})</color>");
                     break;
                 default:
                     baseStrategy = new StackableItemStrategy(_autoMergeOnDrop);
-                    Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (default)</color>");
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (default)</color>");
                     break;
             }
 
@@ -374,12 +374,12 @@ namespace DragAndDropSystem.Inventories
             if (_slotManagement == SlotManagementType.Dynamic)
             {
                 SetStrategy(new DynamicSlotDecorator(baseStrategy, CreateSlot, _maxDynamicSlots, _maxFreeSlots, () => _slots, EnsureFreeSlots));
-                Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy wrapped in DynamicSlotDecorator (max: {_maxDynamicSlots}, maxFree: {_maxFreeSlots})</color>");
+                Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy wrapped in DynamicSlotDecorator (max: {_maxDynamicSlots}, maxFree: {_maxFreeSlots})</color>");
             }
             else
             {
                 SetStrategy(baseStrategy);
-                Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy: Fixed slots</color>");
+                Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: Fixed slots</color>");
             }
         }
 
@@ -400,7 +400,7 @@ namespace DragAndDropSystem.Inventories
             if (_strategy != null)
                 return;
 
-            Extentions.DragAndDropLog($"<color=yellow>[{name}] Strategy not initialized, initializing now...</color>");
+            Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy not initialized, initializing now...</color>");
             InitializeSlots();
             InitializeStrategy();
             EnsureFreeSlots();
@@ -489,25 +489,25 @@ namespace DragAndDropSystem.Inventories
 
             EnsureStrategyInitialized();
 
-            Extentions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.Item.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.Item.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
-            bool success = _placementStrategy.TryAdd(_slots as List<ISlot>, stack, targetSlotIndex);
-            bool stackConsumed = stack == null || stack.IsEmpty;
+            bool success = _placementStrategy.TryAdd(_slots, stack, targetSlotIndex);
+            bool stackConsumed = stack.IsEmpty;
 
             if ((!success || !stackConsumed) && stack != null && !stack.IsEmpty)
             {
                 success = TryRelocateAndRetry(stack, targetSlotIndex);
-                stackConsumed = stack == null || stack.IsEmpty;
+                stackConsumed = stack.IsEmpty;
             }
 
             if (success && stackConsumed)
             {
-                Extentions.DragAndDropLog($"<color=green>[{name}] TryAddStack SUCCESS! Now have {_slots.Count} slots</color>");
+                Extensions.DragAndDropLog($"<color=green>[{name}] TryAddStack SUCCESS! Now have {_slots.Count} slots</color>");
                 UpdateAllVisuals();
             }
             else
             {
-                Extentions.DragAndDropLog($"<color=red>[{name}] TryAddStack FAILED!</color>");
+                Extensions.DragAndDropLog($"<color=red>[{name}] TryAddStack FAILED!</color>");
                 success = false;
             }
 
@@ -583,9 +583,9 @@ namespace DragAndDropSystem.Inventories
                     continue;
 
                 // Если нужно больше гибкости — можно заменить на полный пересчет (matching).
-                if (_placementStrategy.TryAdd(_slots as List<ISlot>, stack, targetSlotIndex))
+                if (_placementStrategy.TryAdd(_slots, stack, targetSlotIndex))
                 {
-                    Extentions.DragAndDropLog($"<color=green>[{name}] TryAddStack recovered via relocation</color>");
+                    Extensions.DragAndDropLog($"<color=green>[{name}] TryAddStack recovered via relocation</color>");
                     return true;
                 }
             }
@@ -829,7 +829,7 @@ namespace DragAndDropSystem.Inventories
                 snapshot = CaptureSnapshot();
             }
 
-            bool success = _placementStrategy.TryRemove(_slots as List<ISlot>, item, count, sourceSlotIndex);
+            bool success = _placementStrategy.TryRemove(_slots, item, count, sourceSlotIndex);
 
             if (success)
             {
@@ -843,15 +843,8 @@ namespace DragAndDropSystem.Inventories
             return success;
         }
 
-        public bool Contains(IInventoryItem item)
-        {
-            return _queryStrategy.Contains(_slots as List<ISlot>, item);
-        }
-
-        public int GetItemCount(IInventoryItem item)
-        {
-            return _queryStrategy.GetItemCount(_slots as List<ISlot>, item);
-        }
+        public bool Contains(IInventoryItem item) => _queryStrategy.Contains(_slots, item);
+        public int GetItemCount(IInventoryItem item) => _queryStrategy.GetItemCount(_slots, item);
 
         public void UpdateAllVisuals()
         {
@@ -1027,9 +1020,9 @@ namespace DragAndDropSystem.Inventories
             bool canAccept = _acceptanceStrategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
 
             if (canAccept)
-                Extentions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
+                Extensions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
             else
-                Extentions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: No suitable slots and cannot create new</color>");
+                Extensions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: No suitable slots and cannot create new</color>");
 
             return canAccept;
         }
@@ -1052,7 +1045,7 @@ namespace DragAndDropSystem.Inventories
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
             int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab);
-            Extentions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={request.Item.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={request.Item.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }
 
@@ -1071,7 +1064,7 @@ namespace DragAndDropSystem.Inventories
             for (int i = 0; i < slotsToCreate && _slots.Count < _maxDynamicSlots; i++)
             {
                 CreateSlot();
-                Extentions.DragAndDropLog($"<color=green>[{name}] EnsureFreeSlots: Created slot {_slots.Count}, free slots now: {freeSlots + i + 1}/{_maxFreeSlots}</color>");
+                Extensions.DragAndDropLog($"<color=green>[{name}] EnsureFreeSlots: Created slot {_slots.Count}, free slots now: {freeSlots + i + 1}/{_maxFreeSlots}</color>");
             }
         }
 
@@ -1187,7 +1180,7 @@ namespace DragAndDropSystem.Inventories
                 Destroy(slotTransform.gameObject);
             }
 
-            Extentions.DragAndDropLog($"<color=magenta>[{name}] Removed slot {index}. New count: {_slots.Count}</color>");
+            Extensions.DragAndDropLog($"<color=magenta>[{name}] Removed slot {index}. New count: {_slots.Count}</color>");
             return true;
         }
 
@@ -1215,20 +1208,20 @@ namespace DragAndDropSystem.Inventories
             result = default;
             if (targetSlot == null || sourceSlot == null)
             {
-                Extentions.DragAndDropLog("<color=red>[TrySwapSlots] Slot is null</color>");
+                Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Slot is null</color>");
                 return false;
             }
 
             if (targetSlot.IsEmpty || sourceSlot.IsEmpty)
             {
-                Extentions.DragAndDropLog("<color=red>[TrySwapSlots] One of the slots is empty</color>");
+                Extensions.DragAndDropLog("<color=red>[TrySwapSlots] One of the slots is empty</color>");
                 return false;
             }
 
             // Проверяем что targetSlot принадлежит этому инвентарю
             if (!ReferenceEquals(targetSlot.Inventory, this))
             {
-                Extentions.DragAndDropLog("<color=red>[TrySwapSlots] Target slot doesn't belong to this inventory</color>");
+                Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Target slot doesn't belong to this inventory</color>");
                 return false;
             }
 
@@ -1246,7 +1239,7 @@ namespace DragAndDropSystem.Inventories
                 targetSlot.UpdateVisuals();
                 sourceSlot.UpdateVisuals();
 
-                Extentions.DragAndDropLog($"<color=green>[{name}] Swap completed: slot {targetSlot.Index} ↔ slot {sourceSlot.Index}</color>");
+                Extensions.DragAndDropLog($"<color=green>[{name}] Swap completed: slot {targetSlot.Index} ↔ slot {sourceSlot.Index}</color>");
                 result = new SwapOperationResult(targetStackBackup, sourceStackBackup);
                 return true;
             }

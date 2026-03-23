@@ -111,7 +111,7 @@ namespace DragAndDropSystem.UI
 
             _foundSlot = null;
 
-            Extentions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Exited</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Exited</color>");
         }
 
         protected override void OnDisable()
@@ -147,7 +147,7 @@ namespace DragAndDropSystem.UI
                 return false;
 
             _dragManager.PushDropTarget(this);
-            Extentions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={_foundSlot?.Index.ToString() ?? "AREA"}, inventory={_inventory.name}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={_foundSlot?.Index.ToString() ?? "AREA"}, inventory={_inventory.name}</color>");
             return true;
         }
 
@@ -204,7 +204,7 @@ namespace DragAndDropSystem.UI
             var processor = CreateDropProcessor(suggestedSlot);
             bool canAccept = processor.CanAcceptDrop(validationContext);
             if (!canAccept)
-                Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Planner rejected drop in {_inventory.name}</color>");
+                Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Planner rejected drop in {_inventory.name}</color>");
 
             return canAccept;
         }
@@ -236,7 +236,7 @@ namespace DragAndDropSystem.UI
                 bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out suggestedSlot);
                 if (!canAccept)
                 {
-                    Extentions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
+                    Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
                     return false;
                 }
             }
