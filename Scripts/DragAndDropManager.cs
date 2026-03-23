@@ -46,6 +46,7 @@ namespace DragAndDropSystem
 
         private readonly AutoTransferService _autoTransferService = new AutoTransferService();
         private bool _isCompletingDrag;
+        private bool _isProcessingTransfer;
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
@@ -321,7 +322,16 @@ namespace DragAndDropSystem
 
         private async Task CompleteDragAsync()
         {
+            if (_isProcessingTransfer)
+            {
+                Extensions.DragAndDropLog("<color=red>CompleteDrag: Another transfer is in progress</color>");
+                OnDragCancelled?.Invoke(_currentContext);
+                EndDrag();
+                return;
+            }
+
             _isCompletingDrag = true;
+            _isProcessingTransfer = true;
             bool success = false;
             DropResult result = default;
             IDropProcessor processorToUse = _currentProcessor;
@@ -388,6 +398,7 @@ namespace DragAndDropSystem
             {
                 EndDrag();
                 _isCompletingDrag = false;
+                _isProcessingTransfer = false;
             }
         }
 
@@ -445,6 +456,12 @@ namespace DragAndDropSystem
             if (sourceSlots == null || sourceSlots.Count == 0 || sourceInventory == null || targetInventory == null)
             {
                 Extensions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Invalid parameters</color>");
+                return false;
+            }
+
+            if (_isProcessingTransfer)
+            {
+                Extensions.DragAndDropLog("<color=red>TryAutoTransfer(batch): Another transfer is in progress</color>");
                 return false;
             }
 
@@ -507,46 +524,60 @@ namespace DragAndDropSystem
                 return false;
             }
 
-            if (IsDragging && _currentContext != null && _currentContext.Entries.Count > 0)
+            if (_isProcessingTransfer)
             {
-                for (int i = 0; i < sourceSlots.Count; i++)
+                Extensions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Another transfer is in progress</color>");
+                return false;
+            }
+
+            _isProcessingTransfer = true;
+            try
+            {
+                if (IsDragging && _currentContext != null && _currentContext.Entries.Count > 0)
                 {
-                    if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
+                    for (int i = 0; i < sourceSlots.Count; i++)
                     {
-                        Extensions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Source slot is currently dragged manually</color>");
-                        return false;
+                        if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
+                        {
+                            Extensions.DragAndDropLog("<color=red>TryAutoTransferAsync(batch): Source slot is currently dragged manually</color>");
+                            return false;
+                        }
                     }
                 }
-            }
 
-            if (!_autoTransferService.TryCreateContext(sourceSlots, sourceInventory, targetInventory, out var context, out var createFailure))
+                if (!_autoTransferService.TryCreateContext(sourceSlots, sourceInventory, targetInventory, out var context, out var createFailure))
+                {
+                    Extensions.DragAndDropLog($"<color=red>TryAutoTransferAsync(batch): {createFailure}</color>");
+                    return false;
+                }
+
+                OnAutoTransferAttempting?.Invoke(context);
+
+                TransferExecutionSummary executionSummary = null;
+                var dropResult = await _autoTransferService.ExecuteAsync(
+                    context,
+                    targetInventory,
+                    _globalRules,
+                    RaiseSwapAttempting,
+                    RaiseSwapCompleted,
+                    cancellationToken,
+                    summary => executionSummary = summary);
+
+                if (!dropResult.Success)
+                {
+                    Extensions.DragAndDropLog($"<color=red>AutoTransfer async failed: {dropResult.FailureReason}</color>");
+                    OnAutoTransferFailed?.Invoke(context);
+                    return false;
+                }
+
+                NotifyAutoTransferSourceSlots(context);
+                FinalizeAutoTransferSuccess(context, targetInventory, dropResult, executionSummary);
+                return true;
+            }
+            finally
             {
-                Extensions.DragAndDropLog($"<color=red>TryAutoTransferAsync(batch): {createFailure}</color>");
-                return false;
+                _isProcessingTransfer = false;
             }
-
-            OnAutoTransferAttempting?.Invoke(context);
-
-            TransferExecutionSummary executionSummary = null;
-            var dropResult = await _autoTransferService.ExecuteAsync(
-                context,
-                targetInventory,
-                _globalRules,
-                RaiseSwapAttempting,
-                RaiseSwapCompleted,
-                cancellationToken,
-                summary => executionSummary = summary);
-
-            if (!dropResult.Success)
-            {
-                Extensions.DragAndDropLog($"<color=red>AutoTransfer async failed: {dropResult.FailureReason}</color>");
-                OnAutoTransferFailed?.Invoke(context);
-                return false;
-            }
-
-            NotifyAutoTransferSourceSlots(context);
-            FinalizeAutoTransferSuccess(context, targetInventory, dropResult, executionSummary);
-            return true;
         }
 
         private static void NotifyAutoTransferSourceSlots(DragContext context)
