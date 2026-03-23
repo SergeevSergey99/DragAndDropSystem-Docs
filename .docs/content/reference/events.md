@@ -15,9 +15,9 @@ stateDiagram-v2
 
     DragOver: OnDragEnterSlot/OnDragExitSlot
 
-    [*] --> OnDragStarting: Игрок начинает перетаскивание
-    OnDragStarting --> OnDragStarted: Не отменено
-    OnDragStarting --> OnDragCancelled: Отменено
+    [*] --> OnDragAttempting: Игрок начинает перетаскивание
+    OnDragAttempting --> OnDragStarted: Не отменено
+    OnDragAttempting --> OnDragCancelled: Отменено
     OnDragStarted --> DragOver: Перетаскивание над слотами
     DragOver --> OnDropAttempting: Отпускание над слотом
     OnDragStarted --> OnDragCancelled: Нет подходящей цели
@@ -27,7 +27,7 @@ stateDiagram-v2
     OnDragCancelled --> OnDragEnded
 
     class DragOver dragOver
-    class OnDragStarting dragStarted
+    class OnDragAttempting dragStarted
     class OnDragCancelled dragCancelled
     class OnDragEnded dragEnded
 ```
@@ -40,7 +40,7 @@ stateDiagram-v2
 
 | Событие | Когда срабатывает | Примечание |
 |---------|-------------------|------------|
-| `OnDragStarting` | Перед началом перетаскивания | Можно отменить через правила |
+| `OnDragAttempting` | Перед началом перетаскивания | Можно отменить через правила |
 | `OnDragStarted` | Перетаскивание подтверждено | `DragContext` доступен |
 | `OnDragEnterSlot` | Курсор входит в слот | Информация о целевом слоте |
 | `OnDragExitSlot` | Курсор покидает слот | Информация о предыдущем слоте |

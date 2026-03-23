@@ -62,7 +62,7 @@ namespace DragAndDropSystem
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
 
         // События drag-and-drop
-        public static event Action<DragContext> OnDragStarting;
+        public static event Action<DragContext> OnDragAttempting;
         public static event Action<DragContext> OnDragStarted;
         public static event Action<DragContext> OnDragEnterSlot;
         public static event Action<DragContext> OnDragExitSlot;
@@ -93,7 +93,7 @@ namespace DragAndDropSystem
             base.DeInit();
 
             // Очищаем static events для предотвращения утечек при смене сцен
-            OnDragStarting = null;
+            OnDragAttempting = null;
             OnDragStarted = null;
             OnDragEnterSlot = null;
             OnDragExitSlot = null;
@@ -165,7 +165,7 @@ namespace DragAndDropSystem
             _currentContext = new DragContext(entries);
 
             // Event: starting
-            OnDragStarting?.Invoke(_currentContext);
+            OnDragAttempting?.Invoke(_currentContext);
 
             // Per-entry validation
             foreach (var entry in _currentContext.Entries)

@@ -11,21 +11,23 @@ stateDiagram-v2
     classDef dragEnded fill:#f4f4,stroke-width:2px
     classDef dragCancelled fill:#f444,stroke-width:2px
     classDef dragStarted fill:#4F44,stroke-width:2px
-    classDef dragOver fill:#8884,stroke-width:2px
+    classDef dragOver fill:#8884,stroke-width:0px
+    
+    DragOver: OnDragEnterSlot/OnDragExitSlot
 
-    [*] --> OnDragStarting: Player begins dragging
-    OnDragStarting --> OnDragStarted: Not cancelled
-    OnDragStarting --> OnDragCancelled: Cancelled
-    OnDragStarted --> OnDragEnterSlot/OnDragExitSlot: Dragging over slots
-    OnDragEnterSlot/OnDragExitSlot --> OnDropAttempting: Released over target
+    [*] --> OnDragAttempting: Player begins dragging
+    OnDragAttempting --> OnDragStarted: Not cancelled
+    OnDragAttempting --> OnDragCancelled: Cancelled
+    OnDragStarted --> DragOver: Dragging over slots
+    DragOver --> OnDropAttempting: Released over target
     OnDragStarted --> OnDragCancelled: No suitable target
     OnDropAttempting --> OnDropCompleted: Success
     OnDropAttempting --> OnDragCancelled: Failure
     OnDropCompleted --> OnDragEnded
     OnDragCancelled --> OnDragEnded
 
-   class OnDragEnterSlot/OnDragExitSlot dragOver
-   class OnDragStarting dragStarted
+   class DragOver dragOver
+   class OnDragAttempting dragStarted
    class OnDragCancelled dragCancelled
    class OnDragEnded dragEnded
 ```
@@ -38,7 +40,7 @@ stateDiagram-v2
 
 | Event | When it fires | Note |
 |-------|---------------|------|
-| `OnDragStarting` | Before dragging begins | Can be cancelled via rules |
+| `OnDragAttempting` | Before dragging begins | Can be cancelled via rules |
 | `OnDragStarted` | Dragging confirmed | `DragContext` is available |
 | `OnDragEnterSlot` | Cursor enters a slot | Target slot information |
 | `OnDragExitSlot` | Cursor leaves a slot | Previous slot information |
