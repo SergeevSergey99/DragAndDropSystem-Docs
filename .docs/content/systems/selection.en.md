@@ -45,6 +45,21 @@ flowchart LR
 
 If the selection is empty, only the slot that was grabbed is dragged. Transfers from different inventories can be restricted via the `_restrictToSameInventory` setting.
 
+### How batch transfer works
+
+During group dragging, the target slot (where items are dropped) is used only as a hint. The system finds suitable slots for each item automatically.
+
+Behavior is determined by the target inventory's `DropPolicy`:
+
+| Policy | Behavior |
+|---|---|
+| **Atomic** (default for batch) | All items must fit. If any item fails — the entire operation is cancelled, nothing is moved |
+| **BestEffort** | Whatever fits is transferred, the rest stays in source |
+
+Swap is not supported during batch transfer — only placement into free or compatible slots.
+
+After a successful batch transfer, the selection is automatically cleared.
+
 ---
 
 ## Setup

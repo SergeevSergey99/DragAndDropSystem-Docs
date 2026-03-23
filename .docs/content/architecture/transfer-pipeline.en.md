@@ -98,6 +98,42 @@ flowchart TD
 
 ---
 
+## What happens on failure
+
+If a check or commit fails, the behavior depends on the policy:
+
+| Situation | What happens |
+|---|---|
+| `CanDrop` returns failure | transfer does not start, item returns to source |
+| `CanCommitTransfer` returns failure | transfer is cancelled before commit, state unchanged |
+| `CanCommitTransferAsync` returns failure | transfer is cancelled before commit, state unchanged |
+| Atomic batch: one item fails | entire operation is cancelled, no items are moved |
+| BestEffort batch: one item fails | remaining items are transferred, failed ones stay in source |
+
+The key point: if a check fails, inventories remain in their original state. Planning builds a plan without mutations, and commit only applies after all checks pass.
+
+---
+
+## Batch operations and policies
+
+When transferring multiple items at once, behavior is determined by `DropPolicy`:
+
+```mermaid
+flowchart TD
+    A["Transferring multiple\nitems"] --> B{"Which policy?"}
+    B -->|Atomic| C["All or nothing:\nif any item fails,\ncancel everything"]
+    B -->|BestEffort| D["Transfer what fits,\nleave the rest\nin source"]
+```
+
+Defaults:
+
+- single transfer — `StrictTarget`, `Partial`, `BestEffort`
+- batch (from selection) — `TargetAsHint`, `RejectAll`, `Atomic`
+
+The policy can be configured in the inspector on each `UniversalInventory` (Drop Policy section).
+
+---
+
 ## Swap is part of the same pipeline
 
 ```mermaid
