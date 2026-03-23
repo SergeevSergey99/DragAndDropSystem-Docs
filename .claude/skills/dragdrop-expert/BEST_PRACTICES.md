@@ -162,7 +162,7 @@ Complete guide for extending the system and optimization strategies.
 
 **Purpose**: Prevent O(n²) performance for large inventories.
 
-**Location**: → `Scripts/Inventories/UniversalInventory.cs` (TryRelocateAndRetry)
+**Location**: → `Scripts/Inventories/SlotRelocationService.cs` (TryRelocateAndRetry)
 
 **How It Works**:
 - Add `[SerializeField] int _maxRelocationAttempts = 3;` config

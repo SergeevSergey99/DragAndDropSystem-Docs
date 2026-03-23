@@ -20,7 +20,7 @@ Potential future improvement:
 ### TryRelocateAndRetry() - O(n²)
 
 Location:
-- `Scripts/Inventories/UniversalInventory.cs`
+- `Scripts/Inventories/SlotRelocationService.cs`
 
 Problem:
 - relocation may try many slot combinations when recovering from failed placement
@@ -67,11 +67,12 @@ This avoids repeated sorting work during validation-heavy operations.
 
 Focus on:
 1. `UpdateAllVisuals()`
-2. `TryRelocateAndRetry()`
+2. `SlotRelocationService.TryRelocateAndRetry()`
 3. acceptance preview (`InventoryAcceptanceRequest` path)
 4. strategy placement methods (`TryAdd`, `TryAddToSlot`)
 
 Check locations:
+- `Scripts/Inventories/SlotRelocationService.cs`
 - `Scripts/Inventories/UniversalInventory.cs`
 - `Scripts/Inventories/Strategies/*.cs`
 - `Scripts/Rules/RuleValidator.cs`

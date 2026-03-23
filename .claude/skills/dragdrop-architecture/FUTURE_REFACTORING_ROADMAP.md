@@ -139,11 +139,8 @@ Still intentionally kept for compatibility:
 
 ### Problem
 
-`InventoryDataBindingBase` currently owns both:
-- data synchronization (`CreateAdapter`, `ExtractData`, list/mapped sync)
-- transfer conversion (`ConvertIncomingItem`, `ConvertOutgoingItem`)
-
-This mixes UI/data binding concerns with inter-inventory domain transformation.
+`InventoryDataBindingBase` previously owned both data synchronization and transfer conversion.
+This has been resolved — conversion is now handled by dedicated `IInventoryItemConverter` implementations.
 
 ### Goal
 
@@ -218,9 +215,9 @@ Recommended starting point: Option A.
 ### Migration Plan
 
 1. Introduce `IInventoryItemConverter`
-2. Mirror current `ConvertIncomingItem` / `ConvertOutgoingItem` implementations into converters
-3. Update `TransferItemConversionUtility` and `UniversalInventory` preview/commit conversion to use converters
-4. Remove conversion methods from `InventoryDataBindingBase`
+2. ~~Mirror current `ConvertIncomingItem` / `ConvertOutgoingItem` implementations into converters~~ done
+3. ~~Update `TransferItemConversionUtility` and `UniversalInventory` preview/commit conversion to use converters~~ done
+4. ~~Remove conversion methods from `InventoryDataBindingBase`~~ done — legacy methods and `LegacyDataBindingItemConverter` removed
 
 ### Benefits
 
@@ -566,7 +563,7 @@ Current status:
 - core converter API exists on `UniversalInventory`
 - `IdentityInventoryItemConverter` is the default implementation
 - `InventoryDataBindingBase` now configures inventory converter via `CreateItemConverter()`
-- old `ConvertIncomingItem` / `ConvertOutgoingItem` remain only as compatibility fallback through `LegacyDataBindingItemConverter`
+- legacy `ConvertIncomingItem` / `ConvertOutgoingItem` and `LegacyDataBindingItemConverter` have been removed
 - Demo2 Trading converters were moved into dedicated converter classes
 
 ### Phase 3

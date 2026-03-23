@@ -52,7 +52,7 @@ shared transfer helpers:
 - `IdentityInventoryItemConverter`
 - preview chain: `TransferItemConversionUtility` → `TryPreviewOutgoingItem` → `TryPreviewIncomingItem`
 - mutation chain: source inventory applies outgoing conversion, target inventory applies incoming conversion
-- `InventoryDataBindingBase` can still bridge legacy conversion overrides through `LegacyDataBindingItemConverter`
+- `InventoryDataBindingBase` configures converter via `CreateItemConverter()` (returns null → identity)
 
 ### Template DataBindings
 
