@@ -295,11 +295,16 @@ namespace DragAndDropSystem
         /// <summary>
         /// Complete the drag operation
         /// </summary>
-        public async void CompleteDrag()
+        public void CompleteDrag()
         {
             if (!IsDragging || _isCompletingDrag)
                 return;
 
+            _ = CompleteDragAsync();
+        }
+
+        private async Task CompleteDragAsync()
+        {
             _isCompletingDrag = true;
             bool success = false;
             DropResult result = default;
@@ -357,7 +362,7 @@ namespace DragAndDropSystem
             }
             catch (System.Exception ex)
             {
-                Extensions.DragAndDropLog($"<color=red>CompleteDrag failed with exception: {ex.Message}</color>");
+                Debug.LogException(ex);
                 if (!success)
                 {
                     OnDragCancelled?.Invoke(dragContext);
