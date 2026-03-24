@@ -1244,6 +1244,12 @@ namespace DragAndDropSystem.Inspector.Editor
 
                     float x = position.x + col * (CellSize + EditorGUIUtility.standardVerticalSpacing);
                     Rect cellRect = new Rect(x, y, CellSize, totalCellHeight);
+
+                    if (Event.current.type == EventType.ContextClick && cellRect.Contains(Event.current.mousePosition))
+                    {
+                        Event.current.Use();
+                    }
+
                     GUI.Box(cellRect, GUIContent.none, EditorStyles.helpBox);
 
                     Rect previewRect = new Rect(
@@ -1259,7 +1265,6 @@ namespace DragAndDropSystem.Inspector.Editor
                         cellRect.width - 2f,
                         CellFooterHeight);
 
-                    EditorGUI.BeginProperty(cellRect, GUIContent.none, element);
                     UnityEngine.Object newValue = EditorGUI.ObjectField(
                         fieldRect,
                         GUIContent.none,
@@ -1271,7 +1276,6 @@ namespace DragAndDropSystem.Inspector.Editor
                         element.objectReferenceValue = newValue;
                         property.serializedObject.ApplyModifiedProperties();
                     }
-                    EditorGUI.EndProperty();
                 }
 
                 y += totalCellHeight + EditorGUIUtility.standardVerticalSpacing;
