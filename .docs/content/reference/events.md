@@ -7,35 +7,40 @@
 ## События жизненного цикла перетаскивания
 
 ```mermaid
-stateDiagram-v2
-    classDef dragEnded fill:#f4f4,stroke-width:2px
-    classDef dragCancelled fill:#f444,stroke-width:2px
-    classDef dragStarted fill:#4F44,stroke-width:2px
-    classDef dragOver fill:#8884,stroke-width:0px
+---
+config:
+  flowchart:
+    curve: monotoneY 
+---
+flowchart TD
+    StartPoint@{ shape: sm-circ, label: "Start" }
+    NoTargetPoint@{ shape: sm-circ, label: "Start" }
+    OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
+    style OnDragAttempting fill:#4F44
+    OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
+    OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
+    style OnDragCancelled fill:#f444
+    DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
+    style DragOver fill:#8884, stroke-dasharray: 5 5
+    OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
+    OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
+    style OnDragEnded fill:#f4f4
 
-    DragOver: OnDragEnterSlot/OnDragExitSlot
-
-    state join_state <<join>>
-
-    [*] --> OnDragAttempting: Игрок начинает перетаскивание
-    OnDragAttempting --> OnDragStarted: Не отменено
-    OnDragAttempting --> OnDragCancelled: Отменено
-    OnDragStarted --> DragOver: Перетаскивание над слотами
-    DragOver --> OnDropAttempting: Отпускание над слотом
-    
-    DragOver --> join_state
-    OnDragStarted --> join_state
-    join_state --> OnDragCancelled: Нет подходящей цели
-
-    OnDropAttempting --> OnDropCompleted: Успешно
-    OnDropAttempting --> OnDragCancelled: Неудача
+    StartPoint --> |Игрок начинает перетаскивание|OnDragAttempting
+    OnDragAttempting --> |Не отменено| OnDragStarted
+    NoTargetPoint --> |Нет подходящей цели| OnDragCancelled
+    OnDragStarted --> |Перетаскивание над слотами| DragOver
+    DragOver --> |Отпускание над слотом| OnDropAttempting
+    OnDragAttempting --- NoTargetPoint
+    OnDragStarted --- NoTargetPoint
+    DragOver --- NoTargetPoint
+    OnDragAttempting --> |Отменено| OnDragCancelled
+    OnDropAttempting --> |Успешно| OnDropCompleted
+    OnDropAttempting --> |Неудача| OnDragCancelled
     OnDropCompleted --> OnDragEnded
     OnDragCancelled --> OnDragEnded
-
-    class DragOver dragOver
-    class OnDragAttempting dragStarted
-    class OnDragCancelled dragCancelled
-    class OnDragEnded dragEnded
+    
 ```
 
 ---

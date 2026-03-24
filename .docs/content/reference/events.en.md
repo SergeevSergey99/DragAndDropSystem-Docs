@@ -7,35 +7,39 @@ All events provided by `DragAndDropManager` and `UniversalInventory`.
 ## Drag Lifecycle Events
 
 ```mermaid
-stateDiagram-v2
-    classDef dragEnded fill:#f4f4,stroke-width:2px
-    classDef dragCancelled fill:#f444,stroke-width:2px
-    classDef dragStarted fill:#4F44,stroke-width:2px
-    classDef dragOver fill:#8884,stroke-width:0px
-    
-    DragOver: OnDragEnterSlot/OnDragExitSlot
+---
+config:
+  flowchart:
+    curve: monotoneY 
+---
+flowchart TD
+    StartPoint@{ shape: sm-circ, label: "Start" }
+    NoTargetPoint@{ shape: sm-circ, label: "Start" }
+    OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
+    style OnDragAttempting fill:#4F44
+    OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
+    OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
+    style OnDragCancelled fill:#f444
+    DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
+    style DragOver fill:#8884, stroke-dasharray: 5 5
+    OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
+    OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
+    style OnDragEnded fill:#f4f4
 
-    state join_state <<join>>
-
-    [*] --> OnDragAttempting: Player begins dragging
-    OnDragAttempting --> OnDragStarted: Not cancelled
-    OnDragAttempting --> OnDragCancelled: Cancelled
-    OnDragStarted --> DragOver: Dragging over slots
-    DragOver --> OnDropAttempting: Released over target
-
-    DragOver --> join_state
-    OnDragStarted --> join_state
-    join_state --> OnDragCancelled: No suitable target
-
-    OnDropAttempting --> OnDropCompleted: Success
-    OnDropAttempting --> OnDragCancelled: Failure
+    StartPoint --> |Player begins dragging|OnDragAttempting
+    OnDragAttempting --> |Not cancelled| OnDragStarted
+    NoTargetPoint --> |No suitable target| OnDragCancelled
+    OnDragStarted --> |Dragging over slots| DragOver
+    DragOver --> |Released over target| OnDropAttempting
+    OnDragAttempting --- NoTargetPoint
+    OnDragStarted --- NoTargetPoint
+    DragOver --- NoTargetPoint
+    OnDragAttempting --> |Cancelled| OnDragCancelled
+    OnDropAttempting --> |Success| OnDropCompleted
+    OnDropAttempting --> |Failure| OnDragCancelled
     OnDropCompleted --> OnDragEnded
-    OnDragCancelled --> OnDragEnded
-
-   class DragOver dragOver
-   class OnDragAttempting dragStarted
-   class OnDragCancelled dragCancelled
-   class OnDragEnded dragEnded
+    OnDragCancelled --> OnDragEnded    
 ```
 
 ---
