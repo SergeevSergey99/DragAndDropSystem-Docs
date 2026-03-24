@@ -6,7 +6,6 @@ namespace DragAndDropSystem.Examples.Minecraft
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/Item")]
     public class MinecraftItemSO : ScriptableObject
     {
-        [field: SerializeField] public string ItemId { get; private set; }
         [field: SerializeField] public string DisplayName { get; private set; }
         [field: SerializeField, PreviewField(120)] public Sprite Icon { get; private set; }
 

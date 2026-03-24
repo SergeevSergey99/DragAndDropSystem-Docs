@@ -29,7 +29,7 @@ namespace DragAndDropSystem.Examples.Minecraft
         /// Проверить, совпадает ли содержимое сетки с рецептом.
         /// gridItemIds — массив из 9 ItemId (null = пустой слот).
         /// </summary>
-        public bool Matches(string[] gridItemIds)
+        public bool Matches(MinecraftItemSO[] gridItemIds)
         {
             if (gridItemIds == null || gridItemIds.Length != 9 || _result == null)
                 return false;
@@ -45,18 +45,28 @@ namespace DragAndDropSystem.Examples.Minecraft
             if (gridSlots == null || gridSlots.Count != 9)
                 return false;
 
-            var ids = new string[9];
+            var items = new MinecraftItemSO[9];
             for (int i = 0; i < 9; i++)
-                ids[i] = gridSlots[i].IsEmpty ? null : gridSlots[i].Stack.Item.ItemId;
+            {
+                if (gridSlots[i] != null && !gridSlots[i].IsEmpty && gridSlots[i].Stack.Item is MinecraftItemAdapter adapter)
+                {
+                    items[i] = adapter.ItemSO;
+                }
+                else
+                {
+                    items[i] = null;
+                }
+                
+            }
 
-            return Matches(ids);
+            return Matches(items);
         }
 
         #region Shaped matching (с учётом смещения)
 
-        private bool MatchesShaped(string[] gridItemIds)
+        private bool MatchesShaped(MinecraftItemSO[] gridItemIds)
         {
-            var patternIds = GetPatternItemIds();
+            var patternIds = GetPatternItems();
 
             Normalize(patternIds, out var pItems, out int pRows, out int pCols);
             Normalize(gridItemIds, out var gItems, out int gRows, out int gCols);
@@ -79,7 +89,7 @@ namespace DragAndDropSystem.Examples.Minecraft
         /// <summary>
         /// Убрать пустые строки/столбцы с краёв и вернуть минимальный прямоугольник.
         /// </summary>
-        private static void Normalize(string[] grid3x3, out string[] items, out int rows, out int cols)
+        private static void Normalize(MinecraftItemSO[] grid3x3, out MinecraftItemSO[] items, out int rows, out int cols)
         {
             int minR = 3, maxR = -1, minC = 3, maxC = -1;
             for (int i = 0; i < 9; i++)
@@ -96,7 +106,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
             if (maxR < 0)
             {
-                items = Array.Empty<string>();
+                items = Array.Empty<MinecraftItemSO>();
                 rows = 0;
                 cols = 0;
                 return;
@@ -104,7 +114,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
             rows = maxR - minR + 1;
             cols = maxC - minC + 1;
-            items = new string[rows * cols];
+            items = new MinecraftItemSO[rows * cols];
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     items[r * cols + c] = grid3x3[(minR + r) * 3 + (minC + c)];
@@ -114,21 +124,21 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         #region Shapeless matching (порядок не важен)
 
-        private bool MatchesShapeless(string[] gridItemIds)
+        private bool MatchesShapeless(MinecraftItemSO[] gridItems)
         {
-            var patternList = new List<string>();
-            foreach (var id in GetPatternItemIds())
-                if (id != null) patternList.Add(id);
+            var patternList = new List<MinecraftItemSO>();
+            foreach (var item in GetPatternItems())
+                if (item != null) patternList.Add(item);
 
-            var gridList = new List<string>();
-            foreach (var id in gridItemIds)
+            var gridList = new List<MinecraftItemSO>();
+            foreach (var id in gridItems)
                 if (id != null) gridList.Add(id);
 
             if (patternList.Count != gridList.Count)
                 return false;
 
-            patternList.Sort(StringComparer.Ordinal);
-            gridList.Sort(StringComparer.Ordinal);
+            patternList.Sort();
+            gridList.Sort();
 
             for (int i = 0; i < patternList.Count; i++)
                 if (patternList[i] != gridList[i])
@@ -139,11 +149,11 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         #endregion
 
-        private string[] GetPatternItemIds()
+        private MinecraftItemSO[] GetPatternItems()
         {
-            var ids = new string[9];
+            var ids = new MinecraftItemSO[9];
             for (int i = 0; i < 9; i++)
-                ids[i] = _pattern.Get(i) != null ? _pattern.Get(i).ItemId : null;
+                ids[i] = _pattern.Get(i) != null ? _pattern.Get(i) : null;
             return ids;
         }
     }

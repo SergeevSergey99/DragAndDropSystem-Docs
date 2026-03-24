@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Examples.Minecraft
             if (index < 0 || index >= _gridItems.Length || item == null || count <= 0)
                 return;
 
-            if (_gridItems[index] != null && _gridItems[index].ItemId == item.ItemId)
+            if (_gridItems[index] != null && _gridItems[index] == item)
                 _gridCounts[index] += count;
             else
             {

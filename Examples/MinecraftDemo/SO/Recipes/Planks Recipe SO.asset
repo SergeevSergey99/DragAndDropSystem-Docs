@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0817796876da3f42b3c90ee179d074c, type: 3}
-  m_Name: New Crafting Recipe SO
+  m_Name: Planks Recipe SO
   m_EditorClassIdentifier: 
   _pattern:
     _cells:
@@ -18,11 +18,11 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
   _shapeless: 0
-  _result: {fileID: 0}
-  _resultCount: 1
+  _result: {fileID: 11400000, guid: 5df2bba02ec483b41ac1796fa9e011c5, type: 2}
+  _resultCount: 4

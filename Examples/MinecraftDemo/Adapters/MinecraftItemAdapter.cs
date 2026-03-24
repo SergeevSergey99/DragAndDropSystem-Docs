@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Examples.Minecraft
             ItemSO = item;
         }
 
-        public string ItemId => ItemSO.ItemId;
+        public string ItemId => ItemSO.GetInstanceID().ToString();
         public Sprite Icon => ItemSO.Icon;
         public string DisplayName => ItemSO.DisplayName;
     }
