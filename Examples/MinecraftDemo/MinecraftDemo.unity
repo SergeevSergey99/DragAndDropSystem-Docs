@@ -1076,6 +1076,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DragCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      propertyPath: m_RenderMode
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1593,47 +1597,74 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hotbarItems:
-  - {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
-  - {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 11400000, guid: 4af40b5895ba8d2479afac6ca07f25d5, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 11400000, guid: 5fe059572441ded4991b358684a2b500, type: 2}
-  - {fileID: 0}
+  - rid: 6676589208637538376
+  - rid: 6676589208637538382
+  - rid: -2
+  - rid: 6676589208637538377
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
   _inventoryItems:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  _recipes:
-  - {fileID: 11400000, guid: 0a50e270122c59b4da26076d2850f6f1, type: 2}
-  - {fileID: 11400000, guid: 11cf9ee79d58af347b7346cef7b1f2de, type: 2}
-  - {fileID: 11400000, guid: abf79ff3a167ccf4db7491e2af275039, type: 2}
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  _craftTableItems:
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  - rid: -2
+  _recipes: []
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 6676589208637538376
+      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
+      data:
+        ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
+        Count: 14
+    - rid: 6676589208637538377
+      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
+      data:
+        ItemSO: {fileID: 11400000, guid: 5fe059572441ded4991b358684a2b500, type: 2}
+        Count: 9
+    - rid: 6676589208637538382
+      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
+      data:
+        ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
+        Count: 60
 --- !u!1001 &455171187
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7266,6 +7297,7 @@ GameObject:
   - component: {fileID: 2040973501}
   - component: {fileID: 2040973503}
   - component: {fileID: 2040973502}
+  - component: {fileID: 2040973504}
   m_Layer: 5
   m_Name: Hotbar
   m_TagString: Untagged
@@ -7377,6 +7409,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2040973499}
   m_CullTransparentMesh: 1
+--- !u!114 &2040973504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2040973499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c2d603df4704b978c84371c91f53509, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inventory: {fileID: 2040973501}
+  _ruleValidator:
+    _presets: []
+    _inlineRules: []
+  references:
+    version: 2
+    RefIds: []
 --- !u!1001 &2041269857
 PrefabInstance:
   m_ObjectHideFlags: 0
