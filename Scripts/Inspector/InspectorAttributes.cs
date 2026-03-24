@@ -210,4 +210,9 @@ namespace DragAndDropSystem.Inspector
     public sealed class ManagedReferencePickerAttribute : PropertyAttribute
     {
     }
+
+    [AttributeUsage(AttributeTargets.Field, Inherited = true)]
+    public sealed class RulePresetPickerAttribute : PropertyAttribute
+    {
+    }
 }

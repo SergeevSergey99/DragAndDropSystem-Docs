@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Rules
     [Serializable]
     public class RuleValidator<TRule> where TRule : IDragRule
     {
-        [SerializeField, Title("Preset Lists", TitleAlignment = TitleAlignments.Centered)]
+        [SerializeField, RulePresetPicker, Title("Preset Lists", TitleAlignment = TitleAlignments.Centered)]
         [ListDrawerSettings(
             DraggableItems = true,
             ShowPaging = false,

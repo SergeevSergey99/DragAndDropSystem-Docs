@@ -1706,5 +1706,252 @@ namespace DragAndDropSystem.Inspector.Editor
             return null;
         }
     }
+
+    [CustomPropertyDrawer(typeof(RulePresetPickerAttribute))]
+    public sealed class RulePresetPickerPropertyDrawer : PropertyDrawer
+    {
+        private const float SmallButtonWidth = 24f;
+        private const float BoxPadding = 4f;
+
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return false;
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            if (IsObjectReferenceList(property))
+            {
+                DrawList(position, property, label);
+                return;
+            }
+
+            DrawSingle(position, property, label, GetReferenceFieldType(property), false, null);
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            if (IsObjectReferenceList(property))
+                return GetListHeight(property);
+
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        private void DrawList(Rect position, SerializedProperty property, GUIContent label)
+        {
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            Rect foldoutRect = new Rect(headerRect.x, headerRect.y, 14f, headerRect.height);
+            Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, headerRect.width - 70f, headerRect.height);
+            Rect addButtonRect = new Rect(headerRect.xMax - 64f, headerRect.y, 64f, headerRect.height);
+
+            property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
+            EditorGUI.LabelField(labelRect, $"{label.text} ({property.arraySize})");
+
+            if (GUI.Button(addButtonRect, "Add"))
+            {
+                int index = property.arraySize;
+                property.arraySize++;
+                SerializedProperty element = property.GetArrayElementAtIndex(index);
+                element.objectReferenceValue = null;
+                property.serializedObject.ApplyModifiedProperties();
+            }
+
+            if (!property.isExpanded)
+                return;
+
+            float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            Type elementType = GetListElementType(property);
+
+            if (property.arraySize == 0)
+            {
+                Rect emptyRect = new Rect(position.x, y, position.width, EditorGUIUtility.singleLineHeight * 2f);
+                EditorGUI.HelpBox(emptyRect, "No entries configured.", MessageType.Info);
+                return;
+            }
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                float boxHeight = EditorGUIUtility.singleLineHeight + BoxPadding * 2f;
+                Rect boxRect = new Rect(position.x, y, position.width, boxHeight);
+                GUI.Box(boxRect, GUIContent.none, EditorStyles.helpBox);
+
+                Rect contentRect = new Rect(
+                    boxRect.x + BoxPadding,
+                    boxRect.y + BoxPadding,
+                    boxRect.width - BoxPadding * 2f,
+                    EditorGUIUtility.singleLineHeight);
+
+                DrawSingle(contentRect, element, new GUIContent($"Element {i}"), elementType, true, () =>
+                {
+                    DrawListControls(contentRect, property, i);
+                });
+
+                y = boxRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+        }
+
+        private float GetListHeight(SerializedProperty property)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            if (!property.isExpanded)
+                return height;
+
+            height += EditorGUIUtility.standardVerticalSpacing;
+            if (property.arraySize == 0)
+                return height + EditorGUIUtility.singleLineHeight * 2f;
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                height += EditorGUIUtility.singleLineHeight + BoxPadding * 2f;
+                height += EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            return height;
+        }
+
+        private void DrawSingle(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label,
+            Type referenceType,
+            bool drawExtraControls,
+            Action extraControlsDrawer)
+        {
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            float controlsWidth = drawExtraControls ? SmallButtonWidth * 3f + EditorGUIUtility.standardVerticalSpacing * 2f : 0f;
+            Rect fieldRect = new Rect(headerRect.x, headerRect.y, headerRect.width - controlsWidth, headerRect.height);
+
+            EditorGUI.BeginProperty(position, label, property);
+            Type pickerType = GetPickerFieldType(referenceType);
+            UnityEngine.Object newValue = EditorGUI.ObjectField(
+                fieldRect,
+                label,
+                property.objectReferenceValue,
+                pickerType,
+                false);
+
+            if (newValue != property.objectReferenceValue)
+            {
+                property.objectReferenceValue = newValue;
+                property.serializedObject.ApplyModifiedProperties();
+            }
+
+            if (drawExtraControls)
+            {
+                extraControlsDrawer?.Invoke();
+            }
+
+            EditorGUI.EndProperty();
+        }
+
+        private void DrawListControls(Rect contentRect, SerializedProperty listProperty, int index)
+        {
+            float controlsRight = contentRect.xMax;
+            Rect deleteRect = new Rect(controlsRight - SmallButtonWidth, contentRect.y, SmallButtonWidth, EditorGUIUtility.singleLineHeight);
+            Rect downRect = new Rect(deleteRect.x - SmallButtonWidth, contentRect.y, SmallButtonWidth, EditorGUIUtility.singleLineHeight);
+            Rect upRect = new Rect(downRect.x - SmallButtonWidth, contentRect.y, SmallButtonWidth, EditorGUIUtility.singleLineHeight);
+
+            using (new EditorGUI.DisabledScope(index == 0))
+            {
+                if (GUI.Button(upRect, "\u2191"))
+                {
+                    listProperty.MoveArrayElement(index, index - 1);
+                    listProperty.serializedObject.ApplyModifiedProperties();
+                    GUIUtility.ExitGUI();
+                }
+            }
+
+            using (new EditorGUI.DisabledScope(index >= listProperty.arraySize - 1))
+            {
+                if (GUI.Button(downRect, "\u2193"))
+                {
+                    listProperty.MoveArrayElement(index, index + 1);
+                    listProperty.serializedObject.ApplyModifiedProperties();
+                    GUIUtility.ExitGUI();
+                }
+            }
+
+            if (GUI.Button(deleteRect, "X"))
+            {
+                listProperty.DeleteArrayElementAtIndex(index);
+                listProperty.serializedObject.ApplyModifiedProperties();
+                GUIUtility.ExitGUI();
+            }
+        }
+
+        private static Type GetPickerFieldType(Type referenceType)
+        {
+            if (referenceType == null)
+                return typeof(UnityEngine.Object);
+
+            if (!referenceType.IsGenericType && typeof(UnityEngine.Object).IsAssignableFrom(referenceType))
+                return referenceType;
+
+            List<Type> candidates = TypeCache.GetTypesDerivedFrom(referenceType)
+                .Where(type => !type.IsAbstract && typeof(UnityEngine.Object).IsAssignableFrom(type))
+                .ToList();
+
+            if (candidates.Count == 0)
+                return typeof(UnityEngine.Object).IsAssignableFrom(referenceType) ? referenceType : typeof(UnityEngine.Object);
+
+            Type sharedBase = GetMostSpecificSharedPickerType(candidates);
+            if (sharedBase != null)
+                return sharedBase;
+
+            return candidates[0];
+        }
+
+        private static Type GetMostSpecificSharedPickerType(List<Type> candidates)
+        {
+            if (candidates == null || candidates.Count == 0)
+                return null;
+
+            Type current = candidates[0];
+            while (current != null && current != typeof(UnityEngine.Object))
+            {
+                if (!current.IsGenericType
+                    && current != typeof(ScriptableObject)
+                    && typeof(UnityEngine.Object).IsAssignableFrom(current)
+                    && candidates.All(candidate => current.IsAssignableFrom(candidate)))
+                {
+                    return current;
+                }
+
+                current = current.BaseType;
+            }
+
+            return null;
+        }
+
+        private bool IsObjectReferenceList(SerializedProperty property)
+        {
+            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+                return false;
+
+            Type elementType = GetListElementType(property);
+            return elementType != null && typeof(UnityEngine.Object).IsAssignableFrom(elementType);
+        }
+
+        private Type GetReferenceFieldType(SerializedProperty property)
+        {
+            return InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
+        }
+
+        private Type GetListElementType(SerializedProperty property)
+        {
+            Type fieldType = InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
+            if (fieldType == null)
+                return null;
+
+            if (fieldType.IsArray)
+                return fieldType.GetElementType();
+
+            if (fieldType.IsGenericType && fieldType.GetGenericArguments().Length == 1)
+                return fieldType.GetGenericArguments()[0];
+
+            return null;
+        }
+    }
 }
 #endif
