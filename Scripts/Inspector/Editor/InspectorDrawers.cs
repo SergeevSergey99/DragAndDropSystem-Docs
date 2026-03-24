@@ -385,6 +385,50 @@ namespace DragAndDropSystem.Inspector.Editor
             float fittedWidth = bounds.height * sourceAspect;
             return new Rect(bounds.x + (bounds.width - fittedWidth) * 0.5f, bounds.y, fittedWidth, bounds.height);
         }
+
+        public static Texture GetPreviewTexture(UnityEngine.Object target)
+        {
+            if (TryGetPreviewSprite(target, out Sprite sprite))
+                return sprite.texture;
+
+            if (target is Texture texture)
+                return texture;
+
+            return target != null ? AssetPreview.GetAssetPreview(target) ?? AssetPreview.GetMiniThumbnail(target) : null;
+        }
+
+        public static bool TryGetPreviewSprite(UnityEngine.Object target, out Sprite sprite)
+        {
+            sprite = target as Sprite;
+            if (sprite != null)
+                return true;
+
+            sprite = GetSpriteMemberValue(target, "Icon") ?? GetSpriteMemberValue(target, "_icon");
+            return sprite != null;
+        }
+
+        private static Sprite GetSpriteMemberValue(UnityEngine.Object target, string memberName)
+        {
+            if (target == null || string.IsNullOrEmpty(memberName))
+                return null;
+
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            Type targetType = target.GetType();
+
+            PropertyInfo property = targetType.GetProperty(memberName, flags);
+            if (property != null
+                && typeof(Sprite).IsAssignableFrom(property.PropertyType)
+                && property.GetIndexParameters().Length == 0)
+            {
+                return property.GetValue(target, null) as Sprite;
+            }
+
+            FieldInfo field = targetType.GetField(memberName, flags);
+            if (field != null && typeof(Sprite).IsAssignableFrom(field.FieldType))
+                return field.GetValue(target) as Sprite;
+
+            return null;
+        }
     }
 
     internal static class FoldoutGroupStyles
@@ -1150,7 +1194,7 @@ namespace DragAndDropSystem.Inspector.Editor
             if (property.propertyType != SerializedPropertyType.ObjectReference || property.objectReferenceValue == null)
                 return;
 
-            Texture texture = GetPreviewTexture(property.objectReferenceValue);
+            Texture texture = InspectorPreviewUtility.GetPreviewTexture(property.objectReferenceValue);
             if (texture == null)
                 return;
 
@@ -1169,7 +1213,7 @@ namespace DragAndDropSystem.Inspector.Editor
             float height = EditorGUI.GetPropertyHeight(property, label, true);
             if (property.propertyType == SerializedPropertyType.ObjectReference
                 && property.objectReferenceValue != null
-                && GetPreviewTexture(property.objectReferenceValue) != null)
+                && InspectorPreviewUtility.GetPreviewTexture(property.objectReferenceValue) != null)
             {
                 height += EditorGUIUtility.standardVerticalSpacing;
                 height += ((PreviewFieldAttribute)attribute).Height;
@@ -1178,28 +1222,11 @@ namespace DragAndDropSystem.Inspector.Editor
             return height;
         }
 
-        private static Texture GetPreviewTexture(UnityEngine.Object target)
-        {
-            Sprite sprite = target as Sprite;
-            if (sprite != null)
-            {
-                return sprite.texture;
-            }
-
-            Texture texture = target as Texture;
-            if (texture != null)
-            {
-                return texture;
-            }
-
-            return AssetPreview.GetAssetPreview(target) ?? AssetPreview.GetMiniThumbnail(target);
-        }
-
         private static void DrawPreview(Rect previewRect, UnityEngine.Object target, Texture texture)
         {
             Rect contentRect = new Rect(previewRect.x + 4f, previewRect.y + 4f, previewRect.width - 8f, previewRect.height - 8f);
 
-            if (target is Sprite sprite)
+            if (InspectorPreviewUtility.TryGetPreviewSprite(target, out Sprite sprite))
             {
                 Rect fittedRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, sprite.rect.width, sprite.rect.height);
                 Rect uv = new Rect(
@@ -1309,7 +1336,7 @@ namespace DragAndDropSystem.Inspector.Editor
             if (target == null)
                 return;
 
-            Texture texture = GetPreviewTexture(target);
+            Texture texture = InspectorPreviewUtility.GetPreviewTexture(target);
             if (texture == null)
                 return;
 
@@ -1319,9 +1346,8 @@ namespace DragAndDropSystem.Inspector.Editor
                 previewRect.width - 4f,
                 previewRect.height - 4f);
 
-            if (texture is Texture2D texture2D && target is DragAndDropSystem.Examples.Minecraft.MinecraftItemSO item && item.Icon != null)
+            if (texture is Texture2D texture2D && InspectorPreviewUtility.TryGetPreviewSprite(target, out Sprite sprite))
             {
-                Sprite sprite = item.Icon;
                 Rect fittedRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, sprite.rect.width, sprite.rect.height);
                 Rect uv = new Rect(
                     sprite.rect.x / texture2D.width,
@@ -1335,21 +1361,6 @@ namespace DragAndDropSystem.Inspector.Editor
             Rect textureRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, texture.width, texture.height);
             GUI.DrawTexture(textureRect, texture, ScaleMode.StretchToFill, true);
         }
-
-        private static Texture GetPreviewTexture(UnityEngine.Object target)
-        {
-            if (target is DragAndDropSystem.Examples.Minecraft.MinecraftItemSO item && item.Icon != null)
-                return item.Icon.texture;
-
-            if (target is Sprite sprite)
-                return sprite.texture;
-
-            if (target is Texture texture)
-                return texture;
-
-            return target != null ? AssetPreview.GetAssetPreview(target) ?? AssetPreview.GetMiniThumbnail(target) : null;
-        }
-
     }
 
     [CustomPropertyDrawer(typeof(ManagedReferencePickerAttribute))]
