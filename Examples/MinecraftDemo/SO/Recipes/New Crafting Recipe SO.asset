@@ -13,15 +13,16 @@ MonoBehaviour:
   m_Name: New Crafting Recipe SO
   m_EditorClassIdentifier: 
   _pattern:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+    _cells:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   _shapeless: 0
   _result: {fileID: 0}
   _resultCount: 1
