@@ -1,6 +1,7 @@
 using System;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
+using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 
 namespace DragAndDropSystem.Examples.Minecraft
@@ -26,7 +27,7 @@ namespace DragAndDropSystem.Examples.Minecraft
         public void SetResult(IInventoryItem item, int count)
         {
             _currentResult = item;
-            _currentResultCount = count;
+            _currentResultCount = Math.Max(0, count);
             ReloadUI();
         }
 
@@ -42,7 +43,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void OnReloadUI()
         {
-            if (_currentResult != null)
+            if (_currentResult != null && _currentResultCount > 0)
                 AddToUIQuiet(_currentResult, _currentResultCount, 0);
         }
 

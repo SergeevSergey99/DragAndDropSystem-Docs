@@ -17,12 +17,16 @@ namespace DragAndDropSystem.Examples.Minecraft
         /// </summary>
         public event Action OnGridChanged;
 
-        private readonly SlotSaveData[] _gridSlots = new SlotSaveData[9];
+        private readonly MinecraftItemSO[] _gridItems = new MinecraftItemSO[9];
+        private readonly int[] _gridCounts = new int[9];
 
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
-            // In-memory only — при ReloadUI просто пустая сетка
-            yield break;
+            for (int i = 0; i < _gridItems.Length; i++)
+            {
+                if (_gridItems[i] != null && _gridCounts[i] > 0)
+                    yield return (i, _gridItems[i], _gridCounts[i]);
+            }
         }
 
         protected override MinecraftItemAdapter CreateAdapter(MinecraftItemSO item) => new(item);
@@ -30,23 +34,31 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void AddToSlotData(int index, MinecraftItemSO item, int count)
         {
-            if (index < 0 || index >= _gridSlots.Length) return;
+            if (index < 0 || index >= _gridItems.Length || item == null || count <= 0)
+                return;
 
-            if (_gridSlots[index] != null && _gridSlots[index].ItemId == item.ItemId)
-                _gridSlots[index].Count += count;
+            if (_gridItems[index] != null && _gridItems[index].ItemId == item.ItemId)
+                _gridCounts[index] += count;
             else
-                _gridSlots[index] = new SlotSaveData { ItemId = item.ItemId, Count = count };
+            {
+                _gridItems[index] = item;
+                _gridCounts[index] = count;
+            }
 
             OnGridChanged?.Invoke();
         }
 
         protected override void RemoveFromSlotData(int index, MinecraftItemSO item, int count)
         {
-            if (index < 0 || index >= _gridSlots.Length || _gridSlots[index] == null) return;
+            if (index < 0 || index >= _gridItems.Length || _gridItems[index] == null || count <= 0)
+                return;
 
-            _gridSlots[index].Count -= count;
-            if (_gridSlots[index].Count <= 0)
-                _gridSlots[index] = null;
+            _gridCounts[index] -= count;
+            if (_gridCounts[index] <= 0)
+            {
+                _gridItems[index] = null;
+                _gridCounts[index] = 0;
+            }
 
             OnGridChanged?.Invoke();
         }

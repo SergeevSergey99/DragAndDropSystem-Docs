@@ -13,7 +13,8 @@ namespace DragAndDropSystem.Examples.Minecraft
     /// 1. Добавить на объект с CraftingGridBinding или рядом
     /// 2. Прокинуть ссылки: _gridInventory, _gridBinding, _outputBinding, _recipes
     /// 3. Grid inventory: Fixed 9 слотов, SeparableStacks (чтобы каждый слот рецепта был независим)
-    /// 4. Output inventory: Fixed 1 слот, Unique
+    /// 4. Output inventory: Fixed 1 слот. Стратегия и drag amount
+    ///    будут принудительно настроены CraftingOutputBinding'ом для выдачи всего результата разом.
     /// </summary>
     public class CraftingManager : MonoBehaviour
     {
@@ -32,12 +33,19 @@ namespace DragAndDropSystem.Examples.Minecraft
         {
             _gridBinding.OnGridChanged += OnGridChanged;
             _outputBinding.OnResultTaken += OnResultTaken;
+
+            CheckRecipe();
         }
 
         private void OnDisable()
         {
             _gridBinding.OnGridChanged -= OnGridChanged;
             _outputBinding.OnResultTaken -= OnResultTaken;
+        }
+
+        private void Start()
+        {
+            CheckRecipe();
         }
 
         private void OnGridChanged()
