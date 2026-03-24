@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ItemId>k__BackingField: 
   <DisplayName>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 0}
-  <MaxStackSize>k__BackingField: 64
+  <Icon>k__BackingField: {fileID: 1129061438271945692, guid: 271262cbcb2b00a47ba2af92ad9532a1, type: 3}
   <EquipmentSlot>k__BackingField: 0

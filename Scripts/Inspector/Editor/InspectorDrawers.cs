@@ -366,6 +366,27 @@ namespace DragAndDropSystem.Inspector.Editor
         }
     }
 
+    internal static class InspectorPreviewUtility
+    {
+        public static Rect GetAspectFitRect(Rect bounds, float sourceWidth, float sourceHeight)
+        {
+            if (sourceWidth <= 0f || sourceHeight <= 0f || bounds.width <= 0f || bounds.height <= 0f)
+                return bounds;
+
+            float sourceAspect = sourceWidth / sourceHeight;
+            float boundsAspect = bounds.width / bounds.height;
+
+            if (sourceAspect > boundsAspect)
+            {
+                float fittedHeight = bounds.width / sourceAspect;
+                return new Rect(bounds.x, bounds.y + (bounds.height - fittedHeight) * 0.5f, bounds.width, fittedHeight);
+            }
+
+            float fittedWidth = bounds.height * sourceAspect;
+            return new Rect(bounds.x + (bounds.width - fittedWidth) * 0.5f, bounds.y, fittedWidth, bounds.height);
+        }
+    }
+
     internal static class FoldoutGroupStyles
     {
         private static GUIStyle _boxStyle;
@@ -1180,16 +1201,18 @@ namespace DragAndDropSystem.Inspector.Editor
 
             if (target is Sprite sprite)
             {
+                Rect fittedRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, sprite.rect.width, sprite.rect.height);
                 Rect uv = new Rect(
                     sprite.rect.x / sprite.texture.width,
                     sprite.rect.y / sprite.texture.height,
                     sprite.rect.width / sprite.texture.width,
                     sprite.rect.height / sprite.texture.height);
-                GUI.DrawTextureWithTexCoords(contentRect, texture, uv, true);
+                GUI.DrawTextureWithTexCoords(fittedRect, texture, uv, true);
                 return;
             }
 
-            GUI.DrawTexture(contentRect, texture, ScaleMode.ScaleToFit, true);
+            Rect textureRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, texture.width, texture.height);
+            GUI.DrawTexture(textureRect, texture, ScaleMode.StretchToFill, true);
         }
     }
 
@@ -1295,16 +1318,18 @@ namespace DragAndDropSystem.Inspector.Editor
             if (texture is Texture2D texture2D && target is DragAndDropSystem.Examples.Minecraft.MinecraftItemSO item && item.Icon != null)
             {
                 Sprite sprite = item.Icon;
+                Rect fittedRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, sprite.rect.width, sprite.rect.height);
                 Rect uv = new Rect(
                     sprite.rect.x / texture2D.width,
                     sprite.rect.y / texture2D.height,
                     sprite.rect.width / texture2D.width,
                     sprite.rect.height / texture2D.height);
-                GUI.DrawTextureWithTexCoords(contentRect, texture, uv, true);
+                GUI.DrawTextureWithTexCoords(fittedRect, texture, uv, true);
                 return;
             }
 
-            GUI.DrawTexture(contentRect, texture, ScaleMode.ScaleToFit, true);
+            Rect textureRect = InspectorPreviewUtility.GetAspectFitRect(contentRect, texture.width, texture.height);
+            GUI.DrawTexture(textureRect, texture, ScaleMode.StretchToFill, true);
         }
 
         private static Texture GetPreviewTexture(UnityEngine.Object target)
@@ -1320,6 +1345,7 @@ namespace DragAndDropSystem.Inspector.Editor
 
             return target != null ? AssetPreview.GetAssetPreview(target) ?? AssetPreview.GetMiniThumbnail(target) : null;
         }
+
     }
 
     [CustomPropertyDrawer(typeof(ManagedReferencePickerAttribute))]

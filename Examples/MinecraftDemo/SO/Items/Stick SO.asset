@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a017ebe1924159347a8accf42e8395ee, type: 3}
-  m_Name: Planks SO
+  m_Name: Stick SO
   m_EditorClassIdentifier: 
   <ItemId>k__BackingField: 
   <DisplayName>k__BackingField: 
-  <Icon>k__BackingField: {fileID: -2195918529852611222, guid: f6826d6f171987a48978fe45122a7ca5, type: 3}
+  <Icon>k__BackingField: {fileID: -7907951331658488048, guid: f32fc81bc582f4143a75c35936b543d1, type: 3}
   <EquipmentSlot>k__BackingField: 0
