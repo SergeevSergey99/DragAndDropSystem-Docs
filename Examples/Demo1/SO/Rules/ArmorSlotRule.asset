@@ -12,14 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8352fa4dcc0356f4890cd3efd108600c, type: 3}
   m_Name: ArmorSlotRule
   m_EditorClassIdentifier: 
-  _ruleValidator:
-    _presets: []
-    _inlineRules:
-    - rid: 3257003527401898071
+  _inlineRules:
+  - rid: 6676589201035624523
   references:
     version: 2
     RefIds:
-    - rid: 3257003527401898071
+    - rid: 6676589201035624523
       type: {class: ItemTypeExampleFilterRule, ns: Plugins.DragAndDropSystem.Examples, asm: Assembly-CSharp-firstpass}
       data:
         _allowedTypes:

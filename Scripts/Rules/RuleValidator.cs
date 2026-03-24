@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace DragAndDropSystem.Rules
 {
@@ -99,17 +98,14 @@ namespace DragAndDropSystem.Rules
         /// <summary>
         /// Получить все правила (для отладки)
         /// </summary>
-        public IReadOnlyList<TRule> GetRules() => BuildCombinedRules(null);
-
-        internal IReadOnlyList<TRule> GetRules(HashSet<RulePreset<TRule>> visitedPresets) =>
-            BuildCombinedRules(visitedPresets);
+        public IReadOnlyList<TRule> GetRules() => BuildCombinedRules();
 
         /// <summary>
         /// Валидация начала перетаскивания для конкретного entry
         /// </summary>
         public RuleResult ValidateStartDrag(DragContext context, DragEntry entry)
         {
-            foreach (var rule in BuildCombinedRules(null))
+            foreach (var rule in BuildCombinedRules())
             {
                 if (rule == null) continue;
 
@@ -127,7 +123,7 @@ namespace DragAndDropSystem.Rules
         /// </summary>
         public RuleResult ValidateDrop(DragContext context, DragEntry entry)
         {
-            foreach (var rule in BuildCombinedRules(null))
+            foreach (var rule in BuildCombinedRules())
             {
                 if (rule == null) continue;
 
@@ -140,23 +136,16 @@ namespace DragAndDropSystem.Rules
             return RuleResult.Success();
         }
 
-        private IReadOnlyList<TRule> BuildCombinedRules(HashSet<RulePreset<TRule>> visitedPresets)
+        private IReadOnlyList<TRule> BuildCombinedRules()
         {
             _combinedRules.Clear();
-            var visited = visitedPresets ?? new HashSet<RulePreset<TRule>>();
 
             // Добавляем правила из пресетов
             foreach (var preset in _presets)
             {
                 if (preset == null) continue;
-
-                if (!visited.Add(preset))
-                {
-                    Debug.LogWarning($"Circular rule preset reference detected: {preset.name}", preset);
-                    continue;
-                }
-
-                var presetRules = preset.InternalGetRules(visited);
+                
+                var presetRules = preset.GetRules();
                 if (presetRules == null) continue;
 
                 foreach (var presetRule in presetRules)
@@ -172,8 +161,6 @@ namespace DragAndDropSystem.Rules
                         Debug.LogWarning($"Rule preset {preset.name} contains incompatible rule of type {presetRule.GetType().Name}", preset);
                     }
                 }
-
-                visited.Remove(preset);
             }
 
             // Добавляем локальные inline правила
@@ -198,7 +185,7 @@ namespace DragAndDropSystem.Rules
         /// </summary>
         public void OnValidate()
         {
-            BuildCombinedRules(null);
+            BuildCombinedRules();
         }
     }
 
