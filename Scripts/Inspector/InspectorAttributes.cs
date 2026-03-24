@@ -215,4 +215,13 @@ namespace DragAndDropSystem.Inspector
     public sealed class RulePresetPickerAttribute : PropertyAttribute
     {
     }
+
+    /// <summary>
+    /// Запрещает добавлять и удалять элементы массива или списка в инспекторе.
+    /// Размер массива фиксируется — редактировать можно только сами элементы.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field, Inherited = true)]
+    public sealed class FixedArraySizeAttribute : PropertyAttribute
+    {
+    }
 }

@@ -504,6 +504,8 @@ namespace DragAndDropSystem.Inspector.Editor
     {
         private const string ScriptPropertyName = "m_Script";
         private readonly HashSet<string> _renderedGroupNames = new HashSet<string>();
+        // Foldout states for fixed-size arrays, keyed by instanceID:propertyPath
+        private static readonly Dictionary<string, bool> FixedArrayFoldouts = new Dictionary<string, bool>();
 
         public override void OnInspectorGUI()
         {
@@ -579,7 +581,7 @@ namespace DragAndDropSystem.Inspector.Editor
                     DrawGroupBox(group, () =>
                     {
                         for (int j = 0; j < properties.Count; j++)
-                            EditorGUILayout.PropertyField(properties[j], true);
+                            DrawPropertyAuto(properties[j]);
 
                         DrawButtonsForGroup(groupedName);
                     });
@@ -587,8 +589,63 @@ namespace DragAndDropSystem.Inspector.Editor
                     continue;
                 }
 
-                EditorGUILayout.PropertyField((SerializedProperty)orderedEntries[i], true);
+                DrawPropertyAuto((SerializedProperty)orderedEntries[i]);
             }
+        }
+
+        // Draws a property using DrawFixedSizeArray when FixedArraySizeAttribute is present,
+        // otherwise falls back to the default PropertyField.
+        private void DrawPropertyAuto(SerializedProperty property)
+        {
+            if (property.isArray
+                && property.propertyType != SerializedPropertyType.String
+                && InspectorReflectionUtility.GetAttribute<FixedArraySizeAttribute>(property) != null)
+            {
+                DrawFixedSizeArray(property);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(property, true);
+            }
+        }
+
+        // Draws an array without the Size field and without add/remove buttons.
+        private void DrawFixedSizeArray(SerializedProperty property)
+        {
+            string key = (property.serializedObject.targetObject != null
+                ? property.serializedObject.targetObject.GetInstanceID().ToString()
+                : "0") + ":" + property.propertyPath;
+
+            if (!FixedArrayFoldouts.TryGetValue(key, out bool expanded))
+                expanded = true;
+
+            string header = $"{ObjectNames.NicifyVariableName(property.displayName)}  [{property.arraySize}]";
+            expanded = EditorGUILayout.Foldout(expanded, header, true);
+            FixedArrayFoldouts[key] = expanded;
+
+            if (!expanded)
+                return;
+
+            EditorGUI.indentLevel++;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                float elementHeight = EditorGUI.GetPropertyHeight(element, true);
+
+                // Reserve the rect BEFORE drawing so we can intercept events on it.
+                Rect elementRect = EditorGUILayout.GetControlRect(true, elementHeight);
+
+                // Consume right-click BEFORE PropertyField sees it — this prevents Unity
+                // from showing the "Insert / Delete / Duplicate Array Element" context menu.
+                if (Event.current.type == EventType.ContextClick
+                    && elementRect.Contains(Event.current.mousePosition))
+                {
+                    Event.current.Use();
+                }
+
+                EditorGUI.PropertyField(elementRect, element, new GUIContent($"Element {i}"), true);
+            }
+            EditorGUI.indentLevel--;
         }
 
         private bool ShouldShowProperty(SerializedProperty property)
@@ -2121,6 +2178,80 @@ namespace DragAndDropSystem.Inspector.Editor
                 return fieldType.GetGenericArguments()[0];
 
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Отрисовывает массив или список без возможности изменить его размер:
+    /// скрывает поле Size и кнопки +/−.
+    /// </summary>
+    [CustomPropertyDrawer(typeof(FixedArraySizeAttribute))]
+    public sealed class FixedArraySizePropertyDrawer : PropertyDrawer
+    {
+        private static readonly Dictionary<string, bool> FoldoutStates = new Dictionary<string, bool>();
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            // Если это не массив — рисуем как обычно
+            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+            {
+                EditorGUI.PropertyField(position, property, label, true);
+                return;
+            }
+
+            string key = BuildKey(property);
+            if (!FoldoutStates.TryGetValue(key, out bool expanded))
+                expanded = true;
+
+            // Заголовок-foldout с количеством элементов
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            string headerText = $"{label.text}  [{property.arraySize}]  (fixed size)";
+            expanded = EditorGUI.Foldout(headerRect, expanded, new GUIContent(headerText, label.tooltip), true);
+            FoldoutStates[key] = expanded;
+
+            if (!expanded)
+                return;
+
+            EditorGUI.indentLevel++;
+            float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                float elementHeight = EditorGUI.GetPropertyHeight(element, true);
+                Rect elementRect = new Rect(position.x, y, position.width, elementHeight);
+                EditorGUI.PropertyField(elementRect, element, new GUIContent($"Element {i}"), true);
+                y += elementHeight + EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+                return EditorGUI.GetPropertyHeight(property, label, true);
+
+            string key = BuildKey(property);
+            if (!FoldoutStates.TryGetValue(key, out bool expanded) || !expanded)
+                return EditorGUIUtility.singleLineHeight;
+
+            float height = EditorGUIUtility.singleLineHeight;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                height += EditorGUIUtility.standardVerticalSpacing;
+                height += EditorGUI.GetPropertyHeight(property.GetArrayElementAtIndex(i), true);
+            }
+
+            return height;
+        }
+
+        private static string BuildKey(SerializedProperty property)
+        {
+            int instanceId = property.serializedObject.targetObject != null
+                ? property.serializedObject.targetObject.GetInstanceID()
+                : 0;
+            return instanceId + ":" + property.propertyPath;
         }
     }
 }
