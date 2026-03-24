@@ -41,7 +41,7 @@ namespace DragAndDropSystem.Inspector.Editor
                 if (currentField == null)
                     return null;
 
-                currentType = currentField.FieldType;
+                currentType = ResolveFieldType(currentType, currentField);
                 if (bracketIndex >= 0)
                 {
                     currentType = GetElementType(currentType);
@@ -49,6 +49,35 @@ namespace DragAndDropSystem.Inspector.Editor
             }
 
             return currentField;
+        }
+
+        public static Type GetPropertyValueType(SerializedProperty property)
+        {
+            if (property == null)
+                return null;
+
+            Type currentType = property.serializedObject.targetObject.GetType();
+            string path = property.propertyPath.Replace(".Array.data[", "[");
+            string[] elements = path.Split('.');
+
+            for (int i = 0; i < elements.Length; i++)
+            {
+                string element = elements[i];
+                int bracketIndex = element.IndexOf('[');
+                string memberName = bracketIndex >= 0 ? element.Substring(0, bracketIndex) : element;
+
+                FieldInfo currentField = GetFieldInfo(currentType, memberName);
+                if (currentField == null)
+                    return null;
+
+                currentType = ResolveFieldType(currentType, currentField);
+                if (bracketIndex >= 0)
+                {
+                    currentType = GetElementType(currentType);
+                }
+            }
+
+            return currentType;
         }
 
         public static object GetParentObject(SerializedProperty property)
@@ -194,6 +223,9 @@ namespace DragAndDropSystem.Inspector.Editor
 
         private static Type GetElementType(Type collectionType)
         {
+            if (collectionType == null)
+                return null;
+
             if (collectionType.IsArray)
                 return collectionType.GetElementType();
 
@@ -201,6 +233,93 @@ namespace DragAndDropSystem.Inspector.Editor
                 return collectionType.GetGenericArguments()[0];
 
             return typeof(object);
+        }
+
+        private static Type ResolveFieldType(Type ownerType, FieldInfo field)
+        {
+            if (field == null)
+                return null;
+
+            Type fieldType = field.FieldType;
+            if (!fieldType.ContainsGenericParameters)
+                return fieldType;
+
+            Dictionary<Type, Type> genericArguments = BuildGenericArgumentMap(ownerType, field.DeclaringType);
+            return ReplaceGenericParameters(fieldType, genericArguments);
+        }
+
+        private static Dictionary<Type, Type> BuildGenericArgumentMap(Type ownerType, Type declaringType)
+        {
+            var map = new Dictionary<Type, Type>();
+            if (ownerType == null || declaringType == null)
+                return map;
+
+            Type declaringDefinition = declaringType.IsGenericType
+                ? declaringType.GetGenericTypeDefinition()
+                : declaringType;
+
+            Type currentType = ownerType;
+            while (currentType != null)
+            {
+                Type currentDefinition = currentType.IsGenericType
+                    ? currentType.GetGenericTypeDefinition()
+                    : currentType;
+
+                if (currentDefinition == declaringDefinition)
+                {
+                    if (currentDefinition.IsGenericTypeDefinition)
+                    {
+                        Type[] declaredArguments = currentDefinition.GetGenericArguments();
+                        Type[] actualArguments = currentType.GetGenericArguments();
+                        for (int i = 0; i < declaredArguments.Length && i < actualArguments.Length; i++)
+                        {
+                            map[declaredArguments[i]] = actualArguments[i];
+                        }
+                    }
+
+                    break;
+                }
+
+                currentType = currentType.BaseType;
+            }
+
+            return map;
+        }
+
+        private static Type ReplaceGenericParameters(Type type, Dictionary<Type, Type> genericArguments)
+        {
+            if (type == null)
+                return null;
+
+            if (type.IsGenericParameter)
+            {
+                Type resolvedType;
+                return genericArguments.TryGetValue(type, out resolvedType) ? resolvedType : type;
+            }
+
+            if (type.IsArray)
+            {
+                Type elementType = ReplaceGenericParameters(type.GetElementType(), genericArguments);
+                return elementType == null ? type : elementType.MakeArrayType();
+            }
+
+            if (!type.IsGenericType)
+                return type;
+
+            Type[] arguments = type.GetGenericArguments();
+            Type[] resolvedArguments = new Type[arguments.Length];
+            bool changed = false;
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                resolvedArguments[i] = ReplaceGenericParameters(arguments[i], genericArguments);
+                changed |= resolvedArguments[i] != arguments[i];
+            }
+
+            if (!changed)
+                return type;
+
+            return type.GetGenericTypeDefinition().MakeGenericType(resolvedArguments);
         }
 
         private static FieldInfo GetFieldInfo(Type type, string memberName)
@@ -1088,19 +1207,37 @@ namespace DragAndDropSystem.Inspector.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            if (IsObjectReferenceList(property))
+            {
+                DrawObjectReferenceList(position, property, label);
+                return;
+            }
+
             if (IsManagedReferenceList(property))
             {
                 DrawList(position, property, label);
                 return;
             }
 
-            DrawSingle(position, property, label, GetManagedReferenceFieldType(), false, null);
+            if (property.propertyType == SerializedPropertyType.ObjectReference)
+            {
+                DrawObjectReferenceSingle(position, property, label, GetReferenceFieldType(property), false, null);
+                return;
+            }
+
+            DrawSingle(position, property, label, GetManagedReferenceFieldType(property), false, null);
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
+            if (IsObjectReferenceList(property))
+                return GetObjectReferenceListHeight(property);
+
             if (IsManagedReferenceList(property))
                 return GetListHeight(property, label);
+
+            if (property.propertyType == SerializedPropertyType.ObjectReference)
+                return EditorGUIUtility.singleLineHeight;
 
             return GetSingleHeight(property, label);
         }
@@ -1117,14 +1254,14 @@ namespace DragAndDropSystem.Inspector.Editor
 
             if (GUI.Button(addButtonRect, "Add"))
             {
-                ShowAddMenu(property, GetListElementType());
+                ShowAddMenu(property, GetListElementType(property));
             }
 
             if (!property.isExpanded)
                 return;
 
             float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
-            Type elementType = GetListElementType();
+            Type elementType = GetListElementType(property);
 
             if (property.arraySize == 0)
             {
@@ -1156,6 +1293,63 @@ namespace DragAndDropSystem.Inspector.Editor
             }
         }
 
+        private void DrawObjectReferenceList(Rect position, SerializedProperty property, GUIContent label)
+        {
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            Rect foldoutRect = new Rect(headerRect.x, headerRect.y, 14f, headerRect.height);
+            Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, headerRect.width - 70f, headerRect.height);
+            Rect addButtonRect = new Rect(headerRect.xMax - 64f, headerRect.y, 64f, headerRect.height);
+
+            property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
+            EditorGUI.LabelField(labelRect, $"{label.text} ({property.arraySize})");
+
+            using (new EditorGUI.DisabledScope(GetListElementType(property) == null))
+            {
+                if (GUI.Button(addButtonRect, "Add"))
+                {
+                    int index = property.arraySize;
+                    property.arraySize++;
+                    SerializedProperty element = property.GetArrayElementAtIndex(index);
+                    element.objectReferenceValue = null;
+                    property.serializedObject.ApplyModifiedProperties();
+                }
+            }
+
+            if (!property.isExpanded)
+                return;
+
+            float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            Type elementType = GetListElementType(property);
+
+            if (property.arraySize == 0)
+            {
+                Rect emptyRect = new Rect(position.x, y, position.width, EditorGUIUtility.singleLineHeight * 2f);
+                EditorGUI.HelpBox(emptyRect, "No entries configured.", MessageType.Info);
+                return;
+            }
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                float boxHeight = EditorGUIUtility.singleLineHeight + BoxPadding * 2f;
+                Rect boxRect = new Rect(position.x, y, position.width, boxHeight);
+                GUI.Box(boxRect, GUIContent.none, EditorStyles.helpBox);
+
+                Rect contentRect = new Rect(
+                    boxRect.x + BoxPadding,
+                    boxRect.y + BoxPadding,
+                    boxRect.width - BoxPadding * 2f,
+                    EditorGUIUtility.singleLineHeight);
+
+                DrawObjectReferenceSingle(contentRect, element, new GUIContent($"Element {i}"), elementType, true, () =>
+                {
+                    DrawListControls(contentRect, property, i);
+                });
+
+                y = boxRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+        }
+
         private float GetListHeight(SerializedProperty property, GUIContent label)
         {
             float height = EditorGUIUtility.singleLineHeight;
@@ -1170,6 +1364,25 @@ namespace DragAndDropSystem.Inspector.Editor
             {
                 SerializedProperty element = property.GetArrayElementAtIndex(i);
                 height += GetSingleHeight(element, new GUIContent($"Element {i}")) + BoxPadding * 2f;
+                height += EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            return height;
+        }
+
+        private float GetObjectReferenceListHeight(SerializedProperty property)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            if (!property.isExpanded)
+                return height;
+
+            height += EditorGUIUtility.standardVerticalSpacing;
+            if (property.arraySize == 0)
+                return height + EditorGUIUtility.singleLineHeight * 2f;
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                height += EditorGUIUtility.singleLineHeight + BoxPadding * 2f;
                 height += EditorGUIUtility.standardVerticalSpacing;
             }
 
@@ -1244,6 +1457,40 @@ namespace DragAndDropSystem.Inspector.Editor
                 EditorGUI.PropertyField(childRect, child, true);
                 y = childRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             }
+        }
+
+        private void DrawObjectReferenceSingle(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label,
+            Type objectType,
+            bool drawExtraControls,
+            Action extraControlsDrawer)
+        {
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            float controlsWidth = drawExtraControls ? SmallButtonWidth * 3f + EditorGUIUtility.standardVerticalSpacing * 2f : 0f;
+            Rect fieldRect = new Rect(headerRect.x, headerRect.y, headerRect.width - controlsWidth, headerRect.height);
+
+            EditorGUI.BeginProperty(position, label, property);
+            UnityEngine.Object newValue = EditorGUI.ObjectField(
+                fieldRect,
+                label,
+                property.objectReferenceValue,
+                objectType ?? typeof(UnityEngine.Object),
+                false);
+
+            if (newValue != property.objectReferenceValue)
+            {
+                property.objectReferenceValue = newValue;
+                property.serializedObject.ApplyModifiedProperties();
+            }
+
+            if (drawExtraControls)
+            {
+                extraControlsDrawer?.Invoke();
+            }
+
+            EditorGUI.EndProperty();
         }
 
         private float GetSingleHeight(SerializedProperty property, GUIContent label)
@@ -1367,8 +1614,30 @@ namespace DragAndDropSystem.Inspector.Editor
             if (property.managedReferenceValue != null)
                 return ObjectNames.NicifyVariableName(property.managedReferenceValue.GetType().Name);
 
-            string baseName = baseType != null ? baseType.Name : "?";
+            string baseName = GetDisplayTypeName(baseType);
             return $"None ({baseName})";
+        }
+
+        private static string GetDisplayTypeName(Type type)
+        {
+            if (type == null)
+                return "?";
+
+            if (!type.IsGenericType)
+                return ObjectNames.NicifyVariableName(type.Name);
+
+            string typeName = type.Name;
+            int tickIndex = typeName.IndexOf('`');
+            if (tickIndex >= 0)
+            {
+                typeName = typeName.Substring(0, tickIndex);
+            }
+
+            string[] argumentNames = type.GetGenericArguments()
+                .Select(GetDisplayTypeName)
+                .ToArray();
+
+            return $"{ObjectNames.NicifyVariableName(typeName)}<{string.Join(", ", argumentNames)}>";
         }
 
         private static IEnumerable<Type> GetAssignableTypes(Type baseType)
@@ -1402,17 +1671,32 @@ namespace DragAndDropSystem.Inspector.Editor
         {
             return property.isArray
                    && property.propertyType != SerializedPropertyType.String
-                   && GetListElementType() != null;
+                   && !IsObjectReferenceList(property)
+                   && GetListElementType(property) != null;
         }
 
-        private Type GetManagedReferenceFieldType()
+        private bool IsObjectReferenceList(SerializedProperty property)
         {
-            return fieldInfo.FieldType;
+            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+                return false;
+
+            Type elementType = GetListElementType(property);
+            return elementType != null && typeof(UnityEngine.Object).IsAssignableFrom(elementType);
         }
 
-        private Type GetListElementType()
+        private Type GetManagedReferenceFieldType(SerializedProperty property)
         {
-            Type fieldType = fieldInfo.FieldType;
+            return InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
+        }
+
+        private Type GetReferenceFieldType(SerializedProperty property)
+        {
+            return InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
+        }
+
+        private Type GetListElementType(SerializedProperty property)
+        {
+            Type fieldType = InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
             if (fieldType.IsArray)
                 return fieldType.GetElementType();
 

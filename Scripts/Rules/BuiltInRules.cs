@@ -209,9 +209,9 @@ namespace DragAndDropSystem.Rules
     [Serializable]
     public class MaxStackSizeRule : DragRuleBase, IInventoryRule
     {
-        [SerializeField, Range(1, 9999)]
+        [SerializeField]
         [Tooltip("Максимальное количество предметов в одном слоте")]
-        private int _maxStackSize = 999;
+        private int _maxStackSize = 64;
 
         public MaxStackSizeRule() { }
 
