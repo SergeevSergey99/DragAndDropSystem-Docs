@@ -1557,7 +1557,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 451921969}
-  - component: {fileID: 451921968}
+  - component: {fileID: 451921970}
   m_Layer: 0
   m_Name: DataContoller
   m_TagString: Untagged
@@ -1565,24 +1565,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &451921968
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451921967}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9304786ec81922c40a383de4b5f465a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _hotbarItems: []
-  _inventoryItems: []
-  _recipes:
-  - {fileID: 11400000, guid: 0a50e270122c59b4da26076d2850f6f1, type: 2}
-  - {fileID: 11400000, guid: 11cf9ee79d58af347b7346cef7b1f2de, type: 2}
-  - {fileID: 11400000, guid: abf79ff3a167ccf4db7491e2af275039, type: 2}
 --- !u!4 &451921969
 Transform:
   m_ObjectHideFlags: 0
@@ -1598,6 +1580,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &451921970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 451921967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9304786ec81922c40a383de4b5f465a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hotbarItems:
+  - {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
+  - {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: 4af40b5895ba8d2479afac6ca07f25d5, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: 5fe059572441ded4991b358684a2b500, type: 2}
+  - {fileID: 0}
+  _inventoryItems:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  _recipes:
+  - {fileID: 11400000, guid: 0a50e270122c59b4da26076d2850f6f1, type: 2}
+  - {fileID: 11400000, guid: 11cf9ee79d58af347b7346cef7b1f2de, type: 2}
+  - {fileID: 11400000, guid: abf79ff3a167ccf4db7491e2af275039, type: 2}
 --- !u!1001 &455171187
 PrefabInstance:
   m_ObjectHideFlags: 0

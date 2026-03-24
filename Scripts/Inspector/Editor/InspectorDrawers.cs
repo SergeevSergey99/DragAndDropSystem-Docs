@@ -504,7 +504,6 @@ namespace DragAndDropSystem.Inspector.Editor
     {
         private const string ScriptPropertyName = "m_Script";
         private readonly HashSet<string> _renderedGroupNames = new HashSet<string>();
-        // Foldout states for fixed-size arrays, keyed by instanceID:propertyPath
         private static readonly Dictionary<string, bool> FixedArrayFoldouts = new Dictionary<string, bool>();
 
         public override void OnInspectorGUI()
@@ -593,8 +592,6 @@ namespace DragAndDropSystem.Inspector.Editor
             }
         }
 
-        // Draws a property using DrawFixedSizeArray when FixedArraySizeAttribute is present,
-        // otherwise falls back to the default PropertyField.
         private void DrawPropertyAuto(SerializedProperty property)
         {
             if (property.isArray
@@ -602,14 +599,12 @@ namespace DragAndDropSystem.Inspector.Editor
                 && InspectorReflectionUtility.GetAttribute<FixedArraySizeAttribute>(property) != null)
             {
                 DrawFixedSizeArray(property);
+                return;
             }
-            else
-            {
-                EditorGUILayout.PropertyField(property, true);
-            }
+
+            EditorGUILayout.PropertyField(property, true);
         }
 
-        // Draws an array without the Size field and without add/remove buttons.
         private void DrawFixedSizeArray(SerializedProperty property)
         {
             string key = (property.serializedObject.targetObject != null
@@ -626,26 +621,327 @@ namespace DragAndDropSystem.Inspector.Editor
             if (!expanded)
                 return;
 
+            bool useObjectReferencePicker = ShouldUseManagedReferencePicker(property) && IsObjectReferenceList(property);
+            bool useManagedReferencePicker = ShouldUseManagedReferencePicker(property)
+                                            && !useObjectReferencePicker
+                                            && ShouldDrawManagedReferenceElements(property);
+            Type elementType = (useObjectReferencePicker || useManagedReferencePicker)
+                ? GetListElementType(property)
+                : null;
+
             EditorGUI.indentLevel++;
             for (int i = 0; i < property.arraySize; i++)
             {
                 SerializedProperty element = property.GetArrayElementAtIndex(i);
-                float elementHeight = EditorGUI.GetPropertyHeight(element, true);
+                float elementHeight = useObjectReferencePicker
+                    ? EditorGUIUtility.singleLineHeight
+                    : useManagedReferencePicker
+                        ? GetManagedReferenceElementHeight(element)
+                        : EditorGUI.GetPropertyHeight(element, true);
 
-                // Reserve the rect BEFORE drawing so we can intercept events on it.
                 Rect elementRect = EditorGUILayout.GetControlRect(true, elementHeight);
 
-                // Consume right-click BEFORE PropertyField sees it — this prevents Unity
-                // from showing the "Insert / Delete / Duplicate Array Element" context menu.
                 if (Event.current.type == EventType.ContextClick
                     && elementRect.Contains(Event.current.mousePosition))
                 {
                     Event.current.Use();
                 }
 
-                EditorGUI.PropertyField(elementRect, element, new GUIContent($"Element {i}"), true);
+                GUIContent elementLabel = new GUIContent($"Element {i}");
+                if (useObjectReferencePicker)
+                {
+                    DrawObjectReferenceElement(elementRect, element, elementLabel, elementType);
+                }
+                else if (useManagedReferencePicker)
+                {
+                    DrawManagedReferenceElement(elementRect, element, elementLabel, elementType);
+                }
+                else
+                {
+                    EditorGUI.PropertyField(elementRect, element, elementLabel, true);
+                }
             }
             EditorGUI.indentLevel--;
+        }
+
+        private static bool ShouldUseManagedReferencePicker(SerializedProperty property)
+        {
+            return InspectorReflectionUtility.GetAttribute<ManagedReferencePickerAttribute>(property) != null;
+        }
+
+        private static bool ShouldDrawManagedReferenceElements(SerializedProperty property)
+        {
+            FieldInfo field = InspectorReflectionUtility.GetFieldInfo(property);
+            if (field != null && field.IsDefined(typeof(SerializeReference), true))
+                return true;
+
+            if (property.arraySize == 0)
+                return false;
+
+            return property.GetArrayElementAtIndex(0).propertyType == SerializedPropertyType.ManagedReference;
+        }
+
+        private static float GetManagedReferenceElementHeight(SerializedProperty property)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            bool hasChildren = property.managedReferenceValue != null && EnumerateChildren(property).Any();
+            if (!hasChildren || !property.isExpanded)
+                return height;
+
+            height += EditorGUIUtility.standardVerticalSpacing;
+            foreach (SerializedProperty child in EnumerateChildren(property))
+            {
+                height += EditorGUI.GetPropertyHeight(child, true);
+                height += EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            return height;
+        }
+
+        private static void DrawManagedReferenceElement(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label,
+            Type managedReferenceType)
+        {
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            bool hasChildren = property.managedReferenceValue != null && EnumerateChildren(property).Any();
+
+            if (hasChildren)
+            {
+                Rect foldoutRect = new Rect(headerRect.x + 14f, headerRect.y, 14f, headerRect.height);
+                property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
+            }
+
+            float foldoutIndent = hasChildren ? 14f : 0f;
+            Rect labelRect = new Rect(
+                headerRect.x + foldoutIndent,
+                headerRect.y,
+                EditorGUIUtility.labelWidth - foldoutIndent,
+                headerRect.height);
+            EditorGUI.LabelField(labelRect, label);
+
+            const float pickButtonWidth = 20f;
+            Rect pickButtonRect = new Rect(
+                headerRect.xMax - pickButtonWidth,
+                headerRect.y,
+                pickButtonWidth,
+                headerRect.height);
+
+            float typeFieldX = position.x + EditorGUIUtility.labelWidth - 12f;
+            Rect typeNameRect = new Rect(
+                typeFieldX,
+                headerRect.y,
+                pickButtonRect.x - typeFieldX - 2f,
+                headerRect.height);
+
+            EditorGUI.LabelField(typeNameRect, GetTypeButtonLabel(property, managedReferenceType), EditorStyles.textField);
+
+            if (GUI.Button(pickButtonRect, "\u25BC"))
+            {
+                ShowTypeMenu(property, managedReferenceType, true);
+            }
+
+            if (!hasChildren || !property.isExpanded)
+                return;
+
+            float indent = 15f;
+            float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            foreach (SerializedProperty child in EnumerateChildren(property))
+            {
+                float childHeight = EditorGUI.GetPropertyHeight(child, true);
+                Rect childRect = new Rect(position.x + indent, y, position.width - indent, childHeight);
+                EditorGUI.PropertyField(childRect, child, true);
+                y = childRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+        }
+
+        private static void DrawObjectReferenceElement(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label,
+            Type objectType)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+            UnityEngine.Object newValue = EditorGUI.ObjectField(
+                position,
+                label,
+                property.objectReferenceValue,
+                GetPickerFieldType(objectType),
+                false);
+
+            if (newValue != property.objectReferenceValue)
+            {
+                property.objectReferenceValue = newValue;
+                property.serializedObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.EndProperty();
+        }
+
+        private static IEnumerable<SerializedProperty> EnumerateChildren(SerializedProperty property)
+        {
+            SerializedProperty iterator = property.Copy();
+            SerializedProperty end = iterator.GetEndProperty();
+
+            if (!iterator.NextVisible(true))
+                yield break;
+
+            do
+            {
+                if (SerializedProperty.EqualContents(iterator, end))
+                    yield break;
+
+                yield return iterator.Copy();
+            }
+            while (iterator.NextVisible(false));
+        }
+
+        private static string GetTypeButtonLabel(SerializedProperty property, Type baseType)
+        {
+            if (property.managedReferenceValue != null)
+                return ObjectNames.NicifyVariableName(property.managedReferenceValue.GetType().Name);
+
+            string baseName = GetDisplayTypeName(baseType);
+            return $"None ({baseName})";
+        }
+
+        private static string GetDisplayTypeName(Type type)
+        {
+            if (type == null)
+                return "?";
+
+            if (!type.IsGenericType)
+                return ObjectNames.NicifyVariableName(type.Name);
+
+            string typeName = type.Name;
+            int tickIndex = typeName.IndexOf('`');
+            if (tickIndex >= 0)
+                typeName = typeName.Substring(0, tickIndex);
+
+            string[] argumentNames = type.GetGenericArguments()
+                .Select(GetDisplayTypeName)
+                .ToArray();
+
+            return $"{ObjectNames.NicifyVariableName(typeName)}<{string.Join(", ", argumentNames)}>";
+        }
+
+        private static void ShowTypeMenu(SerializedProperty property, Type baseType, bool allowNull)
+        {
+            var menu = new GenericMenu();
+            if (allowNull)
+            {
+                menu.AddItem(new GUIContent("None"), property.managedReferenceValue == null, () =>
+                {
+                    property.managedReferenceValue = null;
+                    property.serializedObject.ApplyModifiedProperties();
+                });
+                menu.AddSeparator(string.Empty);
+            }
+
+            foreach (Type candidateType in GetAssignableTypes(baseType))
+            {
+                bool isCurrentType = property.managedReferenceValue != null
+                                     && property.managedReferenceValue.GetType() == candidateType;
+
+                menu.AddItem(new GUIContent(candidateType.Name), isCurrentType, () =>
+                {
+                    property.managedReferenceValue = Activator.CreateInstance(candidateType);
+                    property.serializedObject.ApplyModifiedProperties();
+                });
+            }
+
+            menu.ShowAsContext();
+        }
+
+        private static IEnumerable<Type> GetAssignableTypes(Type baseType)
+        {
+            if (baseType == null)
+                yield break;
+
+            if (!baseType.IsAbstract && !baseType.IsInterface && IsSerializableManagedReferenceType(baseType))
+                yield return baseType;
+
+            foreach (Type type in TypeCache.GetTypesDerivedFrom(baseType))
+            {
+                if (IsSerializableManagedReferenceType(type))
+                    yield return type;
+            }
+        }
+
+        private static bool IsSerializableManagedReferenceType(Type type)
+        {
+            return type != null
+                   && !type.IsAbstract
+                   && !type.IsGenericTypeDefinition
+                   && !typeof(UnityEngine.Object).IsAssignableFrom(type)
+                   && type.GetConstructor(Type.EmptyTypes) != null
+                   && (type.IsDefined(typeof(SerializableAttribute), false) || type.IsClass);
+        }
+
+        private static bool IsObjectReferenceList(SerializedProperty property)
+        {
+            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+                return false;
+
+            Type elementType = GetListElementType(property);
+            return elementType != null && typeof(UnityEngine.Object).IsAssignableFrom(elementType);
+        }
+
+        private static Type GetListElementType(SerializedProperty property)
+        {
+            Type fieldType = InspectorReflectionUtility.GetPropertyValueType(property);
+            if (fieldType == null)
+                return null;
+
+            if (fieldType.IsArray)
+                return fieldType.GetElementType();
+
+            if (fieldType.IsGenericType && fieldType.GetGenericArguments().Length == 1)
+                return fieldType.GetGenericArguments()[0];
+
+            return null;
+        }
+
+        private static Type GetPickerFieldType(Type referenceType)
+        {
+            if (referenceType == null)
+                return typeof(UnityEngine.Object);
+
+            if (!referenceType.IsGenericType && typeof(UnityEngine.Object).IsAssignableFrom(referenceType))
+                return referenceType;
+
+            List<Type> candidates = TypeCache.GetTypesDerivedFrom(referenceType)
+                .Where(type => !type.IsAbstract && typeof(UnityEngine.Object).IsAssignableFrom(type))
+                .ToList();
+
+            if (candidates.Count == 0)
+                return typeof(UnityEngine.Object).IsAssignableFrom(referenceType) ? referenceType : typeof(UnityEngine.Object);
+
+            Type sharedBase = GetMostSpecificSharedPickerType(candidates);
+            return sharedBase ?? candidates[0];
+        }
+
+        private static Type GetMostSpecificSharedPickerType(List<Type> candidates)
+        {
+            if (candidates == null || candidates.Count == 0)
+                return null;
+
+            Type current = candidates[0];
+            while (current != null && current != typeof(UnityEngine.Object))
+            {
+                if (!current.IsGenericType
+                    && current != typeof(ScriptableObject)
+                    && typeof(UnityEngine.Object).IsAssignableFrom(current)
+                    && candidates.All(candidate => current.IsAssignableFrom(candidate)))
+                {
+                    return current;
+                }
+
+                current = current.BaseType;
+            }
+
+            return null;
         }
 
         private bool ShouldShowProperty(SerializedProperty property)
@@ -1434,21 +1730,29 @@ namespace DragAndDropSystem.Inspector.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            bool isFixedSize = InspectorReflectionUtility.GetAttribute<FixedArraySizeAttribute>(property) != null;
+
             if (IsObjectReferenceList(property))
             {
-                DrawObjectReferenceList(position, property, label);
+                DrawObjectReferenceList(position, property, label, isFixedSize);
                 return;
             }
 
             if (IsManagedReferenceList(property))
             {
-                DrawList(position, property, label);
+                DrawList(position, property, label, isFixedSize);
                 return;
             }
 
             if (property.propertyType == SerializedPropertyType.ObjectReference)
             {
                 DrawObjectReferenceSingle(position, property, label, GetReferenceFieldType(property), false, null);
+                return;
+            }
+
+            if (!IsManagedReferenceProperty(property))
+            {
+                EditorGUI.PropertyField(position, property, label, true);
                 return;
             }
 
@@ -1466,20 +1770,24 @@ namespace DragAndDropSystem.Inspector.Editor
             if (property.propertyType == SerializedPropertyType.ObjectReference)
                 return EditorGUIUtility.singleLineHeight;
 
+            if (!IsManagedReferenceProperty(property))
+                return EditorGUI.GetPropertyHeight(property, label, true);
+
             return GetSingleHeight(property, label);
         }
 
-        private void DrawList(Rect position, SerializedProperty property, GUIContent label)
+        private void DrawList(Rect position, SerializedProperty property, GUIContent label, bool isFixedSize)
         {
             Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             Rect foldoutRect = new Rect(headerRect.x, headerRect.y, 14f, headerRect.height);
-            Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, headerRect.width - 70f, headerRect.height);
+            float labelWidth = isFixedSize ? headerRect.width - 18f : headerRect.width - 70f;
+            Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, labelWidth, headerRect.height);
             Rect addButtonRect = new Rect(headerRect.xMax - 64f, headerRect.y, 64f, headerRect.height);
 
             property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
             EditorGUI.LabelField(labelRect, $"{label.text} ({property.arraySize})");
 
-            if (GUI.Button(addButtonRect, "Add"))
+            if (!isFixedSize && GUI.Button(addButtonRect, "Add"))
             {
                 ShowAddMenu(property, GetListElementType(property));
             }
@@ -1505,32 +1813,41 @@ namespace DragAndDropSystem.Inspector.Editor
                 Rect boxRect = new Rect(position.x, y, position.width, boxHeight);
                 GUI.Box(boxRect, GUIContent.none, EditorStyles.helpBox);
 
+                if (isFixedSize
+                    && Event.current.type == EventType.ContextClick
+                    && boxRect.Contains(Event.current.mousePosition))
+                {
+                    Event.current.Use();
+                }
+
                 Rect contentRect = new Rect(
                     boxRect.x + BoxPadding,
                     boxRect.y + BoxPadding,
                     boxRect.width - BoxPadding * 2f,
                     elementHeight);
 
-                DrawSingle(contentRect, element, new GUIContent($"Element {i}"), elementType, true, () =>
+                DrawSingle(contentRect, element, new GUIContent($"Element {i}"), elementType, !isFixedSize, () =>
                 {
-                    DrawListControls(contentRect, property, i);
+                    if (!isFixedSize)
+                        DrawListControls(contentRect, property, i);
                 });
 
                 y = boxRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             }
         }
 
-        private void DrawObjectReferenceList(Rect position, SerializedProperty property, GUIContent label)
+        private void DrawObjectReferenceList(Rect position, SerializedProperty property, GUIContent label, bool isFixedSize)
         {
             Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             Rect foldoutRect = new Rect(headerRect.x, headerRect.y, 14f, headerRect.height);
-            Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, headerRect.width - 70f, headerRect.height);
+            float labelWidth = isFixedSize ? headerRect.width - 18f : headerRect.width - 70f;
+            Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, labelWidth, headerRect.height);
             Rect addButtonRect = new Rect(headerRect.xMax - 64f, headerRect.y, 64f, headerRect.height);
 
             property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
             EditorGUI.LabelField(labelRect, $"{label.text} ({property.arraySize})");
 
-            using (new EditorGUI.DisabledScope(GetListElementType(property) == null))
+            using (new EditorGUI.DisabledScope(isFixedSize || GetListElementType(property) == null))
             {
                 if (GUI.Button(addButtonRect, "Add"))
                 {
@@ -1562,15 +1879,23 @@ namespace DragAndDropSystem.Inspector.Editor
                 Rect boxRect = new Rect(position.x, y, position.width, boxHeight);
                 GUI.Box(boxRect, GUIContent.none, EditorStyles.helpBox);
 
+                if (isFixedSize
+                    && Event.current.type == EventType.ContextClick
+                    && boxRect.Contains(Event.current.mousePosition))
+                {
+                    Event.current.Use();
+                }
+
                 Rect contentRect = new Rect(
                     boxRect.x + BoxPadding,
                     boxRect.y + BoxPadding,
                     boxRect.width - BoxPadding * 2f,
                     EditorGUIUtility.singleLineHeight);
 
-                DrawObjectReferenceSingle(contentRect, element, new GUIContent($"Element {i}"), elementType, true, () =>
+                DrawObjectReferenceSingle(contentRect, element, new GUIContent($"Element {i}"), elementType, !isFixedSize, () =>
                 {
-                    DrawListControls(contentRect, property, i);
+                    if (!isFixedSize)
+                        DrawListControls(contentRect, property, i);
                 });
 
                 y = boxRect.yMax + EditorGUIUtility.standardVerticalSpacing;
@@ -1899,7 +2224,19 @@ namespace DragAndDropSystem.Inspector.Editor
             return property.isArray
                    && property.propertyType != SerializedPropertyType.String
                    && !IsObjectReferenceList(property)
+                   && HasSerializeReferenceAttribute(property)
                    && GetListElementType(property) != null;
+        }
+
+        private bool IsManagedReferenceProperty(SerializedProperty property)
+        {
+            return property.propertyType == SerializedPropertyType.ManagedReference;
+        }
+
+        private bool HasSerializeReferenceAttribute(SerializedProperty property)
+        {
+            FieldInfo propertyField = InspectorReflectionUtility.GetFieldInfo(property) ?? fieldInfo;
+            return propertyField != null && propertyField.IsDefined(typeof(SerializeReference), true);
         }
 
         private bool IsObjectReferenceList(SerializedProperty property)
@@ -2188,7 +2525,13 @@ namespace DragAndDropSystem.Inspector.Editor
     [CustomPropertyDrawer(typeof(FixedArraySizeAttribute))]
     public sealed class FixedArraySizePropertyDrawer : PropertyDrawer
     {
+        private const float PickButtonWidth = 20f;
         private static readonly Dictionary<string, bool> FoldoutStates = new Dictionary<string, bool>();
+
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return false;
+        }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -2214,13 +2557,44 @@ namespace DragAndDropSystem.Inspector.Editor
 
             EditorGUI.indentLevel++;
             float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            bool useObjectReferencePicker = ShouldUseManagedReferencePicker(property) && IsObjectReferenceList(property);
+            bool useManagedReferencePicker = ShouldUseManagedReferencePicker(property)
+                                            && !useObjectReferencePicker
+                                            && ShouldDrawManagedReferenceElements(property);
+            Type elementType = (useObjectReferencePicker || useManagedReferencePicker)
+                ? GetListElementType(property)
+                : null;
 
             for (int i = 0; i < property.arraySize; i++)
             {
                 SerializedProperty element = property.GetArrayElementAtIndex(i);
-                float elementHeight = EditorGUI.GetPropertyHeight(element, true);
+                float elementHeight = useObjectReferencePicker
+                    ? EditorGUIUtility.singleLineHeight
+                    : useManagedReferencePicker
+                        ? GetManagedReferenceElementHeight(element)
+                        : EditorGUI.GetPropertyHeight(element, true);
                 Rect elementRect = new Rect(position.x, y, position.width, elementHeight);
-                EditorGUI.PropertyField(elementRect, element, new GUIContent($"Element {i}"), true);
+
+                if (Event.current.type == EventType.ContextClick
+                    && elementRect.Contains(Event.current.mousePosition))
+                {
+                    Event.current.Use();
+                }
+
+                GUIContent elementLabel = new GUIContent($"Element {i}");
+                if (useObjectReferencePicker)
+                {
+                    DrawObjectReferenceElement(elementRect, element, elementLabel, elementType);
+                }
+                else if (useManagedReferencePicker)
+                {
+                    DrawManagedReferenceElement(elementRect, element, elementLabel, elementType);
+                }
+                else
+                {
+                    EditorGUI.PropertyField(elementRect, element, elementLabel, true);
+                }
+
                 y += elementHeight + EditorGUIUtility.standardVerticalSpacing;
             }
 
@@ -2237,10 +2611,133 @@ namespace DragAndDropSystem.Inspector.Editor
                 return EditorGUIUtility.singleLineHeight;
 
             float height = EditorGUIUtility.singleLineHeight;
+            bool useObjectReferencePicker = ShouldUseManagedReferencePicker(property) && IsObjectReferenceList(property);
+            bool useManagedReferencePicker = ShouldUseManagedReferencePicker(property)
+                                            && !useObjectReferencePicker
+                                            && ShouldDrawManagedReferenceElements(property);
             for (int i = 0; i < property.arraySize; i++)
             {
                 height += EditorGUIUtility.standardVerticalSpacing;
-                height += EditorGUI.GetPropertyHeight(property.GetArrayElementAtIndex(i), true);
+                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                height += useObjectReferencePicker
+                    ? EditorGUIUtility.singleLineHeight
+                    : useManagedReferencePicker
+                        ? GetManagedReferenceElementHeight(element)
+                        : EditorGUI.GetPropertyHeight(element, true);
+            }
+
+            return height;
+        }
+
+        private bool ShouldUseManagedReferencePicker(SerializedProperty property)
+        {
+            return InspectorReflectionUtility.GetAttribute<ManagedReferencePickerAttribute>(property) != null;
+        }
+
+        private bool ShouldDrawManagedReferenceElements(SerializedProperty property)
+        {
+            if (fieldInfo != null && fieldInfo.IsDefined(typeof(SerializeReference), true))
+                return true;
+
+            if (property.arraySize == 0)
+                return false;
+
+            return property.GetArrayElementAtIndex(0).propertyType == SerializedPropertyType.ManagedReference;
+        }
+
+        private void DrawManagedReferenceElement(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label,
+            Type managedReferenceType)
+        {
+            Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
+            bool hasChildren = property.managedReferenceValue != null && EnumerateChildren(property).Any();
+
+            if (hasChildren)
+            {
+                Rect foldoutRect = new Rect(headerRect.x + 14f, headerRect.y, 14f, headerRect.height);
+                property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
+            }
+
+            float foldoutIndent = hasChildren ? 14f : 0f;
+            Rect labelRect = new Rect(
+                headerRect.x + foldoutIndent,
+                headerRect.y,
+                EditorGUIUtility.labelWidth - foldoutIndent,
+                headerRect.height);
+            EditorGUI.LabelField(labelRect, label);
+
+            Rect pickButtonRect = new Rect(
+                headerRect.xMax - PickButtonWidth,
+                headerRect.y,
+                PickButtonWidth,
+                headerRect.height);
+
+            float typeFieldX = position.x + EditorGUIUtility.labelWidth - 12f;
+            Rect typeNameRect = new Rect(
+                typeFieldX,
+                headerRect.y,
+                pickButtonRect.x - typeFieldX - 2f,
+                headerRect.height);
+
+            string typeName = GetTypeButtonLabel(property, managedReferenceType);
+            EditorGUI.LabelField(typeNameRect, typeName, EditorStyles.textField);
+
+            if (GUI.Button(pickButtonRect, "\u25BC"))
+            {
+                ShowTypeMenu(property, managedReferenceType, allowNull: true);
+            }
+
+            if (!hasChildren || !property.isExpanded)
+                return;
+
+            float indent = 15f;
+            float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            foreach (SerializedProperty child in EnumerateChildren(property))
+            {
+                float childHeight = EditorGUI.GetPropertyHeight(child, true);
+                Rect childRect = new Rect(position.x + indent, y, position.width - indent, childHeight);
+                EditorGUI.PropertyField(childRect, child, true);
+                y = childRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+        }
+
+        private void DrawObjectReferenceElement(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label,
+            Type objectType)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+            UnityEngine.Object newValue = EditorGUI.ObjectField(
+                position,
+                label,
+                property.objectReferenceValue,
+                GetPickerFieldType(objectType),
+                false);
+
+            if (newValue != property.objectReferenceValue)
+            {
+                property.objectReferenceValue = newValue;
+                property.serializedObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.EndProperty();
+        }
+
+        private float GetManagedReferenceElementHeight(SerializedProperty property)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            bool hasChildren = property.managedReferenceValue != null && EnumerateChildren(property).Any();
+            if (!hasChildren || !property.isExpanded)
+                return height;
+
+            height += EditorGUIUtility.standardVerticalSpacing;
+            foreach (SerializedProperty child in EnumerateChildren(property))
+            {
+                height += EditorGUI.GetPropertyHeight(child, true);
+                height += EditorGUIUtility.standardVerticalSpacing;
             }
 
             return height;
@@ -2252,6 +2749,178 @@ namespace DragAndDropSystem.Inspector.Editor
                 ? property.serializedObject.targetObject.GetInstanceID()
                 : 0;
             return instanceId + ":" + property.propertyPath;
+        }
+
+        private string GetTypeButtonLabel(SerializedProperty property, Type baseType)
+        {
+            if (property.managedReferenceValue != null)
+                return ObjectNames.NicifyVariableName(property.managedReferenceValue.GetType().Name);
+
+            string baseName = GetDisplayTypeName(baseType);
+            return $"None ({baseName})";
+        }
+
+        private static string GetDisplayTypeName(Type type)
+        {
+            if (type == null)
+                return "?";
+
+            if (!type.IsGenericType)
+                return ObjectNames.NicifyVariableName(type.Name);
+
+            string typeName = type.Name;
+            int tickIndex = typeName.IndexOf('`');
+            if (tickIndex >= 0)
+            {
+                typeName = typeName.Substring(0, tickIndex);
+            }
+
+            string[] argumentNames = type.GetGenericArguments()
+                .Select(GetDisplayTypeName)
+                .ToArray();
+
+            return $"{ObjectNames.NicifyVariableName(typeName)}<{string.Join(", ", argumentNames)}>";
+        }
+
+        private void ShowTypeMenu(SerializedProperty property, Type baseType, bool allowNull)
+        {
+            var menu = new GenericMenu();
+            if (allowNull)
+            {
+                menu.AddItem(new GUIContent("None"), property.managedReferenceValue == null, () =>
+                {
+                    property.managedReferenceValue = null;
+                    property.serializedObject.ApplyModifiedProperties();
+                });
+                menu.AddSeparator(string.Empty);
+            }
+
+            foreach (Type candidateType in GetAssignableTypes(baseType))
+            {
+                bool isCurrentType = property.managedReferenceValue != null
+                                     && property.managedReferenceValue.GetType() == candidateType;
+
+                menu.AddItem(new GUIContent(candidateType.Name), isCurrentType, () =>
+                {
+                    property.managedReferenceValue = Activator.CreateInstance(candidateType);
+                    property.serializedObject.ApplyModifiedProperties();
+                });
+            }
+
+            menu.ShowAsContext();
+        }
+
+        private static IEnumerable<SerializedProperty> EnumerateChildren(SerializedProperty property)
+        {
+            SerializedProperty iterator = property.Copy();
+            SerializedProperty end = iterator.GetEndProperty();
+
+            if (!iterator.NextVisible(true))
+                yield break;
+
+            do
+            {
+                if (SerializedProperty.EqualContents(iterator, end))
+                    yield break;
+
+                yield return iterator.Copy();
+            }
+            while (iterator.NextVisible(false));
+        }
+
+        private static IEnumerable<Type> GetAssignableTypes(Type baseType)
+        {
+            if (baseType == null)
+                yield break;
+
+            if (!baseType.IsAbstract && !baseType.IsInterface && IsSerializableManagedReferenceType(baseType))
+            {
+                yield return baseType;
+            }
+
+            foreach (Type type in TypeCache.GetTypesDerivedFrom(baseType))
+            {
+                if (IsSerializableManagedReferenceType(type))
+                    yield return type;
+            }
+        }
+
+        private static bool IsSerializableManagedReferenceType(Type type)
+        {
+            return type != null
+                   && !type.IsAbstract
+                   && !type.IsGenericTypeDefinition
+                   && !typeof(UnityEngine.Object).IsAssignableFrom(type)
+                   && type.GetConstructor(Type.EmptyTypes) != null
+                   && (type.IsDefined(typeof(SerializableAttribute), false) || type.IsClass);
+        }
+
+        private bool IsObjectReferenceList(SerializedProperty property)
+        {
+            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+                return false;
+
+            Type elementType = GetListElementType(property);
+            return elementType != null && typeof(UnityEngine.Object).IsAssignableFrom(elementType);
+        }
+
+        private Type GetListElementType(SerializedProperty property)
+        {
+            Type fieldType = InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
+            if (fieldType == null)
+                return null;
+
+            if (fieldType.IsArray)
+                return fieldType.GetElementType();
+
+            if (fieldType.IsGenericType && fieldType.GetGenericArguments().Length == 1)
+                return fieldType.GetGenericArguments()[0];
+
+            return null;
+        }
+
+        private static Type GetPickerFieldType(Type referenceType)
+        {
+            if (referenceType == null)
+                return typeof(UnityEngine.Object);
+
+            if (!referenceType.IsGenericType && typeof(UnityEngine.Object).IsAssignableFrom(referenceType))
+                return referenceType;
+
+            List<Type> candidates = TypeCache.GetTypesDerivedFrom(referenceType)
+                .Where(type => !type.IsAbstract && typeof(UnityEngine.Object).IsAssignableFrom(type))
+                .ToList();
+
+            if (candidates.Count == 0)
+                return typeof(UnityEngine.Object).IsAssignableFrom(referenceType) ? referenceType : typeof(UnityEngine.Object);
+
+            Type sharedBase = GetMostSpecificSharedPickerType(candidates);
+            if (sharedBase != null)
+                return sharedBase;
+
+            return candidates[0];
+        }
+
+        private static Type GetMostSpecificSharedPickerType(List<Type> candidates)
+        {
+            if (candidates == null || candidates.Count == 0)
+                return null;
+
+            Type current = candidates[0];
+            while (current != null && current != typeof(UnityEngine.Object))
+            {
+                if (!current.IsGenericType
+                    && current != typeof(ScriptableObject)
+                    && typeof(UnityEngine.Object).IsAssignableFrom(current)
+                    && candidates.All(candidate => current.IsAssignableFrom(candidate)))
+                {
+                    return current;
+                }
+
+                current = current.BaseType;
+            }
+
+            return null;
         }
     }
 }
