@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Slots;
 using UnityEngine;
 
@@ -12,12 +13,13 @@ namespace DragAndDropSystem.Examples.Minecraft
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/Crafting Recipe")]
     public class CraftingRecipeSO : ScriptableObject
     {
-        [SerializeField, Tooltip("Паттерн 3x3. Порядок: строка за строкой, слева направо. null = пустая ячейка")]
-        private MinecraftItemSO[] _pattern = new MinecraftItemSO[9];
+        [SerializeField]
+        [Tooltip("Паттерн 3x3. Порядок: строка за строкой, слева направо. null = пустая ячейка")]
+        private CraftingRecipePattern _pattern = new CraftingRecipePattern();
 
         [SerializeField] private bool _shapeless;
 
-        [SerializeField] private MinecraftItemSO _result;
+        [SerializeField, PreviewField(72f)] private MinecraftItemSO _result;
         [SerializeField, Range(1, 64)] private int _resultCount = 1;
 
         public MinecraftItemSO Result => _result;
@@ -141,7 +143,7 @@ namespace DragAndDropSystem.Examples.Minecraft
         {
             var ids = new string[9];
             for (int i = 0; i < 9; i++)
-                ids[i] = i < _pattern.Length && _pattern[i] != null ? _pattern[i].ItemId : null;
+                ids[i] = _pattern.Get(i) != null ? _pattern.Get(i).ItemId : null;
             return ids;
         }
     }
