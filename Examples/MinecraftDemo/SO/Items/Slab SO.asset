@@ -9,7 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24772e6e2ea397a4898cbf19c45b9c79, type: 3}
-  m_Name: New Minecraft Item Database
+  m_Script: {fileID: 11500000, guid: a017ebe1924159347a8accf42e8395ee, type: 3}
+  m_Name: Slab SO
   m_EditorClassIdentifier: 
-  _items: []
+  <DisplayName>k__BackingField: Planks
+  <Icon>k__BackingField: {fileID: -2522296855164536123, guid: 6da000ef823f2394b92a044fda0da627, type: 3}
+  <EquipmentSlot>k__BackingField: 0
