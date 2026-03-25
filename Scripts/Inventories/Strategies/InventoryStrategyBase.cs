@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Slots;
@@ -75,6 +76,18 @@ namespace DragAndDropSystem.Inventories
             return slot.Stack != null && slot.Stack.CanStack(item);
         }
 
+        /// <summary>
+        /// Лимит стака для предмета.
+        /// Если allowItemOverride и предмет реализует IStackSizeLimitable — используется лимит предмета.
+        /// Иначе — defaultMaxStackSize (0 = без ограничений).
+        /// </summary>
+        protected static int GetMaxStackSize(IInventoryItem item, int defaultMaxStackSize, bool allowItemOverride)
+        {
+            if (allowItemOverride && item is IStackSizeLimitable limitable)
+                return Math.Max(1, limitable.MaxStackSize);
+            return defaultMaxStackSize > 0 ? defaultMaxStackSize : int.MaxValue;
+        }
+
         protected bool PassesRules(ISlot slot, IInventoryItem item, int previewCount, InventoryAcceptanceRequest request = null)
         {
             if (slot == null || item == null || previewCount <= 0)
@@ -136,35 +149,32 @@ namespace DragAndDropSystem.Inventories
             return slotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
         }
 
-        protected static bool TryMergeIntoSlot(ItemStack stack, ISlot slot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        protected static bool TryMergeIntoSlot(ItemStack stack, ISlot slot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {
-            int countBefore = stack.Count;
-            slot.Stack.AddToStack(stack.Count);
-            int added = countBefore;
-            stack.RemoveFromStack(added);
+            int canFit = Math.Max(0, maxStackSize - slot.Stack.Count);
+            int toAdd = Math.Min(stack.Count, canFit);
+            if (toAdd <= 0) return false;
+
+            slot.Stack.AddToStack(toAdd);
+            stack.RemoveFromStack(toAdd);
             slot.UpdateVisuals();
-            operationContext?.RecordResult(slot, false, added);
-
-            if (added > 0)
-                ensureFreeSlots?.Invoke();
-
-            return added > 0;
+            operationContext?.RecordResult(slot, false, toAdd);
+            ensureFreeSlots?.Invoke();
+            return true;
         }
 
-        protected static bool TryPlaceIntoEmptySlot(ItemStack stack, ISlot slot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        protected static bool TryPlaceIntoEmptySlot(ItemStack stack, ISlot slot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {
+            int toPlace = Math.Min(stack.Count, maxStackSize);
+            if (toPlace <= 0) return false;
+
             bool slotWasEmpty = slot.IsEmpty;
-            var newStack = new ItemStack(stack.Item, stack.Count);
-            slot.SetStack(newStack);
+            slot.SetStack(new ItemStack(stack.Item, toPlace));
+            stack.RemoveFromStack(toPlace);
             slot.UpdateVisuals();
-            int placed = stack.Count;
-            stack.RemoveFromStack(stack.Count);
-            operationContext?.RecordResult(slot, slotWasEmpty, placed);
-
-            if (placed > 0)
-                ensureFreeSlots?.Invoke();
-
-            return placed > 0;
+            operationContext?.RecordResult(slot, slotWasEmpty, toPlace);
+            ensureFreeSlots?.Invoke();
+            return true;
         }
     }
 }

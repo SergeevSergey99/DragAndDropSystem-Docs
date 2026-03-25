@@ -15,22 +15,18 @@ namespace DragAndDropSystem.Inventories
     public class SeparableStacksStrategy : InventoryStrategyBase
     {
         private readonly bool _allowMergeOnDrop;
+        private readonly int _defaultMaxStackSize;
+        private readonly bool _allowItemOverride;
 
-        public SeparableStacksStrategy(bool allowMergeOnDrop = true)
+        public SeparableStacksStrategy(bool allowMergeOnDrop = true, int defaultMaxStackSize = 0, bool allowItemOverride = true)
         {
             _allowMergeOnDrop = allowMergeOnDrop;
+            _defaultMaxStackSize = defaultMaxStackSize;
+            _allowItemOverride = allowItemOverride;
         }
 
-        /// <summary>
-        /// Лимит стака для предмета. Если предмет реализует IStackSizeLimitable — его лимит,
-        /// иначе int.MaxValue (без ограничений, лимит можно задать через MaxStackSizeRule).
-        /// </summary>
-        private static int GetMaxStackSize(IInventoryItem item)
-        {
-            if (item is IStackSizeLimitable limitable)
-                return Math.Max(1, limitable.MaxStackSize);
-            return int.MaxValue;
-        }
+        private int GetMaxStackSize(IInventoryItem item) =>
+            GetMaxStackSize(item, _defaultMaxStackSize, _allowItemOverride);
 
         public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
         {

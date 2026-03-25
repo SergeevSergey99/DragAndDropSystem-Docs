@@ -58,6 +58,17 @@ namespace DragAndDropSystem.Inventories
         private bool _allowMergeOnDrop = true;
 
         [FoldoutGroup("Strategy")]
+        [SerializeField, Tooltip("Максимальный размер стака. 0 или меньше = без ограничений.")]
+        [ShowIf(nameof(ShowDragAmountSettings))]
+        private int _maxStackSize = 0;
+
+        [FoldoutGroup("Strategy")]
+        [SerializeField, Tooltip("Разрешить предметам переопределять лимит стака через IStackSizeLimitable. " +
+                                 "Если true — предмет использует свой лимит. Если false — _maxStackSize является жёстким потолком.")]
+        [ShowIf(nameof(ShowMaxStackOverride))]
+        private bool _allowItemStackOverride = true;
+
+        [FoldoutGroup("Strategy")]
         [SerializeField, EnumToggleButtons, LabelText("Slot Management")]
         private SlotManagementType _slotManagement = SlotManagementType.Fixed;
 
@@ -73,6 +84,7 @@ namespace DragAndDropSystem.Inventories
 
         private bool ShowDragAmountSettings => _itemBehavior == ItemBehaviorType.Stackable || _itemBehavior == ItemBehaviorType.SeparableStacks;
         private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmountType.Custom;
+        private bool ShowMaxStackOverride => ShowDragAmountSettings && _maxStackSize > 0;
 
         [FoldoutGroup("Rules")]
         [SerializeField, HideLabel]
@@ -357,16 +369,16 @@ namespace DragAndDropSystem.Inventories
                     Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: UniqueItemStrategy</color>");
                     break;
                 case ItemBehaviorType.Stackable:
-                    baseStrategy = new StackableItemStrategy(_autoMergeOnDrop);
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy</color>");
+                    baseStrategy = new StackableItemStrategy(_autoMergeOnDrop, _maxStackSize, _allowItemStackOverride);
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (maxStack: {_maxStackSize}, itemOverride: {_allowItemStackOverride})</color>");
                     break;
                 case ItemBehaviorType.SeparableStacks:
-                    baseStrategy = new SeparableStacksStrategy(_allowMergeOnDrop);
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: SeparableStacksStrategy (allowMerge: {_allowMergeOnDrop})</color>");
+                    baseStrategy = new SeparableStacksStrategy(_allowMergeOnDrop, _maxStackSize, _allowItemStackOverride);
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: SeparableStacksStrategy (allowMerge: {_allowMergeOnDrop}, maxStack: {_maxStackSize}, itemOverride: {_allowItemStackOverride})</color>");
                     break;
                 default:
-                    baseStrategy = new StackableItemStrategy(_autoMergeOnDrop);
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (default)</color>");
+                    baseStrategy = new StackableItemStrategy(_autoMergeOnDrop, _maxStackSize, _allowItemStackOverride);
+                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (default, maxStack: {_maxStackSize}, itemOverride: {_allowItemStackOverride})</color>");
                     break;
             }
 

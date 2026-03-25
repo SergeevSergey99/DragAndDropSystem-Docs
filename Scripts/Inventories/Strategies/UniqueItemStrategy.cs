@@ -92,7 +92,7 @@ namespace DragAndDropSystem.Inventories
             if (!PassesRules(targetSlot, stack.Item, 1))
                 return false;
 
-            return TryPlaceIntoEmptySlot(stack, targetSlot, ensureFreeSlots, operationContext);
+            return TryPlaceIntoEmptySlot(stack, targetSlot, 1, ensureFreeSlots, operationContext);
         }
 
         public override bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
