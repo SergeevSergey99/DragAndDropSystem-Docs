@@ -20,16 +20,14 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override MinecraftItemAdapter CreateAdapter(MinecraftItemSO item) => new(item);
 
-        protected override MinecraftItemSO ExtractData(MinecraftItemAdapter adapter) => adapter.ItemSO;
-
-        protected override void AddToSlotData(int index, MinecraftItemSO item, int count)
+        protected override void AddToSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryAddHotbarItem(item, count, index);
+            CraftingManager.Instance.TryAddHotbarItem(adapter.ItemSO, count, index);
         }
 
-        protected override void RemoveFromSlotData(int index, MinecraftItemSO item, int count)
+        protected override void RemoveFromSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryRemoveHotbarItem(item, count, index);
+            CraftingManager.Instance.TryRemoveHotbarItem(adapter.ItemSO, count, index);
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)

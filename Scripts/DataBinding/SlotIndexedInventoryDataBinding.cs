@@ -46,23 +46,16 @@ namespace DragAndDropSystem.DataBinding
         protected abstract TAdapter CreateAdapter(TData item);
 
         /// <summary>
-        /// Извлечь элемент данных из адаптера.
-        /// Вызывается при добавлении/удалении предмета через drag&amp;drop.
-        /// Может вернуть default если адаптер не содержит нужных данных.
-        /// </summary>
-        protected abstract TData ExtractData(TAdapter adapter);
-
-        /// <summary>
         /// Обновить данные слота при добавлении предмета.
         /// Вызывается когда предмет добавлен в слот через drag&amp;drop.
         /// </summary>
-        protected abstract void AddToSlotData(int index, TData item, int count);
+        protected abstract void AddToSlotData(int index, TAdapter adapter, int count);
 
         /// <summary>
         /// Обновить данные слота при удалении предмета.
         /// Вызывается когда предмет удалён из слота через drag&amp;drop.
         /// </summary>
-        protected abstract void RemoveFromSlotData(int index, TData item, int count);
+        protected abstract void RemoveFromSlotData(int index, TAdapter item, int count);
 
         protected override void OnReloadUI()
         {
@@ -81,9 +74,7 @@ namespace DragAndDropSystem.DataBinding
             int index = context.TargetSlot?.Index ?? -1;
             if (index < 0) return;
 
-            var data = ExtractData(adapter);
-            if (data != null)
-                AddToSlotData(index, data, context.Count);
+            AddToSlotData(index, adapter, context.Count);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
@@ -93,9 +84,7 @@ namespace DragAndDropSystem.DataBinding
             int index = context.SourceSlot?.Index ?? -1;
             if (index < 0) return;
 
-            var data = ExtractData(adapter);
-            if (data != null)
-                RemoveFromSlotData(index, data, context.Count);
+            RemoveFromSlotData(index, adapter, context.Count);
         }
     }
 }

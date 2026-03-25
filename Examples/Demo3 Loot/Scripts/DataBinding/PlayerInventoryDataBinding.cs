@@ -27,9 +27,8 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         }
 
         protected override ItemSOWith3DAdapter CreateAdapter(ItemExampleWith3DSO item) => new(item);
-        protected override ItemExampleWith3DSO ExtractData(ItemSOWith3DAdapter adapter) => adapter.item;
-        protected override void AddToSlotData(int index, ItemExampleWith3DSO item, int count) => _playerData.SetItem(index, item);
-        protected override void RemoveFromSlotData(int index, ItemExampleWith3DSO item, int count) => _playerData.ClearSlot(index);
+        protected override void AddToSlotData(int index, ItemSOWith3DAdapter adapter, int count) => _playerData.SetItem(index, adapter.item);
+        protected override void RemoveFromSlotData(int index, ItemSOWith3DAdapter adapter, int count) => _playerData.ClearSlot(index);
         
         // Дополнительно запрещаем класть в слот в любом режиме инвентаря
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
