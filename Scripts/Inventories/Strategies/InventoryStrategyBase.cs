@@ -10,6 +10,18 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public abstract class InventoryStrategyBase : IInventoryStrategy
     {
+        protected int _defaultMaxStackSize;
+        protected bool _allowItemOverride;
+
+        /// <summary>
+        /// Задать лимит стака в рантайме (например, из DataBinding).
+        /// </summary>
+        public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)
+        {
+            _defaultMaxStackSize = maxStackSize;
+            _allowItemOverride = allowItemOverride;
+        }
+
         public abstract bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex);
         public abstract bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);

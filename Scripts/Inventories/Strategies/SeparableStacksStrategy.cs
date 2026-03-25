@@ -15,8 +15,6 @@ namespace DragAndDropSystem.Inventories
     public class SeparableStacksStrategy : InventoryStrategyBase
     {
         private readonly bool _allowMergeOnDrop;
-        private readonly int _defaultMaxStackSize;
-        private readonly bool _allowItemOverride;
 
         public SeparableStacksStrategy(bool allowMergeOnDrop = true, int defaultMaxStackSize = 0, bool allowItemOverride = true)
         {

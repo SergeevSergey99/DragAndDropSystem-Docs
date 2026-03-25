@@ -160,5 +160,10 @@ namespace DragAndDropSystem.Inventories
         {
             return _baseStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, slotPrefab);
         }
+
+        public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)
+        {
+            _baseStrategy.SetMaxStackSize(maxStackSize, allowItemOverride);
+        }
     }
 }

@@ -57,7 +57,7 @@ namespace DragAndDropSystem.DataBinding
             }
         }
 
-        private void Awake()
+        protected virtual void Awake()
         {
             // Создаем внутреннее правило, которое будет делегировать вызовы виртуальным методам
             _internalRule = new DataBindingInventoryRule(this);

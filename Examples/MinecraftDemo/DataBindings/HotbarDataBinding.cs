@@ -30,13 +30,10 @@ namespace DragAndDropSystem.Examples.Minecraft
             CraftingManager.Instance.TryRemoveHotbarItem(adapter.ItemSO, count, index);
         }
 
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+        protected override void Awake()
         {
-            if (entry.Stack.Item is not MinecraftItemAdapter adapter)
-                return RuleResult.Failure("Неверный тип предмета!");
-            if (!CraftingManager.Instance.CanAddHotbarItem(adapter.ItemSO, entry.Stack.Count, context.TargetSlot.Index))
-                return RuleResult.Failure("Невозможно положить этот предмет в хотбар!");
-            return base.CanDrop(context, entry);
+            _inventory.SetMaxStackSize(CraftingManager.MaxItemsPerSlot);
+            base.Awake();
         }
     }
 }

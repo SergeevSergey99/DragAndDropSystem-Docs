@@ -13,8 +13,6 @@ namespace DragAndDropSystem.Inventories
     public class StackableItemStrategy : InventoryStrategyBase
     {
         private readonly bool _autoMergeOnDrop;
-        private readonly int _defaultMaxStackSize;
-        private readonly bool _allowItemOverride;
 
         public StackableItemStrategy(bool autoMergeOnDrop = true, int defaultMaxStackSize = 0, bool allowItemOverride = true)
         {

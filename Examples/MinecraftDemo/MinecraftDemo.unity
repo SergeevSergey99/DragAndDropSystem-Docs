@@ -604,6 +604,8 @@ MonoBehaviour:
   _customDragAmount: 1
   _autoMergeOnDrop: 1
   _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 1
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
@@ -2833,6 +2835,8 @@ MonoBehaviour:
   _customDragAmount: 1
   _autoMergeOnDrop: 1
   _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 1
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
@@ -7345,12 +7349,13 @@ MonoBehaviour:
   _customDragAmount: 1
   _autoMergeOnDrop: 1
   _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
-    _presets:
-    - {fileID: 11400000, guid: 71a341caec478314d828b5c0a5df6b43, type: 2}
+    _presets: []
     _inlineRules: []
   _dropPolicySettings:
     _enabled: 0

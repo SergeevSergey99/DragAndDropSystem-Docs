@@ -66,7 +66,7 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, Tooltip("Разрешить предметам переопределять лимит стака через IStackSizeLimitable. " +
                                  "Если true — предмет использует свой лимит. Если false — _maxStackSize является жёстким потолком.")]
         [ShowIf(nameof(ShowMaxStackOverride))]
-        private bool _allowItemStackOverride = true;
+        private bool _allowItemStackOverride = false;
 
         [FoldoutGroup("Strategy")]
         [SerializeField, EnumToggleButtons, LabelText("Slot Management")]
@@ -439,6 +439,17 @@ namespace DragAndDropSystem.Inventories
             if (index >= 0 && index < _slots.Count)
                 return _slots[index];
             return null;
+        }
+
+        /// <summary>
+        /// Задать лимит стака в рантайме (например, из DataBinding).
+        /// maxStackSize = 0 означает без ограничений.
+        /// </summary>
+        public void SetMaxStackSize(int maxStackSize, bool allowItemOverride = false)
+        {
+            _maxStackSize = maxStackSize;
+            _allowItemStackOverride = allowItemOverride;
+            _strategy?.SetMaxStackSize(maxStackSize, allowItemOverride);
         }
 
         internal bool TryPreviewIncomingItem(IInventoryItem item, out IInventoryItem converted)
