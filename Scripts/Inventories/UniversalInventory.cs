@@ -429,14 +429,6 @@ namespace DragAndDropSystem.Inventories
             return null;
         }
 
-        public bool TryAddItem(IInventoryItem item, int count = 1, int targetSlotIndex = -1)
-        {
-            if (item == null) return false;
-
-            var stack = new ItemStack(item, count);
-            return TryAddStack(stack, targetSlotIndex);
-        }
-
         internal bool TryPreviewIncomingItem(IInventoryItem item, out IInventoryItem converted)
         {
             converted = item;
@@ -656,33 +648,8 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        public bool TryRemoveItem(IInventoryItem item, int count = 1, int sourceSlotIndex = -1)
-        {
-            if (item == null) return false;
-
-            InventorySnapshot snapshot = null;
-            if (_slotManagement == SlotManagementType.Dynamic)
-            {
-                snapshot = CaptureSnapshot();
-            }
-
-            bool success = _placementStrategy.TryRemove(_slots, item, count, sourceSlotIndex);
-
-            if (success)
-            {
-                UpdateAllVisuals();
-                if (_slotManagement == SlotManagementType.Dynamic)
-                {
-                    ProcessEmptiedSlots(snapshot);
-                }
-            }
-
-            return success;
-        }
-
         public bool Contains(IInventoryItem item) => _queryStrategy.Contains(_slots, item);
-        public int GetItemCount(IInventoryItem item) => _queryStrategy.GetItemCount(_slots, item);
-
+        
         public void UpdateAllVisuals()
         {
             foreach (var slot in _slots)
@@ -863,15 +830,7 @@ namespace DragAndDropSystem.Inventories
 
             return canAccept;
         }
-
-        /// <summary>
-        /// Получить количество предметов данного типа, которое инвентарь может принять.
-        /// Учитывает стратегию инвентаря (Unique, Stackable, SeparableStacks),
-        /// свободные слоты и правила валидации.
-        /// </summary>
-        public int GetAcceptableCount(IInventoryItem item, int desiredCount)
-            => GetAcceptableCount(new InventoryAcceptanceRequest(this, item, desiredCount));
-
+        
         public int GetAcceptableCount(InventoryAcceptanceRequest request)
         {
             if (request?.Item == null || request.DesiredCount <= 0)

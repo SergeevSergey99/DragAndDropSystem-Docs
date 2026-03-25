@@ -227,21 +227,11 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected void AddToUIQuiet(IInventoryItem item, int count, int targetSlotIndex = -1)
         {
-            if (_inventory == null) return;
-
-            using (BeginSync())
-                _inventory.TryAddItem(item, count, targetSlotIndex);
-        }
-
-        /// <summary>
-        /// Удалить предмет из UI без триггера событий
-        /// </summary>
-        protected void RemoveFromUIQuiet(IInventoryItem item, int count, int sourceSlotIndex = -1)
-        {
-            if (_inventory == null) return;
-
-            using (BeginSync())
-                _inventory.TryRemoveItem(item, count, sourceSlotIndex);
+            if (_inventory == null || item == null) return;
+            
+            var slot = _inventory.GetSlot(targetSlotIndex);
+            if (slot != null) 
+                slot.SetStack(new ItemStack(item, count));
         }
 
         #endregion

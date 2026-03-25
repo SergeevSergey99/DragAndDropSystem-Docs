@@ -6,8 +6,9 @@ namespace DragAndDropSystem.Tools
     {
         public static void DragAndDropLog(string message)
         {
-            //return;
+#if UNITY_EDITOR && UNIVERSAL_INVENTORY_LOG
             Debug.Log($"<color=cyan>[DragAndDropSystem]</color> {message}");
+#endif
         }
     }
 }

@@ -27,16 +27,6 @@ namespace DragAndDropSystem.Inventories
         ISlot GetSlot(int index);
 
         /// <summary>
-        /// Попытаться добавить предмет
-        /// </summary>
-        bool TryAddItem(IInventoryItem item, int count = 1, int targetSlotIndex = -1);
-
-        /// <summary>
-        /// Попытаться удалить предмет
-        /// </summary>
-        bool TryRemoveItem(IInventoryItem item, int count = 1, int sourceSlotIndex = -1);
-
-        /// <summary>
         /// Попытаться добавить стак
         /// </summary>
         bool TryAddStack(ItemStack stack, int targetSlotIndex = -1);
@@ -45,11 +35,6 @@ namespace DragAndDropSystem.Inventories
         /// Проверить, есть ли предмет в инвентаре
         /// </summary>
         bool Contains(IInventoryItem item);
-
-        /// <summary>
-        /// Получить количество предмета в инвентаре
-        /// </summary>
-        int GetItemCount(IInventoryItem item);
 
         /// <summary>
         /// Обновить визуализацию всех слотов
@@ -74,16 +59,6 @@ namespace DragAndDropSystem.Inventories
             IInventory sourceInventory = null,
             int sourceSlotIndex = -1,
             SlotOperationContext operationContext = null);
-
-        /// <summary>
-        /// Получить количество предметов данного типа, которое инвентарь может принять.
-        /// Учитывает стратегию инвентаря (Unique, Stackable, SeparableStacks),
-        /// свободные слоты и правила валидации.
-        /// </summary>
-        /// <param name="item">Предмет для проверки</param>
-        /// <param name="desiredCount">Желаемое количество</param>
-        /// <returns>Количество предметов, которое реально может быть принято (0 до desiredCount)</returns>
-        int GetAcceptableCount(IInventoryItem item, int desiredCount);
 
         /// <summary>
         /// Получить количество предметов, которое инвентарь может принять
