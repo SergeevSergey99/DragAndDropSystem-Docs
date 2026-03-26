@@ -26,7 +26,6 @@ namespace DragAndDropSystem.DataBinding
         private InventoryRuleValidator _ruleValidator = new InventoryRuleValidator();
 
         private int _syncDepth = 0;
-        private DataBindingInventoryRule _internalRule;
 
         /// <summary>
         /// Находимся ли мы в режиме синхронизации (Data → UI).
@@ -59,47 +58,15 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void Awake()
         {
-            // Создаем внутреннее правило, которое будет делегировать вызовы виртуальным методам
-            _internalRule = new DataBindingInventoryRule(this);
-
             // Инициализируем инвентарь
             _inventory.Initialize(this);
             _inventory.SetItemConverter(CreateItemConverter());
-
-            // Добавляем правила DataBinding в инвентарь
-            IntegrateRulesWithInventory();
         }
 
         private void OnValidate()
         {
             // Сортируем правила при изменении в Inspector
             _ruleValidator?.OnValidate();
-        }
-
-        /// <summary>
-        /// Интегрирует правила DataBinding с правилами UniversalInventory
-        /// </summary>
-        private void IntegrateRulesWithInventory()
-        {
-            if (_inventory == null) return;
-
-            // Добавляем внутреннее правило в инвентарь
-            if (_internalRule != null)
-            {
-                _inventory.RuleValidator.AddRule(_internalRule);
-                Extensions.DragAndDropLog($"[{GetType().Name}] Added internal rule to inventory");
-            }
-
-            // Копируем все правила из DataBinding в инвентарь
-            var rules = _ruleValidator.GetRules();
-            foreach (var rule in rules)
-            {
-                if (rule != null)
-                {
-                    _inventory.RuleValidator.AddRule(rule);
-                    Extensions.DragAndDropLog($"[{GetType().Name}] Added rule '{rule.RuleName}' to inventory");
-                }
-            }
         }
 
         protected virtual void OnEnable()
@@ -259,6 +226,32 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public InventoryRuleValidator RuleValidator => _ruleValidator;
 
+        /// <summary>
+        /// Проверяет DataBinding как отдельный этап после inventory rules:
+        /// сначала inline/preset rules самого binding, потом virtual hook.
+        /// </summary>
+        internal RuleResult ValidateStartDragRules(DragContext context, DragEntry entry)
+        {
+            var rulesResult = _ruleValidator.ValidateStartDrag(context, entry);
+            if (!rulesResult.IsValid)
+                return rulesResult;
+
+            return CanStartDrag(context, entry);
+        }
+
+        /// <summary>
+        /// Проверяет DataBinding как отдельный этап после inventory rules:
+        /// сначала inline/preset rules самого binding, потом virtual hook.
+        /// </summary>
+        internal RuleResult ValidateDropRules(DragContext context, DragEntry entry)
+        {
+            var rulesResult = _ruleValidator.ValidateDrop(context, entry);
+            if (!rulesResult.IsValid)
+                return rulesResult;
+
+            return CanDrop(context, entry);
+        }
+
         #endregion
 
         #region Virtual Methods for Transfer Validation
@@ -324,44 +317,6 @@ namespace DragAndDropSystem.DataBinding
         {
             // По умолчанию ничего не делаем
             // События OnItemAdded/OnItemRemoved уже сгенерированы для обоих инвентарей
-        }
-
-        #endregion
-
-        #region Internal Rule
-
-        /// <summary>
-        /// Внутреннее правило, которое делегирует вызовы виртуальным методам DataBinding
-        /// Это позволяет дочерним классам переопределять логику проверки переноса
-        /// </summary>
-        private class DataBindingInventoryRule : IInventoryRule
-        {
-            private readonly InventoryDataBindingBase _owner;
-
-            public DataBindingInventoryRule(InventoryDataBindingBase owner)
-            {
-                _owner = owner;
-            }
-
-            public int Priority => 50; // Средний приоритет
-
-            public string RuleName => $"[{Priority}] DataBinding ({_owner.GetType().Name})";
-
-            public RuleResult CanStartDrag(DragContext context, DragEntry entry)
-            {
-                if (_owner == null)
-                    return RuleResult.Success();
-
-                return _owner.CanStartDrag(context, entry);
-            }
-
-            public RuleResult CanDrop(DragContext context, DragEntry entry)
-            {
-                if (_owner == null)
-                    return RuleResult.Success();
-
-                return _owner.CanDrop(context, entry);
-            }
         }
 
         #endregion

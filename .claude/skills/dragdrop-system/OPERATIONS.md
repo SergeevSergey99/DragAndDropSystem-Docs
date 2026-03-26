@@ -34,6 +34,16 @@
 3. `IDropPolicyProvider` on the target inventory resolves `ResolvedDropPolicy`
 4. planner receives only the resolved non-nullable policy
 
+### Temporary action override
+
+`CompleteDragAction` can override drop behavior for a single transfer:
+- default binding: `CompleteDrag(null)`
+- ctrl binding: `CompleteDrag(DropRequestPolicy.WithSwap())`
+- shift binding: `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
+- action settings can also override `AllowPartial` and `AlternativePlacementMode`
+
+This is operation-scoped. It does not mutate inventory defaults.
+
 ## Single Entry Decision Order
 
 1. Try target slot if one exists

@@ -60,6 +60,12 @@
 - валидирует кандидатов через `RuleEvaluationService`
 - может пометить entry как `RequiresSwap`
 
+Порядок rule evaluation:
+- global rules
+- inventory rules
+- DataBinding rules/hooks
+- slot rules
+
 Связанные helper-объекты:
 - `EntryPlanningOperation`
 - `VirtualSlotState`

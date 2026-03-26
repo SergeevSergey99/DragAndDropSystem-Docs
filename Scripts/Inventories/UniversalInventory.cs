@@ -543,6 +543,14 @@ namespace DragAndDropSystem.Inventories
                     return false;
             }
 
+            var binding = DataBinding;
+            if (binding != null)
+            {
+                var bindingResult = binding.ValidateDropRules(context, entry);
+                if (!bindingResult.IsValid)
+                    return false;
+            }
+
             if (slot.SlotRuleValidator != null)
             {
                 var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);

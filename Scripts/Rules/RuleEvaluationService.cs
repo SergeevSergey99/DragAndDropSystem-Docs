@@ -34,6 +34,14 @@ namespace DragAndDropSystem.Rules
                     return sourceResult;
             }
 
+            var sourceBinding = entry.SourceInventory.DataBinding;
+            if (sourceBinding != null)
+            {
+                var bindingResult = sourceBinding.ValidateStartDragRules(context, entry);
+                if (!bindingResult.IsValid)
+                    return bindingResult;
+            }
+
             return RuleResult.Success();
         }
 
@@ -60,6 +68,14 @@ namespace DragAndDropSystem.Rules
                 var inventoryDropResult = targetUniversal.RuleValidator.ValidateDrop(context, entry);
                 if (!inventoryDropResult.IsValid)
                     return inventoryDropResult;
+            }
+
+            var targetBinding = context.TargetInventory.DataBinding;
+            if (targetBinding != null)
+            {
+                var bindingDropResult = targetBinding.ValidateDropRules(context, entry);
+                if (!bindingDropResult.IsValid)
+                    return bindingDropResult;
             }
 
             if (context.TargetSlot?.SlotRuleValidator != null)
