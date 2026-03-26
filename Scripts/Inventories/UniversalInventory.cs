@@ -498,6 +498,18 @@ namespace DragAndDropSystem.Inventories
             return success;
         }
 
+        internal bool TryAddStackQuiet(ItemStack stack, int targetSlotIndex = -1)
+        {
+            if (stack == null || stack.IsEmpty)
+                return false;
+
+            if (!TryConvertIncomingItem(stack))
+                return false;
+
+            EnsureStrategyInitialized();
+            return _placementStrategy.TryAdd(_slots, stack, targetSlotIndex);
+        }
+
         internal bool CanAcceptByRules(
             ISlot slot,
             IInventoryItem item,

@@ -600,10 +600,9 @@ MonoBehaviour:
   _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 27
   _itemBehavior: 1
-  _dragAmount: 2
+  _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 1
   _slotManagement: 0
@@ -612,12 +611,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots:
   - {fileID: 536631251}
   - {fileID: 1808221728}
@@ -2834,7 +2833,6 @@ MonoBehaviour:
   _dragAmount: 2
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 1
   _slotManagement: 0
@@ -2843,12 +2841,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots:
   - {fileID: 1080494723}
   - {fileID: 1354955287}
@@ -7345,10 +7343,9 @@ MonoBehaviour:
   _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 9
   _itemBehavior: 2
-  _dragAmount: 2
+  _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 0
@@ -7357,12 +7354,12 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 0
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots:
   - {fileID: 451792798}
   - {fileID: 1110553682}

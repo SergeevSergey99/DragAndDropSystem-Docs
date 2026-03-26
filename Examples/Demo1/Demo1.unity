@@ -265,14 +265,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 154099020}
     m_Modifications:
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: _slotRuleValidator._presets.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: '_slotRuleValidator._presets.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 6709a71c174b6ae4c95c9892edcbb293, type: 2}
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -352,6 +344,10 @@ PrefabInstance:
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2734215151070526182, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+      propertyPath: m_fontSize
+      value: 21.5
       objectReference: {fileID: 0}
     - target: {fileID: 6288852642469321198, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Name
@@ -507,7 +503,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Other
+  m_text: Consumable
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -924,11 +920,12 @@ MonoBehaviour:
   _highlightColor: {r: 1, g: 1, b: 0, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 0}
   _dropPolicyOverride:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+    _overrideBlockedTarget: 0
+    _blockedTarget: 2
+    _overrideAlternativePlacement: 0
+    _alternativePlacement: 0
+    _overrideAllowPartial: 0
+    _allowPartial: 1
 --- !u!114 &147669534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1227,19 +1224,20 @@ MonoBehaviour:
   _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 1
   _maxDynamicSlots: 8
   _maxFreeSlots: 0
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots: []
   references:
     version: 2
@@ -1822,19 +1820,21 @@ MonoBehaviour:
   _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
-    _presets: []
+    _presets:
+    - {fileID: 11400000, guid: 4b8a3cf361c213544b136821af5c5a14, type: 2}
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots: []
   references:
     version: 2
@@ -1855,11 +1855,7 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  items:
-  - {fileID: 11400000, guid: 80da4045512769449b7919d0195007ac, type: 2}
-  - {fileID: 11400000, guid: 992b03b46b5c0ea4faeeaacc07e2fd42, type: 2}
-  - {fileID: 11400000, guid: 1a44d51b801f9bc4e88c5a19fd76b878, type: 2}
-  - {fileID: 11400000, guid: f36ef02c6b3c7984f9376a24807f7160, type: 2}
+  items: []
   _preventDragFromInventory: 0
   _preventDropToInventory: 0
   references:
@@ -1911,14 +1907,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 154099020}
     m_Modifications:
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: _slotRuleValidator._presets.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: '_slotRuleValidator._presets.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: e1574a0a3c720d344a2eba87cd568786, type: 2}
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1998,6 +1986,10 @@ PrefabInstance:
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2734215151070526182, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+      propertyPath: m_fontSize
+      value: 21.5
       objectReference: {fileID: 0}
     - target: {fileID: 6288852642469321198, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Name
@@ -2590,6 +2582,17 @@ MonoBehaviour:
   m_Spacing: {x: 10, y: 10}
   m_Constraint: 0
   m_ConstraintCount: 2
+--- !u!114 &818339199 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 678887499}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1001 &858497099
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3111,6 +3114,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   m_PrefabInstance: {fileID: 1085706723}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1085706727 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 1085706723}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1173989416
 GameObject:
   m_ObjectHideFlags: 0
@@ -3374,6 +3388,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   m_PrefabInstance: {fileID: 1197869261}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1197869265 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 1197869261}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1324997587
 GameObject:
   m_ObjectHideFlags: 0
@@ -3462,20 +3487,29 @@ MonoBehaviour:
   _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
-  _slots: []
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
+  _slots:
+  - {fileID: 1604339180}
+  - {fileID: 818339199}
+  - {fileID: 2012818217}
+  - {fileID: 1455181222}
+  - {fileID: 1197869265}
+  - {fileID: 1765199097}
+  - {fileID: 1335150835}
+  - {fileID: 1085706727}
   references:
     version: 2
     RefIds: []
@@ -3517,6 +3551,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1324997587}
   m_CullTransparentMesh: 1
+--- !u!114 &1335150835 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 885918464}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1358364175
 GameObject:
   m_ObjectHideFlags: 0
@@ -3602,19 +3647,20 @@ MonoBehaviour:
   _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots: []
   references:
     version: 2
@@ -4110,6 +4156,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1455181222 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 858497099}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1508389851 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2246638230345617431, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
@@ -4378,6 +4435,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   m_PrefabInstance: {fileID: 1604339176}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1604339180 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 1604339176}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1702639758
 GameObject:
   m_ObjectHideFlags: 0
@@ -4523,14 +4591,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 154099020}
     m_Modifications:
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: _slotRuleValidator._presets.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: '_slotRuleValidator._presets.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 0394aae734f7d5a448573839b6857b50, type: 2}
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -4610,6 +4670,10 @@ PrefabInstance:
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2734215151070526182, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+      propertyPath: m_fontSize
+      value: 21.5
       objectReference: {fileID: 0}
     - target: {fileID: 6288852642469321198, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Name
@@ -4754,6 +4818,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   m_PrefabInstance: {fileID: 1765199093}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1765199097 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 1765199093}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1780889193
 GameObject:
   m_ObjectHideFlags: 0
@@ -4811,7 +4886,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Weapon
+  m_text: Consumable
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5184,19 +5259,20 @@ MonoBehaviour:
   _dragAmount: 0
   _customDragAmount: 1
   _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots: []
   references:
     version: 2
@@ -5459,14 +5535,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 154099020}
     m_Modifications:
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: _slotRuleValidator._presets.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
-      propertyPath: '_slotRuleValidator._presets.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: ffede28e26bf8e042a27a4681eaede16, type: 2}
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -5546,6 +5614,10 @@ PrefabInstance:
     - target: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2734215151070526182, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+      propertyPath: m_fontSize
+      value: 21.5
       objectReference: {fileID: 0}
     - target: {fileID: 6288852642469321198, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
       propertyPath: m_Name
@@ -5699,11 +5771,12 @@ MonoBehaviour:
   _highlightColor: {r: 1, g: 1, b: 0, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 0}
   _dropPolicyOverride:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+    _overrideBlockedTarget: 0
+    _blockedTarget: 2
+    _overrideAlternativePlacement: 0
+    _alternativePlacement: 0
+    _overrideAllowPartial: 0
+    _allowPartial: 1
 --- !u!1 &1921539347
 GameObject:
   m_ObjectHideFlags: 0
@@ -6012,7 +6085,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Armor
+  m_text: Consumable
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6206,6 +6279,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   m_PrefabInstance: {fileID: 2012818213}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2012818217 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  m_PrefabInstance: {fileID: 2012818213}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1001 &2074869922
 PrefabInstance:
   m_ObjectHideFlags: 0

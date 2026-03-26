@@ -227,10 +227,17 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected void AddToUIQuiet(IInventoryItem item, int count, int targetSlotIndex = -1)
         {
-            if (_inventory == null || item == null) return;
-            
+            if (_inventory == null || item == null || count <= 0)
+                return;
+
+            if (targetSlotIndex < 0)
+            {
+                _inventory.TryAddStackQuiet(new ItemStack(item, count), -1);
+                return;
+            }
+
             var slot = _inventory.GetSlot(targetSlotIndex);
-            if (slot != null) 
+            if (slot != null)
                 slot.SetStack(new ItemStack(item, count));
         }
 
