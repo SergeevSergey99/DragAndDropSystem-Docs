@@ -140,6 +140,24 @@ The current model has three layers:
 - `Swap`
 - `FindAlternative`
 
+## Temporary override through actions
+
+Temporary drop policy override is done through action-level request policy, not by mutating `DragContext`.
+
+Example:
+- default `CompleteDragAction` calls `CompleteDrag(null)`
+- `Ctrl` variant of `CompleteDragAction` calls `CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))`
+- `Shift` variant of `CompleteDragAction` calls `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
+- actions can also override `AllowPartial` and `AlternativePlacementMode` for a single transfer
+
+Important:
+- the override only applies to the current transfer operation
+- inventory-level `DropPolicySettings` stay unchanged
+- final `ResolvedDropPolicy` is assembled in this order:
+  1. action request override
+  2. drop-target override
+  3. inventory defaults
+
 ## Drop Policy Processing Order
 
 For a single drag entry:

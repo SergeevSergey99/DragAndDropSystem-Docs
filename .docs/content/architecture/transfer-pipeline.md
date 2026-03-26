@@ -158,6 +158,24 @@ flowchart TD
 - `Swap`
 - `FindAlternative`
 
+## Временный override через actions
+
+Временная подмена drop policy делается не через мутацию `DragContext`, а через action-level request override.
+
+Пример:
+- обычный `CompleteDragAction` вызывает `CompleteDrag(null)`
+- `Ctrl`-вариант `CompleteDragAction` вызывает `CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))`
+- `Shift`-вариант `CompleteDragAction` вызывает `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
+- action также может временно переопределить `AllowPartial` и `AlternativePlacementMode`
+
+Важно:
+- override действует только на текущую операцию переноса
+- inventory-level `DropPolicySettings` остаётся неизменным
+- итоговый `ResolvedDropPolicy` собирается в порядке:
+  1. action request override
+  2. drop-target override
+  3. inventory defaults
+
 ## Порядок обработки Drop Policy
 
 Для одного drag entry порядок такой:

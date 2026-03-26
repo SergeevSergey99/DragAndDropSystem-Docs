@@ -171,6 +171,28 @@ Pointer bindings поддерживают:
 - если контекстное меню уже открыто, `ShowContextMenuAction` может закрыть его даже без active inventory/slot;
 - это работает через global context `DefaultBindingsProfile`.
 
+### Временный override Drop Policy через actions
+
+`CompleteDragAction` умеет передать временный `DropRequestPolicy` только для текущего завершения drag. Это не меняет inventory defaults в `UniversalInventory`.
+
+Типовой паттерн:
+- `LMB + Down -> DragSlotAction` без override
+- `LMB + Up -> CompleteDragAction` без override
+- `LMB + Ctrl + Up -> CompleteDragAction(BlockedTarget = Swap)`
+- `LMB + Shift + Up -> CompleteDragAction(BlockedTarget = FindAlternative)`
+- `LMB + Alt + Up -> CompleteDragAction(AllowPartial = false)`
+
+Что происходит внутри:
+- `CompleteDragAction` вызывает `DragAndDropManager.CompleteDrag(_dropPolicyOverride.TryBuild())`
+- request policy живёт только в рамках этой операции
+- `InventoryDropProcessor` объединяет action override с target override и inventory `DropPolicySettings`
+- planner работает уже только с итоговым `ResolvedDropPolicy`
+
+Практический смысл:
+- inventory задаёт поведение по умолчанию
+- action/binding может временно заменить его для конкретного drop
+- после завершения операции inventory defaults не меняются
+
 ### Scene-specific inventory actions
 
 `InputAction Bindings`:
