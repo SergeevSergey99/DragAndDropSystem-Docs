@@ -93,21 +93,13 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, Tooltip("Слоты, созданные в сцене. Можно задать вручную в инспекторе. Если пусто — будут найдены автоматически.")]
         private List<ISlot> _slots = new List<ISlot>();
 
-        [FoldoutGroup("Debug")]
-        [ReadOnly, ShowInInspector]
         private IInventoryStrategy _strategy;
         private IPlacementStrategy _placementStrategy;
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
         private IInventoryItemConverter _itemConverter = IdentityInventoryItemConverter.Instance;
-
-        [FoldoutGroup("Debug")]
-        [ShowInInspector, ReadOnly]
         private UniversalSlot _pointerHoveredSlot;
-
-        [FoldoutGroup("Debug")]
-        [ShowInInspector, ReadOnly]
         private UniversalSlot _lastInteractedSlot;
 
         public IReadOnlyList<ISlot> Slots => _slots.AsReadOnly();
