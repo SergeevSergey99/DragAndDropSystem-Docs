@@ -381,6 +381,7 @@ namespace DragAndDropSystem.Inventories
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForStrategyInventory(EntryPlanningOperation operation)
         {
+            bool canSearchAlternatives = CanSearchAlternativeSlots(operation);
             int totalToAllocate = operation.Policy.AllowPartial
                 ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                 : operation.RequestedAmount;
@@ -408,11 +409,11 @@ namespace DragAndDropSystem.Inventories
                 if (!anyPlaced && operation.Policy.BlockedTarget == BlockedTargetBehavior.Swap)
                     return EmptyAllocations;
 
-                if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+                if (!canSearchAlternatives)
                     return allocations;
             }
 
-            if (remaining <= 0)
+            if (remaining <= 0 || !canSearchAlternatives)
                 return allocations;
 
             var candidates = EnumerateAlternativeVirtualSlots(operation, operation.TargetSlotHint);
@@ -433,6 +434,7 @@ namespace DragAndDropSystem.Inventories
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForUniqueInventory(EntryPlanningOperation operation)
         {
+            bool canSearchAlternatives = CanSearchAlternativeSlots(operation);
             int desiredAmount = operation.Policy.AllowPartial
                 ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                 : operation.RequestedAmount;
@@ -450,7 +452,7 @@ namespace DragAndDropSystem.Inventories
                     preferred.Apply(operation.TargetItem, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
                 }
-                else if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+                else if (!canSearchAlternatives)
                 {
                     return EmptyAllocations;
                 }
@@ -459,7 +461,10 @@ namespace DragAndDropSystem.Inventories
             if (allocations.Count > 0 &&
                 operation.PreferHint &&
                 operation.TargetSlotHint != null &&
-                operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+                !canSearchAlternatives)
+                return allocations;
+
+            if (!canSearchAlternatives)
                 return allocations;
 
             while (allocations.Count < desiredAmount)
@@ -536,6 +541,14 @@ namespace DragAndDropSystem.Inventories
                 return 0;
 
             return Min(desiredAmount, maxStack - slot.Count);
+        }
+
+        private static bool CanSearchAlternativeSlots(EntryPlanningOperation operation)
+        {
+            if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+                return false;
+
+            return !ReferenceEquals(operation.Entry.SourceInventory, operation.TargetInventory);
         }
 
         private bool CanStrategyPlaceIntoSlot(
