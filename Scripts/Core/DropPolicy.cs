@@ -126,10 +126,14 @@ namespace DragAndDropSystem.Core
     public sealed class DropPolicySettings
     {
         [SerializeField] private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
+        [SerializeField, Tooltip("Объединять предметы при дропе на такой же предмет")]
+        private bool _allowMergeOnDrop = true;
         [SerializeField, Tooltip("Разрешить частичный перенос стека")]
         private bool _allowPartial = true;
         [SerializeField] private BatchMode _batchMode = BatchMode.BestEffort;
         [SerializeField] private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
+
+        public bool AllowMergeOnDrop => _allowMergeOnDrop;
 
         public ResolvedDropPolicy Resolve(DropRequestPolicy? requested, DragContext context)
         {
