@@ -405,9 +405,6 @@ namespace DragAndDropSystem.Inventories
                 if (remaining <= 0)
                     return allocations;
 
-                if (operation.Policy.Target == TargetMode.Strict)
-                    return allocations;
-
                 if (!anyPlaced && operation.Policy.BlockedTarget == BlockedTargetBehavior.Swap)
                     return EmptyAllocations;
 
@@ -415,7 +412,7 @@ namespace DragAndDropSystem.Inventories
                     return allocations;
             }
 
-            if (remaining <= 0 || operation.Policy.Target == TargetMode.Strict)
+            if (remaining <= 0)
                 return allocations;
 
             var candidates = EnumerateAlternativeVirtualSlots(operation, operation.TargetSlotHint);
@@ -453,17 +450,16 @@ namespace DragAndDropSystem.Inventories
                     preferred.Apply(operation.TargetItem, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
                 }
-                else if (operation.Policy.Target == TargetMode.Strict)
-                {
-                    return EmptyAllocations;
-                }
                 else if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
                 {
                     return EmptyAllocations;
                 }
             }
 
-            if (allocations.Count > 0 && operation.Policy.Target == TargetMode.Strict)
+            if (allocations.Count > 0 &&
+                operation.PreferHint &&
+                operation.TargetSlotHint != null &&
+                operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
                 return allocations;
 
             while (allocations.Count < desiredAmount)

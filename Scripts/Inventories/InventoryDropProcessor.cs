@@ -199,7 +199,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             var policy = plan.Policy;
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy.Target}, Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
+            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
             return true;
         }
 
@@ -247,9 +247,6 @@ namespace DragAndDropSystem.Inventories
             var blocked = requested.HasValue && requested.Value.BlockedTarget.HasValue
                 ? requested.Value.BlockedTarget.Value
                 : BlockedTargetBehavior.FindAlternative;
-            var target = requested.HasValue && requested.Value.Target.HasValue
-                ? requested.Value.Target.Value
-                : (context != null && context.IsBatchDrag ? TargetMode.Hint : TargetMode.Strict);
             var alternativePlacement = requested.HasValue && requested.Value.AlternativePlacement.HasValue
                 ? requested.Value.AlternativePlacement.Value
                 : AlternativePlacementMode.MergeFirst;
@@ -257,10 +254,7 @@ namespace DragAndDropSystem.Inventories
                 ? requested.Value.AllowPartial.Value
                 : true;
 
-            if (target == TargetMode.Strict && blocked == BlockedTargetBehavior.FindAlternative)
-                blocked = BlockedTargetBehavior.Reject;
-
-            return new ResolvedDropPolicy(blocked, target, allowPartial, BatchMode.BestEffort, alternativePlacement);
+            return new ResolvedDropPolicy(blocked, allowPartial, BatchMode.BestEffort, alternativePlacement);
         }
     }
 }
