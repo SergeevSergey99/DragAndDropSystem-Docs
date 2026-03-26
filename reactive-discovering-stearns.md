@@ -281,19 +281,30 @@ Policy не должна сама решать, **как именно** стра
   - примеры при max stack `5`, target `5`, рядом `4 4 4 0`, drag `3`:
     - `MergeFirst` → `5 5 5 5 0`
     - `EmptyFirst` → `5 4 4 4 3`
-    - `MergeOnly` → `5 5 4 5 0` (только merge, может остаться remainder)
+    - `MergeOnly` → `5 5 5 5 0` (только merge в существующие стеки, 3 шт. по 1 в каждый)
     - `EmptyOnly` → `5 4 4 4 3`
 
-Реализация через расширение `IInventoryStrategy`:
+Реализация через расширение `IPlacementStrategy` (см. раздел 8, `IInventoryStrategy.cs` → `IPlacementStrategy`):
 - добавить метод для перечисления alternative candidates в strategy-specific порядке
 - planner вызывает стратегию, получает упорядоченный список кандидатов, строит multi-allocation
 - стратегия фильтрует и сортирует кандидатов сама, учитывая `AlternativePlacementMode` и свои ограничения
+
+Реализация через расширение `IPlacementStrategy` (узкий capability interface для placement concerns):
+- добавить метод для перечисления alternative candidates в strategy-specific порядке
+- planner вызывает стратегию, получает упорядоченный список кандидатов, строит multi-allocation
+- стратегия фильтрует и сортирует кандидатов сама, учитывая `AlternativePlacementMode` и свои ограничения
+- `InventoryStrategyBase` даёт default implementation — кастомные стратегии не ломаются
 
 Следствие:
 - общая policy resolution остаётся в inventory/provider
 - стратегия получает конкретный resolved mode и сама решает, что может
 - planner не навязывает stackable-логику всем стратегиям
-- если стратегия не поддерживает запрошенный mode — возвращает пустой список кандидатов (remainder остаётся в source)
+- если стратегия не поддерживает запрошенный mode — возвращает пустой список кандидатов
+
+**Важно: zero-placement = Fail.**
+Если total placed == 0 (target slot принял 0, alternatives дали 0 кандидатов), план считается Failed.
+`CanAcceptDrop` возвращает `false` для zero-placement.
+`AllowPartial` применяется только когда хотя бы что-то было размещено (placed > 0, но placed < requested).
 
 ---
 
@@ -409,7 +420,7 @@ ResolveEffectivePolicy(context, requested):
     ↓
 TransferPlanner.BuildPlan(context, resolvedPolicy, targetInventory, targetSlotHint, globalRules)
     ↓
-strategy.EnumerateAlternativeSlots(item, resolvedPolicy.AlternativePlacement, excludeSlot)
+placementStrategy.EnumerateAlternativeSlots(item, resolvedPolicy.AlternativePlacement, excludeSlot)
     ↓
 TransferPlanExecutor.Execute(plan) — читает plan.ResolvedPolicy.BatchMode
 ```
@@ -526,14 +537,15 @@ Per-inventory: merchant с `_allowSwap = false` → Ctrl+drop downgrade'ится
   2. Если remainder > 0 и policy разрешает альтернативы (`Hint` + `FindAlternative`):
      - вызвать `strategy.EnumerateAlternativeSlots(item, policy.AlternativePlacement, excludeSlot)`
      - итерировать кандидатов, строя `PlannedSlotAllocation` для каждого
-  3. Если стратегия вернула пустой список — remainder остаётся в source
-  4. `TargetMode.Strict` → шаг 2 не выполняется
-  5. `BlockedTarget == Swap` → swap только если в target slot не удалось положить ничего
+  3. Если стратегия вернула пустой список — remainder остаётся в source (только если что-то уже было размещено)
+  4. **Zero-placement = Fail**: если total placed == 0 (ни в target, ни в alternatives), план Failed → `CanAcceptDrop` = false
+  5. `TargetMode.Strict` → шаг 2 не выполняется
+  6. `BlockedTarget == Swap` → swap только если в target slot не удалось положить ничего
 - `ShouldPlanSwap`: проверять `policy.BlockedTarget == BlockedTargetBehavior.Swap`
 - `EntryPlanningOperation`: поле `DropPolicy Policy` → `ResolvedDropPolicy Policy`
 - `PlanEntry` должен использовать `policy.AllowPartial`, а не inventory-wide acceptable count как будто это один слот
 - `TransferPlan` должен описывать все конечные target slots заранее; executor не занимается дополнительным slot resolution
-- Strategy-specific обработку placement вынести из `TransferPlanner` в `IInventoryStrategy.EnumerateAlternativeSlots` — planner вызывает стратегию, а не держит switch по типам
+- Strategy-specific обработку placement вынести из `TransferPlanner` в `IPlacementStrategy.EnumerateAlternativeSlots` — planner вызывает стратегию, а не держит switch по типам
 
 ### `Scripts/Inventories/TransferPlan` (внутри TransferPlanner.cs)
 - `DropPolicy Policy` → `ResolvedDropPolicy Policy`
@@ -570,8 +582,8 @@ Per-inventory: merchant с `_allowSwap = false` → Ctrl+drop downgrade'ится
 ### `Scripts/Inventories/Strategies/IDragPolicy.cs`
 - `DragAmountType` → `DragAmount` (только rename)
 
-### `Scripts/Inventories/Strategies/IInventoryStrategy.cs`
-- Расширить `IInventoryStrategy` новым методом для planner-driven alternative placement:
+### `Scripts/Inventories/Strategies/IPlacementStrategy.cs` (существующий narrow interface)
+- Расширить `IPlacementStrategy` новым методом для planner-driven alternative placement:
   ```csharp
   /// <summary>
   /// Возвращает alternative candidate slots в порядке, определённом стратегией и placement mode.
@@ -614,7 +626,7 @@ Per-inventory: merchant с `_allowSwap = false` → Ctrl+drop downgrade'ится
 6. `EntryPlanningOperation` — `ResolvedDropPolicy` вместо `DropPolicy`
 7. `TransferPlanner` — перевести на `ResolvedDropPolicy` и сразу переписать planning на strategy-aware multi-allocation
 8. `TransferPlan` — `ResolvedDropPolicy` вместо `DropPolicy`
-9. `IInventoryStrategy` — добавить `EnumerateAlternativeSlots`, реализовать в каждой стратегии + default в `InventoryStrategyBase`
+9. `IPlacementStrategy` — добавить `EnumerateAlternativeSlots`, реализовать в каждой стратегии + default в `InventoryStrategyBase`
 10. `TransferPlanExecutor` — `plan.Policy.BatchMode` + удалить hidden alternative-slot fallback
 11. `InventoryDropProcessor` — убрать `_cachedPlan`, убрать `_policyOverride`, новый `ResolveEffectivePolicy`, убрать мутацию `context.Policy`, реализовать `IDropRequestProcessor`
 12. `DragContext` — убрать `Policy`
@@ -650,9 +662,13 @@ Per-inventory: merchant с `_allowSwap = false` → Ctrl+drop downgrade'ится
     - `5 4 4 4 0` + drag `3` → `5 5 5 5 0`
 14. `SeparableStacks` + `AlternativePlacementMode.EmptyFirst`:
     - `5 4 4 4 0` + drag `3` → `5 4 4 4 3`
-15. `SeparableStacks` + `MergeOnly` при `_allowMergeOnDrop = false`:
-    - стратегия возвращает 0 кандидатов, remainder остаётся в source
-16. `Unique` + любой `AlternativePlacementMode`:
-    - alternatives используют только пустые слоты, `MergeOnly` → 0 кандидатов
-17. `AlternativePlacementMode` override через binding:
+15. `SeparableStacks` + `MergeOnly` с remainder:
+    - max stack `5`, slots `5 4 0`, drag `3` → `5 5 0`, remainder `2` остаётся в source (merge capacity = 1)
+16. `SeparableStacks` + `MergeOnly` при `_allowMergeOnDrop = false`:
+    - стратегия возвращает 0 кандидатов → zero-placement → Fail
+17. `Unique` + любой `AlternativePlacementMode`:
+    - alternatives используют только пустые слоты, `MergeOnly` → 0 кандидатов → zero-placement → Fail
+18. `AlternativePlacementMode` override через binding:
     - action с `_overrideAlternativePlacement = EmptyFirst` меняет порядок размещения
+19. Zero-placement detection:
+    - target slot полный, alternatives = 0 → `CanAcceptDrop` = false (не partial success)
