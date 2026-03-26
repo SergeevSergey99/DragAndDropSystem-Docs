@@ -129,7 +129,7 @@ namespace DragAndDropSystem.Inventories
             return _baseStrategy.Contains(slots, item);
         }
 
-        public int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount)
+        public int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
         {
             return _baseStrategy.ResolveDragAmount(stackCount, dragAmount, customDragAmount);
         }
@@ -144,6 +144,11 @@ namespace DragAndDropSystem.Inventories
         public bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
         {
             return _baseStrategy.CanUseAlternativeSlot(slot, item);
+        }
+
+        public IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IInventoryItem item, AlternativePlacementMode mode, ISlot excludeSlot)
+        {
+            return _baseStrategy.EnumerateAlternativeSlots(slots, item, mode, excludeSlot);
         }
 
         public bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)

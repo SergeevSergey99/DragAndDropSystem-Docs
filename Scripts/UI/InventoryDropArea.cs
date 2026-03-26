@@ -30,7 +30,7 @@ namespace DragAndDropSystem.UI
 
         [Header("Drop Policy Override")]
         [SerializeField, Tooltip("Опциональный override policy для этой зоны дропа. Если выключен - используется policy инвентаря.")]
-        private DropPolicySettings _dropPolicyOverride = new DropPolicySettings();
+        private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
         private ISlot _foundSlot;
         private bool _isHighlighted;
@@ -162,6 +162,7 @@ namespace DragAndDropSystem.UI
 
         private InventoryDropProcessor CreateDropProcessor(ISlot targetSlot)
         {
+            var boundOverride = _dropPolicyOverride != null ? _dropPolicyOverride.TryBuild() : (DropRequestPolicy?)null;
             System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
                 ? _dragManager.RaiseSwapAttempting
                 : null;
@@ -173,7 +174,7 @@ namespace DragAndDropSystem.UI
                 targetSlot,
                 _inventory,
                 _dragManager?.GlobalRules,
-                _dropPolicyOverride?.BuildOrNull(),
+                boundOverride,
                 swapAttempting,
                 swapCompleted);
         }

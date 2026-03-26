@@ -137,12 +137,12 @@ namespace DragAndDropSystem
         /// <summary>
         /// Начать перетаскивание из слота
         /// </summary>
-        public bool StartDrag(ISlot sourceSlot) => sourceSlot != null && StartDrag(new List<ISlot> { sourceSlot });
+        public bool StartDrag(ISlot sourceSlot, DragRequestPolicy? requested = null) => sourceSlot != null && StartDrag(new List<ISlot> { sourceSlot }, requested);
 
         /// <summary>
         /// Начать перетаскивание из одного или нескольких слотов
         /// </summary>
-        public bool StartDrag(IReadOnlyList<ISlot> sourceSlots)
+        public bool StartDrag(IReadOnlyList<ISlot> sourceSlots, DragRequestPolicy? requested = null)
         {
             if (IsDragging || sourceSlots == null || sourceSlots.Count == 0)
                 return false;
@@ -154,7 +154,7 @@ namespace DragAndDropSystem
                 if (slot == null || slot.IsEmpty || slot.Inventory == null)
                     continue;
 
-                int dragCount = slot.Inventory.GetDragAmount(slot);
+                int dragCount = ResolveDragCount(slot, requested);
                 var stack = new ItemStack(slot.Stack.Item, dragCount);
                 entries.Add(new DragEntry(stack, slot, slot.Inventory));
             }
@@ -312,15 +312,15 @@ namespace DragAndDropSystem
         /// <summary>
         /// Complete the drag operation
         /// </summary>
-        public void CompleteDrag()
+        public void CompleteDrag(DropRequestPolicy? requested = null)
         {
             if (!IsDragging || _isCompletingDrag)
                 return;
 
-            _ = CompleteDragAsync();
+            _ = CompleteDragAsync(requested);
         }
 
-        private async Task CompleteDragAsync()
+        private async Task CompleteDragAsync(DropRequestPolicy? requested)
         {
             if (_isProcessingTransfer)
             {
@@ -343,13 +343,22 @@ namespace DragAndDropSystem
                 {
                     OnDropAttempting?.Invoke(dragContext);
 
-                    bool canDrop = processorToUse.CanAcceptDrop(dragContext);
+                    bool canDrop;
+                    var requestProcessor = processorToUse as IDropRequestProcessor;
+                    if (requestProcessor != null)
+                        canDrop = requestProcessor.CanAcceptDrop(dragContext, requested);
+                    else
+                        canDrop = processorToUse.CanAcceptDrop(dragContext);
 
                     if (canDrop)
                     {
                         if (processorToUse is InventoryDropProcessor inventoryProcessor)
                         {
-                            result = (await inventoryProcessor.ProcessDropWithSummaryAsync(dragContext, CancellationToken.None)).DropResult;
+                            result = (await inventoryProcessor.ProcessDropWithSummaryAsync(dragContext, requested, CancellationToken.None)).DropResult;
+                        }
+                        else if (requestProcessor != null)
+                        {
+                            result = requestProcessor.ProcessDrop(dragContext, requested);
                         }
                         else
                         {
@@ -399,6 +408,37 @@ namespace DragAndDropSystem
                 EndDrag();
                 _isCompletingDrag = false;
                 _isProcessingTransfer = false;
+            }
+        }
+
+        private static int ResolveDragCount(ISlot slot, DragRequestPolicy? requested)
+        {
+            if (slot == null || slot.IsEmpty || slot.Inventory == null)
+                return 0;
+
+            if (!requested.HasValue || !requested.Value.Amount.HasValue)
+                return slot.Inventory.GetDragAmount(slot);
+
+            var amount = requested.Value.Amount.Value;
+            int stackCount = slot.Stack.Count;
+
+            var sourceUniversal = slot.Inventory as UniversalInventory;
+            if (sourceUniversal != null)
+            {
+                return sourceUniversal.DragPolicy.ResolveDragAmount(stackCount, amount, requested.Value.CustomAmount);
+            }
+
+            switch (amount)
+            {
+                case DragAmount.One:
+                    return 1;
+                case DragAmount.Half:
+                    return Mathf.Max(1, stackCount / 2);
+                case DragAmount.Custom:
+                    return Mathf.Clamp(requested.Value.CustomAmount, 1, stackCount);
+                case DragAmount.All:
+                default:
+                    return stackCount;
             }
         }
 

@@ -1,3 +1,5 @@
+using DragAndDropSystem.Core;
+
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
@@ -5,6 +7,6 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public interface IDragPolicy
     {
-        int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount);
+        int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount);
     }
 }

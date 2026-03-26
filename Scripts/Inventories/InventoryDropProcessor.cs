@@ -12,17 +12,16 @@ namespace DragAndDropSystem.Inventories
     /// Drop processor for inventory-based targets (slots and inventory areas).
     /// Encapsulates 3-tier rule validation and delegates to the planner/executor pipeline.
     /// </summary>
-    public class InventoryDropProcessor : IDropProcessor
+    public class InventoryDropProcessor : IDropRequestProcessor
     {
         private readonly ISlot _targetSlot;
         private readonly IInventory _targetInventory;
+        private readonly DropRequestPolicy? _boundRequestOverride;
         private readonly GlobalRuleValidator _globalRules;
         private readonly TransferPlanner _planner;
         private readonly TransferPlanExecutor _executor;
-        private readonly DropPolicy _policyOverride;
         private readonly Func<InventorySwapContext, bool> _swapAttempting;
         private readonly Action<InventorySwapContext> _swapCompleted;
-        private TransferPlan _cachedPlan;
         public TransferExecutionSummary LastExecutionSummary { get; private set; }
 
         /// <summary>
@@ -32,16 +31,16 @@ namespace DragAndDropSystem.Inventories
             ISlot targetSlot,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            DropPolicy policyOverride = null,
+            DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
             Action<InventorySwapContext> swapCompleted = null)
         {
             _targetSlot = targetSlot;
             _targetInventory = targetInventory;
+            _boundRequestOverride = boundRequestOverride;
             _globalRules = globalRules;
             _planner = new TransferPlanner();
             _executor = new TransferPlanExecutor();
-            _policyOverride = policyOverride;
             _swapAttempting = swapAttempting;
             _swapCompleted = swapCompleted;
         }
@@ -52,24 +51,27 @@ namespace DragAndDropSystem.Inventories
         public InventoryDropProcessor(
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
-            DropPolicy policyOverride = null,
+            DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
             Action<InventorySwapContext> swapCompleted = null)
-            : this(null, targetInventory, globalRules, policyOverride, swapAttempting, swapCompleted)
+            : this(null, targetInventory, globalRules, boundRequestOverride, swapAttempting, swapCompleted)
         {
         }
 
         public bool CanAcceptDrop(DragContext context)
         {
+            return CanAcceptDrop(context, null);
+        }
+
+        public bool CanAcceptDrop(DragContext context, DropRequestPolicy? requested)
+        {
             if (context == null || _targetInventory == null)
             {
                 Extensions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: null context or inventory</color>");
-                _cachedPlan = null;
                 return false;
             }
 
-            var effectivePolicy = ResolveEffectivePolicy(context);
-            context.Policy = effectivePolicy;
+            var effectivePolicy = ResolveEffectivePolicy(context, requested);
 
             var plan = _planner.BuildPlan(
                 context,
@@ -78,7 +80,6 @@ namespace DragAndDropSystem.Inventories
                 _targetSlot,
                 _globalRules);
 
-            _cachedPlan = plan.IsValid ? plan : null;
             if (!plan.IsValid)
             {
                 Extensions.DragAndDropLog($"<color=red>[InventoryDropProcessor] CanAcceptDrop: plan failed: {plan.Failure?.Reason}</color>");
@@ -91,13 +92,23 @@ namespace DragAndDropSystem.Inventories
 
         public DropResult ProcessDrop(DragContext context)
         {
-            var summary = ProcessDropWithSummary(context);
+            return ProcessDrop(context, null);
+        }
+
+        public DropResult ProcessDrop(DragContext context, DropRequestPolicy? requested)
+        {
+            var summary = ProcessDropWithSummary(context, requested);
             return summary.DropResult;
         }
 
         public TransferExecutionSummary ProcessDropWithSummary(DragContext context)
         {
-            if (!TryPrepareExecution(context, "ProcessDrop", out var plan, out var failureSummary))
+            return ProcessDropWithSummary(context, null);
+        }
+
+        public TransferExecutionSummary ProcessDropWithSummary(DragContext context, DropRequestPolicy? requested)
+        {
+            if (!TryPrepareExecution(context, requested, "ProcessDrop", out var plan, out var failureSummary))
             {
                 LastExecutionSummary = failureSummary;
                 return failureSummary;
@@ -114,9 +125,10 @@ namespace DragAndDropSystem.Inventories
 
         public async Task<TransferExecutionSummary> ProcessDropWithSummaryAsync(
             DragContext context,
+            DropRequestPolicy? requested = null,
             CancellationToken cancellationToken = default)
         {
-            if (!TryPrepareExecution(context, "ProcessDropAsync", out var plan, out var failureSummary))
+            if (!TryPrepareExecution(context, requested, "ProcessDropAsync", out var plan, out var failureSummary))
             {
                 LastExecutionSummary = failureSummary;
                 return failureSummary;
@@ -133,6 +145,7 @@ namespace DragAndDropSystem.Inventories
 
         private bool TryPrepareExecution(
             DragContext context,
+            DropRequestPolicy? requested,
             string operationName,
             out TransferPlan plan,
             out TransferExecutionSummary failureSummary)
@@ -170,16 +183,14 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            var effectivePolicy = ResolveEffectivePolicy(context);
-            context.Policy = effectivePolicy;
+            var effectivePolicy = ResolveEffectivePolicy(context, requested);
 
-            plan = _cachedPlan ?? _planner.BuildPlan(
+            plan = _planner.BuildPlan(
                 context,
                 effectivePolicy,
                 _targetInventory,
                 _targetSlot,
                 _globalRules);
-            _cachedPlan = null;
 
             if (plan == null || !plan.IsValid)
             {
@@ -187,8 +198,8 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            var policy = context.Policy;
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy?.TargetUsage}, Occupied={policy?.OccupiedTarget}, Capacity={policy?.Capacity}, Batch={policy?.BatchExecution}]</color>");
+            var policy = plan.Policy;
+            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.Item.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Target={policy.Target}, Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
             return true;
         }
 
@@ -225,18 +236,31 @@ namespace DragAndDropSystem.Inventories
                 dropResult: DropResult.Failed(reason));
         }
 
-        private DropPolicy ResolveEffectivePolicy(DragContext context)
+        private ResolvedDropPolicy ResolveEffectivePolicy(DragContext context, DropRequestPolicy? requested)
         {
-            if (_policyOverride != null)
-                return _policyOverride;
+            requested = DropRequestPolicy.Merge(_boundRequestOverride, requested);
 
-            if (_targetInventory is UniversalInventory universalInventory)
-                return universalInventory.GetDropPolicy(context?.IsBatchDrag ?? false);
+            var provider = _targetInventory as IDropPolicyProvider;
+            if (provider != null)
+                return provider.ResolveDropPolicy(requested, context);
 
-            if (context?.Policy != null)
-                return context.Policy;
+            var blocked = requested.HasValue && requested.Value.BlockedTarget.HasValue
+                ? requested.Value.BlockedTarget.Value
+                : BlockedTargetBehavior.FindAlternative;
+            var target = requested.HasValue && requested.Value.Target.HasValue
+                ? requested.Value.Target.Value
+                : (context != null && context.IsBatchDrag ? TargetMode.Hint : TargetMode.Strict);
+            var alternativePlacement = requested.HasValue && requested.Value.AlternativePlacement.HasValue
+                ? requested.Value.AlternativePlacement.Value
+                : AlternativePlacementMode.MergeFirst;
+            var allowPartial = requested.HasValue && requested.Value.AllowPartial.HasValue
+                ? requested.Value.AllowPartial.Value
+                : true;
 
-            return DropPolicy.SingleDefault;
+            if (target == TargetMode.Strict && blocked == BlockedTargetBehavior.FindAlternative)
+                blocked = BlockedTargetBehavior.Reject;
+
+            return new ResolvedDropPolicy(blocked, target, allowPartial, BatchMode.BestEffort, alternativePlacement);
         }
     }
 }

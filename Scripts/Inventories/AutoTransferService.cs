@@ -82,7 +82,7 @@ namespace DragAndDropSystem.Inventories
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
             CancellationToken cancellationToken,
-            DropPolicy policyOverride = null)
+            DropRequestPolicy? requestedPolicy = null)
         {
             if (context == null)
                 return (DropResult.Failed("Auto-transfer context is null"), null);
@@ -94,14 +94,13 @@ namespace DragAndDropSystem.Inventories
                 targetSlot: null,
                 targetInventory: targetInventory,
                 globalRules: globalRules,
-                policyOverride: policyOverride,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);
 
-            if (!handler.CanAcceptDrop(context))
+            if (!handler.CanAcceptDrop(context, requestedPolicy))
                 return (DropResult.Failed("Auto-transfer plan rejected"), null);
 
-            var summary = await handler.ProcessDropWithSummaryAsync(context, cancellationToken);
+            var summary = await handler.ProcessDropWithSummaryAsync(context, requestedPolicy, cancellationToken);
             return (summary.DropResult, summary);
         }
     }

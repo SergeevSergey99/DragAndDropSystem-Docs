@@ -36,12 +36,7 @@ namespace DragAndDropSystem.Inventories
         {
             var item = previewItem ?? Item;
             var stack = new ItemStack(item, previewCount);
-            var context = new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
-
-            if (Context != null)
-                context.Policy = Context.Policy;
-
-            return context;
+            return new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
         }
     }
 }

@@ -15,5 +15,6 @@ namespace DragAndDropSystem.Inventories
         bool RequiresStrategyPlacement(ItemStack stack);
         bool UsesPerItemSlotPlanning { get; }
         bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item);
+        IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IInventoryItem item, AlternativePlacementMode mode, ISlot excludeSlot);
     }
 }

@@ -116,7 +116,7 @@ namespace DragAndDropSystem.Inventories
                 return new TransferExecutionSummary(false, 0, 0, 0, false, failed);
             }
 
-            bool atomic = plan.Policy.BatchExecution == BatchExecutionPolicy.Atomic;
+            bool atomic = plan.Policy.BatchMode == BatchMode.Atomic;
             var snapshots = atomic ? CaptureSnapshots(plan) : null;
 
             if (atomic && snapshots == null)
@@ -283,7 +283,7 @@ namespace DragAndDropSystem.Inventories
                 }
             }
 
-            bool success = succeededEntries > 0 && (failedEntries == 0 || plan.Policy.BatchExecution == BatchExecutionPolicy.BestEffort);
+            bool success = succeededEntries > 0 && (failedEntries == 0 || plan.Policy.BatchMode == BatchMode.BestEffort);
             bool isPartial = hadPartialTransfer || failedEntries > 0 || (succeededEntries > 0 && failedEntries > 0);
 
             if (!success)

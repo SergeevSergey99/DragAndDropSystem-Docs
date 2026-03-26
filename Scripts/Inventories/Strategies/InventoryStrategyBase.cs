@@ -53,20 +53,20 @@ namespace DragAndDropSystem.Inventories
             return false;
         }
 
-        public virtual int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount)
+        public virtual int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
         {
             switch (dragAmount)
             {
-                case UniversalInventory.DragAmountType.One:
+                case DragAmount.One:
                     return 1;
 
-                case UniversalInventory.DragAmountType.Half:
+                case DragAmount.Half:
                     return UnityEngine.Mathf.Max(1, stackCount / 2);
 
-                case UniversalInventory.DragAmountType.All:
+                case DragAmount.All:
                     return stackCount;
 
-                case UniversalInventory.DragAmountType.Custom:
+                case DragAmount.Custom:
                     return UnityEngine.Mathf.Min(customDragAmount, stackCount);
 
                 default:
@@ -86,6 +86,40 @@ namespace DragAndDropSystem.Inventories
                 return true;
 
             return slot.Stack != null && slot.Stack.CanStack(item);
+        }
+
+        public virtual IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IInventoryItem item, AlternativePlacementMode mode, ISlot excludeSlot)
+        {
+            if (slots == null || item == null)
+                yield break;
+
+            switch (mode)
+            {
+                case AlternativePlacementMode.MergeOnly:
+                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
+                        yield return slot;
+                    yield break;
+
+                case AlternativePlacementMode.EmptyFirst:
+                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
+                        yield return slot;
+                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
+                        yield return slot;
+                    yield break;
+
+                case AlternativePlacementMode.EmptyOnly:
+                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
+                        yield return slot;
+                    yield break;
+
+                case AlternativePlacementMode.MergeFirst:
+                default:
+                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
+                        yield return slot;
+                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
+                        yield return slot;
+                    yield break;
+            }
         }
 
         /// <summary>
@@ -187,6 +221,31 @@ namespace DragAndDropSystem.Inventories
             operationContext?.RecordResult(slot, slotWasEmpty, toPlace);
             ensureFreeSlots?.Invoke();
             return true;
+        }
+
+        private IEnumerable<ISlot> EnumerateMatchingSlots(
+            List<ISlot> slots,
+            IInventoryItem item,
+            ISlot excludeSlot,
+            bool requireMergeCandidate,
+            bool requireEmptyCandidate)
+        {
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null || ReferenceEquals(slot, excludeSlot))
+                    continue;
+
+                bool isEmpty = slot.IsEmpty;
+                if (requireEmptyCandidate && !isEmpty)
+                    continue;
+                if (requireMergeCandidate && isEmpty)
+                    continue;
+                if (!CanUseAlternativeSlot(slot, item))
+                    continue;
+
+                yield return slot;
+            }
         }
     }
 }

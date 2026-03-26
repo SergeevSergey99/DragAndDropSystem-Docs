@@ -4,130 +4,238 @@ using UnityEngine;
 
 namespace DragAndDropSystem.Core
 {
-    /// <summary>
-    /// Поведение при попытке дропа в занятый целевой слот.
-    /// </summary>
-    public enum OccupiedTargetPolicy
+    public enum BlockedTargetBehavior : byte
     {
         Reject = 0,
-        TrySwap = 1,
-        TryAlternativeSlots = 2
+        Swap = 1,
+        FindAlternative = 2
     }
 
-    /// <summary>
-    /// Поведение при нехватке места в целевом инвентаре.
-    /// </summary>
-    public enum CapacityPolicy
+    public enum TargetMode : byte
     {
-        RejectAll = 0,
-        Partial = 1
+        Strict = 0,
+        Hint = 1
     }
 
-    /// <summary>
-    /// Режим выполнения batch-операции.
-    /// </summary>
-    public enum BatchExecutionPolicy
+    public enum DragAmount : byte
+    {
+        All = 0,
+        Half = 1,
+        One = 2,
+        Custom = 3
+    }
+
+    public enum BatchMode : byte
     {
         Atomic = 0,
         BestEffort = 1
     }
 
-    /// <summary>
-    /// Как интерпретировать целевой слот из UI.
-    /// </summary>
-    public enum TargetUsagePolicy
+    public enum AlternativePlacementMode : byte
     {
-        StrictTarget = 0,
-        TargetAsHint = 1
+        MergeFirst = 0,
+        EmptyFirst = 1,
+        MergeOnly = 2,
+        EmptyOnly = 3
     }
 
-    /// <summary>
-    /// Политика дропа. Один объект описывает поведение single и batch переноса.
-    /// </summary>
-    public sealed class DropPolicy
+    public readonly struct DropRequestPolicy
     {
-        public OccupiedTargetPolicy OccupiedTarget { get; }
-        public CapacityPolicy Capacity { get; }
-        public BatchExecutionPolicy BatchExecution { get; }
-        public TargetUsagePolicy TargetUsage { get; }
-
-        public DropPolicy(
-            OccupiedTargetPolicy occupiedTarget,
-            CapacityPolicy capacity,
-            BatchExecutionPolicy batchExecution,
-            TargetUsagePolicy targetUsage)
+        public DropRequestPolicy(
+            BlockedTargetBehavior? blockedTarget,
+            TargetMode? target = null,
+            AlternativePlacementMode? alternativePlacement = null,
+            bool? allowPartial = null)
         {
-            OccupiedTarget = occupiedTarget;
-            Capacity = capacity;
-            BatchExecution = batchExecution;
-            TargetUsage = targetUsage;
+            BlockedTarget = blockedTarget;
+            Target = target;
+            AlternativePlacement = alternativePlacement;
+            AllowPartial = allowPartial;
         }
 
-        public DropPolicy WithOccupiedTarget(OccupiedTargetPolicy value) =>
-            new DropPolicy(value, Capacity, BatchExecution, TargetUsage);
+        public BlockedTargetBehavior? BlockedTarget { get; }
+        public TargetMode? Target { get; }
+        public AlternativePlacementMode? AlternativePlacement { get; }
+        public bool? AllowPartial { get; }
 
-        public DropPolicy WithCapacity(CapacityPolicy value) =>
-            new DropPolicy(OccupiedTarget, value, BatchExecution, TargetUsage);
+        public static DropRequestPolicy WithBlocked(BlockedTargetBehavior behavior)
+        {
+            return new DropRequestPolicy(behavior);
+        }
 
-        public DropPolicy WithBatchExecution(BatchExecutionPolicy value) =>
-            new DropPolicy(OccupiedTarget, Capacity, value, TargetUsage);
+        public static DropRequestPolicy WithSwap()
+        {
+            return new DropRequestPolicy(BlockedTargetBehavior.Swap);
+        }
 
-        public DropPolicy WithTargetUsage(TargetUsagePolicy value) =>
-            new DropPolicy(OccupiedTarget, Capacity, BatchExecution, value);
+        public static DropRequestPolicy WithFindAlternative(AlternativePlacementMode? placement = null)
+        {
+            return new DropRequestPolicy(BlockedTargetBehavior.FindAlternative, TargetMode.Hint, placement);
+        }
 
-        /// <summary>
-        /// Поведение по умолчанию для одиночного d&d.
-        /// </summary>
-        public static DropPolicy SingleDefault =>
-            new DropPolicy(
-                occupiedTarget: OccupiedTargetPolicy.TryAlternativeSlots,
-                capacity: CapacityPolicy.Partial,
-                batchExecution: BatchExecutionPolicy.BestEffort,
-                targetUsage: TargetUsagePolicy.StrictTarget);
+        public static DropRequestPolicy WithPartial(bool allowPartial)
+        {
+            return new DropRequestPolicy(null, allowPartial: allowPartial);
+        }
 
-        /// <summary>
-        /// Атомарный batch: если что-то не влезло/невалидно, отклоняем всю операцию.
-        /// </summary>
-        public static DropPolicy BatchAtomic =>
-            new DropPolicy(
-                occupiedTarget: OccupiedTargetPolicy.TryAlternativeSlots,
-                capacity: CapacityPolicy.RejectAll,
-                batchExecution: BatchExecutionPolicy.Atomic,
-                targetUsage: TargetUsagePolicy.TargetAsHint);
+        public static DropRequestPolicy? Merge(DropRequestPolicy? basePolicy, DropRequestPolicy? overridingPolicy)
+        {
+            if (!basePolicy.HasValue)
+                return overridingPolicy;
 
-        /// <summary>
-        /// Batch с частичным успехом.
-        /// </summary>
-        public static DropPolicy BatchBestEffort =>
-            new DropPolicy(
-                occupiedTarget: OccupiedTargetPolicy.TryAlternativeSlots,
-                capacity: CapacityPolicy.Partial,
-                batchExecution: BatchExecutionPolicy.BestEffort,
-                targetUsage: TargetUsagePolicy.TargetAsHint);
+            if (!overridingPolicy.HasValue)
+                return basePolicy;
+
+            var baseValue = basePolicy.Value;
+            var overridingValue = overridingPolicy.Value;
+            return new DropRequestPolicy(
+                overridingValue.BlockedTarget ?? baseValue.BlockedTarget,
+                overridingValue.Target ?? baseValue.Target,
+                overridingValue.AlternativePlacement ?? baseValue.AlternativePlacement,
+                overridingValue.AllowPartial ?? baseValue.AllowPartial);
+        }
     }
 
-    /// <summary>
-    /// Inspector-friendly настройки policy.
-    /// </summary>
+    public readonly struct DragRequestPolicy
+    {
+        public DragRequestPolicy(DragAmount amount, int customAmount = 0)
+        {
+            Amount = amount;
+            CustomAmount = amount == DragAmount.Custom ? Math.Max(1, customAmount) : 0;
+        }
+
+        public DragAmount? Amount { get; }
+        public int CustomAmount { get; }
+
+        public static readonly DragRequestPolicy All = new DragRequestPolicy(DragAmount.All);
+        public static readonly DragRequestPolicy Half = new DragRequestPolicy(DragAmount.Half);
+        public static readonly DragRequestPolicy One = new DragRequestPolicy(DragAmount.One);
+    }
+
+    public readonly struct ResolvedDropPolicy
+    {
+        public ResolvedDropPolicy(
+            BlockedTargetBehavior blockedTarget,
+            TargetMode target,
+            bool allowPartial,
+            BatchMode batchMode,
+            AlternativePlacementMode alternativePlacement)
+        {
+            BlockedTarget = blockedTarget;
+            Target = target;
+            AllowPartial = allowPartial;
+            BatchMode = batchMode;
+            AlternativePlacement = alternativePlacement;
+        }
+
+        public BlockedTargetBehavior BlockedTarget { get; }
+        public TargetMode Target { get; }
+        public bool AllowPartial { get; }
+        public BatchMode BatchMode { get; }
+        public AlternativePlacementMode AlternativePlacement { get; }
+    }
+
     [Serializable]
     public sealed class DropPolicySettings
     {
-        [SerializeField, Tooltip("Если выключено, используется policy по умолчанию/из контекста.")]
-        private bool _enabled;
+        [SerializeField] private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
+        [SerializeField] private TargetMode _targetMode = TargetMode.Strict;
+        [SerializeField, Tooltip("Разрешить swap на этом инвентаре")]
+        private bool _allowSwap = true;
+        [SerializeField, Tooltip("Разрешить частичный перенос стека")]
+        private bool _allowPartial = true;
+        [SerializeField] private BatchMode _batchMode = BatchMode.BestEffort;
+        [SerializeField] private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
 
-        [SerializeField, ShowIf(nameof(_enabled))] private OccupiedTargetPolicy _occupiedTarget = OccupiedTargetPolicy.TryAlternativeSlots;
-        [SerializeField, ShowIf(nameof(_enabled))] private CapacityPolicy _capacity = CapacityPolicy.RejectAll;
-        [SerializeField, ShowIf(nameof(_enabled))] private BatchExecutionPolicy _batchExecution = BatchExecutionPolicy.Atomic;
-        [SerializeField, ShowIf(nameof(_enabled))] private TargetUsagePolicy _targetUsage = TargetUsagePolicy.TargetAsHint;
+        public ResolvedDropPolicy Resolve(DropRequestPolicy? requested, DragContext context)
+        {
+            var normalizedDefaultBlocked = !_allowSwap && _blockedTarget == BlockedTargetBehavior.Swap
+                ? BlockedTargetBehavior.Reject
+                : _blockedTarget;
 
-        public bool Enabled => _enabled;
+            var blocked = requested.HasValue && requested.Value.BlockedTarget.HasValue
+                ? requested.Value.BlockedTarget.Value
+                : normalizedDefaultBlocked;
 
-        public DropPolicy BuildOrNull()
+            var target = requested.HasValue && requested.Value.Target.HasValue
+                ? requested.Value.Target.Value
+                : (context != null && context.IsBatchDrag ? TargetMode.Hint : _targetMode);
+
+            if (!_allowSwap && blocked == BlockedTargetBehavior.Swap)
+                blocked = normalizedDefaultBlocked;
+
+            var alternativePlacement = requested.HasValue && requested.Value.AlternativePlacement.HasValue
+                ? requested.Value.AlternativePlacement.Value
+                : _alternativePlacement;
+
+            var allowPartial = requested.HasValue && requested.Value.AllowPartial.HasValue
+                ? requested.Value.AllowPartial.Value
+                : _allowPartial;
+
+            if (target == TargetMode.Strict && blocked == BlockedTargetBehavior.FindAlternative)
+                blocked = BlockedTargetBehavior.Reject;
+
+            return new ResolvedDropPolicy(
+                blocked,
+                target,
+                allowPartial,
+                _batchMode,
+                alternativePlacement);
+        }
+    }
+
+    [Serializable]
+    public sealed class DropRequestPolicySettings
+    {
+        [SerializeField] private bool _overrideBlockedTarget;
+        [SerializeField, ShowIf(nameof(_overrideBlockedTarget))]
+        private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
+
+        [SerializeField] private bool _overrideTargetMode;
+        [SerializeField, ShowIf(nameof(_overrideTargetMode))]
+        private TargetMode _targetMode = TargetMode.Strict;
+
+        [SerializeField] private bool _overrideAlternativePlacement;
+        [SerializeField, ShowIf(nameof(_overrideAlternativePlacement))]
+        private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
+
+        [SerializeField] private bool _overrideAllowPartial;
+        [SerializeField, ShowIf(nameof(_overrideAllowPartial))]
+        private bool _allowPartial = true;
+
+        public DropRequestPolicy? TryBuild()
+        {
+            if (!_overrideBlockedTarget && !_overrideTargetMode && !_overrideAlternativePlacement && !_overrideAllowPartial)
+                return null;
+
+            return new DropRequestPolicy(
+                _overrideBlockedTarget ? _blockedTarget : (BlockedTargetBehavior?)null,
+                _overrideTargetMode ? _targetMode : (TargetMode?)null,
+                _overrideAlternativePlacement ? _alternativePlacement : (AlternativePlacementMode?)null,
+                _overrideAllowPartial ? _allowPartial : (bool?)null);
+        }
+    }
+
+    [Serializable]
+    public sealed class DragRequestPolicySettings
+    {
+        [SerializeField] private bool _enabled;
+        [SerializeField, ShowIf(nameof(_enabled))]
+        private DragAmount _amount = DragAmount.All;
+        [SerializeField, Range(1, 100), ShowIf(nameof(ShowCustom))]
+        private int _customAmount = 1;
+
+        private bool ShowCustom
+        {
+            get { return _enabled && _amount == DragAmount.Custom; }
+        }
+
+        public DragRequestPolicy? TryBuild()
         {
             if (!_enabled)
                 return null;
 
-            return new DropPolicy(_occupiedTarget, _capacity, _batchExecution, _targetUsage);
+            return new DragRequestPolicy(_amount, _customAmount);
         }
     }
 }

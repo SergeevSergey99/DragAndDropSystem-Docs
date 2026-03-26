@@ -80,7 +80,7 @@ namespace DragAndDropSystem.Inventories
     {
         public TransferPlan(
             bool isValid,
-            DropPolicy policy,
+            ResolvedDropPolicy policy,
             IInventory targetInventory,
             ISlot targetSlotHint,
             IReadOnlyList<PlannedEntryTransfer> entries,
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         public bool IsValid { get; }
-        public DropPolicy Policy { get; }
+        public ResolvedDropPolicy Policy { get; }
         public IInventory TargetInventory { get; }
         public ISlot TargetSlotHint { get; }
         public IReadOnlyList<PlannedEntryTransfer> Entries { get; }
@@ -125,7 +125,7 @@ namespace DragAndDropSystem.Inventories
 
         public TransferPlan BuildPlan(
             DragContext context,
-            DropPolicy policy,
+            ResolvedDropPolicy policy,
             IInventory targetInventory,
             ISlot targetSlotHint,
             GlobalRuleValidator globalRules = null)
@@ -147,7 +147,6 @@ namespace DragAndDropSystem.Inventories
                 return Fail(policy, targetInventory, targetSlotHint, TransferPlanFailureCode.NoTargetSlots, "Target inventory has no slots");
             }
 
-            var effectivePolicy = policy ?? (context.IsBatchDrag ? DropPolicy.BatchAtomic : DropPolicy.SingleDefault);
             var virtualSlots = BuildVirtualSlots(targetInventory);
             var plannedEntries = new List<PlannedEntryTransfer>(context.Entries.Count);
 
@@ -162,10 +161,10 @@ namespace DragAndDropSystem.Inventories
                     var failedStart = new PlannedEntryTransfer(entry, entry.Stack?.Count ?? 0, 0, EmptyAllocations, startValidation.FailureReason);
                     plannedEntries.Add(failedStart);
 
-                    if (effectivePolicy.BatchExecution == BatchExecutionPolicy.Atomic)
+                    if (policy.BatchMode == BatchMode.Atomic)
                     {
                         return Fail(
-                            effectivePolicy,
+                            policy,
                             targetInventory,
                             targetSlotHint,
                             TransferPlanFailureCode.StrictTargetRejected,
@@ -179,7 +178,7 @@ namespace DragAndDropSystem.Inventories
                 var planned = PlanEntry(
                     context,
                     entry,
-                    effectivePolicy,
+                    policy,
                     targetInventory,
                     targetSlotHint,
                     isFirstEntry,
@@ -190,10 +189,10 @@ namespace DragAndDropSystem.Inventories
 
                 if (!planned.IsPlanned)
                 {
-                    if (effectivePolicy.BatchExecution == BatchExecutionPolicy.Atomic)
+                    if (policy.BatchMode == BatchMode.Atomic)
                     {
                         return Fail(
-                            effectivePolicy,
+                            policy,
                             targetInventory,
                             targetSlotHint,
                             TransferPlanFailureCode.NotEnoughCapacity,
@@ -204,10 +203,10 @@ namespace DragAndDropSystem.Inventories
                     continue;
                 }
 
-                if (planned.IsPartial && effectivePolicy.Capacity == CapacityPolicy.RejectAll)
+                if (planned.IsPartial && !policy.AllowPartial)
                 {
                     return Fail(
-                        effectivePolicy,
+                        policy,
                         targetInventory,
                         targetSlotHint,
                         TransferPlanFailureCode.NotEnoughCapacity,
@@ -218,7 +217,7 @@ namespace DragAndDropSystem.Inventories
 
             var plan = new TransferPlan(
                 isValid: true,
-                policy: effectivePolicy,
+                policy: policy,
                 targetInventory: targetInventory,
                 targetSlotHint: targetSlotHint,
                 entries: plannedEntries);
@@ -226,7 +225,7 @@ namespace DragAndDropSystem.Inventories
             if (!plan.HasAnyTransfer)
             {
                 return Fail(
-                    effectivePolicy,
+                    policy,
                     targetInventory,
                     targetSlotHint,
                     TransferPlanFailureCode.NotEnoughCapacity,
@@ -239,7 +238,7 @@ namespace DragAndDropSystem.Inventories
         private PlannedEntryTransfer PlanEntry(
             DragContext context,
             DragEntry entry,
-            DropPolicy policy,
+            ResolvedDropPolicy policy,
             IInventory targetInventory,
             ISlot targetSlotHint,
             bool isFirstEntry,
@@ -292,7 +291,7 @@ namespace DragAndDropSystem.Inventories
             // In this case actual slot is resolved during execution via TryAddStack/TryAddToSlot.
             if ((operation.VirtualSlots == null || operation.VirtualSlots.Count == 0) && operation.TargetSlotHint == null)
             {
-                int deferredAmount = operation.Policy.Capacity == CapacityPolicy.Partial
+                int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                     : operation.RequestedAmount;
 
@@ -309,7 +308,7 @@ namespace DragAndDropSystem.Inventories
 
             var allocations = IsUniqueInventory(operation.TargetInventory)
                 ? AllocateForUniqueInventory(operation)
-                : AllocateForDefaultInventory(operation);
+                : AllocateForStrategyInventory(operation);
 
             int plannedAmount = 0;
             foreach (var allocation in allocations)
@@ -320,7 +319,7 @@ namespace DragAndDropSystem.Inventories
             // by creating new slots during execution (TryAddStack path).
             if (plannedAmount == 0 && operation.TargetSlotHint == null && operation.AcceptableByInventory > 0)
             {
-                int deferredAmount = operation.Policy.Capacity == CapacityPolicy.Partial
+                int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                     : operation.RequestedAmount;
 
@@ -353,7 +352,7 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
             }
 
-            if (plannedAmount < requested && policy.Capacity == CapacityPolicy.RejectAll)
+            if (plannedAmount < requested && !policy.AllowPartial)
             {
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Entry cannot be placed fully");
             }
@@ -364,14 +363,14 @@ namespace DragAndDropSystem.Inventories
         private static bool ShouldPlanSwap(
             DragContext context,
             DragEntry entry,
-            DropPolicy policy,
+            ResolvedDropPolicy policy,
             ISlot targetSlotHint,
             bool preferHint)
         {
-            if (!preferHint || targetSlotHint == null || policy == null)
+            if (!preferHint || targetSlotHint == null)
                 return false;
 
-            if (policy.OccupiedTarget != OccupiedTargetPolicy.TrySwap)
+            if (policy.BlockedTarget != BlockedTargetBehavior.Swap)
                 return false;
 
             if (context.IsBatchDrag)
@@ -380,23 +379,64 @@ namespace DragAndDropSystem.Inventories
             return CanPlanSwap(entry, targetSlotHint);
         }
 
-        private IReadOnlyList<PlannedSlotAllocation> AllocateForDefaultInventory(EntryPlanningOperation operation)
+        private IReadOnlyList<PlannedSlotAllocation> AllocateForStrategyInventory(EntryPlanningOperation operation)
         {
-            int amountToAllocate = operation.Policy.Capacity == CapacityPolicy.Partial
+            int totalToAllocate = operation.Policy.AllowPartial
                 ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                 : operation.RequestedAmount;
 
-            var slot = ResolveSlot(operation, amountToAllocate);
-            if (slot == null)
+            if (totalToAllocate <= 0)
                 return EmptyAllocations;
 
-            slot.Apply(operation.TargetItem, amountToAllocate);
-            return new[] { new PlannedSlotAllocation(slot.Slot, amountToAllocate) };
+            var allocations = new List<PlannedSlotAllocation>();
+            int remaining = totalToAllocate;
+            bool anyPlaced = false;
+
+            if (operation.PreferHint && operation.TargetSlotHint != null)
+            {
+                var hinted = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
+                int placedIntoHint = TryAllocateIntoSlot(operation, hinted, remaining, allocations, uniqueMode: false);
+                if (placedIntoHint > 0)
+                {
+                    anyPlaced = true;
+                    remaining -= placedIntoHint;
+                }
+
+                if (remaining <= 0)
+                    return allocations;
+
+                if (operation.Policy.Target == TargetMode.Strict)
+                    return allocations;
+
+                if (!anyPlaced && operation.Policy.BlockedTarget == BlockedTargetBehavior.Swap)
+                    return EmptyAllocations;
+
+                if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+                    return allocations;
+            }
+
+            if (remaining <= 0 || operation.Policy.Target == TargetMode.Strict)
+                return allocations;
+
+            var candidates = EnumerateAlternativeVirtualSlots(operation, operation.TargetSlotHint);
+            foreach (var candidate in candidates)
+            {
+                int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
+                if (placed <= 0)
+                    continue;
+
+                anyPlaced = true;
+                remaining -= placed;
+                if (remaining <= 0)
+                    break;
+            }
+
+            return allocations;
         }
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForUniqueInventory(EntryPlanningOperation operation)
         {
-            int desiredAmount = operation.Policy.Capacity == CapacityPolicy.Partial
+            int desiredAmount = operation.Policy.AllowPartial
                 ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                 : operation.RequestedAmount;
 
@@ -413,15 +453,18 @@ namespace DragAndDropSystem.Inventories
                     preferred.Apply(operation.TargetItem, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
                 }
-                else if (operation.Policy.TargetUsage == TargetUsagePolicy.StrictTarget)
+                else if (operation.Policy.Target == TargetMode.Strict)
                 {
                     return EmptyAllocations;
                 }
-                else if (operation.Policy.OccupiedTarget == OccupiedTargetPolicy.Reject)
+                else if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
                 {
                     return EmptyAllocations;
                 }
             }
+
+            if (allocations.Count > 0 && operation.Policy.Target == TargetMode.Strict)
+                return allocations;
 
             while (allocations.Count < desiredAmount)
             {
@@ -436,29 +479,6 @@ namespace DragAndDropSystem.Inventories
             return allocations;
         }
 
-        private VirtualSlotState ResolveSlot(EntryPlanningOperation operation, int amountForValidation)
-        {
-            if (operation.PreferHint && operation.TargetSlotHint != null)
-            {
-                var hinted = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
-                if (hinted != null &&
-                    hinted.CanAccept(operation.TargetItem, uniqueMode: false) &&
-                    IsCandidateAllowedByRules(operation, hinted.Slot, amountForValidation))
-                    return hinted;
-
-                if (operation.Policy.TargetUsage == TargetUsagePolicy.StrictTarget)
-                    return null;
-
-                if (operation.Policy.OccupiedTarget == OccupiedTargetPolicy.Reject)
-                    return null;
-
-                if (operation.Policy.OccupiedTarget == OccupiedTargetPolicy.TrySwap)
-                    return null; // swap будет поддержан на этапе executor/policy resolution
-            }
-
-            return FindNextAcceptingSlot(operation, amountForValidation, uniqueMode: false);
-        }
-
         private static VirtualSlotState FindVirtualSlot(ISlot slot, IReadOnlyList<VirtualSlotState> states)
         {
             if (slot == null || states == null)
@@ -471,6 +491,102 @@ namespace DragAndDropSystem.Inventories
             }
 
             return null;
+        }
+
+        private int TryAllocateIntoSlot(
+            EntryPlanningOperation operation,
+            VirtualSlotState slot,
+            int desiredAmount,
+            List<PlannedSlotAllocation> allocations,
+            bool uniqueMode)
+        {
+            if (slot == null || desiredAmount <= 0)
+                return 0;
+
+            int capacity = GetSlotPlacementCapacity(operation, slot, desiredAmount, uniqueMode);
+            if (capacity <= 0)
+                return 0;
+
+            if (!IsCandidateAllowedByRules(operation, slot.Slot, capacity))
+                return 0;
+
+            slot.Apply(operation.TargetItem, capacity);
+            allocations.Add(new PlannedSlotAllocation(slot.Slot, capacity));
+            return capacity;
+        }
+
+        private int GetSlotPlacementCapacity(
+            EntryPlanningOperation operation,
+            VirtualSlotState slot,
+            int desiredAmount,
+            bool uniqueMode)
+        {
+            if (slot == null || desiredAmount <= 0 || operation.TargetItem == null)
+                return 0;
+
+            if (!CanStrategyPlaceIntoSlot(operation, slot, uniqueMode))
+                return 0;
+
+            if (uniqueMode)
+                return 1;
+
+            if (slot.IsEmpty)
+            {
+                return Min(desiredAmount, GetMaxStackSize(operation.TargetInventory, operation.TargetItem));
+            }
+
+            int maxStack = GetMaxStackSize(operation.TargetInventory, operation.TargetItem);
+            if (maxStack <= slot.Count)
+                return 0;
+
+            return Min(desiredAmount, maxStack - slot.Count);
+        }
+
+        private bool CanStrategyPlaceIntoSlot(
+            EntryPlanningOperation operation,
+            VirtualSlotState slot,
+            bool uniqueMode)
+        {
+            if (slot == null || operation.TargetItem == null)
+                return false;
+
+            if (uniqueMode)
+                return slot.CanAccept(operation.TargetItem, uniqueMode: true);
+
+            if (slot.IsEmpty)
+                return slot.CanAccept(operation.TargetItem, uniqueMode: false);
+
+            var placementStrategy = ResolvePlacementStrategy(operation.TargetInventory);
+            if (placementStrategy == null)
+                return slot.CanAccept(operation.TargetItem, uniqueMode: false);
+
+            return placementStrategy.CanUseAlternativeSlot(slot.Slot, operation.TargetItem);
+        }
+
+        private IEnumerable<VirtualSlotState> EnumerateAlternativeVirtualSlots(EntryPlanningOperation operation, ISlot excludeSlot)
+        {
+            if (operation.VirtualSlots == null || operation.VirtualSlots.Count == 0)
+                yield break;
+
+            var placementStrategy = ResolvePlacementStrategy(operation.TargetInventory);
+            if (placementStrategy == null)
+                yield break;
+
+            IEnumerable<ISlot> orderedSlots = placementStrategy.EnumerateAlternativeSlots(
+                GetInventorySlots(operation.TargetInventory),
+                operation.TargetItem,
+                operation.Policy.AlternativePlacement,
+                excludeSlot);
+
+            if (orderedSlots == null)
+                yield break;
+
+            foreach (var orderedSlot in orderedSlots)
+            {
+                var state = FindVirtualSlot(orderedSlot, operation.VirtualSlots);
+                if (state != null)
+                    yield return state;
+            }
         }
 
         private VirtualSlotState FindNextAcceptingSlot(
@@ -568,10 +684,33 @@ namespace DragAndDropSystem.Inventories
             return result.IsValid;
         }
 
+        private static IPlacementStrategy ResolvePlacementStrategy(IInventory inventory)
+        {
+            var universal = inventory as UniversalInventory;
+            return universal != null ? universal.PlacementStrategy : null;
+        }
+
+        private static List<ISlot> GetInventorySlots(IInventory inventory)
+        {
+            if (inventory == null || inventory.Slots == null)
+                return null;
+
+            return inventory.Slots as List<ISlot> ?? new List<ISlot>(inventory.Slots);
+        }
+
+        private static int GetMaxStackSize(IInventory inventory, IInventoryItem item)
+        {
+            var universal = inventory as UniversalInventory;
+            if (universal == null)
+                return int.MaxValue;
+
+            return universal.GetMaxStackSizeForItem(item);
+        }
+
         private static readonly IReadOnlyList<PlannedSlotAllocation> EmptyAllocations = new PlannedSlotAllocation[0];
 
         private static TransferPlan Fail(
-            DropPolicy policy,
+            ResolvedDropPolicy policy,
             IInventory targetInventory,
             ISlot targetSlotHint,
             TransferPlanFailureCode code,
@@ -580,7 +719,7 @@ namespace DragAndDropSystem.Inventories
         {
             return new TransferPlan(
                 isValid: false,
-                policy: policy ?? DropPolicy.SingleDefault,
+                policy: policy,
                 targetInventory: targetInventory,
                 targetSlotHint: targetSlotHint,
                 entries: new List<PlannedEntryTransfer>(),

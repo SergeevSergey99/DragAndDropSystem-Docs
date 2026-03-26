@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Inventories
     /// Универсальный инвентарь, работающий через композицию
     /// Не требует наследования - настраивается через стратегии и правила
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider
+    public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider, IDropPolicyProvider
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Контейнер для слотов")]
@@ -40,7 +40,7 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, EnumToggleButtons, LabelText("Drag Amount")]
         [Tooltip("Сколько предметов брать при перетаскивании из стака")]
         [ShowIf(nameof(ShowDragAmountSettings))]
-        private DragAmountType _dragAmount = DragAmountType.All;
+        private DragAmount _dragAmount = DragAmount.All;
 
         [FoldoutGroup("Strategy")]
         [SerializeField, Range(1, 100), Tooltip("Количество предметов при Custom")]
@@ -83,16 +83,16 @@ namespace DragAndDropSystem.Inventories
         private int _maxFreeSlots = 1;
 
         private bool ShowDragAmountSettings => _itemBehavior == ItemBehaviorType.Stackable || _itemBehavior == ItemBehaviorType.SeparableStacks;
-        private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmountType.Custom;
+        private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmount.Custom;
         private bool ShowMaxStackOverride => ShowDragAmountSettings && _maxStackSize > 0;
 
         [FoldoutGroup("Rules")]
         [SerializeField, HideLabel]
         private InventoryRuleValidator _ruleValidator = new InventoryRuleValidator();
 
-        [FoldoutGroup("Drop Policy", expanded: false)]
+        [FoldoutGroup("Drop Policy")]
         [SerializeField, HideLabel]
-        private DropPolicySettings _dropPolicySettings = new DropPolicySettings();
+        private DropPolicySettings _dropPolicy = new DropPolicySettings();
 
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Tooltip("Слоты, созданные в сцене. Можно задать вручную в инспекторе. Если пусто — будут найдены автоматически.")]
@@ -173,19 +173,6 @@ namespace DragAndDropSystem.Inventories
         public InventoryDataBindingBase DataBinding { get; private set; }
 
         /// <summary>
-        /// Effective drop policy for this inventory.
-        /// If custom settings are disabled, returns system defaults by drag type.
-        /// </summary>
-        public DropPolicy GetDropPolicy(bool isBatchDrag)
-        {
-            var configured = _dropPolicySettings?.BuildOrNull();
-            if (configured != null)
-                return configured;
-
-            return isBatchDrag ? DropPolicy.BatchAtomic : DropPolicy.SingleDefault;
-        }
-
-        /// <summary>
         /// Событие добавления предмета в этот инвентарь
         /// </summary>
         public event Action<InventoryItemEventContext> OnItemAdded;
@@ -245,14 +232,6 @@ namespace DragAndDropSystem.Inventories
         {
             Fixed,       // Фиксированное количество слотов
             Dynamic      // Динамическое добавление слотов
-        }
-
-        public enum DragAmountType
-        {
-            One,         // Брать по 1 предмету
-            Half,        // Брать половину стака
-            All,         // Брать весь стак
-            Custom       // Указанное количество
         }
 
         private void Awake()
@@ -793,6 +772,22 @@ namespace DragAndDropSystem.Inventories
 
             EnsureStrategyInitialized();
             return _dragPolicy.ResolveDragAmount(slot.Stack.Count, _dragAmount, _customDragAmount);
+        }
+
+        internal int GetMaxStackSizeForItem(IInventoryItem item)
+        {
+            if (item == null)
+                return 0;
+
+            if (_allowItemStackOverride && item is IStackSizeLimitable limitable)
+                return Mathf.Max(1, limitable.MaxStackSize);
+
+            return _maxStackSize > 0 ? _maxStackSize : int.MaxValue;
+        }
+
+        public ResolvedDropPolicy ResolveDropPolicy(DropRequestPolicy? requested, DragContext context)
+        {
+            return _dropPolicy.Resolve(requested, context);
         }
 
         /// <summary>

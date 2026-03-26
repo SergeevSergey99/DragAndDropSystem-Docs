@@ -10,7 +10,7 @@ namespace DragAndDropSystem.Inventories
         public EntryPlanningOperation(
             DragContext context,
             DragEntry entry,
-            DropPolicy policy,
+            ResolvedDropPolicy policy,
             IInventory targetInventory,
             ISlot targetSlotHint,
             bool preferHint,
@@ -35,7 +35,7 @@ namespace DragAndDropSystem.Inventories
 
         public DragContext Context { get; }
         public DragEntry Entry { get; }
-        public DropPolicy Policy { get; }
+        public ResolvedDropPolicy Policy { get; }
         public IInventory TargetInventory { get; }
         public ISlot TargetSlotHint { get; }
         public bool PreferHint { get; }

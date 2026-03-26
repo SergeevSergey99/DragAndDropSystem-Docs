@@ -29,7 +29,6 @@ namespace DragAndDropSystem.Core
     {
         public IReadOnlyList<DragEntry> Entries { get; }
         public bool IsBatchDrag => Entries.Count > 1;
-        public DropPolicy Policy { get; set; }
 
         /// <summary>
         /// Целевой слот операции.
@@ -67,7 +66,6 @@ namespace DragAndDropSystem.Core
         public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
         {
             Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
-            Policy = DropPolicy.SingleDefault;
         }
         /// <summary>
         /// Конструктор для одиночного entry с целью (например, вызов из кода с заранее известной целью)
@@ -75,7 +73,6 @@ namespace DragAndDropSystem.Core
         public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory, ISlot targetSlot, IInventory targetInventory)
         {
             Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
-            Policy = DropPolicy.SingleDefault;
             SetTarget(targetSlot, targetInventory);
         }
 
@@ -85,13 +82,11 @@ namespace DragAndDropSystem.Core
         public DragContext(IReadOnlyList<DragEntry> entries)
         {
             Entries = entries;
-            Policy = DropPolicy.BatchAtomic;
         }
 
-        private DragContext(IReadOnlyList<DragEntry> entries, DropPolicy policy, ISlot targetSlot, IInventory targetInventory)
+        private DragContext(IReadOnlyList<DragEntry> entries, ISlot targetSlot, IInventory targetInventory)
         {
             Entries = entries;
-            Policy = policy;
             TargetSlot = targetSlot;
             TargetInventory = targetInventory;
         }
@@ -101,7 +96,7 @@ namespace DragAndDropSystem.Core
         /// Оригинальный контекст не изменяется.
         /// </summary>
         public DragContext WithTarget(ISlot targetSlot, IInventory targetInventory)
-            => new DragContext(Entries, Policy, targetSlot, targetInventory);
+            => new DragContext(Entries, targetSlot, targetInventory);
 
         public void SetTarget(ISlot targetSlot, IInventory targetInventory)
         {

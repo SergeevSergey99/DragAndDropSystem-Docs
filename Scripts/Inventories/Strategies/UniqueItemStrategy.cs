@@ -10,7 +10,7 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public class UniqueItemStrategy : InventoryStrategyBase
     {
-        public override int ResolveDragAmount(int stackCount, UniversalInventory.DragAmountType dragAmount, int customDragAmount) => 1;
+        public override int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount) => 1;
         public override bool RequiresStrategyPlacement(ItemStack stack) => stack != null && !stack.IsEmpty && stack.Count > 1;
         public override bool UsesPerItemSlotPlanning => true;
 
@@ -20,6 +20,24 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             return slot.IsEmpty;
+        }
+
+        public override IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IInventoryItem item, AlternativePlacementMode mode, ISlot excludeSlot)
+        {
+            if (mode == AlternativePlacementMode.MergeOnly)
+                yield break;
+
+            if (slots == null || item == null)
+                yield break;
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null || ReferenceEquals(slot, excludeSlot) || !slot.IsEmpty)
+                    continue;
+
+                yield return slot;
+            }
         }
 
         public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)

@@ -24,6 +24,8 @@ namespace DragAndDropSystem.Inventories
 
         public ISlot Slot { get; }
         public bool IsEmpty => _item == null || _count <= 0;
+        public IInventoryItem Item => _item;
+        public int Count => _count;
 
         public bool CanAccept(IInventoryItem item, bool uniqueMode)
         {

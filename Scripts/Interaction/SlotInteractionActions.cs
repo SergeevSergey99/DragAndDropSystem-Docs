@@ -27,6 +27,8 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class DragSlotAction : AssetSafeSlotInteractionAction
     {
+        [SerializeField] private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
+
         public override bool IsDragBinding() => true;
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
@@ -41,7 +43,7 @@ namespace DragAndDropSystem.Interaction
         {
             if (DragAndDropManager.Instance.IsDragging)
             {
-                DragAndDropManager.Instance.CompleteDrag();
+                DragAndDropManager.Instance.CompleteDrag(null);
                 return ActionResult.Succeeded();
             }
 
@@ -49,7 +51,7 @@ namespace DragAndDropSystem.Interaction
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
-            return DragAndDropManager.Instance.StartDrag(slot)
+            return DragAndDropManager.Instance.StartDrag(slot, _dragPolicyOverride.TryBuild())
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Start drag failed");
         }
@@ -59,6 +61,7 @@ namespace DragAndDropSystem.Interaction
     public sealed class CompleteDragAction : AssetSafeSlotInteractionAction
     {
         [field: SerializeField] public bool CancelOnNoSlots { get; private set; } = true;
+        [SerializeField] private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
         public override bool IsDragBinding() => true;
         
@@ -76,7 +79,7 @@ namespace DragAndDropSystem.Interaction
                 return ActionResult.Succeeded();
             }
 
-            DragAndDropManager.Instance.CompleteDrag();
+            DragAndDropManager.Instance.CompleteDrag(_dropPolicyOverride.TryBuild());
             return ActionResult.Succeeded();
         }
     }

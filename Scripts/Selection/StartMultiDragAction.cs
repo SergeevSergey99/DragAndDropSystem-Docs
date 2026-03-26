@@ -15,6 +15,7 @@ namespace DragAndDropSystem.Selection
         [SerializeField] private bool _completeOnPointerUp = true;
         [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
         [SerializeField] private bool _restrictToSameInventory = true;
+        [SerializeField] private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
 
         public override bool IsDragBinding() => true;
         
@@ -34,7 +35,7 @@ namespace DragAndDropSystem.Selection
                 if (!_completeOnPointerUp)
                     return ActionResult.Failed("Complete on pointer up is disabled");
 
-                DragAndDropManager.Instance.CompleteDrag();
+                DragAndDropManager.Instance.CompleteDrag(null);
                 return ActionResult.Succeeded();
             }
 
@@ -42,7 +43,7 @@ namespace DragAndDropSystem.Selection
             if (sourceSlots.Count == 0)
                 return ActionResult.Failed("No valid slots for multi drag");
 
-            return DragAndDropManager.Instance.StartDrag(sourceSlots)
+            return DragAndDropManager.Instance.StartDrag(sourceSlots, _dragPolicyOverride.TryBuild())
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Failed to start multi drag");
         }
