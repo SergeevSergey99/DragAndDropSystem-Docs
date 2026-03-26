@@ -1,17 +1,17 @@
 # Swap Functionality - Updated Examples
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-26
 
 ## Включение swap
 
-Swap включается не отдельным флагом менеджера, а политикой дропа:
+Swap включается не отдельным флагом менеджера, а `Drop Policy`:
 
-- `DropPolicy.OccupiedTarget = OccupiedTargetPolicy.TrySwap`
+- `BlockedTargetBehavior = Swap`
 
 Policy может приходить:
-- из override drop-area / slot target
-- из inventory-level настроек
-- из policy в `DragContext` / default
+- из override на action / drop target
+- из inventory-level `DropPolicySettings`
+- после resolution превращается в `ResolvedDropPolicy`
 
 ## DataBinding: кастомная валидация swap
 
@@ -53,7 +53,7 @@ protected override void OnSwapCompleted(InventorySwapContext args)
 ## Актуальный внутренний flow
 
 1. `InventoryDropProcessor` строит `TransferPlan` через `TransferPlanner`
-2. Если обычное размещение не удалось и policy = `TrySwap`, planner помечает entry как `RequiresSwap`
+2. Если обычное размещение не удалось и `BlockedTargetBehavior = Swap`, planner помечает entry как `RequiresSwap`
 3. `TransferPlanExecutor`:
    - валидирует swap в обе стороны правилами
    - вызывает `SwapAttempting` (cancelable через `args.Cancel = true`)
@@ -63,7 +63,7 @@ protected override void OnSwapCompleted(InventorySwapContext args)
 ## Важное про события
 
 - swap события в pipeline отправляются отложенно, после успешного execution
-- это защищает от ложных событий при `BatchExecutionPolicy.Atomic` и rollback
+- это защищает от ложных событий при `BatchMode.Atomic` и rollback
 
 ## Отладка
 

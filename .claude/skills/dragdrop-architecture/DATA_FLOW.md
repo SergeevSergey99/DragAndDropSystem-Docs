@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-03-26
 
 ## Manual Drop Flow
 
@@ -17,7 +17,7 @@
 Input:
 - `DragContext`
 - target inventory/slot hint
-- `DropPolicy`
+- `ResolvedDropPolicy`
 - global rules
 
 Pre-planning preview:
@@ -90,13 +90,17 @@ Actual stack mutation later uses the same conversion chain inside `UniversalInve
 
 ## Swap Flow
 
-1. Planner marks swap candidate if allocation failed and policy allows `TrySwap`.
+1. Planner marks swap candidate if allocation failed and `BlockedTargetBehavior = Swap`.
 2. Executor validates reverse and forward rule compatibility.
 3. `SwapAttempting` callback can cancel (`InventorySwapContext.Cancel = true`).
 4. Executor calls `UniversalInventory.TrySwapSlots(...)`.
 5. `SwapCompleted` event and inventory events are emitted after successful plan completion.
 
 Note: swap uses event subscriptions because two inventories participate.
+
+## Same-Inventory FindAlternative Rule
+
+If source and target inventory are the same, `FindAlternative` does not redistribute items across other slots of that inventory. The operation either uses the explicit target slot or leaves the item in place.
 
 ## Event Safety Principle
 

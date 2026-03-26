@@ -131,9 +131,53 @@ flowchart TD
 
 ---
 
-## Batch-операции и политики
+## Drop Policy
 
-При групповом переносе (несколько предметов за раз) поведение определяется `DropPolicy`:
+Текущая модель состоит из трёх уровней:
+
+- `DropRequestPolicy`
+  - временный override для конкретной операции
+  - может задать:
+    - `BlockedTargetBehavior`
+    - `AlternativePlacementMode`
+    - `AllowPartial`
+- `DropPolicySettings`
+  - inventory-level defaults в `UniversalInventory`
+  - задаёт:
+    - blocked target behavior
+    - allow merge on drop
+    - allow partial
+    - batch mode
+    - alternative placement mode
+- `ResolvedDropPolicy`
+  - итог после resolution
+  - именно он используется planner-ом
+
+`BlockedTargetBehavior`:
+- `Reject`
+- `Swap`
+- `FindAlternative`
+
+## Порядок обработки Drop Policy
+
+Для одного drag entry порядок такой:
+
+1. Резолвится `ResolvedDropPolicy`
+2. Planner пытается положить предмет в target slot, если он есть
+3. Если в target вошло всё, entry успешен
+4. Если вошла только часть:
+   - `AllowPartial = false` -> fail
+   - `AllowPartial = true` -> partial success
+   - остаток ищет другие слоты только если `BlockedTargetBehavior = FindAlternative`
+5. Если в target не вошло ничего:
+   - `Reject` -> fail
+   - `Swap` -> planner строит swap entry
+   - `FindAlternative` -> стратегия перечисляет alternative slots
+6. Для same-inventory `FindAlternative` не перераскладывает предметы по другим слотам. Если target не подошёл, предмет остаётся на месте
+
+## Batch-операции
+
+При групповом переносе (несколько предметов за раз) поведение определяется `BatchMode` внутри `DropPolicy`:
 
 ```mermaid
 flowchart TD
@@ -142,18 +186,13 @@ flowchart TD
     B -->|BestEffort| D["Перенести что получилось,\nостальное оставить\nв источнике"]
 ```
 
-По умолчанию:
-
-- одиночный перенос — `StrictTarget`, `Partial`, `BestEffort`
-- batch (из выделения) — `TargetAsHint`, `RejectAll`, `Atomic`
-
-Политику можно настроить в инспекторе на каждом `UniversalInventory` (секция Drop Policy).
+По умолчанию batch mode берётся из inventory-level `DropPolicySettings`, а request override меняет только временное поведение конкретной операции.
 
 ---
 
 ## Swap — это часть того же пайплайна
 
-Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если так настроена drop policy.
+Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если `BlockedTargetBehavior = Swap`.
 
 ```mermaid
 flowchart LR

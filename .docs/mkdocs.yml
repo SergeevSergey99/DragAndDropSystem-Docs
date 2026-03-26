@@ -37,6 +37,7 @@ plugins:
           default: true
           build: true
           nav_translations:
+            Home: Главная
             Examples: Примеры
             Core Concepts: Основные концепции
             Advanced Systems: Продвинутые системы
@@ -45,14 +46,16 @@ plugins:
           name: English
           build: true
           nav_translations:
+            Home: Home
             Examples: Examples
             Core Concepts: Core Concepts
             Advanced Systems: Advanced Systems
             Reference: Reference
 
 nav:
-  - index.md
-  - getting-started/quick-start.md
+  - Home:
+    - index.md
+    - getting-started/quick-start.md
   - Examples:
     - examples/equipment.md
     - examples/trading.md

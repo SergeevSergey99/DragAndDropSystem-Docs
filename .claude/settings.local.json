@@ -18,7 +18,10 @@
       "Read(//mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/docs/**)",
       "Bash(done)",
       "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build 2>&1\")",
-      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build -f .docs\\\\mkdocs.yml 2>&1\")"
+      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build -f .docs\\\\mkdocs.yml 2>&1\")",
+      "Bash(grep -E \"\\\\.cs$\")",
+      "Bash(ls:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

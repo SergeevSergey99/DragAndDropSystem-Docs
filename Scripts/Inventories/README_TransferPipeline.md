@@ -1,6 +1,6 @@
 # Transfer Pipeline Architecture
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-03-26
 
 Документ описывает текущую архитектуру drop/transfer pipeline, включая batch transfer, swap и target-aware preview.
 
@@ -16,7 +16,7 @@
 
 Текущая схема разделяет ответственность:
 
-1. `DropPolicy` определяет поведение
+1. `DropPolicy` определяет blocked-target behavior, partial handling, batch mode и alternative placement
 2. `TransferPlanner` строит план без мутаций
 3. `TransferPlanExecutor` применяет план, выполняет placement helpers и rollback
 4. `InventoryDropProcessor` связывает UI drop-target с planner/executor
@@ -27,16 +27,26 @@
 
 Файл: `Scripts/Core/DropPolicy.cs`
 
-Определяет:
-- `OccupiedTargetPolicy`
-- `CapacityPolicy`
-- `BatchExecutionPolicy`
-- `TargetUsagePolicy`
+Состоит из трёх уровней:
+- `DropRequestPolicy`
+  - временный override для конкретной операции
+  - может задать `BlockedTargetBehavior`, `AlternativePlacementMode`, `AllowPartial`
+- `DropPolicySettings`
+  - inventory-level defaults в `UniversalInventory`
+  - содержит `BlockedTargetBehavior`, `AllowMergeOnDrop`, `AllowPartial`, `BatchMode`, `AlternativePlacementMode`
+- `ResolvedDropPolicy`
+  - итоговый planner-facing policy после resolution
 
-Готовые профили:
-- `DropPolicy.SingleDefault`
-- `DropPolicy.BatchAtomic`
-- `DropPolicy.BatchBestEffort`
+`BlockedTargetBehavior`:
+- `Reject`
+- `Swap`
+- `FindAlternative`
+
+`AlternativePlacementMode`:
+- `MergeFirst`
+- `EmptyFirst`
+- `MergeOnly`
+- `EmptyOnly`
 
 ### TransferPlanner
 
@@ -118,6 +128,28 @@ Current conversion ownership:
 - исполняет plan через `TransferPlanExecutor`
 - возвращает `DropResult` / `TransferExecutionSummary`
 
+### Порядок resolution policy
+
+1. action или drop target может передать `DropRequestPolicy`
+2. `InventoryDropProcessor` объединяет request с bound target override, если он есть
+3. если target inventory реализует `IDropPolicyProvider`, provider строит `ResolvedDropPolicy`
+4. planner получает только уже resolved policy
+
+### Порядок обработки одного entry
+
+1. planner валидирует source entry и target-side preview item
+2. пытается положить предмет в `target slot`, если он есть
+3. если в target вошло всё, entry успешен
+4. если вошла часть:
+   - `AllowPartial = false` -> fail
+   - `AllowPartial = true` -> partial success
+   - остаток ищет другие слоты только если `BlockedTargetBehavior = FindAlternative`
+5. если в target не вошло ничего:
+   - `Reject` -> fail
+   - `Swap` -> planner строит swap entry
+   - `FindAlternative` -> стратегия перечисляет alternative slots
+6. для same-inventory `FindAlternative` не перераскладывает предметы по другим слотам: предмет остаётся на месте, если target не подошёл
+
 ## Preview flow
 
 ### Area drop / planner preview
@@ -156,7 +188,7 @@ Manager:
 ## Swap flow
 
 1. Planner сначала пытается построить обычный allocation
-2. Если allocation невозможен и policy разрешает swap, entry получает `RequiresSwap`
+2. Если allocation невозможен и `BlockedTargetBehavior = Swap`, entry получает `RequiresSwap`
 3. Executor:
    - валидирует оба направления через rules
    - вызывает `SwapAttempting`
@@ -183,3 +215,5 @@ Manager:
 3. `InventoryDropProcessor` effective policy resolution
 4. area-drop и slot-drop должны давать одинаковый результат при одинаковом `DropPolicy`
 5. cross-inventory adapter conversion должна давать корректный `TargetItem` в add event
+6. same-inventory `FindAlternative` не должен перераскладывать предметы
+7. `SeparableStacks` должен уважать `AllowMergeOnDrop` и `AlternativePlacementMode`

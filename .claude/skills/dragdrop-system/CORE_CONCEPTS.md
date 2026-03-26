@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-03-26
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -24,10 +24,15 @@ Validation order:
 `Scripts/Core/DropPolicy.cs`
 
 Policy defines:
-- occupied target handling
-- partial vs strict capacity
-- atomic vs best effort batch
-- strict target vs hint target
+- blocked target handling
+- partial transfer permission
+- batch mode
+- alternative placement order
+
+Current policy layers:
+- `DropRequestPolicy`
+- `DropPolicySettings`
+- `ResolvedDropPolicy`
 
 ## 4. Planner/Executor Split
 
@@ -110,6 +115,9 @@ Responsibilities:
 - request plan
 - execute plan with options
 - return `DropResult`
+
+Current note:
+- same-inventory `FindAlternative` is intentionally treated as no-op fallback; items stay in place instead of being reshuffled across the same inventory
 
 ## 10. Input Layers Are Separated
 

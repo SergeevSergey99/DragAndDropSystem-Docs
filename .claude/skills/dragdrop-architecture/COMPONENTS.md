@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-03-26
 
 ## DragAndDropManager
 
@@ -41,13 +41,16 @@ This is the adapter between UI target layer and transfer core.
 
 Location: `Scripts/Core/DropPolicy.cs`
 
-Defines 4 behavior dimensions:
-- `OccupiedTargetPolicy`
-- `CapacityPolicy`
-- `BatchExecutionPolicy`
-- `TargetUsagePolicy`
+Defines three policy layers:
+- `DropRequestPolicy` - runtime operation override
+- `DropPolicySettings` - inventory defaults
+- `ResolvedDropPolicy` - final planner-facing policy
 
-Supports defaults and inspector overrides via `DropPolicySettings`.
+Main behavior fields:
+- `BlockedTargetBehavior`
+- `AllowPartial`
+- `BatchMode`
+- `AlternativePlacementMode`
 
 ## TransferPlanner
 

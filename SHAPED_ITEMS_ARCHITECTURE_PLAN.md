@@ -262,7 +262,7 @@ Rules должны начать получать расширенный конт
 - нужно проверить, что каждый вытесненный предмет поместится на освободившееся место;
 - порядок вытеснения и валидации зависит от формы всех участников.
 
-При дропе shaped item на occupied cell — reject (через `OccupiedTargetPolicy.Reject`). Shaped item swap — отдельная фича Phase 4.
+При дропе shaped item на occupied cell — reject (через `BlockedTargetBehavior.Reject`). Shaped item swap — отдельная фича Phase 4.
 
 ### Batch drag + shaped items — зафиксированное ограничение
 

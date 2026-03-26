@@ -125,13 +125,16 @@ namespace DragAndDropSystem.Core
     [Serializable]
     public sealed class DropPolicySettings
     {
-        [SerializeField] private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
-        [SerializeField, Tooltip("Объединять предметы при дропе на такой же предмет")]
+        [SerializeField, Tooltip("Что делать, если в целевой слот не удалось положить ничего: отклонить, попытаться обменять или искать другой слот.")]
+        private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
+        [SerializeField, Tooltip("Только для SeparableStacks: разрешить merge при явном дропе на занятый слот с таким же предметом.")]
         private bool _allowMergeOnDrop = true;
-        [SerializeField, Tooltip("Разрешить частичный перенос стека")]
+        [SerializeField, Tooltip("Разрешить выполнить перенос частично, если вошла только часть запрошенного количества.")]
         private bool _allowPartial = true;
-        [SerializeField] private BatchMode _batchMode = BatchMode.BestEffort;
-        [SerializeField] private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
+        [SerializeField, Tooltip("Как обрабатывать batch-перенос: Atomic отменяет всю операцию при первой ошибке, BestEffort переносит то, что получилось.")]
+        private BatchMode _batchMode = BatchMode.BestEffort;
+        [SerializeField, Tooltip("Порядок поиска альтернативных слотов для FindAlternative. Используется стратегией размещения.")]
+        private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
 
         public bool AllowMergeOnDrop => _allowMergeOnDrop;
 

@@ -114,9 +114,52 @@ The key point: if a check fails, inventories remain in their original state. Pla
 
 ---
 
-## Batch operations and policies
+## Drop Policy
 
-When transferring multiple items at once, behavior is determined by `DropPolicy`:
+The current model has three layers:
+
+- `DropRequestPolicy`
+  - temporary per-operation override
+  - can override:
+    - `BlockedTargetBehavior`
+    - `AlternativePlacementMode`
+    - `AllowPartial`
+- `DropPolicySettings`
+  - inventory-level defaults on `UniversalInventory`
+  - defines:
+    - blocked target behavior
+    - allow merge on drop
+    - allow partial
+    - batch mode
+    - alternative placement mode
+- `ResolvedDropPolicy`
+  - final non-nullable policy used by the planner
+
+`BlockedTargetBehavior`:
+- `Reject`
+- `Swap`
+- `FindAlternative`
+
+## Drop Policy Processing Order
+
+For a single drag entry:
+
+1. Resolve `ResolvedDropPolicy`
+2. Try placing into the target slot if one exists
+3. If everything fits, the entry succeeds
+4. If only part fits:
+   - `AllowPartial = false` -> fail
+   - `AllowPartial = true` -> partial success
+   - remainder can search for alternatives only when `BlockedTargetBehavior = FindAlternative`
+5. If nothing fits into the target:
+   - `Reject` -> fail
+   - `Swap` -> planner creates a swap entry
+   - `FindAlternative` -> placement strategy enumerates alternative slots
+6. For same-inventory drops, `FindAlternative` does not reshuffle items across other slots. If the target fails, the item stays in place
+
+## Batch operations
+
+When transferring multiple items at once, behavior is determined by `BatchMode` inside `DropPolicy`:
 
 ```mermaid
 flowchart TD
@@ -125,12 +168,7 @@ flowchart TD
     B -->|BestEffort| D["Transfer what fits,\nleave the rest\nin source"]
 ```
 
-Defaults:
-
-- single transfer — `StrictTarget`, `Partial`, `BestEffort`
-- batch (from selection) — `TargetAsHint`, `RejectAll`, `Atomic`
-
-The policy can be configured in the inspector on each `UniversalInventory` (Drop Policy section).
+By default, batch mode comes from the target inventory's `DropPolicySettings`, while request overrides only affect temporary runtime behavior.
 
 ---
 
@@ -138,7 +176,7 @@ The policy can be configured in the inspector on each `UniversalInventory` (Drop
 
 ```mermaid
 flowchart LR
-    A["Target slot is occupied"] --> B{"Does policy allow swap?"}
+    A["Target slot is occupied"] --> B{"BlockedTargetBehavior = Swap?"}
     B -->|No| C["Reject"]
     B -->|Yes| D["Validate both directions"]
     D --> E["Execute swap"]

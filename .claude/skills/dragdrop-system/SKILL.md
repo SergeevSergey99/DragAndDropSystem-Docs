@@ -4,14 +4,14 @@ description: Quick reference for Unity Drag & Drop Inventory System with policy/
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 2.2
-**Last Updated**: 2026-03-23
+**Version**: 2.3
+**Last Updated**: 2026-03-26
 
 ## System Overview
 
 Core drag & drop works through a single transfer pipeline:
 
-1. `DropPolicy` (`Scripts/Core/DropPolicy.cs`) - defines behavior.
+1. `DropPolicy` (`Scripts/Core/DropPolicy.cs`) - resolves runtime request + inventory defaults into final behavior.
 2. `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`) - builds immutable plan.
 3. `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`) - executes plan with rollback options.
 4. `InventoryAcceptanceRequest` (`Scripts/Inventories/InventoryAcceptanceRequest.cs`) - carries context-aware preview data.
@@ -40,11 +40,16 @@ Main benefits:
 
 ## Policy Model
 
-`DropPolicy` controls four dimensions:
-- `OccupiedTargetPolicy`: `Reject`, `TrySwap`, `TryAlternativeSlots`
-- `CapacityPolicy`: `RejectAll`, `Partial`
-- `BatchExecutionPolicy`: `Atomic`, `BestEffort`
-- `TargetUsagePolicy`: `StrictTarget`, `TargetAsHint`
+`DropPolicy` has three layers:
+- `DropRequestPolicy` - temporary nullable overrides for a single operation
+- `DropPolicySettings` - inventory-level defaults in `UniversalInventory`
+- `ResolvedDropPolicy` - final planner-facing policy
+
+Main fields:
+- `BlockedTargetBehavior`: `Reject`, `Swap`, `FindAlternative`
+- `AllowPartial`
+- `BatchMode`: `Atomic`, `BestEffort`
+- `AlternativePlacementMode`: `MergeFirst`, `EmptyFirst`, `MergeOnly`, `EmptyOnly`
 
 ## Preview Model
 

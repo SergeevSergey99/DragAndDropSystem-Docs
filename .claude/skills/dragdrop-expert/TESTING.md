@@ -1,24 +1,24 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-26
 
 ## Core Manual Tests
 
 ### Single Drag/Drop
 - [ ] drag A -> empty target
-- [ ] drag A -> occupied target with `OccupiedTarget=Reject`
-- [ ] drag A -> occupied target with `OccupiedTarget=TryAlternativeSlots`
-- [ ] drag A -> occupied target with `OccupiedTarget=TrySwap`
+- [ ] drag A -> occupied target with `BlockedTargetBehavior=Reject`
+- [ ] drag A -> occupied target with `BlockedTargetBehavior=FindAlternative`
+- [ ] drag A -> occupied target with `BlockedTargetBehavior=Swap`
 - [ ] drag to same slot (must be blocked)
 
 ### Batch Transfer
-- [ ] batch with `BatchExecution=Atomic`, one invalid entry -> full rollback
-- [ ] batch with `BatchExecution=BestEffort`, one invalid entry -> partial success
-- [ ] `Capacity=RejectAll` rejects partial placement
-- [ ] `Capacity=Partial` allows partial placement
+- [ ] batch with `BatchMode=Atomic`, one invalid entry -> full rollback
+- [ ] batch with `BatchMode=BestEffort`, one invalid entry -> partial success
+- [ ] `AllowPartial=false` rejects partial placement
+- [ ] `AllowPartial=true` allows partial placement
 
 ### Swap
-- [ ] successful swap with `TrySwap` policy
+- [ ] successful swap with `BlockedTargetBehavior=Swap`
 - [ ] canceled swap via `InventorySwapContext.Cancel = true`
 - [ ] swap rejected by reverse-direction rules
 - [ ] verify `OnSwapCompleted` fires only on success
@@ -51,4 +51,5 @@ After transfer/swap changes always re-check:
 - [ ] `TransferPlanExecutor` atomic rollback
 - [ ] `InventoryAcceptanceRequest` path for area-drop and planner preview
 - [ ] `InventoryDropProcessor` effective policy resolution
+- [ ] same-inventory `FindAlternative` leaves item in place
 - [ ] no compile errors due to delegate/nullability syntax on Unity C# profile

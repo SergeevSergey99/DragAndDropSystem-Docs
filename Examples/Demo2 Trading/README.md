@@ -1,6 +1,6 @@
 # Trading System Example
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-26
 
 ## Актуальность под текущую архитектуру
 
@@ -8,7 +8,7 @@
 
 - `DropPolicy` -> `TransferPlanner` -> `TransferPlanExecutor`
 - preview/hover проверка использует target-side conversion и `InventoryAcceptanceRequest`
-- swap включается через `OccupiedTargetPolicy.TrySwap`, а не через legacy-флаг менеджера
+- swap включается через `Drop Policy` (`BlockedTargetBehavior.Swap`), а не через manager-флаг
 - кастомные ограничения swap реализуются через `InventorySwapContext` в DataBinding
 - DataBinding уведомляется напрямую из `UniversalInventory`
 - все биндинги используют шаблонные базовые классы (`ListInventoryDataBinding`, `MappedSlotInventoryDataBinding`)

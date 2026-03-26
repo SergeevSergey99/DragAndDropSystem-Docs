@@ -1,12 +1,12 @@
 # Trading System - Краткое описание
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-26
 
 ## Актуальность
 
 - дроп-логика использует pipeline (`DropPolicy` + planner + executor)
 - preview и planning используют target-side conversion
-- swap настраивается через policy (`OccupiedTargetPolicy.TrySwap`), не manager-флагом
+- swap настраивается через `Drop Policy` (`BlockedTargetBehavior.Swap`), не manager-флагом
 - DataBinding уведомляется напрямую из `UniversalInventory`
 - все биндинги используют шаблонные базовые классы
 

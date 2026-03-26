@@ -1,6 +1,6 @@
 # Operations
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-03-26
 
 ## Manual Drag & Drop (Pipeline)
 
@@ -16,16 +16,36 @@
 
 ## Transfer Plan Execution Modes
 
-`BatchExecutionPolicy`:
+`BatchMode`:
 - `Atomic`: capture snapshots, rollback whole operation on first failure
 - `BestEffort`: execute each planned entry independently
 
 ## Occupied Target Behaviors
 
-`OccupiedTargetPolicy`:
+`BlockedTargetBehavior`:
 - `Reject`
-- `TryAlternativeSlots`
-- `TrySwap`
+- `FindAlternative`
+- `Swap`
+
+## Drop Policy Resolution
+
+1. action/drop target can provide `DropRequestPolicy`
+2. `InventoryDropProcessor` merges it with a bound target override when present
+3. `IDropPolicyProvider` on the target inventory resolves `ResolvedDropPolicy`
+4. planner receives only the resolved non-nullable policy
+
+## Single Entry Decision Order
+
+1. Try target slot if one exists
+2. If full placement succeeds -> success
+3. If partial placement succeeds:
+   - `AllowPartial = false` -> fail
+   - `AllowPartial = true` -> partial success
+4. If zero placement:
+   - `Reject` -> fail
+   - `Swap` -> plan swap
+   - `FindAlternative` -> ask strategy for alternative slots
+5. Same-inventory `FindAlternative` does not reshuffle items across other slots
 
 ## Swap Flow (Current)
 
