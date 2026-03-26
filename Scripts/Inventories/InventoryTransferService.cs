@@ -10,15 +10,13 @@ namespace DragAndDropSystem.Inventories
             ISlot sourceSlot,
             IInventory targetInventory,
             ISlot targetSlot,
-            ItemStack draggedStack,
-            bool allowAlternativeSlots)
+            ItemStack draggedStack)
         {
             SourceInventory = sourceInventory;
             SourceSlot = sourceSlot;
             TargetInventory = targetInventory;
             TargetSlot = targetSlot;
             DraggedStack = draggedStack;
-            AllowAlternativeSlots = allowAlternativeSlots;
         }
 
         public IInventory SourceInventory { get; }
@@ -26,7 +24,6 @@ namespace DragAndDropSystem.Inventories
         public IInventory TargetInventory { get; }
         public ISlot TargetSlot { get; }
         public ItemStack DraggedStack { get; }
-        public bool AllowAlternativeSlots { get; }
 
         public bool IsValid =>
             SourceInventory != null &&

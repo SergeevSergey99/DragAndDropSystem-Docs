@@ -203,8 +203,7 @@ namespace DragAndDropSystem.Inventories
                             plannedEntry.Entry.SourceSlot,
                             plan.TargetInventory,
                             allocation.Slot,
-                            new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount),
-                            allowAlternativeSlots: false);
+                            new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount));
 
                         if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItem, out var domainContext))
                         {
@@ -741,7 +740,6 @@ namespace DragAndDropSystem.Inventories
                 transferStack,
                 transferAmount,
                 targetInventorySnapshot,
-                request.AllowAlternativeSlots,
                 operationContext);
 
             bool added = TryAddToTargetInventory(placementOperation);
@@ -840,41 +838,6 @@ namespace DragAndDropSystem.Inventories
 
                     return operation.TransferStack.IsEmpty;
                 }
-
-                if (operation.CanSearchAlternativeSlot)
-                {
-                    var alternativeSearch = new AlternativeSlotSearchOperation(
-                        operation.AlternativeTargetInventory,
-                        operation.TransferStack,
-                        operation.SourceInventory,
-                        operation.SourceSlot);
-                    var alternativeSlot = FindValidAlternativeSlot(alternativeSearch);
-
-                    if (alternativeSlot != null)
-                    {
-                        Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Found valid alternative slot {alternativeSlot.Index}</color>");
-                        operation.OperationContext?.ResetResult();
-                        bool altWasEmpty = alternativeSlot.IsEmpty;
-                        if (operation.TargetInventory.TryAddToSlot(
-                                operation.TransferStack,
-                                alternativeSlot,
-                                operation.SourceInventory,
-                                operation.SourceSlot.Index,
-                                operation.OperationContext))
-                        {
-                            if (operation.OperationContext?.ResolvedSlot == null)
-                            {
-                                operation.OperationContext.RecordResult(alternativeSlot, altWasEmpty, operation.TransferAmount);
-                            }
-
-                            return operation.TransferStack.IsEmpty;
-                        }
-                    }
-                    else
-                    {
-                        Extensions.DragAndDropLog("<color=yellow>[TransferPlanExecutor] No valid alternative slot found</color>");
-                    }
-                }
             }
             else if (operation.TargetInventory.TryAddStack(operation.TransferStack, -1))
             {
@@ -892,44 +855,6 @@ namespace DragAndDropSystem.Inventories
             }
 
             return false;
-        }
-
-        private ISlot FindValidAlternativeSlot(AlternativeSlotSearchOperation operation)
-        {
-            if (operation.TargetInventory == null || operation.TransferStack == null || operation.TransferStack.IsEmpty)
-                return null;
-
-            var validationContext = new DragContext(operation.TransferStack, operation.SourceSlot, operation.SourceInventory);
-            var validationEntry = validationContext.Entries[0];
-
-            foreach (var slot in operation.TargetInventory.Slots)
-            {
-                if (!operation.TargetInventory.PlacementStrategy.CanUseAlternativeSlot(slot, operation.TransferStack.Item))
-                    continue;
-
-                validationContext.SetTarget(slot, operation.TargetInventory);
-
-                var inventoryResult = operation.TargetInventory.RuleValidator.ValidateDrop(validationContext, validationEntry);
-                if (!inventoryResult.IsValid)
-                {
-                    Extensions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by inventory rules: {inventoryResult.FailureReason}</color>");
-                    continue;
-                }
-
-                if (slot.SlotRuleValidator != null)
-                {
-                    var slotResult = slot.SlotRuleValidator.ValidateDrop(validationContext, validationEntry);
-                    if (!slotResult.IsValid)
-                    {
-                        Extensions.DragAndDropLog($"<color=gray>[TransferPlanExecutor] Slot {slot.Index} rejected by slot rules: {slotResult.FailureReason}</color>");
-                        continue;
-                    }
-                }
-
-                return slot;
-            }
-
-            return null;
         }
 
         private bool ValidateSwapRules(

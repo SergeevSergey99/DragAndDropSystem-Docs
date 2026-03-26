@@ -13,7 +13,6 @@ namespace DragAndDropSystem.Inventories
             ItemStack transferStack,
             int transferAmount,
             InventorySnapshot targetSnapshot,
-            bool allowAlternativeSlots,
             SlotOperationContext operationContext)
         {
             TargetInventory = targetInventory;
@@ -23,7 +22,6 @@ namespace DragAndDropSystem.Inventories
             TransferStack = transferStack;
             TransferAmount = transferAmount;
             TargetSnapshot = targetSnapshot;
-            AllowAlternativeSlots = allowAlternativeSlots;
             OperationContext = operationContext;
         }
 
@@ -34,16 +32,9 @@ namespace DragAndDropSystem.Inventories
         public ItemStack TransferStack { get; }
         public int TransferAmount { get; }
         public InventorySnapshot TargetSnapshot { get; }
-        public bool AllowAlternativeSlots { get; }
         public SlotOperationContext OperationContext { get; }
 
         public UniversalInventory AlternativeTargetInventory => TargetInventory as UniversalInventory;
-
-        public bool CanSearchAlternativeSlot =>
-            AllowAlternativeSlots &&
-            AlternativeTargetInventory != null &&
-            TransferStack != null &&
-            !TransferStack.IsEmpty;
 
         public bool RequiresStrategyPlacement =>
             AlternativeTargetInventory != null &&
