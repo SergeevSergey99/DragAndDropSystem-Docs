@@ -190,20 +190,21 @@ namespace DragAndDropSystem.Core
     [Serializable]
     public sealed class DragRequestPolicySettings
     {
-        [SerializeField] private bool _enabled;
-        [SerializeField, ShowIf(nameof(_enabled))]
+        [SerializeField, LabelText("Override Drag Amount"), Tooltip("Временно переопределяет количество предметов только для текущего StartDrag.")]
+        private bool _overrideAmount;
+        [SerializeField, ShowIf(nameof(_overrideAmount)), LabelText("Amount"), Tooltip("Сколько предметов взять из source stack при старте драга.")]
         private DragAmount _amount = DragAmount.All;
-        [SerializeField, Range(1, 100), ShowIf(nameof(ShowCustom))]
+        [SerializeField, Range(1, 100), ShowIf(nameof(ShowCustomAmount)), LabelText("Custom Amount"), Tooltip("Используется только когда Amount = Custom.")]
         private int _customAmount = 1;
 
-        private bool ShowCustom
+        private bool ShowCustomAmount
         {
-            get { return _enabled && _amount == DragAmount.Custom; }
+            get { return _overrideAmount && _amount == DragAmount.Custom; }
         }
 
         public DragRequestPolicy? TryBuild()
         {
-            if (!_enabled)
+            if (!_overrideAmount)
                 return null;
 
             return new DragRequestPolicy(_amount, _customAmount);
