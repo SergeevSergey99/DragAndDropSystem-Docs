@@ -45,21 +45,13 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override IReadOnlyList<TradableItemSO> GetItems() => MerchantData?.Inventory;
         protected override TradableSoAdapter CreateAdapter(TradableItemSO item) => new(item);
-        protected override TradableItemSO ExtractData(TradableSoAdapter adapter) => adapter.Item;
 
         // --- Правила ---
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry) => RuleResult.Success();
         protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidateMerchantDrop(entry);
 
-        protected override void AddToData(InventoryItemEventContext context, TradableItemSO item)
-        {
-            MerchantData.AddItem(item);
-        }
-
-        protected override void RemoveFromData(InventoryItemEventContext context, TradableItemSO item)
-        {
-            MerchantData.TryRemoveItem(item);
-        }
+        protected override void AddToData(TradableSoAdapter adapter) => MerchantData.AddItem(adapter.Item);
+        protected override void RemoveFromData(TradableSoAdapter adapter) => MerchantData.TryRemoveItem(adapter.Item);
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidateMerchantTransfer(context, MerchantData);
 

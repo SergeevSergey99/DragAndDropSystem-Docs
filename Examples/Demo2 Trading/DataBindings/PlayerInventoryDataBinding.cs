@@ -35,19 +35,11 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
         protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
-        protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
         protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
         protected override RuleResult CanDrop(DragContext context, DragEntry entry) => RuleResult.Success();
 
-        protected override void AddToData(InventoryItemEventContext context, TradableItemModel item)
-        {
-            PlayerData.AddItem(item);
-        }
-
-        protected override void RemoveFromData(InventoryItemEventContext context, TradableItemModel item)
-        {
-            PlayerData.TryRemoveItem(item);
-        }
+        protected override void AddToData(TradableItemModelAdapter adapter) => PlayerData.AddItem(adapter.Item);
+        protected override void RemoveFromData(TradableItemModelAdapter adapter) => PlayerData.TryRemoveItem(adapter.Item);
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
