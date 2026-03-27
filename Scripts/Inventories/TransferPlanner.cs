@@ -416,7 +416,8 @@ namespace DragAndDropSystem.Inventories
             if (remaining <= 0 || !canSearchAlternatives)
                 return allocations;
 
-            var candidates = EnumerateAlternativeVirtualSlots(operation, operation.TargetSlotHint);
+            ISlot excludeFromAlternatives = operation.PreferHint ? operation.TargetSlotHint : null;
+            var candidates = EnumerateAlternativeVirtualSlots(operation, excludeFromAlternatives);
             foreach (var candidate in candidates)
             {
                 int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
@@ -565,9 +566,15 @@ namespace DragAndDropSystem.Inventories
             if (slot.IsEmpty)
                 return slot.CanAccept(operation.TargetItem, uniqueMode: false);
 
+            // Virtual slot is occupied: ensure item compatibility at virtual level first.
+            // Without this, CanUseAlternativeSlot checks the real (potentially empty) slot
+            // and may incorrectly allow placing a different item into a virtually occupied slot.
+            if (!slot.CanAccept(operation.TargetItem, uniqueMode: false))
+                return false;
+
             var placementStrategy = ResolvePlacementStrategy(operation.TargetInventory);
             if (placementStrategy == null)
-                return slot.CanAccept(operation.TargetItem, uniqueMode: false);
+                return true;
 
             return placementStrategy.CanUseAlternativeSlot(slot.Slot, operation.TargetItem);
         }
