@@ -1223,7 +1223,6 @@ MonoBehaviour:
   _itemBehavior: 0
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 1
@@ -1819,7 +1818,6 @@ MonoBehaviour:
   _itemBehavior: 0
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 0
@@ -1855,7 +1853,8 @@ MonoBehaviour:
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  items: []
+  items:
+  - {fileID: 11400000, guid: 498e93ca0ef603449895b62a8614a67b, type: 2}
   _preventDragFromInventory: 0
   _preventDropToInventory: 0
   references:
@@ -3486,7 +3485,6 @@ MonoBehaviour:
   _itemBehavior: 2
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 0
@@ -3646,7 +3644,6 @@ MonoBehaviour:
   _itemBehavior: 1
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 0
@@ -5258,7 +5255,6 @@ MonoBehaviour:
   _itemBehavior: 0
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 0

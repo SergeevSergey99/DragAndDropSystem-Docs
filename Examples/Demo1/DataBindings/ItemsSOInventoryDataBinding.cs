@@ -19,10 +19,9 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         [FoldoutGroup("Data")]
         [SerializeField]
         [OnValueChanged(nameof(ReloadUI))]
-        [InfoBox("Поддерживает как ItemExampleSO, так и ItemExampleWith3DSO (с 3D префабом)")]
         private List<ItemExampleSO> items;
 
-        [FoldoutGroup("Custom Validation (Example)", expanded: false)]
+        [FoldoutGroup("Custom Validation (Example)")]
         [SerializeField, Tooltip("Пример: запретить перетаскивание из этого инвентаря")]
         private bool _preventDragFromInventory = false;
 

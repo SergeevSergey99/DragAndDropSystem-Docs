@@ -1,4 +1,5 @@
 using DragAndDropSystem.Core;
+using UnityEngine;
 
 namespace DragAndDropSystem.Rules
 {
@@ -14,6 +15,11 @@ namespace DragAndDropSystem.Rules
         {
             IsValid = isValid;
             FailureReason = failureReason;
+            
+            if (!isValid)
+            {
+                Debug.LogWarning($"<color=red>[RuleResult] Validation failed: {failureReason}</color>");
+            }
         }
 
         public static RuleResult Success() => new RuleResult(true);
