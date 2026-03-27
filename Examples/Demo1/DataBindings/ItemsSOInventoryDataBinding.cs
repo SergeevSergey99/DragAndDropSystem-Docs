@@ -31,12 +31,9 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         private bool _preventDropToInventory = false;
 
         protected override IReadOnlyList<ItemExampleSO> GetItems() => items;
-        protected override ItemSOAdapter CreateAdapter(ItemExampleSO item) => new ItemSOAdapter(item);
-        protected override ItemExampleSO ExtractData(ItemSOAdapter adapter) => adapter.item;
-        protected override void AddToData(InventoryItemEventContext context, ItemExampleSO item) => items.Add(item);
-        protected override void RemoveFromData(InventoryItemEventContext context, ItemExampleSO item) => items.Remove(item);
-
-        #region Custom Validation Examples
+        protected override ItemSOAdapter CreateAdapter(ItemExampleSO item) => new(item);
+        protected override void AddToData(ItemSOAdapter adapter) => items.Add(adapter.item);
+        protected override void RemoveFromData(ItemSOAdapter adapter) => items.Remove(adapter.item);
 
         /// <summary>
         /// ПРИМЕР: Переопределение проверки начала перетаскивания
@@ -74,7 +71,5 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
             // Вызываем базовую реализацию (по умолчанию разрешает)
             return base.CanDrop(context, entry);
         }
-
-        #endregion
     }
 }

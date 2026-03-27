@@ -518,6 +518,7 @@ GameObject:
   - component: {fileID: 209628934}
   - component: {fileID: 209628933}
   - component: {fileID: 209628935}
+  - component: {fileID: 209628936}
   m_Layer: 5
   m_Name: Main Inventory
   m_TagString: Untagged
@@ -599,10 +600,9 @@ MonoBehaviour:
   _slotContainer: {fileID: 874766991}
   _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 27
-  _itemBehavior: 1
+  _itemBehavior: 2
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 1
   _slotManagement: 0
@@ -645,6 +645,25 @@ MonoBehaviour:
   - {fileID: 1268594637}
   - {fileID: 3958884}
   - {fileID: 2053306632}
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &209628936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 209628931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1691fe907f3f46faa7120761b8f87890, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inventory: {fileID: 209628935}
+  _ruleValidator:
+    _presets: []
+    _inlineRules: []
   references:
     version: 2
     RefIds: []
@@ -2787,6 +2806,7 @@ GameObject:
   m_Component:
   - component: {fileID: 660122113}
   - component: {fileID: 660122114}
+  - component: {fileID: 660122115}
   m_Layer: 5
   m_Name: CraftArea
   m_TagString: Untagged
@@ -2829,10 +2849,9 @@ MonoBehaviour:
   _slotContainer: {fileID: 1162894379}
   _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 9
-  _itemBehavior: 1
-  _dragAmount: 2
+  _itemBehavior: 2
+  _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 1
   _slotManagement: 0
@@ -2857,6 +2876,25 @@ MonoBehaviour:
   - {fileID: 1227678566}
   - {fileID: 1057926116}
   - {fileID: 1767866537}
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &660122115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660122112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a59e3921a774ce8b6a59abda82d2aa0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inventory: {fileID: 660122114}
+  _ruleValidator:
+    _presets: []
+    _inlineRules: []
   references:
     version: 2
     RefIds: []
@@ -7345,7 +7383,6 @@ MonoBehaviour:
   _itemBehavior: 2
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
   _slotManagement: 0

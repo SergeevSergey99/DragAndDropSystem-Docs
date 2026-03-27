@@ -1,21 +1,18 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Rules;
 
 namespace DragAndDropSystem.Examples.Minecraft
 {
-    public class HotbarDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapter>
+    public class MainInventoryDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapter>
     {
         // Определяем создание адаптера из данных предмета
         protected override MinecraftItemAdapter CreateAdapter(MinecraftItemSO item) => new(item);
         // Получаем данные для отрисовки в слотах UI
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
-            for (int i = 0; i < CraftingManager.Instance.HotbarItems.Count; i++)
+            for (int i = 0; i < CraftingManager.Instance.InventoryItems.Count; i++)
             {
-                var item = CraftingManager.Instance.HotbarItems[i];
+                var item = CraftingManager.Instance.InventoryItems[i];
                 if (item != null)
                     yield return (i, item.ItemSO, item.Count);
             }
@@ -24,13 +21,13 @@ namespace DragAndDropSystem.Examples.Minecraft
         // Добавляем предмет перетащенный в слот в данные CraftingManager
         protected override void AddToSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryAddHotbarItem(adapter.ItemSO, count, index);
+            CraftingManager.Instance.TryAddInventoryItem(adapter.ItemSO, count, index);
         }
 
         // Удаляем предмет вытащенный из слота из данных
         protected override void RemoveFromSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryRemoveHotbarItem(adapter.ItemSO, count, index);
+            CraftingManager.Instance.TryRemoveInventoryItem(adapter.ItemSO, count, index);
         }
 
         protected override void Awake()

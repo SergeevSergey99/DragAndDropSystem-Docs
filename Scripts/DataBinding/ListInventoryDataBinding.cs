@@ -41,23 +41,16 @@ namespace DragAndDropSystem.DataBinding
         protected abstract TAdapter CreateAdapter(TData item);
 
         /// <summary>
-        /// Извлечь элемент данных из адаптера.
-        /// Вызывается при добавлении/удалении предмета через drag&amp;drop.
-        /// Может вернуть default если адаптер не содержит нужных данных.
-        /// </summary>
-        protected abstract TData ExtractData(TAdapter adapter);
-
-        /// <summary>
         /// Добавить элемент во внешний источник данных.
         /// Вызывается когда предмет добавлен в UI через drag&amp;drop.
         /// </summary>
-        protected abstract void AddToData(InventoryItemEventContext context, TData item);
+        protected abstract void AddToData(TAdapter context);
 
         /// <summary>
         /// Удалить элемент из внешнего источника данных.
         /// Вызывается когда предмет удалён из UI через drag&amp;drop.
         /// </summary>
-        protected abstract void RemoveFromData(InventoryItemEventContext context, TData item);
+        protected abstract void RemoveFromData(TAdapter context);
 
         protected override void OnReloadUI()
         {
@@ -76,19 +69,13 @@ namespace DragAndDropSystem.DataBinding
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
             if (context.Item is not TAdapter adapter) return;
-
-            var data = ExtractData(adapter);
-            if (data != null)
-                AddToData(context, data);
+            AddToData(adapter);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             if (context.Item is not TAdapter adapter) return;
-
-            var data = ExtractData(adapter);
-            if (data != null)
-                RemoveFromData(context, data);
+            RemoveFromData(adapter);
         }
     }
 }
