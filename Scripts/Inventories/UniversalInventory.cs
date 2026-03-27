@@ -33,11 +33,11 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Strategy", expanded: true)]
         [InfoBox("Item Behavior: как предметы размещаются | Slot Management: управление количеством слотов", InfoMessageType.Info)]
-        [SerializeField, EnumToggleButtons, LabelText("Item Behavior")]
+        [SerializeField, LabelText("Item Behavior")]
         private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, EnumToggleButtons, LabelText("Drag Amount")]
+        [SerializeField, LabelText("Drag Amount")]
         [Tooltip("Сколько предметов брать при перетаскивании из стака")]
         [ShowIf(nameof(ShowDragAmountSettings))]
         private DragAmount _dragAmount = DragAmount.All;
@@ -59,16 +59,16 @@ namespace DragAndDropSystem.Inventories
         private bool _allowItemStackOverride = false;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, EnumToggleButtons, LabelText("Slot Management")]
+        [SerializeField, LabelText("Slot Management")]
         private SlotManagementType _slotManagement = SlotManagementType.Fixed;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Range(1, 200), Tooltip("Максимальное количество слотов (для Dynamic)")]
+        [SerializeField, Tooltip("Максимальное количество слотов (для Dynamic)")]
         [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxDynamicSlots = 100;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Range(0, 20), Tooltip("Минимальное количество свободных слотов (для Dynamic). 0 = создавать только при TryAddItem, не при переносе в слоты")]
+        [SerializeField, Tooltip("Минимальное количество свободных слотов (для Dynamic). 0 = создавать только при TryAddItem, не при переносе в слоты")]
         [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxFreeSlots = 1;
 
