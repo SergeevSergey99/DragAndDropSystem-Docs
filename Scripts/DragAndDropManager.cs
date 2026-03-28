@@ -92,21 +92,6 @@ namespace DragAndDropSystem
         {
             base.DeInit();
 
-            // Очищаем static events для предотвращения утечек при смене сцен
-            OnDragAttempting = null;
-            OnDragStarted = null;
-            OnDragEnterSlot = null;
-            OnDragExitSlot = null;
-            OnDropAttempting = null;
-            OnDropCompleted = null;
-            OnDragCancelled = null;
-            OnDragEnded = null;
-            OnAutoTransferAttempting = null;
-            OnAutoTransferCompleted = null;
-            OnAutoTransferFailed = null;
-            OnSwapAttempting = null;
-            OnSwapCompleted = null;
-
             // Уничтожаем все активные визуалы анимаций
             foreach (var visual in _activeAnimationVisuals)
             {
