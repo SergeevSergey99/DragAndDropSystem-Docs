@@ -20,6 +20,13 @@ namespace DragAndDropSystem.Core
         Custom = 3
     }
 
+    public enum DragAmountStepRounding : byte
+    {
+        Floor = 0,
+        Ceil = 1,
+        Nearest = 2
+    }
+
     public enum BatchMode : byte
     {
         Atomic = 0,

@@ -778,18 +778,32 @@ namespace DragAndDropSystem.Inventories
             var result = _dragPolicy.ResolveDragAmount(slot.Stack.Count, amount, custom);
 
             if (_dragAmountStep > 1)
-                result = (result / _dragAmountStep) * _dragAmountStep;
+            {
+                result = _dragAmountStepRounding switch
+                {
+                    DragAmountStepRounding.Ceil    => ((result + _dragAmountStep - 1) / _dragAmountStep) * _dragAmountStep,
+                    DragAmountStepRounding.Nearest => ((result + _dragAmountStep / 2) / _dragAmountStep) * _dragAmountStep,
+                    _                              => (result / _dragAmountStep) * _dragAmountStep
+                };
+
+                result = Math.Min(result, slot.Stack.Count);
+            }
 
             return result;
         }
 
         private int _dragAmountStep;
+        private DragAmountStepRounding _dragAmountStepRounding;
 
         /// <summary>
-        /// Округлять количество драга вниз до кратного step.
+        /// Округлять количество драга до кратного step.
         /// step &lt;= 1 — без округления.
         /// </summary>
-        public void SetDragAmountStep(int step) => _dragAmountStep = step;
+        public void SetDragAmountStep(int step, DragAmountStepRounding rounding = DragAmountStepRounding.Floor)
+        {
+            _dragAmountStep = step;
+            _dragAmountStepRounding = rounding;
+        }
 
         internal int GetMaxStackSizeForItem(IInventoryItem item)
         {
