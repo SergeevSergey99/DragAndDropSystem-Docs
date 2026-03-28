@@ -305,7 +305,13 @@ namespace DragAndDropSystem.Interaction
 
         public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            // no-op: drag is binding-driven only
+            if (DragAndDropManager.Instance.IsDragging)
+                return;
+
+            if (!TryGetInventory(adapter, out var inventory))
+                return;
+
+            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.BeginDrag, dragOnly: true);
         }
 
         public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source)
@@ -617,6 +623,13 @@ namespace DragAndDropSystem.Interaction
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.InputActionBindingsRuntime
                 : Array.Empty<InputActionBinding>();
+        }
+
+        public float GetPressedTime(UniversalInventory inventory)
+        {
+            if (inventory != null && _runtimeStateByInventory.TryGetValue(inventory, out var state))
+                return state.PressedTime;
+            return -1f;
         }
 
         private RuntimeState GetOrCreateState(UniversalInventory inventory)

@@ -70,7 +70,7 @@ namespace DragAndDropSystem.Interaction
         private bool PhaseMatches(PointerTriggerPhase eventPhase)
         {
             if (_triggerPhase == PointerTriggerPhase.Any)
-                return true;
+                return eventPhase != PointerTriggerPhase.BeginDrag;
 
             return _triggerPhase == eventPhase;
         }

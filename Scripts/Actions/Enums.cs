@@ -7,7 +7,8 @@
         Up = 2,
         Click = 3,
         ClickShort = 4,
-        ClickLong = 5
+        ClickLong = 5,
+        BeginDrag = 6
     }
 
     public enum TriggerPhaseEnum
