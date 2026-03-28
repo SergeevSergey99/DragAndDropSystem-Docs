@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Examples;
 using DragAndDropSystem.Inspector;
-using Plugins.DragAndDropSystem.Examples;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
