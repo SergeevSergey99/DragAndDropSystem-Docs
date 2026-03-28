@@ -1723,9 +1723,17 @@ MonoBehaviour:
   - rid: -2
   - rid: -2
   _recipes:
+  - {fileID: 11400000, guid: f4891aad187c64746a897a299d4807f8, type: 2}
+  - {fileID: 11400000, guid: e99464ff926246e49bc17c44bb7d6e76, type: 2}
+  - {fileID: 11400000, guid: c842ab3f72777524c85d648f8a8baf85, type: 2}
+  - {fileID: 11400000, guid: 3475ff1ded5cb3d49a170bd4feeff084, type: 2}
+  - {fileID: 11400000, guid: 0dcc41d837044e24cb520ea767f54b4f, type: 2}
+  - {fileID: 11400000, guid: 1f73039dc612b054da6d4ea98716b1cc, type: 2}
   - {fileID: 11400000, guid: 0a50e270122c59b4da26076d2850f6f1, type: 2}
+  - {fileID: 11400000, guid: c974a1b85f4dd9c488076618f3ce5f0d, type: 2}
   - {fileID: 11400000, guid: 11cf9ee79d58af347b7346cef7b1f2de, type: 2}
   - {fileID: 11400000, guid: abf79ff3a167ccf4db7491e2af275039, type: 2}
+  - {fileID: 11400000, guid: d134b08a5bb1e044984ac9e1ee6db54c, type: 2}
   references:
     version: 2
     RefIds:
@@ -1739,7 +1747,7 @@ MonoBehaviour:
     - rid: 6676589208637538377
       type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
       data:
-        ItemSO: {fileID: 11400000, guid: 5fe059572441ded4991b358684a2b500, type: 2}
+        ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 9
     - rid: 6676589208637538382
       type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
