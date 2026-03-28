@@ -36,15 +36,14 @@ namespace DragAndDropSystem.Examples.Minecraft
         protected override void OnEnable()
         {
             base.OnEnable();
-            if (CraftingManager.IsInstanceExist)
-                CraftingManager.AutoCreateInstance.OnCraftTableChanged += ReloadUI;
+            CraftingManager.AutoCreateInstance.OnCraftTableChanged += ReloadUI;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             if (CraftingManager.IsInstanceExist)
-                CraftingManager.AutoCreateInstance.OnCraftTableChanged -= ReloadUI;
+                CraftingManager.Instance.OnCraftTableChanged -= ReloadUI;
         }
     }
 }

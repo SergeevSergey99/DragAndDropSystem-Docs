@@ -19,22 +19,19 @@ namespace DragAndDropSystem.Examples.Minecraft
         protected override void OnEnable()
         {
             base.OnEnable();
-            if (CraftingManager.IsInstanceExist)
-                CraftingManager.AutoCreateInstance.OnCraftResultChanged += ReloadUI;
+            CraftingManager.AutoCreateInstance.OnCraftResultChanged += ReloadUI;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             if (CraftingManager.IsInstanceExist)
-                CraftingManager.AutoCreateInstance.OnCraftResultChanged -= ReloadUI;
+                CraftingManager.Instance.OnCraftResultChanged -= ReloadUI;
         }
 
         protected override void OnReloadUI()
         {
-            var recipe = CraftingManager.IsInstanceExist
-                ? CraftingManager.AutoCreateInstance.CurrentRecipe
-                : null;
+            var recipe = CraftingManager.Instance?.CurrentRecipe;
 
             if (recipe != null && recipe.Result != null)
             {
