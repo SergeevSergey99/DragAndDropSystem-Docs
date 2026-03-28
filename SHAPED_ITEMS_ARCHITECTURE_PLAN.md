@@ -384,6 +384,12 @@ Selection должна работать на уровне placement, а не о�
 - batch drag с shaped items (комбинаторный поиск placements);
 - динамический рост grid (добавление строк/колонок).
 
+### Не покрытые аспекты (учесть при реализации)
+
+- **FilterSortController**: auto-sort явно отключён для grid inventory в Phase 1–3, но фильтрация (hide/show) может быть полезна. Нужно определить, как фильтрация взаимодействует с occupancy — скрытый предмет всё ещё занимает ячейки.
+- **DropPolicySettings**: `FindAlternative` для grid inventory означает поиск валидного anchor в 2D, а не просто «следующий слот». `DropPolicySettings.Resolve` должен корректно работать с grid-aware поиском альтернатив.
+- **Tooltip/Describable**: для shaped items tooltip должен появляться при наведении на любую covered cell, но показывать данные anchor placement. Нужен проход через `ResolveAnchorSlot` в tooltip pipeline.
+
 ## Что важно не сломать
 
 При внедрении shaped items нужно сохранить:
