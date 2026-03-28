@@ -1,4 +1,5 @@
 using DragAndDropSystem.ContextMenu;
+using DragAndDropSystem.Examples.Containers.UI;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Containers
@@ -11,7 +12,7 @@ namespace DragAndDropSystem.Examples.Containers
     {
         public override bool CanShow(ContextMenuContext ctx)
         {
-            return ctx.Item is ContainerItemAdapter adapter && adapter.Instance.IsContainer;
+            return ctx.Item is ContainerItemAdapter { Instance: ContainerItemInstance };
         }
 
         public override void Execute(ContextMenuContext ctx)
@@ -19,14 +20,16 @@ namespace DragAndDropSystem.Examples.Containers
             if (ctx.Item is not ContainerItemAdapter adapter)
                 return;
 
-            var controller = Object.FindFirstObjectByType<ContainerUIController>();
+            var controller = FindFirstObjectByType<ContainerUIController>();
             if (controller == null)
             {
                 Debug.LogWarning("[OpenContainerMenuEntry] ContainerUIController not found in scene");
                 return;
             }
+            
+            var instance = adapter.Instance as ContainerItemInstance;
 
-            controller.OpenContainer(adapter.Instance);
+            controller.OpenContainer(instance);
         }
     }
 }

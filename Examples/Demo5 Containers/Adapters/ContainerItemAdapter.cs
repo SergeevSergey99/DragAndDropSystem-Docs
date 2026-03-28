@@ -7,35 +7,21 @@ namespace DragAndDropSystem.Examples.Containers
     /// Адаптер ItemInstance → IInventoryItem.
     /// Контейнеры не стакаются (MaxStackSize = 1).
     /// </summary>
-    public class ContainerItemAdapter : IInventoryItem, IDescribable, IFilterable, IStackSizeLimitable
+    public class ContainerItemAdapter : IInventoryItem, IDescribable, IStackSizeLimitable
     {
-        public readonly ItemInstance Instance;
+        public readonly IContainerizeItemInstance Instance;
 
-        public ContainerItemAdapter(ItemInstance instance) => Instance = instance;
+        public ContainerItemAdapter(IContainerizeItemInstance instance) => Instance = instance;
 
         // IInventoryItem
-        public string ItemId => Instance.ItemSO.GetInstanceID().ToString();
-        public Sprite Icon => Instance.ItemSO.Icon;
-        public string DisplayName => Instance.ItemSO.DisplayName;
+        public string ItemId => Instance.GetItem().GetInstanceID().ToString();
+        public Sprite Icon => Instance.GetItem().Icon;
+        public string DisplayName => Instance.GetItem().DisplayName;
 
         // IDescribable
-        public string Description
-        {
-            get
-            {
-                var desc = Instance.ItemSO.Description ?? "";
-                if (Instance.IsContainer)
-                    desc += $"\nContainer ({Instance.Contents.Count}/{Instance.Capacity})";
-                return desc;
-            }
-        }
-
-        // IFilterable
-        public string Category => Instance.ItemSO.Category ?? "";
-        public string Subcategory => "";
-        public int Rarity => 0;
+        public string Description => Instance.GetItem().Description ?? "";
 
         // IStackSizeLimitable — контейнеры не стакаются
-        public int MaxStackSize => Instance.IsContainer ? 1 : 64;
+        public int MaxStackSize => Instance is ContainerItemInstance ? 1 : 64;
     }
 }
