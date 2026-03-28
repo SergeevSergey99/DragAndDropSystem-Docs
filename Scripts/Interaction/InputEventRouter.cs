@@ -49,20 +49,25 @@ namespace DragAndDropSystem.Interaction
         // Временный список для очистки словарей от невалидных (уничтоженных) инвентарей
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
 
-        // Hold preview state
-        private IHoldPreviewable _holdPreview;
-        private UniversalInventory _holdPreviewInventory;
-        private ISlot _holdPreviewSlot;
-        private int _holdPreviewLastAmount = -1;
+        // Hold drag settings and state
+        [Header("Hold Drag")]
+        [SerializeField, Tooltip("Настройки прогрессивного драга при удержании. Null = фича отключена.")]
+        private HoldDragSettings _holdDragSettings;
+
+        private UniversalInventory _holdCountInventory;
+        private ISlot _holdCountSlot;
+        private int _holdCountLastAmount = -1;
+
+        public HoldDragSettings HoldDragSettings => _holdDragSettings;
 
         /// <summary>
-        /// Срабатывает каждый кадр пока активен hold preview.
+        /// Срабатывает каждый кадр пока активен hold count.
         /// Параметры: (слот, текущее количество, максимальное количество стака).
         /// </summary>
         public static event Action<ISlot, int, int> OnHoldPreviewChanged;
 
         /// <summary>
-        /// Срабатывает когда hold preview заканчивается (начался драг, отпустили кнопку).
+        /// Срабатывает когда hold count заканчивается (начался драг, отпустили кнопку).
         /// </summary>
         public static event Action OnHoldPreviewEnded;
 
@@ -259,15 +264,12 @@ namespace DragAndDropSystem.Interaction
                 // PointerDown should allow regular slot actions (selection, inventory ops)
                 // and drag start actions. Drag completion/cancel is processed on PointerUp.
                 ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down, dragOnly: false);
-
-                if (!DragAndDropManager.Instance.IsDragging)
-                    TryStartHoldPreview(inventory, adapter, eventData);
             }
         }
 
         public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            StopHoldPreview();
+            StopHoldCount();
 
             if (eventData == null)
                 return;
@@ -331,7 +333,7 @@ namespace DragAndDropSystem.Interaction
             if (DragAndDropManager.Instance.IsDragging)
                 return;
 
-            StopHoldPreview();
+            StopHoldCount();
 
             if (!TryGetInventory(adapter, out var inventory))
                 return;
@@ -663,61 +665,64 @@ namespace DragAndDropSystem.Interaction
             return pressedTime >= 0f ? Mathf.Max(0f, Time.unscaledTime - pressedTime) : 0f;
         }
 
-        private void TryStartHoldPreview(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        /// <summary>
+        /// Начать подсчёт удержания. Вызывается из StartHoldCountAction (Down фаза).
+        /// </summary>
+        public void BeginHoldCount(UniversalInventory inventory, ISlot slot)
         {
-            var slot = adapter?.Slot;
-            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+            if (_holdDragSettings == null || slot == null || slot.IsEmpty)
                 return;
 
-            var bindings = ResolvePointerBindings(inventory);
-            for (int i = 0; i < bindings.Count; i++)
-            {
-                var binding = bindings[i];
-                if (binding == null || !binding.IsValid())
-                    continue;
+            _holdCountInventory = inventory;
+            _holdCountSlot = slot;
+            _holdCountLastAmount = -1;
+        }
 
-                if (binding.Action is IHoldPreviewable preview &&
-                    binding.Matches(eventData, PointerTriggerPhase.BeginDrag))
-                {
-                    _holdPreview = preview;
-                    _holdPreviewInventory = inventory;
-                    _holdPreviewSlot = slot;
-                    _holdPreviewLastAmount = -1;
-                    return;
-                }
-            }
+        /// <summary>
+        /// Получить текущее накопленное количество для слота.
+        /// Вызывается из StartHoldDragAction (BeginDrag фаза).
+        /// </summary>
+        public int GetHoldDragAmount(ISlot slot)
+        {
+            if (_holdDragSettings == null || _holdCountSlot == null || slot == null)
+                return slot != null && !slot.IsEmpty ? slot.Stack.Count : 0;
+
+            if (!ReferenceEquals(_holdCountSlot, slot))
+                return slot.IsEmpty ? 0 : slot.Stack.Count;
+
+            float holdDuration = GetHoldDuration(_holdCountInventory);
+            return _holdDragSettings.ComputeAmount(holdDuration, slot.Stack.Count);
         }
 
         private void TickHoldPreview()
         {
-            if (_holdPreview == null || _holdPreviewSlot == null)
+            if (_holdCountSlot == null || _holdDragSettings == null)
                 return;
 
-            if (_holdPreviewSlot.IsEmpty || DragAndDropManager.Instance.IsDragging)
+            if (_holdCountSlot.IsEmpty || DragAndDropManager.Instance.IsDragging)
             {
-                StopHoldPreview();
+                StopHoldCount();
                 return;
             }
 
-            float holdDuration = GetHoldDuration(_holdPreviewInventory);
-            int amount = _holdPreview.ComputePreviewAmount(_holdPreviewSlot, holdDuration);
+            float holdDuration = GetHoldDuration(_holdCountInventory);
+            int amount = _holdDragSettings.ComputeAmount(holdDuration, _holdCountSlot.Stack.Count);
 
-            if (amount != _holdPreviewLastAmount)
+            if (amount != _holdCountLastAmount)
             {
-                _holdPreviewLastAmount = amount;
-                OnHoldPreviewChanged?.Invoke(_holdPreviewSlot, amount, _holdPreviewSlot.Stack.Count);
+                _holdCountLastAmount = amount;
+                OnHoldPreviewChanged?.Invoke(_holdCountSlot, amount, _holdCountSlot.Stack.Count);
             }
         }
 
-        private void StopHoldPreview()
+        private void StopHoldCount()
         {
-            if (_holdPreview == null)
+            if (_holdCountSlot == null)
                 return;
 
-            _holdPreview = null;
-            _holdPreviewInventory = null;
-            _holdPreviewSlot = null;
-            _holdPreviewLastAmount = -1;
+            _holdCountInventory = null;
+            _holdCountSlot = null;
+            _holdCountLastAmount = -1;
             OnHoldPreviewEnded?.Invoke();
         }
 
