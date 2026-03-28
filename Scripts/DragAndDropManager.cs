@@ -419,27 +419,10 @@ namespace DragAndDropSystem
             if (!requested.HasValue || !requested.Value.Amount.HasValue)
                 return slot.Inventory.GetDragAmount(slot);
 
-            var amount = requested.Value.Amount.Value;
-            int stackCount = slot.Stack.Count;
+            if (slot.Inventory is UniversalInventory universal)
+                return universal.GetDragAmount(slot, requested.Value.Amount.Value, requested.Value.CustomAmount);
 
-            var sourceUniversal = slot.Inventory as UniversalInventory;
-            if (sourceUniversal != null)
-            {
-                return sourceUniversal.DragPolicy.ResolveDragAmount(stackCount, amount, requested.Value.CustomAmount);
-            }
-
-            switch (amount)
-            {
-                case DragAmount.One:
-                    return 1;
-                case DragAmount.Half:
-                    return Mathf.Max(1, stackCount / 2);
-                case DragAmount.Custom:
-                    return Mathf.Clamp(requested.Value.CustomAmount, 1, stackCount);
-                case DragAmount.All:
-                default:
-                    return stackCount;
-            }
+            return slot.Inventory.GetDragAmount(slot);
         }
 
         /// <summary>

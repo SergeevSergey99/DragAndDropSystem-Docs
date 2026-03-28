@@ -14,7 +14,8 @@ namespace DragAndDropSystem.Core
     public enum DragAmount : byte
     {
         All = 0,
-        Half = 1,
+        HalfDown = 1,
+        HalfUp = 4,
         One = 2,
         Custom = 3
     }
@@ -96,10 +97,6 @@ namespace DragAndDropSystem.Core
 
         public DragAmount? Amount { get; }
         public int CustomAmount { get; }
-
-        public static readonly DragRequestPolicy All = new DragRequestPolicy(DragAmount.All);
-        public static readonly DragRequestPolicy Half = new DragRequestPolicy(DragAmount.Half);
-        public static readonly DragRequestPolicy One = new DragRequestPolicy(DragAmount.One);
     }
 
     public readonly struct ResolvedDropPolicy

@@ -764,15 +764,18 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Получить количество предметов для перетаскивания из слота
+        /// Получить количество предметов для перетаскивания из слота.
+        /// Без параметров использует настройки инвентаря, с параметрами — переданные override.
         /// </summary>
-        public int GetDragAmount(ISlot slot)
+        public int GetDragAmount(ISlot slot, DragAmount? overrideAmount = null, int? overrideCustom = null)
         {
             if (slot == null || slot.IsEmpty)
                 return 0;
 
             EnsureStrategyInitialized();
-            return _dragPolicy.ResolveDragAmount(slot.Stack.Count, _dragAmount, _customDragAmount);
+            var amount = overrideAmount ?? _dragAmount;
+            var custom = overrideAmount.HasValue ? (overrideCustom ?? 0) : _customDragAmount;
+            return _dragPolicy.ResolveDragAmount(slot.Stack.Count, amount, custom);
         }
 
         internal int GetMaxStackSizeForItem(IInventoryItem item)

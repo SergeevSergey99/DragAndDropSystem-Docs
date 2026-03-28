@@ -60,8 +60,11 @@ namespace DragAndDropSystem.Inventories
                 case DragAmount.One:
                     return 1;
 
-                case DragAmount.Half:
+                case DragAmount.HalfDown:
                     return UnityEngine.Mathf.Max(1, stackCount / 2);
+                
+                case DragAmount.HalfUp:
+                    return UnityEngine.Mathf.Max(1, UnityEngine.Mathf.CeilToInt(stackCount / 2f));
 
                 case DragAmount.All:
                     return stackCount;

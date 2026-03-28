@@ -14,6 +14,7 @@ namespace DragAndDropSystem.UI
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
+        [SerializeField] private GameObject _countParent;
         [SerializeField] private TMPro.TMP_Text _countText;
 
         [Header("Settings")]
@@ -47,12 +48,12 @@ namespace DragAndDropSystem.UI
             {
                 if (stack.Count > 1)
                 {
-                    _countText.gameObject.SetActive(true);
+                    _countParent.gameObject.SetActive(true);
                     _countText.text = stack.Count.ToString();
                 }
                 else
                 {
-                    _countText.gameObject.SetActive(false);
+                    _countParent.gameObject.SetActive(false);
                 }
             }
 
