@@ -7466,7 +7466,7 @@ MonoBehaviour:
   _dropPolicy:
     _blockedTarget: 2
     _allowMergeOnDrop: 1
-    _allowPartial: 0
+    _allowPartial: 1
     _batchMode: 1
     _alternativePlacement: 0
   _slots:
