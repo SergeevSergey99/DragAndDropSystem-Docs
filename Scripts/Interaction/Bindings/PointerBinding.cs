@@ -54,6 +54,8 @@ namespace DragAndDropSystem.Interaction
 
             switch (_modifier)
             {
+                case ModifierKey.Any:
+                    return true;
                 case ModifierKey.None:
                     return !ctrl && !shift && !alt;
                 case ModifierKey.Ctrl:

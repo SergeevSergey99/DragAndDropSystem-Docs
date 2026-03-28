@@ -23,7 +23,8 @@
         None = 0,
         Ctrl = 1,
         Shift = 2,
-        Alt = 3
+        Alt = 3,
+        Any = 4
     }
 
 }

@@ -13,30 +13,30 @@ MonoBehaviour:
   m_Name: Minecraft InteractionBindingsProfile
   m_EditorClassIdentifier: 
   _pointerBindings:
-  - _label: LMB Drag
+  - _label: LMB Drag One
+    _button: 0
+    _modifier: 1
+    _triggerPhase: 1
+    _action:
+      rid: 6676589293835124806
+  - _label: LMB Drag All
     _button: 0
     _modifier: 0
     _triggerPhase: 1
     _action:
-      rid: 6676588890579796076
-  - _label: LMB Drop
+      rid: 6676588777423765576
+  - _label: LMB Drag Half
     _button: 0
-    _modifier: 0
+    _modifier: 3
+    _triggerPhase: 1
+    _action:
+      rid: 6676589293835124808
+  - _label: LMB Drag Half
+    _button: 0
+    _modifier: 4
     _triggerPhase: 2
     _action:
-      rid: 6676588777423765576
-  - _label: LMB Ctrl Toggle
-    _button: 0
-    _modifier: 1
-    _triggerPhase: 4
-    _action:
-      rid: 6676588890579796071
-  - _label: RMB Context
-    _button: 1
-    _modifier: 0
-    _triggerPhase: 3
-    _action:
-      rid: 6676588977941643265
+      rid: 6676589293835124809
   _inputActionBindings: []
   references:
     version: 2
@@ -45,27 +45,31 @@ MonoBehaviour:
       type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
         _dragPolicyOverride:
-          _overrideAmount: 0
+          _overrideAmount: 1
           _amount: 0
           _customAmount: 1
-    - rid: 6676588890579796071
-      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
+    - rid: 6676589293835124806
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
       data:
-        _operation:
-          rid: 6676588977941643341
-    - rid: 6676588890579796076
-      type: {class: StartMultiDragAction, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data:
-        _completeOnPointerUp: 1
-        _fallbackToActiveSlotIfSelectionEmpty: 1
-        _restrictToSameInventory: 1
         _dragPolicyOverride:
-          _overrideAmount: 0
-          _amount: 0
+          _overrideAmount: 1
+          _amount: 2
           _customAmount: 1
-    - rid: 6676588977941643265
-      type: {class: ShowContextMenuAction, ns: DragAndDropSystem.ContextMenu, asm: Assembly-CSharp-firstpass}
-      data: 
-    - rid: 6676588977941643341
-      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: Assembly-CSharp-firstpass}
-      data: 
+    - rid: 6676589293835124808
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data:
+        _dragPolicyOverride:
+          _overrideAmount: 1
+          _amount: 4
+          _customAmount: 1
+    - rid: 6676589293835124809
+      type: {class: CompleteDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      data:
+        <CancelOnNoSlots>k__BackingField: 1
+        _dropPolicyOverride:
+          _overrideBlockedTarget: 0
+          _blockedTarget: 2
+          _overrideAlternativePlacement: 0
+          _alternativePlacement: 0
+          _overrideAllowPartial: 0
+          _allowPartial: 1

@@ -198,13 +198,10 @@ namespace DragAndDropSystem.Core
         private bool _overrideAmount;
         [SerializeField, ShowIf(nameof(_overrideAmount)), LabelText("Amount"), Tooltip("Сколько предметов взять из source stack при старте драга.")]
         private DragAmount _amount = DragAmount.All;
-        [SerializeField, Range(1, 100), ShowIf(nameof(ShowCustomAmount)), LabelText("Custom Amount"), Tooltip("Используется только когда Amount = Custom.")]
+        [SerializeField, ShowIf(nameof(ShowCustomAmount)), LabelText("Custom Amount"), Tooltip("Используется только когда Amount = Custom.")]
         private int _customAmount = 1;
 
-        private bool ShowCustomAmount
-        {
-            get { return _overrideAmount && _amount == DragAmount.Custom; }
-        }
+        private bool ShowCustomAmount => _overrideAmount && _amount == DragAmount.Custom;
 
         public DragRequestPolicy? TryBuild()
         {
