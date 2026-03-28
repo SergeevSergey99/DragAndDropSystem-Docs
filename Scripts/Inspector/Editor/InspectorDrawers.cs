@@ -26,6 +26,9 @@ namespace DragAndDropSystem.Inspector.Editor
             if (property == null)
                 return null;
 
+            if (TryGetRuntimeResolvedFieldInfo(property, out FieldInfo runtimeField))
+                return runtimeField;
+
             Type currentType = property.serializedObject.targetObject.GetType();
             string path = property.propertyPath.Replace(".Array.data[", "[");
             string[] elements = path.Split('.');
@@ -56,6 +59,9 @@ namespace DragAndDropSystem.Inspector.Editor
             if (property == null)
                 return null;
 
+            if (TryGetRuntimeResolvedPropertyType(property, out Type runtimeType))
+                return runtimeType;
+
             Type currentType = property.serializedObject.targetObject.GetType();
             string path = property.propertyPath.Replace(".Array.data[", "[");
             string[] elements = path.Split('.');
@@ -78,6 +84,46 @@ namespace DragAndDropSystem.Inspector.Editor
             }
 
             return currentType;
+        }
+
+        private static bool TryGetRuntimeResolvedFieldInfo(SerializedProperty property, out FieldInfo field)
+        {
+            field = null;
+
+            object parent = GetParentObject(property);
+            if (parent == null)
+                return false;
+
+            string lastElement = GetLastPathElement(property);
+            string memberName = GetPathElementMemberName(lastElement);
+            if (string.IsNullOrEmpty(memberName))
+                return false;
+
+            field = GetFieldInfo(parent.GetType(), memberName);
+            return field != null;
+        }
+
+        private static bool TryGetRuntimeResolvedPropertyType(SerializedProperty property, out Type propertyType)
+        {
+            propertyType = null;
+
+            object parent = GetParentObject(property);
+            if (parent == null)
+                return false;
+
+            if (!TryGetRuntimeResolvedFieldInfo(property, out FieldInfo field))
+                return false;
+
+            Type resolvedType = ResolveFieldType(parent.GetType(), field);
+            if (resolvedType == null)
+                return false;
+
+            string lastElement = GetLastPathElement(property);
+            if (IsIndexedPathElement(lastElement))
+                resolvedType = GetElementType(resolvedType);
+
+            propertyType = resolvedType;
+            return propertyType != null;
         }
 
         public static object GetParentObject(SerializedProperty property)
@@ -151,6 +197,30 @@ namespace DragAndDropSystem.Inspector.Editor
                 return null;
 
             return list[index];
+        }
+
+        private static string GetLastPathElement(SerializedProperty property)
+        {
+            if (property == null)
+                return null;
+
+            string path = property.propertyPath.Replace(".Array.data[", "[");
+            string[] elements = path.Split('.');
+            return elements.Length == 0 ? null : elements[elements.Length - 1];
+        }
+
+        private static string GetPathElementMemberName(string pathElement)
+        {
+            if (string.IsNullOrEmpty(pathElement))
+                return null;
+
+            int bracketIndex = pathElement.IndexOf('[');
+            return bracketIndex >= 0 ? pathElement.Substring(0, bracketIndex) : pathElement;
+        }
+
+        private static bool IsIndexedPathElement(string pathElement)
+        {
+            return !string.IsNullOrEmpty(pathElement) && pathElement.IndexOf('[') >= 0;
         }
 
         public static IEnumerable<MemberInfo> GetShowInInspectorMembers(Type type)
@@ -1658,9 +1728,10 @@ namespace DragAndDropSystem.Inspector.Editor
             float labelWidth = isFixedSize ? headerRect.width - 18f : headerRect.width - 70f;
             Rect labelRect = new Rect(foldoutRect.xMax, headerRect.y, labelWidth, headerRect.height);
             Rect addButtonRect = new Rect(headerRect.xMax - 64f, headerRect.y, 64f, headerRect.height);
+            int listSize = GetManagedReferenceListSize(property);
 
             property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, GUIContent.none, true);
-            EditorGUI.LabelField(labelRect, $"{label.text} ({property.arraySize})");
+            EditorGUI.LabelField(labelRect, $"{label.text} ({listSize})");
 
             if (!isFixedSize && GUI.Button(addButtonRect, "Add"))
             {
@@ -1673,16 +1744,19 @@ namespace DragAndDropSystem.Inspector.Editor
             float y = headerRect.yMax + EditorGUIUtility.standardVerticalSpacing;
             Type elementType = GetListElementType(property);
 
-            if (property.arraySize == 0)
+            if (listSize == 0)
             {
                 Rect emptyRect = new Rect(position.x, y, position.width, EditorGUIUtility.singleLineHeight * 2f);
                 EditorGUI.HelpBox(emptyRect, "No entries configured.", MessageType.Info);
                 return;
             }
 
-            for (int i = 0; i < property.arraySize; i++)
+            for (int i = 0; i < listSize; i++)
             {
-                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                SerializedProperty element = GetManagedReferenceListElement(property, i);
+                if (element == null)
+                    continue;
+
                 float elementHeight = GetSingleHeight(element, new GUIContent($"Element {i}"));
                 float boxHeight = elementHeight + BoxPadding * 2f;
                 Rect boxRect = new Rect(position.x, y, position.width, boxHeight);
@@ -1784,12 +1858,16 @@ namespace DragAndDropSystem.Inspector.Editor
                 return height;
 
             height += EditorGUIUtility.standardVerticalSpacing;
-            if (property.arraySize == 0)
+            int listSize = GetManagedReferenceListSize(property);
+            if (listSize == 0)
                 return height + EditorGUIUtility.singleLineHeight * 2f;
 
-            for (int i = 0; i < property.arraySize; i++)
+            for (int i = 0; i < listSize; i++)
             {
-                SerializedProperty element = property.GetArrayElementAtIndex(i);
+                SerializedProperty element = GetManagedReferenceListElement(property, i);
+                if (element == null)
+                    continue;
+
                 height += GetSingleHeight(element, new GUIContent($"Element {i}")) + BoxPadding * 2f;
                 height += EditorGUIUtility.standardVerticalSpacing;
             }
@@ -1943,31 +2021,29 @@ namespace DragAndDropSystem.Inspector.Editor
             Rect deleteRect = new Rect(controlsRight - SmallButtonWidth, contentRect.y, SmallButtonWidth, EditorGUIUtility.singleLineHeight);
             Rect downRect = new Rect(deleteRect.x - SmallButtonWidth, contentRect.y, SmallButtonWidth, EditorGUIUtility.singleLineHeight);
             Rect upRect = new Rect(downRect.x - SmallButtonWidth, contentRect.y, SmallButtonWidth, EditorGUIUtility.singleLineHeight);
+            int listSize = GetManagedReferenceListSize(listProperty);
 
             using (new EditorGUI.DisabledScope(index == 0))
             {
                 if (GUI.Button(upRect, "\u2191"))
                 {
-                    listProperty.MoveArrayElement(index, index - 1);
-                    listProperty.serializedObject.ApplyModifiedProperties();
+                    MoveManagedReferenceListElement(listProperty, index, index - 1);
                     GUIUtility.ExitGUI();
                 }
             }
 
-            using (new EditorGUI.DisabledScope(index >= listProperty.arraySize - 1))
+            using (new EditorGUI.DisabledScope(index >= listSize - 1))
             {
                 if (GUI.Button(downRect, "\u2193"))
                 {
-                    listProperty.MoveArrayElement(index, index + 1);
-                    listProperty.serializedObject.ApplyModifiedProperties();
+                    MoveManagedReferenceListElement(listProperty, index, index + 1);
                     GUIUtility.ExitGUI();
                 }
             }
 
             if (GUI.Button(deleteRect, "X"))
             {
-                listProperty.DeleteArrayElementAtIndex(index);
-                listProperty.serializedObject.ApplyModifiedProperties();
+                DeleteManagedReferenceListElement(listProperty, index);
                 GUIUtility.ExitGUI();
             }
         }
@@ -1979,15 +2055,155 @@ namespace DragAndDropSystem.Inspector.Editor
             {
                 menu.AddItem(new GUIContent(candidateType.Name), false, () =>
                 {
-                    int index = listProperty.arraySize;
-                    listProperty.arraySize++;
-                    SerializedProperty element = listProperty.GetArrayElementAtIndex(index);
-                    element.managedReferenceValue = Activator.CreateInstance(candidateType);
-                    listProperty.serializedObject.ApplyModifiedProperties();
+                    AddManagedReferenceListElement(listProperty, candidateType);
                 });
             }
 
             menu.ShowAsContext();
+        }
+
+        private void AddManagedReferenceListElement(SerializedProperty listProperty, Type candidateType)
+        {
+            if (candidateType == null)
+                return;
+
+            Undo.RecordObject(listProperty.serializedObject.targetObject, "Add Managed Reference List Element");
+
+            int index = GetManagedReferenceListSize(listProperty);
+            if (listProperty.isArray)
+            {
+                listProperty.arraySize++;
+                SerializedProperty element = listProperty.GetArrayElementAtIndex(index);
+                if (element != null)
+                    element.managedReferenceValue = Activator.CreateInstance(candidateType);
+
+                listProperty.serializedObject.ApplyModifiedProperties();
+                return;
+            }
+
+            if (TryGetManagedReferenceRuntimeList(listProperty, out IList runtimeList))
+            {
+                runtimeList.Add(Activator.CreateInstance(candidateType));
+                CommitManagedReferenceRuntimeListChange(listProperty);
+                return;
+            }
+
+            SerializedProperty sizeProperty = GetManagedReferenceListSizeProperty(listProperty);
+            if (sizeProperty == null)
+                return;
+
+            sizeProperty.intValue = index + 1;
+            listProperty.serializedObject.ApplyModifiedProperties();
+
+            SerializedProperty newElement = GetManagedReferenceListElement(listProperty, index);
+            if (newElement != null)
+            {
+                newElement.managedReferenceValue = Activator.CreateInstance(candidateType);
+                listProperty.serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        private void MoveManagedReferenceListElement(SerializedProperty listProperty, int sourceIndex, int destinationIndex)
+        {
+            if (sourceIndex == destinationIndex)
+                return;
+
+            Undo.RecordObject(listProperty.serializedObject.targetObject, "Move Managed Reference List Element");
+
+            if (listProperty.isArray)
+            {
+                listProperty.MoveArrayElement(sourceIndex, destinationIndex);
+                listProperty.serializedObject.ApplyModifiedProperties();
+                return;
+            }
+
+            if (!TryGetManagedReferenceRuntimeList(listProperty, out IList runtimeList)
+                || sourceIndex < 0
+                || destinationIndex < 0
+                || sourceIndex >= runtimeList.Count
+                || destinationIndex >= runtimeList.Count)
+            {
+                return;
+            }
+
+            object element = runtimeList[sourceIndex];
+            runtimeList.RemoveAt(sourceIndex);
+            runtimeList.Insert(destinationIndex, element);
+            CommitManagedReferenceRuntimeListChange(listProperty);
+        }
+
+        private void DeleteManagedReferenceListElement(SerializedProperty listProperty, int index)
+        {
+            Undo.RecordObject(listProperty.serializedObject.targetObject, "Delete Managed Reference List Element");
+
+            if (listProperty.isArray)
+            {
+                listProperty.DeleteArrayElementAtIndex(index);
+                listProperty.serializedObject.ApplyModifiedProperties();
+                return;
+            }
+
+            if (!TryGetManagedReferenceRuntimeList(listProperty, out IList runtimeList)
+                || index < 0
+                || index >= runtimeList.Count)
+            {
+                return;
+            }
+
+            runtimeList.RemoveAt(index);
+            CommitManagedReferenceRuntimeListChange(listProperty);
+        }
+
+        private static int GetManagedReferenceListSize(SerializedProperty property)
+        {
+            if (property == null)
+                return 0;
+
+            if (property.isArray)
+                return property.arraySize;
+
+            SerializedProperty sizeProperty = GetManagedReferenceListSizeProperty(property);
+            if (sizeProperty != null)
+                return sizeProperty.intValue;
+
+            return TryGetManagedReferenceRuntimeList(property, out IList runtimeList) ? runtimeList.Count : 0;
+        }
+
+        private static SerializedProperty GetManagedReferenceListElement(SerializedProperty property, int index)
+        {
+            if (property == null || index < 0)
+                return null;
+
+            if (property.isArray)
+                return index < property.arraySize ? property.GetArrayElementAtIndex(index) : null;
+
+            return property.serializedObject.FindProperty($"{property.propertyPath}.Array.data[{index}]");
+        }
+
+        private static SerializedProperty GetManagedReferenceListSizeProperty(SerializedProperty property)
+        {
+            if (property == null)
+                return null;
+
+            return property.serializedObject.FindProperty($"{property.propertyPath}.Array.size");
+        }
+
+        private static bool TryGetManagedReferenceRuntimeList(SerializedProperty property, out IList runtimeList)
+        {
+            runtimeList = property?.managedReferenceValue as IList;
+            return runtimeList != null;
+        }
+
+        private static void CommitManagedReferenceRuntimeListChange(SerializedProperty property)
+        {
+            if (property == null)
+                return;
+
+            object runtimeValue = property.managedReferenceValue;
+            property.managedReferenceValue = runtimeValue;
+            property.serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(property.serializedObject.targetObject);
+            property.serializedObject.Update();
         }
 
         private void ShowTypeMenu(SerializedProperty property, Type baseType, bool allowNull)
@@ -2096,10 +2312,11 @@ namespace DragAndDropSystem.Inspector.Editor
 
         private bool IsManagedReferenceList(SerializedProperty property)
         {
-            return property.isArray
-                   && property.propertyType != SerializedPropertyType.String
+            Type fieldType = GetManagedReferenceFieldType(property) ?? fieldInfo?.FieldType;
+            return property.propertyType != SerializedPropertyType.String
                    && !IsObjectReferenceList(property)
                    && HasSerializeReferenceAttribute(property)
+                   && IsCollectionType(fieldType)
                    && GetListElementType(property) != null;
         }
 
@@ -2116,7 +2333,8 @@ namespace DragAndDropSystem.Inspector.Editor
 
         private bool IsObjectReferenceList(SerializedProperty property)
         {
-            if (!property.isArray || property.propertyType == SerializedPropertyType.String)
+            Type fieldType = GetManagedReferenceFieldType(property) ?? fieldInfo?.FieldType;
+            if (property.propertyType == SerializedPropertyType.String || !IsCollectionType(fieldType))
                 return false;
 
             Type elementType = GetListElementType(property);
@@ -2136,6 +2354,9 @@ namespace DragAndDropSystem.Inspector.Editor
         private Type GetListElementType(SerializedProperty property)
         {
             Type fieldType = InspectorReflectionUtility.GetPropertyValueType(property) ?? fieldInfo.FieldType;
+            if (fieldType == null)
+                return null;
+
             if (fieldType.IsArray)
                 return fieldType.GetElementType();
 
@@ -2143,6 +2364,13 @@ namespace DragAndDropSystem.Inspector.Editor
                 return fieldType.GetGenericArguments()[0];
 
             return null;
+        }
+
+        private static bool IsCollectionType(Type type)
+        {
+            return type != null
+                   && type != typeof(string)
+                   && (type.IsArray || (type.IsGenericType && type.GetGenericArguments().Length == 1));
         }
     }
 

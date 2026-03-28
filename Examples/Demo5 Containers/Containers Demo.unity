@@ -255,7 +255,11 @@ MonoBehaviour:
       data:
         <Item>k__BackingField: {fileID: 11400000, guid: bb54afbfd7dc92242917af1b40349936, type: 2}
         _items:
-        - ItemSO: {fileID: 11400000, guid: b1257d83a20ac98429f6f1214de3ca51, type: 2}
+        - rid: 6676589295782854730
+    - rid: 6676589295782854730
+      type: {class: ItemInstance, ns: DragAndDropSystem.Examples.Containers, asm: DragAndDropSystem.Examples}
+      data:
+        ItemSO: {fileID: 11400000, guid: b1257d83a20ac98429f6f1214de3ca51, type: 2}
 --- !u!4 &1632691167
 Transform:
   m_ObjectHideFlags: 0

@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DragAndDropSystem.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Containers
 {
+    [Serializable]
     public class ContainerItemInstance : IContainerizeItemInstance
     {
         [field:  SerializeField]
