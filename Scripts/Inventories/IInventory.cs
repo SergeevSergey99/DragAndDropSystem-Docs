@@ -44,7 +44,7 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Получить количество предметов для перетаскивания из слота
         /// </summary>
-        int GetDragAmount(ISlot slot);
+        int GetDragAmount(ISlot slot, DragAmount? overrideAmount = null, int? overrideCustom = null);
 
         /// <summary>
         /// Попытаться добавить предмет в конкретный слот с учетом настроек инвентаря
