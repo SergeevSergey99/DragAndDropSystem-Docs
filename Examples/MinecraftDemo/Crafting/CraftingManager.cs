@@ -17,12 +17,16 @@ namespace DragAndDropSystem.Examples.Minecraft
         public const int MaxItemsPerSlot = 64;
 
         private CraftingRecipeSO _currentRecipe;
+        private int _craftMultiplier;
 
         public IReadOnlyList<RuntimeItem> HotbarItems => _hotbarItems;
         public IReadOnlyList<RuntimeItem> InventoryItems => _inventoryItems;
         public IReadOnlyList<RuntimeItem> CraftTableItems => _craftTableItems;
 
         public CraftingRecipeSO CurrentRecipe => _currentRecipe;
+
+        /// <summary> Сколько раз можно выполнить текущий рецепт с имеющимися ингредиентами. </summary>
+        public int CraftMultiplier => _craftMultiplier;
 
         /// <summary> Изменился результат крафта (появился/исчез/сменился рецепт). </summary>
         public event Action OnCraftResultChanged;
@@ -137,11 +141,17 @@ namespace DragAndDropSystem.Examples.Minecraft
         public void RefreshCraftResult()
         {
             var grid = new MinecraftItemSO[9];
+            var counts = new int[9];
             for (int i = 0; i < 9; i++)
+            {
                 grid[i] = _craftTableItems[i]?.ItemSO;
+                counts[i] = _craftTableItems[i]?.Count ?? 0;
+            }
 
             var prev = _currentRecipe;
+            var prevMultiplier = _craftMultiplier;
             _currentRecipe = null;
+            _craftMultiplier = 0;
 
             if (_recipes != null)
             {
@@ -150,12 +160,13 @@ namespace DragAndDropSystem.Examples.Minecraft
                     if (recipe != null && recipe.Matches(grid))
                     {
                         _currentRecipe = recipe;
+                        _craftMultiplier = recipe.ComputeMaxCrafts(grid, counts);
                         break;
                     }
                 }
             }
 
-            if (_currentRecipe != prev)
+            if (_currentRecipe != prev || _craftMultiplier != prevMultiplier)
                 OnCraftResultChanged?.Invoke();
         }
 
@@ -165,12 +176,15 @@ namespace DragAndDropSystem.Examples.Minecraft
         /// </summary>
         public void ConsumeCraftIngredients()
         {
+            if (_craftMultiplier <= 0)
+                return;
+
             for (int i = 0; i < _craftTableItems.Length; i++)
             {
                 if (_craftTableItems[i] == null)
                     continue;
 
-                _craftTableItems[i].Count -= 1;
+                _craftTableItems[i].Count -= _craftMultiplier;
                 if (_craftTableItems[i].Count <= 0)
                     _craftTableItems[i] = null;
             }

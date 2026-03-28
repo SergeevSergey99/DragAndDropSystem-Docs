@@ -149,6 +149,96 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         #endregion
 
+        /// <summary>
+        /// Сколько раз можно скрафтить этот рецепт с текущими ингредиентами.
+        /// Вызывать после Matches() == true.
+        /// </summary>
+        public int ComputeMaxCrafts(MinecraftItemSO[] gridItems, int[] gridCounts)
+        {
+            if (gridItems == null || gridCounts == null || gridItems.Length != 9 || gridCounts.Length != 9)
+                return 0;
+
+            return _shapeless
+                ? ComputeMaxCraftsShapeless(gridItems, gridCounts)
+                : ComputeMaxCraftsShaped(gridItems, gridCounts);
+        }
+
+        private int ComputeMaxCraftsShaped(MinecraftItemSO[] gridItems, int[] gridCounts)
+        {
+            var patternItems = GetPatternItems();
+            GetBoundingBox(patternItems, out int pMinR, out int pMinC);
+            GetBoundingBox(gridItems, out int gMinR, out int gMinC);
+
+            int offsetR = gMinR - pMinR;
+            int offsetC = gMinC - pMinC;
+
+            int maxCrafts = int.MaxValue;
+            for (int i = 0; i < 9; i++)
+            {
+                if (patternItems[i] == null) continue;
+
+                int r = i / 3 + offsetR;
+                int c = i % 3 + offsetC;
+                int gridIdx = r * 3 + c;
+
+                if (gridIdx < 0 || gridIdx >= 9 || gridCounts[gridIdx] <= 0)
+                    return 0;
+
+                maxCrafts = Math.Min(maxCrafts, gridCounts[gridIdx]);
+            }
+
+            return maxCrafts == int.MaxValue ? 0 : maxCrafts;
+        }
+
+        private int ComputeMaxCraftsShapeless(MinecraftItemSO[] gridItems, int[] gridCounts)
+        {
+            // Собираем требования паттерна: сколько ячеек на каждый тип предмета
+            var patternReq = new Dictionary<MinecraftItemSO, int>();
+            var patternItems = GetPatternItems();
+            for (int i = 0; i < 9; i++)
+            {
+                if (patternItems[i] == null) continue;
+                if (!patternReq.ContainsKey(patternItems[i]))
+                    patternReq[patternItems[i]] = 0;
+                patternReq[patternItems[i]]++;
+            }
+
+            // Собираем доступное в гриде: суммарное количество каждого типа
+            var gridAvail = new Dictionary<MinecraftItemSO, int>();
+            for (int i = 0; i < 9; i++)
+            {
+                if (gridItems[i] == null || gridCounts[i] <= 0) continue;
+                if (!gridAvail.ContainsKey(gridItems[i]))
+                    gridAvail[gridItems[i]] = 0;
+                gridAvail[gridItems[i]] += gridCounts[i];
+            }
+
+            int maxCrafts = int.MaxValue;
+            foreach (var kvp in patternReq)
+            {
+                if (!gridAvail.TryGetValue(kvp.Key, out int available))
+                    return 0;
+                maxCrafts = Math.Min(maxCrafts, available / kvp.Value);
+            }
+
+            return maxCrafts == int.MaxValue ? 0 : maxCrafts;
+        }
+
+        private static void GetBoundingBox(MinecraftItemSO[] grid3x3, out int minR, out int minC)
+        {
+            minR = 3;
+            minC = 3;
+            for (int i = 0; i < 9; i++)
+            {
+                if (grid3x3[i] != null)
+                {
+                    int r = i / 3, c = i % 3;
+                    if (r < minR) minR = r;
+                    if (c < minC) minC = c;
+                }
+            }
+        }
+
         private MinecraftItemSO[] GetPatternItems()
         {
             var ids = new MinecraftItemSO[9];

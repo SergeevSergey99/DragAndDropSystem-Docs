@@ -37,7 +37,10 @@ namespace DragAndDropSystem.Examples.Minecraft
                 : null;
 
             if (recipe != null && recipe.Result != null)
-                AddToUIQuiet(new MinecraftItemAdapter(recipe.Result), recipe.ResultCount, 0);
+            {
+                int multiplier = CraftingManager.Instance.CraftMultiplier;
+                AddToUIQuiet(new MinecraftItemAdapter(recipe.Result), multiplier * recipe.ResultCount, 0);
+            }
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
