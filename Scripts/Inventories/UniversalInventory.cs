@@ -28,7 +28,7 @@ namespace DragAndDropSystem.Inventories
         private UniversalSlot _slotPrefab;
 
         [FoldoutGroup("Slot Setup")]
-        [SerializeField, Range(0, 100), Tooltip("Количество слотов при инициализации")]
+        [SerializeField, Tooltip("Количество слотов при инициализации")]
         private int _initialSlotCount = 10;
 
         [FoldoutGroup("Strategy", expanded: true)]
@@ -43,7 +43,7 @@ namespace DragAndDropSystem.Inventories
         private DragAmount _dragAmount = DragAmount.All;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Range(1, 100), Tooltip("Количество предметов при Custom")]
+        [SerializeField, Tooltip("Количество предметов при Custom")]
         [ShowIf(nameof(ShowCustomDragAmount))]
         private int _customDragAmount = 1;
 
@@ -775,8 +775,21 @@ namespace DragAndDropSystem.Inventories
             EnsureStrategyInitialized();
             var amount = overrideAmount ?? _dragAmount;
             var custom = overrideAmount.HasValue ? (overrideCustom ?? 0) : _customDragAmount;
-            return _dragPolicy.ResolveDragAmount(slot.Stack.Count, amount, custom);
+            var result = _dragPolicy.ResolveDragAmount(slot.Stack.Count, amount, custom);
+
+            if (_dragAmountStep > 1)
+                result = (result / _dragAmountStep) * _dragAmountStep;
+
+            return result;
         }
+
+        private int _dragAmountStep;
+
+        /// <summary>
+        /// Округлять количество драга вниз до кратного step.
+        /// step &lt;= 1 — без округления.
+        /// </summary>
+        public void SetDragAmountStep(int step) => _dragAmountStep = step;
 
         internal int GetMaxStackSizeForItem(IInventoryItem item)
         {

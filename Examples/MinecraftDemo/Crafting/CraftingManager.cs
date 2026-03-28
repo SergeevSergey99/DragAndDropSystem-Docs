@@ -171,12 +171,12 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         /// <summary>
-        /// Потребить по 1 ингредиенту из каждого непустого слота стола крафта.
-        /// Вызывается когда игрок забирает результат.
+        /// Потребить ингредиенты для указанного числа крафтов.
+        /// craftsToConsume — сколько раз выполнить рецепт (по 1 ингредиенту за раз с каждого слота).
         /// </summary>
-        public void ConsumeCraftIngredients()
+        public void ConsumeCraftIngredients(int craftsToConsume)
         {
-            if (_craftMultiplier <= 0)
+            if (craftsToConsume <= 0)
                 return;
 
             for (int i = 0; i < _craftTableItems.Length; i++)
@@ -184,7 +184,7 @@ namespace DragAndDropSystem.Examples.Minecraft
                 if (_craftTableItems[i] == null)
                     continue;
 
-                _craftTableItems[i].Count -= _craftMultiplier;
+                _craftTableItems[i].Count -= craftsToConsume;
                 if (_craftTableItems[i].Count <= 0)
                     _craftTableItems[i] = null;
             }

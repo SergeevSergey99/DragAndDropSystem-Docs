@@ -37,6 +37,11 @@ namespace DragAndDropSystem.Examples.Minecraft
             {
                 int multiplier = CraftingManager.AutoCreateInstance.CraftMultiplier;
                 AddToUIQuiet(new MinecraftItemAdapter(recipe.Result), multiplier * recipe.ResultCount, 0);
+                _inventory.SetDragAmountStep(recipe.ResultCount);
+            }
+            else
+            {
+                _inventory.SetDragAmountStep(0);
             }
         }
 
@@ -47,9 +52,13 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            // Игрок забрал результат — потребляем ингредиенты
-            if (CraftingManager.AutoCreateInstance != null)
-                CraftingManager.AutoCreateInstance.ConsumeCraftIngredients();
+            var manager = CraftingManager.AutoCreateInstance;
+            if (manager == null || manager.CurrentRecipe == null)
+                return;
+
+            int resultCount = manager.CurrentRecipe.ResultCount;
+            int craftsConsumed = resultCount > 0 ? context.Count / resultCount : 0;
+            manager.ConsumeCraftIngredients(craftsConsumed);
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
