@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
-using DG.Tweening;
 using DragAndDropSystem.Slots;
+using DragAndDropSystem.Tools;
 using DragAndDropSystem.UI;
 using UnityEngine;
 
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Анимация автопереноса с использованием DOTween
+    /// Анимация автопереноса на встроенном lightweight tween runner
     /// Визуал летит от источника к цели, целевой слот обновляется только после завершения анимации
     /// </summary>
     [Serializable]
@@ -19,7 +18,7 @@ namespace DragAndDropSystem.Core
         private float _duration = 0.3f;
 
         [SerializeField, Tooltip("Тип easing для анимации")]
-        private Ease _ease = Ease.OutCubic;
+        private MiniTweenEase _ease = MiniTweenEase.OutCubic;
 
         [SerializeField, Tooltip("Использовать arc (дугу) при полете")]
         private bool _useArc = false;
@@ -76,50 +75,37 @@ namespace DragAndDropSystem.Core
             var entries = new[] { new DragEntry(stack, sourceSlot, null) };
             dragVisual.Show(entries);
 
-            // Создаем анимацию
-            Tween tween;
-
+            Func<float, Vector3> customPath = null;
             if (_useArc)
             {
-                // Конвертируем пиксели в мировые координаты с учетом Canvas scale
                 float worldArcHeight = ConvertPixelsToWorldHeight(_arcHeightPixels, canvas);
-
-                // Анимация с дугой через промежуточную точку
-                Vector3 midPoint = (startPos + endPos) / 2f;
+                Vector3 midPoint = (startPos + endPos) * 0.5f;
                 midPoint.y += worldArcHeight;
-
-                Vector3[] path = new[] { startPos, midPoint, endPos };
-
-                tween = visualRect.DOPath(path, _duration, PathType.CatmullRom)
-                    .SetEase(_ease);
-            }
-            else
-            {
-                // Простая линейная анимация
-                tween = visualRect.DOMove(endPos, _duration)
-                    .SetEase(_ease);
+                customPath = t => EvaluateQuadraticBezier(startPos, midPoint, endPos, t);
             }
 
-            // Колбэк по завершении
-            tween.OnComplete(() =>
-            {
-                // Скрываем и уничтожаем визуал
-                dragVisual.Hide();
-                UnityEngine.Object.Destroy(visualInstance.gameObject);
-
-                // Вызываем колбэк завершения (обновит визуал целевого слота)
-                onComplete?.Invoke();
-            });
-
-            // На случай если анимация будет убита
-            tween.OnKill(() =>
-            {
-                if (visualInstance != null)
+            MiniTweenRunner.AutoCreateInstance.AnimatePosition(
+                visualRect,
+                startPos,
+                endPos,
+                _duration,
+                _ease,
+                (_, position) => visualRect.position = position,
+                onComplete: () =>
                 {
                     dragVisual.Hide();
                     UnityEngine.Object.Destroy(visualInstance.gameObject);
-                }
-            });
+                    onComplete?.Invoke();
+                },
+                onInterrupted: () =>
+                {
+                    if (visualInstance != null)
+                    {
+                        dragVisual.Hide();
+                        UnityEngine.Object.Destroy(visualInstance.gameObject);
+                    }
+                },
+                customPath: customPath);
 
             // Возвращаем GameObject визуала для отслеживания
             return visualInstance.gameObject;
@@ -170,6 +156,14 @@ namespace DragAndDropSystem.Core
             float worldHeight = worldPoint2.y - worldPoint1.y;
 
             return worldHeight;
+        }
+
+        private static Vector3 EvaluateQuadraticBezier(Vector3 start, Vector3 control, Vector3 end, float t)
+        {
+            float inverseT = 1f - t;
+            return (inverseT * inverseT * start) +
+                   (2f * inverseT * t * control) +
+                   (t * t * end);
         }
     }
 }

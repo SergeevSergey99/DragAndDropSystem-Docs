@@ -366,7 +366,7 @@ namespace DragAndDropSystem.Inspector.Editor
         }
     }
 
-    internal static class InspectorPreviewUtility
+    public static class InspectorPreviewUtility
     {
         public static Rect GetAspectFitRect(Rect bounds, float sourceWidth, float sourceHeight)
         {

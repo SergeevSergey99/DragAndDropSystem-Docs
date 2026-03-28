@@ -103,16 +103,16 @@ MonoBehaviour:
   _quickClickTimeThreshold: 0.2
   _quickClickDistanceThreshold: 5
   _autoTransferAnimation:
-    rid: 2595976765115990117
+    rid: 6676589295782854726
   references:
     version: 2
     RefIds:
-    - rid: 2595976765115990117
-      type: {class: TweenAutoTransferAnimation, ns: DragAndDropSystem.Core, asm: Assembly-CSharp-firstpass}
+    - rid: 6676589295782854726
+      type: {class: TweenAutoTransferAnimation, ns: DragAndDropSystem.Core, asm: DragAndDropSystem.Runtime}
       data:
         _duration: 0.3
-        _ease: 9
-        _useArc: 1
+        _ease: 5
+        _useArc: 0
         _arcHeightPixels: 50
 --- !u!114 &2723276657636712345
 MonoBehaviour:
@@ -130,6 +130,7 @@ MonoBehaviour:
   _autoMaintainFocus: 1
   _longClickThresholdSeconds: 0.35
   _clickMoveTolerancePixels: 8
+  _holdDragSettings: {fileID: 0}
 --- !u!114 &-4959539374365011389
 MonoBehaviour:
   m_ObjectHideFlags: 0
