@@ -8,12 +8,21 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.Interaction
 {
     /// <summary>
+    /// Интерфейс для действий, поддерживающих превью количества во время удержания.
+    /// InputEventRouter обнаруживает его в биндингах и тикает превью каждый кадр.
+    /// </summary>
+    public interface IHoldPreviewable
+    {
+        int ComputePreviewAmount(ISlot slot, float holdDuration);
+    }
+
+    /// <summary>
     /// Drag action, привязанный к BeginDrag фазе.
     /// Количество предметов для перетаскивания увеличивается по мере удержания нажатия.
     /// Чем дольше удерживаешь перед началом движения — тем больше предметов захватишь.
     /// </summary>
     [Serializable]
-    public sealed class ProgressiveDragAction : AssetSafeSlotInteractionAction
+    public sealed class ProgressiveDragAction : AssetSafeSlotInteractionAction, IHoldPreviewable
     {
         [SerializeField, Tooltip("Начальное количество предметов при мгновенном начале драга")]
         private int _startAmount = 1;
@@ -41,7 +50,7 @@ namespace DragAndDropSystem.Interaction
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
-            int amount = ResolveAmount(inventory, slot);
+            int amount = ComputePreviewAmount(slot, InputEventRouter.Instance.GetHoldDuration(inventory));
             var policy = new DragRequestPolicy(DragAmount.Custom, amount);
 
             return DragAndDropManager.Instance.StartDrag(slot, policy)
@@ -49,12 +58,10 @@ namespace DragAndDropSystem.Interaction
                 : ActionResult.Failed("Start drag failed");
         }
 
-        private int ResolveAmount(UniversalInventory inventory, ISlot slot)
+        public int ComputePreviewAmount(ISlot slot, float holdDuration)
         {
-            float pressedTime = InputEventRouter.Instance.GetPressedTime(inventory);
-            float holdDuration = pressedTime >= 0f
-                ? Mathf.Max(0f, Time.unscaledTime - pressedTime)
-                : 0f;
+            if (slot == null || slot.IsEmpty)
+                return 0;
 
             int amount = _startAmount + Mathf.FloorToInt(holdDuration / _intervalSeconds);
 

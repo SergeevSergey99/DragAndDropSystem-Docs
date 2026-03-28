@@ -49,6 +49,23 @@ namespace DragAndDropSystem.Interaction
         // Временный список для очистки словарей от невалидных (уничтоженных) инвентарей
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
 
+        // Hold preview state
+        private IHoldPreviewable _holdPreview;
+        private UniversalInventory _holdPreviewInventory;
+        private ISlot _holdPreviewSlot;
+        private int _holdPreviewLastAmount = -1;
+
+        /// <summary>
+        /// Срабатывает каждый кадр пока активен hold preview.
+        /// Параметры: (слот, текущее количество, максимальное количество стака).
+        /// </summary>
+        public static event Action<ISlot, int, int> OnHoldPreviewChanged;
+
+        /// <summary>
+        /// Срабатывает когда hold preview заканчивается (начался драг, отпустили кнопку).
+        /// </summary>
+        public static event Action OnHoldPreviewEnded;
+
         protected override void Init()
         {
             base.Init();
@@ -64,6 +81,7 @@ namespace DragAndDropSystem.Interaction
         private void Update()
         {
             ProcessGlobalPointerUpsWhileDragging();
+            TickHoldPreview();
         }
         private void LateUpdate()
         {
@@ -241,11 +259,16 @@ namespace DragAndDropSystem.Interaction
                 // PointerDown should allow regular slot actions (selection, inventory ops)
                 // and drag start actions. Drag completion/cancel is processed on PointerUp.
                 ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down, dragOnly: false);
+
+                if (!DragAndDropManager.Instance.IsDragging)
+                    TryStartHoldPreview(inventory, adapter, eventData);
             }
         }
 
         public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
         {
+            StopHoldPreview();
+
             if (eventData == null)
                 return;
 
@@ -307,6 +330,8 @@ namespace DragAndDropSystem.Interaction
         {
             if (DragAndDropManager.Instance.IsDragging)
                 return;
+
+            StopHoldPreview();
 
             if (!TryGetInventory(adapter, out var inventory))
                 return;
@@ -630,6 +655,70 @@ namespace DragAndDropSystem.Interaction
             if (inventory != null && _runtimeStateByInventory.TryGetValue(inventory, out var state))
                 return state.PressedTime;
             return -1f;
+        }
+
+        public float GetHoldDuration(UniversalInventory inventory)
+        {
+            float pressedTime = GetPressedTime(inventory);
+            return pressedTime >= 0f ? Mathf.Max(0f, Time.unscaledTime - pressedTime) : 0f;
+        }
+
+        private void TryStartHoldPreview(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            var slot = adapter?.Slot;
+            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+                return;
+
+            var bindings = ResolvePointerBindings(inventory);
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid())
+                    continue;
+
+                if (binding.Action is IHoldPreviewable preview &&
+                    binding.Matches(eventData, PointerTriggerPhase.BeginDrag))
+                {
+                    _holdPreview = preview;
+                    _holdPreviewInventory = inventory;
+                    _holdPreviewSlot = slot;
+                    _holdPreviewLastAmount = -1;
+                    return;
+                }
+            }
+        }
+
+        private void TickHoldPreview()
+        {
+            if (_holdPreview == null || _holdPreviewSlot == null)
+                return;
+
+            if (_holdPreviewSlot.IsEmpty || DragAndDropManager.Instance.IsDragging)
+            {
+                StopHoldPreview();
+                return;
+            }
+
+            float holdDuration = GetHoldDuration(_holdPreviewInventory);
+            int amount = _holdPreview.ComputePreviewAmount(_holdPreviewSlot, holdDuration);
+
+            if (amount != _holdPreviewLastAmount)
+            {
+                _holdPreviewLastAmount = amount;
+                OnHoldPreviewChanged?.Invoke(_holdPreviewSlot, amount, _holdPreviewSlot.Stack.Count);
+            }
+        }
+
+        private void StopHoldPreview()
+        {
+            if (_holdPreview == null)
+                return;
+
+            _holdPreview = null;
+            _holdPreviewInventory = null;
+            _holdPreviewSlot = null;
+            _holdPreviewLastAmount = -1;
+            OnHoldPreviewEnded?.Invoke();
         }
 
         private RuntimeState GetOrCreateState(UniversalInventory inventory)
