@@ -1723,11 +1723,6 @@ namespace DragAndDropSystem.Inspector.Editor
         private const float PickButtonWidth = 20f;
         private const float BoxPadding = 4f;
 
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return false;
-        }
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             bool isFixedSize = InspectorReflectionUtility.GetAttribute<FixedArraySizeAttribute>(property) != null;
@@ -2277,11 +2272,6 @@ namespace DragAndDropSystem.Inspector.Editor
         private const float SmallButtonWidth = 24f;
         private const float BoxPadding = 4f;
 
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return false;
-        }
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if (IsObjectReferenceList(property))
@@ -2527,11 +2517,6 @@ namespace DragAndDropSystem.Inspector.Editor
     {
         private const float PickButtonWidth = 20f;
         private static readonly Dictionary<string, bool> FoldoutStates = new Dictionary<string, bool>();
-
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return false;
-        }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
