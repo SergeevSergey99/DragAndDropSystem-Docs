@@ -36,7 +36,7 @@ namespace DragAndDropSystem.Examples.Trading
                 return RuleResult.Failure("Неверный тип предмета");
 
             int totalPrice = tradable.BuyPrice * context.RequestedAmount;
-            if (!TradingEconomyManager.Instance.CanPlayerAfford(totalPrice))
+            if (!TradingEconomyManager.AutoCreateInstance.CanPlayerAfford(totalPrice))
                 return RuleResult.Failure($"Недостаточно денег! Нужно {totalPrice}g, у вас {playerData.Money}g");
 
             return RuleResult.Success();

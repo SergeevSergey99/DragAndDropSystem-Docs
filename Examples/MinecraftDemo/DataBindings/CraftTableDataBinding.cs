@@ -9,9 +9,9 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
-            for (int i = 0; i < CraftingManager.Instance.CraftTableItems.Count; i++)
+            for (int i = 0; i < CraftingManager.AutoCreateInstance.CraftTableItems.Count; i++)
             {
-                var item = CraftingManager.Instance.CraftTableItems[i];
+                var item = CraftingManager.AutoCreateInstance.CraftTableItems[i];
                 if (item != null)
                     yield return (i, item.ItemSO, item.Count);
             }
@@ -19,12 +19,12 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void AddToSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryAddCraftTableItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryAddCraftTableItem(adapter.ItemSO, count, index);
         }
 
         protected override void RemoveFromSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryRemoveCraftTableItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryRemoveCraftTableItem(adapter.ItemSO, count, index);
         }
 
         protected override void Awake()
@@ -37,14 +37,14 @@ namespace DragAndDropSystem.Examples.Minecraft
         {
             base.OnEnable();
             if (CraftingManager.IsInstanceExist)
-                CraftingManager.Instance.OnCraftTableChanged += ReloadUI;
+                CraftingManager.AutoCreateInstance.OnCraftTableChanged += ReloadUI;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             if (CraftingManager.IsInstanceExist)
-                CraftingManager.Instance.OnCraftTableChanged -= ReloadUI;
+                CraftingManager.AutoCreateInstance.OnCraftTableChanged -= ReloadUI;
         }
     }
 }

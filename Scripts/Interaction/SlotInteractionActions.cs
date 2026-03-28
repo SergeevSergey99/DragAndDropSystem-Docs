@@ -33,7 +33,7 @@ namespace DragAndDropSystem.Interaction
         public override bool IsDragBinding() => true;
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return true;
 
             var slot = adapter?.Slot;
@@ -42,9 +42,9 @@ namespace DragAndDropSystem.Interaction
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
             {
-                DragAndDropManager.Instance.CompleteDrag(null);
+                DragAndDropManager.AutoCreateInstance.CompleteDrag(null);
                 return ActionResult.Succeeded();
             }
 
@@ -52,7 +52,7 @@ namespace DragAndDropSystem.Interaction
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
-            return DragAndDropManager.Instance.StartDrag(slot, _dragPolicyOverride.TryBuild())
+            return DragAndDropManager.AutoCreateInstance.StartDrag(slot, _dragPolicyOverride.TryBuild())
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Start drag failed");
         }
@@ -67,20 +67,20 @@ namespace DragAndDropSystem.Interaction
         public override bool IsDragBinding() => true;
         
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => DragAndDropManager.Instance.IsDragging;
+            => DragAndDropManager.AutoCreateInstance.IsDragging;
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!DragAndDropManager.Instance.IsDragging)
+            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is not active");
 
-            if (CancelOnNoSlots && !DragAndDropManager.Instance.HasActiveDropTarget)
+            if (CancelOnNoSlots && !DragAndDropManager.AutoCreateInstance.HasActiveDropTarget)
             {
-                DragAndDropManager.Instance.CancelDrag();
+                DragAndDropManager.AutoCreateInstance.CancelDrag();
                 return ActionResult.Succeeded();
             }
 
-            DragAndDropManager.Instance.CompleteDrag(_dropPolicyOverride.TryBuild());
+            DragAndDropManager.AutoCreateInstance.CompleteDrag(_dropPolicyOverride.TryBuild());
             return ActionResult.Succeeded();
         }
     }
@@ -89,14 +89,14 @@ namespace DragAndDropSystem.Interaction
     public sealed class CancelDragAction : AssetSafeSlotInteractionAction
     {
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => DragAndDropManager.Instance.IsDragging;
+            => DragAndDropManager.AutoCreateInstance.IsDragging;
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!DragAndDropManager.Instance.IsDragging)
+            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is not active");
 
-            DragAndDropManager.Instance.CancelDrag();
+            DragAndDropManager.AutoCreateInstance.CancelDrag();
             return ActionResult.Succeeded();
         }
     }

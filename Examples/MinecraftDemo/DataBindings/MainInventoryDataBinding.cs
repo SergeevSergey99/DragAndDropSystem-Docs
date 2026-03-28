@@ -10,9 +10,9 @@ namespace DragAndDropSystem.Examples.Minecraft
         // Получаем данные для отрисовки в слотах UI
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
-            for (int i = 0; i < CraftingManager.Instance.InventoryItems.Count; i++)
+            for (int i = 0; i < CraftingManager.AutoCreateInstance.InventoryItems.Count; i++)
             {
-                var item = CraftingManager.Instance.InventoryItems[i];
+                var item = CraftingManager.AutoCreateInstance.InventoryItems[i];
                 if (item != null)
                     yield return (i, item.ItemSO, item.Count);
             }
@@ -21,13 +21,13 @@ namespace DragAndDropSystem.Examples.Minecraft
         // Добавляем предмет перетащенный в слот в данные CraftingManager
         protected override void AddToSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryAddInventoryItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryAddInventoryItem(adapter.ItemSO, count, index);
         }
 
         // Удаляем предмет вытащенный из слота из данных
         protected override void RemoveFromSlotData(int index, MinecraftItemAdapter adapter, int count)
         {
-            CraftingManager.Instance.TryRemoveInventoryItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryRemoveInventoryItem(adapter.ItemSO, count, index);
         }
 
         protected override void Awake()

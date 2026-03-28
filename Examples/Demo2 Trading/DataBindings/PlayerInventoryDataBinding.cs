@@ -29,7 +29,7 @@ namespace DragAndDropSystem.Examples.Trading
         [SerializeField, Tooltip("Суффикс для отображения денег")]
         private string _moneySuffix = "g";
 
-        private PlayerData PlayerData => TradingEconomyManager.Instance.PlayerData;
+        private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
 
         // --- ListInventoryDataBinding примитивы ---
 

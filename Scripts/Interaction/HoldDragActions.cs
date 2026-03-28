@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Interaction
     {
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
             var slot = adapter?.Slot;
@@ -29,7 +29,7 @@ namespace DragAndDropSystem.Interaction
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
-            InputEventRouter.Instance.BeginHoldCount(inventory, slot);
+            InputEventRouter.AutoCreateInstance.BeginHoldCount(inventory, slot);
             return ActionResult.Succeeded();
         }
     }
@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Interaction
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
             var slot = adapter?.Slot;
@@ -59,10 +59,10 @@ namespace DragAndDropSystem.Interaction
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
-            int amount = InputEventRouter.Instance.GetHoldDragAmount(slot);
+            int amount = InputEventRouter.AutoCreateInstance.GetHoldDragAmount(slot);
             var policy = new DragRequestPolicy(DragAmount.Custom, amount);
 
-            return DragAndDropManager.Instance.StartDrag(slot, policy)
+            return DragAndDropManager.AutoCreateInstance.StartDrag(slot, policy)
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Start drag failed");
         }

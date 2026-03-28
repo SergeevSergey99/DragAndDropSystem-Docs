@@ -74,13 +74,13 @@ namespace DragAndDropSystem.Interaction
         private void OnEnable()
         {
             RebuildResolvedBindings();
-            InputEventRouter.Instance.RegisterExtraBinder(this);
+            InputEventRouter.AutoCreateInstance.RegisterExtraBinder(this);
         }
 
         private void OnDisable()
         {
             if (InputEventRouter.IsInstanceExist)
-                InputEventRouter.Instance.UnregisterExtraBinder(this);
+                InputEventRouter.AutoCreateInstance.UnregisterExtraBinder(this);
         }
 
         private void OnValidate()
@@ -107,7 +107,7 @@ namespace DragAndDropSystem.Interaction
 
             if (_useGlobalBindingsProfile)
             {
-                var globalProfile = InputEventRouter.Instance.DefaultBindingsProfile;
+                var globalProfile = InputEventRouter.AutoCreateInstance.DefaultBindingsProfile;
                 if (globalProfile != null)
                 {
                     AppendValidBindings(globalProfile.PointerBindingsRuntime, _resolvedPointerBindings);

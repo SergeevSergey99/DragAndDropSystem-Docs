@@ -23,11 +23,11 @@ namespace DragAndDropSystem.ContextMenu
             if (!ContextMenuManager.IsInstanceExist)
                 return false;
 
-            if (ContextMenuManager.Instance.IsOpen)
+            if (ContextMenuManager.AutoCreateInstance.IsOpen)
                 return true;
 
             return inventory != null
-                   && (ContextMenuManager.Instance.DefaultPreset != null
+                   && (ContextMenuManager.AutoCreateInstance.DefaultPreset != null
                        || inventory.GetComponent<ContextMenuBinder>() != null);
         }
 
@@ -35,7 +35,7 @@ namespace DragAndDropSystem.ContextMenu
         {
             if (inventory == null)
             {
-                ContextMenuManager.Instance.Hide();
+                ContextMenuManager.AutoCreateInstance.Hide();
                 return ActionResult.Failed("Inventory is null");
             }
 
@@ -46,13 +46,13 @@ namespace DragAndDropSystem.ContextMenu
             List<IContextMenuEntry> entries = new();
             if (binder == null)
             {
-                if (ContextMenuManager.IsInstanceExist && ContextMenuManager.Instance.DefaultPreset != null)
+                if (ContextMenuManager.IsInstanceExist && ContextMenuManager.AutoCreateInstance.DefaultPreset != null)
                 {
-                    entries.AddRange(ContextMenuManager.Instance.DefaultPreset.Entries);
+                    entries.AddRange(ContextMenuManager.AutoCreateInstance.DefaultPreset.Entries);
                 }
                 else
                 {
-                    ContextMenuManager.Instance.Hide();
+                    ContextMenuManager.AutoCreateInstance.Hide();
                     return ActionResult.Failed("No ContextMenuBinder on inventory");
                 }
             }
@@ -64,7 +64,7 @@ namespace DragAndDropSystem.ContextMenu
 
             if (entries.Count == 0)
             {
-                ContextMenuManager.Instance.Hide();
+                ContextMenuManager.AutoCreateInstance.Hide();
                 return ActionResult.Failed("No context menu entries configured");
             }
 
@@ -75,10 +75,10 @@ namespace DragAndDropSystem.ContextMenu
                 Item           = slot?.Stack?.Item,
                 ItemCount      = slot?.Stack?.Count ?? 0,
                 ScreenPosition = eventData?.position ?? Vector2.zero,
-                InputSource    = InputEventRouter.Instance.ResolveActiveFocusSource(inventory),
+                InputSource    = InputEventRouter.AutoCreateInstance.ResolveActiveFocusSource(inventory),
             };
 
-            ContextMenuManager.Instance.Show(entries, ctx);
+            ContextMenuManager.AutoCreateInstance.Show(entries, ctx);
             return ActionResult.Succeeded();
         }
     }

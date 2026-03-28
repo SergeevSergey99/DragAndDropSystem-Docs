@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Examples.Trading
         {
             SelectionManager.OnSelectionChanged += Refresh;
             if (SelectionManager.IsInstanceExist)
-                Refresh(SelectionManager.Instance.CurrentContext);
+                Refresh(SelectionManager.AutoCreateInstance.CurrentContext);
         }
 
         private void OnDisable()

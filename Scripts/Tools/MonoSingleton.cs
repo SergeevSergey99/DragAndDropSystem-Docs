@@ -7,7 +7,8 @@ namespace CodeUtils
         protected static T _instance = null;
         public static bool IsInstanceExist => _instance != null;
         private static bool _isSelfCreating = false;
-        public static T Instance {
+        public static T Instance => _instance;
+        public static T AutoCreateInstance {
             get
             {
                 if (_instance == null)

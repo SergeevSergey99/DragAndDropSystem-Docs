@@ -20,25 +20,25 @@ namespace DragAndDropSystem.Examples.Minecraft
         {
             base.OnEnable();
             if (CraftingManager.IsInstanceExist)
-                CraftingManager.Instance.OnCraftResultChanged += ReloadUI;
+                CraftingManager.AutoCreateInstance.OnCraftResultChanged += ReloadUI;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             if (CraftingManager.IsInstanceExist)
-                CraftingManager.Instance.OnCraftResultChanged -= ReloadUI;
+                CraftingManager.AutoCreateInstance.OnCraftResultChanged -= ReloadUI;
         }
 
         protected override void OnReloadUI()
         {
             var recipe = CraftingManager.IsInstanceExist
-                ? CraftingManager.Instance.CurrentRecipe
+                ? CraftingManager.AutoCreateInstance.CurrentRecipe
                 : null;
 
             if (recipe != null && recipe.Result != null)
             {
-                int multiplier = CraftingManager.Instance.CraftMultiplier;
+                int multiplier = CraftingManager.AutoCreateInstance.CraftMultiplier;
                 AddToUIQuiet(new MinecraftItemAdapter(recipe.Result), multiplier * recipe.ResultCount, 0);
             }
         }
@@ -51,8 +51,8 @@ namespace DragAndDropSystem.Examples.Minecraft
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
             // Игрок забрал результат — потребляем ингредиенты
-            if (CraftingManager.Instance != null)
-                CraftingManager.Instance.ConsumeCraftIngredients();
+            if (CraftingManager.AutoCreateInstance != null)
+                CraftingManager.AutoCreateInstance.ConsumeCraftIngredients();
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)

@@ -16,7 +16,7 @@ namespace DragAndDropSystem.UI
     [RequireComponent(typeof(RectTransform))]
     public class InventoryDropArea : Selectable, IDropTarget
     {
-        private DragAndDropManager _dragManager => DragAndDropManager.IsInstanceExist ? DragAndDropManager.Instance : null;
+        private DragAndDropManager _dragManager => DragAndDropManager.IsInstanceExist ? DragAndDropManager.AutoCreateInstance : null;
 
         [SerializeField, Tooltip("Инвентарь, к которому привязана эта область")]
         private UniversalInventory _inventory;
@@ -129,13 +129,13 @@ namespace DragAndDropSystem.UI
         public override void OnSelect(BaseEventData eventData)
         {
             base.OnSelect(eventData);
-            InputEventRouter.Instance.RouteDropAreaFocusEnter(this, FocusSource.Gamepad);
+            InputEventRouter.AutoCreateInstance.RouteDropAreaFocusEnter(this, FocusSource.Gamepad);
         }
 
         public override void OnDeselect(BaseEventData eventData)
         {
             base.OnDeselect(eventData);
-            InputEventRouter.Instance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
+            InputEventRouter.AutoCreateInstance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
         }
 
         public bool TryActivateAsFocusedTarget()

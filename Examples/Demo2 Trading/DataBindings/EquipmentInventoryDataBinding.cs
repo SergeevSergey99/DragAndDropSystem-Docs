@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Examples.Trading
         [SerializeField, Required, Tooltip("Второй слот для артефакта")]
         private UniversalSlot _artifact2Slot;
 
-        private PlayerData PlayerData => TradingEconomyManager.Instance.PlayerData;
+        private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
         protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
 
         // --- MappedSlotInventoryDataBinding примитивы ---

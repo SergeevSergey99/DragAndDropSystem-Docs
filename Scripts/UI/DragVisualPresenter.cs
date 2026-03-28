@@ -46,7 +46,7 @@ namespace DragAndDropSystem.UI
 
         private void Update()
         {
-            if (_activeVisuals.Count > 0 && DragAndDropManager.IsInstanceExist && DragAndDropManager.Instance.IsDragging)
+            if (_activeVisuals.Count > 0 && DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 UpdateActiveVisualPositions(GetDragAnchorScreenPosition());
         }
 
@@ -221,7 +221,7 @@ namespace DragAndDropSystem.UI
         private Vector2 GetDragAnchorScreenPosition()
         {
             if (InputEventRouter.IsInstanceExist &&
-                InputEventRouter.Instance.TryGetCurrentNavigationAnchor(out var selectedObject))
+                InputEventRouter.AutoCreateInstance.TryGetCurrentNavigationAnchor(out var selectedObject))
             {
                 if (TryGetSelectableCenterScreenPoint(selectedObject, out var selectedPosition))
                     return selectedPosition;

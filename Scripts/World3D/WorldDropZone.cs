@@ -15,7 +15,7 @@ namespace DragAndDropSystem.World3D
     [RequireComponent(typeof(RectTransform))]
     public class WorldDropZone : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropTarget, IDropProcessor
     {
-        private DragAndDropManager _dragManager => DragAndDropManager.Instance;
+        private DragAndDropManager _dragManager => DragAndDropManager.AutoCreateInstance;
 
         [Header("Spawn Settings")]
         [SerializeField, Tooltip("Точка спавна предметов в мире")]

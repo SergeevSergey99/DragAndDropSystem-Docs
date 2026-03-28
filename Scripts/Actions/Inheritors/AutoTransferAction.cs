@@ -26,7 +26,7 @@ namespace DragAndDropSystem.Inventories
 
         public override ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot)
         {
-            var dragManager = DragAndDropManager.Instance;
+            var dragManager = DragAndDropManager.AutoCreateInstance;
             if (dragManager == null || dragManager.IsDragging)
                 return ActionResult.Failed("Invalid drag manager state");
             
@@ -57,7 +57,7 @@ namespace DragAndDropSystem.Inventories
                         inventory.NotifySlotInteracted(activeSlot);
                     
                     if (SelectionManager.IsInstanceExist)
-                        SelectionManager.Instance.Clear();
+                        SelectionManager.AutoCreateInstance.Clear();
                     return ActionResult.Succeeded();
                 }
             }
@@ -70,7 +70,7 @@ namespace DragAndDropSystem.Inventories
             if (!base.CanExecute(inventory, activeSlot))
                 return false;
 
-            if (InputEventRouter.IsInstanceExist && !InputEventRouter.Instance.IsInventoryActive(inventory))
+            if (InputEventRouter.IsInstanceExist && !InputEventRouter.AutoCreateInstance.IsInventoryActive(inventory))
                 return false;
 
             bool hasSelectionSources = HasSelectionSources(inventory);
@@ -78,7 +78,7 @@ namespace DragAndDropSystem.Inventories
             if (!hasContextSlot && !hasSelectionSources)
                 return false;
 
-            var dragManager = DragAndDropManager.Instance;
+            var dragManager = DragAndDropManager.AutoCreateInstance;
             if (dragManager == null || dragManager.IsDragging)
                 return false;
 
@@ -110,7 +110,7 @@ namespace DragAndDropSystem.Inventories
 
             if (_useSelectionForBatch && SelectionManager.IsInstanceExist)
             {
-                var context = SelectionManager.Instance.CurrentContext;
+                var context = SelectionManager.AutoCreateInstance.CurrentContext;
                 if (context != null && context.HasSelection)
                 {
                     for (int i = 0; i < context.AllSlots.Count; i++)
@@ -143,7 +143,7 @@ namespace DragAndDropSystem.Inventories
             if (!_useSelectionForBatch || !SelectionManager.IsInstanceExist)
                 return false;
 
-            var context = SelectionManager.Instance.CurrentContext;
+            var context = SelectionManager.AutoCreateInstance.CurrentContext;
             if (context == null || !context.HasSelection)
                 return false;
 
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.Inventories
         private UniversalSlot ResolveContextSourceSlot(UniversalInventory inventory)
         {
             var contextSlot = InputEventRouter.IsInstanceExist
-                ? InputEventRouter.Instance.ResolveQuickActionSlot(inventory, requireActiveInventory: true)
+                ? InputEventRouter.AutoCreateInstance.ResolveQuickActionSlot(inventory, requireActiveInventory: true)
                 : null;
 
             if (contextSlot != null && !contextSlot.IsEmpty && contextSlot.IsInteractable)

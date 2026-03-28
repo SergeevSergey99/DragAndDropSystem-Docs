@@ -67,9 +67,9 @@ namespace DragAndDropSystem.Interaction
                 return;
             }
 
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
             {
-                DragAndDropManager.Instance.PopDropTarget(this);
+                DragAndDropManager.AutoCreateInstance.PopDropTarget(this);
             }
 
             if (_slot.Inventory is UniversalInventory universalInventory)
@@ -90,7 +90,7 @@ namespace DragAndDropSystem.Interaction
             }
 
             TryRaiseHoverEnter(eventData);
-            InputEventRouter.Instance.RoutePointerEnter(this, eventData);
+            InputEventRouter.AutoCreateInstance.RoutePointerEnter(this, eventData);
         }
 
         public override void OnPointerExit(PointerEventData eventData)
@@ -102,7 +102,7 @@ namespace DragAndDropSystem.Interaction
             }
 
             TryRaiseHoverExit(eventData);
-            InputEventRouter.Instance.RoutePointerExit(this, eventData);
+            InputEventRouter.AutoCreateInstance.RoutePointerExit(this, eventData);
         }
 
         public override void OnPointerDown(PointerEventData eventData)
@@ -128,18 +128,18 @@ namespace DragAndDropSystem.Interaction
                 universalInventory.NotifySlotInteracted(_slot);
             }
 
-            InputEventRouter.Instance.RoutePointerDown(this, eventData);
+            InputEventRouter.AutoCreateInstance.RoutePointerDown(this, eventData);
         }
 
         public override void OnPointerUp(PointerEventData eventData)
         {
             base.OnPointerUp(eventData);
-            InputEventRouter.Instance.RoutePointerUp(this, eventData);
+            InputEventRouter.AutoCreateInstance.RoutePointerUp(this, eventData);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            InputEventRouter.Instance.RouteBeginDrag(this, eventData);
+            InputEventRouter.AutoCreateInstance.RouteBeginDrag(this, eventData);
         }
 
         public override void OnMove(AxisEventData eventData)
@@ -160,13 +160,13 @@ namespace DragAndDropSystem.Interaction
         {
             base.OnSelect(eventData);
             Extensions.DragAndDropLog($"OnSelect: {name}, nav mode: {navigation.mode}");
-            InputEventRouter.Instance.RouteFocusEnter(this, FocusSource.Gamepad);
+            InputEventRouter.AutoCreateInstance.RouteFocusEnter(this, FocusSource.Gamepad);
         }
 
         public override void OnDeselect(BaseEventData eventData)
         {
             base.OnDeselect(eventData);
-            InputEventRouter.Instance.RouteFocusExit(this, FocusSource.Gamepad);
+            InputEventRouter.AutoCreateInstance.RouteFocusExit(this, FocusSource.Gamepad);
         }
 
         // ===== IDropTarget =====
@@ -175,13 +175,13 @@ namespace DragAndDropSystem.Interaction
 
         public IDropProcessor GetDropProcessor()
         {
-            System.Func<InventorySwapContext, bool> swapAttempting = DragAndDropManager.Instance.RaiseSwapAttempting;
-            System.Action<InventorySwapContext> swapCompleted = DragAndDropManager.Instance.RaiseSwapCompleted;
+            System.Func<InventorySwapContext, bool> swapAttempting = DragAndDropManager.AutoCreateInstance.RaiseSwapAttempting;
+            System.Action<InventorySwapContext> swapCompleted = DragAndDropManager.AutoCreateInstance.RaiseSwapCompleted;
 
             return new InventoryDropProcessor(
                 _slot,
                 _slot?.Inventory,
-                DragAndDropManager.Instance.GlobalRules,
+                DragAndDropManager.AutoCreateInstance.GlobalRules,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);
         }
@@ -248,7 +248,7 @@ namespace DragAndDropSystem.Interaction
             if (_onlyWhenNotEmpty && _slot.IsEmpty)
                 return false;
 
-            if (_ignoreHoverWhileDragging && DragAndDropManager.IsInstanceExist && DragAndDropManager.Instance.IsDragging)
+            if (_ignoreHoverWhileDragging && DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
             return true;

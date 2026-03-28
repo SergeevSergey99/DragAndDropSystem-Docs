@@ -23,13 +23,13 @@ namespace DragAndDropSystem.ContextMenu
             if (_inventory == null)
                 _inventory = GetComponent<UniversalInventory>();
 
-            ContextMenuManager.Instance.RegisterViewBinder(this);
+            ContextMenuManager.AutoCreateInstance.RegisterViewBinder(this);
         }
 
         private void OnDisable()
         {
             if (ContextMenuManager.IsInstanceExist)
-                ContextMenuManager.Instance.UnregisterViewBinder(this);
+                ContextMenuManager.AutoCreateInstance.UnregisterViewBinder(this);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace DragAndDropSystem.ContextMenu.UI
             entry.Execute(ctx);
 
             if (ContextMenuManager.IsInstanceExist)
-                ContextMenuManager.Instance.Hide();
+                ContextMenuManager.AutoCreateInstance.Hide();
 
             if (InputModalityTracker.CurrentModality == InputModalityTracker.InputModality.Mouse)
             {

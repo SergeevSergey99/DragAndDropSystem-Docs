@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Selection
         
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return _completeOnPointerUp;
 
             var sourceSlots = BuildSourceSlots(inventory, adapter);
@@ -31,12 +31,12 @@ namespace DragAndDropSystem.Selection
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
             {
                 if (!_completeOnPointerUp)
                     return ActionResult.Failed("Complete on pointer up is disabled");
 
-                DragAndDropManager.Instance.CompleteDrag(null);
+                DragAndDropManager.AutoCreateInstance.CompleteDrag(null);
                 return ActionResult.Succeeded();
             }
 
@@ -44,7 +44,7 @@ namespace DragAndDropSystem.Selection
             if (sourceSlots.Count == 0)
                 return ActionResult.Failed("No valid slots for multi drag");
 
-            return DragAndDropManager.Instance.StartDrag(sourceSlots, _dragPolicyOverride.TryBuild())
+            return DragAndDropManager.AutoCreateInstance.StartDrag(sourceSlots, _dragPolicyOverride.TryBuild())
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Failed to start multi drag");
         }
@@ -56,7 +56,7 @@ namespace DragAndDropSystem.Selection
 
             if (SelectionManager.IsInstanceExist)
             {
-                var context = SelectionManager.Instance.CurrentContext;
+                var context = SelectionManager.AutoCreateInstance.CurrentContext;
                 if (context != null && context.HasSelection)
                 {
                     for (int i = 0; i < context.AllSlots.Count; i++)

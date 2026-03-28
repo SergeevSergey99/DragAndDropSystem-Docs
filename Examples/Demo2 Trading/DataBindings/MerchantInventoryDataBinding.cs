@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Examples.Trading
         private string _moneySuffix = "g";
 
         private MerchantData _merchantData;
-        private MerchantData MerchantData => _merchantData ??= TradingEconomyManager.Instance.GetMerchant(_merchantId);
+        private MerchantData MerchantData => _merchantData ??= TradingEconomyManager.AutoCreateInstance.GetMerchant(_merchantId);
 
         protected override IInventoryItemConverter CreateItemConverter() => new MerchantInventoryItemConverter();
 

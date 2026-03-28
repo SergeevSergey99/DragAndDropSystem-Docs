@@ -375,7 +375,7 @@ namespace DragAndDropSystem
                             }
 
                             if (dragContext.IsBatchDrag && SelectionManager.IsInstanceExist)
-                                SelectionManager.Instance.Clear();
+                                SelectionManager.AutoCreateInstance.Clear();
 
                             OnDropCompleted?.Invoke(dragContext);
                         }
@@ -613,7 +613,7 @@ namespace DragAndDropSystem
                         targetUniversalSlot.SetIconVisibility(false);
 
                     var visualStack = new ItemStack(entry.Item, entry.Amount);
-                    var presenter = DragVisualPresenter.Instance;
+                    var presenter = DragVisualPresenter.AutoCreateInstance;
                     var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceSlot.Inventory);
 
                     pendingAnimations++;

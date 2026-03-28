@@ -212,8 +212,8 @@ namespace DragAndDropSystem.Interaction
             state.HoveredSlot = adapter.Slot;
             state.ActiveFocusSource = FocusSource.Mouse;
 
-            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
-                DragAndDropManager.Instance.PushDropTarget(adapter);
+            if (DragAndDropManager.AutoCreateInstance.IsDragging && adapter.Slot.IsInteractable)
+                DragAndDropManager.AutoCreateInstance.PushDropTarget(adapter);
         }
 
         public void RoutePointerExit(SlotInputAdapter adapter, PointerEventData eventData)
@@ -233,8 +233,8 @@ namespace DragAndDropSystem.Interaction
 
             TryClearActiveInventory(inventory);
 
-            if (DragAndDropManager.Instance.IsDragging)
-                DragAndDropManager.Instance.PopDropTarget(adapter);
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+                DragAndDropManager.AutoCreateInstance.PopDropTarget(adapter);
         }
 
         public void RoutePointerDown(SlotInputAdapter adapter, PointerEventData eventData)
@@ -259,7 +259,7 @@ namespace DragAndDropSystem.Interaction
             state.PressedTime = Time.unscaledTime;
             state.PressedPosition = eventData.position;
 
-            if (!DragAndDropManager.Instance.IsDragging)
+            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
             {
                 // PointerDown should allow regular slot actions (selection, inventory ops)
                 // and drag start actions. Drag completion/cancel is processed on PointerUp.
@@ -279,7 +279,7 @@ namespace DragAndDropSystem.Interaction
 
             var state = GetOrCreateState(inventory);
             bool releaseOfPressedButton = state.PressedAdapter == adapter && state.PressedButton == eventData.button;
-            bool isDraggingNow = DragAndDropManager.Instance.IsDragging;
+            bool isDraggingNow = DragAndDropManager.AutoCreateInstance.IsDragging;
             bool shouldProcess = (releaseOfPressedButton && state.PressedAdapter != null) || isDraggingNow;
 
             if (shouldProcess)
@@ -330,7 +330,7 @@ namespace DragAndDropSystem.Interaction
 
         public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 
             StopHoldCount();
@@ -352,8 +352,8 @@ namespace DragAndDropSystem.Interaction
             state.FocusedSlot = adapter.Slot;
             state.ActiveFocusSource = source;
 
-            if (DragAndDropManager.Instance.IsDragging && adapter.Slot.IsInteractable)
-                DragAndDropManager.Instance.PushDropTarget(adapter);
+            if (DragAndDropManager.AutoCreateInstance.IsDragging && adapter.Slot.IsInteractable)
+                DragAndDropManager.AutoCreateInstance.PushDropTarget(adapter);
         }
 
         public void RouteDropAreaFocusEnter(InventoryDropArea dropArea, FocusSource source)
@@ -367,7 +367,7 @@ namespace DragAndDropSystem.Interaction
             state.FocusedDropArea = dropArea;
             state.ActiveFocusSource = source;
 
-            if (DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 dropArea.TryActivateAsFocusedTarget();
         }
 
@@ -386,8 +386,8 @@ namespace DragAndDropSystem.Interaction
 
             TryClearActiveInventory(inventory);
 
-            if (DragAndDropManager.Instance.IsDragging)
-                DragAndDropManager.Instance.PopDropTarget(adapter);
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+                DragAndDropManager.AutoCreateInstance.PopDropTarget(adapter);
         }
 
         public void RouteDropAreaFocusExit(InventoryDropArea dropArea, FocusSource source)
@@ -406,8 +406,8 @@ namespace DragAndDropSystem.Interaction
 
             TryClearActiveInventory(inventory);
 
-            if (DragAndDropManager.Instance.IsDragging)
-                DragAndDropManager.Instance.PopDropTarget(dropArea);
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+                DragAndDropManager.AutoCreateInstance.PopDropTarget(dropArea);
         }
 
         private bool ExecutePointerBindings(
@@ -699,7 +699,7 @@ namespace DragAndDropSystem.Interaction
             if (_holdCountSlot == null || _holdDragSettings == null)
                 return;
 
-            if (_holdCountSlot.IsEmpty || DragAndDropManager.Instance.IsDragging)
+            if (_holdCountSlot.IsEmpty || DragAndDropManager.AutoCreateInstance.IsDragging)
             {
                 StopHoldCount();
                 return;
@@ -817,10 +817,10 @@ namespace DragAndDropSystem.Interaction
             if (TryGetInventory(adapter, out inventory))
                 return true;
 
-            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
+            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var context = DragAndDropManager.Instance.CurrentContext;
+            var context = DragAndDropManager.AutoCreateInstance.CurrentContext;
             if (context != null && context.Entries.Count > 0)
             {
                 inventory = context.Entries[0].SourceInventory as UniversalInventory;
@@ -852,7 +852,7 @@ namespace DragAndDropSystem.Interaction
 
         private void ProcessGlobalPointerUpsWhileDragging()
         {
-            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
+            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 
             ProcessGlobalPointerUp(PointerEventData.InputButton.Left);
@@ -887,10 +887,10 @@ namespace DragAndDropSystem.Interaction
         {
             inventory = null;
 
-            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.Instance.IsDragging)
+            if (!DragAndDropManager.IsInstanceExist || !DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var context = DragAndDropManager.Instance.CurrentContext;
+            var context = DragAndDropManager.AutoCreateInstance.CurrentContext;
             if (context != null && context.Entries.Count > 0)
             {
                 inventory = context.Entries[0].SourceInventory as UniversalInventory;
@@ -922,7 +922,7 @@ namespace DragAndDropSystem.Interaction
         private void ProcessUnhandledGlobalPointerEvents()
         {
             // Во время драга глобальные pointer up обрабатываются в ProcessGlobalPointerUpsWhileDragging
-            if (DragAndDropManager.IsInstanceExist && DragAndDropManager.Instance.IsDragging)
+            if (DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 
             var mouse = Mouse.current;

@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Selection
         /// <param name="contextSlot">Слот, инициировавший операцию (null для кнопок/хоткеев)</param>
         protected void TryExecute(ISlot contextSlot = null)
         {
-            var manager = SelectionManager.Instance;
+            var manager = SelectionManager.AutoCreateInstance;
             if (manager == null)
             {
                 if (_logWarnings)
