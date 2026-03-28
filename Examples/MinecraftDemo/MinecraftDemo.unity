@@ -1416,6 +1416,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 446253236}
+  - component: {fileID: 446253238}
+  - component: {fileID: 446253237}
   m_Layer: 5
   m_Name: ResultArea
   m_TagString: Untagged
@@ -1443,6 +1445,62 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &446253237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446253235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eda5b9d0bff2fbf4f8621bb5a3ec7cc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inventory: {fileID: 446253238}
+  _ruleValidator:
+    _presets: []
+    _inlineRules: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &446253238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446253235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34a568dd0946f36468c0a263327aa5c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _slotContainer: {fileID: 446253236}
+  _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  _initialSlotCount: 1
+  _itemBehavior: 1
+  _dragAmount: 0
+  _customDragAmount: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
+  _slotManagement: 0
+  _maxDynamicSlots: 100
+  _maxFreeSlots: 1
+  _ruleValidator:
+    _presets: []
+    _inlineRules: []
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
+  _slots:
+  - {fileID: 1477194708}
+  references:
+    version: 2
+    RefIds: []
 --- !u!1001 &451792796
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1664,7 +1722,10 @@ MonoBehaviour:
   - rid: -2
   - rid: -2
   - rid: -2
-  _recipes: []
+  _recipes:
+  - {fileID: 11400000, guid: 0a50e270122c59b4da26076d2850f6f1, type: 2}
+  - {fileID: 11400000, guid: 11cf9ee79d58af347b7346cef7b1f2de, type: 2}
+  - {fileID: 11400000, guid: abf79ff3a167ccf4db7491e2af275039, type: 2}
   references:
     version: 2
     RefIds:
@@ -5827,6 +5888,17 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1477194708 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 1372091995}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1496271007
 GameObject:
   m_ObjectHideFlags: 0

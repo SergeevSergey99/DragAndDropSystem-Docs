@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CodeUtils;
 using DragAndDropSystem.Inspector;
@@ -14,10 +15,20 @@ namespace DragAndDropSystem.Examples.Minecraft
         [SerializeField] private List<CraftingRecipeSO> _recipes;
 
         public const int MaxItemsPerSlot = 64;
-        
+
+        private CraftingRecipeSO _currentRecipe;
+
         public IReadOnlyList<RuntimeItem> HotbarItems => _hotbarItems;
         public IReadOnlyList<RuntimeItem> InventoryItems => _inventoryItems;
         public IReadOnlyList<RuntimeItem> CraftTableItems => _craftTableItems;
+
+        public CraftingRecipeSO CurrentRecipe => _currentRecipe;
+
+        /// <summary> Изменился результат крафта (появился/исчез/сменился рецепт). </summary>
+        public event Action OnCraftResultChanged;
+
+        /// <summary> Изменились данные стола крафта (потреблены ингредиенты). </summary>
+        public event Action OnCraftTableChanged;
         
         public bool CanAddHotbarItem(MinecraftItemSO item, int count, int index) =>
             _hotbarItems[index] == null || (_hotbarItems[index].ItemSO == item && _hotbarItems[index].Count + count <= MaxItemsPerSlot);
@@ -60,6 +71,7 @@ namespace DragAndDropSystem.Examples.Minecraft
                 _craftTableItems[index] = new RuntimeItem{ItemSO = item, Count = count};
             else
                 _craftTableItems[index].Count += count;
+            RefreshCraftResult();
             return true;
         }
 
@@ -110,11 +122,61 @@ namespace DragAndDropSystem.Examples.Minecraft
         {
             if (!CanRemoveCraftTableItem(item, count, index))
                 return false;
-            
+
             _craftTableItems[index].Count -= count;
-            if (_craftTableItems[index].Count <= 0)                
+            if (_craftTableItems[index].Count <= 0)
                 _craftTableItems[index] = null;
+            RefreshCraftResult();
             return true;
+        }
+
+        /// <summary>
+        /// Проверить рецепты и обновить текущий результат крафта.
+        /// Вызывать после каждого изменения стола крафта.
+        /// </summary>
+        public void RefreshCraftResult()
+        {
+            var grid = new MinecraftItemSO[9];
+            for (int i = 0; i < 9; i++)
+                grid[i] = _craftTableItems[i]?.ItemSO;
+
+            var prev = _currentRecipe;
+            _currentRecipe = null;
+
+            if (_recipes != null)
+            {
+                foreach (var recipe in _recipes)
+                {
+                    if (recipe != null && recipe.Matches(grid))
+                    {
+                        _currentRecipe = recipe;
+                        break;
+                    }
+                }
+            }
+
+            if (_currentRecipe != prev)
+                OnCraftResultChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Потребить по 1 ингредиенту из каждого непустого слота стола крафта.
+        /// Вызывается когда игрок забирает результат.
+        /// </summary>
+        public void ConsumeCraftIngredients()
+        {
+            for (int i = 0; i < _craftTableItems.Length; i++)
+            {
+                if (_craftTableItems[i] == null)
+                    continue;
+
+                _craftTableItems[i].Count -= 1;
+                if (_craftTableItems[i].Count <= 0)
+                    _craftTableItems[i] = null;
+            }
+
+            OnCraftTableChanged?.Invoke();
+            RefreshCraftResult();
         }
     }
 }
