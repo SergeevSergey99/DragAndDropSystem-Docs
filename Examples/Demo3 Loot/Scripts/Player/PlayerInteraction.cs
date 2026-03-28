@@ -26,7 +26,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         // State
         private IInteractable _currentInteractable;
         private Collider2D[] _overlapResults = new Collider2D[10]; // Буфер для результатов поиска
-
+        ContactFilter2D _contactFilter;
         // Events (UI подписывается на эти события)
         /// <summary>
         /// Игрок вошел в зону взаимодействия с объектом
@@ -48,6 +48,10 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         {
             _playerController = GetComponent<PlayerController>();
             Inventory = FindAnyObjectByType<PlayerInventoryData>();
+            
+            _contactFilter = new ContactFilter2D();
+            _contactFilter.SetLayerMask(_interactableLayer);
+            _contactFilter.useTriggers = true;
         }
 
         private void Update()
@@ -68,13 +72,13 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
 
             // Ищем коллайдеры в радиусе
-            int count = Physics2D.OverlapCircleNonAlloc(
+            int count = Physics2D.OverlapCircle(
                 transform.position,
                 _interactionRadius,
-                _overlapResults,
-                _interactableLayer
+                _contactFilter,
+                _overlapResults
             );
-
+            
             IInteractable nearest = null;
             float nearestDistance = float.MaxValue;
 
