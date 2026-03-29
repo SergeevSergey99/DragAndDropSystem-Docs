@@ -43,12 +43,7 @@ namespace DragAndDropSystem.Examples.Containers
             if (Inventory == null)
                 return;
 
-            var slots = new List<InventorySlotState>(desiredSlotCount);
-            for (int i = 0; i < desiredSlotCount; i++)
-                slots.Add(new InventorySlotState(null, 0));
-
-            Inventory.RestoreSnapshot(new InventorySnapshot(slots));
-            Inventory.UpdateAllVisuals();
+            Inventory.ReInitSlots(desiredSlotCount);
         }
         
 

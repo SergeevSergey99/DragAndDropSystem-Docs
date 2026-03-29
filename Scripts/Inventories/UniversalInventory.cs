@@ -621,6 +621,35 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
+        public void ReInitSlots(int slotCount)
+        {
+            slotCount = Mathf.Max(0, slotCount);
+            _initialSlotCount = slotCount;
+
+            _pointerHoveredSlot = null;
+            _lastInteractedSlot = null;
+
+            if (_slots == null)
+                _slots = new List<ISlot>();
+
+            for (int i = _slots.Count - 1; i >= 0; i--)
+            {
+                ISlot slot = _slots[i];
+                if (slot?.Transform != null)
+                {
+                    slot.Transform.gameObject.SetActive(false);
+                    Destroy(slot.Transform.gameObject);
+                }
+            }
+
+            _slots.Clear();
+
+            for (int i = 0; i < slotCount; i++)
+                CreateSlot();
+
+            UpdateAllVisuals();
+        }
+
         private void ProcessEmptiedSlots(InventorySnapshot beforeSnapshot)
         {
             if (beforeSnapshot == null || beforeSnapshot.Slots.Count == 0)
