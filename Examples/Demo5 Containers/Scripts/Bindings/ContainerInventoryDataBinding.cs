@@ -50,9 +50,9 @@ namespace DragAndDropSystem.Examples.Containers
             if (draggedContainer == owner)
                 return true;
 
-            foreach (var item in owner.Items)
+            foreach (var item in draggedContainer.Items)
             {
-                if (item is ContainerItemInstance childContainer && WouldCreateCycle(draggedContainer, childContainer))
+                if (item is ContainerItemInstance childContainer && WouldCreateCycle(childContainer, owner))
                     return true;
             }
             return false;
