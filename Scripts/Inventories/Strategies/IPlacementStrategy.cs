@@ -9,7 +9,8 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public interface IPlacementStrategy
     {
-        bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex);
+        bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex);
+        bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex);
         bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
         bool RequiresStrategyPlacement(ItemStack stack);

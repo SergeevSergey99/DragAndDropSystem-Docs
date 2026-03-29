@@ -26,7 +26,7 @@ namespace DragAndDropSystem.Inventories
         private int GetMaxStackSize(IInventoryItem item) =>
             GetMaxStackSize(item, _defaultMaxStackSize, _allowItemOverride);
 
-        public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
+        public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -43,7 +43,7 @@ namespace DragAndDropSystem.Inventories
                 if (targetSlot.IsEmpty)
                 {
                     int toPlace = Math.Min(remaining, maxSize);
-                    if (toPlace > 0 && PassesRules(targetSlot, stack.Item, toPlace))
+                    if (toPlace > 0 && (skipRules || PassesRules(targetSlot, stack.Item, toPlace)))
                     {
                         targetSlot.SetStack(new ItemStack(stack.Item, toPlace));
                         remaining -= toPlace;
@@ -54,7 +54,7 @@ namespace DragAndDropSystem.Inventories
                 {
                     int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
                     int toAdd = Math.Min(remaining, canFit);
-                    if (toAdd > 0 && PassesRules(targetSlot, stack.Item, toAdd))
+                    if (toAdd > 0 && (skipRules || PassesRules(targetSlot, stack.Item, toAdd)))
                     {
                         targetSlot.Stack.AddToStack(toAdd);
                         targetSlot.UpdateVisuals();
@@ -75,7 +75,7 @@ namespace DragAndDropSystem.Inventories
                     {
                         int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                         int toAdd = Math.Min(remaining, canFit);
-                        if (toAdd > 0 && PassesRules(slot, stack.Item, toAdd))
+                        if (toAdd > 0 && (skipRules || PassesRules(slot, stack.Item, toAdd)))
                         {
                             slot.Stack.AddToStack(toAdd);
                             slot.UpdateVisuals();
@@ -94,7 +94,7 @@ namespace DragAndDropSystem.Inventories
                         if (slot.IsEmpty)
                         {
                             int toPlace = Math.Min(remaining, maxSize);
-                            if (toPlace > 0 && PassesRules(slot, stack.Item, toPlace))
+                            if (toPlace > 0 && (skipRules || PassesRules(slot, stack.Item, toPlace)))
                             {
                                 slot.SetStack(new ItemStack(stack.Item, toPlace));
                                 remaining -= toPlace;

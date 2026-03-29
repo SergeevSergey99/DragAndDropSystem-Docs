@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Inventories
             _ensureFreeSlotsFunc = ensureFreeSlotsFunc;
         }
 
-        public bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
+        public bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -57,7 +57,7 @@ namespace DragAndDropSystem.Inventories
                 }
 
                 // Пытаемся добавить в целевой слот
-                bool added = _baseStrategy.TryAdd(slots, stack, targetIndex);
+                bool added = _baseStrategy.TryAdd(slots, stack, targetIndex, skipRules);
 
                 // После добавления обеспечиваем минимум свободных слотов
                 if (added && stack.IsEmpty)
@@ -72,7 +72,7 @@ namespace DragAndDropSystem.Inventories
             // В этом режиме мы ВСЕГДА создаем слоты если нужно (независимо от maxFreeSlots)
 
             // Сначала пробуем добавить в существующие слоты
-            bool initialAdded = _baseStrategy.TryAdd(slots, stack, -1);
+            bool initialAdded = _baseStrategy.TryAdd(slots, stack, -1, skipRules);
 
             // Если не поместилось - создаем новые слоты и продолжаем
             if (!stack.IsEmpty && slots.Count < _maxSlots)
@@ -90,7 +90,7 @@ namespace DragAndDropSystem.Inventories
                     Extensions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} for remaining items</color>");
 
                     // Пытаемся добавить в новый слот
-                    _baseStrategy.TryAdd(slots, stack, slots.Count - 1);
+                    _baseStrategy.TryAdd(slots, stack, slots.Count - 1, skipRules);
                 }
 
                 Extensions.DragAndDropLog($"<color=cyan>[DynamicSlots] Created {createdSlots} new slots, {stack.Count} items still remaining</color>");

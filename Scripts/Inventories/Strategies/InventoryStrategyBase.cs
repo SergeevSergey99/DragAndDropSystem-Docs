@@ -22,7 +22,8 @@ namespace DragAndDropSystem.Inventories
             _allowItemOverride = allowItemOverride;
         }
 
-        public abstract bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex);
+        public bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
+        public abstract bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         public abstract bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
         public abstract bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);

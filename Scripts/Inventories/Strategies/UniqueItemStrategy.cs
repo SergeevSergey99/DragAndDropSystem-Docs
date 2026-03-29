@@ -40,7 +40,7 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
+        public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -50,7 +50,7 @@ namespace DragAndDropSystem.Inventories
             {
                 var targetSlot = slots[targetIndex];
 
-                if (targetSlot.IsEmpty && PassesRules(targetSlot, stack.Item, 1))
+                if (targetSlot.IsEmpty && (skipRules || PassesRules(targetSlot, stack.Item, 1)))
                 {
                     var singleItemStack = new ItemStack(stack.Item, 1);
                     targetSlot.SetStack(singleItemStack);
@@ -66,7 +66,7 @@ namespace DragAndDropSystem.Inventories
                 if (!slot.IsEmpty)
                     continue;
 
-                if (!PassesRules(slot, stack.Item, 1))
+                if (!skipRules && !PassesRules(slot, stack.Item, 1))
                     continue;
 
                 var singleItemStack = new ItemStack(stack.Item, 1);

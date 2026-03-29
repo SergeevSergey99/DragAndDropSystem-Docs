@@ -501,7 +501,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            return _placementStrategy.TryAdd(_slots, stack, targetSlotIndex);
+            return _placementStrategy.TryAddQuite(_slots, stack, targetSlotIndex);
         }
 
         internal bool CanAcceptByRules(
