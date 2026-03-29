@@ -42,28 +42,28 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676588777423765576
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 0
           _customAmount: 1
     - rid: 6676589293835124806
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 2
           _customAmount: 1
     - rid: 6676589293835124808
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 4
           _customAmount: 1
     - rid: 6676589293835124809
-      type: {class: CompleteDragAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      type: {class: CompleteDragAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
       data:
         <CancelOnNoSlots>k__BackingField: 1
         _dropPolicyOverride:

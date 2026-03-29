@@ -5346,7 +5346,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676589188124770375
-      type: {class: InventorySlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      type: {class: InventorySlotAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
       data:
         _sceneAction: {fileID: 1818827040}
 --- !u!1 &1840686954
@@ -6595,7 +6595,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676589188124770376
-      type: {class: InventorySlotAction, ns: DragAndDropSystem.Interaction, asm: Assembly-CSharp-firstpass}
+      type: {class: InventorySlotAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
       data:
         _sceneAction: {fileID: 1358364181}
 --- !u!1660057539 &9223372036854775807

@@ -1744,17 +1744,17 @@ MonoBehaviour:
     - rid: -2
       type: {class: , ns: , asm: }
     - rid: 6676589208637538376
-      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
+      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: DragAndDropSystem.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 14
     - rid: 6676589208637538377
-      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
+      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: DragAndDropSystem.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 9
     - rid: 6676589208637538382
-      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: Assembly-CSharp-firstpass}
+      type: {class: RuntimeItem, ns: DragAndDropSystem.Examples.Minecraft, asm: DragAndDropSystem.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 60

@@ -18,7 +18,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676589249802534982
-      type: {class: ItemTypeExampleFilterRule, ns: Plugins.DragAndDropSystem.Examples, asm: Assembly-CSharp-firstpass}
+      type: {class: ItemTypeExampleFilterRule, ns: Plugins.DragAndDropSystem.Examples, asm: DragAndDropSystem.Examples}
       data:
         _allowedTypes:
         - Consumable
