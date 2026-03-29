@@ -2,7 +2,7 @@
 
 Comprehensive catalog of anti-patterns and how to avoid them.
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-29
 
 ## Anti-Pattern #1: Adding Locks Instead of Checking DragContext
 
@@ -195,6 +195,40 @@ methods check `IsSyncing` before calling virtual `OnItemAddedToUI()`/`OnItemRemo
 **Solution**: Use `inventory.TryAddItem()` or `strategy.TryAdd()` instead.
 
 **Exception**: Internal strategy code can manipulate slots directly (it's the owner).
+
+---
+
+## Anti-Pattern #13: Using CanSwap to Intercept Occupied Slot Drops
+
+**Problem**: Overriding `CanSwap()` in DataBinding to detect an occupied-slot drop, perform the actual mutation (e.g. insert into container), then return `RuleResult.Failure` to suppress the swap.
+
+**Why It's Bad**:
+- `CanSwap` is a validation hook — it must never mutate state
+- returning Failure after mutation leaves source slot cleared and target unchanged → inconsistent state
+- suppresses the swap entirely, so changing `BlockedTargetBehavior` to `FindAlternative` or `Reject` later has no effect — the behavior is hardcoded inside the validation path
+- the transfer pipeline cannot roll back mutations done inside a rule check
+
+**Solution**: Use the proper occupied-slot handler hooks in `InventoryDataBindingBase`:
+
+```csharp
+// Planner phase — pure check, no mutation
+protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+{
+    // check capacity, type compatibility, etc.
+    return true; // or false to fall through to normal BlockedTargetBehavior
+}
+
+// Executor phase — full mutation, owned by DataBinding
+protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+{
+    // add to container, clear source slot, fire events
+    return true;
+}
+```
+
+If `CanHandleOccupiedSlotDrop` returns false, the pipeline continues normally (swap, findAlternative, reject) according to `BlockedTargetBehavior` — no behavior is lost.
+
+**Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` and `Scripts/Inventories/TransferPlanner.cs`.
 
 ---
 

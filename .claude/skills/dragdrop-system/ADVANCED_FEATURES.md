@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-29
 
 ## Quick Click Auto-Transfer
 
@@ -11,6 +11,36 @@
 
 - `InputModalityTracker` is the source of truth for `Mouse` vs `Navigation` mode
 - `InputEventRouter` no longer guesses modality on its own
+
+## Quiet Add / skipRules
+
+`TryAddStackQuiet()` on `UniversalInventory` bypasses rule validation during `ReloadUI()`:
+
+```csharp
+inventory.TryAddStackQuiet(new ItemStack(item, count), slotIndex);
+// internally calls strategy.TryAddQuite(...) which sets skipRules = true
+```
+
+Use this (via `AddToUIQuiet()` in DataBinding) when populating slots from data — not from a user drag. Normal `TryAdd` (used by transfer pipeline) always evaluates rules.
+
+## Occupied Slot Handler
+
+Allows DataBinding to intercept a drop on an occupied slot **before** `BlockedTargetBehavior` (swap/findAlternative/reject) runs.
+
+Two virtual hooks in `InventoryDataBindingBase`:
+```csharp
+protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot);  // planner
+protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot);    // executor
+```
+
+Pipeline integration:
+1. Planner: target slot is occupied, allocation = 0 → calls `targetInventory.CheckOccupiedSlotDrop()`
+2. If `CanHandleOccupiedSlotDrop` returns `true` → entry is marked `RequiresOccupiedHandler`
+3. If returns `false` → normal `BlockedTargetBehavior` decision (swap/findAlternative/reject) continues
+4. Executor: for `RequiresOccupiedHandler` entries → calls `targetInventory.ExecuteOccupiedSlotDrop()`
+5. DataBinding owns the full mutation: add to target, clear source slot, fire domain events
+
+Example: Demo5 Containers — `PlayerContainerInventoryDataBinding` uses this to insert a dragged item into a container when dropped on it. If the container is full or the drop would create a cycle, the hook returns false and swap/other behavior applies normally.
 
 ## Atomic Batch Execution
 
@@ -37,6 +67,12 @@ Transfer-level domain hooks now also run for swap path:
 - `DataBinding.HandleItemRemoved(context)`
 
 This is possible because DataBinding has a 1:1 relationship with `UniversalInventory`.
+
+### Occupied Slot Drop Hooks
+
+See [Occupied Slot Handler](#occupied-slot-handler) above. These are called by the planner/executor — not via events:
+- `CanHandleOccupiedSlotDrop(entry, slot)` — pure check
+- `ExecuteOccupiedSlotDrop(entry, slot)` — full mutation
 
 ### Swap (Event-Based)
 

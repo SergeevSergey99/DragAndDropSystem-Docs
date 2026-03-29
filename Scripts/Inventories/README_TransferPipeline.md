@@ -1,6 +1,6 @@
 # Transfer Pipeline Architecture
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-03-29
 
 Документ описывает текущую архитектуру drop/transfer pipeline, включая batch transfer, swap и target-aware preview.
 
@@ -58,6 +58,7 @@
 - считает capacity через `InventoryAcceptanceRequest`
 - использует `VirtualSlotState` для batch planning
 - валидирует кандидатов через `RuleEvaluationService`
+- может пометить entry как `RequiresOccupiedHandler` (приоритет над swap)
 - может пометить entry как `RequiresSwap`
 
 Порядок rule evaluation:
@@ -77,6 +78,7 @@
 Роль:
 - исполняет `TransferPlan`
 - выполняет обычные переносы через внутренние execution helpers
+- исполняет occupied handler ветку (`RequiresOccupiedHandler`)
 - исполняет swap-ветку
 - поддерживает rollback в atomic mode
 - откладывает события до успешного завершения плана
@@ -151,9 +153,10 @@ Current conversion ownership:
    - `AllowPartial = true` -> partial success
    - остаток ищет другие слоты только если `BlockedTargetBehavior = FindAlternative`
 5. если в target не вошло ничего:
-   - `Reject` -> fail
-   - `Swap` -> planner строит swap entry
-   - `FindAlternative` -> стратегия перечисляет alternative slots
+   - **сначала** проверяется `DataBinding.CanHandleOccupiedSlotDrop(entry, slot)` — если true, entry планируется как `RequiresOccupiedHandler`
+   - `Reject` -> fail (если occupied handler не обрабатывает)
+   - `Swap` -> planner строит swap entry (если occupied handler не обрабатывает)
+   - `FindAlternative` -> стратегия перечисляет alternative slots (если occupied handler не обрабатывает)
 6. для same-inventory `FindAlternative` не перераскладывает предметы по другим слотам: предмет остаётся на месте, если target не подошёл
 
 ## Preview flow
@@ -191,11 +194,32 @@ Manager:
 
 Для inventory UI используется `InventoryDropProcessor`.
 
+## Occupied Slot Handler
+
+Позволяет DataBinding перехватить дроп на занятый слот **до** проверки swap/findAlternative.
+
+Виртуальные методы в `InventoryDataBindingBase`:
+```csharp
+protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot);
+protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot);
+```
+
+Flow:
+1. Planner: target slot занят, allocation = 0
+2. `targetInventory.CheckOccupiedSlotDrop(entry, slot)` → `DataBinding.CanHandleOccupiedSlotDrop()`
+3. Если `true` — entry планируется как `RequiresOccupiedHandler`
+4. Executor: `targetInventory.ExecuteOccupiedSlotDrop(entry, slot)` → `DataBinding.ExecuteOccupiedSlotDrop()`
+5. Реализация сама отвечает за mutation (добавить в цель, очистить source слот)
+6. Если `CanHandleOccupiedSlotDrop` вернул `false` — pipeline продолжает обычную логику (swap/findAlternative/reject)
+
+Пример: Demo5 Containers использует этот хук для вкладывания предметов в контейнер при дропе на него.
+
 ## Swap flow
 
 1. Planner сначала пытается построить обычный allocation
-2. Если allocation невозможен и `BlockedTargetBehavior = Swap`, entry получает `RequiresSwap`
-3. Executor:
+2. Если allocation невозможен — сначала проверяется occupied handler (см. выше)
+3. Если occupied handler не обрабатывает и `BlockedTargetBehavior = Swap`, entry получает `RequiresSwap`
+4. Executor:
    - валидирует оба направления через rules
    - вызывает `SwapAttempting`
    - выполняет `TrySwapSlots`

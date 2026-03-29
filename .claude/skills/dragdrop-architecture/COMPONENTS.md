@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-03-29
 
 ## DragAndDropManager
 
@@ -62,7 +62,13 @@ Responsibilities:
 - inventory acceptance preview via `InventoryAcceptanceRequest`
 - virtual-slot allocation for batch operations
 - rule-aware target candidate selection
+- checking occupied-slot handler hook before swap/findAlternative: `RequiresOccupiedHandler` + `OccupiedTargetSlot`
 - planning swap entries (`RequiresSwap` + `SwapTargetSlot`)
+
+Plan entry types (`PlannedEntryTransfer`):
+- allocation entry (slot allocations, `PlannedAmount > 0`)
+- `RequiresOccupiedHandler` — DataBinding hook checked **before** swap decision
+- `RequiresSwap` — checked only if occupied handler returned false
 
 Key helper objects:
 - `EntryPlanningOperation`
@@ -75,6 +81,7 @@ Location: `Scripts/Inventories/TransferPlanExecutor.cs`
 Responsibilities:
 - execute plan entries in sequence
 - run normal transfers through internal execution helpers
+- run occupied-handler branch: `ExecuteOccupiedSlotDrop` on target inventory → DataBinding owns full mutation
 - run swap branch with bidirectional rule validation
 - support atomic rollback through snapshots
 - defer transfer/swap event dispatch until operation success
@@ -132,7 +139,8 @@ Location: `Scripts/DataBinding/`
 
 Key classes:
 - `InventoryDataBindingBase` — base class with direct notification (`HandleItemAdded`/`HandleItemRemoved`),
-  swap event subscriptions, sync scope, rule integration, and item conversion pipeline
+  swap event subscriptions, sync scope, rule integration, item conversion pipeline,
+  and occupied-slot drop hooks
 - `ListInventoryDataBinding<TData, TAdapter>` — template for list-based data sources
 - `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<ISlot, SlotBinding<TData>>`
   plus `TryGetTargetBinding()` / `TryGetSourceBinding()` helpers
@@ -142,7 +150,12 @@ Responsibilities:
 - converter wiring during inventory initialization
 - rule integration (`CanStartDrag`, `CanDrop`, `CanSwap`)
 - swap handling via event subscriptions (`OnSwapAttempting` / `OnSwapCompleted`)
+- occupied-slot drop interception via two virtual hooks:
+  - `CanHandleOccupiedSlotDrop(DragEntry, ISlot)` — pure check, called by planner
+  - `ExecuteOccupiedSlotDrop(DragEntry, ISlot)` — full mutation, called by executor
 
 Current note:
 - conversion now lives on inventory-side `ItemConverter`
 - `DataBinding` only wires converter in and provides a legacy fallback path
+- occupied-slot handler is checked **before** `BlockedTargetBehavior` (swap/findAlternative/reject);
+  if handler returns false, normal pipeline continues unchanged

@@ -2,7 +2,7 @@
 
 Detailed documentation of current inventory strategies.
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-03-29
 
 ## Strategy Hierarchy
 
@@ -143,15 +143,33 @@ Current runtime delegation from `UniversalInventory`:
 - planning hint → `UsesPerItemSlotPlanning`
 - read-only queries → `Contains(...)` / `GetItemCount(...)`
 
+## TryAdd and skipRules
+
+`IPlacementStrategy.TryAdd` has a `skipRules` flag:
+
+```csharp
+bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
+bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
+```
+
+When `skipRules = true`, `PassesRules()` calls are bypassed for all candidate slots.
+
+Use case: `UniversalInventory.TryAddStackQuiet()` calls `TryAddQuite()` so that
+`ReloadUI()` / `OnReloadUI()` never triggers drop-rule validation — items are placed
+purely according to strategy layout logic.
+
+Important: all concrete strategies (`UniqueItemStrategy`, `StackableItemStrategy`,
+`SeparableStacksStrategy`) and `DynamicSlotDecorator` respect this flag.
+
 ## Custom Strategy Development
 
 Recommended steps:
 1. inherit from `InventoryStrategyBase`
-2. override `TryAdd(slots, stack, targetIndex)`
+2. override `TryAdd(slots, stack, targetIndex, skipRules = false)` — respect `skipRules` flag
 3. override `TryRemove(slots, item, count, sourceIndex)` as needed
 4. override `TryAddToSlot(...)` if slot-target semantics differ
 5. override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
-6. use `PassesRules(slot, item, count, request)` for validation
+6. use `PassesRules(slot, item, count, request)` for validation — skip it when `skipRules` is true
 
 Typical use cases:
 - weight/volume inventories

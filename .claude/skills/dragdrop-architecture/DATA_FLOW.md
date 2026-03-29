@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-03-29
 
 ## Manual Drop Flow
 
@@ -28,6 +28,7 @@ Pre-planning preview:
 Output:
 - `TransferPlan` with entries of type:
   - allocation entry (slot allocations)
+  - occupied handler entry (`RequiresOccupiedHandler`) — checked before swap
   - swap entry (`RequiresSwap`)
 
 Internal helper objects:
@@ -38,6 +39,7 @@ Internal helper objects:
 
 For each planned entry:
 - if allocation entry: execute transfer allocations through executor internal transfer helpers
+- if occupied handler entry: call `DataBinding.ExecuteOccupiedSlotDrop(entry, slot)` — handler owns full mutation
 - if swap entry: validate + execute swap
 
 Batch policy:
@@ -88,9 +90,32 @@ TransferItemConversionUtility.TryResolveTargetItem(...)
 
 Actual stack mutation later uses the same conversion chain inside `UniversalInventory`.
 
+## Occupied Slot Handler Flow
+
+When the planner finds that allocation = 0 for a drop on an occupied slot, it checks the DataBinding hook **before** swap/findAlternative:
+
+```
+TransferPlanner.PlanEntry()
+  → plannedAmount == 0, targetSlot occupied
+  → targetInventory.CheckOccupiedSlotDrop(entry, slot)
+      → DataBinding.CanHandleOccupiedSlotDrop()
+          → true:  plan RequiresOccupiedHandler entry
+          → false: continue to normal BlockedTargetBehavior logic
+
+TransferPlanExecutor.ExecuteCore()
+  → RequiresOccupiedHandler == true
+  → targetInventory.ExecuteOccupiedSlotDrop(entry, slot)
+      → DataBinding.ExecuteOccupiedSlotDrop()
+          → handler owns full mutation: add to target, clear source slot, update visuals
+```
+
+Virtual hooks in `InventoryDataBindingBase`:
+- `CanHandleOccupiedSlotDrop(DragEntry, ISlot)` — pure check, no mutation
+- `ExecuteOccupiedSlotDrop(DragEntry, ISlot)` — performs mutation, returns success
+
 ## Swap Flow
 
-1. Planner marks swap candidate if allocation failed and `BlockedTargetBehavior = Swap`.
+1. Planner marks swap candidate if allocation failed, occupied handler not matched, and `BlockedTargetBehavior = Swap`.
 2. Executor validates reverse and forward rule compatibility.
 3. `SwapAttempting` callback can cancel (`InventorySwapContext.Cancel = true`).
 4. Executor calls `UniversalInventory.TrySwapSlots(...)`.
