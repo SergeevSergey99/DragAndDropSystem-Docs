@@ -10,6 +10,7 @@ namespace DragAndDropSystem.Examples.Containers
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/Open Container Menu Entry")]
     public class OpenContainerMenuEntrySO : ContextMenuEntryDefinitionSO
     {
+        
         public override bool CanShow(ContextMenuContext ctx)
         {
             return ctx.Item is ContainerItemAdapter { Instance: ContainerItemInstance };
