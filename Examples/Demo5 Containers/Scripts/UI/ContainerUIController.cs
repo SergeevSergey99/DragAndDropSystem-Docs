@@ -19,11 +19,13 @@ namespace DragAndDropSystem.Examples.Containers.UI
         private void OnEnable()
         {
             Events.OnOpenClick += OpenContainer;
+            Events.OnContainerContentChanged += HandleContainerContentChanged;
         }
 
         private void OnDisable()
         {
             Events.OnOpenClick -= OpenContainer;
+            Events.OnContainerContentChanged -= HandleContainerContentChanged;
         }
 
         void OpenContainer(ContainerItemInstance container)
@@ -42,6 +44,12 @@ namespace DragAndDropSystem.Examples.Containers.UI
         {
             _currentContainer = null;
             _containerPanel.SetActive(false);
+        }
+
+        private void HandleContainerContentChanged(ContainerItemInstance container)
+        {
+            if (_currentContainer != null && ReferenceEquals(_currentContainer, container))
+                containerBinding.SetContainer(_currentContainer);
         }
 
         private void UpdateLabels()

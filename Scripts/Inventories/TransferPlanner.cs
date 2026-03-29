@@ -52,7 +52,9 @@ namespace DragAndDropSystem.Inventories
             string failureReason = null,
             bool requiresSwap = false,
             ISlot swapTargetSlot = null,
-            IInventoryItem previewTargetItem = null)
+            IInventoryItem previewTargetItem = null,
+            bool requiresOccupiedHandler = false,
+            ISlot occupiedTargetSlot = null)
         {
             Entry = entry;
             RequestedAmount = requestedAmount;
@@ -62,6 +64,8 @@ namespace DragAndDropSystem.Inventories
             RequiresSwap = requiresSwap;
             SwapTargetSlot = swapTargetSlot;
             PreviewTargetItem = previewTargetItem ?? entry.Stack?.Item;
+            RequiresOccupiedHandler = requiresOccupiedHandler;
+            OccupiedTargetSlot = occupiedTargetSlot;
         }
 
         public DragEntry Entry { get; }
@@ -72,7 +76,9 @@ namespace DragAndDropSystem.Inventories
         public bool RequiresSwap { get; }
         public ISlot SwapTargetSlot { get; }
         public IInventoryItem PreviewTargetItem { get; }
-        public bool IsPlanned => RequiresSwap || (PlannedAmount > 0 && Allocations.Count > 0);
+        public bool RequiresOccupiedHandler { get; }
+        public ISlot OccupiedTargetSlot { get; }
+        public bool IsPlanned => RequiresSwap || RequiresOccupiedHandler || (PlannedAmount > 0 && Allocations.Count > 0);
         public bool IsPartial => PlannedAmount > 0 && PlannedAmount < RequestedAmount;
     }
 
@@ -336,6 +342,20 @@ namespace DragAndDropSystem.Inventories
 
             if (plannedAmount == 0)
             {
+                if (isFirstEntry && targetSlotHint != null && !targetSlotHint.IsEmpty
+                    && targetInventory is UniversalInventory occupiedUni
+                    && occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
+                {
+                    return new PlannedEntryTransfer(
+                        entry,
+                        requested,
+                        requested,
+                        EmptyAllocations,
+                        previewTargetItem: targetItem,
+                        requiresOccupiedHandler: true,
+                        occupiedTargetSlot: targetSlotHint);
+                }
+
                 if (ShouldPlanSwap(operation.Context, operation.Entry, operation.Policy, operation.TargetSlotHint, operation.PreferHint))
                 {
                     return new PlannedEntryTransfer(

@@ -153,6 +153,12 @@ namespace DragAndDropSystem.Inventories
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
+        internal bool CheckOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+            => DataBinding != null && DataBinding.CheckOccupiedSlotDrop(entry, occupiedSlot);
+
+        internal bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+            => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedSlot);
+
         /// <summary>
         /// Событие добавления предмета в этот инвентарь
         /// </summary>

@@ -156,7 +156,30 @@ namespace DragAndDropSystem.Inventories
                 int entryTransferred = 0;
                 bool entryFailed = false;
 
-                if (plannedEntry.RequiresSwap)
+                if (plannedEntry.RequiresOccupiedHandler)
+                {
+                    if (plan.TargetInventory is UniversalInventory occupiedUni
+                        && occupiedUni.ExecuteOccupiedSlotDrop(plannedEntry.Entry, plannedEntry.OccupiedTargetSlot))
+                    {
+                        succeededEntries++;
+                        entryTransferred = plannedEntry.RequestedAmount;
+                        transferredAmount += entryTransferred;
+                        lastItem = plannedEntry.Entry.Stack?.Item;
+                        lastTargetSlot = plannedEntry.OccupiedTargetSlot;
+                        executedEntries.Add(new ExecutedTransferEntry(
+                            plannedEntry.Entry.SourceSlot,
+                            plannedEntry.OccupiedTargetSlot,
+                            plannedEntry.Entry.Stack?.Item,
+                            entryTransferred));
+                        Extensions.DragAndDropLog($"<color=green>[TransferPlanExecutor] OccupiedHandler succeeded</color>");
+                    }
+                    else
+                    {
+                        entryFailed = true;
+                        Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] OccupiedHandler failed</color>");
+                    }
+                }
+                else if (plannedEntry.RequiresSwap)
                 {
                     var swapAttempt = allowAsyncDomainValidation
                         ? await TryExecuteSwapAsync(plannedEntry, plan.TargetInventory, options, cancellationToken)

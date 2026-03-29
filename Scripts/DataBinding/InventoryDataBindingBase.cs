@@ -3,6 +3,7 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
+using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using UnityEngine;
 
@@ -241,6 +242,12 @@ namespace DragAndDropSystem.DataBinding
             return CanStartDrag(context, entry);
         }
 
+        internal bool CheckOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+            => CanHandleOccupiedSlotDrop(entry, occupiedSlot);
+
+        internal bool DoOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+            => ExecuteOccupiedSlotDrop(entry, occupiedSlot);
+
         /// <summary>
         /// Проверяет DataBinding как отдельный этап после inventory rules:
         /// сначала inline/preset rules самого binding, потом virtual hook.
@@ -320,6 +327,20 @@ namespace DragAndDropSystem.DataBinding
             // По умолчанию ничего не делаем
             // События OnItemAdded/OnItemRemoved уже сгенерированы для обоих инвентарей
         }
+
+        /// <summary>
+        /// Вызывается планировщиком когда предмет бросают на занятый слот, ДО проверки swap/findAlternative.
+        /// Верните true если этот DataBinding может обработать такой дроп (например, добавить предмет внутрь контейнера).
+        /// Если false — pipeline продолжит стандартную логику (swap, findAlternative, reject).
+        /// </summary>
+        protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot) => false;
+
+        /// <summary>
+        /// Выполняет дроп на занятый слот. Вызывается executor-ом если CanHandleOccupiedSlotDrop вернул true.
+        /// Реализация должна обработать перенос полностью: добавить предмет в целевое место,
+        /// очистить source слот и обновить данные.
+        /// </summary>
+        protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot) => false;
 
         #endregion
     }
