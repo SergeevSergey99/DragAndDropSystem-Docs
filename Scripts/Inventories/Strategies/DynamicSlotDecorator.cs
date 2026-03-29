@@ -34,6 +34,8 @@ namespace DragAndDropSystem.Inventories
             _ensureFreeSlotsFunc = ensureFreeSlotsFunc;
         }
 
+        public bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
+
         public bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
