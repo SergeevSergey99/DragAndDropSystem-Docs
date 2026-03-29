@@ -16,5 +16,8 @@ namespace DragAndDropSystem.Examples.Containers
         
         public IReadOnlyList<IContainerizeItemInstance> Items => _items;
         public BaseItemSO GetItem() => Item;
+
+        public void AddItem(IContainerizeItemInstance instance) => _items.Add(instance);
+        public void RemoveItem(IContainerizeItemInstance instance) => _items.Remove(instance);
     }
 }

@@ -44,13 +44,13 @@ namespace DragAndDropSystem.DataBinding
         /// Добавить элемент во внешний источник данных.
         /// Вызывается когда предмет добавлен в UI через drag&amp;drop.
         /// </summary>
-        protected abstract void AddToData(TAdapter context);
+        protected abstract void AddToData(TAdapter adapter);
 
         /// <summary>
         /// Удалить элемент из внешнего источника данных.
         /// Вызывается когда предмет удалён из UI через drag&amp;drop.
         /// </summary>
-        protected abstract void RemoveFromData(TAdapter context);
+        protected abstract void RemoveFromData(TAdapter adapter);
 
         protected override void OnReloadUI()
         {

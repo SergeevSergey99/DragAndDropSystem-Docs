@@ -212,6 +212,8 @@ namespace DragAndDropSystem.DataBinding
 
         #region Public API
 
+        public UniversalInventory Inventory => _inventory;
+
         /// <summary>
         /// Принудительно синхронизировать UI (можно вызвать из внешнего кода)
         /// </summary>
