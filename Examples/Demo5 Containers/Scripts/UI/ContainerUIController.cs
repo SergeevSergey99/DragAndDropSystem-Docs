@@ -32,25 +32,16 @@ namespace DragAndDropSystem.Examples.Containers.UI
                 return;
 
             _currentContainer = container;
-            ApplyCurrentContainer();
-        }
+            containerBinding.SetContainer(_currentContainer);
+            _containerPanel.SetActive(true);
 
+            UpdateLabels();
+        }
 
         public void CloseCurrentContainer()
         {
             _currentContainer = null;
-            ApplyCurrentContainer();
-        }
-
-        private void ApplyCurrentContainer()
-        {
-            if (_containerPanel != null)
-                _containerPanel.SetActive(_currentContainer != null);
-
-            if (containerBinding != null)
-                containerBinding.SetContainer(_currentContainer);
-
-            UpdateLabels();
+            _containerPanel.SetActive(false);
         }
 
         private void UpdateLabels()
