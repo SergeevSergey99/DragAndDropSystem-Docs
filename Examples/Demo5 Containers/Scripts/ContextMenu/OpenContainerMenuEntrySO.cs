@@ -20,17 +20,9 @@ namespace DragAndDropSystem.Examples.Containers
         {
             if (ctx.Item is not ContainerItemAdapter adapter)
                 return;
-
-            var controller = FindFirstObjectByType<ContainerUIController>();
-            if (controller == null)
-            {
-                Debug.LogWarning("[OpenContainerMenuEntry] ContainerUIController not found in scene");
-                return;
-            }
             
-            var instance = adapter.Instance as ContainerItemInstance;
-
-            controller.OpenContainer(instance);
+            if (adapter.Instance is ContainerItemInstance  instance)
+                Events.InvokeOpenClick(instance);
         }
     }
 }

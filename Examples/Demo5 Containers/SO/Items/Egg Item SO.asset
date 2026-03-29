@@ -9,10 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3dabb9613d143a9a269c7247d3e9fba, type: 3}
-  m_Name: Container Item SO
+  m_Script: {fileID: 11500000, guid: 5dc45f5674feb6a44a00e2a712051cff, type: 3}
+  m_Name: Egg Item SO
   m_EditorClassIdentifier: 
-  <DisplayName>k__BackingField: 
-  <Icon>k__BackingField: {fileID: 7925215352844321845, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
+  <DisplayName>k__BackingField: Egg
+  <Icon>k__BackingField: {fileID: -3401138986834796697, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
   <Description>k__BackingField: 
-  _capacity: 6

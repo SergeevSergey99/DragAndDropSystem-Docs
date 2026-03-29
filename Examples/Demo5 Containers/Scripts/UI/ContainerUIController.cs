@@ -12,104 +12,53 @@ namespace DragAndDropSystem.Examples.Containers.UI
         [FormerlySerializedAs("_openedContainerBinding")] [SerializeField] private ContainerInventoryDataBinding containerBinding;
         [SerializeField] private GameObject _containerPanel;
         [SerializeField] private TMP_Text _titleText;
-        [SerializeField] private TMP_Text _pathText;
         [SerializeField] private string _emptyTitle = "Open Container";
 
-        private readonly List<ContainerItemInstance> _navigationStack = new();
-
-        public ContainerItemInstance CurrentContainer { get; private set; }
-        public bool HasOpenContainer => CurrentContainer != null;
-        public bool CanGoBack => _navigationStack.Count > 0;
-
-        public event Action<ContainerItemInstance> CurrentContainerChanged;
-
-        private void Awake()
+        private ContainerItemInstance _currentContainer;
+        
+        private void OnEnable()
         {
+            Events.OnOpenClick += OpenContainer;
+        }
+
+        private void OnDisable()
+        {
+            Events.OnOpenClick -= OpenContainer;
+        }
+
+        void OpenContainer(ContainerItemInstance container)
+        {
+            if (container == null || ReferenceEquals(_currentContainer, container))
+                return;
+
+            _currentContainer = container;
             ApplyCurrentContainer();
         }
 
-        public void OpenContainer(IContainerizeItemInstance adapterInstance)
-        {
-            OpenContainer(adapterInstance as ContainerItemInstance);
-        }
-
-        public void OpenContainer(ContainerItemInstance container)
-        {
-            if (container == null)
-                return;
-
-            if (ReferenceEquals(CurrentContainer, container))
-                return;
-
-            if (CurrentContainer != null)
-                _navigationStack.Add(CurrentContainer);
-
-            CurrentContainer = container;
-            ApplyCurrentContainer();
-        }
-
-        public void GoBack()
-        {
-            if (_navigationStack.Count == 0)
-            {
-                CloseCurrentContainer();
-                return;
-            }
-
-            int lastIndex = _navigationStack.Count - 1;
-            CurrentContainer = _navigationStack[lastIndex];
-            _navigationStack.RemoveAt(lastIndex);
-            ApplyCurrentContainer();
-        }
 
         public void CloseCurrentContainer()
         {
-            _navigationStack.Clear();
-            CurrentContainer = null;
+            _currentContainer = null;
             ApplyCurrentContainer();
         }
 
         private void ApplyCurrentContainer()
         {
             if (_containerPanel != null)
-                _containerPanel.SetActive(CurrentContainer != null);
+                _containerPanel.SetActive(_currentContainer != null);
 
             if (containerBinding != null)
-                containerBinding.SetContainer(CurrentContainer);
+                containerBinding.SetContainer(_currentContainer);
 
             UpdateLabels();
-            CurrentContainerChanged?.Invoke(CurrentContainer);
         }
 
         private void UpdateLabels()
         {
-            if (_titleText != null)
-                _titleText.text = CurrentContainer != null
-                    ? CurrentContainer.GetItem()?.DisplayName ?? _emptyTitle
-                    : _emptyTitle;
-
-            if (_pathText == null)
-                return;
-
-            if (CurrentContainer == null)
-            {
-                _pathText.text = string.Empty;
-                return;
-            }
-
-            var pathParts = new List<string>(_navigationStack.Count + 1);
-            for (int i = 0; i < _navigationStack.Count; i++)
-            {
-                string part = _navigationStack[i]?.GetItem()?.DisplayName;
-                if (!string.IsNullOrEmpty(part))
-                    pathParts.Add(part);
-            }
-
-            string currentName = CurrentContainer.GetItem()?.DisplayName;
-            if (!string.IsNullOrEmpty(currentName))
-                pathParts.Add(currentName);
-
-            _pathText.text = string.Join(" / ", pathParts);
+            if (_titleText != null && _currentContainer != null)
+                _titleText.text = _currentContainer.GetItem().DisplayName;
+            else 
+                _titleText.text = _emptyTitle;
         }
     }
 }
