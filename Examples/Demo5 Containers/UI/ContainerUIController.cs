@@ -25,7 +25,7 @@ namespace DragAndDropSystem.Examples.Containers.UI
 
         private void Awake()
         {
-            ApplyCurrentContainer(refreshUI: false);
+            ApplyCurrentContainer();
         }
 
         public void OpenContainer(IContainerizeItemInstance adapterInstance)
@@ -45,7 +45,7 @@ namespace DragAndDropSystem.Examples.Containers.UI
                 _navigationStack.Add(CurrentContainer);
 
             CurrentContainer = container;
-            ApplyCurrentContainer(refreshUI: true);
+            ApplyCurrentContainer();
         }
 
         public void GoBack()
@@ -59,23 +59,23 @@ namespace DragAndDropSystem.Examples.Containers.UI
             int lastIndex = _navigationStack.Count - 1;
             CurrentContainer = _navigationStack[lastIndex];
             _navigationStack.RemoveAt(lastIndex);
-            ApplyCurrentContainer(refreshUI: true);
+            ApplyCurrentContainer();
         }
 
         public void CloseCurrentContainer()
         {
             _navigationStack.Clear();
             CurrentContainer = null;
-            ApplyCurrentContainer(refreshUI: true);
+            ApplyCurrentContainer();
         }
 
-        private void ApplyCurrentContainer(bool refreshUI)
+        private void ApplyCurrentContainer()
         {
             if (_containerPanel != null)
                 _containerPanel.SetActive(CurrentContainer != null);
 
             if (containerBinding != null)
-                containerBinding.SetContainer(CurrentContainer, refreshUI);
+                containerBinding.SetContainer(CurrentContainer);
 
             UpdateLabels();
             CurrentContainerChanged?.Invoke(CurrentContainer);

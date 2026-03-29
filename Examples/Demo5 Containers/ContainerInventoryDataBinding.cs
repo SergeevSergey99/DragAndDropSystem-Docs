@@ -29,13 +29,11 @@ namespace DragAndDropSystem.Examples.Containers
         }
         #endregion
         
-        public void SetContainer(ContainerItemInstance container, bool refreshUI = true)
+        public void SetContainer(ContainerItemInstance container)
         {
             currentContainer = container;
             ResizeInventory(container?.Item?.Capacity ?? 0);
-
-            if (refreshUI)
-                ReloadUI();
+            ReloadUI();
         }
 
         private void ResizeInventory(int desiredSlotCount)
