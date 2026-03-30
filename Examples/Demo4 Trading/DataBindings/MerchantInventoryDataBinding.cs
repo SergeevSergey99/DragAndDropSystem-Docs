@@ -39,7 +39,7 @@ namespace DragAndDropSystem.Examples.Trading
         private MerchantData _merchantData;
         private MerchantData MerchantData => _merchantData ??= TradingEconomyManager.AutoCreateInstance.GetMerchant(_merchantId);
 
-        protected override IInventoryItemConverter CreateItemConverter() => new MerchantInventoryItemConverter();
+        protected override IItemAdapterConverter CreateItemConverter() => new MerchantItemAdapterConverter();
 
         // --- ListInventoryDataBinding примитивы ---
 

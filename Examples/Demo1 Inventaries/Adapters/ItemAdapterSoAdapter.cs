@@ -9,11 +9,11 @@ namespace DragAndDropSystem.Examples
     /// Адаптер для ItemSO, чтобы работать с новой системой
     /// Позволяет использовать существующие ScriptableObjects без изменений
     /// </summary>
-    public class ItemSOAdapter : IInventoryItem
+    public class ItemAdapterSoAdapter : IItemAdapter
     {
         public readonly ItemExampleSO item;
 
-        public ItemSOAdapter(ItemExampleSO item)
+        public ItemAdapterSoAdapter(ItemExampleSO item)
         {
             this.item = item;
         }

@@ -10,19 +10,19 @@ using UnityEngine.Serialization;
 
 namespace DragAndDropSystem.Examples.Containers
 {
-    public class ContainerInventoryDataBinding : ListInventoryDataBinding<IContainerizeItemInstance, ContainerItemAdapter>
+    public class ContainerInventoryDataBinding : ListInventoryDataBinding<IContainerizeItemInstance, ContainerItemAdapterAdapter>
     {
         public ContainerItemInstance currentContainer { get; private set; }
 
         #region Overrides
         protected override IReadOnlyList<IContainerizeItemInstance> GetItems() => currentContainer.Items;
-        protected override ContainerItemAdapter CreateAdapter(IContainerizeItemInstance item) => new(item);
-        protected override void AddToData(ContainerItemAdapter adapter) => currentContainer.AddItem(adapter.Instance);
-        protected override void RemoveFromData(ContainerItemAdapter adapter) => currentContainer.RemoveItem(adapter.Instance);
+        protected override ContainerItemAdapterAdapter CreateAdapter(IContainerizeItemInstance item) => new(item);
+        protected override void AddToData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.AddItem(adapterAdapter.Instance);
+        protected override void RemoveFromData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.RemoveItem(adapterAdapter.Instance);
         
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack.Item is ContainerItemAdapter { Instance: ContainerItemInstance draggedContainer } && WouldCreateCycle(draggedContainer, currentContainer))
+            if (entry.Stack.ItemAdapter is ContainerItemAdapterAdapter { Instance: ContainerItemInstance draggedContainer } && WouldCreateCycle(draggedContainer, currentContainer))
                     return RuleResult.Failure("Container cannot be placed into itself or its child container");
 
             return base.CanDrop(context, entry);

@@ -80,16 +80,16 @@ namespace DragAndDropSystem.Rules
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack == null || entry.Stack.Item == null)
-                return RuleResult.Failure("Invalid item");
+            if (entry.Stack == null || entry.Stack.ItemAdapter == null)
+                return RuleResult.Failure("Invalid itemAdapter");
 
-            bool contains = _allowedItemIds.Contains(entry.Stack.Item.ItemId);
+            bool contains = _allowedItemIds.Contains(entry.Stack.ItemAdapter.ItemId);
 
             if (_whitelist && !contains)
-                return RuleResult.Failure($"Item {entry.Stack.Item.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} is not allowed in this slot");
 
             if (!_whitelist && contains)
-                return RuleResult.Failure($"Item {entry.Stack.Item.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} is not allowed in this slot");
 
             return RuleResult.Success();
         }
@@ -122,13 +122,13 @@ namespace DragAndDropSystem.Rules
                 return RuleResult.Failure("No target inventory");
 
             // Если предмет уже есть в инвентаре, разрешаем
-            if (context.TargetInventory.Contains(entry.Stack.Item))
+            if (context.TargetInventory.Contains(entry.Stack.ItemAdapter))
                 return RuleResult.Success();
 
             // Подсчитываем уникальные предметы
             var uniqueItems = context.TargetInventory.Slots
                 .Where(s => !s.IsEmpty)
-                .Select(s => s.Stack.Item.ItemId)
+                .Select(s => s.Stack.ItemAdapter.ItemId)
                 .Distinct()
                 .Count();
 

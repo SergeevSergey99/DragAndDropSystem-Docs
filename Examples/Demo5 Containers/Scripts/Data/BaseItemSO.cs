@@ -6,7 +6,7 @@ namespace DragAndDropSystem.Examples.Containers
     /// <summary>
     /// Базовый тип предмета.
     /// </summary>
-    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/Item")]
+    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/ItemAdapter")]
     public class BaseItemSO : ScriptableObject
     {
         [field: SerializeField] public string DisplayName { get; private set; }

@@ -9,24 +9,24 @@ namespace DragAndDropSystem.DataBinding
     /// наследнику достаточно определить 5 методов-примитивов.
     ///
     /// TData — тип элемента данных (например, ItemSO, ItemModel)
-    /// TAdapter — тип адаптера, реализующий IInventoryItem (например, ItemSOAdapter)
+    /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemAdapterSoAdapter)
     ///
     /// Пример использования:
     /// <code>
-    /// public class MyBinding : ListInventoryDataBinding&lt;ItemSO, ItemSOAdapter&gt;
+    /// public class MyBinding : ListInventoryDataBinding&lt;ItemSO, ItemAdapterSoAdapter&gt;
     /// {
     ///     [SerializeField] private List&lt;ItemSO&gt; items;
     ///
     ///     protected override IReadOnlyList&lt;ItemSO&gt; GetItems() => items;
-    ///     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new ItemSOAdapter(item);
-    ///     protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.item;
-    ///     protected override void AddToData(ItemSO item) => items.Add(item);
-    ///     protected override void RemoveFromData(ItemSO item) => items.Remove(item);
+    ///     protected override ItemAdapterSoAdapter CreateAdapter(ItemSO itemAdapter) => new ItemAdapterSoAdapter(itemAdapter);
+    ///     protected override ItemSO ExtractData(ItemAdapterSoAdapter adapter) => adapter.itemAdapter;
+    ///     protected override void AddToData(ItemSO itemAdapter) => items.Add(itemAdapter);
+    ///     protected override void RemoveFromData(ItemSO itemAdapter) => items.Remove(itemAdapter);
     /// }
     /// </code>
     /// </summary>
     public abstract class ListInventoryDataBinding<TData, TAdapter> : InventoryDataBindingBase
-        where TAdapter : class, IInventoryItem
+        where TAdapter : class, IItemAdapter
     {
         /// <summary>
         /// Получить текущий список данных для отображения в UI.
@@ -35,7 +35,7 @@ namespace DragAndDropSystem.DataBinding
         protected abstract IReadOnlyList<TData> GetItems();
 
         /// <summary>
-        /// Создать адаптер (IInventoryItem) из элемента данных.
+        /// Создать адаптер (IItemAdapter) из элемента данных.
         /// Вызывается при загрузке данных в UI (ReloadUI).
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
@@ -68,14 +68,14 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.Item is not TAdapter adapter) return;
+            if (context.ItemAdapter is not TAdapter adapter) return;
             for (int i = 0; i < context.Count; i++)
                 AddToData(adapter);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context.Item is not TAdapter adapter) return;
+            if (context.ItemAdapter is not TAdapter adapter) return;
             for (int i = 0; i < context.Count; i++)
                 RemoveFromData(adapter);
         }

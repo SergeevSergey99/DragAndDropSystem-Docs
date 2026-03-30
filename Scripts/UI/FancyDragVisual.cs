@@ -54,7 +54,7 @@ namespace DragAndDropSystem.UI
                 return;
             }
 
-            _iconImage.sprite = stack.Item.Icon;
+            _iconImage.sprite = stack.ItemAdapter.Icon;
             _iconImage.color = _normalColor;
 
             if (_glowEffect != null)

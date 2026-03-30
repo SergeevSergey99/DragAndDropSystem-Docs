@@ -15,8 +15,8 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             ISlot sourceSlot,
             ISlot plannedTargetSlot,
-            IInventoryItem sourceItem,
-            IInventoryItem previewTargetItem,
+            IItemAdapter sourceItemAdapter,
+            IItemAdapter previewTargetItemAdapter,
             int requestedAmount,
             TransferKind kind)
         {
@@ -24,11 +24,11 @@ namespace DragAndDropSystem.Inventories
             TargetInventory = targetInventory;
             SourceSlot = sourceSlot;
             PlannedTargetSlot = plannedTargetSlot;
-            SourceItem = sourceItem;
-            PreviewTargetItem = previewTargetItem ?? sourceItem;
+            SourceItemAdapter = sourceItemAdapter;
+            PreviewTargetItemAdapter = previewTargetItemAdapter ?? sourceItemAdapter;
             RequestedAmount = requestedAmount;
             TargetSlot = plannedTargetSlot;
-            TargetItem = PreviewTargetItem;
+            TargetItemAdapter = PreviewTargetItemAdapter;
             CommittedAmount = requestedAmount;
             Kind = kind;
         }
@@ -40,9 +40,9 @@ namespace DragAndDropSystem.Inventories
         public ISlot SourceSlot { get; }
         public ISlot PlannedTargetSlot { get; }
         public ISlot TargetSlot { get; private set; }
-        public IInventoryItem SourceItem { get; }
-        public IInventoryItem PreviewTargetItem { get; }
-        public IInventoryItem TargetItem { get; private set; }
+        public IItemAdapter SourceItemAdapter { get; }
+        public IItemAdapter PreviewTargetItemAdapter { get; }
+        public IItemAdapter TargetItemAdapter { get; private set; }
         public int RequestedAmount { get; }
         public int CommittedAmount { get; private set; }
         public bool IsCommitted { get; private set; }
@@ -52,15 +52,15 @@ namespace DragAndDropSystem.Inventories
         {
             IsCommitted = true;
             TargetSlot = outcome.TargetSlot ?? PlannedTargetSlot;
-            TargetItem = outcome.TargetItem ?? PreviewTargetItem;
+            TargetItemAdapter = outcome.TargetItemAdapter ?? PreviewTargetItemAdapter;
             CommittedAmount = outcome.Amount;
         }
 
-        public void MarkCommitted(ISlot targetSlot, IInventoryItem targetItem, int committedAmount)
+        public void MarkCommitted(ISlot targetSlot, IItemAdapter targetItemAdapter, int committedAmount)
         {
             IsCommitted = true;
             TargetSlot = targetSlot ?? PlannedTargetSlot;
-            TargetItem = targetItem ?? PreviewTargetItem;
+            TargetItemAdapter = targetItemAdapter ?? PreviewTargetItemAdapter;
             CommittedAmount = committedAmount;
         }
     }

@@ -54,7 +54,7 @@ namespace DragAndDropSystem.Inventories
                 if (dragAmount <= 0)
                     continue;
 
-                var item = slot.Stack?.Item;
+                var item = slot.Stack?.ItemAdapter;
                 if (item == null)
                     continue;
 

@@ -3,9 +3,9 @@ using DragAndDropSystem.DataBinding;
 
 namespace DragAndDropSystem.Examples.Minecraft
 {
-    public class CraftTableDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapter>
+    public class CraftTableDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapterAdapter>
     {
-        protected override MinecraftItemAdapter CreateAdapter(MinecraftItemSO item) => new(item);
+        protected override MinecraftItemAdapterAdapter CreateAdapter(MinecraftItemSO item) => new(item);
 
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
@@ -17,14 +17,14 @@ namespace DragAndDropSystem.Examples.Minecraft
             }
         }
 
-        protected override void AddToSlotData(int index, MinecraftItemAdapter adapter, int count)
+        protected override void AddToSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
         {
-            CraftingManager.AutoCreateInstance.TryAddCraftTableItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryAddCraftTableItem(adapterAdapter.ItemSO, count, index);
         }
 
-        protected override void RemoveFromSlotData(int index, MinecraftItemAdapter adapter, int count)
+        protected override void RemoveFromSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
         {
-            CraftingManager.AutoCreateInstance.TryRemoveCraftTableItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryRemoveCraftTableItem(adapterAdapter.ItemSO, count, index);
         }
 
         protected override void Awake()

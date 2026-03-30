@@ -12,7 +12,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
     /// Связывает PlayerInventoryData (данные) ↔ UniversalInventory (UI).
     /// Сохраняет позиции предметов в слотах.
     /// </summary>
-    public class PlayerInventoryDataBinding : SlotIndexedInventoryDataBinding<ItemExampleWith3DSO, ItemSOWith3DAdapter>
+    public class PlayerInventoryDataBinding : SlotIndexedInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>
     {
         [Header("Player Data")]
         [SerializeField, Tooltip("Компонент с данными инвентаря игрока")]
@@ -26,9 +26,9 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                     yield return (i, slots[i], 1);
         }
 
-        protected override ItemSOWith3DAdapter CreateAdapter(ItemExampleWith3DSO item) => new(item);
-        protected override void AddToSlotData(int index, ItemSOWith3DAdapter adapter, int count) => _playerData.SetItem(index, adapter.item);
-        protected override void RemoveFromSlotData(int index, ItemSOWith3DAdapter adapter, int count) => _playerData.ClearSlot(index);
+        protected override ItemAdapterSoWith3DAdapter CreateAdapter(ItemExampleWith3DSO item) => new(item);
+        protected override void AddToSlotData(int index, ItemAdapterSoWith3DAdapter adapter, int count) => _playerData.SetItem(index, adapter.item);
+        protected override void RemoveFromSlotData(int index, ItemAdapterSoWith3DAdapter adapter, int count) => _playerData.ClearSlot(index);
         
         // Дополнительно запрещаем класть в слот в любом режиме инвентаря
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)

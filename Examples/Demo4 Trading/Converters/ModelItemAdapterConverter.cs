@@ -7,17 +7,17 @@ namespace DragAndDropSystem.Examples.Trading
     /// <summary>
     /// Приводит торговые предметы к model-адаптеру игрока.
     /// </summary>
-    public sealed class ModelInventoryItemConverter : IInventoryItemConverter
+    public sealed class ModelItemAdapterConverter : IItemAdapterConverter
     {
-        public bool TryConvertIncoming(IInventoryItem item, out IInventoryItem converted)
+        public bool TryConvertIncoming(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            switch (item)
+            switch (itemAdapter)
             {
-                case TradableItemModelAdapter:
-                    converted = item;
+                case TradableItemAdapterModelAdapter:
+                    converted = itemAdapter;
                     return true;
                 case ITradableItem tradable:
-                    converted = new TradableItemModelAdapter(new TradableItemModel(tradable.OriginalSO));
+                    converted = new TradableItemAdapterModelAdapter(new TradableItemModel(tradable.OriginalSO));
                     return true;
                 default:
                     converted = null;
@@ -25,10 +25,10 @@ namespace DragAndDropSystem.Examples.Trading
             }
         }
 
-        public bool TryConvertOutgoing(IInventoryItem item, out IInventoryItem converted)
+        public bool TryConvertOutgoing(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            converted = item;
-            return item != null;
+            converted = itemAdapter;
+            return itemAdapter != null;
         }
     }
 }

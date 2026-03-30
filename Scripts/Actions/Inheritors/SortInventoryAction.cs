@@ -70,7 +70,7 @@ namespace DragAndDropSystem.Inventories
                 {
                     stacks.Add(new ItemStackData
                     {
-                        Item = slot.Stack.Item,
+                        ItemAdapter = slot.Stack.ItemAdapter,
                         Count = slot.Stack.Count,
                         OriginalSlotIndex = i
                     });
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Inventories
                 if (slot != null)
                 {
                     var stackData = stacks[i];
-                    slot.SetStack(new ItemStack(stackData.Item, stackData.Count));
+                    slot.SetStack(new ItemStack(stackData.ItemAdapter, stackData.Count));
                 }
             }
 
@@ -110,7 +110,7 @@ namespace DragAndDropSystem.Inventories
                 case SortType.ByName:
                     stacks.Sort((a, b) =>
                     {
-                        int result = string.Compare(a.Item.DisplayName, b.Item.DisplayName, StringComparison.Ordinal);
+                        int result = string.Compare(a.ItemAdapter.DisplayName, b.ItemAdapter.DisplayName, StringComparison.Ordinal);
                         return reverse ? -result : result;
                     });
                     break;
@@ -118,7 +118,7 @@ namespace DragAndDropSystem.Inventories
                 case SortType.ByItemId:
                     stacks.Sort((a, b) =>
                     {
-                        int result = string.Compare(a.Item.ItemId, b.Item.ItemId, StringComparison.Ordinal);
+                        int result = string.Compare(a.ItemAdapter.ItemId, b.ItemAdapter.ItemId, StringComparison.Ordinal);
                         return reverse ? -result : result;
                     });
                     break;
@@ -135,7 +135,7 @@ namespace DragAndDropSystem.Inventories
 
         private class ItemStackData
         {
-            public IInventoryItem Item;
+            public IItemAdapter ItemAdapter;
             public int Count;
             public int OriginalSlotIndex;
         }

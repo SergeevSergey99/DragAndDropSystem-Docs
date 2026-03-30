@@ -121,7 +121,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (IsSyncing) return;
 
-            Extensions.DragAndDropLog($"[{GetType().Name}] Item added: {context.Item.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
+            Extensions.DragAndDropLog($"[{GetType().Name}] ItemAdapter added: {context.ItemAdapter.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
             OnItemAddedToUI(context);
         }
 
@@ -132,7 +132,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (IsSyncing) return;
 
-            Extensions.DragAndDropLog($"[{GetType().Name}] Item removed: {context.Item.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
+            Extensions.DragAndDropLog($"[{GetType().Name}] ItemAdapter removed: {context.ItemAdapter.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
             OnItemRemovedFromUI(context);
         }
 
@@ -193,20 +193,20 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Добавить предмет в UI без триггера событий
         /// </summary>
-        protected void AddToUIQuiet(IInventoryItem item, int count, int targetSlotIndex = -1)
+        protected void AddToUIQuiet(IItemAdapter itemAdapter, int count, int targetSlotIndex = -1)
         {
-            if (_inventory == null || item == null || count <= 0)
+            if (_inventory == null || itemAdapter == null || count <= 0)
                 return;
 
             if (targetSlotIndex < 0)
             {
-                _inventory.TryAddStackQuiet(new ItemStack(item, count), -1);
+                _inventory.TryAddStackQuiet(new ItemStack(itemAdapter, count), -1);
                 return;
             }
 
             var slot = _inventory.GetSlot(targetSlotIndex);
             if (slot != null)
-                slot.SetStack(new ItemStack(item, count));
+                slot.SetStack(new ItemStack(itemAdapter, count));
         }
 
         #endregion
@@ -269,7 +269,7 @@ namespace DragAndDropSystem.DataBinding
         /// Создать converter для преобразования предметов при входе/выходе из инвентаря.
         /// Верните null если конвертация не нужна.
         /// </summary>
-        protected virtual IInventoryItemConverter CreateItemConverter() => null;
+        protected virtual IItemAdapterConverter CreateItemConverter() => null;
 
         /// <summary>
         /// Проверить, можно ли начать перетаскивание из этого инвентаря

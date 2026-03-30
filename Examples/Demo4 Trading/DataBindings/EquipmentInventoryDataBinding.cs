@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Examples.Trading
     /// Использует MappedSlotInventoryDataBinding для декларативной привязки слотов к данным.
     /// Conversion вынесен в отдельный inventory-side converter.
     /// </summary>
-    public class EquipmentInventoryDataBinding : MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>, ITransferDomainHandler
+    public class EquipmentInventoryDataBinding : MappedSlotInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Слот для оружия")]
@@ -35,7 +35,7 @@ namespace DragAndDropSystem.Examples.Trading
         private UniversalSlot _artifact2Slot;
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
-        protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
+        protected override IItemAdapterConverter CreateItemConverter() => new ModelItemAdapterConverter();
 
         // --- MappedSlotInventoryDataBinding примитивы ---
 
@@ -74,8 +74,8 @@ namespace DragAndDropSystem.Examples.Trading
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
         };
 
-        protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
-        protected override TradableItemModel ExtractData(TradableItemModelAdapter adapter) => adapter.Item;
+        protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
+        protected override TradableItemModel ExtractData(TradableItemAdapterModelAdapter adapter) => adapter.Item;
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
@@ -83,7 +83,7 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack.Item is not ITradableItem tradable)
+            if (entry.Stack.ItemAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Неверный тип предмета");
 
             // Проверяем соответствие типа предмета слоту через canAccept из BindingMap

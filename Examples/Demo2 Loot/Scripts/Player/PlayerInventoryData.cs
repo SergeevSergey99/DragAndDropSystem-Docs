@@ -115,7 +115,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         {
             if (item == null)
             {
-                Debug.LogWarning("[PlayerInventoryData] Trying to add null item");
+                Debug.LogWarning("[PlayerInventoryData] Trying to add null itemAdapter");
                 return false;
             }
 
@@ -136,7 +136,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         {
             if (item == null)
             {
-                Debug.LogWarning("[PlayerInventoryData] Trying to remove null item");
+                Debug.LogWarning("[PlayerInventoryData] Trying to remove null itemAdapter");
                 return false;
             }
 
@@ -148,7 +148,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                 }
             }
 
-            Debug.LogWarning($"[PlayerInventoryData] Item '{item.ItemName}' not found in inventory");
+            Debug.LogWarning($"[PlayerInventoryData] ItemAdapter '{item.ItemName}' not found in inventory");
             return false;
         }
     }

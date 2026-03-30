@@ -38,7 +38,7 @@ namespace DragAndDropSystem.Filter
         [ShowInInspector, ReadOnly]
         private bool _isFilterActive;
 
-        private Predicate<IInventoryItem> _currentFilter;
+        private Predicate<IItemAdapter> _currentFilter;
         private Comparison<ISlot> _currentSort;
         private List<ISlot> _filteredSlots = new List<ISlot>();
 
@@ -117,7 +117,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Установить фильтр по предикату
         /// </summary>
-        public void SetFilter(Predicate<IInventoryItem> filter)
+        public void SetFilter(Predicate<IItemAdapter> filter)
         {
             _currentFilter = filter;
             _isFilterActive = filter != null;
@@ -281,7 +281,7 @@ namespace DragAndDropSystem.Filter
             }
 
             // Применяем фильтр к предмету
-            return _currentFilter(slot.Stack.Item);
+            return _currentFilter(slot.Stack.ItemAdapter);
         }
 
         private void ApplyVisualChanges(IReadOnlyList<ISlot> allSlots)
@@ -384,8 +384,8 @@ namespace DragAndDropSystem.Filter
                 case SortMode.ByName:
                     return (a, b) =>
                     {
-                        var nameA = a.IsEmpty ? "" : a.Stack.Item.DisplayName ?? "";
-                        var nameB = b.IsEmpty ? "" : b.Stack.Item.DisplayName ?? "";
+                        var nameA = a.IsEmpty ? "" : a.Stack.ItemAdapter.DisplayName ?? "";
+                        var nameB = b.IsEmpty ? "" : b.Stack.ItemAdapter.DisplayName ?? "";
                         return string.Compare(nameA, nameB, StringComparison.OrdinalIgnoreCase) * direction;
                     };
 
@@ -423,7 +423,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return "";
 
-            if (slot.Stack.Item is IFilterable filterable)
+            if (slot.Stack.ItemAdapter is IFilterable filterable)
                 return filterable.Category ?? "";
 
             return "";
@@ -434,7 +434,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return -1;
 
-            if (slot.Stack.Item is IFilterable filterable)
+            if (slot.Stack.ItemAdapter is IFilterable filterable)
                 return filterable.Rarity;
 
             return 0;
@@ -445,7 +445,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return int.MinValue;
 
-            if (slot.Stack.Item is ISortable sortable)
+            if (slot.Stack.ItemAdapter is ISortable sortable)
                 return sortable.SortValue;
 
             return 0;

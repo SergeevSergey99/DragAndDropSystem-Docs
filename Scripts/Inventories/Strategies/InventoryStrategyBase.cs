@@ -24,17 +24,17 @@ namespace DragAndDropSystem.Inventories
 
         public bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
         public abstract bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
-        public abstract bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex);
+        public abstract bool TryRemove(List<ISlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
         public abstract bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot);
         public abstract int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab);
 
-        public virtual int GetItemCount(List<ISlot> slots, IInventoryItem item)
+        public virtual int GetItemCount(List<ISlot> slots, IItemAdapter itemAdapter)
         {
             int total = 0;
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.Item.ItemId == item.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
                 {
                     total += slot.Stack.Count;
                 }
@@ -42,11 +42,11 @@ namespace DragAndDropSystem.Inventories
             return total;
         }
 
-        public virtual bool Contains(List<ISlot> slots, IInventoryItem item)
+        public virtual bool Contains(List<ISlot> slots, IItemAdapter itemAdapter)
         {
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.Item.ItemId == item.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
                 {
                     return true;
                 }
@@ -81,46 +81,46 @@ namespace DragAndDropSystem.Inventories
         public virtual bool RequiresStrategyPlacement(ItemStack stack) => false;
         public virtual bool UsesPerItemSlotPlanning => false;
 
-        public virtual bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        public virtual bool CanUseAlternativeSlot(ISlot slot, IItemAdapter itemAdapter)
         {
-            if (slot == null || item == null)
+            if (slot == null || itemAdapter == null)
                 return false;
 
             if (slot.IsEmpty)
                 return true;
 
-            return slot.Stack != null && slot.Stack.CanStack(item);
+            return slot.Stack != null && slot.Stack.CanStack(itemAdapter);
         }
 
-        public virtual IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IInventoryItem item, AlternativePlacementMode mode, ISlot excludeSlot)
+        public virtual IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, ISlot excludeSlot)
         {
-            if (slots == null || item == null)
+            if (slots == null || itemAdapter == null)
                 yield break;
 
             switch (mode)
             {
                 case AlternativePlacementMode.MergeOnly:
-                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
+                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
                         yield return slot;
                     yield break;
 
                 case AlternativePlacementMode.EmptyFirst:
-                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
+                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
                         yield return slot;
-                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
+                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
                         yield return slot;
                     yield break;
 
                 case AlternativePlacementMode.EmptyOnly:
-                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
+                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
                         yield return slot;
                     yield break;
 
                 case AlternativePlacementMode.MergeFirst:
                 default:
-                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
+                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
                         yield return slot;
-                    foreach (var slot in EnumerateMatchingSlots(slots, item, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
+                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
                         yield return slot;
                     yield break;
             }
@@ -131,20 +131,20 @@ namespace DragAndDropSystem.Inventories
         /// Если allowItemOverride и предмет реализует IStackSizeLimitable — используется лимит предмета.
         /// Иначе — defaultMaxStackSize (0 = без ограничений).
         /// </summary>
-        protected static int GetMaxStackSize(IInventoryItem item, int defaultMaxStackSize, bool allowItemOverride)
+        protected static int GetMaxStackSize(IItemAdapter itemAdapter, int defaultMaxStackSize, bool allowItemOverride)
         {
-            if (allowItemOverride && item is IStackSizeLimitable limitable)
+            if (allowItemOverride && itemAdapter is IStackSizeLimitable limitable)
                 return Math.Max(1, limitable.MaxStackSize);
             return defaultMaxStackSize > 0 ? defaultMaxStackSize : int.MaxValue;
         }
 
-        protected bool PassesRules(ISlot slot, IInventoryItem item, int previewCount, InventoryAcceptanceRequest request = null)
+        protected bool PassesRules(ISlot slot, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request = null)
         {
-            if (slot == null || item == null || previewCount <= 0)
+            if (slot == null || itemAdapter == null || previewCount <= 0)
                 return false;
 
             if (slot.Inventory is UniversalInventory inventory)
-                return inventory.CanAcceptByRules(slot, item, previewCount, request);
+                return inventory.CanAcceptByRules(slot, itemAdapter, previewCount, request);
 
             return true;
         }
@@ -159,11 +159,11 @@ namespace DragAndDropSystem.Inventories
             return -1;
         }
 
-        protected int FindSlotWithItem(List<ISlot> slots, IInventoryItem item)
+        protected int FindSlotWithItem(List<ISlot> slots, IItemAdapter itemAdapter)
         {
             for (int i = 0; i < slots.Count; i++)
             {
-                if (!slots[i].IsEmpty && slots[i].Stack.Item.ItemId == item.ItemId)
+                if (!slots[i].IsEmpty && slots[i].Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
                 {
                     return i;
                 }
@@ -171,9 +171,9 @@ namespace DragAndDropSystem.Inventories
             return -1;
         }
 
-        protected bool PrefabPassesRules(List<ISlot> slots, ISlot slotPrefab, IInventoryItem item, int previewCount, InventoryAcceptanceRequest request)
+        protected bool PrefabPassesRules(List<ISlot> slots, ISlot slotPrefab, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request)
         {
-            if (item == null || previewCount <= 0)
+            if (itemAdapter == null || previewCount <= 0)
                 return false;
 
             UniversalInventory inventory = request?.TargetInventory as UniversalInventory;
@@ -188,13 +188,13 @@ namespace DragAndDropSystem.Inventories
             }
 
             if (inventory != null)
-                return inventory.CanAcceptByRules(slotPrefab, item, previewCount, request, allowForeignSlot: true);
+                return inventory.CanAcceptByRules(slotPrefab, itemAdapter, previewCount, request, allowForeignSlot: true);
 
             if (slotPrefab?.SlotRuleValidator == null)
                 return true;
 
-            var context = request?.CreateValidationContext(slotPrefab, previewCount, item)
-                ?? new DragContext(new ItemStack(item, previewCount), null, null, slotPrefab, null);
+            var context = request?.CreateValidationContext(slotPrefab, previewCount, itemAdapter)
+                ?? new DragContext(new ItemStack(itemAdapter, previewCount), null, null, slotPrefab, null);
             var entry = context.Entries[0];
             return slotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
         }
@@ -219,7 +219,7 @@ namespace DragAndDropSystem.Inventories
             if (toPlace <= 0) return false;
 
             bool slotWasEmpty = slot.IsEmpty;
-            slot.SetStack(new ItemStack(stack.Item, toPlace));
+            slot.SetStack(new ItemStack(stack.ItemAdapter, toPlace));
             stack.RemoveFromStack(toPlace);
             slot.UpdateVisuals();
             operationContext?.RecordResult(slot, slotWasEmpty, toPlace);
@@ -229,7 +229,7 @@ namespace DragAndDropSystem.Inventories
 
         private IEnumerable<ISlot> EnumerateMatchingSlots(
             List<ISlot> slots,
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             ISlot excludeSlot,
             bool requireMergeCandidate,
             bool requireEmptyCandidate)
@@ -245,7 +245,7 @@ namespace DragAndDropSystem.Inventories
                     continue;
                 if (requireMergeCandidate && isEmpty)
                     continue;
-                if (!CanUseAlternativeSlot(slot, item))
+                if (!CanUseAlternativeSlot(slot, itemAdapter))
                     continue;
 
                 yield return slot;

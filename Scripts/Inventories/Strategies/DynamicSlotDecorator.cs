@@ -108,9 +108,9 @@ namespace DragAndDropSystem.Inventories
             return stack.Count == 0;
         }
 
-        public bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex)
+        public bool TryRemove(List<ISlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
         {
-            bool removed = _baseStrategy.TryRemove(slots, item, count, sourceIndex);
+            bool removed = _baseStrategy.TryRemove(slots, itemAdapter, count, sourceIndex);
 
             // После удаления обеспечиваем минимум свободных слотов
             if (removed)
@@ -121,14 +121,14 @@ namespace DragAndDropSystem.Inventories
             return removed;
         }
 
-        public int GetItemCount(List<ISlot> slots, IInventoryItem item)
+        public int GetItemCount(List<ISlot> slots, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.GetItemCount(slots, item);
+            return _baseStrategy.GetItemCount(slots, itemAdapter);
         }
 
-        public bool Contains(List<ISlot> slots, IInventoryItem item)
+        public bool Contains(List<ISlot> slots, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.Contains(slots, item);
+            return _baseStrategy.Contains(slots, itemAdapter);
         }
 
         public int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
@@ -143,14 +143,14 @@ namespace DragAndDropSystem.Inventories
 
         public bool UsesPerItemSlotPlanning => _baseStrategy.UsesPerItemSlotPlanning;
 
-        public bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        public bool CanUseAlternativeSlot(ISlot slot, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.CanUseAlternativeSlot(slot, item);
+            return _baseStrategy.CanUseAlternativeSlot(slot, itemAdapter);
         }
 
-        public IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IInventoryItem item, AlternativePlacementMode mode, ISlot excludeSlot)
+        public IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, ISlot excludeSlot)
         {
-            return _baseStrategy.EnumerateAlternativeSlots(slots, item, mode, excludeSlot);
+            return _baseStrategy.EnumerateAlternativeSlots(slots, itemAdapter, mode, excludeSlot);
         }
 
         public bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)

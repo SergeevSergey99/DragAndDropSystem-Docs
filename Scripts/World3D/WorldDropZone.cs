@@ -9,7 +9,7 @@ namespace DragAndDropSystem.World3D
     /// <summary>
     /// UI area for dropping items into the 3D world.
     /// Not bound to an inventory - simply spawns a prefab at the specified point
-    /// and removes the item from the source inventory.
+    /// and removes the itemAdapter from the source inventory.
     /// Implements IDropProcessor directly (no fake inventory wrapper needed).
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
@@ -57,11 +57,11 @@ namespace DragAndDropSystem.World3D
                 return;
 
             var stack = context.Entries[0].Stack;
-            if (stack == null || stack.Item == null)
+            if (stack == null || stack.ItemAdapter == null)
                 return;
 
             // Проверяем, есть ли у предмета 3D представление
-            _canAcceptCurrentItem = stack.Item is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
+            _canAcceptCurrentItem = stack.ItemAdapter is IWorld3DAdapter adapter && adapter.WorldPrefab != null;
 
             // Добавляем себя в стек целей
             _dragManager.PushDropTarget(this);
@@ -150,10 +150,10 @@ namespace DragAndDropSystem.World3D
             // Check all entries have 3D world representation
             foreach (var entry in context.Entries)
             {
-                if (entry.Stack?.Item == null)
+                if (entry.Stack?.ItemAdapter == null)
                     return false;
 
-                if (entry.Stack.Item is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                if (entry.Stack.ItemAdapter is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
                 {
                     Extensions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: false (entry missing 3D adapter)</color>");
                     return false;
@@ -172,7 +172,7 @@ namespace DragAndDropSystem.World3D
             }
 
             int totalSpawned = 0;
-            IInventoryItem lastItem = null;
+            IItemAdapter lastItemAdapter = null;
 
             // Handle each entry
             foreach (var entry in context.Entries)
@@ -197,13 +197,13 @@ namespace DragAndDropSystem.World3D
                 }
 
                 totalSpawned += amountToSpawn;
-                lastItem = stack.Item;
+                lastItemAdapter = stack.ItemAdapter;
             }
 
             if (totalSpawned > 0)
             {
                 return DropResult.Succeeded(
-                    item: lastItem,
+                    itemAdapter: lastItemAdapter,
                     amount: totalSpawned,
                     targetSlot: null,
                     targetInventory: null);
@@ -213,28 +213,28 @@ namespace DragAndDropSystem.World3D
         }
 
         /// <summary>
-        /// Spawn item in world.
+        /// Spawn itemAdapter in world.
         /// Called from ProcessDrop.
         /// </summary>
         private bool SpawnItemInWorld(ItemStack stack)
         {
-            if (stack == null || stack.IsEmpty || stack.Item == null)
+            if (stack == null || stack.IsEmpty || stack.ItemAdapter == null)
             {
                 Extensions.DragAndDropLog("<color=red>[WorldDropZone] Cannot spawn: invalid stack</color>");
                 return false;
             }
 
             // Проверяем, есть ли у предмета 3D префаб
-            if (stack.Item is not IWorld3DAdapter adapter)
+            if (stack.ItemAdapter is not IWorld3DAdapter adapter)
             {
-                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] Item {stack.Item.DisplayName} has no world prefab</color>");
+                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] ItemAdapter {stack.ItemAdapter.DisplayName} has no world prefab</color>");
                 return false;
             }
 
             GameObject prefab = adapter.WorldPrefab;
             if (prefab == null)
             {
-                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.Item.DisplayName}</color>");
+                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.ItemAdapter.DisplayName}</color>");
                 return false;
             }
 
@@ -258,7 +258,7 @@ namespace DragAndDropSystem.World3D
                 {
                     worldItem = spawnedObject.AddComponent<WorldItem>();
                 }
-                worldItem.Initialize(stack.Item, 1);
+                worldItem.Initialize(stack.ItemAdapter, 1);
 
                 // Небольшое смещение для следующего предмета
                 if (_randomizePosition)
@@ -268,7 +268,7 @@ namespace DragAndDropSystem.World3D
                 }
             }
 
-            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.Item.DisplayName} in world</color>");
+            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.ItemAdapter.DisplayName} in world</color>");
 
             return true;
         }

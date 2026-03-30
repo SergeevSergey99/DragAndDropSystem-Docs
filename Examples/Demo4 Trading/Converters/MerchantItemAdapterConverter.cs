@@ -6,14 +6,14 @@ namespace DragAndDropSystem.Examples.Trading
     /// <summary>
     /// Приводит входящие торговые предметы к SO-адаптеру торговца.
     /// </summary>
-    public sealed class MerchantInventoryItemConverter : IInventoryItemConverter
+    public sealed class MerchantItemAdapterConverter : IItemAdapterConverter
     {
-        public bool TryConvertIncoming(IInventoryItem item, out IInventoryItem converted)
+        public bool TryConvertIncoming(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            switch (item)
+            switch (itemAdapter)
             {
                 case TradableSoAdapter:
-                    converted = item;
+                    converted = itemAdapter;
                     return true;
                 case ITradableItem tradable:
                     converted = new TradableSoAdapter(tradable.OriginalSO);
@@ -24,10 +24,10 @@ namespace DragAndDropSystem.Examples.Trading
             }
         }
 
-        public bool TryConvertOutgoing(IInventoryItem item, out IInventoryItem converted)
+        public bool TryConvertOutgoing(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            converted = item;
-            return item != null;
+            converted = itemAdapter;
+            return itemAdapter != null;
         }
     }
 }

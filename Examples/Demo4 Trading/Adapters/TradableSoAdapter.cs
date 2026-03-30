@@ -5,10 +5,10 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Адаптер для TradableItemSO, реализующий интерфейс IInventoryItem
+    /// Адаптер для TradableItemSO, реализующий интерфейс IItemAdapter
     /// Используется для интеграции торговых предметов с системой drag and drop
     /// </summary>
-    public class TradableSoAdapter : IInventoryItem, IDescribable, ITradableItem
+    public class TradableSoAdapter : IItemAdapter, IDescribable, ITradableItem
     {
         public TradableItemSO Item { get; }
         public TradableItemSO OriginalSO => Item;
@@ -18,7 +18,7 @@ namespace DragAndDropSystem.Examples.Trading
             Item = item;
         }
 
-        // IInventoryItem implementation
+        // IItemAdapter implementation
         public string ItemId => Item.GetInstanceID().ToString();
         public string DisplayName => Item.DisplayName;
         public Sprite Icon => Item.Icon;

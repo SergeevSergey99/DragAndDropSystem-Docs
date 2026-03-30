@@ -76,7 +76,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Создать предикат фильтра из пресета
         /// </summary>
-        public Predicate<IInventoryItem> CreateFilter()
+        public Predicate<IItemAdapter> CreateFilter()
         {
             switch (_filterType)
             {

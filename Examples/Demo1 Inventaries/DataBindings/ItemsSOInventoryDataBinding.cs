@@ -14,7 +14,7 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
     ///
     /// ПРИМЕР: Демонстрирует использование правил инвентаря и переопределение методов проверки переноса
     /// </summary>
-    public class ItemsSOInventoryDataBinding : ListInventoryDataBinding<ItemExampleSO, ItemSOAdapter>
+    public class ItemsSOInventoryDataBinding : ListInventoryDataBinding<ItemExampleSO, ItemAdapterSoAdapter>
     {
         [FoldoutGroup("Data")]
         [SerializeField]
@@ -30,9 +30,9 @@ namespace Plugins.DragAndDropSystem.Examples.DataBindings
         private bool _preventDropToInventory = false;
 
         protected override IReadOnlyList<ItemExampleSO> GetItems() => items;
-        protected override ItemSOAdapter CreateAdapter(ItemExampleSO item) => new(item);
-        protected override void AddToData(ItemSOAdapter adapter) => items.Add(adapter.item);
-        protected override void RemoveFromData(ItemSOAdapter adapter) => items.Remove(adapter.item);
+        protected override ItemAdapterSoAdapter CreateAdapter(ItemExampleSO item) => new(item);
+        protected override void AddToData(ItemAdapterSoAdapter adapter) => items.Add(adapter.item);
+        protected override void RemoveFromData(ItemAdapterSoAdapter adapter) => items.Remove(adapter.item);
 
         /// <summary>
         /// ПРИМЕР: Переопределение проверки начала перетаскивания

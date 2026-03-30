@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Rules
             if (context == null)
                 return RuleResult.Failure("Drag context is null");
 
-            if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null || entry.Stack.Item == null)
+            if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null || entry.Stack.ItemAdapter == null)
                 return RuleResult.Failure("Invalid source entry");
 
             if (globalRules != null)

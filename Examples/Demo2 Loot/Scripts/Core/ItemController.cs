@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         }
         public void Interact(PlayerInteraction player)
         {
-            if (CanInteract(player) && WorldItem.itemData is ItemSOWith3DAdapter adapter)
+            if (CanInteract(player) && WorldItem.ItemAdapterData is ItemAdapterSoWith3DAdapter adapter)
             {
                 if (player.Inventory.AddItem(adapter.item))
                 {

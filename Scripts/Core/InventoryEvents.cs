@@ -9,7 +9,7 @@ namespace DragAndDropSystem.Core
     /// </summary>
     public class InventoryItemEventContext
     {
-        public IInventoryItem Item { get; }
+        public IItemAdapter ItemAdapter { get; }
         public int Count { get; }
         public int SlotIndex { get; }
 
@@ -38,7 +38,7 @@ namespace DragAndDropSystem.Core
         public ISlot TargetSlot { get; }
 
         public InventoryItemEventContext(
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             int count,
             int slotIndex = -1,
             IInventory sourceInventory = null,
@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Core
             ISlot sourceSlot = null,
             ISlot targetSlot = null)
         {
-            Item = item;
+            ItemAdapter = itemAdapter;
             Count = count;
             SlotIndex = slotIndex;
             SourceInventory = sourceInventory;

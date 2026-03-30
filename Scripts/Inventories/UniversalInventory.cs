@@ -32,8 +32,8 @@ namespace DragAndDropSystem.Inventories
         private int _initialSlotCount = 10;
 
         [FoldoutGroup("Strategy", expanded: true)]
-        [InfoBox("Item Behavior: как предметы размещаются | Slot Management: управление количеством слотов", InfoMessageType.Info)]
-        [SerializeField, LabelText("Item Behavior")]
+        [InfoBox("ItemAdapter Behavior: как предметы размещаются | Slot Management: управление количеством слотов", InfoMessageType.Info)]
+        [SerializeField, LabelText("ItemAdapter Behavior")]
         private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
 
         [FoldoutGroup("Strategy")]
@@ -93,7 +93,7 @@ namespace DragAndDropSystem.Inventories
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
-        private IInventoryItemConverter _itemConverter = IdentityInventoryItemConverter.Instance;
+        private IItemAdapterConverter _itemAdapterConverter = IdentityItemAdapterConverter.Instance;
         private UniversalSlot _pointerHoveredSlot;
         private UniversalSlot _lastInteractedSlot;
 
@@ -149,7 +149,7 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        public IInventoryItemConverter ItemConverter => _itemConverter ?? IdentityInventoryItemConverter.Instance;
+        public IItemAdapterConverter ItemAdapterConverter => _itemAdapterConverter ?? IdentityItemAdapterConverter.Instance;
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
@@ -180,19 +180,19 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         public event Action<InventorySwapContext> OnSwapCompleted;
 
-        internal void EmitItemAdded(IInventoryItem item, int count, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
+        internal void EmitItemAdded(IItemAdapter itemAdapter, int count, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
         {
             var context = new InventoryItemEventContext(
-                item, count, slotIndex, sourceInventory, this, sourceSlot, targetSlot);
+                itemAdapter, count, slotIndex, sourceInventory, this, sourceSlot, targetSlot);
 
             DataBinding?.HandleItemAdded(context);
             OnItemAdded?.Invoke(context);
         }
 
-        internal void EmitItemRemoved(IInventoryItem item, int count, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
+        internal void EmitItemRemoved(IItemAdapter itemAdapter, int count, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
         {
             var context = new InventoryItemEventContext(
-                item, count, slotIndex, this, targetInventory, sourceSlot, targetSlot);
+                itemAdapter, count, slotIndex, this, targetInventory, sourceSlot, targetSlot);
 
             DataBinding?.HandleItemRemoved(context);
             OnItemRemoved?.Invoke(context);
@@ -237,9 +237,9 @@ namespace DragAndDropSystem.Inventories
             DataBinding = inventoryDataBindingBase;
         }
 
-        public void SetItemConverter(IInventoryItemConverter itemConverter)
+        public void SetItemConverter(IItemAdapterConverter itemAdapterConverter)
         {
-            _itemConverter = itemConverter ?? IdentityInventoryItemConverter.Instance;
+            _itemAdapterConverter = itemAdapterConverter ?? IdentityItemAdapterConverter.Instance;
         }
 
         private void OnValidate()
@@ -418,32 +418,32 @@ namespace DragAndDropSystem.Inventories
             _strategy?.SetMaxStackSize(maxStackSize, allowItemOverride);
         }
 
-        internal bool TryPreviewIncomingItem(IInventoryItem item, out IInventoryItem converted)
+        internal bool TryPreviewIncomingItem(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            converted = item;
+            converted = itemAdapter;
 
-            if (item == null)
+            if (itemAdapter == null)
                 return false;
 
-            return ItemConverter.TryConvertIncoming(item, out converted);
+            return ItemAdapterConverter.TryConvertIncoming(itemAdapter, out converted);
         }
 
-        internal bool TryPreviewOutgoingItem(IInventoryItem item, out IInventoryItem converted)
+        internal bool TryPreviewOutgoingItem(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            converted = item;
+            converted = itemAdapter;
 
-            if (item == null)
+            if (itemAdapter == null)
                 return false;
 
-            return ItemConverter.TryConvertOutgoing(item, out converted);
+            return ItemAdapterConverter.TryConvertOutgoing(itemAdapter, out converted);
         }
 
         bool TryConvertIncomingItem(ItemStack stack)
         {
-            if (!TryPreviewIncomingItem(stack.Item, out var converted))
+            if (!TryPreviewIncomingItem(stack.ItemAdapter, out var converted))
                 return false;
 
-            if (!ReferenceEquals(converted, stack.Item))
+            if (!ReferenceEquals(converted, stack.ItemAdapter))
                 stack.ReplaceItem(converted);
 
             return true;
@@ -451,10 +451,10 @@ namespace DragAndDropSystem.Inventories
 
         internal bool TryConvertOutgoingItem(ItemStack stack)
         {
-            if (!TryPreviewOutgoingItem(stack.Item, out var converted))
+            if (!TryPreviewOutgoingItem(stack.ItemAdapter, out var converted))
                 return false;
 
-            if (!ReferenceEquals(converted, stack.Item))
+            if (!ReferenceEquals(converted, stack.ItemAdapter))
                 stack.ReplaceItem(converted);
 
             return true;
@@ -470,7 +470,7 @@ namespace DragAndDropSystem.Inventories
 
             EnsureStrategyInitialized();
 
-            Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.Item.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.ItemAdapter.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
             bool success = _placementStrategy.TryAdd(_slots, stack, targetSlotIndex);
             bool stackConsumed = stack.IsEmpty;
@@ -512,18 +512,18 @@ namespace DragAndDropSystem.Inventories
 
         internal bool CanAcceptByRules(
             ISlot slot,
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             int previewCount,
             InventoryAcceptanceRequest request = null,
             bool allowForeignSlot = false)
         {
-            if (slot == null || item == null || previewCount <= 0)
+            if (slot == null || itemAdapter == null || previewCount <= 0)
                 return false;
 
             if (!allowForeignSlot && !ReferenceEquals(slot.Inventory, this))
                 return false;
 
-            var previewStack = new ItemStack(item, previewCount);
+            var previewStack = new ItemStack(itemAdapter, previewCount);
             return ValidateRulesForPreview(slot, previewStack, request);
         }
 
@@ -532,7 +532,7 @@ namespace DragAndDropSystem.Inventories
             if (slot == null || previewStack == null || previewStack.IsEmpty)
                 return false;
 
-            var context = request?.CreateValidationContext(slot, previewStack.Count, previewStack.Item)
+            var context = request?.CreateValidationContext(slot, previewStack.Count, previewStack.ItemAdapter)
                 ?? new DragContext(previewStack, null, null, slot, this);
             var entry = context.Entries[0];
 
@@ -568,7 +568,7 @@ namespace DragAndDropSystem.Inventories
             {
                 if (slot != null && !slot.IsEmpty)
                 {
-                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.Item, slot.Stack.Count));
+                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.ItemAdapter, slot.Stack.Count));
                 }
                 else
                 {
@@ -619,7 +619,7 @@ namespace DragAndDropSystem.Inventories
                 }
                 else
                 {
-                    slot.SetStack(new ItemStack(state.Item, state.Count));
+                    slot.SetStack(new ItemStack(state.ItemAdapter, state.Count));
                 }
 
                 slot.UpdateVisuals();
@@ -667,7 +667,7 @@ namespace DragAndDropSystem.Inventories
             for (int i = 0; i < limit; i++)
             {
                 var previous = beforeSnapshot.Slots[i];
-                if (previous.Count <= 0 || previous.Item == null)
+                if (previous.Count <= 0 || previous.ItemAdapter == null)
                     continue;
 
                 var slot = _slots[i];
@@ -686,7 +686,7 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        public bool Contains(IInventoryItem item) => _queryStrategy.Contains(_slots, item);
+        public bool Contains(IItemAdapter itemAdapter) => _queryStrategy.Contains(_slots, itemAdapter);
         
         public void UpdateAllVisuals()
         {
@@ -729,17 +729,17 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Получить все уникальные предметы
         /// </summary>
-        public List<IInventoryItem> GetUniqueItems()
+        public List<IItemAdapter> GetUniqueItems()
         {
-            var items = new List<IInventoryItem>();
+            var items = new List<IItemAdapter>();
             var addedIds = new HashSet<string>();
 
             foreach (var slot in _slots)
             {
-                if (!slot.IsEmpty && !addedIds.Contains(slot.Stack.Item.ItemId))
+                if (!slot.IsEmpty && !addedIds.Contains(slot.Stack.ItemAdapter.ItemId))
                 {
-                    items.Add(slot.Stack.Item);
-                    addedIds.Add(slot.Stack.Item.ItemId);
+                    items.Add(slot.Stack.ItemAdapter);
+                    addedIds.Add(slot.Stack.ItemAdapter.ItemId);
                 }
             }
 
@@ -840,12 +840,12 @@ namespace DragAndDropSystem.Inventories
             _dragAmountStepRounding = rounding;
         }
 
-        internal int GetMaxStackSizeForItem(IInventoryItem item)
+        internal int GetMaxStackSizeForItem(IItemAdapter itemAdapter)
         {
-            if (item == null)
+            if (itemAdapter == null)
                 return 0;
 
-            if (_allowItemStackOverride && item is IStackSizeLimitable limitable)
+            if (_allowItemStackOverride && itemAdapter is IStackSizeLimitable limitable)
                 return Mathf.Max(1, limitable.MaxStackSize);
 
             return _maxStackSize > 0 ? _maxStackSize : int.MaxValue;
@@ -888,8 +888,8 @@ namespace DragAndDropSystem.Inventories
         /// Проверить, может ли инвентарь принять предмет (без привязки к конкретному слоту)
         /// Проверяет правила инвентаря + наличие подходящих слотов или возможность создания нового
         /// </summary>
-        public bool CanAcceptItem(IInventoryItem item, int count, out ISlot suggestedSlot)
-            => CanAcceptItem(new InventoryAcceptanceRequest(this, item, count), out suggestedSlot);
+        public bool CanAcceptItem(IItemAdapter itemAdapter, int count, out ISlot suggestedSlot)
+            => CanAcceptItem(new InventoryAcceptanceRequest(this, itemAdapter, count), out suggestedSlot);
 
         /// <summary>
         /// Проверить, может ли инвентарь принять предмет в контексте текущей drag/drop операции.
@@ -898,7 +898,7 @@ namespace DragAndDropSystem.Inventories
         {
             suggestedSlot = null;
 
-            if (request?.Item == null || request.DesiredCount <= 0)
+            if (request?.ItemAdapter == null || request.DesiredCount <= 0)
                 return false;
 
             EnsureStrategyInitialized();
@@ -917,7 +917,7 @@ namespace DragAndDropSystem.Inventories
         
         public int GetAcceptableCount(InventoryAcceptanceRequest request)
         {
-            if (request?.Item == null || request.DesiredCount <= 0)
+            if (request?.ItemAdapter == null || request.DesiredCount <= 0)
                 return 0;
 
             EnsureStrategyInitialized();
@@ -925,7 +925,7 @@ namespace DragAndDropSystem.Inventories
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
             int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab);
-            Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: item={request.Item.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: itemAdapter={request.ItemAdapter.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }
 
@@ -1106,8 +1106,8 @@ namespace DragAndDropSystem.Inventories
             }
 
             // Сохраняем копии стаков для событий
-            var targetStackBackup = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
-            var sourceStackBackup = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
+            var targetStackBackup = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
+            var sourceStackBackup = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
 
             try
             {

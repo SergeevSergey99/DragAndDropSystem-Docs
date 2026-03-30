@@ -8,7 +8,7 @@ namespace DragAndDropSystem.Examples.Trading
     /// ScriptableObject для торгового предмета с ценами покупки/продажи
     /// Используется в примере системы торговли с торговцами
     /// </summary>
-    [CreateAssetMenu(fileName = "TradableItem", menuName = "DragAndDrop/Examples/Trading/Tradable Item", order = 200)]
+    [CreateAssetMenu(fileName = "TradableItem", menuName = "DragAndDrop/Examples/Trading/Tradable ItemAdapter", order = 200)]
     public class TradableItemSO : ScriptableObject
     {
         [Header("Basic Info")]

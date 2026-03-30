@@ -5,9 +5,9 @@ namespace DragAndDropSystem.Inventories
     /// <summary>
     /// Конвертирует предметы при выходе из инвентаря и при входе в него.
     /// </summary>
-    public interface IInventoryItemConverter
+    public interface IItemAdapterConverter
     {
-        bool TryConvertIncoming(IInventoryItem item, out IInventoryItem converted);
-        bool TryConvertOutgoing(IInventoryItem item, out IInventoryItem converted);
+        bool TryConvertIncoming(IItemAdapter itemAdapter, out IItemAdapter converted);
+        bool TryConvertOutgoing(IItemAdapter itemAdapter, out IItemAdapter converted);
     }
 }

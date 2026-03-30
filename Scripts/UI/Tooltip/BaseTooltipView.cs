@@ -15,8 +15,8 @@ namespace DragAndDropSystem.UI
         /// <summary>
         /// Показать tooltip с указанным предметом
         /// </summary>
-        /// <param name="item">Предмет для отображения</param>
-        public virtual void Show(IInventoryItem item, Action OnCompleted = null)
+        /// <param name="itemAdapter">Предмет для отображения</param>
+        public virtual void Show(IItemAdapter itemAdapter, Action OnCompleted = null)
         {
             gameObject.SetActive(true);
             OnCompleted?.Invoke();
@@ -40,8 +40,8 @@ namespace DragAndDropSystem.UI
         /// <summary>
         /// Обновить содержимое tooltip (если предмет изменился но tooltip все еще показывается)
         /// </summary>
-        /// <param name="item">Обновленный предмет</param>
-        public abstract void SetContent(IInventoryItem item);
+        /// <param name="itemAdapter">Обновленный предмет</param>
+        public abstract void SetContent(IItemAdapter itemAdapter);
 
         /// <summary>
         /// Получить размер tooltip

@@ -3,10 +3,10 @@ using DragAndDropSystem.DataBinding;
 
 namespace DragAndDropSystem.Examples.Minecraft
 {
-    public class MainInventoryDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapter>
+    public class MainInventoryDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapterAdapter>
     {
         // Определяем создание адаптера из данных предмета
-        protected override MinecraftItemAdapter CreateAdapter(MinecraftItemSO item) => new(item);
+        protected override MinecraftItemAdapterAdapter CreateAdapter(MinecraftItemSO item) => new(item);
         // Получаем данные для отрисовки в слотах UI
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
@@ -19,15 +19,15 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         // Добавляем предмет перетащенный в слот в данные CraftingManager
-        protected override void AddToSlotData(int index, MinecraftItemAdapter adapter, int count)
+        protected override void AddToSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
         {
-            CraftingManager.AutoCreateInstance.TryAddInventoryItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryAddInventoryItem(adapterAdapter.ItemSO, count, index);
         }
 
         // Удаляем предмет вытащенный из слота из данных
-        protected override void RemoveFromSlotData(int index, MinecraftItemAdapter adapter, int count)
+        protected override void RemoveFromSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
         {
-            CraftingManager.AutoCreateInstance.TryRemoveInventoryItem(adapter.ItemSO, count, index);
+            CraftingManager.AutoCreateInstance.TryRemoveInventoryItem(adapterAdapter.ItemSO, count, index);
         }
 
         protected override void Awake()

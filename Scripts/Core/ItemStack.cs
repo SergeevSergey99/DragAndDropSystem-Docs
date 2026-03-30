@@ -4,21 +4,21 @@ namespace DragAndDropSystem.Core
 {
     /// <summary>
     /// Универсальная обертка для предмета с количеством
-    /// Работает с любым типом, реализующим IInventoryItem
+    /// Работает с любым типом, реализующим IItemAdapter
     /// Лимиты стака задаются через настройку Max Stack Size в UniversalInventory
     /// или через IStackSizeLimitable на конкретном предмете
     /// </summary>
     [Serializable]
     public class ItemStack
     {
-        public IInventoryItem Item { get; private set; }
+        public IItemAdapter ItemAdapter { get; private set; }
         public int Count { get; private set; }
 
-        public bool IsEmpty => Item == null || Count <= 0;
+        public bool IsEmpty => ItemAdapter == null || Count <= 0;
 
-        public ItemStack(IInventoryItem item, int count = 1)
+        public ItemStack(IItemAdapter itemAdapter, int count = 1)
         {
-            Item = item;
+            ItemAdapter = itemAdapter;
             Count = Math.Max(0, count);
         }
 
@@ -27,10 +27,10 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// Проверить, можно ли стакнуть с другим предметом (одинаковый ItemId)
         /// </summary>
-        public bool CanStack(IInventoryItem otherItem)
+        public bool CanStack(IItemAdapter otherItemAdapter)
         {
-            if (Item == null || otherItem == null) return false;
-            return Item.ItemId == otherItem.ItemId;
+            if (ItemAdapter == null || otherItemAdapter == null) return false;
+            return ItemAdapter.ItemId == otherItemAdapter.ItemId;
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace DragAndDropSystem.Core
             Count -= toRemove;
             if (Count <= 0)
             {
-                Item = null;
+                ItemAdapter = null;
                 Count = 0;
             }
             return toRemove;
@@ -62,23 +62,23 @@ namespace DragAndDropSystem.Core
         public ItemStack Split(int amount)
         {
             int taken = RemoveFromStack(amount);
-            return taken > 0 ? new ItemStack(Item, taken) : Empty();
+            return taken > 0 ? new ItemStack(ItemAdapter, taken) : Empty();
         }
 
         /// <summary>
         /// Заменить предмет в стеке, сохранив количество
         /// Полезно для замены адаптеров (например, при торговле)
         /// </summary>
-        /// <param name="newItem">Новый предмет</param>
-        public void ReplaceItem(IInventoryItem newItem)
+        /// <param name="newItemAdapter">Новый предмет</param>
+        public void ReplaceItem(IItemAdapter newItemAdapter)
         {
-            if (newItem == null)
+            if (newItemAdapter == null)
             {
                 Clear();
                 return;
             }
 
-            Item = newItem;
+            ItemAdapter = newItemAdapter;
             // Count остается тем же
         }
 
@@ -87,7 +87,7 @@ namespace DragAndDropSystem.Core
         /// </summary>
         public void Clear()
         {
-            Item = null;
+            ItemAdapter = null;
             Count = 0;
         }
     }

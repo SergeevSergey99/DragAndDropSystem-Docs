@@ -11,17 +11,17 @@ namespace DragAndDropSystem.Inventories
 {
     public readonly struct ExecutedTransferEntry
     {
-        public ExecutedTransferEntry(ISlot sourceSlot, ISlot targetSlot, IInventoryItem item, int amount)
+        public ExecutedTransferEntry(ISlot sourceSlot, ISlot targetSlot, IItemAdapter itemAdapter, int amount)
         {
             SourceSlot = sourceSlot;
             TargetSlot = targetSlot;
-            Item = item;
+            ItemAdapter = itemAdapter;
             Amount = amount;
         }
 
         public ISlot SourceSlot { get; }
         public ISlot TargetSlot { get; }
-        public IInventoryItem Item { get; }
+        public IItemAdapter ItemAdapter { get; }
         public int Amount { get; }
     }
 
@@ -128,7 +128,7 @@ namespace DragAndDropSystem.Inventories
             int succeededEntries = 0;
             int failedEntries = 0;
             int transferredAmount = 0;
-            IInventoryItem lastItem = null;
+            IItemAdapter lastItemAdapter = null;
             ISlot lastTargetSlot = null;
             bool hadPartialTransfer = false;
             var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
@@ -164,12 +164,12 @@ namespace DragAndDropSystem.Inventories
                         succeededEntries++;
                         entryTransferred = plannedEntry.RequestedAmount;
                         transferredAmount += entryTransferred;
-                        lastItem = plannedEntry.Entry.Stack?.Item;
+                        lastItemAdapter = plannedEntry.Entry.Stack?.ItemAdapter;
                         lastTargetSlot = plannedEntry.OccupiedTargetSlot;
                         executedEntries.Add(new ExecutedTransferEntry(
                             plannedEntry.Entry.SourceSlot,
                             plannedEntry.OccupiedTargetSlot,
-                            plannedEntry.Entry.Stack?.Item,
+                            plannedEntry.Entry.Stack?.ItemAdapter,
                             entryTransferred));
                         Extensions.DragAndDropLog($"<color=green>[TransferPlanExecutor] OccupiedHandler succeeded</color>");
                     }
@@ -194,14 +194,14 @@ namespace DragAndDropSystem.Inventories
                         succeededEntries++;
                         entryTransferred = swapOutcome.MovedAmount;
                         transferredAmount += swapOutcome.MovedAmount;
-                        lastItem = swapOutcome.SwapResult.SourceStackBefore?.Item;
+                        lastItemAdapter = swapOutcome.SwapResult.SourceStackBefore?.ItemAdapter;
                         lastTargetSlot = swapOutcome.TargetSlot;
-                        if (swapOutcome.MovedAmount > 0 && swapOutcome.SwapResult.SourceStackBefore?.Item != null)
+                        if (swapOutcome.MovedAmount > 0 && swapOutcome.SwapResult.SourceStackBefore?.ItemAdapter != null)
                         {
                             executedEntries.Add(new ExecutedTransferEntry(
                                 swapOutcome.SourceSlot,
                                 swapOutcome.TargetSlot,
-                                swapOutcome.SwapResult.SourceStackBefore.Item,
+                                swapOutcome.SwapResult.SourceStackBefore.ItemAdapter,
                                 swapOutcome.MovedAmount));
                         }
                     }
@@ -226,9 +226,9 @@ namespace DragAndDropSystem.Inventories
                             plannedEntry.Entry.SourceSlot,
                             plan.TargetInventory,
                             allocation.Slot,
-                            new ItemStack(plannedEntry.Entry.Stack.Item, allocation.Amount));
+                            new ItemStack(plannedEntry.Entry.Stack.ItemAdapter, allocation.Amount));
 
-                        if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItem, out var domainContext))
+                        if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItemAdapter, out var domainContext))
                         {
                             var domainFailure = "Failed to build domain context";
                             Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
@@ -252,7 +252,7 @@ namespace DragAndDropSystem.Inventories
 
                         entryTransferred += outcome.Amount;
                         transferredAmount += outcome.Amount;
-                        lastItem = outcome.Item;
+                        lastItemAdapter = outcome.ItemAdapter;
                         lastTargetSlot = outcome.TargetSlot ?? allocation.Slot;
                         hadPartialTransfer |= outcome.IsPartialTransfer;
                         domainContext.MarkCommitted(outcome);
@@ -261,7 +261,7 @@ namespace DragAndDropSystem.Inventories
                         executedEntries.Add(new ExecutedTransferEntry(
                             outcome.SourceSlot,
                             outcome.TargetSlot ?? allocation.Slot,
-                            outcome.Item,
+                            outcome.ItemAdapter,
                             outcome.Amount));
                     }
                 }
@@ -318,7 +318,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             var result = DropResult.SucceededBatch(
-                item: lastItem,
+                itemAdapter: lastItemAdapter,
                 amount: transferredAmount,
                 targetSlot: lastTargetSlot,
                 targetInventory: plan.TargetInventory,
@@ -344,16 +344,16 @@ namespace DragAndDropSystem.Inventories
                 executedEntries);
         }
 
-        private static bool TryBuildDomainContext(InventoryTransferRequest request, IInventoryItem previewTargetItem, out TransferDomainContext context)
+        private static bool TryBuildDomainContext(InventoryTransferRequest request, IItemAdapter previewTargetItemAdapter, out TransferDomainContext context)
         {
             context = null;
 
-            var targetPreviewItem = previewTargetItem;
+            var targetPreviewItem = previewTargetItemAdapter;
             if (targetPreviewItem == null &&
                 !TransferItemConversionUtility.TryResolveTargetItem(
                     request.SourceInventory,
                     request.TargetInventory,
-                    request.DraggedStack.Item,
+                    request.DraggedStack.ItemAdapter,
                     out targetPreviewItem))
             {
                 return false;
@@ -364,7 +364,7 @@ namespace DragAndDropSystem.Inventories
                 request.TargetInventory,
                 request.SourceSlot,
                 request.TargetSlot,
-                request.DraggedStack.Item,
+                request.DraggedStack.ItemAdapter,
                 targetPreviewItem,
                 request.DraggedStack.Count,
                 DetermineTransferKind(request));
@@ -502,8 +502,8 @@ namespace DragAndDropSystem.Inventories
                 return new SwapExecutionAttempt(false, default, validationFailure);
             }
 
-            var sourceStackBefore = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
-            var targetStackBefore = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
+            var sourceStackBefore = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
+            var targetStackBefore = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
 
             var swapContext = new InventorySwapContext(
                 sourceStackBefore,
@@ -543,8 +543,8 @@ namespace DragAndDropSystem.Inventories
                 return new SwapExecutionAttempt(false, default, "TrySwapSlots returned false");
             }
 
-            swapDomainContexts[0].MarkCommitted(targetSlot, sourceStackBefore.Item, sourceStackBefore.Count);
-            swapDomainContexts[1].MarkCommitted(sourceSlot, targetStackBefore.Item, targetStackBefore.Count);
+            swapDomainContexts[0].MarkCommitted(targetSlot, sourceStackBefore.ItemAdapter, sourceStackBefore.Count);
+            swapDomainContexts[1].MarkCommitted(sourceSlot, targetStackBefore.ItemAdapter, targetStackBefore.Count);
 
             var swapOutcome = new PendingSwapOutcome(
                 swapContext,
@@ -583,8 +583,8 @@ namespace DragAndDropSystem.Inventories
                 return new SwapExecutionAttempt(false, default, validationFailure);
             }
 
-            var sourceStackBefore = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
-            var targetStackBefore = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
+            var sourceStackBefore = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
+            var targetStackBefore = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
 
             var swapContext = new InventorySwapContext(
                 sourceStackBefore,
@@ -630,8 +630,8 @@ namespace DragAndDropSystem.Inventories
                 return new SwapExecutionAttempt(false, default, "TrySwapSlots returned false");
             }
 
-            swapDomainContexts[0].MarkCommitted(targetSlot, sourceStackBefore.Item, sourceStackBefore.Count);
-            swapDomainContexts[1].MarkCommitted(sourceSlot, targetStackBefore.Item, targetStackBefore.Count);
+            swapDomainContexts[0].MarkCommitted(targetSlot, sourceStackBefore.ItemAdapter, sourceStackBefore.Count);
+            swapDomainContexts[1].MarkCommitted(sourceSlot, targetStackBefore.ItemAdapter, targetStackBefore.Count);
 
             var swapOutcome = new PendingSwapOutcome(
                 swapContext,
@@ -659,8 +659,8 @@ namespace DragAndDropSystem.Inventories
                     targetInventory,
                     sourceSlot,
                     targetSlot,
-                    sourceStackBefore.Item,
-                    sourceStackBefore.Item,
+                    sourceStackBefore.ItemAdapter,
+                    sourceStackBefore.ItemAdapter,
                     sourceStackBefore.Count,
                     TransferKind.Swap),
                 new TransferDomainContext(
@@ -668,8 +668,8 @@ namespace DragAndDropSystem.Inventories
                     sourceInventory,
                     targetSlot,
                     sourceSlot,
-                    targetStackBefore.Item,
-                    targetStackBefore.Item,
+                    targetStackBefore.ItemAdapter,
+                    targetStackBefore.ItemAdapter,
                     targetStackBefore.Count,
                     TransferKind.Swap)
             };
@@ -710,11 +710,11 @@ namespace DragAndDropSystem.Inventories
             var sourceSlotState = InventorySnapshotUtility.CaptureSlotState(sourceSlot);
 
             int requestedAmount = draggedStack.Count;
-            var stackItem = draggedStack.Item;
+            var stackItem = draggedStack.ItemAdapter;
 
             if (!TransferItemConversionUtility.TryResolveTargetItem(sourceInventory, targetInventory, stackItem, out var targetPreviewItem))
             {
-                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory rejected item conversion</color>");
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory rejected itemAdapter conversion</color>");
                 return false;
             }
 
@@ -808,7 +808,7 @@ namespace DragAndDropSystem.Inventories
                 sourceSlot,
                 resolvedSlot,
                 stackItem,
-                resolvedSlot?.Stack?.Item ?? targetPreviewItem,
+                resolvedSlot?.Stack?.ItemAdapter ?? targetPreviewItem,
                 actuallyAdded,
                 targetWasEmpty,
                 actualRemaining);
@@ -890,8 +890,8 @@ namespace DragAndDropSystem.Inventories
         {
             failureReason = null;
 
-            var sourceStack = new ItemStack(sourceSlot.Stack.Item, sourceSlot.Stack.Count);
-            var targetStack = new ItemStack(targetSlot.Stack.Item, targetSlot.Stack.Count);
+            var sourceStack = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
+            var targetStack = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
 
             var sourceContext = new DragContext(sourceStack, sourceSlot, sourceInventory, targetSlot, targetInventory);
             var sourceEntry = sourceContext.Entries[0];
@@ -930,13 +930,13 @@ namespace DragAndDropSystem.Inventories
 
             foreach (var outcome in outcomes)
             {
-                if (outcome.SourceItem == null || outcome.TargetItem == null || outcome.Amount <= 0)
+                if (outcome.SourceItemAdapter == null || outcome.TargetItemAdapter == null || outcome.Amount <= 0)
                     continue;
 
                 if (outcome.SourceInventory is UniversalInventory sourceUniversal)
                 {
                     sourceUniversal.EmitItemRemoved(
-                        outcome.SourceItem,
+                        outcome.SourceItemAdapter,
                         outcome.Amount,
                         outcome.SourceSlot?.Index ?? -1,
                         outcome.TargetInventory,
@@ -948,7 +948,7 @@ namespace DragAndDropSystem.Inventories
                 if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null)
                 {
                     targetUniversal.EmitItemAdded(
-                        outcome.TargetItem,
+                        outcome.TargetItemAdapter,
                         outcome.Amount,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
@@ -970,7 +970,7 @@ namespace DragAndDropSystem.Inventories
                     !outcome.SwapResult.TargetStackBefore.IsEmpty)
                 {
                     outcome.TargetInventory.EmitItemRemoved(
-                        outcome.SwapResult.TargetStackBefore.Item,
+                        outcome.SwapResult.TargetStackBefore.ItemAdapter,
                         outcome.SwapResult.TargetStackBefore.Count,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
@@ -978,7 +978,7 @@ namespace DragAndDropSystem.Inventories
                         outcome.SourceSlot);
 
                     outcome.TargetInventory.EmitItemAdded(
-                        outcome.SwapResult.SourceStackBefore.Item,
+                        outcome.SwapResult.SourceStackBefore.ItemAdapter,
                         outcome.SwapResult.SourceStackBefore.Count,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
@@ -991,7 +991,7 @@ namespace DragAndDropSystem.Inventories
                     !outcome.SwapResult.SourceStackBefore.IsEmpty)
                 {
                     outcome.SourceInventory.EmitItemRemoved(
-                        outcome.SwapResult.SourceStackBefore.Item,
+                        outcome.SwapResult.SourceStackBefore.ItemAdapter,
                         outcome.SwapResult.SourceStackBefore.Count,
                         outcome.SourceSlot.Index,
                         outcome.TargetInventory,
@@ -999,7 +999,7 @@ namespace DragAndDropSystem.Inventories
                         outcome.TargetSlot);
 
                     outcome.SourceInventory.EmitItemAdded(
-                        outcome.SwapResult.TargetStackBefore.Item,
+                        outcome.SwapResult.TargetStackBefore.ItemAdapter,
                         outcome.SwapResult.TargetStackBefore.Count,
                         outcome.SourceSlot.Index,
                         outcome.TargetInventory,

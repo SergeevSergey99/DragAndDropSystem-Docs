@@ -3,7 +3,7 @@ using UnityEngine;
 namespace DragAndDropSystem.World3D
 {
     /// <summary>
-    /// Интерфейс для связи IInventoryItem с 3D префабами
+    /// Интерфейс для связи IItemAdapter с 3D префабами
     /// Реализуйте этот интерфейс в ваших ScriptableObject предметах,
     /// чтобы они могли быть выброшены в мир
     /// </summary>

@@ -221,10 +221,10 @@ namespace DragAndDropSystem.UI
             if (!context.IsBatchDrag)
             {
                 var stack = context.Entries[0].Stack;
-                if (stack == null || stack.Item == null)
+                if (stack == null || stack.ItemAdapter == null)
                     return false;
 
-                if (!TransferItemConversionUtility.TryResolveTargetItem(context.Entries[0].SourceInventory, _inventory, stack.Item, out var targetPreviewItem))
+                if (!TransferItemConversionUtility.TryResolveTargetItem(context.Entries[0].SourceInventory, _inventory, stack.ItemAdapter, out var targetPreviewItem))
                     return false;
 
                 var acceptanceRequest = new InventoryAcceptanceRequest(
@@ -237,7 +237,7 @@ namespace DragAndDropSystem.UI
                 bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out suggestedSlot);
                 if (!canAccept)
                 {
-                    Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept item in {_inventory.name}</color>");
+                    Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept itemAdapter in {_inventory.name}</color>");
                     return false;
                 }
             }

@@ -5,19 +5,19 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Адаптер ItemInstance → IInventoryItem.
+    /// Адаптер ItemInstance → IItemAdapter.
     /// Контейнеры не стакаются (MaxStackSize = 1).
     /// </summary>
-    public class ContainerItemAdapter : IInventoryItem, IDescribable
+    public class ContainerItemAdapterAdapter : IItemAdapter, IDescribable
     {
         public readonly IContainerizeItemInstance Instance;
 
-        public ContainerItemAdapter(IContainerizeItemInstance instance) => Instance = instance;
+        public ContainerItemAdapterAdapter(IContainerizeItemInstance instance) => Instance = instance;
 
-        // IInventoryItem
+        // IItemAdapter
         public string ItemId => Instance is ContainerItemInstance
             ? $"container:{Instance.GetHashCode()}"
-            : $"item:{Instance.GetItem().GetInstanceID()}";
+            : $"itemAdapter:{Instance.GetItem().GetInstanceID()}";
         public Sprite Icon => Instance.GetItem().Icon;
         public string DisplayName => Instance.GetItem().DisplayName;
 

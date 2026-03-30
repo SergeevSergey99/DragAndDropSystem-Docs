@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Examples.Trading
     /// Использует ListInventoryDataBinding для автоматической синхронизации списка предметов.
     /// Conversion вынесен в отдельный inventory-side converter.
     /// </summary>
-    public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>, ITransferDomainHandler
+    public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
         [FoldoutGroup("UI References")]
         [SerializeField, Tooltip("Текст для отображения денег игрока")]
@@ -34,12 +34,12 @@ namespace DragAndDropSystem.Examples.Trading
         // --- ListInventoryDataBinding примитивы ---
 
         protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
-        protected override TradableItemModelAdapter CreateAdapter(TradableItemModel item) => new(item);
-        protected override IInventoryItemConverter CreateItemConverter() => new ModelInventoryItemConverter();
+        protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
+        protected override IItemAdapterConverter CreateItemConverter() => new ModelItemAdapterConverter();
         protected override RuleResult CanDrop(DragContext context, DragEntry entry) => RuleResult.Success();
 
-        protected override void AddToData(TradableItemModelAdapter adapter) => PlayerData.AddItem(adapter.Item);
-        protected override void RemoveFromData(TradableItemModelAdapter adapter) => PlayerData.TryRemoveItem(adapter.Item);
+        protected override void AddToData(TradableItemAdapterModelAdapter adapter) => PlayerData.AddItem(adapter.Item);
+        protected override void RemoveFromData(TradableItemAdapterModelAdapter adapter) => PlayerData.TryRemoveItem(adapter.Item);
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 

@@ -19,7 +19,7 @@ namespace DragAndDropSystem.Inventories
             ItemStack stack,
             int targetSlotIndex,
             IPlacementStrategy placementStrategy,
-            Func<ISlot, IInventoryItem, int, bool> canAcceptByRules,
+            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules,
             Func<InventorySnapshot> captureSnapshot,
             Action<InventorySnapshot> restoreSnapshot)
         {
@@ -56,7 +56,7 @@ namespace DragAndDropSystem.Inventories
             List<ISlot> slots,
             ItemStack stack,
             int targetSlotIndex,
-            Func<ISlot, IInventoryItem, int, bool> canAcceptByRules)
+            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
         {
             var result = new List<ISlot>();
 
@@ -76,7 +76,7 @@ namespace DragAndDropSystem.Inventories
                 if (slot.IsEmpty)
                     continue;
 
-                if (canAcceptByRules(slot, stack.Item, stack.Count))
+                if (canAcceptByRules(slot, stack.ItemAdapter, stack.Count))
                     result.Add(slot);
             }
 
@@ -97,7 +97,7 @@ namespace DragAndDropSystem.Inventories
             List<ISlot> slots,
             ISlot slotToFree,
             ItemStack incomingStack,
-            Func<ISlot, IInventoryItem, int, bool> canAcceptByRules)
+            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
         {
             if (slotToFree == null || slotToFree.IsEmpty)
                 return false;
@@ -115,17 +115,17 @@ namespace DragAndDropSystem.Inventories
 
                 if (!slot.IsEmpty)
                 {
-                    if (!slot.Stack.CanStack(occupantStack.Item))
+                    if (!slot.Stack.CanStack(occupantStack.ItemAdapter))
                         continue;
 
-                    if (!canAcceptByRules(slot, occupantStack.Item, occupantStack.Count))
+                    if (!canAcceptByRules(slot, occupantStack.ItemAdapter, occupantStack.Count))
                         continue;
 
                     destinations.Add(slot);
                 }
                 else
                 {
-                    if (!canAcceptByRules(slot, occupantStack.Item, occupantStack.Count))
+                    if (!canAcceptByRules(slot, occupantStack.ItemAdapter, occupantStack.Count))
                         continue;
 
                     destinations.Add(slot);
@@ -147,10 +147,10 @@ namespace DragAndDropSystem.Inventories
             ISlot a,
             ISlot b,
             ItemStack incomingStack,
-            Func<ISlot, IInventoryItem, int, bool> canAcceptByRules)
+            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
         {
-            bool aAllowsIncoming = canAcceptByRules(a, incomingStack.Item, 1);
-            bool bAllowsIncoming = canAcceptByRules(b, incomingStack.Item, 1);
+            bool aAllowsIncoming = canAcceptByRules(a, incomingStack.ItemAdapter, 1);
+            bool bAllowsIncoming = canAcceptByRules(b, incomingStack.ItemAdapter, 1);
 
             if (aAllowsIncoming != bAllowsIncoming)
                 return aAllowsIncoming ? 1 : -1;
@@ -161,7 +161,7 @@ namespace DragAndDropSystem.Inventories
         private static bool TryMoveStack(
             ISlot sourceSlot,
             ISlot destinationSlot,
-            Func<ISlot, IInventoryItem, int, bool> canAcceptByRules)
+            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
         {
             if (sourceSlot == null || destinationSlot == null)
                 return false;
@@ -171,7 +171,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             int amountToMove = sourceStack.Count;
-            var itemToMove = sourceStack.Item;
+            var itemToMove = sourceStack.ItemAdapter;
 
             if (!destinationSlot.IsEmpty)
             {

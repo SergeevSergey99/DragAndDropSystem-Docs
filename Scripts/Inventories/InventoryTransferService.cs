@@ -30,7 +30,7 @@ namespace DragAndDropSystem.Inventories
             SourceSlot != null &&
             TargetInventory != null &&
             DraggedStack != null &&
-            DraggedStack.Item != null &&
+            DraggedStack.ItemAdapter != null &&
             DraggedStack.Count > 0;
     }
 
@@ -41,8 +41,8 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             ISlot sourceSlot,
             ISlot targetSlot,
-            IInventoryItem sourceItem,
-            IInventoryItem targetItem,
+            IItemAdapter sourceItemAdapter,
+            IItemAdapter targetItemAdapter,
             int amount,
             bool targetWasEmptyBefore,
             int remainingInSource = 0)
@@ -51,8 +51,8 @@ namespace DragAndDropSystem.Inventories
             TargetInventory = targetInventory;
             SourceSlot = sourceSlot;
             TargetSlot = targetSlot;
-            SourceItem = sourceItem;
-            TargetItem = targetItem ?? sourceItem;
+            SourceItemAdapter = sourceItemAdapter;
+            TargetItemAdapter = targetItemAdapter ?? sourceItemAdapter;
             Amount = amount;
             TargetWasEmptyBefore = targetWasEmptyBefore;
             RemainingInSource = remainingInSource;
@@ -62,9 +62,9 @@ namespace DragAndDropSystem.Inventories
         public IInventory TargetInventory { get; }
         public ISlot SourceSlot { get; }
         public ISlot TargetSlot { get; }
-        public IInventoryItem SourceItem { get; }
-        public IInventoryItem TargetItem { get; }
-        public IInventoryItem Item => TargetItem;
+        public IItemAdapter SourceItemAdapter { get; }
+        public IItemAdapter TargetItemAdapter { get; }
+        public IItemAdapter ItemAdapter => TargetItemAdapter;
         public int Amount { get; }
         public bool TargetWasEmptyBefore { get; }
         public int RemainingInSource { get; }

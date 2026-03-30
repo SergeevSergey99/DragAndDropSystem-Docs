@@ -3,38 +3,38 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Resolves target-side preview item for transfer planning/execution without mutating source stacks.
+    /// Resolves target-side preview itemAdapter for transfer planning/execution without mutating source stacks.
     /// </summary>
     internal static class TransferItemConversionUtility
     {
         public static bool TryResolveTargetItem(
             IInventory sourceInventory,
             IInventory targetInventory,
-            IInventoryItem sourceItem,
-            out IInventoryItem targetItem)
+            IItemAdapter sourceItemAdapter,
+            out IItemAdapter targetItemAdapter)
         {
-            targetItem = sourceItem;
-            if (sourceItem == null)
+            targetItemAdapter = sourceItemAdapter;
+            if (sourceItemAdapter == null)
                 return false;
 
-            var intermediateItem = sourceItem;
+            var intermediateItem = sourceItemAdapter;
 
             if (sourceInventory is UniversalInventory sourceUniversal &&
-                !sourceUniversal.TryPreviewOutgoingItem(sourceItem, out intermediateItem))
+                !sourceUniversal.TryPreviewOutgoingItem(sourceItemAdapter, out intermediateItem))
             {
-                targetItem = null;
+                targetItemAdapter = null;
                 return false;
             }
 
             if (targetInventory is UniversalInventory targetUniversal &&
-                !targetUniversal.TryPreviewIncomingItem(intermediateItem, out targetItem))
+                !targetUniversal.TryPreviewIncomingItem(intermediateItem, out targetItemAdapter))
             {
-                targetItem = null;
+                targetItemAdapter = null;
                 return false;
             }
 
-            targetItem ??= intermediateItem;
-            return targetItem != null;
+            targetItemAdapter ??= intermediateItem;
+            return targetItemAdapter != null;
         }
     }
 }

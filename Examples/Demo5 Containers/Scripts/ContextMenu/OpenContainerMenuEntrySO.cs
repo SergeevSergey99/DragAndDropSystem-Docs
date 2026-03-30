@@ -13,12 +13,12 @@ namespace DragAndDropSystem.Examples.Containers
         
         public override bool CanShow(ContextMenuContext ctx)
         {
-            return ctx.Item is ContainerItemAdapter { Instance: ContainerItemInstance };
+            return ctx.ItemAdapter is ContainerItemAdapterAdapter { Instance: ContainerItemInstance };
         }
 
         public override void Execute(ContextMenuContext ctx)
         {
-            if (ctx.Item is not ContainerItemAdapter adapter)
+            if (ctx.ItemAdapter is not ContainerItemAdapterAdapter adapter)
                 return;
             
             if (adapter.Instance is ContainerItemInstance  instance)

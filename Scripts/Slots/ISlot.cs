@@ -31,7 +31,7 @@ namespace DragAndDropSystem.Slots
 
         public abstract void Initialize(int index, IInventory inventory);
         public abstract void SetStack(ItemStack stack);
-        public abstract void ReplaceItem(IInventoryItem newItem);
+        public abstract void ReplaceItem(IItemAdapter newItemAdapter);
         public abstract void Clear();
         public abstract void UpdateVisuals();
         

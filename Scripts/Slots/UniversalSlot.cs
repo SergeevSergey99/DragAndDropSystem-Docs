@@ -68,17 +68,17 @@ namespace DragAndDropSystem.Slots
             UpdateVisuals();
         }
 
-        public override void ReplaceItem(IInventoryItem newItem)
+        public override void ReplaceItem(IItemAdapter newItemAdapter)
         {
             if (_stack == null || _stack.IsEmpty)
             {
                 // Если слот пуст, создаем новый стек с количеством 1
-                _stack = new ItemStack(newItem, 1);
+                _stack = new ItemStack(newItemAdapter, 1);
             }
             else
             {
                 // Заменяем предмет, сохраняя количество
-                _stack.ReplaceItem(newItem);
+                _stack.ReplaceItem(newItemAdapter);
             }
 
             UpdateVisuals();
@@ -105,7 +105,7 @@ namespace DragAndDropSystem.Slots
         }
         protected virtual void RenderSetted()
         {
-            _iconImage.sprite = _stack.Item.Icon;
+            _iconImage.sprite = _stack.ItemAdapter.Icon;
             _iconImage.color = _normalColor;
             _iconImage.enabled = true;
         }

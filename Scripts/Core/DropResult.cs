@@ -15,9 +15,9 @@ namespace DragAndDropSystem.Core
         public bool Success { get; }
 
         /// <summary>
-        /// The item that was dropped
+        /// The itemAdapter that was dropped
         /// </summary>
-        public IInventoryItem Item { get; }
+        public IItemAdapter ItemAdapter { get; }
 
         /// <summary>
         /// Number of items successfully dropped
@@ -61,7 +61,7 @@ namespace DragAndDropSystem.Core
 
         private DropResult(
             bool success,
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             int amount,
             ISlot targetSlot,
             IInventory targetInventory,
@@ -72,7 +72,7 @@ namespace DragAndDropSystem.Core
             int failedEntries)
         {
             Success = success;
-            Item = item;
+            ItemAdapter = itemAdapter;
             Amount = amount;
             TargetSlot = targetSlot;
             TargetInventory = targetInventory;
@@ -87,7 +87,7 @@ namespace DragAndDropSystem.Core
         /// Create a successful drop result
         /// </summary>
         public static DropResult Succeeded(
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             int amount,
             ISlot targetSlot = null,
             IInventory targetInventory = null,
@@ -98,7 +98,7 @@ namespace DragAndDropSystem.Core
         {
             return new DropResult(
                 success: true,
-                item: item,
+                itemAdapter: itemAdapter,
                 amount: amount,
                 targetSlot: targetSlot,
                 targetInventory: targetInventory,
@@ -116,7 +116,7 @@ namespace DragAndDropSystem.Core
         {
             return new DropResult(
                 success: false,
-                item: null,
+                itemAdapter: null,
                 amount: 0,
                 targetSlot: null,
                 targetInventory: null,
@@ -131,7 +131,7 @@ namespace DragAndDropSystem.Core
         /// Create a successful batch drop result.
         /// </summary>
         public static DropResult SucceededBatch(
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             int amount,
             ISlot targetSlot,
             IInventory targetInventory,
@@ -142,7 +142,7 @@ namespace DragAndDropSystem.Core
         {
             return new DropResult(
                 success: true,
-                item: item,
+                itemAdapter: itemAdapter,
                 amount: amount,
                 targetSlot: targetSlot,
                 targetInventory: targetInventory,
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.Core
         {
             return new DropResult(
                 success: false,
-                item: null,
+                itemAdapter: null,
                 amount: 0,
                 targetSlot: null,
                 targetInventory: null,

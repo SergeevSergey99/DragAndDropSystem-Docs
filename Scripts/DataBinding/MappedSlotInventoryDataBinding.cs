@@ -36,7 +36,7 @@ namespace DragAndDropSystem.DataBinding
     /// наследнику достаточно определить CreateBindingMap(), CreateAdapter() и ExtractData().
     ///
     /// TData — тип элемента данных (например, ItemModel)
-    /// TAdapter — тип адаптера, реализующий IInventoryItem (например, ItemModelAdapter)
+    /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemModelAdapter)
     ///
     /// Пример использования:
     /// <code>
@@ -48,24 +48,24 @@ namespace DragAndDropSystem.DataBinding
     ///     {
     ///         [_weaponSlot] = new(
     ///             get: () =&gt; _data.Weapon,
-    ///             set: item =&gt; _data.Weapon = item,
+    ///             set: itemAdapter =&gt; _data.Weapon = itemAdapter,
     ///             clear: () =&gt; _data.Weapon = null,
-    ///             canAccept: item =&gt; item.Type == ItemType.Weapon
+    ///             canAccept: itemAdapter =&gt; itemAdapter.Type == ItemType.Weapon
     ///                 ? RuleResult.Success()
     ///                 : RuleResult.Failure("Только оружие")),
     ///         [_armorSlot] = new(
     ///             get: () =&gt; _data.Armor,
-    ///             set: item =&gt; _data.Armor = item,
+    ///             set: itemAdapter =&gt; _data.Armor = itemAdapter,
     ///             clear: () =&gt; _data.Armor = null),
     ///     };
     ///
-    ///     protected override ItemModelAdapter CreateAdapter(ItemModel item) =&gt; new(item);
-    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.Item;
+    ///     protected override ItemModelAdapter CreateAdapter(ItemModel itemAdapter) =&gt; new(itemAdapter);
+    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.ItemAdapter;
     /// }
     /// </code>
     /// </summary>
     public abstract class MappedSlotInventoryDataBinding<TData, TAdapter> : InventoryDataBindingBase
-        where TAdapter : class, IInventoryItem
+        where TAdapter : class, IItemAdapter
     {
         private Dictionary<ISlot, SlotBinding<TData>> _bindingMap;
 
@@ -82,7 +82,7 @@ namespace DragAndDropSystem.DataBinding
         protected abstract Dictionary<ISlot, SlotBinding<TData>> CreateBindingMap();
 
         /// <summary>
-        /// Создать адаптер (IInventoryItem) из элемента данных.
+        /// Создать адаптер (IItemAdapter) из элемента данных.
         /// Вызывается при загрузке данных в UI (ReloadUI).
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
@@ -119,7 +119,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.Item is not TAdapter adapter) return;
+            if (context.ItemAdapter is not TAdapter adapter) return;
 
             var data = ExtractData(adapter);
             if (data == null) return;
@@ -136,7 +136,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack.Item is not TAdapter adapter)
+            if (entry.Stack.ItemAdapter is not TAdapter adapter)
                 return RuleResult.Failure("Неверный тип предмета");
 
             if (!TryGetTargetBinding(context?.TargetSlot, out var binding))

@@ -25,12 +25,12 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Добавить предмет в инвентарь игрока
         /// </summary>
-        public void AddToInventory(IInventoryItem item, int count)
+        public void AddToInventory(IItemAdapter itemAdapter, int count)
         {
-            Extensions.DragAndDropLog($"[GameManager] AddToInventory: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] AddToInventory: {itemAdapter.DisplayName} x{count}");
 
             // Ищем существующий предмет
-            var existing = _itemsInInventory.Find(x => x.ItemId == item.ItemId);
+            var existing = _itemsInInventory.Find(x => x.ItemId == itemAdapter.ItemId);
 
             if (existing != null)
             {
@@ -40,7 +40,7 @@ namespace DragAndDropSystem.DataBinding
             else
             {
                 // Добавляем новый
-                _itemsInInventory.Add(new ItemData(item, count));
+                _itemsInInventory.Add(new ItemData(itemAdapter, count));
             }
 
             // Вызываем событие
@@ -50,11 +50,11 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Удалить предмет из инвентаря игрока
         /// </summary>
-        public void RemoveFromInventory(IInventoryItem item, int count)
+        public void RemoveFromInventory(IItemAdapter itemAdapter, int count)
         {
-            Extensions.DragAndDropLog($"[GameManager] RemoveFromInventory: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] RemoveFromInventory: {itemAdapter.DisplayName} x{count}");
 
-            var existing = _itemsInInventory.Find(x => x.ItemId == item.ItemId);
+            var existing = _itemsInInventory.Find(x => x.ItemId == itemAdapter.ItemId);
 
             if (existing != null)
             {
@@ -95,12 +95,12 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Добавить предмет на крафт-стол
         /// </summary>
-        public void AddToCraftTable(IInventoryItem item, int count)
+        public void AddToCraftTable(IItemAdapter itemAdapter, int count)
         {
-            Extensions.DragAndDropLog($"[GameManager] AddToCraftTable: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] AddToCraftTable: {itemAdapter.DisplayName} x{count}");
 
             // Ищем существующий предмет
-            var existing = _itemsOnCraftTable.Find(x => x.ItemId == item.ItemId);
+            var existing = _itemsOnCraftTable.Find(x => x.ItemId == itemAdapter.ItemId);
 
             if (existing != null)
             {
@@ -110,7 +110,7 @@ namespace DragAndDropSystem.DataBinding
             else
             {
                 // Добавляем новый
-                _itemsOnCraftTable.Add(new ItemData(item, count));
+                _itemsOnCraftTable.Add(new ItemData(itemAdapter, count));
             }
 
             // Вызываем событие
@@ -120,11 +120,11 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>
         /// Удалить предмет с крафт-стола
         /// </summary>
-        public void RemoveFromCraftTable(IInventoryItem item, int count)
+        public void RemoveFromCraftTable(IItemAdapter itemAdapter, int count)
         {
-            Extensions.DragAndDropLog($"[GameManager] RemoveFromCraftTable: {item.DisplayName} x{count}");
+            Extensions.DragAndDropLog($"[GameManager] RemoveFromCraftTable: {itemAdapter.DisplayName} x{count}");
 
-            var existing = _itemsOnCraftTable.Find(x => x.ItemId == item.ItemId);
+            var existing = _itemsOnCraftTable.Find(x => x.ItemId == itemAdapter.ItemId);
 
             if (existing != null)
             {
@@ -193,15 +193,15 @@ namespace DragAndDropSystem.DataBinding
         public string ItemId;
         public int Count;
 
-        // Опционально: ссылка на ItemSO или IInventoryItem
+        // Опционально: ссылка на ItemSO или IItemAdapter
         // public ItemSO ItemSO;
-        // public IInventoryItem Item;
+        // public IItemAdapter ItemAdapter;
 
-        public ItemData(IInventoryItem item, int count)
+        public ItemData(IItemAdapter itemAdapter, int count)
         {
-            ItemId = item.ItemId;
+            ItemId = itemAdapter.ItemId;
             Count = count;
-            // ItemSO = item as ItemSO;
+            // ItemSO = itemAdapter as ItemSO;
         }
 
         public ItemData(string itemId, int count)

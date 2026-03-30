@@ -5,31 +5,31 @@ namespace DragAndDropSystem.Inventories
 {
     internal sealed class VirtualSlotState
     {
-        private IInventoryItem _item;
+        private IItemAdapter _itemAdapter;
         private int _count;
 
         public VirtualSlotState(ISlot slot)
         {
             Slot = slot;
-            if (slot == null || slot.IsEmpty || slot.Stack?.Item == null)
+            if (slot == null || slot.IsEmpty || slot.Stack?.ItemAdapter == null)
             {
-                _item = null;
+                _itemAdapter = null;
                 _count = 0;
                 return;
             }
 
-            _item = slot.Stack.Item;
+            _itemAdapter = slot.Stack.ItemAdapter;
             _count = slot.Stack.Count;
         }
 
         public ISlot Slot { get; }
-        public bool IsEmpty => _item == null || _count <= 0;
-        public IInventoryItem Item => _item;
+        public bool IsEmpty => _itemAdapter == null || _count <= 0;
+        public IItemAdapter ItemAdapter => _itemAdapter;
         public int Count => _count;
 
-        public bool CanAccept(IInventoryItem item, bool uniqueMode)
+        public bool CanAccept(IItemAdapter itemAdapter, bool uniqueMode)
         {
-            if (Slot == null || item == null || !Slot.IsInteractable)
+            if (Slot == null || itemAdapter == null || !Slot.IsInteractable)
                 return false;
 
             if (uniqueMode)
@@ -38,17 +38,17 @@ namespace DragAndDropSystem.Inventories
             if (IsEmpty)
                 return true;
 
-            return _item.ItemId == item.ItemId;
+            return _itemAdapter.ItemId == itemAdapter.ItemId;
         }
 
-        public void Apply(IInventoryItem item, int amount)
+        public void Apply(IItemAdapter itemAdapter, int amount)
         {
-            if (amount <= 0 || item == null)
+            if (amount <= 0 || itemAdapter == null)
                 return;
 
             if (IsEmpty)
             {
-                _item = item;
+                _itemAdapter = itemAdapter;
                 _count = amount;
             }
             else

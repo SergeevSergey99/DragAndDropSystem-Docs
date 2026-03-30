@@ -61,8 +61,8 @@ namespace DragAndDropSystem.Filter
                 case SortMode.ByName:
                     return (a, b) =>
                     {
-                        var nameA = a.IsEmpty ? "" : a.Stack.Item.DisplayName ?? "";
-                        var nameB = b.IsEmpty ? "" : b.Stack.Item.DisplayName ?? "";
+                        var nameA = a.IsEmpty ? "" : a.Stack.ItemAdapter.DisplayName ?? "";
+                        var nameB = b.IsEmpty ? "" : b.Stack.ItemAdapter.DisplayName ?? "";
                         return string.Compare(nameA, nameB, StringComparison.OrdinalIgnoreCase) * direction;
                     };
 
@@ -117,7 +117,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return "";
 
-            if (slot.Stack.Item is IFilterable filterable)
+            if (slot.Stack.ItemAdapter is IFilterable filterable)
                 return filterable.Category ?? "";
 
             return "";
@@ -128,7 +128,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return -1;
 
-            if (slot.Stack.Item is IFilterable filterable)
+            if (slot.Stack.ItemAdapter is IFilterable filterable)
                 return filterable.Rarity;
 
             return 0;
@@ -139,7 +139,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return int.MinValue;
 
-            if (slot.Stack.Item is ISortable sortable)
+            if (slot.Stack.ItemAdapter is ISortable sortable)
                 return sortable.SortValue;
 
             return 0;

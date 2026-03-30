@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Inventories
                 return new InventorySlotState(null, 0);
             }
 
-            return new InventorySlotState(slot.Stack.Item, slot.Stack.Count);
+            return new InventorySlotState(slot.Stack.ItemAdapter, slot.Stack.Count);
         }
 
         public static void RestoreSlotState(ISlot slot, InventorySlotState state)
@@ -29,7 +29,7 @@ namespace DragAndDropSystem.Inventories
             }
             else
             {
-                slot.SetStack(new ItemStack(state.Item, state.Count));
+                slot.SetStack(new ItemStack(state.ItemAdapter, state.Count));
             }
 
             slot.UpdateVisuals();
@@ -91,7 +91,7 @@ namespace DragAndDropSystem.Inventories
                 if (!changed && !prevEmpty && !nowEmpty)
                 {
                     var stack = slot.Stack;
-                    if (stack.Item != previous.Item || stack.Count != previous.Count)
+                    if (stack.ItemAdapter != previous.ItemAdapter || stack.Count != previous.Count)
                     {
                         changed = true;
                     }

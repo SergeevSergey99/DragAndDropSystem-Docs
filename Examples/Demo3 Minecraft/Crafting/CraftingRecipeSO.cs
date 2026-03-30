@@ -48,7 +48,7 @@ namespace DragAndDropSystem.Examples.Minecraft
             var items = new MinecraftItemSO[9];
             for (int i = 0; i < 9; i++)
             {
-                if (gridSlots[i] != null && !gridSlots[i].IsEmpty && gridSlots[i].Stack.Item is MinecraftItemAdapter adapter)
+                if (gridSlots[i] != null && !gridSlots[i].IsEmpty && gridSlots[i].Stack.ItemAdapter is MinecraftItemAdapterAdapter adapter)
                 {
                     items[i] = adapter.ItemSO;
                 }

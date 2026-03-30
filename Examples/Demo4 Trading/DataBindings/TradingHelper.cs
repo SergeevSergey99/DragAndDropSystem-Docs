@@ -21,7 +21,7 @@ namespace DragAndDropSystem.Examples.Trading
             if (entry.SourceInventory?.DataBinding is IMerchantInventory)
                 return RuleResult.Failure("Нельзя торговать между торговцами!");
             
-            if (entry.Stack.Item is not ITradableItem)
+            if (entry.Stack.ItemAdapter is not ITradableItem)
                 return RuleResult.Failure("Неверный тип предмета");
             
             return RuleResult.Success();
@@ -32,7 +32,7 @@ namespace DragAndDropSystem.Examples.Trading
             if (context.SourceInventory?.DataBinding is not IMerchantInventory)
                 return RuleResult.Success();
 
-            if (context.SourceItem is not ITradableItem tradable)
+            if (context.SourceItemAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Неверный тип предмета");
 
             int totalPrice = tradable.BuyPrice * context.RequestedAmount;
@@ -50,7 +50,7 @@ namespace DragAndDropSystem.Examples.Trading
             if (context.SourceInventory?.DataBinding is IMerchantInventory)
                 return RuleResult.Failure("Нельзя торговать между торговцами!");
 
-            if (context.SourceItem is not ITradableItem tradable)
+            if (context.SourceItemAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Неверный тип предмета");
 
             int totalPrice = tradable.SellPrice * context.RequestedAmount;
@@ -63,14 +63,14 @@ namespace DragAndDropSystem.Examples.Trading
         public static void ApplyPlayerTransferEffects(TransferDomainContext context, PlayerData playerData)
         {
             if (context.SourceInventory?.DataBinding is IMerchantInventory &&
-                context.SourceItem is ITradableItem buyItem)
+                context.SourceItemAdapter is ITradableItem buyItem)
             {
                 playerData.TrySpendMoney(buyItem.BuyPrice * context.CommittedAmount);
                 return;
             }
 
             if (context.TargetInventory?.DataBinding is IMerchantInventory &&
-                context.SourceItem is ITradableItem sellItem)
+                context.SourceItemAdapter is ITradableItem sellItem)
             {
                 playerData.AddMoney(sellItem.SellPrice * context.CommittedAmount);
             }
@@ -79,14 +79,14 @@ namespace DragAndDropSystem.Examples.Trading
         public static void ApplyMerchantTransferEffects(TransferDomainContext context, MerchantData merchantData)
         {
             if (context.SourceInventory?.DataBinding is IMerchantInventory &&
-                context.SourceItem is ITradableItem soldByMerchant)
+                context.SourceItemAdapter is ITradableItem soldByMerchant)
             {
                 merchantData.AddMoney(soldByMerchant.BuyPrice * context.CommittedAmount);
                 return;
             }
 
             if (context.TargetInventory?.DataBinding is IMerchantInventory &&
-                context.SourceItem is ITradableItem boughtByMerchant)
+                context.SourceItemAdapter is ITradableItem boughtByMerchant)
             {
                 merchantData.TrySpendMoney(boughtByMerchant.SellPrice * context.CommittedAmount);
             }

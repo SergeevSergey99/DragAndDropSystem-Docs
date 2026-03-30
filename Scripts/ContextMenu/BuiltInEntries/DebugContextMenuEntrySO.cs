@@ -7,14 +7,14 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
     {
         public override bool CanShow(ContextMenuContext ctx)
         {
-            if (ctx.Inventory == null || ctx.Slot == null || ctx.Item == null)
+            if (ctx.Inventory == null || ctx.Slot == null || ctx.ItemAdapter == null)
                 return false;
             return true;
         }
 
         public override void Execute(ContextMenuContext ctx)
         {
-            Debug.Log($"Item name: {ctx.Slot.Stack.Item.DisplayName}, stack size: {ctx.Slot.Stack.Count}");
+            Debug.Log($"ItemAdapter name: {ctx.Slot.Stack.ItemAdapter.DisplayName}, stack size: {ctx.Slot.Stack.Count}");
         }
     }
 }

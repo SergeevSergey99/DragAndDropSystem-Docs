@@ -14,16 +14,16 @@ namespace Plugins.DragAndDropSystem.Examples
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack == null || entry.Stack.Item == null)
-                return RuleResult.Failure("Invalid item");
+            if (entry.Stack == null || entry.Stack.ItemAdapter == null)
+                return RuleResult.Failure("Invalid itemAdapter");
 
-            if (entry.Stack.Item is ItemSOAdapter adapter)
+            if (entry.Stack.ItemAdapter is ItemAdapterSoAdapter adapter)
             {
                 if (_allowedTypes.Contains(adapter.item.itemType))
                     return RuleResult.Success();
-                return RuleResult.Failure($"Item {entry.Stack.Item.DisplayName} has wrong type");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} has wrong type");
             }
-            return RuleResult.Failure($"Item {entry.Stack.Item.DisplayName} has wrong adapter");
+            return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} has wrong adapter");
         }
     }
 }

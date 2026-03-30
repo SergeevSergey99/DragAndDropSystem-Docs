@@ -6,7 +6,7 @@ namespace DragAndDropSystem.Core
     /// Базовый интерфейс для любого предмета в инвентаре
     /// Минимальный набор свойств для работы системы
     /// </summary>
-    public interface IInventoryItem
+    public interface IItemAdapter
     {
         /// <summary>
         /// Уникальный идентификатор предмета

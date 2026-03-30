@@ -134,7 +134,7 @@ namespace DragAndDropSystem.UI
         /// </summary>
         private void ShowTooltip(SlotHoverEventArgs args)
         {
-            if (args.Item == null) return;
+            if (args.ItemAdapter == null) return;
 
             // Скрываем предыдущий tooltip если был
             if (_currentBaseTooltipView != null)
@@ -152,7 +152,7 @@ namespace DragAndDropSystem.UI
             }
 
             // Показываем tooltip с содержимым
-            _currentBaseTooltipView.Show(args.Item);
+            _currentBaseTooltipView.Show(args.ItemAdapter);
 
             // Позиционируем
             UpdateTooltipPosition(args);

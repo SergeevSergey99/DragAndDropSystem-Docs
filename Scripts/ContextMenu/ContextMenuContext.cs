@@ -14,7 +14,7 @@ namespace DragAndDropSystem.ContextMenu
         public ISlot Slot;
 
         /// <summary>Предмет в слоте. null если слот пустой.</summary>
-        public IInventoryItem Item;
+        public IItemAdapter ItemAdapter;
 
         /// <summary>Количество предметов в стаке.</summary>
         public int ItemCount;

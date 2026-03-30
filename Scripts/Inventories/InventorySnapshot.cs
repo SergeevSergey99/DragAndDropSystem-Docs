@@ -22,16 +22,16 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public struct InventorySlotState
     {
-        public InventorySlotState(IInventoryItem item, int count)
+        public InventorySlotState(IItemAdapter itemAdapter, int count)
         {
-            Item = item;
+            ItemAdapter = itemAdapter;
             Count = count;
         }
 
-        public IInventoryItem Item;
+        public IItemAdapter ItemAdapter;
         public int Count;
 
-        public bool IsEmpty => Item == null || Count <= 0;
+        public bool IsEmpty => ItemAdapter == null || Count <= 0;
     }
 
     /// <summary>

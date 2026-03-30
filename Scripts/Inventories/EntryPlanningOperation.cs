@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Inventories
             bool preferHint,
             IReadOnlyList<VirtualSlotState> virtualSlots,
             GlobalRuleValidator globalRules,
-            IInventoryItem targetItem,
+            IItemAdapter targetItemAdapter,
             int requestedAmount,
             int acceptableByInventory)
         {
@@ -28,7 +28,7 @@ namespace DragAndDropSystem.Inventories
             PreferHint = preferHint;
             VirtualSlots = virtualSlots;
             GlobalRules = globalRules;
-            TargetItem = targetItem;
+            TargetItemAdapter = targetItemAdapter;
             RequestedAmount = requestedAmount;
             AcceptableByInventory = acceptableByInventory;
         }
@@ -41,7 +41,7 @@ namespace DragAndDropSystem.Inventories
         public bool PreferHint { get; }
         public IReadOnlyList<VirtualSlotState> VirtualSlots { get; }
         public GlobalRuleValidator GlobalRules { get; }
-        public IInventoryItem TargetItem { get; }
+        public IItemAdapter TargetItemAdapter { get; }
         public int RequestedAmount { get; }
         public int AcceptableByInventory { get; }
     }

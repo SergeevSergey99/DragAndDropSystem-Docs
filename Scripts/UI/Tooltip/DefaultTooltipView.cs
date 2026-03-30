@@ -40,7 +40,7 @@ namespace DragAndDropSystem.UI
 
         // State
         private Coroutine _fadeCoroutine;
-        private IInventoryItem _currentItem;
+        private IItemAdapter _currentItemAdapter;
 
         // Properties
         public bool IsVisible => gameObject.activeSelf;
@@ -62,16 +62,16 @@ namespace DragAndDropSystem.UI
             gameObject.SetActive(false);
         }
 
-        public override void Show(IInventoryItem item, Action OnCompleted = null)
+        public override void Show(IItemAdapter itemAdapter, Action OnCompleted = null)
         {
-            if (item == null)
+            if (itemAdapter == null)
             {
                 Hide();
                 return;
             }
 
             // Заполняем содержимое
-            SetContent(item);
+            SetContent(itemAdapter);
 
             // Показываем
             gameObject.SetActive(true);
@@ -87,7 +87,7 @@ namespace DragAndDropSystem.UI
 
         public override void Hide(Action OnCompleted = null)
         {
-            _currentItem = null;
+            _currentItemAdapter = null;
 
             // Анимация fade-out
             if (_useFadeAnimation && _canvasGroup != null && gameObject.activeSelf)
@@ -109,36 +109,36 @@ namespace DragAndDropSystem.UI
         /// <summary>
         /// Заполнить содержимое tooltip
         /// </summary>
-        public override void SetContent(IInventoryItem item)
+        public override void SetContent(IItemAdapter itemAdapter)
         {
-            if (item == null) return;
-            _currentItem = item;
+            if (itemAdapter == null) return;
+            _currentItemAdapter = itemAdapter;
             
             // Иконка
-            SetItemIcon(item);
+            SetItemIcon(itemAdapter);
             // Название
-            SetItemName(item);
+            SetItemName(itemAdapter);
             // Описание
-            SetItemDescription(item);
+            SetItemDescription(itemAdapter);
         }
 
         /// <summary>
         /// Установить название предмета
         /// </summary>
-        private void SetItemName(IInventoryItem item)
+        private void SetItemName(IItemAdapter itemAdapter)
         {
-            _itemNameText.text = item?.DisplayName;
+            _itemNameText.text = itemAdapter?.DisplayName;
         }
 
         /// <summary>
         /// Установить описание предмета
         /// </summary>
-        private void SetItemDescription(IInventoryItem item)
+        private void SetItemDescription(IItemAdapter itemAdapter)
         {
             if (_itemDescriptionText == null)
                 return;
 
-            string description = GetDescriptionText(item);
+            string description = GetDescriptionText(itemAdapter);
 
             if (!string.IsNullOrEmpty(description))
             {
@@ -154,14 +154,14 @@ namespace DragAndDropSystem.UI
         /// <summary>
         /// Установить иконку предмета
         /// </summary>
-        private void SetItemIcon(IInventoryItem item)
+        private void SetItemIcon(IItemAdapter itemAdapter)
         {
             if (_itemIcon == null)
                 return;
 
-            if (item.Icon != null)
+            if (itemAdapter.Icon != null)
             {
-                _itemIcon.sprite = item.Icon;
+                _itemIcon.sprite = itemAdapter.Icon;
                 _itemIcon.gameObject.SetActive(true);
             }
             else
@@ -173,9 +173,9 @@ namespace DragAndDropSystem.UI
         /// <summary>
         /// Получить текст описания в зависимости от формата
         /// </summary>
-        private string GetDescriptionText(IInventoryItem item)
+        private string GetDescriptionText(IItemAdapter itemAdapter)
         {
-            if (item is IDescribable describableItem)
+            if (itemAdapter is IDescribable describableItem)
             {
                 return describableItem.Description;
             }

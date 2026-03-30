@@ -6,7 +6,7 @@ namespace Plugins.DragAndDropSystem.Examples
     /// <summary>
     /// Пример предмета с поддержкой 3D представления
     /// Расширяет ItemExampleSO добавляя поле для 3D префаба
-    /// Для работы с системой используйте ItemSOWith3DAdapter
+    /// Для работы с системой используйте ItemAdapterSoWith3DAdapter
     /// </summary>
     [CreateAssetMenu(fileName = "ItemExampleWith3DSO", menuName = "DragAndDrop/Examples/ItemExampleWith3DSO", order = 2)]
     public class ItemExampleWith3DSO : ScriptableObject

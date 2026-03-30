@@ -13,7 +13,7 @@ namespace DragAndDropSystem.Slots
         /// <summary>
         /// Предмет в слоте (может быть null если слот пустой)
         /// </summary>
-        public IInventoryItem Item { get; }
+        public IItemAdapter ItemAdapter { get; }
 
         /// <summary>
         /// Слот на который навели курсор
@@ -51,13 +51,13 @@ namespace DragAndDropSystem.Slots
         public bool Cancel { get; set; }
 
         public SlotHoverEventArgs(
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             UniversalSlot slot,
             Vector2 screenPosition,
             RectTransform rectTransform,
             bool isEnter)
         {
-            Item = item;
+            ItemAdapter = itemAdapter;
             Slot = slot;
             ScreenPosition = screenPosition;
             SlotRectTransform = rectTransform;
@@ -70,12 +70,12 @@ namespace DragAndDropSystem.Slots
         /// <summary>
         /// Проверить что в слоте есть предмет
         /// </summary>
-        public bool HasItem => Item != null;
+        public bool HasItem => ItemAdapter != null;
 
         /// <summary>
         /// Проверить что слот пустой
         /// </summary>
-        public bool IsEmpty => Item == null;
+        public bool IsEmpty => ItemAdapter == null;
 
         /// <summary>
         /// Получить позицию слота в мировых координатах
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Slots
 
         public override string ToString()
         {
-            return $"SlotHover[{(IsEnter ? "Enter" : "Exit")}] Item: {Item?.DisplayName ?? "Empty"}, Slot: {SlotIndex}, Pos: {ScreenPosition}";
+            return $"SlotHover[{(IsEnter ? "Enter" : "Exit")}] ItemAdapter: {ItemAdapter?.DisplayName ?? "Empty"}, Slot: {SlotIndex}, Pos: {ScreenPosition}";
         }
     }
 }

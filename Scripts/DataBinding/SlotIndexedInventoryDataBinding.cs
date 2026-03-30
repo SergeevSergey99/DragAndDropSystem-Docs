@@ -9,29 +9,29 @@ namespace DragAndDropSystem.DataBinding
     /// наследнику достаточно определить 5 методов-примитивов.
     ///
     /// TData — тип элемента данных (например, ItemSO, ItemModel)
-    /// TAdapter — тип адаптера, реализующий IInventoryItem (например, ItemSOAdapter)
+    /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemAdapterSoAdapter)
     ///
     /// Пример использования:
     /// <code>
-    /// public class MyBinding : SlotIndexedInventoryDataBinding&lt;ItemSO, ItemSOAdapter&gt;
+    /// public class MyBinding : SlotIndexedInventoryDataBinding&lt;ItemSO, ItemAdapterSoAdapter&gt;
     /// {
     ///     [SerializeField] private PlayerInventoryData _playerData;
     ///
-    ///     protected override IEnumerable&lt;(int index, ItemSO item, int count)&gt; GetOccupiedSlots()
+    ///     protected override IEnumerable&lt;(int index, ItemSO itemAdapter, int count)&gt; GetOccupiedSlots()
     ///     {
     ///         var slots = _playerData.Slots;
     ///         for (int i = 0; i &lt; slots.Count; i++)
     ///             if (slots[i] != null) yield return (i, slots[i], 1);
     ///     }
-    ///     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new ItemSOAdapter(item);
-    ///     protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.item;
-    ///     protected override void AddToSlotData(int index, ItemSO item, int count) => _playerData.SetItem(index, item);
-    ///     protected override void RemoveFromSlotData(int index, ItemSO item, int count) => _playerData.ClearSlot(index);
+    ///     protected override ItemAdapterSoAdapter CreateAdapter(ItemSO itemAdapter) => new ItemAdapterSoAdapter(itemAdapter);
+    ///     protected override ItemSO ExtractData(ItemAdapterSoAdapter adapter) => adapter.itemAdapter;
+    ///     protected override void AddToSlotData(int index, ItemSO itemAdapter, int count) => _playerData.SetItem(index, itemAdapter);
+    ///     protected override void RemoveFromSlotData(int index, ItemSO itemAdapter, int count) => _playerData.ClearSlot(index);
     /// }
     /// </code>
     /// </summary>
     public abstract class SlotIndexedInventoryDataBinding<TData, TAdapter> : InventoryDataBindingBase
-        where TAdapter : class, IInventoryItem
+        where TAdapter : class, IItemAdapter
     {
         /// <summary>
         /// Получить занятые слоты с их индексами, данными и количеством.
@@ -40,7 +40,7 @@ namespace DragAndDropSystem.DataBinding
         protected abstract IEnumerable<(int index, TData item, int count)> GetOccupiedSlots();
 
         /// <summary>
-        /// Создать адаптер (IInventoryItem) из элемента данных.
+        /// Создать адаптер (IItemAdapter) из элемента данных.
         /// Вызывается при загрузке данных в UI (ReloadUI).
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
@@ -69,7 +69,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.Item is not TAdapter adapter) return;
+            if (context.ItemAdapter is not TAdapter adapter) return;
 
             int index = context.TargetSlot?.Index ?? -1;
             if (index < 0) return;
@@ -79,7 +79,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context.Item is not TAdapter adapter) return;
+            if (context.ItemAdapter is not TAdapter adapter) return;
 
             int index = context.SourceSlot?.Index ?? -1;
             if (index < 0) return;

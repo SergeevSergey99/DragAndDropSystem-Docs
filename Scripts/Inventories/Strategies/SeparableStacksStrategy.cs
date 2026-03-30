@@ -10,7 +10,7 @@ namespace DragAndDropSystem.Inventories
     /// Предметы могут стакаться, но НЕ автоматически мержатся
     /// Можно иметь несколько стаков одного предмета в разных слотах
     /// Мерж происходит только при явном дропе на тот же предмет (если allowMergeOnDrop = true)
-    /// Поддерживает per-item лимиты стаков через IStackSizeLimitable
+    /// Поддерживает per-itemAdapter лимиты стаков через IStackSizeLimitable
     /// </summary>
     public class SeparableStacksStrategy : InventoryStrategyBase
     {
@@ -23,8 +23,8 @@ namespace DragAndDropSystem.Inventories
             _allowItemOverride = allowItemOverride;
         }
 
-        private int GetMaxStackSize(IInventoryItem item) =>
-            GetMaxStackSize(item, _defaultMaxStackSize, _allowItemOverride);
+        private int GetMaxStackSize(IItemAdapter itemAdapter) =>
+            GetMaxStackSize(itemAdapter, _defaultMaxStackSize, _allowItemOverride);
 
         public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
@@ -32,7 +32,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             int remaining = stack.Count;
-            int maxSize = GetMaxStackSize(stack.Item);
+            int maxSize = GetMaxStackSize(stack.ItemAdapter);
 
             // Если указан конкретный слот (drag to slot)
             if (targetIndex >= 0 && targetIndex < slots.Count)
@@ -43,18 +43,18 @@ namespace DragAndDropSystem.Inventories
                 if (targetSlot.IsEmpty)
                 {
                     int toPlace = Math.Min(remaining, maxSize);
-                    if (toPlace > 0 && (skipRules || PassesRules(targetSlot, stack.Item, toPlace)))
+                    if (toPlace > 0 && (skipRules || PassesRules(targetSlot, stack.ItemAdapter, toPlace)))
                     {
-                        targetSlot.SetStack(new ItemStack(stack.Item, toPlace));
+                        targetSlot.SetStack(new ItemStack(stack.ItemAdapter, toPlace));
                         remaining -= toPlace;
                     }
                 }
                 // Если в слоте ТОТ ЖЕ предмет и разрешён мерж - объединяем с учётом лимита
-                else if (_allowMergeOnDrop && targetSlot.Stack.CanStack(stack.Item))
+                else if (_allowMergeOnDrop && targetSlot.Stack.CanStack(stack.ItemAdapter))
                 {
                     int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
                     int toAdd = Math.Min(remaining, canFit);
-                    if (toAdd > 0 && (skipRules || PassesRules(targetSlot, stack.Item, toAdd)))
+                    if (toAdd > 0 && (skipRules || PassesRules(targetSlot, stack.ItemAdapter, toAdd)))
                     {
                         targetSlot.Stack.AddToStack(toAdd);
                         targetSlot.UpdateVisuals();
@@ -71,11 +71,11 @@ namespace DragAndDropSystem.Inventories
                 {
                     if (remaining <= 0) break;
 
-                    if (!slot.IsEmpty && slot.Stack.CanStack(stack.Item))
+                    if (!slot.IsEmpty && slot.Stack.CanStack(stack.ItemAdapter))
                     {
                         int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                         int toAdd = Math.Min(remaining, canFit);
-                        if (toAdd > 0 && (skipRules || PassesRules(slot, stack.Item, toAdd)))
+                        if (toAdd > 0 && (skipRules || PassesRules(slot, stack.ItemAdapter, toAdd)))
                         {
                             slot.Stack.AddToStack(toAdd);
                             slot.UpdateVisuals();
@@ -94,9 +94,9 @@ namespace DragAndDropSystem.Inventories
                         if (slot.IsEmpty)
                         {
                             int toPlace = Math.Min(remaining, maxSize);
-                            if (toPlace > 0 && (skipRules || PassesRules(slot, stack.Item, toPlace)))
+                            if (toPlace > 0 && (skipRules || PassesRules(slot, stack.ItemAdapter, toPlace)))
                             {
-                                slot.SetStack(new ItemStack(stack.Item, toPlace));
+                                slot.SetStack(new ItemStack(stack.ItemAdapter, toPlace));
                                 remaining -= toPlace;
                             }
                         }
@@ -111,14 +111,14 @@ namespace DragAndDropSystem.Inventories
             return stack.IsEmpty;
         }
 
-        public override bool TryRemove(List<ISlot> slots, IInventoryItem item, int count, int sourceIndex)
+        public override bool TryRemove(List<ISlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
         {
             int remaining = count;
 
             if (sourceIndex >= 0 && sourceIndex < slots.Count)
             {
                 var slot = slots[sourceIndex];
-                if (!slot.IsEmpty && slot.Stack.Item.ItemId == item.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
                 {
                     int removed = slot.Stack.RemoveFromStack(remaining);
                     slot.UpdateVisuals();
@@ -132,7 +132,7 @@ namespace DragAndDropSystem.Inventories
             {
                 if (remaining <= 0) break;
 
-                if (!slot.IsEmpty && slot.Stack.Item.ItemId == item.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
                 {
                     remaining -= slot.Stack.RemoveFromStack(remaining);
                     slot.UpdateVisuals();
@@ -142,19 +142,19 @@ namespace DragAndDropSystem.Inventories
             return remaining < count;
         }
 
-        public override bool CanUseAlternativeSlot(ISlot slot, IInventoryItem item)
+        public override bool CanUseAlternativeSlot(ISlot slot, IItemAdapter itemAdapter)
         {
-            if (slot == null || item == null)
+            if (slot == null || itemAdapter == null)
                 return false;
 
             if (slot.IsEmpty)
                 return true;
 
-            if (!_allowMergeOnDrop || slot.Stack == null || !slot.Stack.CanStack(item))
+            if (!_allowMergeOnDrop || slot.Stack == null || !slot.Stack.CanStack(itemAdapter))
                 return false;
 
             // Слот подходит для мержа только если есть свободное место
-            int maxSize = GetMaxStackSize(item);
+            int maxSize = GetMaxStackSize(itemAdapter);
             return slot.Stack.Count < maxSize;
         }
 
@@ -163,16 +163,16 @@ namespace DragAndDropSystem.Inventories
             if (stack == null || stack.IsEmpty || targetSlot == null)
                 return false;
 
-            int maxSize = GetMaxStackSize(stack.Item);
+            int maxSize = GetMaxStackSize(stack.ItemAdapter);
 
             if (!targetSlot.IsEmpty)
             {
-                if (!_allowMergeOnDrop || !targetSlot.Stack.CanStack(stack.Item))
+                if (!_allowMergeOnDrop || !targetSlot.Stack.CanStack(stack.ItemAdapter))
                     return false;
 
                 int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
                 int toAdd = Math.Min(stack.Count, canFit);
-                if (toAdd <= 0 || !PassesRules(targetSlot, stack.Item, toAdd))
+                if (toAdd <= 0 || !PassesRules(targetSlot, stack.ItemAdapter, toAdd))
                     return false;
 
                 targetSlot.Stack.AddToStack(toAdd);
@@ -184,10 +184,10 @@ namespace DragAndDropSystem.Inventories
             }
 
             int toPlace = Math.Min(stack.Count, maxSize);
-            if (toPlace <= 0 || !PassesRules(targetSlot, stack.Item, toPlace))
+            if (toPlace <= 0 || !PassesRules(targetSlot, stack.ItemAdapter, toPlace))
                 return false;
 
-            targetSlot.SetStack(new ItemStack(stack.Item, toPlace));
+            targetSlot.SetStack(new ItemStack(stack.ItemAdapter, toPlace));
             stack.RemoveFromStack(toPlace);
             targetSlot.UpdateVisuals();
             operationContext?.RecordResult(targetSlot, true, toPlace);
@@ -198,7 +198,7 @@ namespace DragAndDropSystem.Inventories
         public override bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
         {
             suggestedSlot = null;
-            var item = request?.Item;
+            var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
                 return false;
@@ -229,7 +229,7 @@ namespace DragAndDropSystem.Inventories
 
         public override int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
         {
-            var item = request?.Item;
+            var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
                 return 0;

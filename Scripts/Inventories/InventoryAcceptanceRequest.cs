@@ -11,20 +11,20 @@ namespace DragAndDropSystem.Inventories
     {
         public InventoryAcceptanceRequest(
             IInventory targetInventory,
-            IInventoryItem item,
+            IItemAdapter itemAdapter,
             int desiredCount,
             DragContext context = null,
             DragEntry? sourceEntry = null)
         {
             TargetInventory = targetInventory;
-            Item = item;
+            ItemAdapter = itemAdapter;
             DesiredCount = desiredCount;
             Context = context;
             SourceEntry = sourceEntry;
         }
 
         public IInventory TargetInventory { get; }
-        public IInventoryItem Item { get; }
+        public IItemAdapter ItemAdapter { get; }
         public int DesiredCount { get; }
         public DragContext Context { get; }
         public DragEntry? SourceEntry { get; }
@@ -32,9 +32,9 @@ namespace DragAndDropSystem.Inventories
         public IInventory SourceInventory => SourceEntry.HasValue ? SourceEntry.Value.SourceInventory : null;
         public ISlot SourceSlot => SourceEntry.HasValue ? SourceEntry.Value.SourceSlot : null;
 
-        public DragContext CreateValidationContext(ISlot targetSlot, int previewCount, IInventoryItem previewItem = null)
+        public DragContext CreateValidationContext(ISlot targetSlot, int previewCount, IItemAdapter previewItemAdapter = null)
         {
-            var item = previewItem ?? Item;
+            var item = previewItemAdapter ?? ItemAdapter;
             var stack = new ItemStack(item, previewCount);
             return new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
         }

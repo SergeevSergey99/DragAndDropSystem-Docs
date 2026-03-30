@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Проверить, есть ли предмет в инвентаре
         /// </summary>
-        bool Contains(IInventoryItem item);
+        bool Contains(IItemAdapter itemAdapter);
 
         /// <summary>
         /// Обновить визуализацию всех слотов

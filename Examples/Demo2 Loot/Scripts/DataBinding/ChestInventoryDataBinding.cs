@@ -10,7 +10,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
     /// Связывает Chest (данные) ↔ UniversalInventory (UI).
     /// Привязывается динамически через BindToChest().
     /// </summary>
-    public class ChestInventoryDataBinding : ListInventoryDataBinding<ItemExampleWith3DSO, ItemSOWith3DAdapter>
+    public class ChestInventoryDataBinding : ListInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>
     {
         private Chest _chest;
 
@@ -29,8 +29,8 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         }
 
         protected override IReadOnlyList<ItemExampleWith3DSO> GetItems() => _chest?.GetItems();
-        protected override ItemSOWith3DAdapter CreateAdapter(ItemExampleWith3DSO item) => new(item);
-        protected override void AddToData(ItemSOWith3DAdapter adapter) => _chest?.AddItem(adapter.item);
-        protected override void RemoveFromData(ItemSOWith3DAdapter adapter) => _chest?.RemoveItem(adapter.item);
+        protected override ItemAdapterSoWith3DAdapter CreateAdapter(ItemExampleWith3DSO item) => new(item);
+        protected override void AddToData(ItemAdapterSoWith3DAdapter adapter) => _chest?.AddItem(adapter.item);
+        protected override void RemoveFromData(ItemAdapterSoWith3DAdapter adapter) => _chest?.RemoveItem(adapter.item);
     }
 }

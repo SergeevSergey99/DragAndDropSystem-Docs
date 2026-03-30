@@ -52,7 +52,7 @@ namespace DragAndDropSystem.Inventories
             string failureReason = null,
             bool requiresSwap = false,
             ISlot swapTargetSlot = null,
-            IInventoryItem previewTargetItem = null,
+            IItemAdapter previewTargetItemAdapter = null,
             bool requiresOccupiedHandler = false,
             ISlot occupiedTargetSlot = null)
         {
@@ -63,7 +63,7 @@ namespace DragAndDropSystem.Inventories
             FailureReason = failureReason;
             RequiresSwap = requiresSwap;
             SwapTargetSlot = swapTargetSlot;
-            PreviewTargetItem = previewTargetItem ?? entry.Stack?.Item;
+            PreviewTargetItemAdapter = previewTargetItemAdapter ?? entry.Stack?.ItemAdapter;
             RequiresOccupiedHandler = requiresOccupiedHandler;
             OccupiedTargetSlot = occupiedTargetSlot;
         }
@@ -75,7 +75,7 @@ namespace DragAndDropSystem.Inventories
         public string FailureReason { get; }
         public bool RequiresSwap { get; }
         public ISlot SwapTargetSlot { get; }
-        public IInventoryItem PreviewTargetItem { get; }
+        public IItemAdapter PreviewTargetItemAdapter { get; }
         public bool RequiresOccupiedHandler { get; }
         public ISlot OccupiedTargetSlot { get; }
         public bool IsPlanned => RequiresSwap || RequiresOccupiedHandler || (PlannedAmount > 0 && Allocations.Count > 0);
@@ -257,7 +257,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             int requested = entry.Stack.Count;
-            var sourceItem = entry.Stack.Item;
+            var sourceItem = entry.Stack.ItemAdapter;
             if (sourceItem == null || requested <= 0)
             {
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Invalid stack");
@@ -265,7 +265,7 @@ namespace DragAndDropSystem.Inventories
 
             if (!TransferItemConversionUtility.TryResolveTargetItem(entry.SourceInventory, targetInventory, sourceItem, out var targetItem))
             {
-                return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected item conversion");
+                return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected itemAdapter conversion");
             }
 
             var acceptanceRequest = new InventoryAcceptanceRequest(
@@ -277,7 +277,7 @@ namespace DragAndDropSystem.Inventories
             int acceptableByInventory = targetInventory.GetAcceptableCount(acceptanceRequest);
             if (acceptableByInventory <= 0)
             {
-                return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this item");
+                return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this itemAdapter");
             }
 
             var operation = new EntryPlanningOperation(
@@ -309,7 +309,7 @@ namespace DragAndDropSystem.Inventories
                     requested,
                     deferredAmount,
                     new[] { new PlannedSlotAllocation(null, deferredAmount) },
-                    previewTargetItem: targetItem);
+                    previewTargetItemAdapter: targetItem);
             }
 
             var allocations = IsUniqueInventory(operation.TargetInventory)
@@ -336,7 +336,7 @@ namespace DragAndDropSystem.Inventories
                         requested,
                         deferredAmount,
                         new[] { new PlannedSlotAllocation(null, deferredAmount) },
-                        previewTargetItem: targetItem);
+                        previewTargetItemAdapter: targetItem);
                 }
             }
 
@@ -351,7 +351,7 @@ namespace DragAndDropSystem.Inventories
                         requested,
                         requested,
                         EmptyAllocations,
-                        previewTargetItem: targetItem,
+                        previewTargetItemAdapter: targetItem,
                         requiresOccupiedHandler: true,
                         occupiedTargetSlot: targetSlotHint);
                 }
@@ -366,7 +366,7 @@ namespace DragAndDropSystem.Inventories
                         failureReason: null,
                         requiresSwap: true,
                         swapTargetSlot: targetSlotHint,
-                        previewTargetItem: targetItem);
+                        previewTargetItemAdapter: targetItem);
                 }
 
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
@@ -377,7 +377,7 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Entry cannot be placed fully");
             }
 
-            return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItem: targetItem);
+            return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
         }
 
         private static bool ShouldPlanSwap(
@@ -467,10 +467,10 @@ namespace DragAndDropSystem.Inventories
             {
                 var preferred = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
                 if (preferred != null &&
-                    preferred.CanAccept(operation.TargetItem, uniqueMode: true) &&
+                    preferred.CanAccept(operation.TargetItemAdapter, uniqueMode: true) &&
                     IsCandidateAllowedByRules(operation, preferred.Slot, 1))
                 {
-                    preferred.Apply(operation.TargetItem, 1);
+                    preferred.Apply(operation.TargetItemAdapter, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
                 }
                 else if (!canSearchAlternatives)
@@ -494,7 +494,7 @@ namespace DragAndDropSystem.Inventories
                 if (slot == null)
                     break;
 
-                slot.Apply(operation.TargetItem, 1);
+                slot.Apply(operation.TargetItemAdapter, 1);
                 allocations.Add(new PlannedSlotAllocation(slot.Slot, 1));
             }
 
@@ -532,7 +532,7 @@ namespace DragAndDropSystem.Inventories
             if (!IsCandidateAllowedByRules(operation, slot.Slot, capacity))
                 return 0;
 
-            slot.Apply(operation.TargetItem, capacity);
+            slot.Apply(operation.TargetItemAdapter, capacity);
             allocations.Add(new PlannedSlotAllocation(slot.Slot, capacity));
             return capacity;
         }
@@ -543,7 +543,7 @@ namespace DragAndDropSystem.Inventories
             int desiredAmount,
             bool uniqueMode)
         {
-            if (slot == null || desiredAmount <= 0 || operation.TargetItem == null)
+            if (slot == null || desiredAmount <= 0 || operation.TargetItemAdapter == null)
                 return 0;
 
             if (!CanStrategyPlaceIntoSlot(operation, slot, uniqueMode))
@@ -554,10 +554,10 @@ namespace DragAndDropSystem.Inventories
 
             if (slot.IsEmpty)
             {
-                return Min(desiredAmount, GetMaxStackSize(operation.TargetInventory, operation.TargetItem));
+                return Min(desiredAmount, GetMaxStackSize(operation.TargetInventory, operation.TargetItemAdapter));
             }
 
-            int maxStack = GetMaxStackSize(operation.TargetInventory, operation.TargetItem);
+            int maxStack = GetMaxStackSize(operation.TargetInventory, operation.TargetItemAdapter);
             if (maxStack <= slot.Count)
                 return 0;
 
@@ -577,26 +577,26 @@ namespace DragAndDropSystem.Inventories
             VirtualSlotState slot,
             bool uniqueMode)
         {
-            if (slot == null || operation.TargetItem == null)
+            if (slot == null || operation.TargetItemAdapter == null)
                 return false;
 
             if (uniqueMode)
-                return slot.CanAccept(operation.TargetItem, uniqueMode: true);
+                return slot.CanAccept(operation.TargetItemAdapter, uniqueMode: true);
 
             if (slot.IsEmpty)
-                return slot.CanAccept(operation.TargetItem, uniqueMode: false);
+                return slot.CanAccept(operation.TargetItemAdapter, uniqueMode: false);
 
-            // Virtual slot is occupied: ensure item compatibility at virtual level first.
+            // Virtual slot is occupied: ensure itemAdapter compatibility at virtual level first.
             // Without this, CanUseAlternativeSlot checks the real (potentially empty) slot
-            // and may incorrectly allow placing a different item into a virtually occupied slot.
-            if (!slot.CanAccept(operation.TargetItem, uniqueMode: false))
+            // and may incorrectly allow placing a different itemAdapter into a virtually occupied slot.
+            if (!slot.CanAccept(operation.TargetItemAdapter, uniqueMode: false))
                 return false;
 
             var placementStrategy = ResolvePlacementStrategy(operation.TargetInventory);
             if (placementStrategy == null)
                 return true;
 
-            return placementStrategy.CanUseAlternativeSlot(slot.Slot, operation.TargetItem);
+            return placementStrategy.CanUseAlternativeSlot(slot.Slot, operation.TargetItemAdapter);
         }
 
         private IEnumerable<VirtualSlotState> EnumerateAlternativeVirtualSlots(EntryPlanningOperation operation, ISlot excludeSlot)
@@ -610,7 +610,7 @@ namespace DragAndDropSystem.Inventories
 
             IEnumerable<ISlot> orderedSlots = placementStrategy.EnumerateAlternativeSlots(
                 GetInventorySlots(operation.TargetInventory),
-                operation.TargetItem,
+                operation.TargetItemAdapter,
                 operation.Policy.AlternativePlacement,
                 excludeSlot);
 
@@ -636,7 +636,7 @@ namespace DragAndDropSystem.Inventories
                 foreach (var state in operation.VirtualSlots)
                 {
                     if (ReferenceEquals(state.Slot, preferredSlot) &&
-                        state.CanAccept(operation.TargetItem, uniqueMode) &&
+                        state.CanAccept(operation.TargetItemAdapter, uniqueMode) &&
                         IsCandidateAllowedByRules(operation, state.Slot, amountForValidation))
                         return state;
                 }
@@ -644,7 +644,7 @@ namespace DragAndDropSystem.Inventories
 
             foreach (var state in operation.VirtualSlots)
             {
-                if (state.CanAccept(operation.TargetItem, uniqueMode) &&
+                if (state.CanAccept(operation.TargetItemAdapter, uniqueMode) &&
                     IsCandidateAllowedByRules(operation, state.Slot, amountForValidation))
                     return state;
             }
@@ -686,7 +686,7 @@ namespace DragAndDropSystem.Inventories
             if (entry.SourceSlot.IsEmpty || entry.SourceSlot.Stack == null || entry.SourceSlot.Stack.IsEmpty)
                 return false;
 
-            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.Item == null)
+            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.ItemAdapter == null)
                 return false;
 
             // Current swap implementation supports only full stack from source slot.
@@ -698,17 +698,17 @@ namespace DragAndDropSystem.Inventories
             ISlot targetSlot,
             int plannedAmount)
         {
-            if (plannedAmount <= 0 || operation.TargetItem == null)
+            if (plannedAmount <= 0 || operation.TargetItemAdapter == null)
                 return false;
 
             DragEntry validationEntry = operation.Entry;
             if (operation.Entry.Stack == null ||
-                operation.Entry.Stack.Item == null ||
+                operation.Entry.Stack.ItemAdapter == null ||
                 operation.Entry.Stack.Count != plannedAmount ||
-                !ReferenceEquals(operation.Entry.Stack.Item, operation.TargetItem))
+                !ReferenceEquals(operation.Entry.Stack.ItemAdapter, operation.TargetItemAdapter))
             {
                 validationEntry = new DragEntry(
-                    new ItemStack(operation.TargetItem, plannedAmount),
+                    new ItemStack(operation.TargetItemAdapter, plannedAmount),
                     operation.Entry.SourceSlot,
                     operation.Entry.SourceInventory);
             }
@@ -734,13 +734,13 @@ namespace DragAndDropSystem.Inventories
             return inventory.Slots as List<ISlot> ?? new List<ISlot>(inventory.Slots);
         }
 
-        private static int GetMaxStackSize(IInventory inventory, IInventoryItem item)
+        private static int GetMaxStackSize(IInventory inventory, IItemAdapter itemAdapter)
         {
             var universal = inventory as UniversalInventory;
             if (universal == null)
                 return int.MaxValue;
 
-            return universal.GetMaxStackSizeForItem(item);
+            return universal.GetMaxStackSizeForItem(itemAdapter);
         }
 
         private static readonly IReadOnlyList<PlannedSlotAllocation> EmptyAllocations = new PlannedSlotAllocation[0];

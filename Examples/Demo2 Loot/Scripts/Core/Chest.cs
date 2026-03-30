@@ -67,7 +67,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         {
             if (item == null)
             {
-                Debug.LogWarning("[Chest] Trying to remove null item");
+                Debug.LogWarning("[Chest] Trying to remove null itemAdapter");
                 return false;
             }
 
@@ -80,7 +80,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
             else
             {
-                Debug.LogWarning($"[Chest] Item '{item.ItemName}' not found in chest");
+                Debug.LogWarning($"[Chest] ItemAdapter '{item.ItemName}' not found in chest");
             }
 
             return removed;
