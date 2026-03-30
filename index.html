@@ -27,7 +27,7 @@
     
     
       
-        <title>Drag & Drop Inventory System - Drag & Drop Inventory System</title>
+        <title>Введение - Drag & Drop Inventory System</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#drag-drop-inventory-system" class="md-skip">
+        <a href="#_1" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Drag &amp; Drop Inventory System
+              Введение
             
           </span>
         </div>
@@ -467,7 +467,7 @@
   <span class="md-ellipsis">
     
   
-    Drag &amp; Drop Inventory System
+    Введение
   
 
     
@@ -485,7 +485,7 @@
   <span class="md-ellipsis">
     
   
-    Drag &amp; Drop Inventory System
+    Введение
   
 
     
@@ -511,7 +511,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что это за ассет
@@ -522,29 +522,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        С чего начать
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что даёт система
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         Базовая модель
@@ -555,21 +533,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как читать документацию
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что не нужно знать сразу
+        Читать далее
       
     </span>
   </a>
@@ -1338,7 +1305,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что это за ассет
@@ -1349,29 +1316,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        С чего начать
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что даёт система
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         Базовая модель
@@ -1382,21 +1327,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как читать документацию
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что не нужно знать сразу
+        Читать далее
       
     </span>
   </a>
@@ -1420,7 +1354,7 @@
 
 
 
-<h1 id="drag-drop-inventory-system">Drag &amp; Drop Inventory System</h1>
+<h1 id="_1">Введение</h1>
 <p>Ассет для Unity, позволяющий внедрить систему инвентарей и перетаскивания между ними в любой проект с любыми данными.
 Он решает задачи такие как:</p>
 <ul>
@@ -1435,7 +1369,7 @@
 </ul>
 <p>Он подходит и как для простых UI-инвентарей и сценариев вроде экипировки, так и для реализации сложной логики вроде торговли и поддержки серверных проверок.</p>
 <hr />
-<h2 id="_1">Что это за ассет</h2>
+<h2 id="_2">Что это за ассет</h2>
 <p>Это не просто набор UI-слотов, а система, которая, в отличае от многих альтернативных решений, которые требуют чтобы ваши данные соответствовали определенному типу, позволяет визуализировать в инвентаре практически любые ваши данные:</p>
 <ul>
 <li><code>ScriptableObject</code></li>
@@ -1466,58 +1400,32 @@
 <p>Обычно это небольшой адаптер и один <code>DataBinding</code>. Чем более сложная у вас модель данных, тем толще будет этот слой интеграции, но сам drag &amp; drop, swap, stacking, planning и event flow уже берёт на себя ассет.</p>
 <p>Для некоторых распространенных вариантов уже есть шаблонные классы <code>DataBinding</code> с которыми будет проще настроить большинство вариантов.</p>
 <hr />
-<h2 id="_2">С чего начать</h2>
-<pre class="mermaid"><code>flowchart LR
-    A["Нужен обычный инвентарь"] --&gt; B["Быстрый старт"]
-    C["Нужны фиксированные слоты"] --&gt; D["Экипировка"]
-    E["Нужна покупка и продажа"] --&gt; F["Торговля"]
-    G["Нужна кастомная логика"] --&gt; H["Основные концепции"]</code></pre>
-<hr />
-<h2 id="_3">Что даёт система</h2>
-<table>
-<thead>
-<tr>
-<th>Сценарий</th>
-<th>Что получаете</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Обычный инвентарь</td>
-<td>drag &amp; drop между слотами и инвентарями</td>
-</tr>
-<tr>
-<td>Стаки</td>
-<td>объединение одинаковых предметов и partial transfer</td>
-</tr>
-<tr>
-<td>Экипировка</td>
-<td>фиксированные слоты с ограничениями по типу</td>
-</tr>
-<tr>
-<td>Торговля</td>
-<td>конвертация предметов и проверки перед коммитом</td>
-</tr>
-<tr>
-<td>3D мир</td>
-<td>подбор и выброс предметов</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="_4">Базовая модель</h2>
-<pre class="mermaid"><code>flowchart LR
-    Input["Игрок перетаскивает предмет"] --&gt; Inventory["UniversalInventory&lt;br/&gt;управляет слотами и переносом"]
-    Inventory --&gt; Binding["DataBinding&lt;br/&gt;синхронизирует ваши данные"]
-    Binding --&gt; Data["Ваши модели данных"]</code></pre>
+<h2 id="_3">Базовая модель</h2>
 <p>Для большинства проектов полезно держать в голове ровно эту схему:</p>
+<pre class="mermaid"><code>flowchart LR
+    Inventory@{ shape: rounded, label: "&lt;b&gt;Universal Inventory&lt;/b&gt;\nзанимется обработкой UI состояний, переносов и распределением предметов по слотам" }
+
+    Slot@{ shape: rounded, label: "&lt;b&gt;Universal Slot&lt;/b&gt;\nСодержит адаптер и количество предметов в слоте" }
+
+    Adapter@{ shape: rounded, label: "&lt;b&gt;IItem Adapter&lt;/b&gt;\nХранит ссылку на предмет с данными" }
+    style Adapter fill:#FF44
+
+    Binding@{ shape: rounded, label: "&lt;b&gt;Data Binding&lt;/b&gt;&lt;br/&gt;синхронизирует ваши данные с UI" }
+    style Binding fill:#FF44
+
+    Data@{ shape: rounded, label: "Ваши модели данных" }
+
+    Inventory --&gt; Slot    
+    Slot --&gt; Adapter
+    Binding &lt;--&gt; Data    
+    Inventory &lt;--&gt; Binding
+</code></pre>
 <ul>
-<li><code>UniversalInventory</code> отвечает за UI-состояние и перенос</li>
-<li><code>DataBinding</code> связывает UI с вашими данными</li>
-<li>ваши модели данных остаются в вашем коде</li>
+<li><code>IItemAdapter</code> нужно определить чтобы корректно хранил данные</li>
+<li><code>DataBinding</code> нужно определить чтобы корректно редактировал данные</li>
 </ul>
 <hr />
-<h2 id="_5">Как читать документацию</h2>
+<h2 id="_4">Читать далее</h2>
 <ul>
 <li><a href="getting-started/quick-start/">Быстрый старт</a> — первый рабочий инвентарь</li>
 <li><a href="examples/equipment/">Пример: экипировка</a> — фиксированные слоты</li>
@@ -1525,15 +1433,6 @@
 <li><a href="architecture/data-binding/">Привязка данных</a> — где писать sync, rules и business hooks</li>
 <li><a href="feedback/">Обратная связь</a> — куда писать о багах, идеях и проблемах интеграции</li>
 </ul>
-<hr />
-<h2 id="_6">Что не нужно знать сразу</h2>
-<p>На старте вам не нужно разбираться в:</p>
-<ul>
-<li>внутренних служебных классах планировщика</li>
-<li>полном пайплайне swap и rollback</li>
-<li>карте всех файлов проекта</li>
-</ul>
-<p>Эти детали нужны только если вы расширяете систему на уровне кода ассета.</p>
 
 
 

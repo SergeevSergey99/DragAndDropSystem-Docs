@@ -457,7 +457,7 @@
   <span class="md-ellipsis">
     
   
-    Drag &amp; Drop Inventory System
+    Введение
   
 
     
@@ -1711,7 +1711,7 @@
 <hr />
 <h2 id="_5">Конвертация предметов</h2>
 <p>Если два инвентаря используют разные представления предмета, binding может предоставить converter:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IInventoryItemConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IItemAdapterConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyInventoryItemConverter</span><span class="p">();</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>

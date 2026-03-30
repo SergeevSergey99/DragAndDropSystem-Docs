@@ -460,7 +460,7 @@
   <span class="md-ellipsis">
     
   
-    Drag &amp; Drop Inventory System
+    Введение
   
 
     
@@ -541,17 +541,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что понадобится
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -567,6 +556,17 @@
     <span class="md-ellipsis">
       
         Шаг 2. Создайте два инвентаря
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-chest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Скопируйте объект и сделайте второй инвентарь, например Chest.
       
     </span>
   </a>
@@ -607,7 +607,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит под капотом
@@ -618,7 +618,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что дальше
@@ -1362,17 +1362,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что понадобится
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1388,6 +1377,17 @@
     <span class="md-ellipsis">
       
         Шаг 2. Создайте два инвентаря
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-chest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Скопируйте объект и сделайте второй инвентарь, например Chest.
       
     </span>
   </a>
@@ -1428,7 +1428,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит под капотом
@@ -1439,7 +1439,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что дальше
@@ -1467,36 +1467,23 @@
 
 
 <h1 id="_1">Быстрый старт</h1>
-<p>Это руководство создаёт два обычных инвентаря, между которыми можно перетаскивать предметы.</p>
-<p>Сразу настрой ожидания правильно: даже в базовом сценарии вам обычно нужно написать немного интеграционного кода под свои данные. В этом руководстве это будут:</p>
+<p>Это руководство создаёт два обычных инвентаря, между которыми можно перетаскивать предметы. </p>
+<p>Подобное уже реализовано в первом примере и финальный результат можно посмотреть там.</p>
+<p>Даже в базовом сценарии вам обычно нужно написать немного интеграционного кода под свои данные. В этом руководстве это будут:</p>
 <ul>
 <li><code>ItemSO</code> как ваши данные предмета</li>
 <li><code>ItemSOAdapter</code> как представление для системы инвентаря</li>
-<li><code>BackpackBinding</code> как мост между UI и вашим списком данных</li>
+<li><code>SimpleBinding</code> как мост между UI и вашим списком данных</li>
 </ul>
-<p>Результат:</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Рюкзак"] &lt;--&gt;|drag &amp; drop| B["Сундук"]</code></pre>
-<hr />
-<h2 id="_2">Что понадобится</h2>
-<ul>
-<li><code>DragAndDropManager</code> на сцене</li>
-<li><code>EventSystem</code></li>
-<li><code>Canvas</code></li>
-<li>два объекта с <code>UniversalInventory</code></li>
-<li>один тип предмета</li>
-<li>один <code>ListInventoryDataBinding</code></li>
-</ul>
-<hr />
 <h2 id="1">Шаг 1. Подготовьте сцену</h2>
 <ol>
-<li>Добавьте на сцену <code>DragAndDropManager</code> из <code>Prefabs/DragingObj</code>.</li>
-<li>Убедитесь, что на сцене есть <code>EventSystem</code>.</li>
-<li>Создайте <code>Canvas</code>, если его ещё нет.</li>
-</ol>
-<blockquote>
-<p>На сцене нужен один <code>DragAndDropManager</code>. Он управляет всеми операциями переноса.</p>
+<li>Создайте <code>Canvas</code> на котором будут располагаться инвентрари, если его ещё нет.</li>
+<li>Добавьте на сцену <code>DragAndDropManager</code>. Можно перетащить на сцену префаб из <code>Prefabs/DragCanvas.prefab</code>.<blockquote>
+<p>На сцене нужен один <code>DragAndDropManager</code>. Он управляет всеми операциями переноса и контролирует объект переносимого объекта.</p>
 </blockquote>
+</li>
+<li>Убедитесь, что на сцене есть <code>EventSystem</code>.</li>
+</ol>
 <hr />
 <h2 id="2">Шаг 2. Создайте два инвентаря</h2>
 <ol>
@@ -1514,34 +1501,29 @@
 <tbody>
 <tr>
 <td><code>Item Behavior</code></td>
-<td><code>Unique</code> для самого простого старта</td>
+<td><code>Unique</code> для самого простого старта - каждый предмет в отдельном слоте</td>
 </tr>
 <tr>
 <td><code>Slot Management</code></td>
-<td><code>Fixed</code></td>
+<td><code>Fixed</code> - фиксированное количество слотов</td>
 </tr>
 <tr>
 <td><code>Initial Slot Count</code></td>
-<td>например <code>10</code></td>
+<td>например <code>10</code>. При запуске они создасться в <code>Slot Container</code>. Если вы сами их там уже создали, можете их закешировать нажав на кнопку</td>
 </tr>
 <tr>
 <td><code>Slot Prefab</code></td>
-<td><code>Prefabs/Slot</code></td>
+<td><code>Prefabs/Slot.prefab</code></td>
 </tr>
 <tr>
 <td><code>Slot Container</code></td>
-<td>родитель для слотов</td>
+<td>родитель для слотов (желательно с <code>GridLayout</code> или другим компонентом управляющим расположением дочерних объектов)</td>
 </tr>
 </tbody>
 </table>
-<ol>
-<li>Скопируйте объект и сделайте второй инвентарь, например <code>Chest</code>.</li>
-</ol>
-<blockquote>
-<p>Если нужен самый простой первый запуск, не начинайте со <code>Stackable</code> и <code>Dynamic</code>.</p>
-</blockquote>
-<hr />
+<h2 id="4-chest">4. Скопируйте объект и сделайте второй инвентарь, например <code>Chest</code>.</h2>
 <h2 id="3">Шаг 3. Опишите тип предмета</h2>
+<p>Допустим у вас есть тип предметов
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="na">[CreateAssetMenu(menuName = &quot;Game/Item&quot;)]</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemSO</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ScriptableObject</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">{</span>
@@ -1549,21 +1531,28 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="na">[field: SerializeField]</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </code></pre></div>
-<p>И добавьте адаптер, который реализует <code>IInventoryItem</code>:</p>
+Чтобы такой тип можно было отображать в слотах для него нужно сделать адаптер, который реализует <code>IItemAdapter</code>, например:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemSOAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IInventoryItem</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemSOAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">{</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">Data</span><span class="p">;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="nf">ItemSOAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">ItemId</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="p">.</span><span class="n">GetInstanceID</span><span class="p">().</span><span class="n">ToString</span><span class="p">();</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="p">.</span><span class="n">Icon</span><span class="p">;</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">DisplayName</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="p">.</span><span class="n">ItemName</span><span class="p">;</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">}</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="c1">// ссылка на данные для вашего типа</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">Data</span><span class="p">;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="c1">// конструктор</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="nf">ItemSOAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">data</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="c1">// обязательные поля из интерфейса</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">ItemId</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="p">.</span><span class="n">GetInstanceID</span><span class="p">().</span><span class="n">ToString</span><span class="p">();</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="p">.</span><span class="n">Icon</span><span class="p">;</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">DisplayName</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">Data</span><span class="p">.</span><span class="n">ItemName</span><span class="p">;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="p">}</span>
 </code></pre></div>
+<p>Значения обязательных полей:
+- <code>ItemId</code> - Нужен чтобы различать можно ли объеденить предметы в один слот для режимов <code>Stackable</code> и <code>SeparableStacks</code>.
+- <code>Icon</code> - Нужно чтобы отображать карткинку предмета в слоте
+- <code>DisplayName</code> - Используется в некоторых дополнительных системах. Можно оставить равным пустой строке</p>
 <hr />
 <h2 id="4-binding">Шаг 4. Добавьте простой binding</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
@@ -1571,40 +1560,50 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">using</span><span class="w"> </span><span class="nn">System.Collections.Generic</span><span class="p">;</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">BackpackBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">SimpleBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">{</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetItems</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToData</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">}</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="c1">// Ваш список данных</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="c1">// обязательные функции для переопределения</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetItems</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">}</span>
 </code></pre></div>
-<p>Повесьте такой binding на оба инвентаря. У каждого будет свой список <code>_items</code>.</p>
+<p>Значения обязательных методов:
+- <code>GetItems</code> - Используется для первичного рендера данных
+- <code>CreateAdapter</code> - Нужен для создания адаптера и передачи ему необходимых параметров о ваших данных
+- <code>AddToData</code> - вызывается при переносе предмета <strong>в этот</strong> инвентарь
+- <code>RemoveFromData</code> - вызывается при выносе предмета <strong>из этого</strong> инвентаря</p>
+<p>Повесьте такой binding на оба инвентаря или другие объекты в сцене.
+Укажите ссыли на соответсвующие инвентари.
+У каждого будет свой список <code>_items</code>.</p>
+<div class="admonition info данные">
+<p class="admonition-title">Info</p>
+<p>В ваших проектах вы скорее всего будете вместо простого списка <code>_items</code> указывать взаимодействие с вашими скриптами в которых хранятся ваши данные. Подробнее как подобное реализовано можно посмотреть в примерах.</p>
+</div>
 <hr />
 <h2 id="5">Шаг 5. Заполните стартовые данные</h2>
 <ol>
 <li>Создайте несколько <code>ItemSO</code>.</li>
-<li>Добавьте их в список <code>_items</code> у <code>BackpackBinding</code> и <code>ChestBinding</code>.</li>
+<li>Добавьте их в списки <code>_items</code> у ваших <code>SimpleBinding</code>.</li>
 <li>Запустите сцену.</li>
 </ol>
 <p>Если всё настроено правильно:</p>
 <ul>
 <li>оба инвентаря покажут предметы</li>
 <li>предмет можно перетащить из одного инвентаря в другой</li>
-<li>список данных обновится автоматически</li>
+<li>списки данных обновится автоматически при переносе</li>
 </ul>
 <hr />
-<h2 id="_3">Что происходит под капотом</h2>
+<h2 id="_2">Что происходит под капотом</h2>
 <pre class="mermaid"><code>flowchart LR
-    A["Игрок тащит предмет"] --&gt; B["UniversalInventory выполняет перенос"]
-    B --&gt; C["DataBinding получает событие"]
+    A["Игрок тащит предмет"] --&gt; B["&lt;b&gt;UniversalInventory&lt;/b&gt; обрабатывает перенос"]
+    B --&gt; C["В &lt;b&gt;DataBinding&lt;/b&gt; вызываются методы"]
     C --&gt; D["Ваш List&lt;ItemSO&gt; обновляется"]</code></pre>
-<p>На этом этапе вам не нужно думать про стратегии, конвертеры и хуки переноса.</p>
-<hr />
-<h2 id="_4">Что дальше</h2>
+<h2 id="_3">Что дальше</h2>
 <ul>
 <li><a href="../../examples/equipment/">Экипировка</a> — если слоты должны иметь назначение</li>
 <li><a href="../../examples/trading/">Торговля</a> — если инвентари используют разные типы данных</li>

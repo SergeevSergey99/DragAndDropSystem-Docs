@@ -27,7 +27,7 @@
     
     
       
-        <title>Drag & Drop Inventory System - Drag & Drop Inventory System</title>
+        <title>Introduction - Drag & Drop Inventory System</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#drag-drop-inventory-system" class="md-skip">
+        <a href="#introduction" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Drag &amp; Drop Inventory System
+              Introduction
             
           </span>
         </div>
@@ -467,7 +467,7 @@
   <span class="md-ellipsis">
     
   
-    Drag &amp; Drop Inventory System
+    Introduction
   
 
     
@@ -485,7 +485,7 @@
   <span class="md-ellipsis">
     
   
-    Drag &amp; Drop Inventory System
+    Introduction
   
 
     
@@ -511,10 +511,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-this-asset-is-for" class="md-nav__link">
+  <a href="#what-this-asset-is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this asset is for
+        What This Asset Is
       
     </span>
   </a>
@@ -522,10 +522,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-to-start" class="md-nav__link">
+  <a href="#basic-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to start
+        Basic Model
       
     </span>
   </a>
@@ -533,32 +533,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-the-asset-gives-you" class="md-nav__link">
+  <a href="#read-next" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the asset gives you
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-mental-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core mental model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#recommended-reading-path" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Recommended reading path
+        Read Next
       
     </span>
   </a>
@@ -1327,10 +1305,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-this-asset-is-for" class="md-nav__link">
+  <a href="#what-this-asset-is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this asset is for
+        What This Asset Is
       
     </span>
   </a>
@@ -1338,10 +1316,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-to-start" class="md-nav__link">
+  <a href="#basic-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to start
+        Basic Model
       
     </span>
   </a>
@@ -1349,32 +1327,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-the-asset-gives-you" class="md-nav__link">
+  <a href="#read-next" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the asset gives you
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-mental-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core mental model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#recommended-reading-path" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Recommended reading path
+        Read Next
       
     </span>
   </a>
@@ -1398,97 +1354,84 @@
 
 
 
-<h1 id="drag-drop-inventory-system">Drag &amp; Drop Inventory System</h1>
-<p>A Unity asset for three core jobs:</p>
+<h1 id="introduction">Introduction</h1>
+<p>A Unity asset that lets you integrate an inventory and drag-and-drop system into any project with any kind of data.
+It solves tasks such as:</p>
 <ul>
+<li>displaying data in inventory UI</li>
 <li>moving items between inventories</li>
 <li>stacking, swapping, and quick transfer</li>
-<li>syncing UI with your game data</li>
+<li>syncing UI changes with your game data</li>
+<li>adding checks and rules for whether a transfer is allowed</li>
+<li>creating custom actions for inventories</li>
+<li>context menu</li>
+<li>multi-selection and transfer</li>
 </ul>
-<p>It works for simple inventory UIs and for more specific flows such as equipment, trading, and world loot.</p>
+<p>It works both for simple inventory UIs and scenarios like equipment, and for more complex logic such as trading and server-side validation.</p>
 <hr />
-<h2 id="what-this-asset-is-for">What this asset is for</h2>
-<p>This is not just a set of UI slots. It is a system for visualizing almost any kind of game data inside inventories and drag &amp; drop flows:</p>
+<h2 id="what-this-asset-is">What This Asset Is</h2>
+<p>This is not just a set of UI slots, but a system that, unlike many alternative solutions that require your data to match a specific type, allows you to visualize almost any of your data in an inventory:</p>
 <ul>
 <li><code>ScriptableObject</code></li>
 <li>runtime models</li>
 <li>lists, dictionaries, and fixed fields</li>
 <li>different representations of the same item in different inventories</li>
 </ul>
-<p>The main idea is that the visual inventory is separated from your game model. That makes it possible to scale the system gradually:</p>
+<p>The key idea is that the visual inventory is separated from your game model. Because of this, the system can be expanded gradually:</p>
 <ul>
 <li>start with a simple backpack and chest</li>
-<li>add fixed-purpose equipment slots</li>
+<li>add fixed slots for equipment</li>
 <li>add conversion between inventories</li>
 <li>add trading, server checks, or domain hooks</li>
 </ul>
-<p>So the asset is meant both for fast initial setup and for growing into more complex inventory workflows without rewriting everything.</p>
-<p>It is also worth stating the tradeoff clearly: for your own data types, you will usually write a small amount of integration code so the system knows:</p>
+<p>So the asset is designed not only for a quick start, but also for further scaling without having to rewrite the entire inventory logic.</p>
+<div class="admonition warning price of flexibility">
+<p class="admonition-title">Warning</p>
+<p>For your own data types, you usually need to write a small amount of integration code.</p>
+</div>
+<p>It is important to understand this tradeoff immediately: for your own data types, you usually need to write a small amount of integration code.</p>
+<p>This is needed so the system understands:</p>
 <ul>
-<li>how to represent your data as <code>IInventoryItem</code></li>
-<li>how to load it into the visual inventory</li>
-<li>how to write changes back into your own models</li>
+<li>how and which data to get from your classes</li>
+<li>how to represent your data in inventory slots</li>
+<li>how to write changes from UI interactions back into your data models</li>
 </ul>
-<p>In practice this is usually a small adapter plus one <code>DataBinding</code>. The more custom your data model is, the more of this integration layer you will need, but drag &amp; drop, swapping, stacking, planning, and event flow are still handled by the asset itself.</p>
+<p>For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.</p>
+<p>Usually this is a small adapter and one <code>DataBinding</code>. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, planning, and event flow are already handled by the asset.</p>
+<p>For some common cases, template <code>DataBinding</code> classes are already provided, which makes most setups easier.</p>
 <hr />
-<h2 id="where-to-start">Where to start</h2>
+<h2 id="basic-model">Basic Model</h2>
+<p>For most projects, it is useful to keep exactly this diagram in mind:</p>
 <pre class="mermaid"><code>flowchart LR
-    A["Need a regular inventory"] --&gt; B["Quick Start"]
-    C["Need fixed-purpose slots"] --&gt; D["Equipment Example"]
-    E["Need buying and selling"] --&gt; F["Trading Example"]
-    G["Need custom logic"] --&gt; H["Core Concepts"]</code></pre>
-<hr />
-<h2 id="what-the-asset-gives-you">What the asset gives you</h2>
-<table>
-<thead>
-<tr>
-<th>Scenario</th>
-<th>What you get</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Basic inventory</td>
-<td>drag &amp; drop between slots and inventories</td>
-</tr>
-<tr>
-<td>Stacks</td>
-<td>stack merging and partial transfer</td>
-</tr>
-<tr>
-<td>Equipment</td>
-<td>fixed slots with type restrictions</td>
-</tr>
-<tr>
-<td>Trading</td>
-<td>item conversion and pre-commit checks</td>
-</tr>
-<tr>
-<td>3D world</td>
-<td>pickup and drop back into the world</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="core-mental-model">Core mental model</h2>
-<pre class="mermaid"><code>flowchart LR
-    Input["Player drags an item"] --&gt; Inventory["UniversalInventory&lt;br/&gt;manages slots and transfer"]
-    Inventory --&gt; Binding["DataBinding&lt;br/&gt;syncs your data"]
-    Binding --&gt; Data["Your game data"]</code></pre>
-<p>For most projects, this is enough:</p>
+    Inventory@{ shape: rounded, label: "&lt;b&gt;Universal Inventory&lt;/b&gt;\nhandles UI states, transfers, and item distribution across slots" }
+
+    Slot@{ shape: rounded, label: "&lt;b&gt;Universal Slot&lt;/b&gt;\nContains an adapter and the item count in the slot" }
+
+    Adapter@{ shape: rounded, label: "&lt;b&gt;IItem Adapter&lt;/b&gt;\nStores a reference to the item data" }
+    style Adapter fill:#FF44
+
+    Binding@{ shape: rounded, label: "&lt;b&gt;Data Binding&lt;/b&gt;&lt;br/&gt;syncs your data with the UI" }
+    style Binding fill:#FF44
+
+    Data@{ shape: rounded, label: "Your data models" }
+
+    Inventory --&gt; Slot    
+    Slot --&gt; Adapter
+    Binding &lt;--&gt; Data    
+    Inventory &lt;--&gt; Binding
+</code></pre>
 <ul>
-<li><code>UniversalInventory</code> handles UI state and transfer behavior</li>
-<li><code>DataBinding</code> connects that UI state to your data</li>
-<li>your actual data stays in your own models</li>
+<li><code>IItemAdapter</code> needs to be defined so it stores data correctly</li>
+<li><code>DataBinding</code> needs to be defined so it edits data correctly</li>
 </ul>
 <hr />
-<h2 id="recommended-reading-path">Recommended reading path</h2>
+<h2 id="read-next">Read Next</h2>
 <ul>
-<li><a href="getting-started/quick-start/">Quick Start</a></li>
-<li><a href="examples/equipment/">Equipment Example</a></li>
-<li><a href="examples/trading/">Trading Example</a></li>
-<li><a href="architecture/data-binding/">Data Binding</a></li>
-<li><a href="feedback/">Feedback</a></li>
+<li><a href="getting-started/quick-start/">Quick Start</a> — your first working inventory</li>
+<li><a href="examples/equipment/">Equipment Example</a> — fixed slots</li>
+<li><a href="examples/trading/">Trading Example</a> — item conversion and money checks</li>
+<li><a href="architecture/data-binding/">Data Binding</a> — where to write sync, rules, and business hooks</li>
+<li><a href="feedback/">Feedback</a> — where to write about bugs, ideas, and integration issues</li>
 </ul>
 
 
