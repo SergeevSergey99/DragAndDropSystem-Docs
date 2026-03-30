@@ -1,88 +1,91 @@
-# Intro
+# Introduction
 
-A Unity asset for three core jobs:
+A Unity asset that lets you integrate an inventory and drag-and-drop system into any project with any kind of data.
+It solves tasks such as:
 
+- displaying data in inventory UI
 - moving items between inventories
 - stacking, swapping, and quick transfer
-- syncing UI with your game data
+- syncing UI changes with your game data
+- adding checks and rules for whether a transfer is allowed
+- creating custom actions for inventories
+- context menu
+- multi-selection and transfer
 
-It works for simple inventory UIs and for more specific flows such as equipment, trading, and world loot.
+It works both for simple inventory UIs and scenarios like equipment, and for more complex logic such as trading and server-side validation.
 
 ---
 
-## What this asset is for
+## What This Asset Is
 
-This is not just a set of UI slots. It is a system for visualizing almost any kind of game data inside inventories and drag & drop flows:
+This is not just a set of UI slots, but a system that, unlike many alternative solutions that require your data to match a specific type, allows you to visualize almost any of your data in an inventory:
 
 - `ScriptableObject`
 - runtime models
 - lists, dictionaries, and fixed fields
 - different representations of the same item in different inventories
 
-The main idea is that the visual inventory is separated from your game model. That makes it possible to scale the system gradually:
+The key idea is that the visual inventory is separated from your game model. Because of this, the system can be expanded gradually:
 
 - start with a simple backpack and chest
-- add fixed-purpose equipment slots
+- add fixed slots for equipment
 - add conversion between inventories
 - add trading, server checks, or domain hooks
 
-So the asset is meant both for fast initial setup and for growing into more complex inventory workflows without rewriting everything.
+So the asset is designed not only for a quick start, but also for further scaling without having to rewrite the entire inventory logic.
 
-It is also worth stating the tradeoff clearly: for your own data types, you will usually write a small amount of integration code so the system knows:
+!!! warning Price of flexibility
+    For your own data types, you usually need to write a small amount of integration code.
 
-- how to represent your data as `IItemAdapter`
-- how to load it into the visual inventory
-- how to write changes back into your own models
+It is important to understand this tradeoff immediately: for your own data types, you usually need to write a small amount of integration code.
 
-In practice this is usually a small adapter plus one `DataBinding`. The more custom your data model is, the more of this integration layer you will need, but drag & drop, swapping, stacking, planning, and event flow are still handled by the asset itself.
+This is needed so the system understands:
+
+- how and which data to get from your classes
+- how to represent your data in inventory slots
+- how to write changes from UI interactions back into your data models
+
+For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.
+
+Usually this is a small adapter and one `DataBinding`. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, planning, and event flow are already handled by the asset.
+
+For some common cases, template `DataBinding` classes are already provided, which makes most setups easier.
 
 ---
 
-## Where to start
+## Basic Model
+
+For most projects, it is useful to keep exactly this diagram in mind:
 
 ```mermaid
 flowchart LR
-    A["Need a regular inventory"] --> B["Quick Start"]
-    C["Need fixed-purpose slots"] --> D["Equipment Example"]
-    E["Need buying and selling"] --> F["Trading Example"]
-    G["Need custom logic"] --> H["Core Concepts"]
+    Inventory@{ shape: rounded, label: "<b>Universal Inventory</b>\nhandles UI states, transfers, and item distribution across slots" }
+    
+    Slot@{ shape: rounded, label: "<b>Universal Slot</b>\nContains an adapter and the item count in the slot" }
+
+    Adapter@{ shape: rounded, label: "<b>IItem Adapter</b>\nStores a reference to the item data" }
+    style Adapter fill:#FF44
+
+    Binding@{ shape: rounded, label: "<b>Data Binding</b><br/>syncs your data with the UI" }
+    style Binding fill:#FF44
+
+    Data@{ shape: rounded, label: "Your data models" }
+
+    Inventory --> Slot    
+    Slot --> Adapter
+    Binding <--> Data    
+    Inventory <--> Binding
+
 ```
 
+- `IItemAdapter` needs to be defined so it stores data correctly
+- `DataBinding` needs to be defined so it edits data correctly
 ---
 
-## What the asset gives you
+## Read Next
 
-| Scenario | What you get |
-|---|---|
-| Basic inventory | drag & drop between slots and inventories |
-| Stacks | stack merging and partial transfer |
-| Equipment | fixed slots with type restrictions |
-| Trading | item conversion and pre-commit checks |
-| 3D world | pickup and drop back into the world |
-
----
-
-## Core mental model
-
-```mermaid
-flowchart LR
-    Input["Player drags an item"] --> Inventory["UniversalInventory<br/>manages slots and transfer"]
-    Inventory --> Binding["DataBinding<br/>syncs your data"]
-    Binding --> Data["Your game data"]
-```
-
-For most projects, this is enough:
-
-- `UniversalInventory` handles UI state and transfer behavior
-- `DataBinding` connects that UI state to your data
-- your actual data stays in your own models
-
----
-
-## Recommended reading path
-
-- [Quick Start](getting-started/quick-start.md)
-- [Equipment Example](examples/equipment.md)
-- [Trading Example](examples/trading.md)
-- [Data Binding](architecture/data-binding.md)
-- [Feedback](feedback.md)
+- [Quick Start](getting-started/quick-start.md) — your first working inventory
+- [Equipment Example](examples/equipment.md) — fixed slots
+- [Trading Example](examples/trading.md) — item conversion and money checks
+- [Data Binding](architecture/data-binding.md) — where to write sync, rules, and business hooks
+- [Feedback](feedback.md) — where to write about bugs, ideas, and integration issues
