@@ -114,9 +114,13 @@ flowchart TD
 public class MyCustomStrategy : InventoryStrategyBase
 {
     // Добавить предмет в инвентарь
-    public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
+    public override bool TryAdd(List<ISlot> slots, ItemStack stack,
+        int targetIndex, bool skipRules = false)
     {
-        // Ваша логика размещения
+        // Найти подходящий слот, затем переместить адаптеры атомарно:
+        //   slot.Stack.AddToStack(stack.TakeAdapters(toAdd));          // слияние
+        //   slot.SetStack(new ItemStack(stack.TakeAdapters(toPlace))); // в пустой слот
+        //   slot.UpdateVisuals();
     }
 
     // Добавить предмет в конкретный слот
@@ -152,7 +156,10 @@ public class MyCustomStrategy : InventoryStrategyBase
 ```
 
 !!! tip "Проверка правил"
-    Используйте метод `PassesRules(slot, item, count)` из базового класса для проверки правил слота перед размещением.
+    Используйте метод `PassesRules(slot, item, count)` из базового класса для проверки правил слота перед размещением. Пропускайте вызов, когда `skipRules == true`.
+
+!!! warning "Мутация ItemStack"
+    Всегда используйте `stack.TakeAdapters(amount)` для перемещения адаптеров из источника в цель — так каждый экземпляр предмета физически перемещается из одного стака в другой. `ItemStack.Repeat(adapter, count)` используйте только для валидации и preview, не для реальных передач предметов.
 
 ---
 

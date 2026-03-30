@@ -171,6 +171,21 @@ Recommended steps:
 5. override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
 6. use `PassesRules(slot, item, count, request)` for validation — skip it when `skipRules` is true
 
+**ItemStack mutation pattern** (critical):
+
+Use `TakeAdapters(amount)` to move adapters from source to target atomically:
+```csharp
+// Merge into existing stack
+slot.Stack.AddToStack(stack.TakeAdapters(toAdd));
+slot.UpdateVisuals();
+
+// Place into empty slot
+slot.SetStack(new ItemStack(stack.TakeAdapters(toPlace)));
+slot.UpdateVisuals();
+```
+
+Use `ItemStack.Repeat(adapter, count)` only for validation/preview stacks, never to represent real item instances being transferred.
+
 Typical use cases:
 - weight/volume inventories
 - class-restricted placement
