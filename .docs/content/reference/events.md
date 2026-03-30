@@ -16,7 +16,7 @@ flowchart TD
     StartPoint@{ shape: sm-circ, label: "Start" }
     NoTargetPoint@{ shape: sm-circ, label: "Start" }
     OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
-    style OnDragAttempting fill:#4F44
+    style OnDragAttempting fill:#FF44
     OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
     OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
     style OnDragCancelled fill:#f444
@@ -24,6 +24,7 @@ flowchart TD
     style DragOver fill:#8884, stroke-dasharray: 5 5
     OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
     OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    style OnDropCompleted fill:#4F44
     OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
     style OnDragEnded fill:#f4f4
 
@@ -90,7 +91,7 @@ flowchart TD
 
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `Item` | `IInventoryItem` | Затронутый предмет |
+| `Item` | `IItemAdapter` | Затронутый предмет |
 | `Count` | `int` | Количество добавленных/удалённых |
 | `SlotIndex` | `int` | Индекс целевого/исходного слота |
 | `SourceInventory` | `IInventory` | Откуда взяли предмет (null если не из другого инвентаря) |

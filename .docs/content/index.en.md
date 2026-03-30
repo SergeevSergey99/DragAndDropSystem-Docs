@@ -1,4 +1,4 @@
-# Drag & Drop Inventory System
+# Intro
 
 A Unity asset for three core jobs:
 
@@ -30,7 +30,7 @@ So the asset is meant both for fast initial setup and for growing into more comp
 
 It is also worth stating the tradeoff clearly: for your own data types, you will usually write a small amount of integration code so the system knows:
 
-- how to represent your data as `IInventoryItem`
+- how to represent your data as `IItemAdapter`
 - how to load it into the visual inventory
 - how to write changes back into your own models
 

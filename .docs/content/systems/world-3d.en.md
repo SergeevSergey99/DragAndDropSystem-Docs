@@ -27,7 +27,7 @@ flowchart LR
 | Component | Purpose |
 |-----------|---------|
 | **WorldDropZone** | UI area for dropping items into the world. On drop, creates a 3D object and removes the item from the inventory |
-| **WorldItem** | Component on a 3D object in the world. Stores a reference to `IInventoryItem` and the count |
+| **WorldItem** | Component on a 3D object in the world. Stores a reference to `IItemAdapter` and the count |
 | **IWorld3DAdapter** | Interface on the item: links an inventory item to its 3D prefab |
 
 ---
@@ -38,7 +38,7 @@ flowchart LR
 
 ```csharp
 [CreateAssetMenu(menuName = "Game/Item With 3D")]
-public class GameItemSO : ScriptableObject, IInventoryItem, IWorld3DAdapter
+public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
 {
     [SerializeField] private string _name;
     [SerializeField] private Sprite _icon;

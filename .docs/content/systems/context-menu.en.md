@@ -70,7 +70,7 @@ When `Execute()` and `CanShow()` are called, you receive a `ContextMenuContext` 
 | Field | Type | Description |
 |-------|------|-------------|
 | `Slot` | `ISlot` | The slot on which the menu was invoked |
-| `Item` | `IInventoryItem` | The item in the slot (null if empty) |
+| `Item` | `IItemAdapter` | The item in the slot (null if empty) |
 | `ItemCount` | `int` | Number of items in the stack |
 | `Inventory` | `UniversalInventory` | The inventory that owns the slot |
 | `ScreenPosition` | `Vector2` | Screen position of the click |

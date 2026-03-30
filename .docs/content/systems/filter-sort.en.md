@@ -37,7 +37,7 @@ When an item does not pass the filter, it can be handled in one of three ways:
 | **By category** | Show only items of a given category (Weapon, Armor...) | `IFilterable` |
 | **By rarity** | Show items within a rarity range (min--max) | `IFilterable` |
 | **By name** | Text search by item name | --- |
-| **Custom** | Arbitrary predicate `Predicate<IInventoryItem>` | --- |
+| **Custom** | Arbitrary predicate `Predicate<IItemAdapter>` | --- |
 
 ---
 

@@ -27,7 +27,7 @@ flowchart LR
 | Компонент | Назначение |
 |-----------|------------|
 | **WorldDropZone** | UI-область для сброса предметов в мир. При дропе создаёт 3D-объект и удаляет предмет из инвентаря |
-| **WorldItem** | Компонент на 3D-объекте в мире. Хранит ссылку на `IInventoryItem` и количество |
+| **WorldItem** | Компонент на 3D-объекте в мире. Хранит ссылку на `IItemAdapter` и количество |
 | **IWorld3DAdapter** | Интерфейс на предмете: связывает инвентарный предмет с его 3D-префабом |
 
 ---
@@ -38,7 +38,7 @@ flowchart LR
 
 ```csharp
 [CreateAssetMenu(menuName = "Game/Item With 3D")]
-public class GameItemSO : ScriptableObject, IInventoryItem, IWorld3DAdapter
+public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
 {
     [SerializeField] private string _name;
     [SerializeField] private Sprite _icon;

@@ -170,7 +170,7 @@ If the check is local and fast, regular `CanCommitTransfer` is enough.
 If two inventories use different item representations, a binding can provide a converter:
 
 ```csharp
-protected override IInventoryItemConverter CreateItemConverter()
+protected override IItemAdapterConverter CreateItemConverter()
 {
     return new MyInventoryItemConverter();
 }

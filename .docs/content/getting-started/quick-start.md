@@ -69,13 +69,13 @@ public class ItemSO : ScriptableObject
 }
 ```
 
-И добавьте адаптер, который реализует `IInventoryItem`:
+И добавьте адаптер, который реализует `IItemAdapter`:
 
 ```csharp
 using DragAndDropSystem.Core;
 using UnityEngine;
 
-public class ItemSOAdapter : IInventoryItem
+public class ItemSOAdapter : IItemAdapter
 {
     public readonly ItemSO Data;
 

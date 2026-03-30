@@ -16,7 +16,7 @@ flowchart TD
     StartPoint@{ shape: sm-circ, label: "Start" }
     NoTargetPoint@{ shape: sm-circ, label: "Start" }
     OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
-    style OnDragAttempting fill:#4F44
+    style OnDragAttempting fill:#FF44
     OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
     OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
     style OnDragCancelled fill:#f444
@@ -24,6 +24,7 @@ flowchart TD
     style DragOver fill:#8884, stroke-dasharray: 5 5
     OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
     OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    style OnDropCompleted fill:#4F44
     OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
     style OnDragEnded fill:#f4f4
 
@@ -89,7 +90,7 @@ flowchart TD
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `Item` | `IInventoryItem` | Affected item |
+| `Item` | `IItemAdapter` | Affected item |
 | `Count` | `int` | Number of items added/removed |
 | `SlotIndex` | `int` | Target/source slot index |
 | `SourceInventory` | `IInventory` | Where the item came from (null if not from another inventory) |

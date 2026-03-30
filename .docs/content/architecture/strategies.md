@@ -127,7 +127,7 @@ public class MyCustomStrategy : InventoryStrategyBase
     }
 
     // Удалить предмет
-    public override bool TryRemove(List<ISlot> slots, IInventoryItem item,
+    public override bool TryRemove(List<ISlot> slots, IItemAdapter item,
         int count, int sourceIndex)
     {
         // Ваша логика удаления

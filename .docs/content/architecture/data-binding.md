@@ -192,7 +192,7 @@ public class ServerBackedInventoryBinding
 Если два инвентаря используют разные представления предмета, binding может предоставить converter:
 
 ```csharp
-protected override IInventoryItemConverter CreateItemConverter()
+protected override IItemAdapterConverter CreateItemConverter()
 {
     return new MyInventoryItemConverter();
 }

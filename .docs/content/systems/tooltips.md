@@ -36,8 +36,8 @@ flowchart TD
 
 Встроенный `DefaultTooltipView` показывает:
 
-- **Иконку** предмета (`IInventoryItem.Icon`)
-- **Название** (`IInventoryItem.DisplayName`)
+- **Иконку** предмета (`IItemAdapter.Icon`)
+- **Название** (`IItemAdapter.DisplayName`)
 - **Описание** (если предмет реализует `IDescribable`)
 - **Fade-анимацию** появления и исчезновения (настраивается)
 
@@ -54,7 +54,7 @@ public class RPGTooltipView : BaseTooltipView
     [SerializeField] private TextMeshProUGUI _statsText;
     [SerializeField] private Image _rarityBorder;
 
-    public override void SetContent(IInventoryItem item)
+    public override void SetContent(IItemAdapter item)
     {
         _nameText.text = item.DisplayName;
 

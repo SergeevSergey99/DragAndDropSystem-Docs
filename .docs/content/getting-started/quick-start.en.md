@@ -67,7 +67,7 @@ Then add an adapter:
 using DragAndDropSystem.Core;
 using UnityEngine;
 
-public class ItemSOAdapter : IInventoryItem
+public class ItemSOAdapter : IItemAdapter
 {
     public readonly ItemSO Data;
 

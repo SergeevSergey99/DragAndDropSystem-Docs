@@ -36,8 +36,8 @@ The system automatically adapts the tooltip position: if the card does not fit o
 
 The built-in `DefaultTooltipView` shows:
 
-- **Icon** of the item (`IInventoryItem.Icon`)
-- **Name** (`IInventoryItem.DisplayName`)
+- **Icon** of the item (`IItemAdapter.Icon`)
+- **Name** (`IItemAdapter.DisplayName`)
 - **Description** (if the item implements `IDescribable`)
 - **Fade animation** for appearing and disappearing (configurable)
 
@@ -54,7 +54,7 @@ public class RPGTooltipView : BaseTooltipView
     [SerializeField] private TextMeshProUGUI _statsText;
     [SerializeField] private Image _rarityBorder;
 
-    public override void SetContent(IInventoryItem item)
+    public override void SetContent(IItemAdapter item)
     {
         _nameText.text = item.DisplayName;
 
