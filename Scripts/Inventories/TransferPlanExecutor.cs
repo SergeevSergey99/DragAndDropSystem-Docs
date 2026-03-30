@@ -226,7 +226,7 @@ namespace DragAndDropSystem.Inventories
                             plannedEntry.Entry.SourceSlot,
                             plan.TargetInventory,
                             allocation.Slot,
-                            new ItemStack(plannedEntry.Entry.Stack.ItemAdapter, allocation.Amount));
+                            ItemStack.Repeat(plannedEntry.Entry.Stack.ItemAdapter, allocation.Amount));
 
                         if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItemAdapter, out var domainContext))
                         {
@@ -502,8 +502,8 @@ namespace DragAndDropSystem.Inventories
                 return new SwapExecutionAttempt(false, default, validationFailure);
             }
 
-            var sourceStackBefore = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
-            var targetStackBefore = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
+            var sourceStackBefore = new ItemStack(sourceSlot.Stack.Adapters);
+            var targetStackBefore = new ItemStack(targetSlot.Stack.Adapters);
 
             var swapContext = new InventorySwapContext(
                 sourceStackBefore,
@@ -583,8 +583,8 @@ namespace DragAndDropSystem.Inventories
                 return new SwapExecutionAttempt(false, default, validationFailure);
             }
 
-            var sourceStackBefore = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
-            var targetStackBefore = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
+            var sourceStackBefore = new ItemStack(sourceSlot.Stack.Adapters);
+            var targetStackBefore = new ItemStack(targetSlot.Stack.Adapters);
 
             var swapContext = new InventorySwapContext(
                 sourceStackBefore,
@@ -718,7 +718,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            var previewStack = new ItemStack(targetPreviewItem, requestedAmount);
+            var previewStack = ItemStack.Repeat(targetPreviewItem, requestedAmount);
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 targetInventory,
                 targetPreviewItem,
@@ -738,20 +738,20 @@ namespace DragAndDropSystem.Inventories
 
             Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Acceptable: {acceptableCount}, Transfer: {transferAmount}, Remaining: {remainingAmount}</color>");
 
-            int removed = sourceSlot.Stack.RemoveFromStack(transferAmount);
-            if (removed <= 0)
+            var takenAdapters = sourceSlot.Stack.TakeAdapters(transferAmount);
+            if (takenAdapters.Count <= 0)
             {
                 InventorySnapshotUtility.RestoreSlotState(sourceSlot, sourceSlotState);
                 return false;
             }
 
-            if (removed != transferAmount)
+            if (takenAdapters.Count != transferAmount)
             {
-                transferAmount = removed;
+                transferAmount = takenAdapters.Count;
                 remainingAmount = requestedAmount - transferAmount;
             }
 
-            var transferStack = new ItemStack(stackItem, transferAmount);
+            var transferStack = new ItemStack(takenAdapters);
             sourceSlot.UpdateVisuals();
 
             var operationContext = new SlotOperationContext();
@@ -782,11 +782,11 @@ namespace DragAndDropSystem.Inventories
                 Extensions.DragAndDropLog($"<color=yellow>[TransferPlanExecutor] {transferStack.Count} items not placed, returning to source</color>");
                 if (sourceSlot.IsEmpty)
                 {
-                    sourceSlot.SetStack(new ItemStack(stackItem, transferStack.Count));
+                    sourceSlot.SetStack(transferStack);
                 }
                 else
                 {
-                    sourceSlot.Stack.AddToStack(transferStack.Count);
+                    sourceSlot.Stack.AddToStack(transferStack.Adapters);
                 }
 
                 sourceSlot.UpdateVisuals();
@@ -890,8 +890,8 @@ namespace DragAndDropSystem.Inventories
         {
             failureReason = null;
 
-            var sourceStack = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
-            var targetStack = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
+            var sourceStack = ItemStack.Repeat(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
+            var targetStack = ItemStack.Repeat(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
 
             var sourceContext = new DragContext(sourceStack, sourceSlot, sourceInventory, targetSlot, targetInventory);
             var sourceEntry = sourceContext.Entries[0];

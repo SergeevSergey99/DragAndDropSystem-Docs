@@ -1,31 +1,72 @@
 using System;
+using System.Collections.Generic;
 
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Универсальная обертка для предмета с количеством
-    /// Работает с любым типом, реализующим IItemAdapter
-    /// Лимиты стака задаются через настройку Max Stack Size в UniversalInventory
-    /// или через IStackSizeLimitable на конкретном предмете
+    /// Стак предметов. Хранит список адаптеров — каждый элемент является
+    /// отдельным экземпляром предмета. При одинаковом ItemId экземпляры
+    /// всё равно могут различаться runtime-данными (например, датой получения).
+    ///
+    /// Для создания стаков из N одинаковых предметов (fungible/preview)
+    /// используй статический метод <see cref="Repeat"/>.
+    /// Лимиты стака задаются через Max Stack Size в UniversalInventory
+    /// или через IStackSizeLimitable на конкретном предмете.
     /// </summary>
     [Serializable]
     public class ItemStack
     {
-        public IItemAdapter ItemAdapter { get; private set; }
-        public int Count { get; private set; }
+        private readonly List<IItemAdapter> _adapters;
 
-        public bool IsEmpty => ItemAdapter == null || Count <= 0;
+        public IReadOnlyList<IItemAdapter> Adapters => _adapters;
 
-        public ItemStack(IItemAdapter itemAdapter, int count = 1)
+        /// Первый адаптер в стаке — представитель типа предмета.
+        /// Используется для отображения иконки, имени, правил фильтрации.
+        public IItemAdapter ItemAdapter => _adapters.Count > 0 ? _adapters[0] : null;
+
+        public int Count => _adapters.Count;
+
+        public bool IsEmpty => _adapters.Count == 0;
+
+        /// Одиночный предмет.
+        public ItemStack(IItemAdapter itemAdapter)
         {
-            ItemAdapter = itemAdapter;
-            Count = Math.Max(0, count);
+            _adapters = new List<IItemAdapter>();
+            if (itemAdapter != null)
+                _adapters.Add(itemAdapter);
         }
 
-        public static ItemStack Empty() => new ItemStack(null, 0);
+        /// Стак из конкретных экземпляров. Список копируется.
+        public ItemStack(IReadOnlyList<IItemAdapter> adapters)
+        {
+            _adapters = adapters != null ? new List<IItemAdapter>(adapters) : new List<IItemAdapter>();
+        }
+
+        // Внутренний конструктор — принимает уже готовый список без копирования.
+        private ItemStack(List<IItemAdapter> adapters)
+        {
+            _adapters = adapters ?? new List<IItemAdapter>();
+        }
+
+        public static ItemStack Empty() => new ItemStack((IItemAdapter)null);
 
         /// <summary>
-        /// Проверить, можно ли стакнуть с другим предметом (одинаковый ItemId)
+        /// Создаёт стак из N ссылок на один адаптер.
+        /// Используется для fungible-предметов (все экземпляры идентичны)
+        /// и для контекстов планирования/валидации, где важен тип, а не конкретный экземпляр.
+        /// </summary>
+        public static ItemStack Repeat(IItemAdapter itemAdapter, int count)
+        {
+            if (itemAdapter == null || count <= 0)
+                return Empty();
+            var list = new List<IItemAdapter>(count);
+            for (int i = 0; i < count; i++)
+                list.Add(itemAdapter);
+            return new ItemStack(list);
+        }
+
+        /// <summary>
+        /// Проверить, можно ли стакнуть с другим предметом (одинаковый ItemId).
         /// </summary>
         public bool CanStack(IItemAdapter otherItemAdapter)
         {
@@ -33,62 +74,69 @@ namespace DragAndDropSystem.Core
             return ItemAdapter.ItemId == otherItemAdapter.ItemId;
         }
 
-        /// <summary>
-        /// Добавить предметы к стаку без ограничений
-        /// </summary>
-        public void AddToStack(int amount)
+        /// Добавить один адаптер в стак.
+        public void AddToStack(IItemAdapter adapter)
         {
-            Count += amount;
+            if (adapter != null)
+                _adapters.Add(adapter);
+        }
+
+        /// Добавить несколько адаптеров в стак.
+        public void AddToStack(IReadOnlyList<IItemAdapter> adapters)
+        {
+            if (adapters == null) return;
+            _adapters.AddRange(adapters);
         }
 
         /// <summary>
-        /// Удалить предметы из стака
+        /// Удалить <paramref name="amount"/> предметов из стака.
+        /// Возвращает фактически удалённое количество.
+        /// Используй <see cref="TakeAdapters"/> если нужны сами адаптеры.
         /// </summary>
         public int RemoveFromStack(int amount)
         {
-            int toRemove = Math.Min(amount, Count);
-            Count -= toRemove;
-            if (Count <= 0)
-            {
-                ItemAdapter = null;
-                Count = 0;
-            }
+            int toRemove = Math.Min(amount, _adapters.Count);
+            if (toRemove > 0)
+                _adapters.RemoveRange(_adapters.Count - toRemove, toRemove);
             return toRemove;
         }
 
         /// <summary>
-        /// Разделить стак на две части
+        /// Извлечь <paramref name="amount"/> адаптеров из стака и вернуть их.
+        /// Стак уменьшается на это количество.
+        /// </summary>
+        public List<IItemAdapter> TakeAdapters(int amount)
+        {
+            int toTake = Math.Min(amount, _adapters.Count);
+            if (toTake <= 0)
+                return new List<IItemAdapter>();
+            int startIndex = _adapters.Count - toTake;
+            var taken = _adapters.GetRange(startIndex, toTake);
+            _adapters.RemoveRange(startIndex, toTake);
+            return taken;
+        }
+
+        /// <summary>
+        /// Разделить стак: извлечь <paramref name="amount"/> предметов в новый стак.
         /// </summary>
         public ItemStack Split(int amount)
         {
-            int taken = RemoveFromStack(amount);
-            return taken > 0 ? new ItemStack(ItemAdapter, taken) : Empty();
+            var taken = TakeAdapters(amount);
+            return taken.Count > 0 ? new ItemStack(taken) : Empty();
         }
 
         /// <summary>
-        /// Заменить предмет в стеке, сохранив количество
-        /// Полезно для замены адаптеров (например, при торговле)
+        /// Применить конвертер к каждому адаптеру в стаке.
+        /// Используется при конвертации типов предметов (например, при торговле).
         /// </summary>
-        /// <param name="newItemAdapter">Новый предмет</param>
-        public void ReplaceItem(IItemAdapter newItemAdapter)
+        public void MapAdapters(Func<IItemAdapter, IItemAdapter> converter)
         {
-            if (newItemAdapter == null)
-            {
-                Clear();
-                return;
-            }
-
-            ItemAdapter = newItemAdapter;
-            // Count остается тем же
+            if (converter == null) return;
+            for (int i = 0; i < _adapters.Count; i++)
+                _adapters[i] = converter(_adapters[i]);
         }
 
-        /// <summary>
-        /// Очистить стак
-        /// </summary>
-        public void Clear()
-        {
-            ItemAdapter = null;
-            Count = 0;
-        }
+        /// Очистить стак.
+        public void Clear() => _adapters.Clear();
     }
 }

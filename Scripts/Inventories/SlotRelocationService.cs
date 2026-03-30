@@ -181,19 +181,18 @@ namespace DragAndDropSystem.Inventories
                 if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
                     return false;
 
-                destinationSlot.Stack.AddToStack(amountToMove);
+                destinationSlot.Stack.AddToStack(sourceStack.TakeAdapters(amountToMove));
                 destinationSlot.UpdateVisuals();
-                sourceSlot.Clear();
+                sourceSlot.UpdateVisuals();
                 return true;
             }
 
             if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
                 return false;
 
-            var movedStack = new ItemStack(itemToMove, amountToMove);
-            destinationSlot.SetStack(movedStack);
+            destinationSlot.SetStack(new ItemStack(sourceStack.TakeAdapters(amountToMove)));
             destinationSlot.UpdateVisuals();
-            sourceSlot.Clear();
+            sourceSlot.UpdateVisuals();
             return true;
         }
     }

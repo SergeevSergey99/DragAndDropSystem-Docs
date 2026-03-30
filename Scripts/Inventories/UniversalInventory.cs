@@ -444,7 +444,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             if (!ReferenceEquals(converted, stack.ItemAdapter))
-                stack.ReplaceItem(converted);
+                stack.MapAdapters(_ => converted);
 
             return true;
         }
@@ -455,7 +455,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             if (!ReferenceEquals(converted, stack.ItemAdapter))
-                stack.ReplaceItem(converted);
+                stack.MapAdapters(_ => converted);
 
             return true;
         }
@@ -523,7 +523,7 @@ namespace DragAndDropSystem.Inventories
             if (!allowForeignSlot && !ReferenceEquals(slot.Inventory, this))
                 return false;
 
-            var previewStack = new ItemStack(itemAdapter, previewCount);
+            var previewStack = ItemStack.Repeat(itemAdapter, previewCount);
             return ValidateRulesForPreview(slot, previewStack, request);
         }
 
@@ -619,7 +619,7 @@ namespace DragAndDropSystem.Inventories
                 }
                 else
                 {
-                    slot.SetStack(new ItemStack(state.ItemAdapter, state.Count));
+                    slot.SetStack(new ItemStack(state.Adapters));
                 }
 
                 slot.UpdateVisuals();
@@ -1106,8 +1106,8 @@ namespace DragAndDropSystem.Inventories
             }
 
             // Сохраняем копии стаков для событий
-            var targetStackBackup = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
-            var sourceStackBackup = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
+            var targetStackBackup = new ItemStack(targetSlot.Stack.Adapters);
+            var sourceStackBackup = new ItemStack(sourceSlot.Stack.Adapters);
 
             try
             {

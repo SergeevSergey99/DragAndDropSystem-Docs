@@ -200,13 +200,13 @@ namespace DragAndDropSystem.DataBinding
 
             if (targetSlotIndex < 0)
             {
-                _inventory.TryAddStackQuiet(new ItemStack(itemAdapter, count), -1);
+                _inventory.TryAddStackQuiet(ItemStack.Repeat(itemAdapter, count), -1);
                 return;
             }
 
             var slot = _inventory.GetSlot(targetSlotIndex);
             if (slot != null)
-                slot.SetStack(new ItemStack(itemAdapter, count));
+                slot.SetStack(ItemStack.Repeat(itemAdapter, count));
         }
 
         #endregion
