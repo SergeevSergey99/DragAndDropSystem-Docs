@@ -1,40 +1,22 @@
 # Быстрый старт
 
-Это руководство создаёт два обычных инвентаря, между которыми можно перетаскивать предметы.
+Это руководство создаёт два обычных инвентаря, между которыми можно перетаскивать предметы. 
 
-Сразу настрой ожидания правильно: даже в базовом сценарии вам обычно нужно написать немного интеграционного кода под свои данные. В этом руководстве это будут:
+Подобное уже реализовано в первом примере и финальный результат можно посмотреть там.
+
+Даже в базовом сценарии вам обычно нужно написать немного интеграционного кода под свои данные. В этом руководстве это будут:
 
 - `ItemSO` как ваши данные предмета
 - `ItemSOAdapter` как представление для системы инвентаря
-- `BackpackBinding` как мост между UI и вашим списком данных
-
-Результат:
-
-```mermaid
-flowchart LR
-    A["Рюкзак"] <-->|drag & drop| B["Сундук"]
-```
-
----
-
-## Что понадобится
-
-- `DragAndDropManager` на сцене
-- `EventSystem`
-- `Canvas`
-- два объекта с `UniversalInventory`
-- один тип предмета
-- один `ListInventoryDataBinding`
-
----
+- `SimpleBinding` как мост между UI и вашим списком данных
 
 ## Шаг 1. Подготовьте сцену
 
-1. Добавьте на сцену `DragAndDropManager` из `Prefabs/DragingObj`.
-2. Убедитесь, что на сцене есть `EventSystem`.
-3. Создайте `Canvas`, если его ещё нет.
+1. Создайте `Canvas` на котором будут располагаться инвентрари, если его ещё нет.
+2. Добавьте на сцену `DragAndDropManager`. Можно перетащить на сцену префаб из `Prefabs/DragCanvas.prefab`.
+> На сцене нужен один `DragAndDropManager`. Он управляет всеми операциями переноса и контролирует объект переносимого объекта.
+3. Убедитесь, что на сцене есть `EventSystem`.
 
-> На сцене нужен один `DragAndDropManager`. Он управляет всеми операциями переноса.
 
 ---
 
@@ -46,20 +28,17 @@ flowchart LR
 
 | Поле | Значение |
 |---|---|
-| `Item Behavior` | `Unique` для самого простого старта |
-| `Slot Management` | `Fixed` |
-| `Initial Slot Count` | например `10` |
-| `Slot Prefab` | `Prefabs/Slot` |
-| `Slot Container` | родитель для слотов |
+| `Item Behavior` | `Unique` для самого простого старта - каждый предмет в отдельном слоте|
+| `Slot Management` | `Fixed` - фиксированное количество слотов|
+| `Initial Slot Count` | например `10`. При запуске они создасться в `Slot Container`. Если вы сами их там уже создали, можете их закешировать нажав на кнопку |
+| `Slot Prefab` | `Prefabs/Slot.prefab` |
+| `Slot Container` | родитель для слотов (желательно с `GridLayout` или другим компонентом управляющим расположением дочерних объектов) |
 
 4. Скопируйте объект и сделайте второй инвентарь, например `Chest`.
-
-> Если нужен самый простой первый запуск, не начинайте со `Stackable` и `Dynamic`.
-
 ---
 
 ## Шаг 3. Опишите тип предмета
-
+Допустим у вас есть тип предметов
 ```csharp
 [CreateAssetMenu(menuName = "Game/Item")]
 public class ItemSO : ScriptableObject
@@ -68,8 +47,7 @@ public class ItemSO : ScriptableObject
     [field: SerializeField] public Sprite Icon { get; private set; }
 }
 ```
-
-И добавьте адаптер, который реализует `IItemAdapter`:
+Чтобы такой тип можно было отображать в слотах для него нужно сделать адаптер, который реализует `IItemAdapter`, например:
 
 ```csharp
 using DragAndDropSystem.Core;
@@ -77,15 +55,23 @@ using UnityEngine;
 
 public class ItemSOAdapter : IItemAdapter
 {
+    // ссылка на данные для вашего типа
     public readonly ItemSO Data;
 
+    // конструктор
     public ItemSOAdapter(ItemSO data) => Data = data;
 
+    // обязательные поля из интерфейса
     public string ItemId => Data.GetInstanceID().ToString();
     public Sprite Icon => Data.Icon;
     public string DisplayName => Data.ItemName;
 }
 ```
+
+Значения обязательных полей:
+- `ItemId` - Нужен чтобы различать можно ли объеденить предметы в один слот для режимов `Stackable` и `SeparableStacks`.
+- `Icon` - Нужно чтобы отображать карткинку предмета в слоте
+- `DisplayName` - Используется в некоторых дополнительных системах. Можно оставить равным пустой строке
 
 ---
 
@@ -97,33 +83,46 @@ using DragAndDropSystem.DataBinding;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BackpackBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
+public class SimpleBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 {
+    // Ваш список данных
     [SerializeField] private List<ItemSO> _items;
 
+    // обязательные функции для переопределения
     protected override IReadOnlyList<ItemSO> GetItems() => _items;
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
-    protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.Data;
-    protected override void AddToData(InventoryItemEventContext ctx, ItemSO item) => _items.Add(item);
-    protected override void RemoveFromData(InventoryItemEventContext ctx, ItemSO item) => _items.Remove(item);
+    protected override void AddToData(ItemSOAdapter adapter) => _items.Add(adapter.Data);
+    protected override void RemoveFromData(ItemSOAdapter adapter) => _items.Remove(adapter.Data);
 }
 ```
 
-Повесьте такой binding на оба инвентаря. У каждого будет свой список `_items`.
+Значения обязательных методов:
+- `GetItems` - Используется для первичного рендера данных
+- `CreateAdapter` - Нужен для создания адаптера и передачи ему необходимых параметров о ваших данных
+- `AddToData` - вызывается при переносе предмета **в этот** инвентарь
+- `RemoveFromData` - вызывается при выносе предмета **из этого** инвентаря
+
+
+Повесьте такой binding на оба инвентаря или другие объекты в сцене.
+Укажите ссыли на соответсвующие инвентари.
+У каждого будет свой список `_items`.
+
+!!! info Данные
+    В ваших проектах вы скорее всего будете вместо простого списка `_items` указывать взаимодействие с вашими скриптами в которых хранятся ваши данные. Подробнее как подобное реализовано можно посмотреть в примерах.
 
 ---
 
 ## Шаг 5. Заполните стартовые данные
 
 1. Создайте несколько `ItemSO`.
-2. Добавьте их в список `_items` у `BackpackBinding` и `ChestBinding`.
+2. Добавьте их в списки `_items` у ваших `SimpleBinding`.
 3. Запустите сцену.
 
 Если всё настроено правильно:
 
 - оба инвентаря покажут предметы
 - предмет можно перетащить из одного инвентаря в другой
-- список данных обновится автоматически
+- списки данных обновится автоматически при переносе
 
 ---
 
@@ -131,14 +130,10 @@ public class BackpackBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 
 ```mermaid
 flowchart LR
-    A["Игрок тащит предмет"] --> B["UniversalInventory выполняет перенос"]
-    B --> C["DataBinding получает событие"]
+    A["Игрок тащит предмет"] --> B["<b>UniversalInventory</b> обрабатывает перенос"]
+    B --> C["В <b>DataBinding</b> вызываются методы"]
     C --> D["Ваш List<ItemSO> обновляется"]
 ```
-
-На этом этапе вам не нужно думать про стратегии, конвертеры и хуки переноса.
-
----
 
 ## Что дальше
 
