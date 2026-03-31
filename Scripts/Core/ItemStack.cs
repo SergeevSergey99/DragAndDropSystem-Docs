@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace DragAndDropSystem.Core
 {
@@ -13,12 +14,19 @@ namespace DragAndDropSystem.Core
     {
         public IItemAdapter ItemAdapter { get; private set; }
         public int Count { get; private set; }
+        
+        public string ID { get; private set; }
+        public Sprite Icon { get; private set; }
+        public string DisplayName;
 
         public bool IsEmpty => ItemAdapter == null || Count <= 0;
 
         public ItemStack(IItemAdapter itemAdapter, int count = 1)
         {
             ItemAdapter = itemAdapter;
+            ID = itemAdapter.ItemId;
+            Icon = itemAdapter.Icon;
+            DisplayName = itemAdapter.DisplayName;
             Count = Math.Max(0, count);
         }
 
@@ -79,6 +87,10 @@ namespace DragAndDropSystem.Core
             }
 
             ItemAdapter = newItemAdapter;
+            
+            ID = newItemAdapter.ItemId;
+            DisplayName = newItemAdapter.DisplayName;
+            Icon = newItemAdapter.Icon;
             // Count остается тем же
         }
 

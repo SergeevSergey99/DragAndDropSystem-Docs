@@ -227,14 +227,14 @@ namespace DragAndDropSystem.World3D
             // Проверяем, есть ли у предмета 3D префаб
             if (stack.ItemAdapter is not IWorld3DAdapter adapter)
             {
-                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] ItemAdapter {stack.ItemAdapter.DisplayName} has no world prefab</color>");
+                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] ItemAdapter {stack.DisplayName} has no world prefab</color>");
                 return false;
             }
 
             GameObject prefab = adapter.WorldPrefab;
             if (prefab == null)
             {
-                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.ItemAdapter.DisplayName}</color>");
+                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.DisplayName}</color>");
                 return false;
             }
 
@@ -268,7 +268,7 @@ namespace DragAndDropSystem.World3D
                 }
             }
 
-            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.ItemAdapter.DisplayName} in world</color>");
+            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.DisplayName} in world</color>");
 
             return true;
         }

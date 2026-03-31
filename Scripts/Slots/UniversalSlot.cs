@@ -105,7 +105,7 @@ namespace DragAndDropSystem.Slots
         }
         protected virtual void RenderSetted()
         {
-            _iconImage.sprite = _stack.ItemAdapter.Icon;
+            _iconImage.sprite = _stack.Icon;
             _iconImage.color = _normalColor;
             _iconImage.enabled = true;
         }

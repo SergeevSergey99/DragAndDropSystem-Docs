@@ -199,7 +199,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             var policy = plan.Policy;
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.ItemAdapter.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
+            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
             return true;
         }
 

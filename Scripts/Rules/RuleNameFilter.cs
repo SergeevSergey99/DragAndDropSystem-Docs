@@ -21,14 +21,14 @@ namespace DragAndDropSystem.Rules
 
             if (_filterType == NameFilterType.Whitelist)
             {
-                if (_names.Contains(entry.Stack.ItemAdapter.DisplayName))
+                if (_names.Contains(entry.Stack.DisplayName))
                     return RuleResult.Success();
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} is not in whitelist");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is not in whitelist");
             }
             else // Blacklist
             {
-                if (_names.Contains(entry.Stack.ItemAdapter.DisplayName))
-                    return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} is in blacklist");
+                if (_names.Contains(entry.Stack.DisplayName))
+                    return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is in blacklist");
                 return RuleResult.Success();
             }
         }

@@ -470,7 +470,7 @@ namespace DragAndDropSystem.Inventories
 
             EnsureStrategyInitialized();
 
-            Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.ItemAdapter.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
             bool success = _placementStrategy.TryAdd(_slots, stack, targetSlotIndex);
             bool stackConsumed = stack.IsEmpty;
@@ -736,10 +736,10 @@ namespace DragAndDropSystem.Inventories
 
             foreach (var slot in _slots)
             {
-                if (!slot.IsEmpty && !addedIds.Contains(slot.Stack.ItemAdapter.ItemId))
+                if (!slot.IsEmpty && !addedIds.Contains(slot.Stack.ID))
                 {
                     items.Add(slot.Stack.ItemAdapter);
-                    addedIds.Add(slot.Stack.ItemAdapter.ItemId);
+                    addedIds.Add(slot.Stack.ID);
                 }
             }
 

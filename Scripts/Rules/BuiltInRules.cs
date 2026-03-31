@@ -83,13 +83,13 @@ namespace DragAndDropSystem.Rules
             if (entry.Stack == null || entry.Stack.ItemAdapter == null)
                 return RuleResult.Failure("Invalid itemAdapter");
 
-            bool contains = _allowedItemIds.Contains(entry.Stack.ItemAdapter.ItemId);
+            bool contains = _allowedItemIds.Contains(entry.Stack.ID);
 
             if (_whitelist && !contains)
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is not allowed in this slot");
 
             if (!_whitelist && contains)
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is not allowed in this slot");
 
             return RuleResult.Success();
         }
@@ -128,7 +128,7 @@ namespace DragAndDropSystem.Rules
             // Подсчитываем уникальные предметы
             var uniqueItems = context.TargetInventory.Slots
                 .Where(s => !s.IsEmpty)
-                .Select(s => s.Stack.ItemAdapter.ItemId)
+                .Select(s => s.Stack.ID)
                 .Distinct()
                 .Count();
 

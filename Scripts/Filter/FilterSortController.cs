@@ -384,8 +384,8 @@ namespace DragAndDropSystem.Filter
                 case SortMode.ByName:
                     return (a, b) =>
                     {
-                        var nameA = a.IsEmpty ? "" : a.Stack.ItemAdapter.DisplayName ?? "";
-                        var nameB = b.IsEmpty ? "" : b.Stack.ItemAdapter.DisplayName ?? "";
+                        var nameA = a.IsEmpty ? "" : a.Stack.DisplayName ?? "";
+                        var nameB = b.IsEmpty ? "" : b.Stack.DisplayName ?? "";
                         return string.Compare(nameA, nameB, StringComparison.OrdinalIgnoreCase) * direction;
                     };
 
