@@ -14,7 +14,6 @@ It solves tasks such as:
 
 It works both for simple inventory UIs and scenarios like equipment, and for more complex logic such as trading and server-side validation.
 
----
 
 ## What This Asset Is
 
@@ -51,7 +50,6 @@ Usually this is a small adapter and one `DataBinding`. The more complex your dat
 
 For some common cases, template `DataBinding` classes are already provided, which makes most setups easier.
 
----
 
 ## Basic Model
 
@@ -80,7 +78,18 @@ flowchart LR
 
 - `IItemAdapter` needs to be defined so it stores data correctly
 - `DataBinding` needs to be defined so it edits data correctly
----
+
+## Subsystems
+- Displaying data in the inventory
+- Transfer between inventories
+- Drop zones
+- Rules system
+- Configurable actions
+- Auto-transfer
+- Multi-selection
+- Multi-transfer
+- Context menu
+- Tooltip example
 
 ## Read Next
 
