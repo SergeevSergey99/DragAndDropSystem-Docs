@@ -84,8 +84,6 @@ namespace DragAndDropSystem.Core
 
         public void AddToStack(IEnumerable<IItemAdapter> adapters)
         {
-            if (!TryAddToStack(adapters))
-                throw new ArgumentException("Adapter is not compatible with this ItemStack.", nameof(adapters));
         }
 
         public void AddToStack(ItemStack stack)
@@ -93,7 +91,9 @@ namespace DragAndDropSystem.Core
             if (stack == null || stack.IsEmpty)
                 return;
 
-            AddToStack(stack.Adapters.ToList());
+            var adapters = stack.Adapters.ToList();
+            if (!TryAddToStack(adapters))
+                throw new ArgumentException("Adapter is not compatible with this ItemStack.", nameof(adapters));
         }
 
         public bool TryAddToStack(IEnumerable<IItemAdapter> adapters)
