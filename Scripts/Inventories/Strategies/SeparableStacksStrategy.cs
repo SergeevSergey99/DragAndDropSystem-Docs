@@ -60,7 +60,16 @@ namespace DragAndDropSystem.Inventories
                     int toAdd = Math.Min(remaining, canFit);
                     if (toAdd > 0 && (skipRules || PassesRules(targetSlot, stack.PrimaryAdapter, toAdd)))
                     {
-                        targetSlot.Stack.AddToStack(stack.Split(toAdd));
+                        var movedStack = stack.Split(toAdd);
+                        if (movedStack.IsEmpty)
+                            return false;
+
+                        if (!targetSlot.Stack.TryAddToStack(movedStack))
+                        {
+                            stack.TryAddToStack(movedStack);
+                            return false;
+                        }
+
                         targetSlot.UpdateVisuals();
                         remaining -= toAdd;
                     }
@@ -81,7 +90,16 @@ namespace DragAndDropSystem.Inventories
                         int toAdd = Math.Min(remaining, canFit);
                         if (toAdd > 0 && (skipRules || PassesRules(slot, stack.PrimaryAdapter, toAdd)))
                         {
-                            slot.Stack.AddToStack(stack.Split(toAdd));
+                            var movedStack = stack.Split(toAdd);
+                            if (movedStack.IsEmpty)
+                                return false;
+
+                            if (!slot.Stack.TryAddToStack(movedStack))
+                            {
+                                stack.TryAddToStack(movedStack);
+                                return false;
+                            }
+
                             slot.UpdateVisuals();
                             remaining -= toAdd;
                         }
@@ -178,7 +196,16 @@ namespace DragAndDropSystem.Inventories
                 if (toAdd <= 0 || !PassesRules(targetSlot, stack.PrimaryAdapter, toAdd))
                     return false;
 
-                targetSlot.Stack.AddToStack(stack.Split(toAdd));
+                var mergeStack = stack.Split(toAdd);
+                if (mergeStack.IsEmpty)
+                    return false;
+
+                if (!targetSlot.Stack.TryAddToStack(mergeStack))
+                {
+                    stack.TryAddToStack(mergeStack);
+                    return false;
+                }
+
                 targetSlot.UpdateVisuals();
                 operationContext?.RecordResult(targetSlot, false, toAdd);
                 ensureFreeSlots?.Invoke();

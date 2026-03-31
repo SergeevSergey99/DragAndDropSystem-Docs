@@ -181,7 +181,9 @@ namespace DragAndDropSystem.Inventories
                 if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
                     return false;
 
-                destinationSlot.Stack.AddToStack(sourceStack);
+                if (!destinationSlot.Stack.TryAddToStack(sourceStack))
+                    return false;
+
                 destinationSlot.UpdateVisuals();
                 sourceSlot.Clear();
                 return true;

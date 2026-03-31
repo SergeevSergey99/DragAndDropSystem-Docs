@@ -789,7 +789,13 @@ namespace DragAndDropSystem.Inventories
                 }
                 else
                 {
-                    sourceSlot.Stack.AddToStack(transferStack);
+                    if (!sourceSlot.Stack.TryAddToStack(transferStack))
+                    {
+                        Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to return unplaced items to source, rolling back</color>");
+                        InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot, sourceSlot, sourceSlotState);
+                        InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot, null, default);
+                        return false;
+                    }
                 }
 
                 sourceSlot.UpdateVisuals();

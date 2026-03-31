@@ -209,7 +209,12 @@ namespace DragAndDropSystem.Inventories
             if (movedStack.IsEmpty)
                 return false;
 
-            slot.Stack.AddToStack(movedStack);
+            if (!slot.Stack.TryAddToStack(movedStack))
+            {
+                stack.TryAddToStack(movedStack);
+                return false;
+            }
+
             slot.UpdateVisuals();
             operationContext?.RecordResult(slot, false, toAdd);
             ensureFreeSlots?.Invoke();
