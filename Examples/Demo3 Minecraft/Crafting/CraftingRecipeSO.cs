@@ -36,32 +36,6 @@ namespace DragAndDropSystem.Examples.Minecraft
 
             return _shapeless ? MatchesShapeless(gridItemIds) : MatchesShaped(gridItemIds);
         }
-
-        /// <summary>
-        /// Удобный метод: прочитать ItemId прямо из слотов инвентаря.
-        /// </summary>
-        public bool Matches(IReadOnlyList<ISlot> gridSlots)
-        {
-            if (gridSlots == null || gridSlots.Count != 9)
-                return false;
-
-            var items = new MinecraftItemSO[9];
-            for (int i = 0; i < 9; i++)
-            {
-                if (gridSlots[i] != null && !gridSlots[i].IsEmpty && gridSlots[i].Stack.ItemAdapter is MinecraftItemAdapterAdapter adapter)
-                {
-                    items[i] = adapter.ItemSO;
-                }
-                else
-                {
-                    items[i] = null;
-                }
-                
-            }
-
-            return Matches(items);
-        }
-
         #region Shaped matching (с учётом смещения)
 
         private bool MatchesShaped(MinecraftItemSO[] gridItemIds)

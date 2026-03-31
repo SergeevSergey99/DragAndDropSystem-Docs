@@ -18,6 +18,7 @@ namespace DragAndDropSystem.Core
         public string ID { get; private set; }
         public Sprite Icon { get; private set; }
         public string DisplayName { get; private set; }
+        public Type AdapterType  { get; private set; }
 
         public bool IsEmpty => ItemAdapter == null || Count <= 0;
 
@@ -27,6 +28,7 @@ namespace DragAndDropSystem.Core
             ID = itemAdapter?.ItemId;
             Icon = itemAdapter?.Icon;
             DisplayName = itemAdapter?.DisplayName;
+            AdapterType = itemAdapter?.GetType();
             Count = Math.Max(0, count);
         }
 
@@ -38,7 +40,7 @@ namespace DragAndDropSystem.Core
         public bool CanStack(IItemAdapter otherItemAdapter)
         {
             if (ItemAdapter == null || otherItemAdapter == null) return false;
-            return ItemAdapter.ItemId == otherItemAdapter.ItemId;
+            return ID == otherItemAdapter.ItemId;
         }
 
         /// <summary>
@@ -91,6 +93,7 @@ namespace DragAndDropSystem.Core
             ID = newItemAdapter.ItemId;
             DisplayName = newItemAdapter.DisplayName;
             Icon = newItemAdapter.Icon;
+            AdapterType = newItemAdapter.GetType();
             // Count остается тем же
         }
 
