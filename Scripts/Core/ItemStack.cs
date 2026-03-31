@@ -82,10 +82,6 @@ namespace DragAndDropSystem.Core
                 _adapters.Add(PrimaryAdapter);
         }
 
-        public void AddToStack(IEnumerable<IItemAdapter> adapters)
-        {
-        }
-
         public void AddToStack(ItemStack stack)
         {
             if (stack == null || stack.IsEmpty)
