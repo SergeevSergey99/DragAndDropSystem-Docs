@@ -2,7 +2,7 @@
 
 Detailed documentation of current inventory strategies.
 
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-04-01
 
 ## Strategy Hierarchy
 
@@ -34,6 +34,8 @@ Current note:
 - capability interfaces already exist and are used by `UniversalInventory`
 - acceptance preview already uses `InventoryAcceptanceRequest`
 - `IInventoryStrategy` is kept as an aggregate compatibility layer for now
+- current stack mutation paths preserve concrete adapter lists through `ItemStack.Split(...)`
+  and `TryAddToStack(...)` instead of recreating stacks only from representative adapter + count
 
 ## UniqueItemStrategy
 
@@ -50,6 +52,7 @@ How it works:
 - tries target slot first when provided
 - otherwise fills empty valid slots one by one
 - preview acceptance validates each slot with `PassesRules(..., request)`
+- if source stack contains instance-aware adapters, each single-item stack keeps the moved adapter instance
 
 Use cases:
 - equipment slots
@@ -69,6 +72,7 @@ How it works:
 1. fill existing matching stacks
 2. create new stack in empty slot if needed
 3. validate each candidate through rules
+4. merge/split preserve actual adapter lists inside stacks
 
 Current preview behavior:
 - uses `InventoryAcceptanceRequest`
@@ -93,6 +97,7 @@ How it works:
 - explicit drop to empty slot creates a new stack
 - explicit drop to same-item occupied slot merges only if `_allowMergeOnDrop`
 - programmatic add prefers creating a new stack instead of auto-merging all the time
+- merge/split preserve actual adapter lists inside stacks
 
 Current preview behavior:
 - uses `InventoryAcceptanceRequest`

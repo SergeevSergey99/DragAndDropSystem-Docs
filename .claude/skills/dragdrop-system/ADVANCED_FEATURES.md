@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-04-01
 
 ## Quick Click Auto-Transfer
 
@@ -22,6 +22,23 @@ inventory.TryAddStackQuiet(new ItemStack(item, count), slotIndex);
 ```
 
 Use this (via `AddToUIQuiet()` in DataBinding) when populating slots from data — not from a user drag. Normal `TryAdd` (used by transfer pipeline) always evaluates rules.
+
+## ItemStack Runtime Model
+
+Current `ItemStack` behavior:
+- `PrimaryAdapter` is the representative adapter for UI, rule checks, type checks, and casts
+- `ItemAdapter` is kept as a compatibility alias to `PrimaryAdapter`
+- `Adapters` stores the concrete adapter instances currently contained in the stack
+- `Count` is derived from `Adapters.Count`
+
+Current helper APIs:
+- `ItemStack.TryCreate(...)` — safe creation from adapter list
+- `TryAddToStack(...)` — safe merge without runtime exceptions
+- `Split(...)` / `CreateCopy(...)` — preserve concrete adapter instances
+
+Important note:
+- bindings and rules that only need adapter type or metadata should keep using `PrimaryAdapter`
+- systems that need true instance identity must not reconstruct stacks only from representative adapter + count
 
 ## Occupied Slot Handler
 

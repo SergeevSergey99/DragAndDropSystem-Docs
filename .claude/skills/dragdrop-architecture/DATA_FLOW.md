@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-04-01
 
 ## Manual Drop Flow
 
@@ -11,6 +11,11 @@
 5. `TransferPlanner.BuildPlan(...)` returns `TransferPlan`.
 6. `TransferPlanExecutor.Execute(...)` applies plan.
 7. Deferred events are emitted after successful completion via `DispatchTransferEvents()`.
+
+Current stack note:
+- drag entries now carry `ItemStack` copies built from concrete adapter lists, not just `(item, count)`
+- executor split/merge paths move real adapter lists between stacks via `Split()` / `TryAddToStack()`
+- event payloads still expose representative `ItemAdapter + Count`, so external consumers remain aggregate-facing for now
 
 ## Planner Flow
 
@@ -89,6 +94,9 @@ TransferItemConversionUtility.TryResolveTargetItem(...)
 ```
 
 Actual stack mutation later uses the same conversion chain inside `UniversalInventory`.
+
+Important current caveat:
+- conversion APIs are still representative-adapter-based; `ReplaceItem()` updates all adapters inside the stack uniformly
 
 ## Occupied Slot Handler Flow
 

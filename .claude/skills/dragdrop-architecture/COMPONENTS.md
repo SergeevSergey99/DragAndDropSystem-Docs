@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-04-01
 
 ## DragAndDropManager
 
@@ -121,6 +121,10 @@ Notes:
 - events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()`
 - dynamic slot creation is still split between strategy wrapping (`DynamicSlotDecorator`)
   and inventory-level slot lifecycle methods such as `EnsureFreeSlots()` / `HandleSlotEmptied()`
+- current `ItemStack` model is instance-aware: it stores a representative `PrimaryAdapter`
+  plus `IReadOnlyList<IItemAdapter> Adapters`; `Count` is derived from adapter list length
+- type checks/casts in rules, bindings, tooltips, and visuals should use `PrimaryAdapter`
+  (or `ItemAdapter`, which is kept as an alias for compatibility)
 
 ## Acceptance Preview
 

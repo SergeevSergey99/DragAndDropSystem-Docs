@@ -1,6 +1,6 @@
 # Transfer Pipeline Architecture
 
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-04-01
 
 Документ описывает текущую архитектуру drop/transfer pipeline, включая batch transfer, swap и target-aware preview.
 
@@ -89,6 +89,8 @@
 - для обычных переносов executor dispatch-ит remove/add на основе итогового `InventoryTransferResult`
 - remove использует `SourceItem`
 - add использует `TargetItem`
+- обычные split/merge path теперь переносят реальные списки адаптеров внутри `ItemStack`, а не только абстрактное количество
+- event payloads и `InventoryTransferResult` по-прежнему публикуют representative adapter + count
 
 Это критично для корректной работы adapter conversion между разными инвентарями.
 
@@ -182,6 +184,7 @@ Manager:
 - берёт у target `IDropProcessor`
 - вызывает `CanAcceptDrop` и `ProcessDrop`
 - публикует swap callbacks (`RaiseSwapAttempting`, `RaiseSwapCompleted`)
+- при старте drag использует копию подмножества адаптеров исходного стака, а не реконструкцию только по count
 
 ### Drop targets
 
@@ -228,6 +231,7 @@ Flow:
 Текущие ограничения:
 - swap включен для одиночного entry и полного source stack
 - batch swap как отдельный orchestration mode не реализован
+- snapshot/sort/save-load path всё ещё нужно держать в уме отдельно: не каждый legacy path уже instance-aware
 
 ## Что это даёт
 
