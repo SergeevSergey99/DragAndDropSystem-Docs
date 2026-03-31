@@ -82,21 +82,20 @@ namespace DragAndDropSystem.Core
                 _adapters.Add(PrimaryAdapter);
         }
 
-        public void AddToStack(ItemStack stack)
+        public bool TryAddToStack(ItemStack stack)
         {
             if (stack == null || stack.IsEmpty)
-                return;
+                return false;
 
-            var adapters = stack.Adapters.ToList();
-            if (!TryAddToStack(adapters))
-                throw new ArgumentException("Adapter is not compatible with this ItemStack.", nameof(adapters));
+            return TryAddToStack(stack.Adapters);
         }
 
         public bool TryAddToStack(IEnumerable<IItemAdapter> adapters)
         {
             if (adapters == null)
                 return false;
-            var list = adapters.ToList();
+
+            var list = adapters.Where(adapter => adapter != null).ToList();
             if (list.Count == 0)
                 return false;
 
@@ -106,9 +105,6 @@ namespace DragAndDropSystem.Core
 
             foreach (var adapter in list)
             {
-                if (adapter == null)
-                    continue;
-
                 if (!CanAcceptAdapter(adapter, referenceAdapter))
                     return false;
             }
