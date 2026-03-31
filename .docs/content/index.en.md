@@ -90,7 +90,7 @@ flowchart LR
 - Multi-transfer
 - Context menu
 - Tooltip example
-
+- Example of nested inventories
 ## Read Next
 
 - [Quick Start](getting-started/quick-start.md) — your first working inventory
