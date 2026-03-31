@@ -80,7 +80,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
             else
             {
-                Debug.LogWarning($"[Chest] ItemAdapter '{item.ItemName}' not found in chest");
+                Debug.LogWarning($"[Chest] PrimaryAdapter '{item.ItemName}' not found in chest");
             }
 
             return removed;

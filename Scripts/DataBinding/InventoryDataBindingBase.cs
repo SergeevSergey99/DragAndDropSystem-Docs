@@ -121,7 +121,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (IsSyncing) return;
 
-            Extensions.DragAndDropLog($"[{GetType().Name}] ItemAdapter added: {context.ItemAdapter.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
+            Extensions.DragAndDropLog($"[{GetType().Name}] PrimaryAdapter added: {context.ItemAdapter.DisplayName} x{context.Count} (from: {context.SourceInventory?.GetType().Name ?? "null"})");
             OnItemAddedToUI(context);
         }
 
@@ -132,7 +132,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (IsSyncing) return;
 
-            Extensions.DragAndDropLog($"[{GetType().Name}] ItemAdapter removed: {context.ItemAdapter.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
+            Extensions.DragAndDropLog($"[{GetType().Name}] PrimaryAdapter removed: {context.ItemAdapter.DisplayName} x{context.Count} (to: {context.TargetInventory?.GetType().Name ?? "null"})");
             OnItemRemovedFromUI(context);
         }
 

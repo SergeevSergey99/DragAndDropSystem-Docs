@@ -5,7 +5,7 @@ namespace DragAndDropSystem.Examples.Containers
     /// <summary>
     /// Предмет-контейнер: наследует базовый тип + ёмкость, фильтр, глубина вложенности.
     /// </summary>
-    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/Container ItemAdapter")]
+    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/ContainerItemSO")]
     public class ContainerItemSO : BaseItemSO
     {
         [Header("Container Settings")]

@@ -16,19 +16,19 @@ namespace DragAndDropSystem.Rules
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack == null || entry.Stack.ItemAdapter == null)
+            if (entry.Stack == null || entry.Stack.PrimaryAdapter == null)
                 return RuleResult.Failure("Invalid itemAdapter");
 
             if (_filterType == NameFilterType.Whitelist)
             {
                 if (_names.Contains(entry.Stack.DisplayName))
                     return RuleResult.Success();
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is not in whitelist");
+                return RuleResult.Failure($"_PrimaryAdapter {entry.Stack.DisplayName} is not in whitelist");
             }
             else // Blacklist
             {
                 if (_names.Contains(entry.Stack.DisplayName))
-                    return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is in blacklist");
+                    return RuleResult.Failure($"_PrimaryAdapter {entry.Stack.DisplayName} is in blacklist");
                 return RuleResult.Success();
             }
         }

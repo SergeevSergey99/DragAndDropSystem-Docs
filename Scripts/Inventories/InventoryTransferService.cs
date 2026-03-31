@@ -30,7 +30,7 @@ namespace DragAndDropSystem.Inventories
             SourceSlot != null &&
             TargetInventory != null &&
             DraggedStack != null &&
-            DraggedStack.ItemAdapter != null &&
+            DraggedStack.PrimaryAdapter != null &&
             DraggedStack.Count > 0;
     }
 

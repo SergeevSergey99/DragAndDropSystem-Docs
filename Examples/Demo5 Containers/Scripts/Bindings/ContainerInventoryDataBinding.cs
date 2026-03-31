@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Examples.Containers
         
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack.ItemAdapter is ContainerItemAdapterAdapter { Instance: ContainerItemInstance draggedContainer } && WouldCreateCycle(draggedContainer, currentContainer))
+            if (entry.Stack.PrimaryAdapter is ContainerItemAdapterAdapter { Instance: ContainerItemInstance draggedContainer } && WouldCreateCycle(draggedContainer, currentContainer))
                     return RuleResult.Failure("Container cannot be placed into itself or its child container");
 
             return base.CanDrop(context, entry);

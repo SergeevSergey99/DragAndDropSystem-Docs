@@ -11,14 +11,14 @@ namespace DragAndDropSystem.Inventories
         public VirtualSlotState(ISlot slot)
         {
             Slot = slot;
-            if (slot == null || slot.IsEmpty || slot.Stack?.ItemAdapter == null)
+            if (slot == null || slot.IsEmpty || slot.Stack?.PrimaryAdapter == null)
             {
                 _itemAdapter = null;
                 _count = 0;
                 return;
             }
 
-            _itemAdapter = slot.Stack.ItemAdapter;
+            _itemAdapter = slot.Stack.PrimaryAdapter;
             _count = slot.Stack.Count;
         }
 
@@ -38,7 +38,8 @@ namespace DragAndDropSystem.Inventories
             if (IsEmpty)
                 return true;
 
-            return _itemAdapter.ItemId == itemAdapter.ItemId;
+            return _itemAdapter.ItemId == itemAdapter.ItemId
+                && _itemAdapter.GetType() == itemAdapter.GetType();
         }
 
         public void Apply(IItemAdapter itemAdapter, int amount)

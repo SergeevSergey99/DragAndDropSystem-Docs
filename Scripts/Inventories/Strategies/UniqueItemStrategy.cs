@@ -50,11 +50,13 @@ namespace DragAndDropSystem.Inventories
             {
                 var targetSlot = slots[targetIndex];
 
-                if (targetSlot.IsEmpty && (skipRules || PassesRules(targetSlot, stack.ItemAdapter, 1)))
+                if (targetSlot.IsEmpty && (skipRules || PassesRules(targetSlot, stack.PrimaryAdapter, 1)))
                 {
-                    var singleItemStack = new ItemStack(stack.ItemAdapter, 1);
+                    var singleItemStack = stack.Split(1);
+                    if (singleItemStack.IsEmpty)
+                        return false;
+
                     targetSlot.SetStack(singleItemStack);
-                    stack.RemoveFromStack(1);
                 }
                 return stack.IsEmpty;
             }
@@ -66,12 +68,14 @@ namespace DragAndDropSystem.Inventories
                 if (!slot.IsEmpty)
                     continue;
 
-                if (!skipRules && !PassesRules(slot, stack.ItemAdapter, 1))
+                if (!skipRules && !PassesRules(slot, stack.PrimaryAdapter, 1))
                     continue;
 
-                var singleItemStack = new ItemStack(stack.ItemAdapter, 1);
+                var singleItemStack = stack.Split(1);
+                if (singleItemStack.IsEmpty)
+                    return false;
+
                 slot.SetStack(singleItemStack);
-                stack.RemoveFromStack(1);
                 // Продолжаем цикл, чтобы распределить оставшиеся предметы
             }
 
@@ -83,7 +87,7 @@ namespace DragAndDropSystem.Inventories
             if (sourceIndex >= 0 && sourceIndex < slots.Count)
             {
                 var slot = slots[sourceIndex];
-                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
                     slot.Clear();
                     return true;
@@ -107,7 +111,7 @@ namespace DragAndDropSystem.Inventories
             if (stack == null || stack.IsEmpty || targetSlot == null || !targetSlot.IsEmpty)
                 return false;
 
-            if (!PassesRules(targetSlot, stack.ItemAdapter, 1))
+            if (!PassesRules(targetSlot, stack.PrimaryAdapter, 1))
                 return false;
 
             return TryPlaceIntoEmptySlot(stack, targetSlot, 1, ensureFreeSlots, operationContext);

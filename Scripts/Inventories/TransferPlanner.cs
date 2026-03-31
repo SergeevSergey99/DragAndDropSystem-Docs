@@ -63,7 +63,7 @@ namespace DragAndDropSystem.Inventories
             FailureReason = failureReason;
             RequiresSwap = requiresSwap;
             SwapTargetSlot = swapTargetSlot;
-            PreviewTargetItemAdapter = previewTargetItemAdapter ?? entry.Stack?.ItemAdapter;
+            PreviewTargetItemAdapter = previewTargetItemAdapter ?? entry.Stack?.PrimaryAdapter;
             RequiresOccupiedHandler = requiresOccupiedHandler;
             OccupiedTargetSlot = occupiedTargetSlot;
         }
@@ -257,7 +257,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             int requested = entry.Stack.Count;
-            var sourceItem = entry.Stack.ItemAdapter;
+            var sourceItem = entry.Stack.PrimaryAdapter;
             if (sourceItem == null || requested <= 0)
             {
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Invalid stack");
@@ -686,7 +686,7 @@ namespace DragAndDropSystem.Inventories
             if (entry.SourceSlot.IsEmpty || entry.SourceSlot.Stack == null || entry.SourceSlot.Stack.IsEmpty)
                 return false;
 
-            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.ItemAdapter == null)
+            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.PrimaryAdapter == null)
                 return false;
 
             // Current swap implementation supports only full stack from source slot.
@@ -703,9 +703,9 @@ namespace DragAndDropSystem.Inventories
 
             DragEntry validationEntry = operation.Entry;
             if (operation.Entry.Stack == null ||
-                operation.Entry.Stack.ItemAdapter == null ||
+                operation.Entry.Stack.PrimaryAdapter == null ||
                 operation.Entry.Stack.Count != plannedAmount ||
-                !ReferenceEquals(operation.Entry.Stack.ItemAdapter, operation.TargetItemAdapter))
+                !ReferenceEquals(operation.Entry.Stack.PrimaryAdapter, operation.TargetItemAdapter))
             {
                 validationEntry = new DragEntry(
                     new ItemStack(operation.TargetItemAdapter, plannedAmount),

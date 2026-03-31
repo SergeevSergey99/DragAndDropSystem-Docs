@@ -195,7 +195,7 @@ namespace DragAndDropSystem.DataBinding
 
         // Опционально: ссылка на ItemSO или IItemAdapter
         // public ItemSO ItemSO;
-        // public IItemAdapter ItemAdapter;
+        // public IItemAdapter _PrimaryAdapter;
 
         public ItemData(IItemAdapter itemAdapter, int count)
         {

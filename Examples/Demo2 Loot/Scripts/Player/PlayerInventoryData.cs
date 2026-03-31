@@ -148,7 +148,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                 }
             }
 
-            Debug.LogWarning($"[PlayerInventoryData] ItemAdapter '{item.ItemName}' not found in inventory");
+            Debug.LogWarning($"[PlayerInventoryData] _PrimaryAdapter '{item.ItemName}' not found in inventory");
             return false;
         }
     }

@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Slots
 
         public override string ToString()
         {
-            return $"SlotHover[{(IsEnter ? "Enter" : "Exit")}] ItemAdapter: {ItemAdapter?.DisplayName ?? "Empty"}, Slot: {SlotIndex}, Pos: {ScreenPosition}";
+            return $"SlotHover[{(IsEnter ? "Enter" : "Exit")}] _PrimaryAdapter: {ItemAdapter?.DisplayName ?? "Empty"}, Slot: {SlotIndex}, Pos: {ScreenPosition}";
         }
     }
 }

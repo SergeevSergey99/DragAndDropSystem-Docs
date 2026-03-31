@@ -80,16 +80,16 @@ namespace DragAndDropSystem.Rules
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack == null || entry.Stack.ItemAdapter == null)
+            if (entry.Stack == null || entry.Stack.PrimaryAdapter == null)
                 return RuleResult.Failure("Invalid itemAdapter");
 
             bool contains = _allowedItemIds.Contains(entry.Stack.ID);
 
             if (_whitelist && !contains)
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"PrimaryAdapter {entry.Stack.DisplayName} is not allowed in this slot");
 
             if (!_whitelist && contains)
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} is not allowed in this slot");
+                return RuleResult.Failure($"PrimaryAdapter {entry.Stack.DisplayName} is not allowed in this slot");
 
             return RuleResult.Success();
         }
@@ -122,7 +122,7 @@ namespace DragAndDropSystem.Rules
                 return RuleResult.Failure("No target inventory");
 
             // Если предмет уже есть в инвентаре, разрешаем
-            if (context.TargetInventory.Contains(entry.Stack.ItemAdapter))
+            if (context.TargetInventory.Contains(entry.Stack.PrimaryAdapter))
                 return RuleResult.Success();
 
             // Подсчитываем уникальные предметы

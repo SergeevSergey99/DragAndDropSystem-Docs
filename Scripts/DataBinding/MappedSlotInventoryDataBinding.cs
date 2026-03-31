@@ -60,7 +60,7 @@ namespace DragAndDropSystem.DataBinding
     ///     };
     ///
     ///     protected override ItemModelAdapter CreateAdapter(ItemModel itemAdapter) =&gt; new(itemAdapter);
-    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.ItemAdapter;
+    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.PrimaryAdapter;
     /// }
     /// </code>
     /// </summary>
@@ -136,7 +136,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack.ItemAdapter is not TAdapter adapter)
+            if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
                 return RuleResult.Failure("Неверный тип предмета");
 
             if (!TryGetTargetBinding(context?.TargetSlot, out var binding))

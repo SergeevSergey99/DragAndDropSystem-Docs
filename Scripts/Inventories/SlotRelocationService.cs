@@ -76,7 +76,7 @@ namespace DragAndDropSystem.Inventories
                 if (slot.IsEmpty)
                     continue;
 
-                if (canAcceptByRules(slot, stack.ItemAdapter, stack.Count))
+                if (canAcceptByRules(slot, stack.PrimaryAdapter, stack.Count))
                     result.Add(slot);
             }
 
@@ -115,17 +115,17 @@ namespace DragAndDropSystem.Inventories
 
                 if (!slot.IsEmpty)
                 {
-                    if (!slot.Stack.CanStack(occupantStack.ItemAdapter))
+                    if (!slot.Stack.CanStack(occupantStack.PrimaryAdapter))
                         continue;
 
-                    if (!canAcceptByRules(slot, occupantStack.ItemAdapter, occupantStack.Count))
+                    if (!canAcceptByRules(slot, occupantStack.PrimaryAdapter, occupantStack.Count))
                         continue;
 
                     destinations.Add(slot);
                 }
                 else
                 {
-                    if (!canAcceptByRules(slot, occupantStack.ItemAdapter, occupantStack.Count))
+                    if (!canAcceptByRules(slot, occupantStack.PrimaryAdapter, occupantStack.Count))
                         continue;
 
                     destinations.Add(slot);
@@ -149,8 +149,8 @@ namespace DragAndDropSystem.Inventories
             ItemStack incomingStack,
             Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
         {
-            bool aAllowsIncoming = canAcceptByRules(a, incomingStack.ItemAdapter, 1);
-            bool bAllowsIncoming = canAcceptByRules(b, incomingStack.ItemAdapter, 1);
+            bool aAllowsIncoming = canAcceptByRules(a, incomingStack.PrimaryAdapter, 1);
+            bool bAllowsIncoming = canAcceptByRules(b, incomingStack.PrimaryAdapter, 1);
 
             if (aAllowsIncoming != bAllowsIncoming)
                 return aAllowsIncoming ? 1 : -1;
@@ -171,7 +171,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             int amountToMove = sourceStack.Count;
-            var itemToMove = sourceStack.ItemAdapter;
+            var itemToMove = sourceStack.PrimaryAdapter;
 
             if (!destinationSlot.IsEmpty)
             {
@@ -181,7 +181,7 @@ namespace DragAndDropSystem.Inventories
                 if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
                     return false;
 
-                destinationSlot.Stack.AddToStack(amountToMove);
+                destinationSlot.Stack.AddToStack(sourceStack);
                 destinationSlot.UpdateVisuals();
                 sourceSlot.Clear();
                 return true;
@@ -190,7 +190,9 @@ namespace DragAndDropSystem.Inventories
             if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
                 return false;
 
-            var movedStack = new ItemStack(itemToMove, amountToMove);
+            if (!ItemStack.TryCreate(sourceStack.Adapters, out var movedStack))
+                return false;
+
             destinationSlot.SetStack(movedStack);
             destinationSlot.UpdateVisuals();
             sourceSlot.Clear();

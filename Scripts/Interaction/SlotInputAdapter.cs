@@ -257,7 +257,7 @@ namespace DragAndDropSystem.Interaction
         private SlotHoverEventArgs CreateHoverEventArgs(PointerEventData eventData, bool isEnter)
         {
             return new SlotHoverEventArgs(
-                _slot?.Stack?.ItemAdapter,
+                _slot?.Stack?.PrimaryAdapter,
                 _slot,
                 eventData?.position ?? Vector2.zero,
                 GetComponent<RectTransform>(),

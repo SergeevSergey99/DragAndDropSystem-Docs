@@ -117,7 +117,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return "";
 
-            if (slot.Stack.ItemAdapter is IFilterable filterable)
+            if (slot.Stack.PrimaryAdapter is IFilterable filterable)
                 return filterable.Category ?? "";
 
             return "";
@@ -128,7 +128,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return -1;
 
-            if (slot.Stack.ItemAdapter is IFilterable filterable)
+            if (slot.Stack.PrimaryAdapter is IFilterable filterable)
                 return filterable.Rarity;
 
             return 0;
@@ -139,7 +139,7 @@ namespace DragAndDropSystem.Filter
             if (slot.IsEmpty)
                 return int.MinValue;
 
-            if (slot.Stack.ItemAdapter is ISortable sortable)
+            if (slot.Stack.PrimaryAdapter is ISortable sortable)
                 return sortable.SortValue;
 
             return 0;

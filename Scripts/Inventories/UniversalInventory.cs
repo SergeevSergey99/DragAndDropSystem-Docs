@@ -32,8 +32,8 @@ namespace DragAndDropSystem.Inventories
         private int _initialSlotCount = 10;
 
         [FoldoutGroup("Strategy", expanded: true)]
-        [InfoBox("ItemAdapter Behavior: как предметы размещаются | Slot Management: управление количеством слотов", InfoMessageType.Info)]
-        [SerializeField, LabelText("ItemAdapter Behavior")]
+        [InfoBox("PrimaryAdapter Behavior: как предметы размещаются | Slot Management: управление количеством слотов", InfoMessageType.Info)]
+        [SerializeField, LabelText("PrimaryAdapter Behavior")]
         private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
 
         [FoldoutGroup("Strategy")]
@@ -440,10 +440,10 @@ namespace DragAndDropSystem.Inventories
 
         bool TryConvertIncomingItem(ItemStack stack)
         {
-            if (!TryPreviewIncomingItem(stack.ItemAdapter, out var converted))
+            if (!TryPreviewIncomingItem(stack.PrimaryAdapter, out var converted))
                 return false;
 
-            if (!ReferenceEquals(converted, stack.ItemAdapter))
+            if (!ReferenceEquals(converted, stack.PrimaryAdapter))
                 stack.ReplaceItem(converted);
 
             return true;
@@ -451,10 +451,10 @@ namespace DragAndDropSystem.Inventories
 
         internal bool TryConvertOutgoingItem(ItemStack stack)
         {
-            if (!TryPreviewOutgoingItem(stack.ItemAdapter, out var converted))
+            if (!TryPreviewOutgoingItem(stack.PrimaryAdapter, out var converted))
                 return false;
 
-            if (!ReferenceEquals(converted, stack.ItemAdapter))
+            if (!ReferenceEquals(converted, stack.PrimaryAdapter))
                 stack.ReplaceItem(converted);
 
             return true;
@@ -532,7 +532,7 @@ namespace DragAndDropSystem.Inventories
             if (slot == null || previewStack == null || previewStack.IsEmpty)
                 return false;
 
-            var context = request?.CreateValidationContext(slot, previewStack.Count, previewStack.ItemAdapter)
+            var context = request?.CreateValidationContext(slot, previewStack.Count, previewStack.PrimaryAdapter)
                 ?? new DragContext(previewStack, null, null, slot, this);
             var entry = context.Entries[0];
 
@@ -568,7 +568,7 @@ namespace DragAndDropSystem.Inventories
             {
                 if (slot != null && !slot.IsEmpty)
                 {
-                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.ItemAdapter, slot.Stack.Count));
+                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.PrimaryAdapter, slot.Stack.Count));
                 }
                 else
                 {
@@ -738,7 +738,7 @@ namespace DragAndDropSystem.Inventories
             {
                 if (!slot.IsEmpty && !addedIds.Contains(slot.Stack.ID))
                 {
-                    items.Add(slot.Stack.ItemAdapter);
+                    items.Add(slot.Stack.PrimaryAdapter);
                     addedIds.Add(slot.Stack.ID);
                 }
             }
@@ -1106,8 +1106,12 @@ namespace DragAndDropSystem.Inventories
             }
 
             // Сохраняем копии стаков для событий
-            var targetStackBackup = new ItemStack(targetSlot.Stack.ItemAdapter, targetSlot.Stack.Count);
-            var sourceStackBackup = new ItemStack(sourceSlot.Stack.ItemAdapter, sourceSlot.Stack.Count);
+            var targetStackBackup = ItemStack.TryCreate(targetSlot.Stack.Adapters, out var targetBackup)
+                ? targetBackup
+                : ItemStack.Empty();
+            var sourceStackBackup = ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceBackup)
+                ? sourceBackup
+                : ItemStack.Empty();
 
             try
             {

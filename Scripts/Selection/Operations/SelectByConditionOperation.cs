@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Selection
     ///       [SerializeField] private int _minRarity;
     ///
     ///       protected override bool Matches(ISlot slot) =>
-    ///           slot.Stack.ItemAdapter is IFilterable f и f.Rarity >= _minRarity;
+    ///           slot.Stack._PrimaryAdapter is IFilterable f и f.Rarity >= _minRarity;
     ///   }
     /// </summary>
     [System.Serializable]

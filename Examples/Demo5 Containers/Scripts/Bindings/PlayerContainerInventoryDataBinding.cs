@@ -15,10 +15,10 @@ namespace DragAndDropSystem.Examples.Containers
 
         protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
         {
-            if (occupiedSlot?.Stack?.ItemAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
+            if (occupiedSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
 
-            if (entry.Stack?.ItemAdapter is not ContainerItemAdapterAdapter sourceAdapter)
+            if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
                 return false;
 
             if (container.Items.Count >= container.Item.Capacity)
@@ -32,10 +32,10 @@ namespace DragAndDropSystem.Examples.Containers
 
         protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
         {
-            if (occupiedSlot?.Stack?.ItemAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
+            if (occupiedSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
 
-            if (entry.Stack?.ItemAdapter is not ContainerItemAdapterAdapter sourceAdapter)
+            if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
                 return false;
 
             container.AddItem(sourceAdapter.Instance);

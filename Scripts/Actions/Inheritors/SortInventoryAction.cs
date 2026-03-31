@@ -70,7 +70,7 @@ namespace DragAndDropSystem.Inventories
                 {
                     stacks.Add(new ItemStackData
                     {
-                        ItemAdapter = slot.Stack.ItemAdapter,
+                        ItemAdapter = slot.Stack.PrimaryAdapter,
                         Count = slot.Stack.Count,
                         OriginalSlotIndex = i
                     });

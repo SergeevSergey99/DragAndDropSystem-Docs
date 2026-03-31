@@ -221,10 +221,10 @@ namespace DragAndDropSystem.UI
             if (!context.IsBatchDrag)
             {
                 var stack = context.Entries[0].Stack;
-                if (stack == null || stack.ItemAdapter == null)
+                if (stack == null || stack.PrimaryAdapter == null)
                     return false;
 
-                if (!TransferItemConversionUtility.TryResolveTargetItem(context.Entries[0].SourceInventory, _inventory, stack.ItemAdapter, out var targetPreviewItem))
+                if (!TransferItemConversionUtility.TryResolveTargetItem(context.Entries[0].SourceInventory, _inventory, stack.PrimaryAdapter, out var targetPreviewItem))
                     return false;
 
                 var acceptanceRequest = new InventoryAcceptanceRequest(

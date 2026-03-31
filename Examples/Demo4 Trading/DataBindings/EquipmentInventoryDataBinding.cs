@@ -83,7 +83,7 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            if (entry.Stack.ItemAdapter is not ITradableItem tradable)
+            if (entry.Stack.PrimaryAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Неверный тип предмета");
 
             // Проверяем соответствие типа предмета слоту через canAccept из BindingMap

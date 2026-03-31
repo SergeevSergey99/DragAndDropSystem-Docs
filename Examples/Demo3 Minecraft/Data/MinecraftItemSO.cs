@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Minecraft
 {
-    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/ItemAdapter")]
+    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/MinecraftItemSO")]
     public class MinecraftItemSO : ScriptableObject
     {
         [field: SerializeField] public string DisplayName { get; private set; }

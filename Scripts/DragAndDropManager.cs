@@ -140,7 +140,7 @@ namespace DragAndDropSystem
                     continue;
 
                 int dragCount = ResolveDragCount(slot, requested);
-                var stack = new ItemStack(slot.Stack.ItemAdapter, dragCount);
+                var stack = slot.Stack.CreateCopy(dragCount);
                 entries.Add(new DragEntry(stack, slot, slot.Inventory));
             }
 

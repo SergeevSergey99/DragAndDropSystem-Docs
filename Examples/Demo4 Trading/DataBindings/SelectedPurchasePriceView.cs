@@ -64,11 +64,11 @@ namespace DragAndDropSystem.Examples.Trading
 
         private static int GetSlotPurchasePrice(ISlot slot)
         {
-            if (slot == null || slot.IsEmpty || slot.Stack == null || slot.Stack.ItemAdapter == null)
+            if (slot == null || slot.IsEmpty || slot.Stack == null || slot.Stack.PrimaryAdapter == null)
                 return 0;
 
             int unitPrice = 0;
-            if (slot.Stack.ItemAdapter is ITradableItem tradable)
+            if (slot.Stack.PrimaryAdapter is ITradableItem tradable)
             {
                 unitPrice = tradable.BuyPrice;
             }

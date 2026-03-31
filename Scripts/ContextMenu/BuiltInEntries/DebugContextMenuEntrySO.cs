@@ -14,7 +14,7 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
 
         public override void Execute(ContextMenuContext ctx)
         {
-            Debug.Log($"ItemAdapter name: {ctx.Slot.Stack.DisplayName}, stack size: {ctx.Slot.Stack.Count}");
+            Debug.Log($"_PrimaryAdapter name: {ctx.Slot.Stack.DisplayName}, stack size: {ctx.Slot.Stack.Count}");
         }
     }
 }

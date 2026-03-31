@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Inventories
             int total = 0;
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
                     total += slot.Stack.Count;
                 }
@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Inventories
         {
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
                     return true;
                 }
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.Inventories
         {
             for (int i = 0; i < slots.Count; i++)
             {
-                if (!slots[i].IsEmpty && slots[i].Stack.ID == itemAdapter.ItemId)
+                if (!slots[i].IsEmpty && slots[i].Stack.CanStack(itemAdapter))
                 {
                     return i;
                 }
@@ -205,8 +205,11 @@ namespace DragAndDropSystem.Inventories
             int toAdd = Math.Min(stack.Count, canFit);
             if (toAdd <= 0) return false;
 
-            slot.Stack.AddToStack(toAdd);
-            stack.RemoveFromStack(toAdd);
+            var movedStack = stack.Split(toAdd);
+            if (movedStack.IsEmpty)
+                return false;
+
+            slot.Stack.AddToStack(movedStack);
             slot.UpdateVisuals();
             operationContext?.RecordResult(slot, false, toAdd);
             ensureFreeSlots?.Invoke();
@@ -219,8 +222,11 @@ namespace DragAndDropSystem.Inventories
             if (toPlace <= 0) return false;
 
             bool slotWasEmpty = slot.IsEmpty;
-            slot.SetStack(new ItemStack(stack.ItemAdapter, toPlace));
-            stack.RemoveFromStack(toPlace);
+            var movedStack = stack.Split(toPlace);
+            if (movedStack.IsEmpty)
+                return false;
+
+            slot.SetStack(movedStack);
             slot.UpdateVisuals();
             operationContext?.RecordResult(slot, slotWasEmpty, toPlace);
             ensureFreeSlots?.Invoke();

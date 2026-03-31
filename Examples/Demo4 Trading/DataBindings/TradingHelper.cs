@@ -21,7 +21,7 @@ namespace DragAndDropSystem.Examples.Trading
             if (entry.SourceInventory?.DataBinding is IMerchantInventory)
                 return RuleResult.Failure("Нельзя торговать между торговцами!");
             
-            if (entry.Stack.ItemAdapter is not ITradableItem)
+            if (entry.Stack.PrimaryAdapter is not ITradableItem)
                 return RuleResult.Failure("Неверный тип предмета");
             
             return RuleResult.Success();
