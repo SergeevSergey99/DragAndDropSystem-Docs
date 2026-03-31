@@ -140,7 +140,7 @@ namespace DragAndDropSystem
                     continue;
 
                 int dragCount = ResolveDragCount(slot, requested);
-                var stack = ItemStack.Repeat(slot.Stack.ItemAdapter, dragCount);
+                var stack = new ItemStack(slot.Stack.ItemAdapter, dragCount);
                 entries.Add(new DragEntry(stack, slot, slot.Inventory));
             }
 
@@ -597,7 +597,7 @@ namespace DragAndDropSystem
                     if (entry.TargetSlot is UniversalSlot targetUniversalSlot)
                         targetUniversalSlot.SetIconVisibility(false);
 
-                    var visualStack = ItemStack.Repeat(entry.ItemAdapter, entry.Amount);
+                    var visualStack = new ItemStack(entry.ItemAdapter, entry.Amount);
                     var presenter = DragVisualPresenter.AutoCreateInstance;
                     var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceSlot.Inventory);
 

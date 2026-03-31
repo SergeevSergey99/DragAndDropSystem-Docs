@@ -51,8 +51,11 @@ namespace DragAndDropSystem.Inventories
                 var targetSlot = slots[targetIndex];
 
                 if (targetSlot.IsEmpty && (skipRules || PassesRules(targetSlot, stack.ItemAdapter, 1)))
-                    targetSlot.SetStack(new ItemStack(stack.TakeAdapters(1)));
-
+                {
+                    var singleItemStack = new ItemStack(stack.ItemAdapter, 1);
+                    targetSlot.SetStack(singleItemStack);
+                    stack.RemoveFromStack(1);
+                }
                 return stack.IsEmpty;
             }
 
@@ -66,7 +69,10 @@ namespace DragAndDropSystem.Inventories
                 if (!skipRules && !PassesRules(slot, stack.ItemAdapter, 1))
                     continue;
 
-                slot.SetStack(new ItemStack(stack.TakeAdapters(1)));
+                var singleItemStack = new ItemStack(stack.ItemAdapter, 1);
+                slot.SetStack(singleItemStack);
+                stack.RemoveFromStack(1);
+                // Продолжаем цикл, чтобы распределить оставшиеся предметы
             }
 
             return stack.IsEmpty;
@@ -105,7 +111,6 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             return TryPlaceIntoEmptySlot(stack, targetSlot, 1, ensureFreeSlots, operationContext);
-
         }
 
         public override bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)

@@ -18,22 +18,20 @@ namespace DragAndDropSystem.Inventories
     }
 
     /// <summary>
-    /// Снимок одного слота. Хранит полный список адаптеров — каждый экземпляр предмета отдельно.
+    /// Снимок одного слота.
     /// </summary>
     public struct InventorySlotState
     {
-        public InventorySlotState(IReadOnlyList<IItemAdapter> adapters)
+        public InventorySlotState(IItemAdapter itemAdapter, int count)
         {
-            Adapters = adapters != null ? new List<IItemAdapter>(adapters) : new List<IItemAdapter>();
+            ItemAdapter = itemAdapter;
+            Count = count;
         }
 
-        public List<IItemAdapter> Adapters;
+        public IItemAdapter ItemAdapter;
+        public int Count;
 
-        // Свойства совместимости — используются в логике сравнения снапшотов
-        public IItemAdapter ItemAdapter => Adapters != null && Adapters.Count > 0 ? Adapters[0] : null;
-        public int Count => Adapters?.Count ?? 0;
-
-        public bool IsEmpty => Adapters == null || Adapters.Count == 0;
+        public bool IsEmpty => ItemAdapter == null || Count <= 0;
     }
 
     /// <summary>

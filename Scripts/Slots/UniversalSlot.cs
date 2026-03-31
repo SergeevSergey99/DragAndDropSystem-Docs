@@ -72,12 +72,13 @@ namespace DragAndDropSystem.Slots
         {
             if (_stack == null || _stack.IsEmpty)
             {
-                _stack = new ItemStack(newItemAdapter);
+                // Если слот пуст, создаем новый стек с количеством 1
+                _stack = new ItemStack(newItemAdapter, 1);
             }
             else
             {
-                // Заменяем все адаптеры на новый, сохраняя количество предметов
-                _stack.MapAdapters(_ => newItemAdapter);
+                // Заменяем предмет, сохраняя количество
+                _stack.ReplaceItem(newItemAdapter);
             }
 
             UpdateVisuals();

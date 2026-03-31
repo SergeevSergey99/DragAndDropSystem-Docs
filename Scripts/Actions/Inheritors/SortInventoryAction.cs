@@ -71,7 +71,7 @@ namespace DragAndDropSystem.Inventories
                     stacks.Add(new ItemStackData
                     {
                         ItemAdapter = slot.Stack.ItemAdapter,
-                        Adapters = new System.Collections.Generic.List<IItemAdapter>(slot.Stack.Adapters),
+                        Count = slot.Stack.Count,
                         OriginalSlotIndex = i
                     });
                 }
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Inventories
                 if (slot != null)
                 {
                     var stackData = stacks[i];
-                    slot.SetStack(new ItemStack(stackData.Adapters));
+                    slot.SetStack(new ItemStack(stackData.ItemAdapter, stackData.Count));
                 }
             }
 
@@ -136,7 +136,7 @@ namespace DragAndDropSystem.Inventories
         private class ItemStackData
         {
             public IItemAdapter ItemAdapter;
-            public System.Collections.Generic.List<IItemAdapter> Adapters;
+            public int Count;
             public int OriginalSlotIndex;
         }
     }

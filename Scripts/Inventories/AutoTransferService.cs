@@ -58,7 +58,7 @@ namespace DragAndDropSystem.Inventories
                 if (item == null)
                     continue;
 
-                entries.Add(new DragEntry(ItemStack.Repeat(item, dragAmount), slot, sourceInventory));
+                entries.Add(new DragEntry(new ItemStack(item, dragAmount), slot, sourceInventory));
             }
 
             if (entries.Count == 0)

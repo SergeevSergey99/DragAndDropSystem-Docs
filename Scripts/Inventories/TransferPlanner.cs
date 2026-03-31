@@ -708,7 +708,7 @@ namespace DragAndDropSystem.Inventories
                 !ReferenceEquals(operation.Entry.Stack.ItemAdapter, operation.TargetItemAdapter))
             {
                 validationEntry = new DragEntry(
-                    ItemStack.Repeat(operation.TargetItemAdapter, plannedAmount),
+                    new ItemStack(operation.TargetItemAdapter, plannedAmount),
                     operation.Entry.SourceSlot,
                     operation.Entry.SourceInventory);
             }

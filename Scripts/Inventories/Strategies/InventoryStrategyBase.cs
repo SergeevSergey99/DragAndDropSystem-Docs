@@ -194,7 +194,7 @@ namespace DragAndDropSystem.Inventories
                 return true;
 
             var context = request?.CreateValidationContext(slotPrefab, previewCount, itemAdapter)
-                ?? new DragContext(ItemStack.Repeat(itemAdapter, previewCount), null, null, slotPrefab, null);
+                ?? new DragContext(new ItemStack(itemAdapter, previewCount), null, null, slotPrefab, null);
             var entry = context.Entries[0];
             return slotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
         }
@@ -205,7 +205,8 @@ namespace DragAndDropSystem.Inventories
             int toAdd = Math.Min(stack.Count, canFit);
             if (toAdd <= 0) return false;
 
-            slot.Stack.AddToStack(stack.TakeAdapters(toAdd));
+            slot.Stack.AddToStack(toAdd);
+            stack.RemoveFromStack(toAdd);
             slot.UpdateVisuals();
             operationContext?.RecordResult(slot, false, toAdd);
             ensureFreeSlots?.Invoke();
@@ -218,7 +219,8 @@ namespace DragAndDropSystem.Inventories
             if (toPlace <= 0) return false;
 
             bool slotWasEmpty = slot.IsEmpty;
-            slot.SetStack(new ItemStack(stack.TakeAdapters(toPlace)));
+            slot.SetStack(new ItemStack(stack.ItemAdapter, toPlace));
+            stack.RemoveFromStack(toPlace);
             slot.UpdateVisuals();
             operationContext?.RecordResult(slot, slotWasEmpty, toPlace);
             ensureFreeSlots?.Invoke();

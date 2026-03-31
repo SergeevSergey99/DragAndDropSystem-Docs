@@ -35,7 +35,7 @@ namespace DragAndDropSystem.Inventories
         public DragContext CreateValidationContext(ISlot targetSlot, int previewCount, IItemAdapter previewItemAdapter = null)
         {
             var item = previewItemAdapter ?? ItemAdapter;
-            var stack = ItemStack.Repeat(item, previewCount);
+            var stack = new ItemStack(item, previewCount);
             return new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
         }
     }
