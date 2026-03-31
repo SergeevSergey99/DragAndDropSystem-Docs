@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Core
         
         public string ID { get; private set; }
         public Sprite Icon { get; private set; }
-        public string DisplayName;
+        public string DisplayName { get; private set; }
 
         public bool IsEmpty => ItemAdapter == null || Count <= 0;
 
