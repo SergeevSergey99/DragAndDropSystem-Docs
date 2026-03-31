@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Inventories
             int total = 0;
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
                 {
                     total += slot.Stack.Count;
                 }
@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Inventories
         {
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
                 {
                     return true;
                 }
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.Inventories
         {
             for (int i = 0; i < slots.Count; i++)
             {
-                if (!slots[i].IsEmpty && slots[i].Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
+                if (!slots[i].IsEmpty && slots[i].Stack.ID == itemAdapter.ItemId)
                 {
                     return i;
                 }

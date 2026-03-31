@@ -21,9 +21,9 @@ namespace Plugins.DragAndDropSystem.Examples
             {
                 if (_allowedTypes.Contains(adapter.item.itemType))
                     return RuleResult.Success();
-                return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} has wrong type");
+                return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} has wrong type");
             }
-            return RuleResult.Failure($"ItemAdapter {entry.Stack.ItemAdapter.DisplayName} has wrong adapter");
+            return RuleResult.Failure($"ItemAdapter {entry.Stack.DisplayName} has wrong adapter");
         }
     }
 }

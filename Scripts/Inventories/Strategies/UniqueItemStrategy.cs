@@ -83,7 +83,7 @@ namespace DragAndDropSystem.Inventories
             if (sourceIndex >= 0 && sourceIndex < slots.Count)
             {
                 var slot = slots[sourceIndex];
-                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
                 {
                     slot.Clear();
                     return true;

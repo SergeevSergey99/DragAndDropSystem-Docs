@@ -118,7 +118,7 @@ namespace DragAndDropSystem.Inventories
             if (sourceIndex >= 0 && sourceIndex < slots.Count)
             {
                 var slot = slots[sourceIndex];
-                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
                 {
                     int removed = slot.Stack.RemoveFromStack(remaining);
                     slot.UpdateVisuals();
@@ -132,7 +132,7 @@ namespace DragAndDropSystem.Inventories
             {
                 if (remaining <= 0) break;
 
-                if (!slot.IsEmpty && slot.Stack.ItemAdapter.ItemId == itemAdapter.ItemId)
+                if (!slot.IsEmpty && slot.Stack.ID == itemAdapter.ItemId)
                 {
                     remaining -= slot.Stack.RemoveFromStack(remaining);
                     slot.UpdateVisuals();
