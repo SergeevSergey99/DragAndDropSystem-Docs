@@ -114,13 +114,9 @@ To create your own placement strategy:
 public class MyCustomStrategy : InventoryStrategyBase
 {
     // Add an item to the inventory
-    public override bool TryAdd(List<ISlot> slots, ItemStack stack,
-        int targetIndex, bool skipRules = false)
+    public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
     {
-        // Find a valid slot, then move adapters atomically:
-        //   slot.Stack.AddToStack(stack.TakeAdapters(toAdd));   // merge
-        //   slot.SetStack(new ItemStack(stack.TakeAdapters(toPlace))); // empty slot
-        //   slot.UpdateVisuals();
+        // Your placement logic
     }
 
     // Add an item to a specific slot
@@ -156,10 +152,7 @@ public class MyCustomStrategy : InventoryStrategyBase
 ```
 
 !!! tip "Rule Validation"
-    Use the `PassesRules(slot, item, count)` method from the base class to validate slot rules before placement. Skip it when `skipRules == true`.
-
-!!! warning "ItemStack Mutation"
-    Always use `stack.TakeAdapters(amount)` to move adapters from source to target — this ensures each item instance physically travels from one stack to another. Use `ItemStack.Repeat(adapter, count)` only for validation and preview contexts, never for real transfers.
+    Use the `PassesRules(slot, item, count)` method from the base class to validate slot rules before placement.
 
 ---
 

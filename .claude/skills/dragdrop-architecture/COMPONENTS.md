@@ -133,26 +133,6 @@ Responsibilities:
 - let strategies ask "can this inventory accept this transfer in this context?"
 - support area-drop and planner preview with the same request model
 
-## ItemStack
-
-Location: `Scripts/Core/ItemStack.cs`
-
-Represents a stack of items. Internally stores `List<IItemAdapter>` — each item in the stack has its own adapter instance.
-
-Key API:
-- `ItemAdapter` — first adapter (computed from list)
-- `Count` — list length
-- `Adapters` — read-only view of the full adapter list
-- `ItemStack.Repeat(adapter, count)` — factory for fungible/planning contexts (N refs to same adapter)
-- `TakeAdapters(amount)` — removes and returns N adapters; used in strategy mutations to transfer instances atomically
-- `AddToStack(IReadOnlyList<IItemAdapter>)` — appends instances from another list
-- `MapAdapters(converter)` — applies a transform to every adapter (replaces old `ReplaceItem`)
-
-Usage contract:
-- `Repeat()` for preview, validation, drag ghost — any context that doesn't need unique instances
-- `TakeAdapters()` for real transfers — adapters physically move from source stack to target slot
-- `new ItemStack(adapter, count)` constructor was removed; it provoked incorrect single-ref-for-N-items usage
-
 ## DataBinding System
 
 Location: `Scripts/DataBinding/`

@@ -2,7 +2,7 @@
 
 Comprehensive catalog of anti-patterns and how to avoid them.
 
-**Last Updated**: 2026-03-30
+**Last Updated**: 2026-03-29
 
 ## Anti-Pattern #1: Adding Locks Instead of Checking DragContext
 
@@ -49,7 +49,7 @@ Comprehensive catalog of anti-patterns and how to avoid them.
 
 ## Anti-Pattern #4: Modifying ItemStack During Validation
 
-**Problem**: Calling `RemoveFromStack()`, `TakeAdapters()`, or other mutation methods inside rule validation.
+**Problem**: Calling `RemoveFromStack()` or other mutation methods inside rule validation.
 
 **Why It's Bad**:
 - Rules are read-only validation
@@ -57,7 +57,7 @@ Comprehensive catalog of anti-patterns and how to avoid them.
 - Can corrupt state if validation fails later
 - Violates single responsibility principle
 
-**Solution**: Rules only validate and return RuleResult. Let strategies handle mutations using `TakeAdapters()` in the correct mutation phase.
+**Solution**: Rules only validate and return RuleResult. Let strategies handle mutations.
 
 **Check**: `Scripts/Rules/IDragRule.cs` for rule interface.
 
@@ -229,31 +229,6 @@ protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedS
 If `CanHandleOccupiedSlotDrop` returns false, the pipeline continues normally (swap, findAlternative, reject) according to `BlockedTargetBehavior` — no behavior is lost.
 
 **Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` and `Scripts/Inventories/TransferPlanner.cs`.
-
----
-
-## Anti-Pattern #14: Using ItemStack.Repeat() for Real Item Transfers
-
-**Problem**: Using `ItemStack.Repeat(adapter, count)` to build a stack that is then placed into a slot as a real transfer result.
-
-**Why It's Bad**:
-- `Repeat()` creates N references to the **same** adapter instance
-- when the inventory later reads individual adapters (e.g. for per-instance runtime data), all N items appear identical
-- hides bugs silently: items look correct visually but share the same runtime identity
-
-**Solution**: Use `TakeAdapters(amount)` to extract real adapter instances from the source stack. The list returned by `TakeAdapters` contains the actual adapters that should travel to the target.
-
-```csharp
-// WRONG — all N items share same adapter reference
-slot.SetStack(ItemStack.Repeat(stack.ItemAdapter, toPlace));
-
-// RIGHT — real adapters physically move from source to target
-slot.SetStack(new ItemStack(stack.TakeAdapters(toPlace)));
-```
-
-`Repeat()` is correct for: validation, planning, preview checks, visual-only stacks (drag ghost), and unit tests that don't need per-instance data.
-
-**Check**: `Scripts/Core/ItemStack.cs`, `Scripts/Inventories/Strategies/*.cs`.
 
 ---
 

@@ -4,8 +4,8 @@ description: Expert guidance for reviewing and extending DragAndDropSystem with 
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-03-30
-**Version**: 2.3
+**Last Updated**: 2026-03-23
+**Version**: 2.2
 
 ## Expert Baseline
 
@@ -27,7 +27,6 @@ description: Expert guidance for reviewing and extending DragAndDropSystem with 
 
 ## Critical Files
 
-- `Scripts/Core/ItemStack.cs`
 - `Scripts/Core/DropPolicy.cs`
 - `Scripts/Core/DragContext.cs`
 - `Scripts/Inventories/InventoryDropProcessor.cs`

@@ -2,7 +2,7 @@
 
 Complete guide for extending the system and optimization strategies.
 
-**Last Updated**: 2026-03-30
+**Last Updated**: 2026-03-22
 
 ## Extension Points
 
@@ -21,27 +21,14 @@ Complete guide for extending the system and optimization strategies.
 
 **How to Create**:
 1. Inherit from `InventoryStrategyBase` or an existing concrete strategy
-2. Override `TryAdd(slots, stack, targetIndex, skipRules = false)` — respect `skipRules` flag
+2. Override `TryAdd(slots, stack, targetIndex)` method
 3. Override `TryRemove(slots, item, count, sourceIndex)` method (optional)
 4. Override `TryAddToSlot(...)` if slot-target semantics differ
 5. Override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
 6. Override `ResolveDragAmount(...)` only if drag semantics differ
 7. Override `Contains(...)` / `GetItemCount(...)` only if query semantics differ
-8. Use `PassesRules(slot, item, count, request)` for rule validation — skip when `skipRules` is true
-9. Use `TakeAdapters(amount)` to move adapter instances atomically from stack to slot (see below)
-10. Return true if operation succeeds, false otherwise
-
-**ItemStack mutation (critical)**:
-```csharp
-// Merge into existing stack
-slot.Stack.AddToStack(stack.TakeAdapters(toAdd));
-slot.UpdateVisuals();
-
-// Place into empty slot
-slot.SetStack(new ItemStack(stack.TakeAdapters(toPlace)));
-slot.UpdateVisuals();
-```
-Use `ItemStack.Repeat(adapter, count)` only for validation/preview, never for real transfers.
+8. Use `PassesRules(slot, item, count, request)` for rule validation
+9. Return true if operation succeeds, false otherwise
 
 **Example Use Cases**:
 - Weight limit system (check total weight before adding)

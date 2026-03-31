@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-03-30
+**Last Updated**: 2026-03-26
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -127,24 +127,3 @@ Input responsibilities are split:
 - `SlotInputAdapter` / `InventoryDropArea`
 
 This keeps modality detection out of transfer and slot-domain logic.
-
-## 11. ItemStack Stores a List of Adapter Instances
-
-`Scripts/Core/ItemStack.cs`
-
-- `ItemStack` stores `List<IItemAdapter>` — every item in a stack has its own adapter reference
-- `ItemAdapter` (first element) and `Count` (list length) are computed properties for read-only compatibility
-- this enables per-instance runtime data (acquisition date, serial number, etc.) even within a visual stack
-
-Key API:
-- `ItemStack.Repeat(adapter, count)` — factory for fungible/planning stacks (N refs to same adapter)
-- `new ItemStack(adapter)` — single instance
-- `new ItemStack(adapters)` — from an existing list of instances
-- `TakeAdapters(int amount)` — removes and returns N adapter instances from the stack; used by strategies to transfer adapters atomically from source to target
-- `AddToStack(IReadOnlyList<IItemAdapter>)` — appends adapter instances to existing stack
-- `MapAdapters(Func<IItemAdapter, IItemAdapter>)` — transforms each adapter (replaces old `ReplaceItem`)
-
-Usage rules:
-- use `Repeat()` for validation, preview, and planning contexts — no unique instance needed
-- use `TakeAdapters()` in strategy mutations — the taken list physically moves from source to target
-- avoid `new ItemStack(adapter, count)` — constructor was removed; it provoked incorrect single-ref-for-N-items logic
