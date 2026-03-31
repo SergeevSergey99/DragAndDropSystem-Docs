@@ -24,9 +24,9 @@ namespace DragAndDropSystem.Core
         public ItemStack(IItemAdapter itemAdapter, int count = 1)
         {
             ItemAdapter = itemAdapter;
-            ID = itemAdapter.ItemId;
-            Icon = itemAdapter.Icon;
-            DisplayName = itemAdapter.DisplayName;
+            ID = itemAdapter?.ItemId;
+            Icon = itemAdapter?.Icon;
+            DisplayName = itemAdapter?.DisplayName;
             Count = Math.Max(0, count);
         }
 
