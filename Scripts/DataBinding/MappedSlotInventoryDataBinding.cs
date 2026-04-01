@@ -119,7 +119,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.ItemAdapter is not TAdapter adapter) return;
+            if (context.PrimaryAdapter is not TAdapter adapter) return;
 
             var data = ExtractData(adapter);
             if (data == null) return;

@@ -1235,20 +1235,20 @@ MonoBehaviour:
   _itemBehavior: 0
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots:
   - {fileID: 670379793}
   - {fileID: 1591853244}
@@ -1487,20 +1487,20 @@ MonoBehaviour:
   _itemBehavior: 0
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots: []
   references:
     version: 2
@@ -1663,6 +1663,8 @@ MonoBehaviour:
     _inventory:
     - originalSO: {fileID: 11400000, guid: 3422b3eb35408774ea7dec51ea25b0b9, type: 2}
       GetTimestamp: 01.01.1970 00:00
+    - originalSO: {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
+      GetTimestamp: 01.01.1970 00:00
     _equippedWeapon:
       rid: -2
     _equippedArmor:
@@ -1678,6 +1680,9 @@ MonoBehaviour:
       <Money>k__BackingField: 750
       _inventory:
       - {fileID: 11400000, guid: 3ef1275359d08144f86d181c977691dd, type: 2}
+      - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
+      - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
+      - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
       - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
   - <id>k__BackingField: id_2
     <data>k__BackingField:
@@ -4429,20 +4434,20 @@ MonoBehaviour:
   _itemBehavior: 0
   _dragAmount: 0
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots:
   - {fileID: 584472236}
   - {fileID: 77010081}
@@ -6064,23 +6069,23 @@ MonoBehaviour:
   _slotContainer: {fileID: 1858480037}
   _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 8
-  _itemBehavior: 0
-  _dragAmount: 0
+  _itemBehavior: 2
+  _dragAmount: 2
   _customDragAmount: 1
-  _autoMergeOnDrop: 1
-  _allowMergeOnDrop: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
   _slotManagement: 0
   _maxDynamicSlots: 100
   _maxFreeSlots: 1
   _ruleValidator:
     _presets: []
     _inlineRules: []
-  _dropPolicySettings:
-    _enabled: 0
-    _occupiedTarget: 2
-    _capacity: 0
-    _batchExecution: 0
-    _targetUsage: 1
+  _dropPolicy:
+    _blockedTarget: 2
+    _allowMergeOnDrop: 1
+    _allowPartial: 1
+    _batchMode: 1
+    _alternativePlacement: 0
   _slots: []
   references:
     version: 2

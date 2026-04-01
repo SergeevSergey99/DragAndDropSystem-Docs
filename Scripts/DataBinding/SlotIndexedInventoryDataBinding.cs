@@ -69,7 +69,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.ItemAdapter is not TAdapter adapter) return;
+            if (context.PrimaryAdapter is not TAdapter adapter) return;
 
             int index = context.TargetSlot?.Index ?? -1;
             if (index < 0) return;
@@ -79,7 +79,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context.ItemAdapter is not TAdapter adapter) return;
+            if (context.PrimaryAdapter is not TAdapter adapter) return;
 
             int index = context.SourceSlot?.Index ?? -1;
             if (index < 0) return;

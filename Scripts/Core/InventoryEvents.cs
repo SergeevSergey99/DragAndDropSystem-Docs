@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
 
@@ -9,8 +10,9 @@ namespace DragAndDropSystem.Core
     /// </summary>
     public class InventoryItemEventContext
     {
-        public IItemAdapter ItemAdapter { get; }
-        public int Count { get; }
+        public IReadOnlyList<IItemAdapter> Adapters { get; }
+        public IItemAdapter PrimaryAdapter => Adapters.Count > 0 ? Adapters[0] : null;
+        public int Count => Adapters.Count;
         public int SlotIndex { get; }
 
         /// <summary>
@@ -38,16 +40,14 @@ namespace DragAndDropSystem.Core
         public ISlot TargetSlot { get; }
 
         public InventoryItemEventContext(
-            IItemAdapter itemAdapter,
-            int count,
+            IReadOnlyList<IItemAdapter> adapters,
             int slotIndex = -1,
             IInventory sourceInventory = null,
             IInventory targetInventory = null,
             ISlot sourceSlot = null,
             ISlot targetSlot = null)
         {
-            ItemAdapter = itemAdapter;
-            Count = count;
+            Adapters = adapters ?? Array.Empty<IItemAdapter>();
             SlotIndex = slotIndex;
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
