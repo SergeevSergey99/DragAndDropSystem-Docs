@@ -931,6 +931,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#three-types-of-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three types of checks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Three types of checks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules-is-this-allowed-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules — "is this allowed at all?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-checks-cancommittransfer-can-we-do-this-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business checks (CanCommitTransfer) — "can we do this right now?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-notification-ontransfersucceeded-what-to-do-after" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success notification (OnTransferSucceeded) — "what to do after?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-which" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use which
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -942,10 +1003,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#after-success" class="md-nav__link">
+  <a href="#detailed-execution-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        After success
+        Detailed execution order
       
     </span>
   </a>
@@ -1012,6 +1073,17 @@
     <span class="md-ellipsis">
       
         Swap is part of the same pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-need-to-know-vs-what-you-dont" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you need to know vs what you don't
       
     </span>
   </a>
@@ -1534,6 +1606,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#three-types-of-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three types of checks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Three types of checks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules-is-this-allowed-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules — "is this allowed at all?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#business-checks-cancommittransfer-can-we-do-this-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business checks (CanCommitTransfer) — "can we do this right now?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-notification-ontransfersucceeded-what-to-do-after" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success notification (OnTransferSucceeded) — "what to do after?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-which" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to use which
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1545,10 +1678,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#after-success" class="md-nav__link">
+  <a href="#detailed-execution-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        After success
+        Detailed execution order
       
     </span>
   </a>
@@ -1621,6 +1754,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#what-you-need-to-know-vs-what-you-dont" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you need to know vs what you don't
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1650,23 +1794,15 @@
     D --&gt; E["Events and sync"]</code></pre>
 <hr />
 <h2 id="what-happens-on-a-normal-drop">What happens on a normal drop</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant User as Player
-    participant Rules as Rules / DataBinding
-    participant Pipeline as Transfer Pipeline
-    participant UI as UniversalInventory
-    participant Data as Your data
-
-    User-&gt;&gt;Rules: Releases item over target
-    Rules-&gt;&gt;Rules: CanDrop and mechanical checks
-    Pipeline-&gt;&gt;Pipeline: Build plan
-    Pipeline-&gt;&gt;Rules: CanCommitTransfer
-    opt binding implements IAsyncTransferDomainHandler
-        Pipeline-&gt;&gt;Rules: CanCommitTransferAsync
-    end
-    Pipeline-&gt;&gt;UI: Execute transfer
-    Pipeline-&gt;&gt;Rules: OnTransferSucceeded
-    UI-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Player releases item\nover target slot"] --&gt; B["CanDrop and\nmechanical rule checks"]
+    B --&gt;|Failed| X1["Item returns\nto source"]
+    B --&gt;|Passed| C["Build plan:\nwhere and how much to place"]
+    C --&gt; D["Business checks:\nCanCommitTransfer"]
+    D --&gt;|Failed| X2["Item returns\nto source"]
+    D --&gt;|Passed| E["Execute transfer:\nsplit → conversion → placement"]
+    E --&gt; F["OnTransferSucceeded\n(business side effects)"]
+    F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
 <hr />
 <h2 id="why-planning-exists">Why planning exists</h2>
 <p>Before any real mutation, the system decides:</p>
@@ -1677,39 +1813,159 @@
 <li>is there a valid target slot</li>
 <li>does the item need conversion for the target inventory</li>
 </ul>
+<p>This enables:</p>
+<ul>
+<li>no state corruption on invalid operations</li>
+<li>atomic execution with rollback</li>
+<li>uniform handling of drag, quick transfer and swap</li>
+</ul>
 <hr />
 <h2 id="planning-vs-commit">Planning vs commit</h2>
 <ul>
 <li>planning does not mutate inventory state</li>
 <li>commit applies real changes</li>
 </ul>
-<p>That is why:</p>
-<ul>
-<li><code>CanDrop</code> is good for preview and mechanics</li>
-<li><code>CanCommitTransfer</code> is the right place for fast local pre-commit checks</li>
-<li><code>CanCommitTransferAsync</code> is the right place for external async checks if the binding implements the interface</li>
-</ul>
-<p>If both versions exist, the order is always:</p>
+<p>That is why checks are split into several types, each with its own role.</p>
+<hr />
+<h2 id="three-types-of-checks">Three types of checks</h2>
+<p>The transfer pipeline has three distinct check mechanisms. They fire at different moments and serve different purposes:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["Player releases item"] --&gt; B["Rules"]
+    B --&gt;|Rejected| X["Denied"]
+    B --&gt;|OK| C["Planning"]
+    C --&gt; D["Business checks\n(CanCommitTransfer)"]
+    D --&gt;|Rejected| X
+    D --&gt;|OK| E["Execute transfer"]
+    E --&gt; F["Success notification\n(OnTransferSucceeded)"]</code></pre>
+<h3 id="rules-is-this-allowed-at-all">Rules — "is this allowed at all?"</h3>
+<p>Rules are checked <strong>during the planning phase</strong>, before any transfer attempt. These are mechanical constraints: does the item type match, is the slot allowed, is the inventory locked.</p>
+<p>Rules work at three levels — the first rejection stops the operation:</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>What it checks</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Global</strong></td>
+<td>Entire application</td>
+<td>Prevent drop into same slot</td>
+</tr>
+<tr>
+<td><strong>Inventory</strong></td>
+<td>Specific inventory</td>
+<td>Unique item limit</td>
+</tr>
+<tr>
+<td><strong>Slot</strong></td>
+<td>Specific slot</td>
+<td>Only weapons in weapon slot</td>
+</tr>
+</tbody>
+</table>
+<p>DataBinding also participates in rules: its <code>CanDrop</code> is called as part of inventory rules during planning.</p>
+<p>For more on rules, see the <a href="../rules/">Rules</a> section.</p>
+<h3 id="business-checks-cancommittransfer-can-we-do-this-right-now">Business checks (CanCommitTransfer) — "can we do this right now?"</h3>
+<p>Business checks fire <strong>immediately before execution</strong>, when the plan is already built. They are needed for checks that depend on current state and may change between planning and execution.</p>
+<p>Order:</p>
 <ol>
-<li><code>CanCommitTransfer</code></li>
-<li><code>CanCommitTransferAsync</code></li>
+<li><code>CanCommitTransfer</code> — fast synchronous check</li>
+<li><code>CanCommitTransferAsync</code> — asynchronous check (if binding implements the interface)</li>
 <li>commit</li>
 </ol>
+<p>DataBindings on <strong>both</strong> inventories (source and target) are checked.</p>
+<p>Example use cases:</p>
+<ul>
+<li>does the player have enough gold for the purchase</li>
+<li>did the server confirm the operation</li>
+<li>has state changed between planning and execution</li>
+</ul>
+<h3 id="success-notification-ontransfersucceeded-what-to-do-after">Success notification (OnTransferSucceeded) — "what to do after?"</h3>
+<p><code>OnTransferSucceeded</code> fires <strong>after all entries complete</strong>, only on success. This is not a check, but a callback for side effects.</p>
+<p>Examples:</p>
+<ul>
+<li>deduct currency</li>
+<li>update achievements</li>
+<li>record statistics</li>
+</ul>
+<h3 id="when-to-use-which">When to use which</h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Where to write</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"This item type can't go here"</td>
+<td>Rule (CanDrop)</td>
+</tr>
+<tr>
+<td>"Only weapons in weapon slot"</td>
+<td>Slot rule</td>
+</tr>
+<tr>
+<td>"Max 5 unique items"</td>
+<td>Inventory rule</td>
+</tr>
+<tr>
+<td>"Does the player have enough gold"</td>
+<td>CanCommitTransfer</td>
+</tr>
+<tr>
+<td>"Wait for server response"</td>
+<td>CanCommitTransferAsync</td>
+</tr>
+<tr>
+<td>"Deduct money after purchase"</td>
+<td>OnTransferSucceeded</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="item-conversion">Item conversion</h2>
-<pre class="mermaid"><code>flowchart LR
-    A["Merchant inventory&lt;br/&gt;ScriptableObject"] --&gt; B["Converter"]
-    B --&gt; C["Player inventory&lt;br/&gt;Runtime model"]</code></pre>
-<p>The important user-facing detail is simple:</p>
+<p>When source and target use different item representations, conversion happens in two stages:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["Item split from\nsource slot"] --&gt; B["Outgoing conversion:\nsource releases item\nin its format"]
+    B --&gt; C["Incoming conversion:\ntarget accepts item\nin its format"]
+    C --&gt; D["Item placed\nin target slot"]</code></pre>
+<p>Example: a merchant stores items as ScriptableObjects, and the player uses runtime models. On purchase:</p>
+<ol>
+<li>Item is split from the merchant's slot</li>
+<li><strong>Outgoing</strong>: merchant releases the item (SO → intermediate format)</li>
+<li><strong>Incoming</strong>: player inventory accepts the item (intermediate → runtime model)</li>
+<li>Item is placed in the player's slot</li>
+</ol>
+<p>Important for asset users:</p>
 <ul>
-<li>the target inventory receives the item in its own format</li>
+<li>each adapter in the stack is converted individually (unique runtime data is preserved)</li>
+<li>if any adapter fails conversion, the entire operation rolls back</li>
+<li>the target inventory receives the item already in its own format</li>
 </ul>
 <hr />
-<h2 id="after-success">After success</h2>
+<h2 id="detailed-execution-order">Detailed execution order</h2>
+<p>For each planned entry, the following happens:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Transfer completed successfully"] --&gt; B["OnTransferSucceeded"]
-    A --&gt; C["OnItemRemoved / OnItemAdded"]
-    C --&gt; D["AddToData / RemoveFromData"]</code></pre>
+    A["Capture snapshots\nof source and target"] --&gt; B["Check CanCommitTransfer\non both inventories"]
+    B --&gt;|Rejected| X["Rollback: restore\nfrom snapshot"]
+    B --&gt;|OK| C["Take items from\nsource slot"]
+    C --&gt; D["Outgoing conversion\n(each adapter individually)"]
+    D --&gt;|Error| X
+    D --&gt;|OK| E["Place into target\ninventory (incoming\nconversion inside)"]
+    E --&gt;|Didn't fit| F["Return remainder\nto source"]
+    E --&gt;|Fits| G["Record outcome"]
+    F --&gt; G</code></pre>
+<p>After <strong>all</strong> entries are executed:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["All entries\ncompleted"] --&gt; B["OnTransferSucceeded\non each DataBinding"]
+    B --&gt; C["OnItemRemoved — source\n(with original adapters)"]
+    C --&gt; D["OnItemAdded — target\n(with final adapters)"]
+    D --&gt; E["OnDropCompleted"]</code></pre>
+<p>Important: events fire <strong>after the entire operation completes</strong>, not one per entry. This prevents false events when a later rollback occurs in Atomic mode.</p>
 <hr />
 <h2 id="what-happens-on-failure">What happens on failure</h2>
 <p>If a check or commit fails, the behavior depends on the policy:</p>
@@ -1817,6 +2073,22 @@
     B --&gt;|No| C["Reject"]
     B --&gt;|Yes| D["Validate both directions"]
     D --&gt; E["Execute swap"]</code></pre>
+<hr />
+<h2 id="what-you-need-to-know-vs-what-you-dont">What you need to know vs what you don't</h2>
+<p>Usually an asset user needs to understand:</p>
+<ul>
+<li>where to write rules</li>
+<li>where to write business checks</li>
+<li>when data syncs</li>
+<li>why partial transfer and swap behave predictably</li>
+</ul>
+<p>Usually not needed upfront:</p>
+<ul>
+<li>internal helper structures in the planning layer</li>
+<li>low-level execution layer steps</li>
+<li>map of all internal pipeline classes</li>
+</ul>
+<p>If you're modifying the asset itself rather than just using it, see the <a href="../../reference/file-map/">File Map</a>.</p>
 
 
 

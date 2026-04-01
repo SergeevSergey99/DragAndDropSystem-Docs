@@ -934,6 +934,67 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Три типа проверок
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Три типа проверок">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Правила (Rules) — "можно ли вообще?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-cancommittransfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Бизнес-проверки (CanCommitTransfer) — "можно ли прямо сейчас?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontransfersucceeded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Уведомление об успехе (OnTransferSucceeded) — "что делать после?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Когда что использовать
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Конвертация предметов
       
     </span>
@@ -942,10 +1003,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что происходит после успешного переноса
+        Подробный порядок выполнения переноса
       
     </span>
   </a>
@@ -953,7 +1014,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит при отказе
@@ -1019,7 +1080,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что имеет смысл знать, а что нет
@@ -1548,6 +1609,67 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Три типа проверок
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Три типа проверок">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Правила (Rules) — "можно ли вообще?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-cancommittransfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Бизнес-проверки (CanCommitTransfer) — "можно ли прямо сейчас?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontransfersucceeded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Уведомление об успехе (OnTransferSucceeded) — "что делать после?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Когда что использовать
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Конвертация предметов
       
     </span>
@@ -1556,10 +1678,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что происходит после успешного переноса
+        Подробный порядок выполнения переноса
       
     </span>
   </a>
@@ -1567,7 +1689,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит при отказе
@@ -1633,7 +1755,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что имеет смысл знать, а что нет
@@ -1672,23 +1794,15 @@
     D --&gt; E["События и sync"]</code></pre>
 <hr />
 <h2 id="_3">Что происходит при обычном дропе</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant User as Игрок
-    participant Rules as Rules / DataBinding
-    participant Pipeline as Transfer Pipeline
-    participant UI as UniversalInventory
-    participant Data as Ваши данные
-
-    User-&gt;&gt;Rules: Отпускает предмет над целью
-    Rules-&gt;&gt;Rules: CanDrop и остальные механические проверки
-    Pipeline-&gt;&gt;Pipeline: Построить план
-    Pipeline-&gt;&gt;Rules: CanCommitTransfer
-    opt binding реализует IAsyncTransferDomainHandler
-        Pipeline-&gt;&gt;Rules: CanCommitTransferAsync
-    end
-    Pipeline-&gt;&gt;UI: Выполнить перенос
-    Pipeline-&gt;&gt;Rules: OnTransferSucceeded
-    UI-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Игрок отпускает предмет\nнад целевым слотом"] --&gt; B["Проверка CanDrop\nи механических правил"]
+    B --&gt;|Не прошло| X1["Предмет возвращается\nв источник"]
+    B --&gt;|Прошло| C["Построить план:\nкуда и сколько класть"]
+    C --&gt; D["Бизнес-проверки:\nCanCommitTransfer"]
+    D --&gt;|Не прошло| X2["Предмет возвращается\nв источник"]
+    D --&gt;|Прошло| E["Выполнить перенос:\nсплит → конвертация → размещение"]
+    E --&gt; F["OnTransferSucceeded\n(бизнес side effects)"]
+    F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
 <hr />
 <h2 id="_4">Зачем нужен этап планирования</h2>
 <p>Перед реальным переносом система сначала считает, что она собирается сделать:</p>
@@ -1712,42 +1826,149 @@
 <li>на этапе planning система ещё ничего не меняет</li>
 <li>на этапе commit изменения уже применяются к инвентарям</li>
 </ul>
-<p>Именно поэтому:</p>
-<ul>
-<li><code>CanDrop</code> хорошо подходит для preview и механических ограничений</li>
-<li><code>CanCommitTransfer</code> нужен для быстрых локальных pre-commit проверок</li>
-<li><code>CanCommitTransferAsync</code> нужен для внешних асинхронных проверок, если binding реализует этот интерфейс</li>
-</ul>
-<p>Если доступны обе версии, порядок всегда такой:</p>
+<p>Именно поэтому проверки разделены на несколько типов, каждый со своей ролью.</p>
+<hr />
+<h2 id="_5">Три типа проверок</h2>
+<p>В пайплайне переноса есть три разных механизма проверки. Они срабатывают в разные моменты и отвечают за разные вещи:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["Игрок отпускает предмет"] --&gt; B["Правила\n(Rules)"]
+    B --&gt;|Запрет| X["Отклонено"]
+    B --&gt;|OK| C["Планирование"]
+    C --&gt; D["Бизнес-проверки\n(CanCommitTransfer)"]
+    D --&gt;|Запрет| X
+    D --&gt;|OK| E["Выполнение переноса"]
+    E --&gt; F["Уведомление об успехе\n(OnTransferSucceeded)"]</code></pre>
+<h3 id="rules">Правила (Rules) — "можно ли вообще?"</h3>
+<p>Правила проверяются <strong>на этапе планирования</strong>, ещё до попытки переноса. Это механические ограничения: подходит ли тип предмета, разрешён ли слот, не заблокирован ли инвентарь.</p>
+<p>Правила работают на трёх уровнях — первый отказ останавливает операцию:</p>
+<table>
+<thead>
+<tr>
+<th>Уровень</th>
+<th>Что проверяет</th>
+<th>Пример</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Глобальные</strong></td>
+<td>Всё приложение</td>
+<td>Запрет дропа в тот же слот</td>
+</tr>
+<tr>
+<td><strong>Инвентарные</strong></td>
+<td>Конкретный инвентарь</td>
+<td>Лимит уникальных предметов</td>
+</tr>
+<tr>
+<td><strong>Слотовые</strong></td>
+<td>Конкретный слот</td>
+<td>Только оружие в слот оружия</td>
+</tr>
+</tbody>
+</table>
+<p>DataBinding тоже участвует в правилах: его <code>CanDrop</code> вызывается как часть инвентарных правил при планировании.</p>
+<p>Подробнее о правилах — в разделе <a href="../rules/">Правила (Rules)</a>.</p>
+<h3 id="-cancommittransfer">Бизнес-проверки (CanCommitTransfer) — "можно ли прямо сейчас?"</h3>
+<p>Бизнес-проверки срабатывают <strong>непосредственно перед выполнением</strong>, когда план уже готов. Они нужны для проверок, которые зависят от текущего состояния и могут измениться между планированием и выполнением.</p>
+<p>Порядок:</p>
 <ol>
-<li><code>CanCommitTransfer</code></li>
-<li><code>CanCommitTransferAsync</code></li>
+<li><code>CanCommitTransfer</code> — быстрая синхронная проверка</li>
+<li><code>CanCommitTransferAsync</code> — асинхронная проверка (если binding реализует интерфейс)</li>
 <li>commit</li>
 </ol>
-<hr />
-<h2 id="_5">Конвертация предметов</h2>
-<p>Если источник и цель используют разные представления предметов, конвертация происходит до размещения в целевом инвентаре.</p>
-<p>Пример:</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Инвентарь торговца&lt;br/&gt;ScriptableObject"] --&gt; B["Конвертер"]
-    B --&gt; C["Инвентарь игрока&lt;br/&gt;Runtime model"]</code></pre>
-<p>С точки зрения пользователя ассета важно только одно:</p>
+<p>Проверяются DataBinding'и <strong>обоих</strong> инвентарей (источника и цели).</p>
+<p>Примеры использования:</p>
 <ul>
+<li>хватает ли у игрока денег на покупку</li>
+<li>подтвердил ли сервер операцию</li>
+<li>не изменилось ли состояние между планированием и выполнением</li>
+</ul>
+<h3 id="ontransfersucceeded">Уведомление об успехе (OnTransferSucceeded) — "что делать после?"</h3>
+<p><code>OnTransferSucceeded</code> вызывается <strong>после завершения всех entries</strong>, только при успехе. Это не проверка, а callback для side effects.</p>
+<p>Примеры:</p>
+<ul>
+<li>списать валюту</li>
+<li>обновить достижения</li>
+<li>записать статистику</li>
+</ul>
+<h3 id="_6">Когда что использовать</h3>
+<table>
+<thead>
+<tr>
+<th>Задача</th>
+<th>Где писать</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Этот тип предмета нельзя класть сюда"</td>
+<td>Правило (CanDrop)</td>
+</tr>
+<tr>
+<td>"В слот оружия — только оружие"</td>
+<td>Слотовое правило</td>
+</tr>
+<tr>
+<td>"Максимум 5 уникальных предметов"</td>
+<td>Инвентарное правило</td>
+</tr>
+<tr>
+<td>"Достаточно ли у игрока золота"</td>
+<td>CanCommitTransfer</td>
+</tr>
+<tr>
+<td>"Подождать ответ от сервера"</td>
+<td>CanCommitTransferAsync</td>
+</tr>
+<tr>
+<td>"Списать деньги после покупки"</td>
+<td>OnTransferSucceeded</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_7">Конвертация предметов</h2>
+<p>Если источник и цель используют разные представления предметов, конвертация происходит в два этапа:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["Предмет отделён от\nисходного слота (split)"] --&gt; B["Outgoing-конвертация:\nисточник отдаёт\nв своём формате"]
+    B --&gt; C["Incoming-конвертация:\nцель принимает\nв своём формате"]
+    C --&gt; D["Предмет размещён\nв целевом слоте"]</code></pre>
+<p>Пример: торговец хранит предметы как ScriptableObject, а игрок — как runtime-модели. При покупке:</p>
+<ol>
+<li>Предмет отделяется от слота торговца</li>
+<li><strong>Outgoing</strong>: торговец выпускает предмет (SO → промежуточный формат)</li>
+<li><strong>Incoming</strong>: инвентарь игрока принимает предмет (промежуточный → runtime-модель)</li>
+<li>Предмет размещается в слоте игрока</li>
+</ol>
+<p>С точки зрения пользователя ассета важно:</p>
+<ul>
+<li>каждый адаптер в стеке конвертируется индивидуально (сохраняется уникальная runtime-информация)</li>
+<li>если хотя бы один адаптер не конвертировался, вся операция откатывается</li>
 <li>целевой инвентарь получает предмет уже в своём формате</li>
 </ul>
 <hr />
-<h2 id="_6">Что происходит после успешного переноса</h2>
+<h2 id="_8">Подробный порядок выполнения переноса</h2>
+<p>Для каждого запланированного entry происходит следующее:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Перенос успешно завершён"] --&gt; B["OnTransferSucceeded"]
-    A --&gt; C["OnItemRemoved / OnItemAdded"]
-    C --&gt; D["AddToData / RemoveFromData"]</code></pre>
-<p>Разделение обязанностей такое:</p>
-<ul>
-<li><code>OnTransferSucceeded</code> — бизнес side effects</li>
-<li><code>AddToData / RemoveFromData</code> — синхронизация ваших моделей данных</li>
-</ul>
+    A["Снимок состояния\nисточника и цели"] --&gt; B["Проверить CanCommitTransfer\nна обоих инвентарях"]
+    B --&gt;|Отказ| X["Откат: восстановить\nиз снимка"]
+    B --&gt;|OK| C["Забрать предметы\nиз исходного слота"]
+    C --&gt; D["Outgoing-конвертация\n(каждый адаптер отдельно)"]
+    D --&gt;|Ошибка| X
+    D --&gt;|OK| E["Разместить в целевом\nинвентаре (incoming-конвертация\nвнутри)"]
+    E --&gt;|Не влезло| F["Вернуть остаток\nв источник"]
+    E --&gt;|Влезло| G["Запомнить результат"]
+    F --&gt; G</code></pre>
+<p>После того как <strong>все</strong> entries выполнены:</p>
+<pre class="mermaid"><code>flowchart TD
+    A["Все entries\nвыполнены"] --&gt; B["OnTransferSucceeded\nна каждом DataBinding"]
+    B --&gt; C["OnItemRemoved — источник\n(с исходными адаптерами)"]
+    C --&gt; D["OnItemAdded — цель\n(с итоговыми адаптерами)"]
+    D --&gt; E["OnDropCompleted"]</code></pre>
+<p>Важно: события стреляют <strong>после завершения всей операции</strong>, а не по одному на каждый entry. Это предотвращает ложные события при последующем откате в Atomic режиме.</p>
 <hr />
-<h2 id="_7">Что происходит при отказе</h2>
+<h2 id="_9">Что происходит при отказе</h2>
 <p>Если проверка или commit не прошли, поведение зависит от политики:</p>
 <table>
 <thead>
@@ -1856,7 +2077,7 @@
     B --&gt;|Да| D["Проверить оба направления"]
     D --&gt; E["Выполнить обмен"]</code></pre>
 <hr />
-<h2 id="_8">Что имеет смысл знать, а что нет</h2>
+<h2 id="_10">Что имеет смысл знать, а что нет</h2>
 <p>Обычно пользователю ассета нужно понимать:</p>
 <ul>
 <li>где пишутся rules</li>
