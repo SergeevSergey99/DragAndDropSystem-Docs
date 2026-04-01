@@ -57,9 +57,12 @@ nav:
     - index.md
     - getting-started/quick-start.md
   - Examples:
-    - examples/equipment.md
-    - examples/trading.md
-    - examples/loot.md
+    - examples/index.md
+    - examples/demo1-inventories.md
+    - examples/demo2-loot.md
+    - examples/demo3-minecraft.md
+    - examples/demo4-trading.md
+    - examples/demo5-containers.md
   - Core Concepts:
     - architecture/data-binding.md
     - architecture/transfer-pipeline.md

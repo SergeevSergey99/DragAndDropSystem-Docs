@@ -136,6 +136,6 @@ flowchart LR
 
 ## What Next
 
-- [Equipment](../examples/equipment.md) — if slots need to have a purpose
-- [Trading](../examples/trading.md) — if inventories use different data types
+- [Demo4 Trading](../examples/demo4-trading.md) — if you need fixed slots, different data models, and trading
+- [Examples](../examples/index.md) — if you want to choose from all 5 demos
 - [Data Binding](../architecture/data-binding.md) — if you need to understand the lifecycle and extension points

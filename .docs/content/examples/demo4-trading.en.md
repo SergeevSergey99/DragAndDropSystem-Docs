@@ -1,0 +1,83 @@
+# Demo4 Trading
+
+`Examples/Demo4 Trading/TradingDemo.unity`
+
+This is the most feature-rich demo in the package. It combines cross-model transfers, economy rules, and fixed-slot equipment in one scene.
+
+## What the demo shows
+
+- player inventory, merchant inventory, and equipment slots
+- converters between different item models
+- price and gold validation at commit time
+- separation of mechanical validation and domain side effects
+- `MappedSlotInventoryDataBinding` for equipment
+
+## How it is structured
+
+Data and economy:
+
+- `Data/PlayerData.cs`
+- `Data/MerchantData.cs`
+- `Data/TradingEconomyManager.cs`
+
+Adapters and conversion:
+
+- `Adapters/TradableSoAdapter.cs`
+- `Adapters/TradableItemAdapterModelAdapter.cs`
+- `Converters/ModelItemAdapterConverter.cs`
+- `Converters/MerchantItemAdapterConverter.cs`
+
+Bindings:
+
+- `PlayerInventoryDataBinding.cs`
+- `MerchantInventoryDataBinding.cs`
+- `EquipmentInventoryDataBinding.cs`
+
+```mermaid
+flowchart LR
+    MerchantData["MerchantData"] <--> MerchantBinding["MerchantInventoryDataBinding"]
+    PlayerData["PlayerData"] <--> PlayerBinding["PlayerInventoryDataBinding"]
+    PlayerData <--> EquipmentBinding["EquipmentInventoryDataBinding"]
+    MerchantBinding --- Converters["Converters"]
+    PlayerBinding --- Converters
+    MerchantBinding --- Domain["TradingHelper / economy checks"]
+    PlayerBinding --- Domain
+    MerchantBinding <--> MerchantUI["Merchant Inventory UI"]
+    PlayerBinding <--> PlayerUI["Player Inventory UI"]
+    EquipmentBinding <--> EquipUI["Equipment UI"]
+```
+
+## How it works
+
+Buying from a merchant:
+
+1. Drag starts from the merchant inventory.
+2. Target-side preview and a converter prepare the item representation for the player inventory.
+3. Mechanical validation checks placement.
+4. Domain validation checks gold and trade constraints.
+5. After a successful commit the bindings update player and merchant data.
+6. Side effects update gold and related values.
+
+Equipment:
+
+1. An item is dropped onto a fixed slot.
+2. `EquipmentInventoryDataBinding` checks `PrimaryAdapter` and slot-specific `canAccept`.
+3. On success the matching field in `PlayerData` is synchronized with that slot.
+
+## Files to inspect
+
+| File | Role |
+|---|---|
+| `Examples/Demo4 Trading/Data/TradingEconomyManager.cs` | central economy |
+| `Examples/Demo4 Trading/DataBindings/PlayerInventoryDataBinding.cs` | player inventory binding |
+| `Examples/Demo4 Trading/DataBindings/MerchantInventoryDataBinding.cs` | merchant inventory binding |
+| `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot equipment |
+| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | domain checks and side effects |
+| `Examples/Demo4 Trading/Converters/*` | model conversion |
+
+## When to use this as a starting point
+
+- you need different data models on different sides of a transfer boundary
+- you need item conversion during transfer
+- you need prices, gold, and commit-time validation
+- you need fixed slots on top of a regular inventory

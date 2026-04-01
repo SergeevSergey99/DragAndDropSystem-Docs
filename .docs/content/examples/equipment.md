@@ -2,6 +2,14 @@
 
 Этот сценарий нужен, когда у вас есть фиксированные слоты с назначением: оружие, броня, аксессуары, quickbar.
 
+В проекте этот паттерн показан на базе торгового демо:
+- `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs`
+
+Главная идея примера:
+- один UI-слот соответствует одному конкретному полю доменных данных
+- слот сам знает, какие предметы механически допустимы
+- drag/drop pipeline остаётся общим, а binding только синхронизирует fixed fields
+
 ---
 
 ## Когда использовать
@@ -24,6 +32,45 @@ flowchart LR
     A["Поле данных: Armor"] <--> SA["Слот брони"]
     R["Поле данных: Ring"] <--> SR["Слот кольца"]
 ```
+
+---
+
+## Как пример устроен
+
+В этом сценарии участвуют три слоя:
+
+1. `UniversalInventory` и slot UI
+2. `MappedSlotInventoryDataBinding`
+3. доменная модель экипировки игрока
+
+```mermaid
+flowchart LR
+    subgraph UI
+        INV["UniversalInventory"]
+        WS["Weapon Slot"]
+        AS["Armor Slot"]
+    end
+
+    subgraph Binding
+        B["EquipmentInventoryDataBinding"]
+    end
+
+    subgraph Domain
+        W["PlayerData.Weapon"]
+        A["PlayerData.Armor"]
+    end
+
+    INV --> B
+    WS --> B
+    AS --> B
+    B <--> W
+    B <--> A
+```
+
+Как это работает:
+- UI хранит реальные `ItemStack` и даёт обычный drag/drop
+- binding знает, как сопоставить каждый слот конкретному полю
+- доменная модель не знает о UI-компонентах и не содержит логики drag/drop
 
 ---
 
@@ -86,6 +133,16 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
 
 ---
 
+## Как проходит перенос
+
+1. Игрок перетаскивает предмет на fixed slot.
+2. `MappedSlotInventoryDataBinding.CanDrop(...)` берёт representative adapter (`PrimaryAdapter`) из стека.
+3. Binding находит `SlotBinding` для целевого слота.
+4. `canAccept` проверяет механическую совместимость.
+5. Если перенос успешен, `OnItemRemovedFromUI` и `OnItemAddedToUI` обновляют конкретные поля доменной модели.
+
+---
+
 ## Типичный поток
 
 ```mermaid
@@ -105,7 +162,21 @@ sequenceDiagram
 
 ---
 
+## Что смотреть в коде
+
+| Файл | Роль |
+|---|---|
+| `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot binding |
+| `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | базовый шаблон slot-mapped binding |
+| `Scripts/DataBinding/InventoryDataBindingBase.cs` | общий lifecycle hooks |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | drop boundary между UI и transfer core |
+| `Scripts/Inventories/TransferPlanner.cs` | planner фаза |
+| `Scripts/Inventories/TransferPlanExecutor.cs` | execution + rollback + events |
+
+---
+
 ## Когда идти дальше
 
 - [Привязка данных](../architecture/data-binding.md) — полный lifecycle и hooks
 - [Торговля](trading.md) — если предметы ещё и конвертируются между разными моделями
+- [Обзор раздела примеров](index.md) — если хотите выбрать другой сценарий

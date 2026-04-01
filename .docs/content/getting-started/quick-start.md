@@ -137,6 +137,6 @@ flowchart LR
 
 ## Что дальше
 
-- [Экипировка](../examples/equipment.md) — если слоты должны иметь назначение
-- [Торговля](../examples/trading.md) — если инвентари используют разные типы данных
+- [Demo4 Trading](../examples/demo4-trading.md) — если нужны fixed slots, разные модели данных и торговля
+- [Примеры](../examples/index.md) — если хотите выбрать из всех 5 демо
 - [Привязка данных](../architecture/data-binding.md) — если нужно понять lifecycle и точки расширения

@@ -1,6 +1,11 @@
-# Loot System (Demo 3)
+# Loot and 3D World
 
 A full-featured loot system: chests in a 3D world, player interaction, picking up and dropping items.
+
+Real project location:
+- `Examples/Demo2 Loot/*`
+
+This example is not mainly about a special inventory type. It is about integrating the inventory pipeline with the game world, UI, and 3D objects.
 
 ---
 
@@ -94,6 +99,22 @@ This separation allows changing the UI or game logic independently of each other
 
 ---
 
+## How the example is structured
+
+There are four separate responsibility zones in this scenario:
+
+1. **World**: chests, 3D items, interactive objects
+2. **Mediator**: the UI controller that connects world and UI
+3. **UI and inventories**: `UniversalInventory`, drag/drop, world drop zone
+4. **Bindings and data**: chest content and player content
+
+This matters because:
+- the chest should not know specific UI components
+- the UI should not know about raycasts, chest opening, or player interaction logic
+- world pickup/drop logic should plug in through adapters and boundary components
+
+---
+
 ## Dropping Items into the World
 
 ```mermaid
@@ -110,11 +131,17 @@ Process:
 3. If it does --- the item is removed from the inventory and appears as a 3D object in the world.
 4. This object can be picked back up by approaching it and pressing the interaction button.
 
+At code level this usually looks like:
+- UI sends an `ItemStack` into `WorldDropZone`
+- `WorldDropZone` checks the representative adapter for `IWorld3DAdapter`
+- on success, a world object is spawned and the source stack is reduced
+- on pickup, the world object adds the item back into inventory data/UI
+
 ---
 
-## Comparison with Other Demos
+## Comparison with Other Examples
 
-| Aspect | Demo 1 (Basic) | Demo 2 (Trading) | Demo 3 (Loot) |
+| Aspect | Basic setup | Trading | Loot and 3D world |
 |--------|----------------|-------------------|---------------|
 | Data source | Simple list | Economy + adapters | World objects |
 | Transfer type | Direct drag and drop | Buy/sell with gold | Loot + pickup |
@@ -138,3 +165,21 @@ Process:
 | `PlayerInventoryDataBinding.cs` | Player data binding to UI (preserves slot positions) |
 | `ItemExampleWith3DSO.cs` | ScriptableObject item with a reference to a 3D prefab |
 | `ItemSOWith3DAdapter.cs` | Adapter linking the item to IWorld3DAdapter |
+
+---
+
+## How to read this example
+
+If you only want one part of the scenario:
+
+- for event-driven chest UI: inspect `LootUIController` and the bindings
+- for dropping inventory items into the world: inspect `WorldDropZone` and `IWorld3DAdapter`
+- for pickup from the ground: inspect `ItemController`, `PlayerInteraction`, and player data sync
+
+---
+
+## Where to go next
+
+- [World 3D](../systems/world-3d.md) — for a focused look at world integration
+- [Transfer Pipeline](../architecture/transfer-pipeline.md) — to see how world drop plugs into normal transfer flow
+- [Examples Overview](index.md) — to compare other scenarios

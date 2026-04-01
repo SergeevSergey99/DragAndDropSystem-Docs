@@ -2,6 +2,14 @@
 
 Use this pattern when you have fixed-purpose slots such as weapon, armor, accessories, or a quickbar.
 
+In this project, the pattern is demonstrated on top of the trading demo:
+- `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs`
+
+Core idea:
+- one UI slot maps to one concrete domain field
+- the slot itself knows which items are mechanically valid
+- the drag/drop pipeline stays generic while the binding synchronizes fixed fields
+
 ---
 
 ## When to use it
@@ -24,6 +32,45 @@ flowchart LR
     A["Data field: Armor"] <--> SA["Armor slot"]
     R["Data field: Ring"] <--> SR["Ring slot"]
 ```
+
+---
+
+## How the example is structured
+
+Three layers participate:
+
+1. `UniversalInventory` and slot UI
+2. `MappedSlotInventoryDataBinding`
+3. the player's equipment domain model
+
+```mermaid
+flowchart LR
+    subgraph UI
+        INV["UniversalInventory"]
+        WS["Weapon Slot"]
+        AS["Armor Slot"]
+    end
+
+    subgraph Binding
+        B["EquipmentInventoryDataBinding"]
+    end
+
+    subgraph Domain
+        W["PlayerData.Weapon"]
+        A["PlayerData.Armor"]
+    end
+
+    INV --> B
+    WS --> B
+    AS --> B
+    B <--> W
+    B <--> A
+```
+
+How it works:
+- the UI stores real `ItemStack` instances and runs normal drag/drop
+- the binding knows how each slot maps to a concrete field
+- the domain model knows nothing about UI components or drag mechanics
 
 ---
 
@@ -102,3 +149,24 @@ sequenceDiagram
     PI->>EQ: OnItemRemoved / OnItemAdded
     EQ->>Data: Update Weapon / Armor fields
 ```
+
+---
+
+## What to inspect in code
+
+| File | Role |
+|---|---|
+| `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot binding |
+| `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | base template for slot-mapped bindings |
+| `Scripts/DataBinding/InventoryDataBindingBase.cs` | common lifecycle hooks |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | UI-to-transfer boundary |
+| `Scripts/Inventories/TransferPlanner.cs` | planning phase |
+| `Scripts/Inventories/TransferPlanExecutor.cs` | execution + rollback + events |
+
+---
+
+## Where to go next
+
+- [Data Binding](../architecture/data-binding.md) — full lifecycle and hooks
+- [Trading](trading.md) — when items also convert between different data models
+- [Examples Overview](index.md) — to compare other scenarios

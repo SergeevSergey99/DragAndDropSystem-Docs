@@ -2,6 +2,14 @@
 
 Этот пример показывает сценарий, где два инвентаря используют разные типы данных и одна операция переноса ещё и меняет золото.
 
+Реальная кодовая база примера находится в:
+- `Examples/Demo4 Trading/*`
+
+Это главный пример для случаев, когда:
+- source и target живут на разных доменных моделях
+- при переносе предмет конвертируется
+- успех операции зависит не только от механики слота, но и от бизнес-правил
+
 ---
 
 ## Что участвует в операции
@@ -30,6 +38,43 @@ flowchart TB
 3. бизнес-логика операции: хватает ли золота и что делать после покупки/продажи
 
 Их лучше не смешивать.
+
+---
+
+## Как пример устроен
+
+```mermaid
+flowchart LR
+    subgraph Merchant Side
+        MInv["Merchant Inventory UI"]
+        MDB["MerchantInventoryDataBinding"]
+        MData["MerchantData"]
+    end
+
+    subgraph Player Side
+        PInv["Player Inventory UI"]
+        PDB["PlayerInventoryDataBinding"]
+        PData["PlayerData"]
+    end
+
+    Conv["Item Converters"]
+    Trade["TradingHelper / domain hooks"]
+
+    MInv <--> MDB
+    MDB <--> MData
+    PInv <--> PDB
+    PDB <--> PData
+    MDB --- Conv
+    PDB --- Conv
+    MDB --- Trade
+    PDB --- Trade
+```
+
+Разделение ответственности:
+- `Inventory` и strategy отвечают за placement mechanics
+- converters отвечают за переход между item models
+- domain hooks отвечают за золото, цены, side effects
+- bindings синхронизируют UI и доменные данные
 
 ---
 
@@ -96,6 +141,11 @@ flowchart LR
 - игрок хранит runtime-модель
 - при переносе через границу инвентаря предмет конвертируется автоматически
 
+Текущая важная деталь:
+- runtime stack внутри pipeline может содержать список concrete adapters
+- но для rules, bindings и converters representative adapter берётся через `PrimaryAdapter`
+- внешние add/remove события всё ещё публикуют aggregate-facing `ItemAdapter + Count`
+
 ---
 
 ## Ограничения примера
@@ -122,7 +172,19 @@ flowchart LR
 
 ---
 
+## Как проходит успешная покупка
+
+1. Игрок начинает drag из merchant inventory.
+2. Planner строит target-side preview item через converter.
+3. Player-side rules проверяют механическую совместимость.
+4. Domain hook проверяет, хватает ли золота на commit.
+5. Executor выполняет перенос и только после успеха вызывает side effects.
+6. DataBinding обновляет списки данных игрока и торговца.
+
+---
+
 ## Куда идти дальше
 
 - [Привязка данных](../architecture/data-binding.md) — полный lifecycle hooks
 - [Экипировка](equipment.md) — если нужны только fixed slots без торговли
+- [Обзор раздела примеров](index.md) — если хотите сравнить другие сценарии

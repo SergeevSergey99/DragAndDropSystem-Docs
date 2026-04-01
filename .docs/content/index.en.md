@@ -94,7 +94,7 @@ flowchart LR
 ## Read Next
 
 - [Quick Start](getting-started/quick-start.md) — your first working inventory
-- [Equipment Example](examples/equipment.md) — fixed slots
-- [Trading Example](examples/trading.md) — item conversion and money checks
+- [Examples](examples/index.md) — overview of all 5 demos and their architecture
+- [Demo4 Trading](examples/demo4-trading.md) — item conversion, money checks, and fixed slots
 - [Data Binding](architecture/data-binding.md) — where to write sync, rules, and business hooks
 - [Feedback](feedback.md) — where to write about bugs, ideas, and integration issues

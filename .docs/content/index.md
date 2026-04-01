@@ -97,7 +97,7 @@ flowchart LR
 ## Читать далее
 
 - [Быстрый старт](getting-started/quick-start.md) — первый рабочий инвентарь
-- [Пример: экипировка](examples/equipment.md) — фиксированные слоты
-- [Пример: торговля](examples/trading.md) — конвертация предметов и денежные проверки
+- [Примеры](examples/index.md) — обзор всех 5 демо и их архитектуры
+- [Demo4 Trading](examples/demo4-trading.md) — конвертация предметов, деньги и fixed slots
 - [Привязка данных](architecture/data-binding.md) — где писать sync, rules и business hooks
 - [Обратная связь](feedback.md) — куда писать о багах, идеях и проблемах интеграции
