@@ -168,10 +168,32 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Заменить предмет в стеке, сохранив количество
-        /// Полезно для замены адаптеров (например, при торговле)
+        /// Конвертировать каждый адаптер в стеке индивидуально.
+        /// Атомарная операция: если хотя бы одна конвертация вернёт null, стек не изменяется.
         /// </summary>
-        /// <param name="newItemAdapter">Новый предмет</param>
+        public bool TryConvertAdapters(Func<IItemAdapter, IItemAdapter> converter)
+        {
+            if (converter == null || _adapters.Count == 0)
+                return false;
+
+            var results = new IItemAdapter[_adapters.Count];
+            for (int i = 0; i < _adapters.Count; i++)
+            {
+                results[i] = converter(_adapters[i]);
+                if (results[i] == null)
+                    return false;
+            }
+
+            for (int i = 0; i < _adapters.Count; i++)
+                _adapters[i] = results[i];
+
+            RefreshHeader();
+            return true;
+        }
+
+        /// <summary>
+        /// Заменить все адаптеры в стеке на один и тот же экземпляр.
+        /// </summary>
         public void ReplaceItem(IItemAdapter newItemAdapter)
         {
             if (newItemAdapter == null)

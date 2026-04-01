@@ -757,6 +757,18 @@ namespace DragAndDropSystem.Inventories
             remainingAmount = requestedAmount - transferAmount;
             sourceSlot.UpdateVisuals();
 
+            // Снимок source-адаптеров до конвертации (для события удаления)
+            var sourceRemovedStack = transferStack.CreateCopy();
+
+            // Outgoing-конвертация: один раз после Split, до размещения в target
+            if (sourceInventory is UniversalInventory srcUniversal && !srcUniversal.TryConvertOutgoingItem(transferStack))
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Source outgoing conversion failed, rolling back</color>");
+                sourceSlot.Stack.TryAddToStack(transferStack);
+                sourceSlot.UpdateVisuals();
+                return false;
+            }
+
             var operationContext = new SlotOperationContext();
             var placementOperation = new TargetPlacementOperation(
                 targetInventory,
@@ -811,14 +823,19 @@ namespace DragAndDropSystem.Inventories
                 targetWasEmpty = wasEmptyBefore;
             }
 
+            // Захватываем реально перенесённые адаптеры из target slot
+            // Новые адаптеры добавлены в конец стека (TryAddToStack → AddRange)
+            var transferredStack = resolvedSlot?.Stack != null && actuallyAdded > 0
+                ? resolvedSlot.Stack.CreateCopy(actuallyAdded)
+                : new ItemStack(targetPreviewItem, actuallyAdded);
+
             result = new InventoryTransferResult(
                 sourceInventory,
                 targetInventory,
                 sourceSlot,
                 resolvedSlot,
-                stackItem,
-                resolvedSlot?.Stack?.PrimaryAdapter ?? targetPreviewItem,
-                actuallyAdded,
+                sourceRemovedStack,
+                transferredStack,
                 targetWasEmpty,
                 actualRemaining);
 
@@ -949,7 +966,7 @@ namespace DragAndDropSystem.Inventories
                 if (outcome.SourceInventory is UniversalInventory sourceUniversal)
                 {
                     sourceUniversal.EmitItemRemoved(
-                        new ItemStack(outcome.SourceItemAdapter, outcome.Amount),
+                        outcome.SourceRemovedStack,
                         outcome.SourceSlot?.Index ?? -1,
                         outcome.TargetInventory,
                         outcome.SourceSlot,
@@ -960,7 +977,7 @@ namespace DragAndDropSystem.Inventories
                 if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null)
                 {
                     targetUniversal.EmitItemAdded(
-                        new ItemStack(outcome.TargetItemAdapter, outcome.Amount),
+                        outcome.TransferredStack,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
                         outcome.SourceSlot,

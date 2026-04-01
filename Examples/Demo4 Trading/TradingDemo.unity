@@ -398,7 +398,6 @@ GameObject:
   m_Component:
   - component: {fileID: 182231643}
   - component: {fileID: 182231642}
-  - component: {fileID: 910000000000000001}
   m_Layer: 0
   m_Name: SelectionManager
   m_TagString: Untagged
@@ -7280,26 +7279,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7007273127c636b40a9fc2ac564883ac, type: 3}
---- !u!114 &910000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 182231641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _useGlobalBindingsProfile: 1
-  _bindingsProfile: {fileID: 0}
-  _pointerBindings: []
-  _inputActionBindings: []
-  references:
-    version: 2
-    RefIds: []
 --- !u!114 &910000000000000002
 MonoBehaviour:
   m_ObjectHideFlags: 0

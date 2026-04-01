@@ -41,9 +41,8 @@ namespace DragAndDropSystem.Inventories
             IInventory targetInventory,
             ISlot sourceSlot,
             ISlot targetSlot,
-            IItemAdapter sourceItemAdapter,
-            IItemAdapter targetItemAdapter,
-            int amount,
+            ItemStack sourceRemovedStack,
+            ItemStack transferredStack,
             bool targetWasEmptyBefore,
             int remainingInSource = 0)
         {
@@ -51,9 +50,8 @@ namespace DragAndDropSystem.Inventories
             TargetInventory = targetInventory;
             SourceSlot = sourceSlot;
             TargetSlot = targetSlot;
-            SourceItemAdapter = sourceItemAdapter;
-            TargetItemAdapter = targetItemAdapter ?? sourceItemAdapter;
-            Amount = amount;
+            SourceRemovedStack = sourceRemovedStack ?? ItemStack.Empty();
+            TransferredStack = transferredStack ?? ItemStack.Empty();
             TargetWasEmptyBefore = targetWasEmptyBefore;
             RemainingInSource = remainingInSource;
         }
@@ -62,10 +60,21 @@ namespace DragAndDropSystem.Inventories
         public IInventory TargetInventory { get; }
         public ISlot SourceSlot { get; }
         public ISlot TargetSlot { get; }
-        public IItemAdapter SourceItemAdapter { get; }
-        public IItemAdapter TargetItemAdapter { get; }
+
+        /// <summary>
+        /// Стек адаптеров, удалённых из source (до конвертации)
+        /// </summary>
+        public ItemStack SourceRemovedStack { get; }
+
+        /// <summary>
+        /// Стек адаптеров, добавленных в target (после конвертации)
+        /// </summary>
+        public ItemStack TransferredStack { get; }
+
+        public IItemAdapter SourceItemAdapter => SourceRemovedStack.PrimaryAdapter;
+        public IItemAdapter TargetItemAdapter => TransferredStack.PrimaryAdapter;
         public IItemAdapter ItemAdapter => TargetItemAdapter;
-        public int Amount { get; }
+        public int Amount => TransferredStack.Count;
         public bool TargetWasEmptyBefore { get; }
         public int RemainingInSource { get; }
         public bool IsPartialTransfer => RemainingInSource > 0;

@@ -68,12 +68,15 @@ namespace Plugins.DragAndDropSystem.Examples.Trading.Data
 
         public bool TryRemoveItem(TradableItemModel item)
         {
+            Debug.Log($"Trying to remove item: {item?.originalSO?.name ?? "null"}");
             if (_inventory.Contains(item))
             {
+                Debug.Log("Item found in inventory, removing...");
                 _inventory.Remove(item);
                 OnInventoryChanged?.Invoke();
                 return true;
             }
+            Debug.Log("Item not found in inventory, cannot remove.");
             return false;
         }
 

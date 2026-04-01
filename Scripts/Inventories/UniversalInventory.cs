@@ -440,24 +440,14 @@ namespace DragAndDropSystem.Inventories
 
         bool TryConvertIncomingItem(ItemStack stack)
         {
-            if (!TryPreviewIncomingItem(stack.PrimaryAdapter, out var converted))
-                return false;
-
-            if (!ReferenceEquals(converted, stack.PrimaryAdapter))
-                stack.ReplaceItem(converted);
-
-            return true;
+            return stack.TryConvertAdapters(adapter =>
+                ItemAdapterConverter.TryConvertIncoming(adapter, out var converted) ? converted : null);
         }
 
         internal bool TryConvertOutgoingItem(ItemStack stack)
         {
-            if (!TryPreviewOutgoingItem(stack.PrimaryAdapter, out var converted))
-                return false;
-
-            if (!ReferenceEquals(converted, stack.PrimaryAdapter))
-                stack.ReplaceItem(converted);
-
-            return true;
+            return stack.TryConvertAdapters(adapter =>
+                ItemAdapterConverter.TryConvertOutgoing(adapter, out var converted) ? converted : null);
         }
 
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
@@ -871,10 +861,6 @@ namespace DragAndDropSystem.Inventories
             SlotOperationContext operationContext = null)
         {
             if (stack == null || stack.IsEmpty || targetSlot == null)
-                return false;
-
-            // Цепочка конвертации: source.ConvertOutgoing → target.ConvertIncoming
-            if (sourceInventory is UniversalInventory srcInv && !srcInv.TryConvertOutgoingItem(stack))
                 return false;
 
             if (!TryConvertIncomingItem(stack))
