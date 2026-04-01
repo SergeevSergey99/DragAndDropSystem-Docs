@@ -57,17 +57,79 @@ This enables:
 - planning does not mutate inventory state
 - commit applies real changes
 
-That is why:
+That is why checks are split into several types, each with its own role.
 
-- `CanDrop` is good for preview and mechanics
-- `CanCommitTransfer` is the right place for fast local pre-commit checks
-- `CanCommitTransferAsync` is the right place for external async checks if the binding implements the interface
+---
 
-If both versions exist, the order is always:
+## Three types of checks
 
-1. `CanCommitTransfer`
-2. `CanCommitTransferAsync`
+The transfer pipeline has three distinct check mechanisms. They fire at different moments and serve different purposes:
+
+```mermaid
+flowchart TD
+    A["Player releases item"] --> B["Rules"]
+    B -->|Rejected| X["Denied"]
+    B -->|OK| C["Planning"]
+    C --> D["Business checks\n(CanCommitTransfer)"]
+    D -->|Rejected| X
+    D -->|OK| E["Execute transfer"]
+    E --> F["Success notification\n(OnTransferSucceeded)"]
+```
+
+### Rules — "is this allowed at all?"
+
+Rules are checked **during the planning phase**, before any transfer attempt. These are mechanical constraints: does the item type match, is the slot allowed, is the inventory locked.
+
+Rules work at three levels — the first rejection stops the operation:
+
+| Level | What it checks | Example |
+|---|---|---|
+| **Global** | Entire application | Prevent drop into same slot |
+| **Inventory** | Specific inventory | Unique item limit |
+| **Slot** | Specific slot | Only weapons in weapon slot |
+
+DataBinding also participates in rules: its `CanDrop` is called as part of inventory rules during planning.
+
+For more on rules, see the [Rules](rules.md) section.
+
+### Business checks (CanCommitTransfer) — "can we do this right now?"
+
+Business checks fire **immediately before execution**, when the plan is already built. They are needed for checks that depend on current state and may change between planning and execution.
+
+Order:
+
+1. `CanCommitTransfer` — fast synchronous check
+2. `CanCommitTransferAsync` — asynchronous check (if binding implements the interface)
 3. commit
+
+DataBindings on **both** inventories (source and target) are checked.
+
+Example use cases:
+
+- does the player have enough gold for the purchase
+- did the server confirm the operation
+- has state changed between planning and execution
+
+### Success notification (OnTransferSucceeded) — "what to do after?"
+
+`OnTransferSucceeded` fires **after all entries complete**, only on success. This is not a check, but a callback for side effects.
+
+Examples:
+
+- deduct currency
+- update achievements
+- record statistics
+
+### When to use which
+
+| Task | Where to write |
+|---|---|
+| "This item type can't go here" | Rule (CanDrop) |
+| "Only weapons in weapon slot" | Slot rule |
+| "Max 5 unique items" | Inventory rule |
+| "Does the player have enough gold" | CanCommitTransfer |
+| "Wait for server response" | CanCommitTransferAsync |
+| "Deduct money after purchase" | OnTransferSucceeded |
 
 ---
 
