@@ -263,7 +263,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="examples/equipment/" class="md-tabs__link">
+        <a href="examples/" class="md-tabs__link">
           
   
   
@@ -536,6 +536,17 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Подсистемы
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Читать далее
       
     </span>
@@ -648,14 +659,14 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/equipment/" class="md-nav__link">
+      <a href="examples/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Экипировка
+    Примеры
   
 
     
@@ -676,14 +687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/trading/" class="md-nav__link">
+      <a href="examples/demo1-inventories/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Торговля
+    Demo1 Inventories
   
 
     
@@ -704,14 +715,98 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/loot/" class="md-nav__link">
+      <a href="examples/demo2-loot/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Система лута (Demo 3)
+    Demo2 Loot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo3-minecraft/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo3 Minecraft
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo4-trading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo4 Trading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo5-containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo5 Containers
   
 
     
@@ -1330,6 +1425,17 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Подсистемы
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Читать далее
       
     </span>
@@ -1368,7 +1474,6 @@
 <li>множественное выделение и перенос</li>
 </ul>
 <p>Он подходит и как для простых UI-инвентарей и сценариев вроде экипировки, так и для реализации сложной логики вроде торговли и поддержки серверных проверок.</p>
-<hr />
 <h2 id="_2">Что это за ассет</h2>
 <p>Это не просто набор UI-слотов, а система, которая, в отличае от многих альтернативных решений, которые требуют чтобы ваши данные соответствовали определенному типу, позволяет визуализировать в инвентаре практически любые ваши данные:</p>
 <ul>
@@ -1399,7 +1504,6 @@
 <p>Чтобы любой тип мог отображаться в слотах инвентаря нужно написать специальный переходник для него от данных к слоту - адаптер.</p>
 <p>Обычно это небольшой адаптер и один <code>DataBinding</code>. Чем более сложная у вас модель данных, тем толще будет этот слой интеграции, но сам drag &amp; drop, swap, stacking, planning и event flow уже берёт на себя ассет.</p>
 <p>Для некоторых распространенных вариантов уже есть шаблонные классы <code>DataBinding</code> с которыми будет проще настроить большинство вариантов.</p>
-<hr />
 <h2 id="_3">Базовая модель</h2>
 <p>Для большинства проектов полезно держать в голове ровно эту схему:</p>
 <pre class="mermaid"><code>flowchart LR
@@ -1424,12 +1528,25 @@
 <li><code>IItemAdapter</code> нужно определить чтобы корректно хранил данные</li>
 <li><code>DataBinding</code> нужно определить чтобы корректно редактировал данные</li>
 </ul>
-<hr />
-<h2 id="_4">Читать далее</h2>
+<h2 id="_4">Подсистемы</h2>
+<ul>
+<li>Отображение данных в инвентаре</li>
+<li>Перенос между инвентарями</li>
+<li>Области дропа</li>
+<li>Система правил</li>
+<li>Настраиваеммые действия</li>
+<li>автоперенос</li>
+<li>Множественное выделение</li>
+<li>Множественный перенос</li>
+<li>Контекстное меню</li>
+<li>Пример Tooltip</li>
+<li>Пример вложенных инвентарей</li>
+</ul>
+<h2 id="_5">Читать далее</h2>
 <ul>
 <li><a href="getting-started/quick-start/">Быстрый старт</a> — первый рабочий инвентарь</li>
-<li><a href="examples/equipment/">Пример: экипировка</a> — фиксированные слоты</li>
-<li><a href="examples/trading/">Пример: торговля</a> — конвертация предметов и денежные проверки</li>
+<li><a href="examples/">Примеры</a> — обзор всех 5 демо и их архитектуры</li>
+<li><a href="examples/demo4-trading/">Demo4 Trading</a> — конвертация предметов, деньги и fixed slots</li>
 <li><a href="architecture/data-binding/">Привязка данных</a> — где писать sync, rules и business hooks</li>
 <li><a href="feedback/">Обратная связь</a> — куда писать о багах, идеях и проблемах интеграции</li>
 </ul>

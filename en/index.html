@@ -263,7 +263,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="examples/equipment/" class="md-tabs__link">
+        <a href="examples/" class="md-tabs__link">
           
   
   
@@ -533,6 +533,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#subsystems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subsystems
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#read-next" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -648,14 +659,14 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/equipment/" class="md-nav__link">
+      <a href="examples/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Equipment
+    Examples
   
 
     
@@ -676,14 +687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/trading/" class="md-nav__link">
+      <a href="examples/demo1-inventories/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Trading
+    Demo1 Inventories
   
 
     
@@ -704,14 +715,98 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/loot/" class="md-nav__link">
+      <a href="examples/demo2-loot/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Loot System (Demo 3)
+    Demo2 Loot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo3-minecraft/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo3 Minecraft
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo4-trading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo4 Trading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo5-containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo5 Containers
   
 
     
@@ -1327,6 +1422,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#subsystems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subsystems
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#read-next" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1368,7 +1474,6 @@ It solves tasks such as:</p>
 <li>multi-selection and transfer</li>
 </ul>
 <p>It works both for simple inventory UIs and scenarios like equipment, and for more complex logic such as trading and server-side validation.</p>
-<hr />
 <h2 id="what-this-asset-is">What This Asset Is</h2>
 <p>This is not just a set of UI slots, but a system that, unlike many alternative solutions that require your data to match a specific type, allows you to visualize almost any of your data in an inventory:</p>
 <ul>
@@ -1399,7 +1504,6 @@ It solves tasks such as:</p>
 <p>For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.</p>
 <p>Usually this is a small adapter and one <code>DataBinding</code>. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, planning, and event flow are already handled by the asset.</p>
 <p>For some common cases, template <code>DataBinding</code> classes are already provided, which makes most setups easier.</p>
-<hr />
 <h2 id="basic-model">Basic Model</h2>
 <p>For most projects, it is useful to keep exactly this diagram in mind:</p>
 <pre class="mermaid"><code>flowchart LR
@@ -1424,12 +1528,25 @@ It solves tasks such as:</p>
 <li><code>IItemAdapter</code> needs to be defined so it stores data correctly</li>
 <li><code>DataBinding</code> needs to be defined so it edits data correctly</li>
 </ul>
-<hr />
+<h2 id="subsystems">Subsystems</h2>
+<ul>
+<li>Displaying data in the inventory</li>
+<li>Transfer between inventories</li>
+<li>Drop zones</li>
+<li>Rules system</li>
+<li>Configurable actions</li>
+<li>Auto-transfer</li>
+<li>Multi-selection</li>
+<li>Multi-transfer</li>
+<li>Context menu</li>
+<li>Tooltip example</li>
+<li>Example of nested inventories</li>
+</ul>
 <h2 id="read-next">Read Next</h2>
 <ul>
 <li><a href="getting-started/quick-start/">Quick Start</a> — your first working inventory</li>
-<li><a href="examples/equipment/">Equipment Example</a> — fixed slots</li>
-<li><a href="examples/trading/">Trading Example</a> — item conversion and money checks</li>
+<li><a href="examples/">Examples</a> — overview of all 5 demos and their architecture</li>
+<li><a href="examples/demo4-trading/">Demo4 Trading</a> — item conversion, money checks, and fixed slots</li>
 <li><a href="architecture/data-binding/">Data Binding</a> — where to write sync, rules, and business hooks</li>
 <li><a href="feedback/">Feedback</a> — where to write about bugs, ideas, and integration issues</li>
 </ul>
