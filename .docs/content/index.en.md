@@ -90,6 +90,7 @@ flowchart LR
 - Multi-transfer
 - Context menu
 - Tooltip example
+- Example of type conversions during transfer
 - Example of nested inventories
 ## Read Next
 

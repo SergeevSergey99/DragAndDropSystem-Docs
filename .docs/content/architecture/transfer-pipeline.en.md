@@ -21,23 +21,15 @@ flowchart LR
 ## What happens on a normal drop
 
 ```mermaid
-sequenceDiagram
-    participant User as Player
-    participant Rules as Rules / DataBinding
-    participant Pipeline as Transfer Pipeline
-    participant UI as UniversalInventory
-    participant Data as Your data
-
-    User->>Rules: Releases item over target
-    Rules->>Rules: CanDrop and mechanical checks
-    Pipeline->>Pipeline: Build plan
-    Pipeline->>Rules: CanCommitTransfer
-    opt binding implements IAsyncTransferDomainHandler
-        Pipeline->>Rules: CanCommitTransferAsync
-    end
-    Pipeline->>UI: Execute transfer
-    Pipeline->>Rules: OnTransferSucceeded
-    UI->>Data: AddToData / RemoveFromData
+flowchart TD
+    A["Player releases item\nover target slot"] --> B["CanDrop and\nmechanical rule checks"]
+    B -->|Failed| X1["Item returns\nto source"]
+    B -->|Passed| C["Build plan:\nwhere and how much to place"]
+    C --> D["Business checks:\nCanCommitTransfer"]
+    D -->|Failed| X2["Item returns\nto source"]
+    D -->|Passed| E["Execute transfer:\nsplit → conversion → placement"]
+    E --> F["OnTransferSucceeded\n(business side effects)"]
+    F --> G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]
 ```
 
 ---
@@ -51,6 +43,12 @@ Before any real mutation, the system decides:
 - is a swap required
 - is there a valid target slot
 - does the item need conversion for the target inventory
+
+This enables:
+
+- no state corruption on invalid operations
+- atomic execution with rollback
+- uniform handling of drag, quick transfer and swap
 
 ---
 
@@ -75,26 +73,58 @@ If both versions exist, the order is always:
 
 ## Item conversion
 
-```mermaid
-flowchart LR
-    A["Merchant inventory<br/>ScriptableObject"] --> B["Converter"]
-    B --> C["Player inventory<br/>Runtime model"]
-```
-
-The important user-facing detail is simple:
-
-- the target inventory receives the item in its own format
-
----
-
-## After success
+When source and target use different item representations, conversion happens in two stages:
 
 ```mermaid
 flowchart TD
-    A["Transfer completed successfully"] --> B["OnTransferSucceeded"]
-    A --> C["OnItemRemoved / OnItemAdded"]
-    C --> D["AddToData / RemoveFromData"]
+    A["Item split from\nsource slot"] --> B["Outgoing conversion:\nsource releases item\nin its format"]
+    B --> C["Incoming conversion:\ntarget accepts item\nin its format"]
+    C --> D["Item placed\nin target slot"]
 ```
+
+Example: a merchant stores items as ScriptableObjects, and the player uses runtime models. On purchase:
+
+1. Item is split from the merchant's slot
+2. **Outgoing**: merchant releases the item (SO → intermediate format)
+3. **Incoming**: player inventory accepts the item (intermediate → runtime model)
+4. Item is placed in the player's slot
+
+Important for asset users:
+
+- each adapter in the stack is converted individually (unique runtime data is preserved)
+- if any adapter fails conversion, the entire operation rolls back
+- the target inventory receives the item already in its own format
+
+---
+
+## Detailed execution order
+
+For each planned entry, the following happens:
+
+```mermaid
+flowchart TD
+    A["Capture snapshots\nof source and target"] --> B["Check CanCommitTransfer\non both inventories"]
+    B -->|Rejected| X["Rollback: restore\nfrom snapshot"]
+    B -->|OK| C["Take items from\nsource slot"]
+    C --> D["Outgoing conversion\n(each adapter individually)"]
+    D -->|Error| X
+    D -->|OK| E["Place into target\ninventory (incoming\nconversion inside)"]
+    E -->|Didn't fit| F["Return remainder\nto source"]
+    E -->|Fits| G["Record outcome"]
+    F --> G
+```
+
+After **all** entries are executed:
+
+```mermaid
+flowchart TD
+    A["All entries\ncompleted"] --> B["OnTransferSucceeded\non each DataBinding"]
+    B --> C["OnItemRemoved — source\n(with original adapters)"]
+    C --> D["OnItemAdded — target\n(with final adapters)"]
+    D --> E["OnDropCompleted"]
+```
+
+Important: events fire **after the entire operation completes**, not one per entry. This prevents false events when a later rollback occurs in Atomic mode.
 
 ---
 
@@ -199,3 +229,22 @@ flowchart LR
     B -->|Yes| D["Validate both directions"]
     D --> E["Execute swap"]
 ```
+
+---
+
+## What you need to know vs what you don't
+
+Usually an asset user needs to understand:
+
+- where to write rules
+- where to write business checks
+- when data syncs
+- why partial transfer and swap behave predictably
+
+Usually not needed upfront:
+
+- internal helper structures in the planning layer
+- low-level execution layer steps
+- map of all internal pipeline classes
+
+If you're modifying the asset itself rather than just using it, see the [File Map](../reference/file-map.md).
