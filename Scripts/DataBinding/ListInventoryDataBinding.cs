@@ -68,16 +68,16 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.PrimaryAdapter is not TAdapter adapter) return;
-            for (int i = 0; i < context.Count; i++)
-                AddToData(context.Adapters[i] as TAdapter);
+            if (context.Stack.PrimaryAdapter is not TAdapter) return;
+            for (int i = 0; i < context.Stack.Count; i++)
+                AddToData(context.Stack.Adapters[i] as TAdapter);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context.PrimaryAdapter is not TAdapter adapter) return;
-            for (int i = 0; i < context.Count; i++)
-                RemoveFromData(context.Adapters[i] as TAdapter);
+            if (context.Stack.PrimaryAdapter is not TAdapter) return;
+            for (int i = 0; i < context.Stack.Count; i++)
+                RemoveFromData(context.Stack.Adapters[i] as TAdapter);
         }
     }
 }

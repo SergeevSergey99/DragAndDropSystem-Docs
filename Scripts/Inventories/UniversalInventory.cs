@@ -180,19 +180,19 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         public event Action<InventorySwapContext> OnSwapCompleted;
 
-        internal void EmitItemAdded(IReadOnlyList<IItemAdapter> adapters, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
+        internal void EmitItemAdded(ItemStack stack, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
         {
             var context = new InventoryItemEventContext(
-                adapters, slotIndex, sourceInventory, this, sourceSlot, targetSlot);
+                stack, slotIndex, sourceInventory, this, sourceSlot, targetSlot);
 
             DataBinding?.HandleItemAdded(context);
             OnItemAdded?.Invoke(context);
         }
 
-        internal void EmitItemRemoved(IReadOnlyList<IItemAdapter> adapters, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
+        internal void EmitItemRemoved(ItemStack stack, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
         {
             var context = new InventoryItemEventContext(
-                adapters, slotIndex, this, targetInventory, sourceSlot, targetSlot);
+                stack, slotIndex, this, targetInventory, sourceSlot, targetSlot);
 
             DataBinding?.HandleItemRemoved(context);
             OnItemRemoved?.Invoke(context);

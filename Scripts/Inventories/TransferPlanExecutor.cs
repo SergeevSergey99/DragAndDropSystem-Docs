@@ -949,7 +949,7 @@ namespace DragAndDropSystem.Inventories
                 if (outcome.SourceInventory is UniversalInventory sourceUniversal)
                 {
                     sourceUniversal.EmitItemRemoved(
-                        BuildAdapterList(outcome.SourceItemAdapter, outcome.Amount),
+                        new ItemStack(outcome.SourceItemAdapter, outcome.Amount),
                         outcome.SourceSlot?.Index ?? -1,
                         outcome.TargetInventory,
                         outcome.SourceSlot,
@@ -960,7 +960,7 @@ namespace DragAndDropSystem.Inventories
                 if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetSlot != null)
                 {
                     targetUniversal.EmitItemAdded(
-                        BuildAdapterList(outcome.TargetItemAdapter, outcome.Amount),
+                        new ItemStack(outcome.TargetItemAdapter, outcome.Amount),
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
                         outcome.SourceSlot,
@@ -981,14 +981,14 @@ namespace DragAndDropSystem.Inventories
                     !outcome.SwapResult.TargetStackBefore.IsEmpty)
                 {
                     outcome.TargetInventory.EmitItemRemoved(
-                        outcome.SwapResult.TargetStackBefore.Adapters,
+                        outcome.SwapResult.TargetStackBefore,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
                         outcome.TargetSlot,
                         outcome.SourceSlot);
 
                     outcome.TargetInventory.EmitItemAdded(
-                        outcome.SwapResult.SourceStackBefore.Adapters,
+                        outcome.SwapResult.SourceStackBefore,
                         outcome.TargetSlot.Index,
                         outcome.SourceInventory,
                         outcome.SourceSlot,
@@ -1000,14 +1000,14 @@ namespace DragAndDropSystem.Inventories
                     !outcome.SwapResult.SourceStackBefore.IsEmpty)
                 {
                     outcome.SourceInventory.EmitItemRemoved(
-                        outcome.SwapResult.SourceStackBefore.Adapters,
+                        outcome.SwapResult.SourceStackBefore,
                         outcome.SourceSlot.Index,
                         outcome.TargetInventory,
                         outcome.SourceSlot,
                         outcome.TargetSlot);
 
                     outcome.SourceInventory.EmitItemAdded(
-                        outcome.SwapResult.TargetStackBefore.Adapters,
+                        outcome.SwapResult.TargetStackBefore,
                         outcome.SourceSlot.Index,
                         outcome.TargetInventory,
                         outcome.TargetSlot,
@@ -1016,14 +1016,6 @@ namespace DragAndDropSystem.Inventories
 
                 options?.SwapCompleted?.Invoke(outcome.SwapContext);
             }
-        }
-
-        private static IReadOnlyList<IItemAdapter> BuildAdapterList(IItemAdapter adapter, int count)
-        {
-            var list = new IItemAdapter[count];
-            for (int i = 0; i < count; i++)
-                list[i] = adapter;
-            return list;
         }
 
         private static TransferExecutionSummary BuildFailedSummary(

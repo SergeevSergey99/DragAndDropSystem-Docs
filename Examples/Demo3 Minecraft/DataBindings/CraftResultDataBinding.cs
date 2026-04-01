@@ -57,7 +57,7 @@ namespace DragAndDropSystem.Examples.Minecraft
                 return;
 
             int resultCount = manager.CurrentRecipe.ResultCount;
-            int craftsConsumed = resultCount > 0 ? context.Count / resultCount : 0;
+            int craftsConsumed = resultCount > 0 ? context.Stack.Count / resultCount : 0;
             manager.ConsumeCraftIngredients(craftsConsumed);
         }
 
