@@ -26,7 +26,10 @@ namespace DragAndDropSystem.DataBinding
         public readonly Action Clear;
 
         /// <summary>Опциональная валидация одного элемента для CanDrop.</summary>
-        public readonly Func<TData, RuleResult> CanAccept;
+        public readonly Func<TData, RuleResult> CanDrop;
+        
+        /// <summary> Опциональная валидация одного элемента для CanStartDrag. </summary>
+        public readonly Func<TData, RuleResult> CanStartDrag;
 
         /// <summary>
         /// Конструктор для единичных предметов (один предмет на слот).
@@ -36,7 +39,8 @@ namespace DragAndDropSystem.DataBinding
             Func<TData> get,
             Action<TData> set,
             Action clear,
-            Func<TData, RuleResult> canAccept = null)
+            Func<TData, RuleResult> canDrop = null,
+            Func<TData, RuleResult> canStartDrag = null)
         {
             GetAll = () =>
             {
@@ -46,7 +50,8 @@ namespace DragAndDropSystem.DataBinding
             Add = items => { if (items != null && items.Count > 0) set(items[0]); };
             Remove = _ => clear();
             Clear = clear;
-            CanAccept = canAccept;
+            CanDrop = canDrop;
+            CanStartDrag = canStartDrag;
         }
 
         /// <summary>
@@ -58,13 +63,15 @@ namespace DragAndDropSystem.DataBinding
             Action<IReadOnlyList<TData>> add,
             Action<IReadOnlyList<TData>> remove,
             Action clear,
-            Func<TData, RuleResult> canAccept = null)
+            Func<TData, RuleResult> canDrop = null,
+            Func<TData, RuleResult> canStartDrag = null)
         {
             GetAll = getAll;
             Add = add;
             Remove = remove;
             Clear = clear;
-            CanAccept = canAccept;
+            CanDrop = canDrop;
+            CanStartDrag = canStartDrag;
         }
     }
 
@@ -195,6 +202,23 @@ namespace DragAndDropSystem.DataBinding
                 binding.Remove(removed);
         }
 
+        protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
+        {
+            if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
+                return RuleResult.Failure("Неверный тип предмета");
+            
+            if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
+                return RuleResult.Failure("Неизвестный слот");
+            
+            if (binding.CanStartDrag == null)
+                return RuleResult.Success();
+            
+            var data = ExtractData(adapter);
+            return data != null
+                ? binding.CanStartDrag(data)
+                : RuleResult.Failure("Нет данных");
+        }
+
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
@@ -203,12 +227,12 @@ namespace DragAndDropSystem.DataBinding
             if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
                 return RuleResult.Failure("Неизвестный слот");
 
-            if (binding.CanAccept == null)
+            if (binding.CanDrop == null)
                 return RuleResult.Success();
 
             var data = ExtractData(adapter);
             return data != null
-                ? binding.CanAccept(data)
+                ? binding.CanDrop(data)
                 : RuleResult.Failure("Нет данных");
         }
 

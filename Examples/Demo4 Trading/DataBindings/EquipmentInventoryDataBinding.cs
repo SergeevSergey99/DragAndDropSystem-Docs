@@ -45,7 +45,7 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedWeapon,
                 set: item => PlayerData.EquipWeapon(item),
                 clear: () => PlayerData.UnequipWeapon(),
-                canAccept: item => item.originalSO.ItemType == ItemType.Weapon
+                canDrop: item => item.originalSO.ItemType == ItemType.Weapon
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только оружие")),
 
@@ -53,7 +53,7 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArmor,
                 set: item => PlayerData.EquipArmor(item),
                 clear: () => PlayerData.UnequipArmor(),
-                canAccept: item => item.originalSO.ItemType == ItemType.Armor
+                canDrop: item => item.originalSO.ItemType == ItemType.Armor
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только броню")),
 
@@ -61,7 +61,7 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArtifact1,
                 set: item => PlayerData.EquipArtifact1(item),
                 clear: () => PlayerData.UnequipArtifact1(),
-                canAccept: item => item.originalSO.ItemType == ItemType.Artifact
+                canDrop: item => item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
 
@@ -69,7 +69,7 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArtifact2,
                 set: item => PlayerData.EquipArtifact2(item),
                 clear: () => PlayerData.UnequipArtifact2(),
-                canAccept: item => item.originalSO.ItemType == ItemType.Artifact
+                canDrop: item => item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
         };
@@ -86,11 +86,11 @@ namespace DragAndDropSystem.Examples.Trading
             if (entry.Stack.PrimaryAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Неверный тип предмета");
 
-            // Проверяем соответствие типа предмета слоту через canAccept из BindingMap
+            // Проверяем соответствие типа предмета слоту через canDrop из BindingMap
             if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
                 return RuleResult.Failure("Неизвестный слот экипировки");
             
-            if (binding.CanAccept?.Invoke(new TradableItemModel(tradable.OriginalSO)).IsValid == false)
+            if (binding.CanDrop?.Invoke(new TradableItemModel(tradable.OriginalSO)).IsValid == false)
                 return RuleResult.Failure("Этот предмет нельзя положить в этот слот");
             
             return RuleResult.Success();
