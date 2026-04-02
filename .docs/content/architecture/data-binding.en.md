@@ -15,36 +15,40 @@ flowchart LR
     Binding <--> UI["UniversalInventory"]
 ```
 
+- `UniversalInventory` manages slots, transfers and events
+- `DataBinding` translates those events into changes to your data
+- your data stays in your model, not inside the UI inventory
+
 ---
 
-## Two main templates
+## Three templates
+
+Choose a template based on your data structure:
 
 | Template | Use it for |
 |---|---|
 | `ListInventoryDataBinding<TData, TAdapter>` | backpack, chest, loot, general item lists |
+| `SlotIndexedInventoryDataBinding<TData, TAdapter>` | hotbar, slot array with numeric indices |
 | `MappedSlotInventoryDataBinding<TData, TAdapter>` | equipment, quickbar, named fixed slots |
+
+For a detailed description of each template, which methods to implement, and how they work internally, see [Binding Templates](binding-templates.md).
 
 ---
 
 ## Transfer lifecycle
 
 ```mermaid
-sequenceDiagram
-    participant UI as UniversalInventory
-    participant DB as DataBinding
-    participant Domain as Transfer Hooks
-    participant Data as Your data
+flowchart TD
+    A["Player drags an item"] --> B["CanStartDrag\n(can it be picked up?)"]
+    B -->|OK| C["CanDrop\n(mechanical rules)"]
+    C -->|OK| D["CanCommitTransfer\n(business checks)"]
+    D -->|OK| E["Execute transfer"]
+    E --> F["OnTransferSucceeded\n(side effects)"]
+    F --> G["OnItemRemoved / OnItemAdded\n→ RemoveFromData / AddToData"]
 
-    UI->>DB: CanStartDrag
-    UI->>DB: CanDrop
-    UI->>Domain: CanCommitTransfer
-    opt binding implements IAsyncTransferDomainHandler
-        UI->>Domain: CanCommitTransferAsync
-    end
-    UI->>UI: Execute transfer
-    UI->>Domain: OnTransferSucceeded
-    UI->>DB: OnItemRemoved / OnItemAdded
-    DB->>Data: RemoveFromData / AddToData
+    B -->|Rejected| X["Cancelled"]
+    C -->|Rejected| X
+    D -->|Rejected| X
 ```
 
 ---
@@ -74,6 +78,8 @@ If a binding implements both versions, the order is:
 
 If the sync check fails, the async check is not called.
 
+For more on the three types of checks (rules, business checks, notifications), see [Three types of checks](transfer-pipeline.md#three-types-of-checks) in the transfer pipeline page.
+
 ---
 
 ## Regular list binding example
@@ -85,15 +91,18 @@ public class BackpackBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 
     protected override IReadOnlyList<ItemSO> GetItems() => _items;
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
-    protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.Data;
-    protected override void AddToData(InventoryItemEventContext ctx, ItemSO item) => _items.Add(item);
-    protected override void RemoveFromData(InventoryItemEventContext ctx, ItemSO item) => _items.Remove(item);
+    protected override void AddToData(ItemSOAdapter adapter) => _items.Add(adapter.Data);
+    protected override void RemoveFromData(ItemSOAdapter adapter) => _items.Remove(adapter.Data);
 }
 ```
+
+No business logic here. Just data read and write. For details on `ListInventoryDataBinding` and the other two templates, see [Binding Templates](binding-templates.md).
 
 ---
 
 ## Transfer-level business hook
+
+If a binding needs to participate in the business logic of the operation, implement `ITransferDomainHandler`:
 
 ```csharp
 public class ShopInventoryBinding
@@ -176,6 +185,8 @@ protected override IItemAdapterConverter CreateItemConverter()
 }
 ```
 
+For details on how conversion works in the transfer pipeline, see [Item conversion](transfer-pipeline.md#item-conversion).
+
 ---
 
 ## Reloading from data
@@ -191,3 +202,22 @@ Or explicitly:
 ```csharp
 ForceSyncToUI();
 ```
+
+For batch operations, use `BeginSync()` to suppress events and prevent feedback loops.
+
+---
+
+## What you usually don't need to know
+
+In a typical project you don't need to dig into:
+
+- internal inventory events
+- planning layer helper structures
+- low-level execution layer classes
+
+Usually it's enough to:
+
+1. choose the right [template](binding-templates.md)
+2. describe your adapter
+3. implement sync in `AddToData/RemoveFromData`
+4. optionally add `CanDrop` and `CanCommitTransfer`

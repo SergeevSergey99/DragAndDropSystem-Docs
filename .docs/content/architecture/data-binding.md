@@ -21,36 +21,34 @@ flowchart LR
 
 ---
 
-## Два основных шаблона
+## Три шаблона
+
+Выберите шаблон в зависимости от структуры ваших данных:
 
 | Шаблон | Когда использовать |
 |---|---|
 | `ListInventoryDataBinding<TData, TAdapter>` | обычные списки предметов, рюкзак, сундук, лут |
+| `SlotIndexedInventoryDataBinding<TData, TAdapter>` | хотбар, массив слотов с числовым индексом |
 | `MappedSlotInventoryDataBinding<TData, TAdapter>` | экипировка, quickbar, фиксированные именованные слоты |
+
+Подробное описание каждого шаблона, какие методы реализовать и как они работают внутри — на отдельной странице [Шаблоны DataBinding](binding-templates.md).
 
 ---
 
 ## Жизненный цикл переноса
 
-Вот самое важное, что нужно понимать пользователю ассета:
-
 ```mermaid
-sequenceDiagram
-    participant UI as UniversalInventory
-    participant DB as DataBinding
-    participant Domain as Transfer Hooks
-    participant Data as Ваши данные
+flowchart TD
+    A["Игрок перетаскивает предмет"] --> B["CanStartDrag\n(можно ли взять?)"]
+    B -->|OK| C["CanDrop\n(механические правила)"]
+    C -->|OK| D["CanCommitTransfer\n(бизнес-проверки)"]
+    D -->|OK| E["Выполнение переноса"]
+    E --> F["OnTransferSucceeded\n(side effects)"]
+    F --> G["OnItemRemoved / OnItemAdded\n→ RemoveFromData / AddToData"]
 
-    UI->>DB: CanStartDrag
-    UI->>DB: CanDrop
-    UI->>Domain: CanCommitTransfer
-    opt binding реализует IAsyncTransferDomainHandler
-        UI->>Domain: CanCommitTransferAsync
-    end
-    UI->>UI: Выполнить перенос
-    UI->>Domain: OnTransferSucceeded
-    UI->>DB: OnItemRemoved / OnItemAdded
-    DB->>Data: RemoveFromData / AddToData
+    B -->|Запрет| X["Отменено"]
+    C -->|Запрет| X
+    D -->|Запрет| X
 ```
 
 ---
@@ -80,6 +78,8 @@ sequenceDiagram
 
 Если синхронная проверка вернула отказ, асинхронная уже не вызывается.
 
+Подробнее о трёх типах проверок (правила, бизнес-проверки, уведомления) — в разделе [Три типа проверок](transfer-pipeline.md#три-типа-проверок) на странице конвейера переноса.
+
 ---
 
 ## Пример обычного list-binding
@@ -91,13 +91,12 @@ public class BackpackBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 
     protected override IReadOnlyList<ItemSO> GetItems() => _items;
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
-    protected override ItemSO ExtractData(ItemSOAdapter adapter) => adapter.Data;
-    protected override void AddToData(InventoryItemEventContext ctx, ItemSO item) => _items.Add(item);
-    protected override void RemoveFromData(InventoryItemEventContext ctx, ItemSO item) => _items.Remove(item);
+    protected override void AddToData(ItemSOAdapter adapter) => _items.Add(adapter.Data);
+    protected override void RemoveFromData(ItemSOAdapter adapter) => _items.Remove(adapter.Data);
 }
 ```
 
-Здесь нет бизнес-логики. Только чтение и запись данных.
+Здесь нет бизнес-логики. Только чтение и запись данных. Подробнее о `ListInventoryDataBinding` и двух других шаблонах — в разделе [Шаблоны DataBinding](binding-templates.md).
 
 ---
 
@@ -203,6 +202,8 @@ protected override IItemAdapterConverter CreateItemConverter()
 - торговец хранит `ScriptableObject`
 - игрок хранит runtime-модель
 
+Подробнее о конвертации — в разделе [Конвертация предметов](transfer-pipeline.md#конвертация-предметов) на странице конвейера переноса.
+
 ---
 
 ## Когда обновлять UI из данных
@@ -233,7 +234,7 @@ ForceSyncToUI();
 
 Чаще всего достаточно:
 
-1. выбрать подходящий binding
+1. выбрать [подходящий шаблон](binding-templates.md)
 2. описать adapter
 3. реализовать sync в `AddToData/RemoveFromData`
 4. при необходимости добавить `CanDrop` и `CanCommitTransfer`

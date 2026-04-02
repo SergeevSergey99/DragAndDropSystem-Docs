@@ -65,6 +65,7 @@ nav:
     - examples/demo5-containers.md
   - Core Concepts:
     - architecture/data-binding.md
+    - architecture/binding-templates.md
     - architecture/transfer-pipeline.md
     - architecture/strategies.md
     - architecture/rules.md
