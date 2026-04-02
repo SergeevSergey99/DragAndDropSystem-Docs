@@ -1311,6 +1311,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#if-you-are-working-with-the-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If you are working with the examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#internal-implementation-details" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1441,6 +1452,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#if-you-are-working-with-the-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If you are working with the examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#internal-implementation-details" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1549,6 +1571,34 @@ Internal helper files are grouped separately.</p>
 </tbody>
 </table>
 <hr />
+<h2 id="if-you-are-working-with-the-examples">If you are working with the examples</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Examples/Demo4 Trading/DataBindings/*.cs</code></td>
+<td>trading bindings</td>
+</tr>
+<tr>
+<td><code>Examples/Demo4 Trading/Converters/*.cs</code></td>
+<td>trading item converters</td>
+</tr>
+<tr>
+<td><code>Examples/Demo4 Trading/DataBindings/TradingHelper.cs</code></td>
+<td>trading checks and side effects</td>
+</tr>
+<tr>
+<td><code>Examples/Demo2 Loot/Scripts/*.cs</code></td>
+<td>world loot example</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="internal-implementation-details">Internal implementation details</h2>
 <p>These files are usually unnecessary unless you are modifying the asset itself:</p>
 <table>
@@ -1572,8 +1622,8 @@ Internal helper files are grouped separately.</p>
 <td>placement operation object</td>
 </tr>
 <tr>
-<td><code>Scripts/Inventories/AlternativeSlotSearchOperation.cs</code></td>
-<td>alternative slot search</td>
+<td><code>Scripts/Inventories/SlotRelocationService.cs</code></td>
+<td>relocation-based fallback that tries to free a suitable slot</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/VirtualSlotState.cs</code></td>
