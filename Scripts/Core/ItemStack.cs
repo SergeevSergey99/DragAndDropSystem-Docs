@@ -9,7 +9,8 @@ namespace DragAndDropSystem.Core
     /// Универсальная обертка для предмета с количеством
     /// Работает с любым типом, реализующим IItemAdapter
     /// Лимиты стака задаются через настройку Max Stack Size в UniversalInventory
-    /// или через IStackSizeLimitable на конкретном предмете
+    /// или через IStackSizeLimitable на конкретном предмете,
+    /// если в инвентаре включен allowItemStackOverride
     /// </summary>
     [Serializable]
     public class ItemStack

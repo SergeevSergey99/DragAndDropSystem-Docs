@@ -10,7 +10,8 @@ namespace DragAndDropSystem.Inventories
     /// Предметы могут стакаться, но НЕ автоматически мержатся
     /// Можно иметь несколько стаков одного предмета в разных слотах
     /// Мерж происходит только при явном дропе на тот же предмет (если allowMergeOnDrop = true)
-    /// Поддерживает per-itemAdapter лимиты стаков через IStackSizeLimitable
+    /// Поддерживает дефолтный лимит стратегии и,
+    /// при allowItemOverride = true, per-item лимиты стаков через IStackSizeLimitable
     /// </summary>
     public class SeparableStacksStrategy : InventoryStrategyBase
     {

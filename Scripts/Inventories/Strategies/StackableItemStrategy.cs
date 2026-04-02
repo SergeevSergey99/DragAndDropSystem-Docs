@@ -8,7 +8,8 @@ namespace DragAndDropSystem.Inventories
     /// <summary>
     /// Стратегия: предметы стакаются (группируются по типу)
     /// Один тип предмета может занимать несколько слотов
-    /// Поддерживает per-itemAdapter лимиты через IStackSizeLimitable и дефолтный лимит стратегии
+    /// Поддерживает дефолтный лимит стратегии и,
+    /// при allowItemOverride = true, per-item лимиты через IStackSizeLimitable
     /// </summary>
     public class StackableItemStrategy : InventoryStrategyBase
     {

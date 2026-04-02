@@ -54,7 +54,8 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Strategy")]
         [SerializeField, Tooltip("Разрешить предметам переопределять лимит стака через IStackSizeLimitable. " +
-                                 "Если true — предмет использует свой лимит. Если false — _maxStackSize является жёстким потолком.")]
+                                 "Если true — MaxStackSize предмета полностью заменяет _maxStackSize. " +
+                                 "Если false — IStackSizeLimitable игнорируется и используется только _maxStackSize.")]
         [ShowIf(nameof(ShowMaxStackOverride))]
         private bool _allowItemStackOverride = false;
 

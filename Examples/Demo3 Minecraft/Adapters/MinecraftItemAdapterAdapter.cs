@@ -5,8 +5,6 @@ namespace DragAndDropSystem.Examples.Minecraft
 {
     /// <summary>
     /// Адаптер для MinecraftItemSO.
-    /// Реализует IStackSizeLimitable — каждый тип предмета задаёт свой лимит стака
-    /// (64 для блоков/материалов, 16 для жемчуга/снежков, 1 для инструментов/брони).
     /// </summary>
     public class MinecraftItemAdapterAdapter : IItemAdapter
     {
