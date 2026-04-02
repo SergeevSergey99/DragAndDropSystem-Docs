@@ -14,7 +14,7 @@
         <link rel="prev" href="../../examples/demo5-containers/">
       
       
-        <link rel="next" href="../transfer-pipeline/">
+        <link rel="next" href="../binding-templates/">
       
       
         
@@ -873,7 +873,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Два основных шаблона
+        Три шаблона
       
     </span>
   </a>
@@ -972,6 +972,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../binding-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Шаблоны DataBinding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1482,7 +1510,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Два основных шаблона
+        Три шаблона
       
     </span>
   </a>
@@ -1609,7 +1637,8 @@
 <li>ваши данные остаются в вашей модели, а не внутри UI-инвентаря</li>
 </ul>
 <hr />
-<h2 id="_2">Два основных шаблона</h2>
+<h2 id="_2">Три шаблона</h2>
+<p>Выберите шаблон в зависимости от структуры ваших данных:</p>
 <table>
 <thead>
 <tr>
@@ -1623,30 +1652,29 @@
 <td>обычные списки предметов, рюкзак, сундук, лут</td>
 </tr>
 <tr>
+<td><code>SlotIndexedInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
+<td>хотбар, массив слотов с числовым индексом</td>
+</tr>
+<tr>
 <td><code>MappedSlotInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
 <td>экипировка, quickbar, фиксированные именованные слоты</td>
 </tr>
 </tbody>
 </table>
+<p>Подробное описание каждого шаблона, какие методы реализовать и как они работают внутри — на отдельной странице <a href="../binding-templates/">Шаблоны DataBinding</a>.</p>
 <hr />
 <h2 id="_3">Жизненный цикл переноса</h2>
-<p>Вот самое важное, что нужно понимать пользователю ассета:</p>
-<pre class="mermaid"><code>sequenceDiagram
-    participant UI as UniversalInventory
-    participant DB as DataBinding
-    participant Domain as Transfer Hooks
-    participant Data as Ваши данные
+<pre class="mermaid"><code>flowchart TD
+    A["Игрок перетаскивает предмет"] --&gt; B["CanStartDrag\n(можно ли взять?)"]
+    B --&gt;|OK| C["CanDrop\n(механические правила)"]
+    C --&gt;|OK| D["CanCommitTransfer\n(бизнес-проверки)"]
+    D --&gt;|OK| E["Выполнение переноса"]
+    E --&gt; F["OnTransferSucceeded\n(side effects)"]
+    F --&gt; G["OnItemRemoved / OnItemAdded\n→ RemoveFromData / AddToData"]
 
-    UI-&gt;&gt;DB: CanStartDrag
-    UI-&gt;&gt;DB: CanDrop
-    UI-&gt;&gt;Domain: CanCommitTransfer
-    opt binding реализует IAsyncTransferDomainHandler
-        UI-&gt;&gt;Domain: CanCommitTransferAsync
-    end
-    UI-&gt;&gt;UI: Выполнить перенос
-    UI-&gt;&gt;Domain: OnTransferSucceeded
-    UI-&gt;&gt;DB: OnItemRemoved / OnItemAdded
-    DB-&gt;&gt;Data: RemoveFromData / AddToData</code></pre>
+    B --&gt;|Запрет| X["Отменено"]
+    C --&gt;|Запрет| X
+    D --&gt;|Запрет| X</code></pre>
 <hr />
 <h2 id="_4">Что где писать</h2>
 <table>
@@ -1703,6 +1731,7 @@
 <li>реальный commit</li>
 </ol>
 <p>Если синхронная проверка вернула отказ, асинхронная уже не вызывается.</p>
+<p>Подробнее о трёх типах проверок (правила, бизнес-проверки, уведомления) — в разделе <a href="../transfer-pipeline/#три-типа-проверок">Три типа проверок</a> на странице конвейера переноса.</p>
 <hr />
 <h2 id="list-binding">Пример обычного list-binding</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">BackpackBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
@@ -1711,12 +1740,11 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetItems</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToData</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">}</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
 </code></pre></div>
-<p>Здесь нет бизнес-логики. Только чтение и запись данных.</p>
+<p>Здесь нет бизнес-логики. Только чтение и запись данных. Подробнее о <code>ListInventoryDataBinding</code> и двух других шаблонах — в разделе <a href="../binding-templates/">Шаблоны DataBinding</a>.</p>
 <hr />
 <h2 id="-">Пример бизнес-хука уровня переноса</h2>
 <p>Если binding должен участвовать в бизнес-логике операции, реализуйте <code>ITransferDomainHandler</code>:</p>
@@ -1805,6 +1833,7 @@
 <li>торговец хранит <code>ScriptableObject</code></li>
 <li>игрок хранит runtime-модель</li>
 </ul>
+<p>Подробнее о конвертации — в разделе <a href="../transfer-pipeline/#конвертация-предметов">Конвертация предметов</a> на странице конвейера переноса.</p>
 <hr />
 <h2 id="ui">Когда обновлять UI из данных</h2>
 <p>Если данные изменились вне конвейера drag &amp; drop, вызовите:</p>
@@ -1824,7 +1853,7 @@
 </ul>
 <p>Чаще всего достаточно:</p>
 <ol>
-<li>выбрать подходящий binding</li>
+<li>выбрать <a href="../binding-templates/">подходящий шаблон</a></li>
 <li>описать adapter</li>
 <li>реализовать sync в <code>AddToData/RemoveFromData</code></li>
 <li>при необходимости добавить <code>CanDrop</code> и <code>CanCommitTransfer</code></li>

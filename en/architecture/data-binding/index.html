@@ -14,7 +14,7 @@
         <link rel="prev" href="../../examples/demo5-containers/">
       
       
-        <link rel="next" href="../transfer-pipeline/">
+        <link rel="next" href="../binding-templates/">
       
       
         
@@ -870,10 +870,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#two-main-templates" class="md-nav__link">
+  <a href="#three-templates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two main templates
+        Three templates
       
     </span>
   </a>
@@ -957,10 +957,49 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#what-you-usually-dont-need-to-know" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you usually don't need to know
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../binding-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binding Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1468,10 +1507,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#two-main-templates" class="md-nav__link">
+  <a href="#three-templates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Two main templates
+        Three templates
       
     </span>
   </a>
@@ -1555,6 +1594,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#what-you-usually-dont-need-to-know" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you usually don't need to know
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1581,8 +1631,14 @@
 <pre class="mermaid"><code>flowchart LR
     Data["Your data"] &lt;--&gt; Binding["DataBinding"]
     Binding &lt;--&gt; UI["UniversalInventory"]</code></pre>
+<ul>
+<li><code>UniversalInventory</code> manages slots, transfers and events</li>
+<li><code>DataBinding</code> translates those events into changes to your data</li>
+<li>your data stays in your model, not inside the UI inventory</li>
+</ul>
 <hr />
-<h2 id="two-main-templates">Two main templates</h2>
+<h2 id="three-templates">Three templates</h2>
+<p>Choose a template based on your data structure:</p>
 <table>
 <thead>
 <tr>
@@ -1596,29 +1652,29 @@
 <td>backpack, chest, loot, general item lists</td>
 </tr>
 <tr>
+<td><code>SlotIndexedInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
+<td>hotbar, slot array with numeric indices</td>
+</tr>
+<tr>
 <td><code>MappedSlotInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
 <td>equipment, quickbar, named fixed slots</td>
 </tr>
 </tbody>
 </table>
+<p>For a detailed description of each template, which methods to implement, and how they work internally, see <a href="../binding-templates/">Binding Templates</a>.</p>
 <hr />
 <h2 id="transfer-lifecycle">Transfer lifecycle</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant UI as UniversalInventory
-    participant DB as DataBinding
-    participant Domain as Transfer Hooks
-    participant Data as Your data
+<pre class="mermaid"><code>flowchart TD
+    A["Player drags an item"] --&gt; B["CanStartDrag\n(can it be picked up?)"]
+    B --&gt;|OK| C["CanDrop\n(mechanical rules)"]
+    C --&gt;|OK| D["CanCommitTransfer\n(business checks)"]
+    D --&gt;|OK| E["Execute transfer"]
+    E --&gt; F["OnTransferSucceeded\n(side effects)"]
+    F --&gt; G["OnItemRemoved / OnItemAdded\n→ RemoveFromData / AddToData"]
 
-    UI-&gt;&gt;DB: CanStartDrag
-    UI-&gt;&gt;DB: CanDrop
-    UI-&gt;&gt;Domain: CanCommitTransfer
-    opt binding implements IAsyncTransferDomainHandler
-        UI-&gt;&gt;Domain: CanCommitTransferAsync
-    end
-    UI-&gt;&gt;UI: Execute transfer
-    UI-&gt;&gt;Domain: OnTransferSucceeded
-    UI-&gt;&gt;DB: OnItemRemoved / OnItemAdded
-    DB-&gt;&gt;Data: RemoveFromData / AddToData</code></pre>
+    B --&gt;|Rejected| X["Cancelled"]
+    C --&gt;|Rejected| X
+    D --&gt;|Rejected| X</code></pre>
 <hr />
 <h2 id="what-belongs-where">What belongs where</h2>
 <table>
@@ -1675,6 +1731,7 @@
 <li>real commit</li>
 </ol>
 <p>If the sync check fails, the async check is not called.</p>
+<p>For more on the three types of checks (rules, business checks, notifications), see <a href="../transfer-pipeline/#three-types-of-checks">Three types of checks</a> in the transfer pipeline page.</p>
 <hr />
 <h2 id="regular-list-binding-example">Regular list binding example</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">BackpackBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
@@ -1683,13 +1740,14 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetItems</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToData</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">}</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
 </code></pre></div>
+<p>No business logic here. Just data read and write. For details on <code>ListInventoryDataBinding</code> and the other two templates, see <a href="../binding-templates/">Binding Templates</a>.</p>
 <hr />
 <h2 id="transfer-level-business-hook">Transfer-level business hook</h2>
+<p>If a binding needs to participate in the business logic of the operation, implement <code>ITransferDomainHandler</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ShopInventoryBinding</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">ITransferDomainHandler</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">{</span>
@@ -1758,6 +1816,7 @@ If the check is local and fast, regular <code>CanCommitTransfer</code> is enough
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyInventoryItemConverter</span><span class="p">();</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 </code></pre></div>
+<p>For details on how conversion works in the transfer pipeline, see <a href="../transfer-pipeline/#item-conversion">Item conversion</a>.</p>
 <hr />
 <h2 id="reloading-from-data">Reloading from data</h2>
 <p>If your data changes outside the drag &amp; drop pipeline, call:</p>
@@ -1766,6 +1825,22 @@ If the check is local and fast, regular <code>CanCommitTransfer</code> is enough
 <p>Or explicitly:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">ForceSyncToUI</span><span class="p">();</span>
 </code></pre></div>
+<p>For batch operations, use <code>BeginSync()</code> to suppress events and prevent feedback loops.</p>
+<hr />
+<h2 id="what-you-usually-dont-need-to-know">What you usually don't need to know</h2>
+<p>In a typical project you don't need to dig into:</p>
+<ul>
+<li>internal inventory events</li>
+<li>planning layer helper structures</li>
+<li>low-level execution layer classes</li>
+</ul>
+<p>Usually it's enough to:</p>
+<ol>
+<li>choose the right <a href="../binding-templates/">template</a></li>
+<li>describe your adapter</li>
+<li>implement sync in <code>AddToData/RemoveFromData</code></li>
+<li>optionally add <code>CanDrop</code> and <code>CanCommitTransfer</code></li>
+</ol>
 
 
 
