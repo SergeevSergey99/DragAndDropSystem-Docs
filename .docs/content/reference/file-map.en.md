@@ -34,6 +34,17 @@ Internal helper files are grouped separately.
 
 ---
 
+## If you are working with the examples
+
+| File | Role |
+|---|---|
+| `Examples/Demo4 Trading/DataBindings/*.cs` | trading bindings |
+| `Examples/Demo4 Trading/Converters/*.cs` | trading item converters |
+| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | trading checks and side effects |
+| `Examples/Demo2 Loot/Scripts/*.cs` | world loot example |
+
+---
+
 ## Internal implementation details
 
 These files are usually unnecessary unless you are modifying the asset itself:
@@ -43,6 +54,6 @@ These files are usually unnecessary unless you are modifying the asset itself:
 | `Scripts/Inventories/InventoryTransferService.cs` | `InventoryTransferRequest` / `InventoryTransferResult` models |
 | `Scripts/Inventories/EntryPlanningOperation.cs` | planning operation object |
 | `Scripts/Inventories/TargetPlacementOperation.cs` | placement operation object |
-| `Scripts/Inventories/AlternativeSlotSearchOperation.cs` | alternative slot search |
+| `Scripts/Inventories/SlotRelocationService.cs` | relocation-based fallback that tries to free a suitable slot |
 | `Scripts/Inventories/VirtualSlotState.cs` | virtual slot state for planning |
 | `Scripts/Inventories/SlotOperationContext.cs` | low-level slot operation context |

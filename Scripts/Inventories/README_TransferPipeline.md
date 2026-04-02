@@ -105,7 +105,7 @@
 
 Связанные helper-объекты исполнения:
 - `TargetPlacementOperation`
-- `AlternativeSlotSearchOperation`
+- `SlotRelocationService`
 
 ### InventoryAcceptanceRequest
 
@@ -120,7 +120,7 @@
 
 Current conversion ownership:
 - `UniversalInventory` owns `ItemConverter`
-- `IdentityInventoryItemConverter` is used by default
+- `IdentityItemAdapterConverter` is used by default
 - `TransferItemConversionUtility` remains the common preview entry point
 - `DataBinding` wires converter into inventory via `CreateItemConverter()` during initialization
 

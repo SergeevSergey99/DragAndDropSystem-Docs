@@ -38,10 +38,10 @@
 
 | Файл | Роль |
 |---|---|
-| `Examples/Demo2 Trading/DataBindings/*.cs` | trading bindings |
-| `Examples/Demo2 Trading/Converters/*.cs` | item converters для торговли |
-| `Examples/Demo2 Trading/TradingHelper.cs` | торговые проверки и side effects |
-| `Examples/Demo3 Loot/*.cs` | пример world loot |
+| `Examples/Demo4 Trading/DataBindings/*.cs` | trading bindings |
+| `Examples/Demo4 Trading/Converters/*.cs` | item converters для торговли |
+| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | торговые проверки и side effects |
+| `Examples/Demo2 Loot/Scripts/*.cs` | пример world loot |
 
 ---
 
@@ -54,7 +54,7 @@
 | `Scripts/Inventories/InventoryTransferService.cs` | модели `InventoryTransferRequest` / `InventoryTransferResult` |
 | `Scripts/Inventories/EntryPlanningOperation.cs` | объект операции для planning |
 | `Scripts/Inventories/TargetPlacementOperation.cs` | объект операции размещения |
-| `Scripts/Inventories/AlternativeSlotSearchOperation.cs` | поиск альтернативного слота |
+| `Scripts/Inventories/SlotRelocationService.cs` | попытка освободить подходящий слот через relocation occupant stack |
 | `Scripts/Inventories/VirtualSlotState.cs` | виртуальное состояние слотов при planning |
 | `Scripts/Inventories/SlotOperationContext.cs` | контекст low-level операций со слотами |
 
