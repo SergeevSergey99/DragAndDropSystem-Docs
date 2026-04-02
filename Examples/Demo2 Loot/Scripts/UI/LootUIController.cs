@@ -12,7 +12,9 @@ namespace DragAndDropSystem.Examples.Demo3Loot
     public class LootUIController : MonoBehaviour
     {
         [Header("UI Panels")]
-        [SerializeField, Tooltip("Панель с инвентарями (изначально выключена)")]
+        [SerializeField, Tooltip("Панель с инвентарем")]
+        private GameObject _inventoryPanel;
+        [SerializeField, Tooltip("Панель с инвентарями и лутом")]
         private GameObject _lootPanel;
         [SerializeField]
         private GameObject _interactableButtonPanel;
@@ -40,8 +42,22 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             // Убеждаемся что панель лута изначально выключена
             if (_lootPanel != null)
             {
+                _lootPanel.transform.localPosition = Vector3.zero;
                 _lootPanel.SetActive(false);
             }
+
+            if (_interactableButtonPanel != null)
+            {
+                _interactableButtonPanel.transform.localPosition = Vector3.zero;
+                _interactableButtonPanel.SetActive(false);
+            }
+            
+            if (_inventoryPanel != null)
+            {
+                _inventoryPanel.transform.localPosition = Vector3.zero;
+                _inventoryPanel.SetActive(false);
+            }
+            
             // Автоматически находим компоненты если они не назначены
             if (_playerInteraction == null)
             {
@@ -200,6 +216,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
             // Скрываем панель
             _lootPanel.SetActive(false);
+            _inventoryPanel.SetActive(false);
 
             // Разблокируем управление игроком
             if (_playerController != null)
@@ -248,6 +265,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
             _chestBinding?.BindToChest(null);
             _lootPanel.SetActive(false);
+            _inventoryPanel.SetActive(false);
 
             if (_playerController != null)
             {
