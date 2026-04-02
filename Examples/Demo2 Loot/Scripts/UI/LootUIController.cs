@@ -25,6 +25,9 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         private ChestInventoryDataBinding _chestBinding;
 
         [Header("Settings")]
+        [SerializeField, Tooltip("Клавиша открытия/закрытия обычного инвентаря игрока")]
+        private KeyCode _toggleInventoryKey = KeyCode.I;
+
         [SerializeField, Tooltip("Клавиша закрытия UI")]
         private KeyCode _closeKey = KeyCode.Escape;
 
@@ -33,6 +36,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
         private Chest _currentChest;
         private bool _isLootUIOpen = false;
+        private bool _isInventoryUIOpen = false;
         
         private PlayerInteraction _playerInteraction;
         private PlayerController _playerController;
@@ -112,10 +116,18 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
         private void Update()
         {
-            // Обрабатываем клавишу закрытия
-            if (_isLootUIOpen && Input.GetKeyDown(_closeKey))
+            if (!_isLootUIOpen && Input.GetKeyDown(_toggleInventoryKey))
             {
-                CloseLootUI();
+                ToggleInventoryUI();
+            }
+
+            // Обрабатываем клавишу закрытия
+            if ((_isLootUIOpen || _isInventoryUIOpen) && Input.GetKeyDown(_closeKey))
+            {
+                if (_isLootUIOpen)
+                    CloseLootUI();
+                else
+                    CloseInventoryUI();
             }
         }
 
@@ -170,6 +182,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
 
             _currentChest = chest;
             _isLootUIOpen = true;
+            _isInventoryUIOpen = false;
 
             // Подписываемся на события сундука
             SubscribeToChestEvents(chest);
@@ -178,13 +191,10 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             _chestBinding?.BindToChest(chest);
 
             // Показываем панель
-            _lootPanel.SetActive(true);
-
-            // Блокируем управление игроком
-            if (_playerController != null)
-            {
-                _playerController.SetInputLocked(true);
-            }
+            _lootPanel?.SetActive(true);
+            _inventoryPanel?.SetActive(false);
+            _interactableButtonPanel?.SetActive(false);
+            RefreshInputLockState();
         }
 
         /// <summary>
@@ -215,17 +225,11 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             _chestBinding?.BindToChest(null);
 
             // Скрываем панель
-            _lootPanel.SetActive(false);
-            _inventoryPanel.SetActive(false);
-
-            // Разблокируем управление игроком
-            if (_playerController != null)
-            {
-                _playerController.SetInputLocked(false);
-            }
+            _lootPanel?.SetActive(false);
 
             _currentChest = null;
             _isLootUIOpen = false;
+            RefreshInputLockState();
         }
 
         /// <summary>
@@ -264,16 +268,55 @@ namespace DragAndDropSystem.Examples.Demo3Loot
             }
 
             _chestBinding?.BindToChest(null);
-            _lootPanel.SetActive(false);
-            _inventoryPanel.SetActive(false);
-
-            if (_playerController != null)
-            {
-                _playerController.SetInputLocked(false);
-            }
+            _lootPanel?.SetActive(false);
 
             _currentChest = null;
             _isLootUIOpen = false;
+            RefreshInputLockState();
+        }
+
+        private void ToggleInventoryUI()
+        {
+            if (_inventoryPanel == null)
+            {
+                Debug.LogWarning("[LootUIController] Cannot toggle inventory UI - panel is not assigned");
+                return;
+            }
+
+            if (_isInventoryUIOpen)
+                CloseInventoryUI();
+            else
+                OpenInventoryUI();
+        }
+
+        private void OpenInventoryUI()
+        {
+            if (_inventoryPanel == null)
+            {
+                Debug.LogWarning("[LootUIController] Cannot open inventory UI - panel is not assigned");
+                return;
+            }
+
+            _inventoryPanel.SetActive(true);
+            _interactableButtonPanel?.SetActive(false);
+            _isInventoryUIOpen = true;
+            RefreshInputLockState();
+        }
+
+        private void CloseInventoryUI()
+        {
+            if (!_isInventoryUIOpen || _isLootUIOpen)
+                return;
+
+            _inventoryPanel?.SetActive(false);
+            _isInventoryUIOpen = false;
+            RefreshInputLockState();
+        }
+
+        private void RefreshInputLockState()
+        {
+            if (_playerController != null)
+                _playerController.SetInputLocked(_isLootUIOpen || _isInventoryUIOpen);
         }
     }
 }

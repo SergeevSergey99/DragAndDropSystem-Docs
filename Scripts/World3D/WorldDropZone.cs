@@ -1,4 +1,5 @@
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace DragAndDropSystem.World3D
         private bool _randomizePosition = true;
 
         [SerializeField, Tooltip("Радиус случайного смещения")]
-        private float _randomRadius = 0.5f;
+        private float _randomRadius = 1.5f;
 
         [Header("Visual Feedback")]
         [SerializeField, Tooltip("Подсветка зоны при наведении")]
@@ -147,16 +148,20 @@ namespace DragAndDropSystem.World3D
             if (context == null || context.Entries.Count == 0)
                 return false;
 
-            // Check all entries have 3D world representation
+            // Check all adapters in all entries have 3D world representation
             foreach (var entry in context.Entries)
             {
-                if (entry.Stack?.PrimaryAdapter == null)
+                if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.Adapters == null)
                     return false;
 
-                if (entry.Stack.PrimaryAdapter is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                for (int i = 0; i < entry.Stack.Adapters.Count; i++)
                 {
-                    Extensions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: false (entry missing 3D adapter)</color>");
-                    return false;
+                    var itemAdapter = entry.Stack.Adapters[i];
+                    if (itemAdapter is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                    {
+                        Extensions.DragAndDropLog($"<color=cyan>[WorldDropZone] CanAcceptDrop: false (adapter missing 3D prefab)</color>");
+                        return false;
+                    }
                 }
             }
 
@@ -183,21 +188,41 @@ namespace DragAndDropSystem.World3D
                 if (stack == null || stack.IsEmpty)
                     continue;
 
-                int amountToSpawn = stack.Count;
+                var stackToSpawn = sourceSlot?.Stack?.CreateCopy(stack.Count);
+                if (stackToSpawn == null || stackToSpawn.IsEmpty)
+                    stackToSpawn = stack.CreateCopy();
 
-                if (!SpawnItemInWorld(stack))
+                if (stackToSpawn == null || stackToSpawn.IsEmpty)
+                    continue;
+
+                if (!SpawnItemInWorld(stackToSpawn))
                     continue;
 
                 // Remove items from source slot
                 if (sourceSlot?.Stack != null && !sourceSlot.Stack.IsEmpty)
                 {
-                    sourceSlot.Stack.RemoveFromStack(amountToSpawn);
+                    var removedStack = sourceSlot.Stack.CreateCopy(stackToSpawn.Count);
+                    int removedCount = sourceSlot.Stack.RemoveFromStack(stackToSpawn.Count);
                     sourceSlot.UpdateVisuals();
-                    Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {amountToSpawn} items from source slot {sourceSlot.Index}</color>");
+
+                    if (removedCount > 0 && removedStack != null && !removedStack.IsEmpty && sourceSlot.Inventory is UniversalInventory sourceUniversal)
+                    {
+                        sourceUniversal.EmitItemRemoved(
+                            removedStack,
+                            sourceSlot.Index,
+                            targetInventory: null,
+                            sourceSlot: sourceSlot,
+                            targetSlot: null);
+
+                        if (sourceSlot.IsEmpty)
+                            sourceUniversal.HandleSlotEmptied(sourceSlot);
+                    }
+
+                    Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {removedCount} items from source slot {sourceSlot.Index}</color>");
                 }
 
-                totalSpawned += amountToSpawn;
-                lastItemAdapter = stack.PrimaryAdapter;
+                totalSpawned += stackToSpawn.Count;
+                lastItemAdapter = stackToSpawn.PrimaryAdapter;
             }
 
             if (totalSpawned > 0)
@@ -224,33 +249,33 @@ namespace DragAndDropSystem.World3D
                 return false;
             }
 
-            // Проверяем, есть ли у предмета 3D префаб
-            if (stack.PrimaryAdapter is not IWorld3DAdapter adapter)
+            if (stack.Adapters == null || stack.Adapters.Count == 0)
             {
-                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] PrimaryAdapter {stack.DisplayName} has no world prefab</color>");
-                return false;
-            }
-
-            GameObject prefab = adapter.WorldPrefab;
-            if (prefab == null)
-            {
-                Extensions.DragAndDropLog($"<color=red>[WorldDropZone] World prefab is null for {stack.DisplayName}</color>");
+                Extensions.DragAndDropLog("<color=red>[WorldDropZone] Cannot spawn: stack has no adapters</color>");
                 return false;
             }
 
             // Определяем позицию спавна
             Vector3 spawnPosition = _spawnPoint != null ? _spawnPoint.position : transform.position;
 
-            if (_randomizePosition)
+            // Спавним каждый конкретный adapter instance отдельно, чтобы не терять уникальные runtime-данные.
+            for (int i = 0; i < stack.Adapters.Count; i++)
             {
-                Vector2 randomOffset = Random.insideUnitCircle * _randomRadius;
-                spawnPosition += new Vector3(randomOffset.x, 0f, randomOffset.y);
-            }
+                var offset = Vector3.zero;
+                if (_randomizePosition)
+                {
+                    Vector2 randomOffset = Random.insideUnitCircle * _randomRadius;
+                    offset = new Vector3(randomOffset.x, 0f, randomOffset.y);
+                }
+                var itemAdapter = stack.Adapters[i];
+                if (itemAdapter is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                {
+                    Extensions.DragAndDropLog($"<color=red>[WorldDropZone] Adapter at index {i} has no world prefab</color>");
+                    return false;
+                }
 
-            // Спавним предмет для каждого элемента в стаке
-            for (int i = 0; i < stack.Count; i++)
-            {
-                GameObject spawnedObject = Instantiate(prefab, spawnPosition, Quaternion.identity);
+                GameObject prefab = adapter.WorldPrefab;
+                GameObject spawnedObject = Instantiate(prefab, spawnPosition + offset, Quaternion.identity);
 
                 // Добавляем компонент WorldItem если его нет
                 var worldItem = spawnedObject.GetComponent<WorldItem>();
@@ -258,14 +283,7 @@ namespace DragAndDropSystem.World3D
                 {
                     worldItem = spawnedObject.AddComponent<WorldItem>();
                 }
-                worldItem.Initialize(stack.PrimaryAdapter, 1);
-
-                // Небольшое смещение для следующего предмета
-                if (_randomizePosition)
-                {
-                    Vector2 offsetPerItem = Random.insideUnitCircle * 0.1f;
-                    spawnPosition += new Vector3(offsetPerItem.x, 0f, offsetPerItem.y);
-                }
+                worldItem.Initialize(itemAdapter, 1);
             }
 
             Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.DisplayName} in world</color>");
