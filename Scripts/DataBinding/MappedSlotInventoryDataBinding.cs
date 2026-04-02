@@ -11,25 +11,26 @@ namespace DragAndDropSystem.DataBinding
     /// Внутренне всегда работает со списками (GetAll/Add/Remove/Clear).
     /// Для единичных предметов используйте простой конструктор — обёртки генерируются автоматически.
     /// </summary>
-    public readonly struct SlotBinding<TData>
+    public readonly struct SlotBinding<TData, TAdapter>
+        where TAdapter : class, IItemAdapter
     {
-        /// <summary>Все элементы данных, находящиеся в слоте.</summary>
+        /// <summary>Все элементы данных, находящиеся в слоте (для ReloadUI).</summary>
         public readonly Func<IReadOnlyList<TData>> GetAll;
 
-        /// <summary>Добавить элементы в слот (вызывается при OnItemAddedToUI).</summary>
-        public readonly Action<IReadOnlyList<TData>> Add;
+        /// <summary>Добавить адаптеры в слот (вызывается при OnItemAddedToUI).</summary>
+        public readonly Action<IReadOnlyList<TAdapter>> Add;
 
-        /// <summary>Удалить элементы из слота (вызывается при OnItemRemovedFromUI).</summary>
-        public readonly Action<IReadOnlyList<TData>> Remove;
+        /// <summary>Удалить адаптеры из слота (вызывается при OnItemRemovedFromUI).</summary>
+        public readonly Action<IReadOnlyList<TAdapter>> Remove;
 
         /// <summary>Полная очистка слота.</summary>
         public readonly Action Clear;
 
-        /// <summary>Опциональная валидация одного элемента для CanDrop.</summary>
-        public readonly Func<TData, RuleResult> CanDrop;
-        
-        /// <summary> Опциональная валидация одного элемента для CanStartDrag. </summary>
-        public readonly Func<TData, RuleResult> CanStartDrag;
+        /// <summary>Опциональная валидация адаптера для CanDrop.</summary>
+        public readonly Func<TAdapter, RuleResult> CanDrop;
+
+        /// <summary>Опциональная валидация адаптера для CanStartDrag.</summary>
+        public readonly Func<TAdapter, RuleResult> CanStartDrag;
 
         /// <summary>
         /// Конструктор для единичных предметов (один предмет на слот).
@@ -37,10 +38,10 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public SlotBinding(
             Func<TData> get,
-            Action<TData> set,
+            Action<TAdapter> set,
             Action clear,
-            Func<TData, RuleResult> canDrop = null,
-            Func<TData, RuleResult> canStartDrag = null)
+            Func<TAdapter, RuleResult> canDrop = null,
+            Func<TAdapter, RuleResult> canStartDrag = null)
         {
             GetAll = () =>
             {
@@ -60,11 +61,11 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public SlotBinding(
             Func<IReadOnlyList<TData>> getAll,
-            Action<IReadOnlyList<TData>> add,
-            Action<IReadOnlyList<TData>> remove,
+            Action<IReadOnlyList<TAdapter>> add,
+            Action<IReadOnlyList<TAdapter>> remove,
             Action clear,
-            Func<TData, RuleResult> canDrop = null,
-            Func<TData, RuleResult> canStartDrag = null)
+            Func<TAdapter, RuleResult> canDrop = null,
+            Func<TAdapter, RuleResult> canStartDrag = null)
         {
             GetAll = getAll;
             Add = add;
@@ -79,8 +80,8 @@ namespace DragAndDropSystem.DataBinding
     /// Шаблонный DataBinding для инвентарей с фиксированными именованными слотами.
     /// Каждый слот декларативно привязывается к данным через SlotBinding в словаре.
     /// Поддерживает как единичные предметы, так и стеки в одном BindingMap.
-    /// Автоматически обрабатывает ReloadUI, OnItemAdded, OnItemRemoved и CanDrop —
-    /// наследнику достаточно определить CreateBindingMap(), CreateAdapter() и ExtractData().
+    /// Автоматически обрабатывает ReloadUI, OnItemAdded, OnItemRemoved, CanDrop и CanStartDrag —
+    /// наследнику достаточно определить CreateBindingMap() и CreateAdapter().
     ///
     /// TData — тип элемента данных (например, ItemModel)
     /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemModelAdapter)
@@ -91,49 +92,48 @@ namespace DragAndDropSystem.DataBinding
     /// {
     ///     [SerializeField] private UniversalSlot _weaponSlot, _potionSlot;
     ///
-    ///     protected override Dictionary&lt;ISlot, SlotBinding&lt;ItemModel&gt;&gt; CreateBindingMap() =&gt; new()
+    ///     protected override Dictionary&lt;ISlot, SlotBinding&lt;ItemModel, ItemModelAdapter&gt;&gt; CreateBindingMap() =&gt; new()
     ///     {
     ///         // Единичный предмет (простой конструктор)
     ///         [_weaponSlot] = new(
     ///             get: () =&gt; _data.Weapon,
-    ///             set: item =&gt; _data.Weapon = item,
+    ///             set: adapter =&gt; _data.Weapon = adapter.Model,
     ///             clear: () =&gt; _data.Weapon = null,
-    ///             canAccept: item =&gt; item.Type == ItemType.Weapon
+    ///             canDrop: adapter =&gt; adapter.Model.Type == ItemType.Weapon
     ///                 ? RuleResult.Success()
     ///                 : RuleResult.Failure("Только оружие")),
     ///
     ///         // Стек предметов (list-конструктор)
     ///         [_potionSlot] = new(
     ///             getAll: () =&gt; _data.Potions,
-    ///             add: items =&gt; _data.AddPotions(items),
-    ///             remove: items =&gt; _data.RemovePotions(items),
+    ///             add: adapters =&gt; _data.AddPotions(adapters),
+    ///             remove: adapters =&gt; _data.RemovePotions(adapters),
     ///             clear: () =&gt; _data.ClearPotions(),
-    ///             canAccept: item =&gt; item.Type == ItemType.Potion
+    ///             canDrop: adapter =&gt; adapter.Model.Type == ItemType.Potion
     ///                 ? RuleResult.Success()
     ///                 : RuleResult.Failure("Только зелья")),
     ///     };
     ///
     ///     protected override ItemModelAdapter CreateAdapter(ItemModel item) =&gt; new(item);
-    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.Model;
     /// }
     /// </code>
     /// </summary>
     public abstract class MappedSlotInventoryDataBinding<TData, TAdapter> : InventoryDataBindingBase
         where TAdapter : class, IItemAdapter
     {
-        private Dictionary<ISlot, SlotBinding<TData>> _bindingMap;
+        private Dictionary<ISlot, SlotBinding<TData, TAdapter>> _bindingMap;
 
         /// <summary>
         /// Словарь привязок слотов. Строится один раз из CreateBindingMap().
         /// </summary>
-        protected Dictionary<ISlot, SlotBinding<TData>> BindingMap
+        protected Dictionary<ISlot, SlotBinding<TData, TAdapter>> BindingMap
             => _bindingMap ??= CreateBindingMap();
 
         /// <summary>
         /// Создать словарь привязок: ключ — слот, значение — SlotBinding с геттером, сеттером,
         /// очисткой и опциональной валидацией.
         /// </summary>
-        protected abstract Dictionary<ISlot, SlotBinding<TData>> CreateBindingMap();
+        protected abstract Dictionary<ISlot, SlotBinding<TData, TAdapter>> CreateBindingMap();
 
         /// <summary>
         /// Создать адаптер (IItemAdapter) из элемента данных.
@@ -141,20 +141,13 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
 
-        /// <summary>
-        /// Извлечь элемент данных из адаптера.
-        /// Вызывается при добавлении/удалении предмета через drag&amp;drop.
-        /// Может вернуть default если адаптер не содержит нужных данных.
-        /// </summary>
-        protected abstract TData ExtractData(TAdapter adapter);
-
-        protected bool TryGetTargetBinding(ISlot targetSlot, out SlotBinding<TData> binding)
+        protected bool TryGetTargetBinding(ISlot targetSlot, out SlotBinding<TData, TAdapter> binding)
         {
             binding = default;
             return targetSlot != null && BindingMap.TryGetValue(targetSlot, out binding);
         }
 
-        protected bool TryGetSourceBinding(ISlot sourceSlot, out SlotBinding<TData> binding)
+        protected bool TryGetSourceBinding(ISlot sourceSlot, out SlotBinding<TData, TAdapter> binding)
         {
             binding = default;
             return sourceSlot != null && BindingMap.TryGetValue(sourceSlot, out binding);
@@ -188,7 +181,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (!TryGetTargetBinding(context.TargetSlot, out var binding)) return;
 
-            var added = ExtractDataList(context.Stack);
+            var added = FilterAdapters(context.Stack);
             if (added.Count > 0)
                 binding.Add(added);
         }
@@ -197,7 +190,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (!TryGetSourceBinding(context.SourceSlot, out var binding)) return;
 
-            var removed = ExtractDataList(context.Stack);
+            var removed = FilterAdapters(context.Stack);
             if (removed.Count > 0)
                 binding.Remove(removed);
         }
@@ -206,17 +199,14 @@ namespace DragAndDropSystem.DataBinding
         {
             if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
                 return RuleResult.Failure("Неверный тип предмета");
-            
-            if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
+
+            if (!TryGetSourceBinding(entry.SourceSlot, out var binding))
                 return RuleResult.Failure("Неизвестный слот");
-            
+
             if (binding.CanStartDrag == null)
                 return RuleResult.Success();
-            
-            var data = ExtractData(adapter);
-            return data != null
-                ? binding.CanStartDrag(data)
-                : RuleResult.Failure("Нет данных");
+
+            return binding.CanStartDrag(adapter);
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
@@ -230,26 +220,19 @@ namespace DragAndDropSystem.DataBinding
             if (binding.CanDrop == null)
                 return RuleResult.Success();
 
-            var data = ExtractData(adapter);
-            return data != null
-                ? binding.CanDrop(data)
-                : RuleResult.Failure("Нет данных");
+            return binding.CanDrop(adapter);
         }
 
         /// <summary>
-        /// Извлечь список TData из всех адаптеров в стеке.
+        /// Отфильтровать адаптеры нужного типа из стека.
         /// </summary>
-        private List<TData> ExtractDataList(ItemStack stack)
+        private List<TAdapter> FilterAdapters(ItemStack stack)
         {
-            var result = new List<TData>(stack.Count);
+            var result = new List<TAdapter>(stack.Count);
             foreach (var adapter in stack.Adapters)
             {
                 if (adapter is TAdapter typed)
-                {
-                    var data = ExtractData(typed);
-                    if (data != null)
-                        result.Add(data);
-                }
+                    result.Add(typed);
             }
             return result;
         }

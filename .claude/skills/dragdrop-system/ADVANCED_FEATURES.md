@@ -115,12 +115,12 @@ shared transfer helpers:
 
 `MappedSlotInventoryDataBinding<TData, TAdapter>`:
 - slot-mapped data template
-- uses `Dictionary<ISlot, SlotBinding<TData>>`
-- `SlotBinding` internally list-based: `GetAll`, `Add`, `Remove`, `Clear`, `CanAccept`
+- uses `Dictionary<ISlot, SlotBinding<TData, TAdapter>>`
+- `SlotBinding` internally list-based: `GetAll` (returns TData for reload), `Add`/`Remove` (receive TAdapter lists), `Clear`, `CanDrop`/`CanStartDrag` (receive TAdapter)
 - two constructors: simple (single-item: `get/set/clear`) and stacking (`getAll/add/remove/clear`)
 - both can be mixed in the same `CreateBindingMap()` dictionary
+- no `ExtractData` needed — adapters passed directly (consistent with List/SlotIndexed templates)
 - `TryGetTargetBinding()` / `TryGetSourceBinding()` centralize slot lookup safety
-- `ExtractDataList(ItemStack)` extracts `TData` from each adapter in the stack
 
 ### Context-Aware Acceptance Preview
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.Trading.Data;
 using DragAndDropSystem.Inspector;
@@ -39,61 +38,45 @@ namespace DragAndDropSystem.Examples.Trading
 
         // --- MappedSlotInventoryDataBinding примитивы ---
 
-        protected override Dictionary<ISlot, SlotBinding<TradableItemModel>> CreateBindingMap() => new()
+        protected override Dictionary<ISlot, SlotBinding<TradableItemModel, TradableItemAdapterModelAdapter>> CreateBindingMap() => new()
         {
             [_weaponSlot] = new(
                 get: () => PlayerData.EquippedWeapon,
-                set: item => PlayerData.EquipWeapon(item),
+                set: adapter => PlayerData.EquipWeapon(adapter.Item),
                 clear: () => PlayerData.UnequipWeapon(),
-                canDrop: item => item.originalSO.ItemType == ItemType.Weapon
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Weapon
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только оружие")),
 
             [_armorSlot] = new(
                 get: () => PlayerData.EquippedArmor,
-                set: item => PlayerData.EquipArmor(item),
+                set: adapter => PlayerData.EquipArmor(adapter.Item),
                 clear: () => PlayerData.UnequipArmor(),
-                canDrop: item => item.originalSO.ItemType == ItemType.Armor
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Armor
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только броню")),
 
             [_artifact1Slot] = new(
                 get: () => PlayerData.EquippedArtifact1,
-                set: item => PlayerData.EquipArtifact1(item),
+                set: adapter => PlayerData.EquipArtifact1(adapter.Item),
                 clear: () => PlayerData.UnequipArtifact1(),
-                canDrop: item => item.originalSO.ItemType == ItemType.Artifact
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
 
             [_artifact2Slot] = new(
                 get: () => PlayerData.EquippedArtifact2,
-                set: item => PlayerData.EquipArtifact2(item),
+                set: adapter => PlayerData.EquipArtifact2(adapter.Item),
                 clear: () => PlayerData.UnequipArtifact2(),
-                canDrop: item => item.originalSO.ItemType == ItemType.Artifact
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
         };
 
         protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
-        protected override TradableItemModel ExtractData(TradableItemAdapterModelAdapter adapter) => adapter.Item;
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
         public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyPlayerTransferEffects(context, PlayerData);
-
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
-        {
-            if (entry.Stack.PrimaryAdapter is not ITradableItem tradable)
-                return RuleResult.Failure("Неверный тип предмета");
-
-            // Проверяем соответствие типа предмета слоту через canDrop из BindingMap
-            if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
-                return RuleResult.Failure("Неизвестный слот экипировки");
-            
-            if (binding.CanDrop?.Invoke(new TradableItemModel(tradable.OriginalSO)).IsValid == false)
-                return RuleResult.Failure("Этот предмет нельзя положить в этот слот");
-            
-            return RuleResult.Success();
-        }
     }
 }

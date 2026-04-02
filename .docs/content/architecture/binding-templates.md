@@ -134,38 +134,35 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
     [SerializeField] private CharacterData _data;
 
     // 1. Декларативная карта: слот → как читать, писать, очищать, валидировать
-    protected override Dictionary<ISlot, SlotBinding<ItemModel>> CreateBindingMap() => new()
+    protected override Dictionary<ISlot, SlotBinding<ItemModel, ItemModelAdapter>> CreateBindingMap() => new()
     {
         // Единичный предмет (простой конструктор)
         [_weaponSlot] = new(
             get: () => _data.Weapon,
-            set: item => _data.Weapon = item,
+            set: adapter => _data.Weapon = adapter.Model,
             clear: () => _data.Weapon = null,
-            canAccept: item => item.Type == ItemType.Weapon
+            canDrop: adapter => adapter.Model.Type == ItemType.Weapon
                 ? RuleResult.Success()
                 : RuleResult.Failure("Только оружие")),
 
         [_armorSlot] = new(
             get: () => _data.Armor,
-            set: item => _data.Armor = item,
+            set: adapter => _data.Armor = adapter.Model,
             clear: () => _data.Armor = null),
 
         // Стек предметов (list-конструктор)
         [_potionSlot] = new(
             getAll: () => _data.Potions,
-            add: items => _data.AddPotions(items),
-            remove: items => _data.RemovePotions(items),
+            add: adapters => _data.AddPotions(adapters),
+            remove: adapters => _data.RemovePotions(adapters),
             clear: () => _data.ClearPotions(),
-            canAccept: item => item.Type == ItemType.Potion
+            canDrop: adapter => adapter.Model.Type == ItemType.Potion
                 ? RuleResult.Success()
                 : RuleResult.Failure("Только зелья")),
     };
 
-    // 2. Как создать адаптер из элемента данных
+    // 2. Как создать адаптер из элемента данных (для ReloadUI)
     protected override ItemModelAdapter CreateAdapter(ItemModel item) => new(item);
-
-    // 3. Как извлечь данные обратно из адаптера
-    protected override ItemModel ExtractData(ItemModelAdapter adapter) => adapter.Model;
 }
 ```
 
@@ -173,45 +170,45 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
 
 **При загрузке**: проходит по всем записям в `BindingMap`, вызывает `GetAll()` для каждого слота. Для каждого элемента списка создаёт отдельный адаптер и собирает их в `ItemStack` через `ItemStack.TryCreate()`.
 
-**При добавлении**: извлекает `TData` из **каждого адаптера** в стеке через `ExtractData`, находит привязку для целевого слота, вызывает `Add(список_данных)`.
+**При добавлении**: фильтрует адаптеры типа `TAdapter` из стека, находит привязку для целевого слота, вызывает `Add(список_адаптеров)`.
 
-**При удалении**: аналогично извлекает `TData` из каждого адаптера, находит привязку для исходного слота, вызывает `Remove(список_данных)`.
+**При удалении**: аналогично фильтрует адаптеры, находит привязку для исходного слота, вызывает `Remove(список_адаптеров)`.
 
-**При проверке CanDrop**: автоматически вызывает `CanAccept(data)` для целевого слота по `PrimaryAdapter`, если валидатор задан.
+**При проверке CanDrop/CanStartDrag**: автоматически вызывает `CanDrop(adapter)` / `CanStartDrag(adapter)` для целевого/исходного слота по `PrimaryAdapter`, если валидатор задан.
 
 ### Два конструктора SlotBinding
 
 **Простой** — для единичных предметов (один предмет на слот):
 
 ```csharp
-new SlotBinding<TData>(
-    get: () => ...,              // чтение текущего значения
-    set: item => ...,            // запись нового значения
+new SlotBinding<TData, TAdapter>(
+    get: () => ...,              // чтение текущего значения (TData)
+    set: adapter => ...,         // запись через адаптер (TAdapter)
     clear: () => ...,            // очистка
-    canAccept: item => ...       // опционально: валидация при дропе
+    canDrop: adapter => ...      // опционально: валидация при дропе (TAdapter)
 )
 ```
 
-Внутренне `get/set/clear` оборачиваются в list-based API: `GetAll` возвращает массив из одного элемента, `Add` вызывает `set(items[0])`, `Remove` вызывает `clear()`.
+Внутренне `get/set/clear` оборачиваются в list-based API: `GetAll` возвращает массив из одного элемента, `Add` вызывает `set(adapters[0])`, `Remove` вызывает `clear()`.
 
 **Стекаемый** — для нескольких одинаковых предметов в слоте:
 
 ```csharp
-new SlotBinding<TData>(
+new SlotBinding<TData, TAdapter>(
     getAll: () => ...,           // все элементы в слоте (IReadOnlyList<TData>)
-    add: items => ...,           // добавить элементы (IReadOnlyList<TData>)
-    remove: items => ...,        // удалить элементы (IReadOnlyList<TData>)
+    add: adapters => ...,        // добавить адаптеры (IReadOnlyList<TAdapter>)
+    remove: adapters => ...,     // удалить адаптеры (IReadOnlyList<TAdapter>)
     clear: () => ...,            // полная очистка
-    canAccept: item => ...       // опционально: валидация при дропе
+    canDrop: adapter => ...      // опционально: валидация при дропе (TAdapter)
 )
 ```
 
-`add`/`remove` получают конкретные экземпляры `TData`, извлечённые из каждого адаптера в стеке. Это позволяет сохранять индивидуальные данные каждого экземпляра.
+`add`/`remove` получают конкретные экземпляры адаптеров из стека. Как и в `ListInventoryDataBinding`, это позволяет работать с индивидуальными данными каждого экземпляра без промежуточного `ExtractData`.
 
 !!! note "Оба типа в одном BindingMap"
-    Простой и стекаемый конструкторы создают одинаковый `SlotBinding<TData>`. Их можно свободно комбинировать в одном словаре — базовый класс всегда работает через единый list-based API.
+    Простой и стекаемый конструкторы создают одинаковый `SlotBinding<TData, TAdapter>`. Их можно свободно комбинировать в одном словаре — базовый класс всегда работает через единый list-based API.
 
-`canAccept` — необязательный параметр в обоих конструкторах. Если не задан, слот принимает всё, что прошло остальные правила.
+`canDrop` и `canStartDrag` — необязательные параметры в обоих конструкторах. Если не заданы, слот принимает всё, что прошло остальные правила.
 
 ### Отличие от SlotIndexed-шаблона
 

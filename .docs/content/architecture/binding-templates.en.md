@@ -134,38 +134,35 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
     [SerializeField] private CharacterData _data;
 
     // 1. Declarative map: slot → how to read, write, clear, validate
-    protected override Dictionary<ISlot, SlotBinding<ItemModel>> CreateBindingMap() => new()
+    protected override Dictionary<ISlot, SlotBinding<ItemModel, ItemModelAdapter>> CreateBindingMap() => new()
     {
         // Single item (simple constructor)
         [_weaponSlot] = new(
             get: () => _data.Weapon,
-            set: item => _data.Weapon = item,
+            set: adapter => _data.Weapon = adapter.Model,
             clear: () => _data.Weapon = null,
-            canAccept: item => item.Type == ItemType.Weapon
+            canDrop: adapter => adapter.Model.Type == ItemType.Weapon
                 ? RuleResult.Success()
                 : RuleResult.Failure("Weapons only")),
 
         [_armorSlot] = new(
             get: () => _data.Armor,
-            set: item => _data.Armor = item,
+            set: adapter => _data.Armor = adapter.Model,
             clear: () => _data.Armor = null),
 
         // Stacking slot (list constructor)
         [_potionSlot] = new(
             getAll: () => _data.Potions,
-            add: items => _data.AddPotions(items),
-            remove: items => _data.RemovePotions(items),
+            add: adapters => _data.AddPotions(adapters),
+            remove: adapters => _data.RemovePotions(adapters),
             clear: () => _data.ClearPotions(),
-            canAccept: item => item.Type == ItemType.Potion
+            canDrop: adapter => adapter.Model.Type == ItemType.Potion
                 ? RuleResult.Success()
                 : RuleResult.Failure("Potions only")),
     };
 
-    // 2. How to create an adapter from a data element
+    // 2. How to create an adapter from a data element (for ReloadUI)
     protected override ItemModelAdapter CreateAdapter(ItemModel item) => new(item);
-
-    // 3. How to extract data back from the adapter
-    protected override ItemModel ExtractData(ItemModelAdapter adapter) => adapter.Model;
 }
 ```
 
@@ -173,45 +170,45 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
 
 **On load**: iterates all entries in `BindingMap`, calls `GetAll()` for each slot. For each item in the list, creates a separate adapter and assembles them into an `ItemStack` via `ItemStack.TryCreate()`.
 
-**On item added**: extracts `TData` from **each adapter** in the stack via `ExtractData`, finds the binding for the target slot, calls `Add(data_list)`.
+**On item added**: filters adapters of type `TAdapter` from the stack, finds the binding for the target slot, calls `Add(adapter_list)`.
 
-**On item removed**: similarly extracts `TData` from each adapter, finds the binding for the source slot, calls `Remove(data_list)`.
+**On item removed**: similarly filters adapters, finds the binding for the source slot, calls `Remove(adapter_list)`.
 
-**On CanDrop check**: automatically calls `CanAccept(data)` for the target slot using `PrimaryAdapter`, if a validator is provided.
+**On CanDrop/CanStartDrag check**: automatically calls `CanDrop(adapter)` / `CanStartDrag(adapter)` for the target/source slot using `PrimaryAdapter`, if a validator is provided.
 
 ### Two SlotBinding constructors
 
 **Simple** — for single items (one item per slot):
 
 ```csharp
-new SlotBinding<TData>(
-    get: () => ...,              // read current value
-    set: item => ...,            // write new value
+new SlotBinding<TData, TAdapter>(
+    get: () => ...,              // read current value (TData)
+    set: adapter => ...,         // write via adapter (TAdapter)
     clear: () => ...,            // clear
-    canAccept: item => ...       // optional: validation on drop
+    canDrop: adapter => ...      // optional: validation on drop (TAdapter)
 )
 ```
 
-Internally `get/set/clear` are wrapped into the list-based API: `GetAll` returns a single-element array, `Add` calls `set(items[0])`, `Remove` calls `clear()`.
+Internally `get/set/clear` are wrapped into the list-based API: `GetAll` returns a single-element array, `Add` calls `set(adapters[0])`, `Remove` calls `clear()`.
 
 **Stacking** — for multiple identical items in a slot:
 
 ```csharp
-new SlotBinding<TData>(
+new SlotBinding<TData, TAdapter>(
     getAll: () => ...,           // all items in the slot (IReadOnlyList<TData>)
-    add: items => ...,           // add items (IReadOnlyList<TData>)
-    remove: items => ...,        // remove items (IReadOnlyList<TData>)
+    add: adapters => ...,        // add adapters (IReadOnlyList<TAdapter>)
+    remove: adapters => ...,     // remove adapters (IReadOnlyList<TAdapter>)
     clear: () => ...,            // full clear
-    canAccept: item => ...       // optional: validation on drop
+    canDrop: adapter => ...      // optional: validation on drop (TAdapter)
 )
 ```
 
-`add`/`remove` receive the concrete `TData` instances extracted from each adapter in the stack. This preserves individual instance data.
+`add`/`remove` receive the concrete adapter instances from the stack. Like `ListInventoryDataBinding`, this lets you work with individual instance data without an intermediate `ExtractData` step.
 
 !!! note "Both types in one BindingMap"
-    Both constructors produce the same `SlotBinding<TData>`. They can be freely mixed in a single dictionary — the base class always works through the unified list-based API.
+    Both constructors produce the same `SlotBinding<TData, TAdapter>`. They can be freely mixed in a single dictionary — the base class always works through the unified list-based API.
 
-`canAccept` is optional in both constructors. If not set, the slot accepts anything that passes other rules.
+`canDrop` and `canStartDrag` are optional in both constructors. If not set, the slot accepts anything that passes other rules.
 
 ### Difference from SlotIndexed template
 
