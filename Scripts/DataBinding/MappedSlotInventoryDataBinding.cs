@@ -23,9 +23,6 @@ namespace DragAndDropSystem.DataBinding
         /// <summary>Удалить адаптеры из слота (вызывается при OnItemRemovedFromUI).</summary>
         public readonly Action<IReadOnlyList<TAdapter>> Remove;
 
-        /// <summary>Полная очистка слота.</summary>
-        public readonly Action Clear;
-
         /// <summary>Опциональная валидация адаптера для CanDrop.</summary>
         public readonly Func<TAdapter, RuleResult> CanDrop;
 
@@ -50,7 +47,6 @@ namespace DragAndDropSystem.DataBinding
             };
             Add = items => { if (items != null && items.Count > 0) set(items[0]); };
             Remove = _ => clear();
-            Clear = clear;
             CanDrop = canDrop;
             CanStartDrag = canStartDrag;
         }
@@ -63,14 +59,13 @@ namespace DragAndDropSystem.DataBinding
             Func<IReadOnlyList<TData>> getAll,
             Action<IReadOnlyList<TAdapter>> add,
             Action<IReadOnlyList<TAdapter>> remove,
-            Action clear,
+            Action clear = null,
             Func<TAdapter, RuleResult> canDrop = null,
             Func<TAdapter, RuleResult> canStartDrag = null)
         {
             GetAll = getAll;
             Add = add;
             Remove = remove;
-            Clear = clear;
             CanDrop = canDrop;
             CanStartDrag = canStartDrag;
         }

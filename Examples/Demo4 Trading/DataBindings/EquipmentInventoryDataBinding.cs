@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.Trading.Data;
 using DragAndDropSystem.Inspector;
@@ -7,6 +8,7 @@ using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace DragAndDropSystem.Examples.Trading
 {
@@ -27,11 +29,11 @@ namespace DragAndDropSystem.Examples.Trading
 
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Первый слот для артефакта")]
-        private UniversalSlot _artifact1Slot;
+        private UniversalSlot _artifactSlot;
 
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Второй слот для артефакта")]
-        private UniversalSlot _artifact2Slot;
+        private UniversalSlot _posionsSlot;
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
         protected override IItemAdapterConverter CreateItemConverter() => new ModelItemAdapterConverter();
@@ -44,7 +46,8 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedWeapon,
                 set: adapter => PlayerData.EquipWeapon(adapter.Item),
                 clear: () => PlayerData.UnequipWeapon(),
-                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Weapon
+                canDrop: adapter => PlayerData.EquippedWeapon == null 
+                    && adapter.Item.originalSO.ItemType == ItemType.Weapon
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только оружие")),
 
@@ -52,23 +55,26 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArmor,
                 set: adapter => PlayerData.EquipArmor(adapter.Item),
                 clear: () => PlayerData.UnequipArmor(),
-                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Armor
+                canDrop: adapter => PlayerData.EquippedArmor == null 
+                    && adapter.Item.originalSO.ItemType == ItemType.Armor
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только броню")),
 
-            [_artifact1Slot] = new(
-                get: () => PlayerData.EquippedArtifact1,
+            [_artifactSlot] = new(
+                get: () => PlayerData.EquippedArtifact,
                 set: adapter => PlayerData.EquipArtifact1(adapter.Item),
                 clear: () => PlayerData.UnequipArtifact1(),
-                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
+                canDrop: adapter => PlayerData.EquippedArtifact == null 
+                    && adapter.Item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
 
-            [_artifact2Slot] = new(
-                get: () => PlayerData.EquippedArtifact2,
-                set: adapter => PlayerData.EquipArtifact2(adapter.Item),
-                clear: () => PlayerData.UnequipArtifact2(),
-                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
+            [_posionsSlot] = new(
+                getAll: () => PlayerData.EquippedPotions,
+                // for each adapter in adapters
+                add: adapters => adapters.ToList().ForEach(adapter => PlayerData.AddPotion(adapter.Item)),
+                remove: adapters => adapters.ToList().ForEach(adapter => PlayerData.RemovePotion(adapter.Item)),
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Potion
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
         };

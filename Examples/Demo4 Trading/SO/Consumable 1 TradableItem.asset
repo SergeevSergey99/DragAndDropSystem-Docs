@@ -17,4 +17,4 @@ MonoBehaviour:
   _itemType: 3
   _buyPrice: 100
   _sellPrice: 50
-  _description: 
+  _description: Potion Item

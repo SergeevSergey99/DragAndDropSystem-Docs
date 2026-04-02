@@ -1483,8 +1483,8 @@ MonoBehaviour:
   _slotContainer: {fileID: 667194795}
   _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 4
-  _itemBehavior: 0
-  _dragAmount: 0
+  _itemBehavior: 1
+  _dragAmount: 2
   _customDragAmount: 1
   _maxStackSize: 0
   _allowItemStackOverride: 0
@@ -1560,8 +1560,8 @@ MonoBehaviour:
     _inlineRules: []
   _weaponSlot: {fileID: 519712178}
   _armorSlot: {fileID: 1919514845}
-  _artifact1Slot: {fileID: 13640017}
-  _artifact2Slot: {fileID: 1042347259}
+  _artifactSlot: {fileID: 13640017}
+  _posionsSlot: {fileID: 1042347259}
   references:
     version: 2
     RefIds: []
@@ -1668,10 +1668,9 @@ MonoBehaviour:
       rid: -2
     _equippedArmor:
       rid: -2
-    _equippedArtifact1:
+    _equippedArtifact:
       rid: -2
-    _equippedArtifact2:
-      rid: -2
+    _equippedPotions: []
   _merchants:
   - <id>k__BackingField: id_1
     <data>k__BackingField:
@@ -1683,6 +1682,8 @@ MonoBehaviour:
       - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
       - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
       - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
+      - {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
+      - {fileID: 11400000, guid: f1ec74690a802b94a9bce4ba10e5ff96, type: 2}
   - <id>k__BackingField: id_2
     <data>k__BackingField:
       <DisplayName>k__BackingField: Merchant 2
@@ -1691,6 +1692,11 @@ MonoBehaviour:
       - {fileID: 11400000, guid: 147677cb42d6db241a5dbe7e7f8c6a77, type: 2}
       - {fileID: 11400000, guid: d9470485d4997d242ad1ea4dfe477b09, type: 2}
       - {fileID: 11400000, guid: fd8cea4923f7d554cbaed7efc29ebfde, type: 2}
+      - {fileID: 11400000, guid: fd8cea4923f7d554cbaed7efc29ebfde, type: 2}
+      - {fileID: 11400000, guid: fd8cea4923f7d554cbaed7efc29ebfde, type: 2}
+      - {fileID: 11400000, guid: fd8cea4923f7d554cbaed7efc29ebfde, type: 2}
+      - {fileID: 11400000, guid: 4d69c4bd5a61f7b47bc62643adf86de0, type: 2}
+      - {fileID: 11400000, guid: cbc7070e16d1e5d49b2e6929d4c04127, type: 2}
   references:
     version: 2
     RefIds:
@@ -3912,7 +3918,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Artifact
+  m_text: Potions
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

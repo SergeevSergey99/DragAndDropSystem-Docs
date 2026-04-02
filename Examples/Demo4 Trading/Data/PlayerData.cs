@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Examples.Trading;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Plugins.DragAndDropSystem.Examples.Trading.Data
 {
@@ -29,15 +30,15 @@ namespace Plugins.DragAndDropSystem.Examples.Trading.Data
         private TradableItemModel _equippedArmor;
 
         [SerializeReference, ManagedReferencePicker]
-        private TradableItemModel _equippedArtifact1;
+        private TradableItemModel _equippedArtifact;
 
         [SerializeReference, ManagedReferencePicker]
-        private TradableItemModel _equippedArtifact2;
+        private List<TradableItemModel> _equippedPotions = new();
 
         public TradableItemModel EquippedWeapon => _equippedWeapon;
         public TradableItemModel EquippedArmor => _equippedArmor;
-        public TradableItemModel EquippedArtifact1 => _equippedArtifact1;
-        public TradableItemModel EquippedArtifact2 => _equippedArtifact2;
+        public TradableItemModel EquippedArtifact => _equippedArtifact;
+        public List<TradableItemModel> EquippedPotions => _equippedPotions;
 
         public event Action OnMoneyChanged;
         public event Action OnInventoryChanged;
@@ -113,25 +114,25 @@ namespace Plugins.DragAndDropSystem.Examples.Trading.Data
 
         public void EquipArtifact1(TradableItemModel item)
         {
-            _equippedArtifact1 = item;
+            _equippedArtifact = item;
             OnEquipmentChanged?.Invoke();
         }
 
         public void UnequipArtifact1()
         {
-            _equippedArtifact1 = null;
+            _equippedArtifact = null;
             OnEquipmentChanged?.Invoke();
         }
 
-        public void EquipArtifact2(TradableItemModel item)
+        public void AddPotion(TradableItemModel item)
         {
-            _equippedArtifact2 = item;
+            _equippedPotions.Add(item);
             OnEquipmentChanged?.Invoke();
         }
 
-        public void UnequipArtifact2()
+        public void RemovePotion(TradableItemModel item)
         {
-            _equippedArtifact2 = null;
+            _equippedPotions.Remove(item);
             OnEquipmentChanged?.Invoke();
         }
 

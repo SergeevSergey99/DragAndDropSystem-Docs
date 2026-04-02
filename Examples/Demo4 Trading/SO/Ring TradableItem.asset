@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d67b65887402ee247ac17bd9ed41fc07, type: 3}
-  m_Name: Consumable 2 TradableItem
+  m_Name: Ring TradableItem
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.TradableItemSO
-  _displayName: Potion
-  _icon: {fileID: -739555140410507908, guid: 616f88a219705034e999fd5bcf6b915e, type: 3}
-  _itemType: 3
+  _displayName: Magic Ring
+  _icon: {fileID: 6399511744023341758, guid: 616f88a219705034e999fd5bcf6b915e, type: 3}
+  _itemType: 2
   _buyPrice: 100
   _sellPrice: 50
-  _description: Potion Item
+  _description: Artifact Item
