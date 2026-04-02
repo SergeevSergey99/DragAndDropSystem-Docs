@@ -11,7 +11,7 @@ namespace DragAndDropSystem.Examples
     /// Адаптер для ItemExampleWith3DSO
     /// Позволяет работать с ScriptableObject в системе инвентаря + поддержка 3D
     /// </summary>
-    public class ItemAdapterSoWith3DAdapter : IItemAdapter, IWorld3DAdapter
+    public class ItemAdapterSoWith3DAdapter : IItemAdapter, IWorld3DAdapter, IFilterable
     {
         public readonly ItemExampleWith3DSO item;
 
@@ -27,5 +27,10 @@ namespace DragAndDropSystem.Examples
 
         // IWorld3DAdapter реализация
         public GameObject WorldPrefab => item.WorldPrefab.gameObject;
+        
+        // IFilterable
+        public string Category => item.itemType;
+        public string Subcategory => item.ItemName;
+        public int Rarity => 0;
     }
 }

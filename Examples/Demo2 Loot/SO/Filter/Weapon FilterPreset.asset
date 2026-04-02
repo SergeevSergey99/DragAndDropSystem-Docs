@@ -10,12 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d204b8f04a6faf9409d7888c4fcf50bb, type: 3}
-  m_Name: FilterPreset
+  m_Name: Weapon FilterPreset
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Filter.FilterPreset
   _filterType: 1
-  _category: 
+  _category: Weapon
   _minRarity: 0
   _maxRarity: 100
   _searchText: 
-  _sortMode: 0
-  _sortAscending: 1

@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 1460896741492025917}
   - component: {fileID: 2723276657636712345}
   - component: {fileID: -4959539374365011389}
-  - component: {fileID: 1146916505490786135}
   m_Layer: 5
   m_Name: DragCanvas
   m_TagString: Untagged
@@ -149,15 +148,3 @@ MonoBehaviour:
   _batchVisualRadius: 36
   _batchVisualMinScale: 0.65
   _batchVisualScaleStep: 0.08
---- !u!114 &1146916505490786135
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2246638230345617431}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 688a74ff5d833a644ac2eab66a38a13d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

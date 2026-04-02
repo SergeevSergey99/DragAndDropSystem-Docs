@@ -92,7 +92,7 @@ namespace DragAndDropSystem.Examples.Demo3Loot
                 var interactable = collider.GetComponent<IInteractable>();
                 if (interactable != null)
                 {
-                    float distance = Vector2.Distance(transform.position, collider.transform.position);
+                    float distance = Vector2.SqrMagnitude(transform.position - collider.transform.position);
 
                     if (distance < nearestDistance)
                     {
