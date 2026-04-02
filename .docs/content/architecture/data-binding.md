@@ -184,6 +184,9 @@ public class ServerBackedInventoryBinding
 Используйте `IAsyncTransferDomainHandler`, когда решение нельзя получить мгновенно.
 Если проверка локальная и быстрая, достаточно обычного `CanCommitTransfer`.
 
+Подробно о точном порядке вызовов, роли `TransferDomainContext` и различии между
+`ITransferDomainHandler` и rules — в разделе [Опциональные интерфейсы](../reference/optional-interfaces.md).
+
 ---
 
 ## Конвертация предметов

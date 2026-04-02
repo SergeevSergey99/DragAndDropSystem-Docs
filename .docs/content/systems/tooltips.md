@@ -41,6 +41,9 @@ flowchart TD
 - **Описание** (если предмет реализует `IDescribable`)
 - **Fade-анимацию** появления и исчезновения (настраивается)
 
+`IDescribable` здесь является именно optional расширением adapter'а для UI.
+Core inventory не зависит от него. Подробнее — в разделе [Опциональные интерфейсы](../reference/optional-interfaces.md).
+
 ---
 
 ## Кастомный тултип
@@ -92,4 +95,4 @@ public class RPGTooltipView : BaseTooltipView
 | `TooltipManager` | Управляет жизненным циклом тултипов |
 | `BaseTooltipView` | Базовый класс вьюшки (наследуйте для кастомных) |
 | `DefaultTooltipView` | Стандартная реализация: иконка + имя + описание |
-| `IDescribable` | Интерфейс предмета с описанием |
+| `IDescribable` | Пример optional-интерфейса adapter'а для UI-описания |

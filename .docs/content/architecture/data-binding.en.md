@@ -172,6 +172,9 @@ How it works:
 Use `IAsyncTransferDomainHandler` when the answer cannot be produced immediately.
 If the check is local and fast, regular `CanCommitTransfer` is enough.
 
+For the exact call order, the role of `TransferDomainContext`, and the difference between
+`ITransferDomainHandler` and rules, see [Optional Interfaces](../reference/optional-interfaces.md).
+
 ---
 
 ## Item conversion

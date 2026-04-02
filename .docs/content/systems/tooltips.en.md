@@ -41,6 +41,9 @@ The built-in `DefaultTooltipView` shows:
 - **Description** (if the item implements `IDescribable`)
 - **Fade animation** for appearing and disappearing (configurable)
 
+`IDescribable` here is an optional adapter extension for UI.
+The core inventory does not depend on it. See [Optional Interfaces](../reference/optional-interfaces.md) for details.
+
 ---
 
 ## Custom Tooltip
@@ -92,4 +95,4 @@ In all modes, adaptive flipping works: if the card goes beyond the screen bounda
 | `TooltipManager` | Manages the tooltip lifecycle |
 | `BaseTooltipView` | Base class for the view (inherit for custom ones) |
 | `DefaultTooltipView` | Standard implementation: icon + name + description |
-| `IDescribable` | Interface for an item with a description |
+| `IDescribable` | Example of an optional adapter interface for UI descriptions |

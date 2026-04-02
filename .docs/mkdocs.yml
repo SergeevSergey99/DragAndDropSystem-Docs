@@ -77,6 +77,7 @@ nav:
     - systems/interaction.md
     - systems/world-3d.md
   - Reference:
+    - reference/optional-interfaces.md
     - reference/file-map.md
     - reference/events.md
   - feedback.md
