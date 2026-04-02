@@ -199,6 +199,29 @@ namespace DragAndDropSystem.Inventories
             OnItemRemoved?.Invoke(context);
         }
 
+        /// <summary>
+        /// Удалить предметы из слота этого инвентаря с эмиссией событий.
+        /// Используется внешними drop processor'ами (WorldDropZone и т.п.),
+        /// которые не проходят через TransferPlanExecutor.
+        /// </summary>
+        /// <returns>Стак удалённых предметов, или пустой стак если ничего не удалено</returns>
+        internal int RemoveItemsFromSlot(ISlot sourceSlot, ItemStack stackToRemove, IInventory targetInventory = null, ISlot targetSlot = null)
+        {
+            if (sourceSlot?.Stack == null || sourceSlot.Stack.IsEmpty || stackToRemove == null || stackToRemove.IsEmpty)
+                return 0;
+
+            int removed = sourceSlot.Stack.RemoveAdapters(stackToRemove.Adapters);
+            if (removed <= 0)
+                return 0;
+
+            sourceSlot.UpdateVisuals();
+
+            EmitItemRemoved(stackToRemove, sourceSlot.Index, targetInventory, sourceSlot, targetSlot);
+            HandleSlotEmptied(sourceSlot);
+
+            return removed;
+        }
+
         internal void EmitSwapAttempting(InventorySwapContext context)
         {
             OnSwapAttempting?.Invoke(context);

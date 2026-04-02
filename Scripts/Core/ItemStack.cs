@@ -130,6 +130,25 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
+        /// Удалить конкретные экземпляры адаптеров из стака (по ссылке)
+        /// </summary>
+        public int RemoveAdapters(IReadOnlyList<IItemAdapter> adaptersToRemove)
+        {
+            if (adaptersToRemove == null || adaptersToRemove.Count == 0)
+                return 0;
+
+            int removed = 0;
+            foreach (var adapter in adaptersToRemove)
+            {
+                if (_adapters.Remove(adapter))
+                    removed++;
+            }
+
+            RefreshHeader();
+            return removed;
+        }
+
+        /// <summary>
         /// Разделить стак на две части
         /// </summary>
         public ItemStack Split(int amount)

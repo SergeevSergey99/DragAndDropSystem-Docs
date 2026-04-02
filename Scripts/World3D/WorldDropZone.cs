@@ -199,25 +199,9 @@ namespace DragAndDropSystem.World3D
                     continue;
 
                 // Remove items from source slot
-                if (sourceSlot?.Stack != null && !sourceSlot.Stack.IsEmpty)
+                if (sourceSlot?.Inventory is UniversalInventory sourceUniversal)
                 {
-                    var removedStack = sourceSlot.Stack.CreateCopy(stackToSpawn.Count);
-                    int removedCount = sourceSlot.Stack.RemoveFromStack(stackToSpawn.Count);
-                    sourceSlot.UpdateVisuals();
-
-                    if (removedCount > 0 && removedStack != null && !removedStack.IsEmpty && sourceSlot.Inventory is UniversalInventory sourceUniversal)
-                    {
-                        sourceUniversal.EmitItemRemoved(
-                            removedStack,
-                            sourceSlot.Index,
-                            targetInventory: null,
-                            sourceSlot: sourceSlot,
-                            targetSlot: null);
-
-                        if (sourceSlot.IsEmpty)
-                            sourceUniversal.HandleSlotEmptied(sourceSlot);
-                    }
-
+                    int removedCount = sourceUniversal.RemoveItemsFromSlot(sourceSlot, stackToSpawn);
                     Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Removed {removedCount} items from source slot {sourceSlot.Index}</color>");
                 }
 
