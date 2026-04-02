@@ -7,23 +7,62 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.DataBinding
 {
     /// <summary>
-    /// Привязка слота к данным: геттер, сеттер, очистка и опциональная валидация.
+    /// Привязка слота к данным с поддержкой как единичных предметов, так и стеков.
+    /// Внутренне всегда работает со списками (GetAll/Add/Remove/Clear).
+    /// Для единичных предметов используйте простой конструктор — обёртки генерируются автоматически.
     /// </summary>
     public readonly struct SlotBinding<TData>
     {
-        public readonly Func<TData> Get;
-        public readonly Action<TData> Set;
+        /// <summary>Все элементы данных, находящиеся в слоте.</summary>
+        public readonly Func<IReadOnlyList<TData>> GetAll;
+
+        /// <summary>Добавить элементы в слот (вызывается при OnItemAddedToUI).</summary>
+        public readonly Action<IReadOnlyList<TData>> Add;
+
+        /// <summary>Удалить элементы из слота (вызывается при OnItemRemovedFromUI).</summary>
+        public readonly Action<IReadOnlyList<TData>> Remove;
+
+        /// <summary>Полная очистка слота.</summary>
         public readonly Action Clear;
+
+        /// <summary>Опциональная валидация одного элемента для CanDrop.</summary>
         public readonly Func<TData, RuleResult> CanAccept;
 
+        /// <summary>
+        /// Конструктор для единичных предметов (один предмет на слот).
+        /// Get/Set/Clear автоматически оборачиваются в list-based API.
+        /// </summary>
         public SlotBinding(
             Func<TData> get,
             Action<TData> set,
             Action clear,
             Func<TData, RuleResult> canAccept = null)
         {
-            Get = get;
-            Set = set;
+            GetAll = () =>
+            {
+                var item = get();
+                return item != null ? new[] { item } : Array.Empty<TData>();
+            };
+            Add = items => { if (items != null && items.Count > 0) set(items[0]); };
+            Remove = _ => clear();
+            Clear = clear;
+            CanAccept = canAccept;
+        }
+
+        /// <summary>
+        /// Конструктор для стекаемых слотов (несколько одинаковых предметов в слоте).
+        /// Позволяет контролировать добавление/удаление каждого экземпляра индивидуально.
+        /// </summary>
+        public SlotBinding(
+            Func<IReadOnlyList<TData>> getAll,
+            Action<IReadOnlyList<TData>> add,
+            Action<IReadOnlyList<TData>> remove,
+            Action clear,
+            Func<TData, RuleResult> canAccept = null)
+        {
+            GetAll = getAll;
+            Add = add;
+            Remove = remove;
             Clear = clear;
             CanAccept = canAccept;
         }
@@ -32,6 +71,7 @@ namespace DragAndDropSystem.DataBinding
     /// <summary>
     /// Шаблонный DataBinding для инвентарей с фиксированными именованными слотами.
     /// Каждый слот декларативно привязывается к данным через SlotBinding в словаре.
+    /// Поддерживает как единичные предметы, так и стеки в одном BindingMap.
     /// Автоматически обрабатывает ReloadUI, OnItemAdded, OnItemRemoved и CanDrop —
     /// наследнику достаточно определить CreateBindingMap(), CreateAdapter() и ExtractData().
     ///
@@ -42,25 +82,32 @@ namespace DragAndDropSystem.DataBinding
     /// <code>
     /// public class EquipmentBinding : MappedSlotInventoryDataBinding&lt;ItemModel, ItemModelAdapter&gt;
     /// {
-    ///     [SerializeField] private UniversalSlot _weaponSlot, _armorSlot;
+    ///     [SerializeField] private UniversalSlot _weaponSlot, _potionSlot;
     ///
     ///     protected override Dictionary&lt;ISlot, SlotBinding&lt;ItemModel&gt;&gt; CreateBindingMap() =&gt; new()
     ///     {
+    ///         // Единичный предмет (простой конструктор)
     ///         [_weaponSlot] = new(
     ///             get: () =&gt; _data.Weapon,
-    ///             set: itemAdapter =&gt; _data.Weapon = itemAdapter,
+    ///             set: item =&gt; _data.Weapon = item,
     ///             clear: () =&gt; _data.Weapon = null,
-    ///             canAccept: itemAdapter =&gt; itemAdapter.Type == ItemType.Weapon
+    ///             canAccept: item =&gt; item.Type == ItemType.Weapon
     ///                 ? RuleResult.Success()
     ///                 : RuleResult.Failure("Только оружие")),
-    ///         [_armorSlot] = new(
-    ///             get: () =&gt; _data.Armor,
-    ///             set: itemAdapter =&gt; _data.Armor = itemAdapter,
-    ///             clear: () =&gt; _data.Armor = null),
+    ///
+    ///         // Стек предметов (list-конструктор)
+    ///         [_potionSlot] = new(
+    ///             getAll: () =&gt; _data.Potions,
+    ///             add: items =&gt; _data.AddPotions(items),
+    ///             remove: items =&gt; _data.RemovePotions(items),
+    ///             clear: () =&gt; _data.ClearPotions(),
+    ///             canAccept: item =&gt; item.Type == ItemType.Potion
+    ///                 ? RuleResult.Success()
+    ///                 : RuleResult.Failure("Только зелья")),
     ///     };
     ///
-    ///     protected override ItemModelAdapter CreateAdapter(ItemModel itemAdapter) =&gt; new(itemAdapter);
-    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.PrimaryAdapter;
+    ///     protected override ItemModelAdapter CreateAdapter(ItemModel item) =&gt; new(item);
+    ///     protected override ItemModel ExtractData(ItemModelAdapter a) =&gt; a.Model;
     /// }
     /// </code>
     /// </summary>
@@ -110,28 +157,42 @@ namespace DragAndDropSystem.DataBinding
         {
             foreach (var (slot, binding) in BindingMap)
             {
-                var data = binding.Get();
-                if (data == null) continue;
+                var items = binding.GetAll();
+                if (items == null || items.Count == 0) continue;
 
-                AddToUIQuiet(CreateAdapter(data), 1, slot.Index);
+                var adapters = new List<IItemAdapter>(items.Count);
+                foreach (var item in items)
+                {
+                    if (item != null)
+                        adapters.Add(CreateAdapter(item));
+                }
+
+                if (adapters.Count == 0) continue;
+
+                if (ItemStack.TryCreate(adapters, out var stack))
+                {
+                    var uiSlot = _inventory.GetSlot(slot.Index);
+                    uiSlot?.SetStack(stack);
+                }
             }
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
+            if (!TryGetTargetBinding(context.TargetSlot, out var binding)) return;
 
-            var data = ExtractData(adapter);
-            if (data == null) return;
-
-            if (TryGetTargetBinding(context.TargetSlot, out var binding))
-                binding.Set(data);
+            var added = ExtractDataList(context.Stack);
+            if (added.Count > 0)
+                binding.Add(added);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (TryGetSourceBinding(context.SourceSlot, out var binding))
-                binding.Clear();
+            if (!TryGetSourceBinding(context.SourceSlot, out var binding)) return;
+
+            var removed = ExtractDataList(context.Stack);
+            if (removed.Count > 0)
+                binding.Remove(removed);
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
@@ -149,6 +210,24 @@ namespace DragAndDropSystem.DataBinding
             return data != null
                 ? binding.CanAccept(data)
                 : RuleResult.Failure("Нет данных");
+        }
+
+        /// <summary>
+        /// Извлечь список TData из всех адаптеров в стеке.
+        /// </summary>
+        private List<TData> ExtractDataList(ItemStack stack)
+        {
+            var result = new List<TData>(stack.Count);
+            foreach (var adapter in stack.Adapters)
+            {
+                if (adapter is TAdapter typed)
+                {
+                    var data = ExtractData(typed);
+                    if (data != null)
+                        result.Add(data);
+                }
+            }
+            return result;
         }
     }
 }

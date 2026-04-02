@@ -146,8 +146,11 @@ Key classes:
   swap event subscriptions, sync scope, rule integration, item conversion pipeline,
   and occupied-slot drop hooks
 - `ListInventoryDataBinding<TData, TAdapter>` — template for list-based data sources
-- `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<ISlot, SlotBinding<TData>>`
-  plus `TryGetTargetBinding()` / `TryGetSourceBinding()` helpers
+- `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<ISlot, SlotBinding<TData>>`,
+  `TryGetTargetBinding()` / `TryGetSourceBinding()` helpers, and `ExtractDataList(ItemStack)`.
+  `SlotBinding<TData>` is internally list-based (`GetAll/Add/Remove/Clear/CanAccept`) with two constructors:
+  simple single-item (`get/set/clear`) and stacking (`getAll/add/remove/clear`).
+  Both types can coexist in the same `CreateBindingMap()` dictionary.
 
 Responsibilities:
 - bidirectional sync between UI (`UniversalInventory`) and external data

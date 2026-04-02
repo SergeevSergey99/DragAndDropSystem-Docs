@@ -121,7 +121,7 @@ public class HotbarBinding : SlotIndexedInventoryDataBinding<ItemSO, ItemSOAdapt
 
 ## MappedSlotInventoryDataBinding
 
-Для инвентарей, где каждый слот — это **отдельное именованное свойство** с собственной логикой чтения, записи и валидации.
+Для инвентарей, где каждый слот — это **отдельное именованное свойство** с собственной логикой чтения, записи и валидации. Поддерживает как единичные предметы, так и стеки — оба типа слотов можно комбинировать в одном `CreateBindingMap()`.
 
 ### Что нужно реализовать
 
@@ -130,11 +130,13 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
 {
     [SerializeField] private UniversalSlot _weaponSlot;
     [SerializeField] private UniversalSlot _armorSlot;
+    [SerializeField] private UniversalSlot _potionSlot;
     [SerializeField] private CharacterData _data;
 
     // 1. Декларативная карта: слот → как читать, писать, очищать, валидировать
     protected override Dictionary<ISlot, SlotBinding<ItemModel>> CreateBindingMap() => new()
     {
+        // Единичный предмет (простой конструктор)
         [_weaponSlot] = new(
             get: () => _data.Weapon,
             set: item => _data.Weapon = item,
@@ -147,6 +149,16 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
             get: () => _data.Armor,
             set: item => _data.Armor = item,
             clear: () => _data.Armor = null),
+
+        // Стек предметов (list-конструктор)
+        [_potionSlot] = new(
+            getAll: () => _data.Potions,
+            add: items => _data.AddPotions(items),
+            remove: items => _data.RemovePotions(items),
+            clear: () => _data.ClearPotions(),
+            canAccept: item => item.Type == ItemType.Potion
+                ? RuleResult.Success()
+                : RuleResult.Failure("Только зелья")),
     };
 
     // 2. Как создать адаптер из элемента данных
@@ -159,15 +171,17 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
 
 ### Как работает автоматически
 
-**При загрузке**: проходит по всем записям в `BindingMap`, вызывает `Get()` для каждого слота, создаёт адаптеры для непустых.
+**При загрузке**: проходит по всем записям в `BindingMap`, вызывает `GetAll()` для каждого слота. Для каждого элемента списка создаёт отдельный адаптер и собирает их в `ItemStack` через `ItemStack.TryCreate()`.
 
-**При добавлении**: извлекает данные через `ExtractData`, находит привязку для целевого слота, вызывает `Set(data)`.
+**При добавлении**: извлекает `TData` из **каждого адаптера** в стеке через `ExtractData`, находит привязку для целевого слота, вызывает `Add(список_данных)`.
 
-**При удалении**: находит привязку для исходного слота, вызывает `Clear()`.
+**При удалении**: аналогично извлекает `TData` из каждого адаптера, находит привязку для исходного слота, вызывает `Remove(список_данных)`.
 
-**При проверке CanDrop**: автоматически вызывает `CanAccept(data)` для целевого слота, если валидатор задан.
+**При проверке CanDrop**: автоматически вызывает `CanAccept(data)` для целевого слота по `PrimaryAdapter`, если валидатор задан.
 
-### Ключевая структура: SlotBinding
+### Два конструктора SlotBinding
+
+**Простой** — для единичных предметов (один предмет на слот):
 
 ```csharp
 new SlotBinding<TData>(
@@ -178,7 +192,26 @@ new SlotBinding<TData>(
 )
 ```
 
-`canAccept` — необязательный параметр. Если не задан, слот принимает всё, что прошло остальные правила.
+Внутренне `get/set/clear` оборачиваются в list-based API: `GetAll` возвращает массив из одного элемента, `Add` вызывает `set(items[0])`, `Remove` вызывает `clear()`.
+
+**Стекаемый** — для нескольких одинаковых предметов в слоте:
+
+```csharp
+new SlotBinding<TData>(
+    getAll: () => ...,           // все элементы в слоте (IReadOnlyList<TData>)
+    add: items => ...,           // добавить элементы (IReadOnlyList<TData>)
+    remove: items => ...,        // удалить элементы (IReadOnlyList<TData>)
+    clear: () => ...,            // полная очистка
+    canAccept: item => ...       // опционально: валидация при дропе
+)
+```
+
+`add`/`remove` получают конкретные экземпляры `TData`, извлечённые из каждого адаптера в стеке. Это позволяет сохранять индивидуальные данные каждого экземпляра.
+
+!!! note "Оба типа в одном BindingMap"
+    Простой и стекаемый конструкторы создают одинаковый `SlotBinding<TData>`. Их можно свободно комбинировать в одном словаре — базовый класс всегда работает через единый list-based API.
+
+`canAccept` — необязательный параметр в обоих конструкторах. Если не задан, слот принимает всё, что прошло остальные правила.
 
 ### Отличие от SlotIndexed-шаблона
 
@@ -187,6 +220,7 @@ new SlotBinding<TData>(
 | Идентификация слота | Числовой индекс | Ссылка на объект `ISlot` |
 | Данные слота | Общий паттерн для всех | Индивидуальный get/set/clear на каждый |
 | Валидация | Общая через `CanDrop` override | Индивидуальная `CanAccept` на слот |
+| Стеки | Через count параметр | Через list-based API (каждый адаптер индивидуально) |
 | Количество слотов | Может быть много | Обычно < 10 |
 
 ---

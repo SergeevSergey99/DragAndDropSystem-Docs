@@ -121,7 +121,7 @@ Stack of 3 items into slot #2 → AddToSlotData(2, primaryAdapter, 3)
 
 ## MappedSlotInventoryDataBinding
 
-For inventories where each slot is a **separate named property** with its own read, write, and validation logic.
+For inventories where each slot is a **separate named property** with its own read, write, and validation logic. Supports both single items and stacks — both slot types can be mixed in the same `CreateBindingMap()`.
 
 ### What to implement
 
@@ -130,11 +130,13 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
 {
     [SerializeField] private UniversalSlot _weaponSlot;
     [SerializeField] private UniversalSlot _armorSlot;
+    [SerializeField] private UniversalSlot _potionSlot;
     [SerializeField] private CharacterData _data;
 
     // 1. Declarative map: slot → how to read, write, clear, validate
     protected override Dictionary<ISlot, SlotBinding<ItemModel>> CreateBindingMap() => new()
     {
+        // Single item (simple constructor)
         [_weaponSlot] = new(
             get: () => _data.Weapon,
             set: item => _data.Weapon = item,
@@ -147,6 +149,16 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
             get: () => _data.Armor,
             set: item => _data.Armor = item,
             clear: () => _data.Armor = null),
+
+        // Stacking slot (list constructor)
+        [_potionSlot] = new(
+            getAll: () => _data.Potions,
+            add: items => _data.AddPotions(items),
+            remove: items => _data.RemovePotions(items),
+            clear: () => _data.ClearPotions(),
+            canAccept: item => item.Type == ItemType.Potion
+                ? RuleResult.Success()
+                : RuleResult.Failure("Potions only")),
     };
 
     // 2. How to create an adapter from a data element
@@ -159,15 +171,17 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
 
 ### How it works automatically
 
-**On load**: iterates all entries in `BindingMap`, calls `Get()` for each slot, creates adapters for non-null values.
+**On load**: iterates all entries in `BindingMap`, calls `GetAll()` for each slot. For each item in the list, creates a separate adapter and assembles them into an `ItemStack` via `ItemStack.TryCreate()`.
 
-**On item added**: extracts data via `ExtractData`, finds the binding for the target slot, calls `Set(data)`.
+**On item added**: extracts `TData` from **each adapter** in the stack via `ExtractData`, finds the binding for the target slot, calls `Add(data_list)`.
 
-**On item removed**: finds the binding for the source slot, calls `Clear()`.
+**On item removed**: similarly extracts `TData` from each adapter, finds the binding for the source slot, calls `Remove(data_list)`.
 
-**On CanDrop check**: automatically calls `CanAccept(data)` for the target slot if a validator is provided.
+**On CanDrop check**: automatically calls `CanAccept(data)` for the target slot using `PrimaryAdapter`, if a validator is provided.
 
-### Key structure: SlotBinding
+### Two SlotBinding constructors
+
+**Simple** — for single items (one item per slot):
 
 ```csharp
 new SlotBinding<TData>(
@@ -178,7 +192,26 @@ new SlotBinding<TData>(
 )
 ```
 
-`canAccept` is optional. If not set, the slot accepts anything that passes other rules.
+Internally `get/set/clear` are wrapped into the list-based API: `GetAll` returns a single-element array, `Add` calls `set(items[0])`, `Remove` calls `clear()`.
+
+**Stacking** — for multiple identical items in a slot:
+
+```csharp
+new SlotBinding<TData>(
+    getAll: () => ...,           // all items in the slot (IReadOnlyList<TData>)
+    add: items => ...,           // add items (IReadOnlyList<TData>)
+    remove: items => ...,        // remove items (IReadOnlyList<TData>)
+    clear: () => ...,            // full clear
+    canAccept: item => ...       // optional: validation on drop
+)
+```
+
+`add`/`remove` receive the concrete `TData` instances extracted from each adapter in the stack. This preserves individual instance data.
+
+!!! note "Both types in one BindingMap"
+    Both constructors produce the same `SlotBinding<TData>`. They can be freely mixed in a single dictionary — the base class always works through the unified list-based API.
+
+`canAccept` is optional in both constructors. If not set, the slot accepts anything that passes other rules.
 
 ### Difference from SlotIndexed template
 
@@ -187,6 +220,7 @@ new SlotBinding<TData>(
 | Slot identity | Numeric index | `ISlot` object reference |
 | Slot data | Same pattern for all | Individual get/set/clear per slot |
 | Validation | Shared via `CanDrop` override | Individual `CanAccept` per slot |
+| Stacks | Via count parameter | Via list-based API (each adapter individually) |
 | Slot count | Can be many | Usually < 10 |
 
 ---
