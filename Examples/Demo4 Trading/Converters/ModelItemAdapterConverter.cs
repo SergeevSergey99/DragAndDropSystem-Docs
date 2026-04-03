@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Examples.Trading
                 case TradableItemAdapterModelAdapter:
                     converted = itemAdapter;
                     return true;
-                case ITradableItem tradable:
+                case TradableSoAdapter tradable:
                     converted = new TradableItemAdapterModelAdapter(new TradableItemModel(tradable.OriginalSO));
                     return true;
                 default:

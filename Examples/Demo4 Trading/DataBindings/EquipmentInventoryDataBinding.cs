@@ -36,6 +36,8 @@ namespace DragAndDropSystem.Examples.Trading
         private UniversalSlot _posionsSlot;
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
+
+        protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override IItemAdapterConverter CreateItemConverter() => new ModelItemAdapterConverter();
 
         // --- MappedSlotInventoryDataBinding примитивы ---
@@ -46,8 +48,7 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedWeapon,
                 set: adapter => PlayerData.EquipWeapon(adapter.Item),
                 clear: () => PlayerData.UnequipWeapon(),
-                canDrop: adapter => PlayerData.EquippedWeapon == null 
-                    && adapter.Item.originalSO.ItemType == ItemType.Weapon
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Weapon
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только оружие")),
 
@@ -55,8 +56,7 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArmor,
                 set: adapter => PlayerData.EquipArmor(adapter.Item),
                 clear: () => PlayerData.UnequipArmor(),
-                canDrop: adapter => PlayerData.EquippedArmor == null 
-                    && adapter.Item.originalSO.ItemType == ItemType.Armor
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Armor
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только броню")),
 
@@ -64,11 +64,10 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArtifact,
                 set: adapter => PlayerData.EquipArtifact1(adapter.Item),
                 clear: () => PlayerData.UnequipArtifact1(),
-                canDrop: adapter => PlayerData.EquippedArtifact == null 
-                    && adapter.Item.originalSO.ItemType == ItemType.Artifact
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
-
+            
             [_posionsSlot] = new(
                 getAll: () => PlayerData.EquippedPotions,
                 // for each adapter in adapters
@@ -78,8 +77,6 @@ namespace DragAndDropSystem.Examples.Trading
                     ? RuleResult.Success()
                     : RuleResult.Failure("В этот слот можно положить только артефакты")),
         };
-
-        protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 

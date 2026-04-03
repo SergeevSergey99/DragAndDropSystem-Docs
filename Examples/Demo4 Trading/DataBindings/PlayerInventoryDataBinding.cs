@@ -36,7 +36,6 @@ namespace DragAndDropSystem.Examples.Trading
         protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
         protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override IItemAdapterConverter CreateItemConverter() => new ModelItemAdapterConverter();
-        protected override RuleResult CanDrop(DragContext context, DragEntry entry) => RuleResult.Success();
 
         protected override void AddToData(TradableItemAdapterModelAdapter adapter) => PlayerData.AddItem(adapter.Item);
         protected override void RemoveFromData(TradableItemAdapterModelAdapter adapter) => PlayerData.TryRemoveItem(adapter.Item);
