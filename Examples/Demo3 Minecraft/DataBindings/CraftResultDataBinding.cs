@@ -1,5 +1,6 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
+using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Rules;
 
 namespace DragAndDropSystem.Examples.Minecraft
@@ -9,6 +10,10 @@ namespace DragAndDropSystem.Examples.Minecraft
     /// Показывает результат подходящего рецепта.
     /// При вытаскивании предмета — потребляет ингредиенты со стола крафта.
     ///
+    /// Потребление отложено до OnDragEnded: при batch-трансфере (разбивка по нескольким
+    /// target слотам) каждая аллокация может быть не кратна ResultCount,
+    /// но их сумма — кратна (планировщик это гарантирует через DragAmountStep).
+    ///
     /// Настройка в сцене:
     /// - UniversalInventory с 1 слотом
     /// - НЕ добавлять InventoryDropArea (запрет на входящие дропы)
@@ -16,10 +21,13 @@ namespace DragAndDropSystem.Examples.Minecraft
     /// </summary>
     public class CraftResultDataBinding : InventoryDataBindingBase
     {
+        private int _pendingRemovedItems;
+
         protected override void OnEnable()
         {
             base.OnEnable();
             CraftingManager.AutoCreateInstance.OnCraftResultChanged += ReloadUI;
+            DragAndDropManager.OnDragEnded += FlushPendingCrafts;
         }
 
         protected override void OnDisable()
@@ -27,6 +35,7 @@ namespace DragAndDropSystem.Examples.Minecraft
             base.OnDisable();
             if (CraftingManager.IsInstanceExist)
                 CraftingManager.Instance.OnCraftResultChanged -= ReloadUI;
+            DragAndDropManager.OnDragEnded -= FlushPendingCrafts;
         }
 
         protected override void OnReloadUI()
@@ -52,13 +61,27 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            var manager = CraftingManager.AutoCreateInstance;
-            if (manager == null || manager.CurrentRecipe == null)
+            _pendingRemovedItems += context.Stack.Count;
+        }
+
+        private void FlushPendingCrafts()
+        {
+            if (_pendingRemovedItems <= 0)
                 return;
 
+            var manager = CraftingManager.AutoCreateInstance;
+            if (manager == null || manager.CurrentRecipe == null)
+            {
+                _pendingRemovedItems = 0;
+                return;
+            }
+
             int resultCount = manager.CurrentRecipe.ResultCount;
-            int craftsConsumed = resultCount > 0 ? context.Stack.Count / resultCount : 0;
-            manager.ConsumeCraftIngredients(craftsConsumed);
+            int craftsConsumed = resultCount > 0 ? _pendingRemovedItems / resultCount : 0;
+            _pendingRemovedItems = 0;
+
+            if (craftsConsumed > 0)
+                manager.ConsumeCraftIngredients(craftsConsumed);
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)

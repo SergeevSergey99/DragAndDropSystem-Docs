@@ -302,6 +302,8 @@ namespace DragAndDropSystem.Inventories
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                     : operation.RequestedAmount;
 
+                deferredAmount = ApplySourceStepToAmount(entry, deferredAmount);
+
                 if (deferredAmount <= 0)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No capacity for deferred placement");
 
@@ -321,6 +323,10 @@ namespace DragAndDropSystem.Inventories
             foreach (var allocation in allocations)
                 plannedAmount += allocation.Amount;
 
+            // Округление общего количества до кратного DragAmountStep источника.
+            // Например: resultCount=6, вместимость=64 → переносим 60 (10 полных крафтов).
+            plannedAmount = ApplySourceDragAmountStep(entry, plannedAmount, ref allocations);
+
             // Inventory-area drop into dynamic inventories:
             // when existing slots are all unsuitable/occupied, inventory may still accept items
             // by creating new slots during execution (TryAddStack path).
@@ -329,6 +335,8 @@ namespace DragAndDropSystem.Inventories
                 int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                     : operation.RequestedAmount;
+
+                deferredAmount = ApplySourceStepToAmount(entry, deferredAmount);
 
                 if (deferredAmount > 0)
                 {
@@ -379,6 +387,65 @@ namespace DragAndDropSystem.Inventories
             }
 
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
+        }
+
+        private static int ApplySourceStepToAmount(DragEntry entry, int amount)
+        {
+            if (amount <= 0 || entry.SourceInventory is not UniversalInventory sourceUni)
+                return amount;
+            int step = sourceUni.DragAmountStep;
+            return step > 1 ? (amount / step) * step : amount;
+        }
+
+        /// <summary>
+        /// Если source inventory имеет DragAmountStep > 1, округляет plannedAmount вниз
+        /// до кратного step и обрезает аллокации с конца.
+        /// </summary>
+        private static int ApplySourceDragAmountStep(
+            DragEntry entry,
+            int plannedAmount,
+            ref IReadOnlyList<PlannedSlotAllocation> allocations)
+        {
+            if (plannedAmount <= 0)
+                return plannedAmount;
+
+            if (entry.SourceInventory is not UniversalInventory sourceUni)
+                return plannedAmount;
+
+            int step = sourceUni.DragAmountStep;
+            if (step <= 1)
+                return plannedAmount;
+
+            int rounded = (plannedAmount / step) * step;
+            if (rounded == plannedAmount)
+                return plannedAmount;
+
+            if (rounded <= 0)
+            {
+                allocations = EmptyAllocations;
+                return 0;
+            }
+
+            int excess = plannedAmount - rounded;
+            var trimmed = new List<PlannedSlotAllocation>(allocations.Count);
+            for (int i = 0; i < allocations.Count; i++)
+                trimmed.Add(allocations[i]);
+
+            // Обрезаем с конца
+            for (int i = trimmed.Count - 1; i >= 0 && excess > 0; i--)
+            {
+                int cut = Min(trimmed[i].Amount, excess);
+                int newAmount = trimmed[i].Amount - cut;
+                excess -= cut;
+
+                if (newAmount <= 0)
+                    trimmed.RemoveAt(i);
+                else
+                    trimmed[i] = new PlannedSlotAllocation(trimmed[i].Slot, newAmount);
+            }
+
+            allocations = trimmed;
+            return rounded;
         }
 
         private static bool ShouldPlanSwap(

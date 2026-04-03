@@ -857,6 +857,11 @@ namespace DragAndDropSystem.Inventories
         private DragAmountStepRounding _dragAmountStepRounding;
 
         /// <summary>
+        /// Текущий шаг округления драга. 0 или 1 — без округления.
+        /// </summary>
+        public int DragAmountStep => _dragAmountStep;
+
+        /// <summary>
         /// Округлять количество драга до кратного step.
         /// step &lt;= 1 — без округления.
         /// </summary>
