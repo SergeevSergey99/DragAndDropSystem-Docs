@@ -93,9 +93,9 @@ sequenceDiagram
 
 ## Implementation Details
 
+- `WorldDropZone` extends [`DropAreaBase`](../architecture/drop-areas.en.md) using the **simple consumption** pattern --- it overrides `CanAcceptEntry` and `ProcessEntry`. Source removal and zone highlighting are handled automatically by the base class.
 - `WorldDropZone` checks **every** item in the drag context via `IWorld3DAdapter`. If even one item does not have a 3D prefab --- the drop is rejected.
 - For stacks, each instance is spawned as a separate object with a slight offset.
-- `WorldDropZone` implements the `IDropTarget` interface directly --- it does not need a dummy inventory.
 - Zone highlighting works automatically: green if the item can be dropped, red if it cannot.
 
 ---
@@ -104,6 +104,7 @@ sequenceDiagram
 
 | Class | Role |
 |-------|------|
+| `DropAreaBase` | Base class for drop areas (see [Drop Areas](../architecture/drop-areas.en.md)) |
 | `WorldDropZone` | UI drop zone: creates 3D objects on drop |
 | `WorldItem` | Component on a 3D object: stores item data |
 | `IWorld3DAdapter` | Interface: links an item to a 3D prefab |

@@ -69,6 +69,7 @@ nav:
     - architecture/transfer-pipeline.md
     - architecture/strategies.md
     - architecture/rules.md
+    - architecture/drop-areas.md
   - Advanced Systems:
     - systems/selection.md
     - systems/context-menu.md
