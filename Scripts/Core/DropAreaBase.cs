@@ -213,10 +213,7 @@ namespace DragAndDropSystem.Core
                     continue;
                 }
 
-                var freshStack = sourceSlot?.Stack?.CreateCopy(stack.Count);
-                if (freshStack == null || freshStack.IsEmpty)
-                    freshStack = stack.CreateCopy();
-
+                var freshStack = stack.CreateCopy();
                 if (freshStack == null || freshStack.IsEmpty)
                 {
                     failedEntries++;
