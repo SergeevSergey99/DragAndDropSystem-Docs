@@ -72,6 +72,13 @@ namespace DragAndDropSystem.Core
         /// </summary>
         protected virtual void OnTargetDeactivated() { }
 
+        /// <summary>
+        /// Удалять ли предметы из источника после успешного ProcessEntry.
+        /// По умолчанию: true (стандартное потребление).
+        /// Переопределить в false для зон копирования/предпросмотра.
+        /// </summary>
+        protected virtual bool RemoveFromSource => true;
+
         // ══════════════════════════════════════════════════════════
         //  Lifecycle
         // ══════════════════════════════════════════════════════════
@@ -223,7 +230,7 @@ namespace DragAndDropSystem.Core
                 }
 
                 // Auto source removal
-                if (sourceSlot?.Inventory is UniversalInventory sourceUniversal)
+                if (RemoveFromSource && sourceSlot?.Inventory is UniversalInventory sourceUniversal)
                 {
                     int removed = sourceUniversal.RemoveItemsFromSlot(sourceSlot, freshStack);
                     Extensions.DragAndDropLog(

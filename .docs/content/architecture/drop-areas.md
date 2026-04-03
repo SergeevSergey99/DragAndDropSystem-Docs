@@ -157,6 +157,10 @@ public abstract class DropAreaBase : Selectable, IDropTarget, IDropProcessor
     protected virtual void OnHighlightChanged(bool highlighted, bool canAccept);
     // Вызывается при смене подсветки. highlighted = активна ли зона,
     // canAccept = может ли принять текущий предмет.
+
+    protected virtual bool RemoveFromSource { get; }
+    // Удалять ли предметы из источника после ProcessEntry.
+    // По умолчанию: true. Переопределить в false для зон копирования/предпросмотра.
 }
 ```
 

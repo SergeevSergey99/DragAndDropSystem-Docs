@@ -157,6 +157,10 @@ public abstract class DropAreaBase : Selectable, IDropTarget, IDropProcessor
     protected virtual void OnHighlightChanged(bool highlighted, bool canAccept);
     // Called when highlight state changes. highlighted = is the zone active,
     // canAccept = can it accept the current item.
+
+    protected virtual bool RemoveFromSource { get; }
+    // Whether to remove items from source after ProcessEntry.
+    // Default: true. Override to false for copy/preview zones.
 }
 ```
 
