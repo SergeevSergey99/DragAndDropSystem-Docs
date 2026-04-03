@@ -4,7 +4,7 @@ using System.Linq;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo3Loot
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     /// <summary>
     /// Компонент для хранения данных инвентаря игрока.

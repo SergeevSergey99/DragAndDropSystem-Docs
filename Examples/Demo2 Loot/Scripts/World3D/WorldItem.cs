@@ -1,7 +1,8 @@
 using DragAndDropSystem.Core;
+using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
-namespace DragAndDropSystem.World3D
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     /// <summary>
     /// Компонент для предметов, выброшенных в 3D мир
@@ -10,16 +11,14 @@ namespace DragAndDropSystem.World3D
     /// </summary>
     public class WorldItem : MonoBehaviour
     {
-        public IItemAdapter ItemAdapterData { get; private set; }
-        public int count { get; private set; }
+        public ItemExampleWith3DSO Item { get; private set; }
 
         /// <summary>
         /// Инициализировать предмет с данными
         /// </summary>
-        public void Initialize(IItemAdapter itemAdapterData, int count = 1)
+        public void Initialize(ItemExampleWith3DSO item)
         {
-            this.ItemAdapterData = itemAdapterData;
-            this.count = Mathf.Max(1, count);
+            Item = item;
         }
     }
 }

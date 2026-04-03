@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace DragAndDropSystem.Examples.Demo3Loot
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     /// <summary>
     /// Контроллер игрока для 2D Top-Down вида с ортографической камерой

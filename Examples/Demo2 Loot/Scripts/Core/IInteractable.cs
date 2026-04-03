@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Examples.Demo3Loot
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     /// <summary>
     /// Интерфейс для всех объектов с которыми можно взаимодействовать

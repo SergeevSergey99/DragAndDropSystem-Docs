@@ -2,7 +2,7 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.Tools;
 using UnityEngine;
 
-namespace DragAndDropSystem.World3D
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     /// <summary>
     /// UI-зона для дропа предметов в 3D мир.
@@ -42,23 +42,23 @@ namespace DragAndDropSystem.World3D
 
             for (int i = 0; i < entry.Stack.Adapters.Count; i++)
             {
-                if (entry.Stack.Adapters[i] is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                if (entry.Stack.Adapters[i] is not ItemAdapterSoWith3DAdapter adapter || adapter.WorldPrefab == null)
                     return false;
             }
             return true;
         }
 
-        protected override bool ProcessEntry(ItemStack freshStack, DragEntry entry)
+        protected override bool ProcessEntry(ItemStack stack, DragEntry entry)
         {
-            if (freshStack == null || freshStack.IsEmpty || freshStack.Adapters == null || freshStack.Adapters.Count == 0)
+            if (stack == null || stack.IsEmpty || stack.Adapters == null || stack.Adapters.Count == 0)
                 return false;
 
             Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
 
-            for (int i = 0; i < freshStack.Adapters.Count; i++)
+            for (int i = 0; i < stack.Adapters.Count; i++)
             {
-                var itemAdapter = freshStack.Adapters[i];
-                if (itemAdapter is not IWorld3DAdapter adapter || adapter.WorldPrefab == null)
+                var itemAdapter = stack.Adapters[i];
+                if (itemAdapter is not ItemAdapterSoWith3DAdapter adapter || adapter.WorldPrefab == null)
                 {
                     Extensions.DragAndDropLog($"<color=red>[WorldDropZone] Adapter at index {i} has no world prefab</color>");
                     return false;
@@ -75,10 +75,11 @@ namespace DragAndDropSystem.World3D
                 var worldItem = spawned.GetComponent<WorldItem>();
                 if (worldItem == null)
                     worldItem = spawned.AddComponent<WorldItem>();
-                worldItem.Initialize(itemAdapter, 1);
+                
+                worldItem.Initialize(adapter.item);
             }
 
-            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {freshStack.Count}x {freshStack.DisplayName} in world</color>");
+            Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.DisplayName} in world</color>");
             return true;
         }
 

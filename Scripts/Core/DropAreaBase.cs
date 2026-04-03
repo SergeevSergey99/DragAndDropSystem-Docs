@@ -57,9 +57,9 @@ namespace DragAndDropSystem.Core
         /// Обработать предметы из entry. Вернуть true если потребление успешно.
         /// Удаление из источника выполняется автоматически базовым классом.
         /// </summary>
-        /// <param name="freshStack">Свежая копия стака из source slot</param>
+        /// <param name="stack">Свежая копия стака из source slot</param>
         /// <param name="entry">Исходный drag entry</param>
-        protected virtual bool ProcessEntry(ItemStack freshStack, DragEntry entry) => false;
+        protected virtual bool ProcessEntry(ItemStack stack, DragEntry entry) => false;
 
         /// <summary>
         /// Вызывается при изменении состояния подсветки.

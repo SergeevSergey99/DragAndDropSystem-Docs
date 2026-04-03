@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo3Loot
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     /// <summary>
     /// Система взаимодействия игрока с объектами в мире.

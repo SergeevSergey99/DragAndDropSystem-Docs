@@ -1,9 +1,6 @@
-﻿using System;
-using DragAndDropSystem.World3D;
-using Plugins.DragAndDropSystem.Examples;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo3Loot
+namespace DragAndDropSystem.Examples.Demo2Loot
 {
     [RequireComponent(typeof(WorldItem))]
     public class ItemController : MonoBehaviour, IInteractable
@@ -17,9 +14,9 @@ namespace DragAndDropSystem.Examples.Demo3Loot
         }
         public void Interact(PlayerInteraction player)
         {
-            if (CanInteract(player) && WorldItem.ItemAdapterData is ItemAdapterSoWith3DAdapter adapter)
+            if (CanInteract(player))
             {
-                if (player.Inventory.AddItem(adapter.item))
+                if (player.Inventory.AddItem(WorldItem.Item))
                 {
                     Destroy(gameObject);
                 }

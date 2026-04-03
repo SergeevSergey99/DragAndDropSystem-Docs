@@ -1,7 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Examples.Demo3Loot;
-using DragAndDropSystem.World3D;
+using DragAndDropSystem.Examples.Demo2Loot;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
@@ -11,7 +10,7 @@ namespace DragAndDropSystem.Examples
     /// Адаптер для ItemExampleWith3DSO
     /// Позволяет работать с ScriptableObject в системе инвентаря + поддержка 3D
     /// </summary>
-    public class ItemAdapterSoWith3DAdapter : IItemAdapter, IWorld3DAdapter, IFilterable
+    public class ItemAdapterSoWith3DAdapter : IItemAdapter, IFilterable
     {
         public readonly ItemExampleWith3DSO item;
 
