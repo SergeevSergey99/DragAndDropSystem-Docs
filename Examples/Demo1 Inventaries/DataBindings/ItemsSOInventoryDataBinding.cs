@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Examples;
+using DragAndDropSystem.Examples.General;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Rules;
 using UnityEngine;
 
-namespace Plugins.DragAndDropSystem.Examples.DataBindings
+namespace Plugins.DragAndDropSystem.Examples.General
 {
     /// <summary>
     /// Универсальный DataBinding для ItemExampleSO и ItemExampleWith3DSO

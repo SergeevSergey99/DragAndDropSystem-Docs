@@ -5,7 +5,7 @@ using DragAndDropSystem.Rules;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo2Loot
+namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
     /// DataBinding для инвентаря игрока.

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo2Loot
+namespace DragAndDropSystem.Examples.Loot
 {
     [RequireComponent(typeof(WorldItem))]
     public class ItemController : MonoBehaviour, IInteractable

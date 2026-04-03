@@ -1,4 +1,4 @@
-using DragAndDropSystem.Examples.Demo2Loot;
+using DragAndDropSystem.Examples.Loot;
 using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples

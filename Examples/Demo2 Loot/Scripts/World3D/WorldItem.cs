@@ -2,7 +2,7 @@ using DragAndDropSystem.Core;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo2Loot
+namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
     /// Компонент для предметов, выброшенных в 3D мир

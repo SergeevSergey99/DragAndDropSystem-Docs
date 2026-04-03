@@ -1,10 +1,10 @@
 using System.Linq;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Examples;
+using DragAndDropSystem.Examples.General;
 using DragAndDropSystem.Rules;
 using UnityEngine;
 
-namespace Plugins.DragAndDropSystem.Examples
+namespace Plugins.DragAndDropSystem.Examples.General
 {
     public class ItemTypeExampleFilterRule : DragRuleBase, IInventoryRule, ISlotRule
     {

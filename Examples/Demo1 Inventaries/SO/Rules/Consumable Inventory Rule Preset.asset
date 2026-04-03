@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Consumable Inventory Rule Preset
   m_EditorClassIdentifier: 
   _inlineRules:
-  - rid: 6676589249802534982
+  - rid: 8490480544799785030
   references:
     version: 2
     RefIds:
-    - rid: 6676589249802534982
-      type: {class: ItemTypeExampleFilterRule, ns: Plugins.DragAndDropSystem.Examples, asm: DragAndDropSystem.Examples}
+    - rid: 8490480544799785030
+      type: {class: ItemTypeExampleFilterRule, ns: Plugins.DragAndDropSystem.Examples.General, asm: DragAndDropSystem.Examples}
       data:
         _allowedTypes:
         - Consumable

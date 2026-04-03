@@ -2,7 +2,7 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.Tools;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo2Loot
+namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
     /// UI-зона для дропа предметов в 3D мир.

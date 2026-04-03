@@ -2,7 +2,7 @@ using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Inspector;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Demo2Loot
+namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
     /// Контроллер UI лута - медиатор между игровым миром и UI.

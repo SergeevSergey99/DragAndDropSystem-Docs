@@ -3,7 +3,7 @@ using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using Plugins.DragAndDropSystem.Examples;
 
-namespace DragAndDropSystem.Examples.Demo2Loot
+namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
     /// DataBinding для инвентаря сундука.

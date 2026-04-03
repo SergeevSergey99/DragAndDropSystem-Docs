@@ -1,9 +1,9 @@
 using System;
 using DragAndDropSystem.Core;
-using Plugins.DragAndDropSystem.Examples;
+using Plugins.DragAndDropSystem.Examples.General;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples
+namespace DragAndDropSystem.Examples.General
 {
     /// <summary>
     /// Адаптер для ItemSO, чтобы работать с новой системой
