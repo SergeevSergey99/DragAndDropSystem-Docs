@@ -1058,6 +1058,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#deferred-processing-ondropcompletedfrom-ondropcompletedto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred Processing: OnDropCompletedFrom / OnDropCompletedTo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deferred Processing: OnDropCompletedFrom / OnDropCompletedTo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-craft-result-slot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Craft Result Slot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dragamountstep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DragAmountStep
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1785,6 +1824,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#deferred-processing-ondropcompletedfrom-ondropcompletedto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred Processing: OnDropCompletedFrom / OnDropCompletedTo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deferred Processing: OnDropCompletedFrom / OnDropCompletedTo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-craft-result-slot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Craft Result Slot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dragamountstep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DragAmountStep
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2077,6 +2155,16 @@
 <td>React to completed swap</td>
 </tr>
 <tr>
+<td><code>OnDropCompletedFrom(context)</code></td>
+<td>No-op</td>
+<td>React after a drop completes where this inventory was the <strong>source</strong></td>
+</tr>
+<tr>
+<td><code>OnDropCompletedTo(context)</code></td>
+<td>No-op</td>
+<td>React after a drop completes where this inventory was the <strong>target</strong></td>
+</tr>
+<tr>
 <td><code>CreateItemConverter()</code></td>
 <td><code>null</code></td>
 <td>Item conversion between inventories with different formats</td>
@@ -2100,6 +2188,43 @@
 <li><code>AddToUIQuiet(adapter, count, slotIndex)</code> — add item without generating events</li>
 <li><code>BeginSync()</code> — start sync scope (suppresses events, prevents feedback loops)</li>
 </ul>
+<hr />
+<h2 id="deferred-processing-ondropcompletedfrom-ondropcompletedto">Deferred Processing: OnDropCompletedFrom / OnDropCompletedTo</h2>
+<p><code>OnItemAddedToUI</code> and <code>OnItemRemovedFromUI</code> are called <strong>per allocation</strong> during a transfer. If a transfer splits across multiple target slots (batch transfer), you'll receive multiple calls for a single drag operation.</p>
+<p>When this is a problem, use <code>OnDropCompletedFrom</code> / <code>OnDropCompletedTo</code>. They are called <strong>once</strong> after the entire drop operation completes.</p>
+<h3 id="example-craft-result-slot">Example: Craft Result Slot</h3>
+<p>Recipe <code>3×A → 6×B</code>. Slot contains 384×B. Player drags into an inventory with max stack 64.</p>
+<ul>
+<li>Planner distributes across 6 slots: <code>64+64+64+64+64+64 = 384</code></li>
+<li><code>OnItemRemovedFromUI</code> fires 6 times with <code>Count = 64</code></li>
+<li><code>64 / 6 = 10</code> (integer division) — remainder lost on each call</li>
+</ul>
+<p>Solution — accumulate removed items and consume ingredients once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">CraftResultDataBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryDataBindingBase</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="p">;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnItemRemovedFromUI</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="c1">// Only accumulate, don&#39;t consume yet</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">Stack</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDropCompletedFrom</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="c1">// Called once after the entire transfer</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">craftsConsumed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">resultCount</span><span class="p">;</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="n">manager</span><span class="p">.</span><span class="n">ConsumeCraftIngredients</span><span class="p">(</span><span class="n">craftsConsumed</span><span class="p">);</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="dragamountstep">DragAmountStep</h3>
+<p>The transfer planner respects the source inventory's <code>DragAmountStep</code>: the <strong>total</strong> number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all allocations is divisible by the step, even if individual allocations are not.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// In the source inventory:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Planner: total = floor(total / step) * step</span>
+</code></pre></div>
 
 
 
