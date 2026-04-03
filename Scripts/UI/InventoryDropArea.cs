@@ -64,7 +64,7 @@ namespace DragAndDropSystem.UI
         //  DropAreaBase overrides
         // ══════════════════════════════════════════════════════════
 
-        protected override bool TryActivateAsFocusedTarget()
+        internal override bool TryActivateAsFocusedTarget()
         {
             if (DragManager == null || !DragManager.IsDragging || _inventory == null)
                 return false;

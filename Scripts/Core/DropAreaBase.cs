@@ -33,7 +33,7 @@ namespace DragAndDropSystem.Core
         /// Вызывается из OnPointerEnter.
         /// По умолчанию: проверяет CanAcceptEntry на первом entry и вызывает PushDropTarget.
         /// </summary>
-        protected virtual bool TryActivateAsFocusedTarget()
+        internal virtual bool TryActivateAsFocusedTarget()
         {
             var context = DragManager.CurrentContext;
             if (context == null || context.Entries.Count == 0)
