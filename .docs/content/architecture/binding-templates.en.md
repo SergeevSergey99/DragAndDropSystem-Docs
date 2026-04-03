@@ -232,6 +232,8 @@ All three templates inherit from `InventoryDataBindingBase`. You normally don't 
 | `CanDrop(context, entry)` | `Success` | Add drop checks (MappedSlot overrides this automatically) |
 | `CanSwap(args)` | `Success` | Extra swap validation |
 | `OnSwapCompleted(args)` | No-op | React to completed swap |
+| `OnDropCompletedFrom(context)` | No-op | React after a drop completes where this inventory was the **source** |
+| `OnDropCompletedTo(context)` | No-op | React after a drop completes where this inventory was the **target** |
 | `CreateItemConverter()` | `null` | Item conversion between inventories with different formats |
 | `CanHandleOccupiedSlotDrop(entry, slot)` | `false` | Custom handling for drops onto occupied slots |
 | `ExecuteOccupiedSlotDrop(entry, slot)` | `false` | Execute the custom occupied slot drop |
@@ -242,3 +244,52 @@ Helper methods are also available:
 - `ClearUI()` — clear all slots
 - `AddToUIQuiet(adapter, count, slotIndex)` — add item without generating events
 - `BeginSync()` — start sync scope (suppresses events, prevents feedback loops)
+
+---
+
+## Deferred Processing: OnDropCompletedFrom / OnDropCompletedTo
+
+`OnItemAddedToUI` and `OnItemRemovedFromUI` are called **per allocation** during a transfer. If a transfer splits across multiple target slots (batch transfer), you'll receive multiple calls for a single drag operation.
+
+When this is a problem, use `OnDropCompletedFrom` / `OnDropCompletedTo`. They are called **once** after the entire drop operation completes.
+
+### Example: Craft Result Slot
+
+Recipe `3×A → 6×B`. Slot contains 384×B. Player drags into an inventory with max stack 64.
+
+- Planner distributes across 6 slots: `64+64+64+64+64+64 = 384`
+- `OnItemRemovedFromUI` fires 6 times with `Count = 64`
+- `64 / 6 = 10` (integer division) — remainder lost on each call
+
+Solution — accumulate removed items and consume ingredients once:
+
+```csharp
+public class CraftResultDataBinding : InventoryDataBindingBase
+{
+    private int _pendingRemovedItems;
+
+    protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
+    {
+        // Only accumulate, don't consume yet
+        _pendingRemovedItems += context.Stack.Count;
+    }
+
+    protected override void OnDropCompletedFrom(DragContext context)
+    {
+        // Called once after the entire transfer
+        int craftsConsumed = _pendingRemovedItems / resultCount;
+        _pendingRemovedItems = 0;
+        manager.ConsumeCraftIngredients(craftsConsumed);
+    }
+}
+```
+
+### DragAmountStep
+
+The transfer planner respects the source inventory's `DragAmountStep`: the **total** number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all allocations is divisible by the step, even if individual allocations are not.
+
+```csharp
+// In the source inventory:
+_inventory.SetDragAmountStep(recipe.ResultCount, DragAmountStepRounding.Ceil);
+// Planner: total = floor(total / step) * step
+```

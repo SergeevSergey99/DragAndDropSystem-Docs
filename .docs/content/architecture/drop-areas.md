@@ -219,6 +219,26 @@ public class SellDropZone : DropAreaBase
 }
 ```
 
+### PreviewDropZone --- просмотр без удаления
+
+```csharp
+public class PreviewDropZone : DropAreaBase
+{
+    protected override bool RemoveFromSource => false;
+
+    protected override bool CanAcceptEntry(DragEntry entry)
+        => entry.Stack?.PrimaryAdapter is IPreviewable;
+
+    protected override bool ProcessEntry(ItemStack freshStack, DragEntry entry)
+    {
+        ShowPreview(freshStack);
+        return true;
+    }
+}
+```
+
+`RemoveFromSource = false` отключает автоматическое удаление из источника. Предметы остаются в исходном инвентаре.
+
 ---
 
 ## Подсветка

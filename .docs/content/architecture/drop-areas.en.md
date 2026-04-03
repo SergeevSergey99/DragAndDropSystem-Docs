@@ -219,6 +219,26 @@ public class SellDropZone : DropAreaBase
 }
 ```
 
+### PreviewDropZone --- View Without Removal
+
+```csharp
+public class PreviewDropZone : DropAreaBase
+{
+    protected override bool RemoveFromSource => false;
+
+    protected override bool CanAcceptEntry(DragEntry entry)
+        => entry.Stack?.PrimaryAdapter is IPreviewable;
+
+    protected override bool ProcessEntry(ItemStack freshStack, DragEntry entry)
+    {
+        ShowPreview(freshStack);
+        return true;
+    }
+}
+```
+
+`RemoveFromSource = false` disables automatic source removal. Items remain in the original inventory.
+
 ---
 
 ## Highlighting

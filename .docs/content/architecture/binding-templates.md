@@ -232,6 +232,8 @@ new SlotBinding<TData, TAdapter>(
 | `CanDrop(context, entry)` | `Success` | Добавить проверки при дропе (MappedSlot переопределяет автоматически) |
 | `CanSwap(args)` | `Success` | Доп. проверки при обмене предметами |
 | `OnSwapCompleted(args)` | Ничего | Реакция на завершённый обмен |
+| `OnDropCompletedFrom(context)` | Ничего | Реакция после завершения drop-операции, если этот инвентарь был **источником** |
+| `OnDropCompletedTo(context)` | Ничего | Реакция после завершения drop-операции, если этот инвентарь был **целью** |
 | `CreateItemConverter()` | `null` | Конвертация предметов между инвентарями разных форматов |
 | `CanHandleOccupiedSlotDrop(entry, slot)` | `false` | Кастомная обработка дропа на занятый слот |
 | `ExecuteOccupiedSlotDrop(entry, slot)` | `false` | Выполнение кастомного дропа на занятый слот |
@@ -242,3 +244,52 @@ new SlotBinding<TData, TAdapter>(
 - `ClearUI()` — очистка всех слотов
 - `AddToUIQuiet(adapter, count, slotIndex)` — добавить предмет без генерации событий
 - `BeginSync()` — начать scope синхронизации (подавляет события, предотвращает feedback-loop)
+
+---
+
+## Отложенная обработка: OnDropCompletedFrom / OnDropCompletedTo
+
+`OnItemAddedToUI` и `OnItemRemovedFromUI` вызываются **на каждую аллокацию** в процессе трансфера. Если перенос разбивается на несколько target-слотов (batch transfer), вы получите несколько вызовов за одну drag-операцию.
+
+Когда это проблема — используйте `OnDropCompletedFrom` / `OnDropCompletedTo`. Они вызываются **один раз** после завершения всей drop-операции.
+
+### Пример: слот результата крафта
+
+Рецепт `3×A → 6×B`. В слоте 384×B. Игрок перетаскивает в инвентарь с max stack 64.
+
+- Планировщик распределяет по 6 слотам: `64+64+64+64+64+64 = 384`
+- `OnItemRemovedFromUI` вызывается 6 раз с `Count = 64`
+- `64 / 6 = 10` (целочисленное) — остаток теряется на каждом вызове
+
+Решение — копить removed items и потреблять ингредиенты один раз:
+
+```csharp
+public class CraftResultDataBinding : InventoryDataBindingBase
+{
+    private int _pendingRemovedItems;
+
+    protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
+    {
+        // Только копим, не потребляем
+        _pendingRemovedItems += context.Stack.Count;
+    }
+
+    protected override void OnDropCompletedFrom(DragContext context)
+    {
+        // Вызывается один раз после всего трансфера
+        int craftsConsumed = _pendingRemovedItems / resultCount;
+        _pendingRemovedItems = 0;
+        manager.ConsumeCraftIngredients(craftsConsumed);
+    }
+}
+```
+
+### DragAmountStep
+
+Планировщик трансфера учитывает `DragAmountStep` инвентаря-источника: **общее** количество переносимых предметов округляется вниз до кратного step. Это гарантирует, что сумма всех аллокаций кратна step, даже если отдельные аллокации — нет.
+
+```csharp
+// В инвентаре-источнике:
+_inventory.SetDragAmountStep(recipe.ResultCount, DragAmountStepRounding.Ceil);
+// Планировщик: total = floor(total / step) * step
+```
