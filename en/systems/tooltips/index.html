@@ -325,7 +325,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/file-map/" class="md-tabs__link">
+        <a href="../../reference/optional-interfaces/" class="md-tabs__link">
           
   
   
@@ -929,6 +929,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/drop-areas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drop Areas (DropAreaBase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1342,6 +1370,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/optional-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optional Interfaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/file-map/" class="md-nav__link">
         
   
@@ -1568,6 +1624,8 @@
 <li><strong>Description</strong> (if the item implements <code>IDescribable</code>)</li>
 <li><strong>Fade animation</strong> for appearing and disappearing (configurable)</li>
 </ul>
+<p><code>IDescribable</code> here is an optional adapter extension for UI.
+The core inventory does not depend on it. See <a href="../../reference/optional-interfaces/">Optional Interfaces</a> for details.</p>
 <hr />
 <h2 id="custom-tooltip">Custom Tooltip</h2>
 <p>Create your own class by inheriting from <code>BaseTooltipView</code>:</p>
@@ -1647,7 +1705,7 @@
 </tr>
 <tr>
 <td><code>IDescribable</code></td>
-<td>Interface for an item with a description</td>
+<td>Example of an optional adapter interface for UI descriptions</td>
 </tr>
 </tbody>
 </table>

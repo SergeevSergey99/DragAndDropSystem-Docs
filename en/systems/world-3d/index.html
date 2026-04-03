@@ -14,7 +14,7 @@
         <link rel="prev" href="../interaction/">
       
       
-        <link rel="next" href="../../reference/file-map/">
+        <link rel="next" href="../../reference/optional-interfaces/">
       
       
         
@@ -325,7 +325,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/file-map/" class="md-tabs__link">
+        <a href="../../reference/optional-interfaces/" class="md-tabs__link">
           
   
   
@@ -929,6 +929,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/drop-areas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drop Areas (DropAreaBase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1381,6 +1409,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/optional-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optional Interfaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/file-map/" class="md-nav__link">
         
   
@@ -1699,9 +1755,9 @@
 <hr />
 <h2 id="implementation-details">Implementation Details</h2>
 <ul>
+<li><code>WorldDropZone</code> extends <a href="../../architecture/drop-areas/"><code>DropAreaBase</code></a> using the <strong>simple consumption</strong> pattern --- it overrides <code>CanAcceptEntry</code> and <code>ProcessEntry</code>. Source removal and zone highlighting are handled automatically by the base class.</li>
 <li><code>WorldDropZone</code> checks <strong>every</strong> item in the drag context via <code>IWorld3DAdapter</code>. If even one item does not have a 3D prefab --- the drop is rejected.</li>
 <li>For stacks, each instance is spawned as a separate object with a slight offset.</li>
-<li><code>WorldDropZone</code> implements the <code>IDropTarget</code> interface directly --- it does not need a dummy inventory.</li>
 <li>Zone highlighting works automatically: green if the item can be dropped, red if it cannot.</li>
 </ul>
 <hr />
@@ -1714,6 +1770,10 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>DropAreaBase</code></td>
+<td>Base class for drop areas (see <a href="../../architecture/drop-areas/">Drop Areas</a>)</td>
+</tr>
 <tr>
 <td><code>WorldDropZone</code></td>
 <td>UI drop zone: creates 3D objects on drop</td>

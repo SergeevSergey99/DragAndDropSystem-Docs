@@ -325,7 +325,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/file-map/" class="md-tabs__link">
+        <a href="../../reference/optional-interfaces/" class="md-tabs__link">
           
   
   
@@ -929,6 +929,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/drop-areas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Зоны дропа (DropAreaBase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1342,6 +1370,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/optional-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Опциональные интерфейсы
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/file-map/" class="md-nav__link">
         
   
@@ -1568,6 +1624,8 @@
 <li><strong>Описание</strong> (если предмет реализует <code>IDescribable</code>)</li>
 <li><strong>Fade-анимацию</strong> появления и исчезновения (настраивается)</li>
 </ul>
+<p><code>IDescribable</code> здесь является именно optional расширением adapter'а для UI.
+Core inventory не зависит от него. Подробнее — в разделе <a href="../../reference/optional-interfaces/">Опциональные интерфейсы</a>.</p>
 <hr />
 <h2 id="_5">Кастомный тултип</h2>
 <p>Создайте свой класс, унаследовавшись от <code>BaseTooltipView</code>:</p>
@@ -1647,7 +1705,7 @@
 </tr>
 <tr>
 <td><code>IDescribable</code></td>
-<td>Интерфейс предмета с описанием</td>
+<td>Пример optional-интерфейса adapter'а для UI-описания</td>
 </tr>
 </tbody>
 </table>

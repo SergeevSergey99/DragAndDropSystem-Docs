@@ -14,7 +14,7 @@
         <link rel="prev" href="../interaction/">
       
       
-        <link rel="next" href="../../reference/file-map/">
+        <link rel="next" href="../../reference/optional-interfaces/">
       
       
         
@@ -325,7 +325,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/file-map/" class="md-tabs__link">
+        <a href="../../reference/optional-interfaces/" class="md-tabs__link">
           
   
   
@@ -929,6 +929,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/drop-areas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Зоны дропа (DropAreaBase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1381,6 +1409,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../reference/optional-interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Опциональные интерфейсы
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../reference/file-map/" class="md-nav__link">
         
   
@@ -1699,9 +1755,9 @@
 <hr />
 <h2 id="_5">Детали реализации</h2>
 <ul>
+<li><code>WorldDropZone</code> наследует <a href="../../architecture/drop-areas/"><code>DropAreaBase</code></a> и использует паттерн <strong>простого потребления</strong> --- переопределяет <code>CanAcceptEntry</code> и <code>ProcessEntry</code>. Удаление предметов из источника и подсветка зоны обрабатываются базовым классом автоматически.</li>
 <li><code>WorldDropZone</code> проверяет <strong>каждый</strong> предмет в контексте перетаскивания через <code>IWorld3DAdapter</code>. Если хоть один предмет не имеет 3D-префаба --- дроп отклоняется.</li>
 <li>Для стаков каждый экземпляр спавнится отдельным объектом с небольшим смещением.</li>
-<li><code>WorldDropZone</code> реализует интерфейс <code>IDropTarget</code> напрямую --- ему не нужен фиктивный инвентарь.</li>
 <li>Подсветка зоны работает автоматически: зелёная если предмет можно бросить, красная если нельзя.</li>
 </ul>
 <hr />
@@ -1714,6 +1770,10 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>DropAreaBase</code></td>
+<td>Базовый класс для зон дропа (см. <a href="../../architecture/drop-areas/">Зоны дропа</a>)</td>
+</tr>
 <tr>
 <td><code>WorldDropZone</code></td>
 <td>UI-зона сброса: создаёт 3D-объекты при дропе</td>
