@@ -5,19 +5,16 @@ using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Компонент для области дропа инвентаря
-    /// Позволяет дропать предметы в любое место инвентаря, а не только в конкретный слот
+    /// Область дропа, привязанная к инвентарю.
+    /// Позволяет дропать предметы в любое место инвентаря, а не только в конкретный слот.
+    /// Делегирует обработку дропа в InventoryDropProcessor (planner/executor pipeline).
     /// </summary>
-    [RequireComponent(typeof(RectTransform))]
-    public class InventoryDropArea : Selectable, IDropTarget
+    public class InventoryDropArea : DropAreaBase
     {
-        private DragAndDropManager _dragManager => DragAndDropManager.IsInstanceExist ? DragAndDropManager.AutoCreateInstance : null;
-
         [SerializeField, Tooltip("Инвентарь, к которому привязана эта область")]
         private UniversalInventory _inventory;
 
@@ -33,98 +30,23 @@ namespace DragAndDropSystem.UI
         private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
         private ISlot _foundSlot;
-        private bool _isHighlighted;
-        private UnityEngine.UI.Graphic _raycastGraphic;
 
         public UniversalInventory Inventory => _inventory;
+
+        // ══════════════════════════════════════════════════════════
+        //  Lifecycle overrides
+        // ══════════════════════════════════════════════════════════
 
         protected override void OnValidate()
         {
             base.OnValidate();
-            // Автоматически находим инвентарь на этом объекте или родителе
             if (_inventory == null)
-            {
                 _inventory = GetComponentInParent<UniversalInventory>();
-            }
-
-            if (_raycastGraphic == null)
-            {
-                _raycastGraphic = GetComponent<UnityEngine.UI.Graphic>();
-            }
         }
 
-        protected override void Awake()
-        {
-            base.Awake();
-
-            if (navigation.mode == Navigation.Mode.None)
-            {
-                var nav = navigation;
-                nav.mode = Navigation.Mode.Automatic;
-                navigation = nav;
-            }
-
-            if (_raycastGraphic == null)
-            {
-                _raycastGraphic = GetComponent<UnityEngine.UI.Graphic>();
-            }
-        }
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            SubscribeToStateEvents();
-            RefreshInteractionState();
-        }
-
-        public override void OnPointerEnter(PointerEventData eventData)
-        {
-            base.OnPointerEnter(eventData);
-
-            if (_dragManager == null || !_dragManager.IsDragging || _inventory == null)
-                return;
-
-            TryActivateAsFocusedTarget();
-        }
-
-        /// <summary>
-        /// Подсветить/снять подсветку области
-        /// </summary>
-        private void HighlightArea(bool highlight)
-        {
-            if (_areaHighlight == null)
-                return;
-
-            _isHighlighted = highlight;
-            _areaHighlight.color = highlight ? _highlightColor : _normalColor;
-        }
-
-        public override void OnPointerExit(PointerEventData eventData)
-        {
-            base.OnPointerExit(eventData);
-
-            if (_dragManager == null || !_dragManager.IsDragging)
-                return;
-
-            // Удаляем себя из стека целей
-            _dragManager.PopDropTarget(this);
-
-            _foundSlot = null;
-
-            Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Exited</color>");
-        }
-
-        protected override void OnDisable()
-        {
-            UnsubscribeFromStateEvents();
-            base.OnDisable();
-            if (!DragAndDropManager.IsInstanceExist) return;
-            // Удаляем себя из стека при отключении
-            if (_dragManager != null && _dragManager.IsDragging)
-            {
-                _dragManager.PopDropTarget(this);
-            }
-        }
+        // ══════════════════════════════════════════════════════════
+        //  Gamepad focus
+        // ══════════════════════════════════════════════════════════
 
         public override void OnSelect(BaseEventData eventData)
         {
@@ -138,64 +60,74 @@ namespace DragAndDropSystem.UI
             InputEventRouter.AutoCreateInstance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
         }
 
-        public bool TryActivateAsFocusedTarget()
+        // ══════════════════════════════════════════════════════════
+        //  DropAreaBase overrides
+        // ══════════════════════════════════════════════════════════
+
+        protected override bool TryActivateAsFocusedTarget()
         {
-            if (_dragManager == null || !_dragManager.IsDragging || _inventory == null)
+            if (DragManager == null || !DragManager.IsDragging || _inventory == null)
                 return false;
 
             if (!TryResolveFocusedTargetSlot(out _foundSlot))
                 return false;
 
-            _dragManager.PushDropTarget(this);
+            DragManager.PushDropTarget(this);
             Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={_foundSlot?.Index.ToString() ?? "AREA"}, inventory={_inventory.name}</color>");
             return true;
         }
 
-        // ===== IDropTarget Implementation =====
+        protected override void OnTargetDeactivated()
+        {
+            _foundSlot = null;
+        }
 
-        public ISlot GetTargetSlot() => _foundSlot;
+        protected override void OnHighlightChanged(bool highlighted, bool canAccept)
+        {
+            if (_areaHighlight == null)
+                return;
+            _areaHighlight.color = highlighted ? _highlightColor : _normalColor;
+        }
 
-        public IDropProcessor GetDropProcessor()
+        // ══════════════════════════════════════════════════════════
+        //  IDropTarget overrides (delegated processing)
+        // ══════════════════════════════════════════════════════════
+
+        public override ISlot GetTargetSlot() => _foundSlot;
+
+        public override IDropProcessor GetDropProcessor()
         {
             return CreateDropProcessor(_foundSlot);
         }
 
+        // ══════════════════════════════════════════════════════════
+        //  Domain logic
+        // ══════════════════════════════════════════════════════════
+
         private InventoryDropProcessor CreateDropProcessor(ISlot targetSlot)
         {
             var boundOverride = _dropPolicyOverride != null ? _dropPolicyOverride.TryBuild() : (DropRequestPolicy?)null;
-            System.Func<InventorySwapContext, bool> swapAttempting = _dragManager != null
-                ? _dragManager.RaiseSwapAttempting
+            System.Func<InventorySwapContext, bool> swapAttempting = DragManager != null
+                ? DragManager.RaiseSwapAttempting
                 : null;
-            System.Action<InventorySwapContext> swapCompleted = _dragManager != null
-                ? _dragManager.RaiseSwapCompleted
+            System.Action<InventorySwapContext> swapCompleted = DragManager != null
+                ? DragManager.RaiseSwapCompleted
                 : null;
 
             return new InventoryDropProcessor(
                 targetSlot,
                 _inventory,
-                _dragManager?.GlobalRules,
+                DragManager?.GlobalRules,
                 boundOverride,
                 swapAttempting,
                 swapCompleted);
-        }
-
-        public void OnBecomeActiveTarget()
-        {
-            // Подсвечиваем область когда становимся активной целью
-            HighlightArea(true);
-        }
-
-        public void OnBecomeInactiveTarget()
-        {
-            // Снимаем подсветку когда перестаём быть активной целью
-            HighlightArea(false);
         }
 
         private bool TryResolveFocusedTargetSlot(out ISlot suggestedSlot)
         {
             suggestedSlot = null;
 
-            var context = _dragManager.CurrentContext;
+            var context = DragManager.CurrentContext;
             if (context == null || context.Entries.Count == 0)
                 return false;
 
@@ -244,57 +176,6 @@ namespace DragAndDropSystem.UI
 
             validationContext = context.WithTarget(suggestedSlot, _inventory);
             return true;
-        }
-
-        private bool ShouldAllowInteraction()
-        {
-            if (_dragManager == null || !_dragManager.IsDragging)
-                return false;
-
-            return true;
-        }
-
-        private void SubscribeToStateEvents()
-        {
-            DragAndDropManager.OnDragStarted += HandleDragStateChanged;
-            DragAndDropManager.OnDragCancelled += HandleDragStateChanged;
-            DragAndDropManager.OnDropCompleted += HandleDragStateChanged;
-            DragAndDropManager.OnDragEnded += HandleDragEnded;
-
-            InputModalityTracker.OnNavigationModeChanged += HandleNavigationModeChanged;
-        }
-
-        private void UnsubscribeFromStateEvents()
-        {
-            DragAndDropManager.OnDragStarted -= HandleDragStateChanged;
-            DragAndDropManager.OnDragCancelled -= HandleDragStateChanged;
-            DragAndDropManager.OnDropCompleted -= HandleDragStateChanged;
-            DragAndDropManager.OnDragEnded -= HandleDragEnded;
-
-            InputModalityTracker.OnNavigationModeChanged -= HandleNavigationModeChanged;
-        }
-
-        private void HandleDragStateChanged(DragContext _) => RefreshInteractionState();
-        private void HandleDragEnded() => RefreshInteractionState();
-        private void HandleNavigationModeChanged(bool _) => RefreshInteractionState();
-
-        private void RefreshInteractionState()
-        {
-            if (_raycastGraphic != null)
-                _raycastGraphic.raycastTarget = _dragManager != null && _dragManager.IsDragging;
-
-            bool shouldBeInteractable = ShouldAllowInteraction();
-            if (interactable == shouldBeInteractable)
-                return;
-
-            interactable = shouldBeInteractable;
-
-            if (!shouldBeInteractable &&
-                EventSystem.current != null &&
-                EventSystem.current.currentSelectedGameObject == gameObject)
-            {
-                EventSystem.current.SetSelectedGameObject(null);
-            }
         }
     }
 }
