@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DragAndDropSystem.Core;
@@ -54,11 +55,13 @@ namespace DragAndDropSystem.Inventories
                 if (dragAmount <= 0)
                     continue;
 
-                var item = slot.Stack?.PrimaryAdapter;
-                if (item == null)
+                if (slot.Stack == null || slot.Stack.IsEmpty)
                     continue;
 
-                entries.Add(new DragEntry(new ItemStack(item, dragAmount), slot, sourceInventory));
+                if (!ItemStack.TryCreate(slot.Stack.Adapters.Take(dragAmount), out var entryStack))
+                    continue;
+
+                entries.Add(new DragEntry(entryStack, slot, sourceInventory));
             }
 
             if (entries.Count == 0)

@@ -193,8 +193,13 @@ namespace DragAndDropSystem.Inventories
             if (slotPrefab?.SlotRuleValidator == null)
                 return true;
 
-            var context = request?.CreateValidationContext(slotPrefab, previewCount, itemAdapter)
-                ?? new DragContext(new ItemStack(itemAdapter, previewCount), null, null, slotPrefab, null);
+            var context = request?.CreateValidationContext(slotPrefab, previewCount, itemAdapter);
+            if (context == null)
+            {
+                if (!ItemStack.TryCreate(new[] { itemAdapter }, out var fallbackStack))
+                    return false;
+                context = new DragContext(fallbackStack, null, null, slotPrefab, null);
+            }
             var entry = context.Entries[0];
             return slotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
         }

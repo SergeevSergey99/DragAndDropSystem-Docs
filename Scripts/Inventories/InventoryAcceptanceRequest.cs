@@ -1,3 +1,4 @@
+using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Slots;
 
@@ -34,8 +35,18 @@ namespace DragAndDropSystem.Inventories
 
         public DragContext CreateValidationContext(ISlot targetSlot, int previewCount, IItemAdapter previewItemAdapter = null)
         {
-            var item = previewItemAdapter ?? ItemAdapter;
-            var stack = new ItemStack(item, previewCount);
+            var sourceAdapters = SourceEntry?.Stack?.Adapters;
+            ItemStack stack;
+            if (sourceAdapters != null && sourceAdapters.Count >= previewCount)
+            {
+                if (!ItemStack.TryCreate(sourceAdapters.Take(previewCount), out stack))
+                    return null;
+            }
+            else
+            {
+                if (!ItemStack.TryCreate(new[] { previewItemAdapter ?? ItemAdapter }, out stack))
+                    return null;
+            }
             return new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
         }
     }

@@ -22,16 +22,17 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public struct InventorySlotState
     {
-        public InventorySlotState(IItemAdapter itemAdapter, int count)
+        public InventorySlotState(IReadOnlyList<IItemAdapter> adapters)
         {
-            ItemAdapter = itemAdapter;
-            Count = count;
+            Adapters = adapters ?? System.Array.Empty<IItemAdapter>();
         }
 
-        public IItemAdapter ItemAdapter;
-        public int Count;
+        public IReadOnlyList<IItemAdapter> Adapters;
 
-        public bool IsEmpty => ItemAdapter == null || Count <= 0;
+        public IItemAdapter ItemAdapter => Adapters.Count > 0 ? Adapters[0] : null;
+        public int Count => Adapters.Count;
+
+        public bool IsEmpty => Adapters == null || Adapters.Count <= 0;
     }
 
     /// <summary>

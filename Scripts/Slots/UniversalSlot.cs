@@ -73,7 +73,8 @@ namespace DragAndDropSystem.Slots
             if (_stack == null || _stack.IsEmpty)
             {
                 // Если слот пуст, создаем новый стек с количеством 1
-                _stack = new ItemStack(newItemAdapter, 1);
+                if (!ItemStack.TryCreate(new[] { newItemAdapter }, out _stack))
+                    return;
             }
             else
             {

@@ -11,11 +11,9 @@ namespace DragAndDropSystem.Inventories
         public static InventorySlotState CaptureSlotState(ISlot slot)
         {
             if (slot == null || slot.IsEmpty)
-            {
-                return new InventorySlotState(null, 0);
-            }
+                return new InventorySlotState(null);
 
-            return new InventorySlotState(slot.Stack.PrimaryAdapter, slot.Stack.Count);
+            return new InventorySlotState(slot.Stack.Adapters);
         }
 
         public static void RestoreSlotState(ISlot slot, InventorySlotState state)
@@ -29,7 +27,8 @@ namespace DragAndDropSystem.Inventories
             }
             else
             {
-                slot.SetStack(new ItemStack(state.ItemAdapter, state.Count));
+                if (ItemStack.TryCreate(state.Adapters, out var restoredStack))
+                    slot.SetStack(restoredStack);
             }
 
             slot.UpdateVisuals();

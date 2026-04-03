@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
@@ -707,8 +708,10 @@ namespace DragAndDropSystem.Inventories
                 operation.Entry.Stack.Count != plannedAmount ||
                 !ReferenceEquals(operation.Entry.Stack.PrimaryAdapter, operation.TargetItemAdapter))
             {
+                if (!ItemStack.TryCreate(operation.Entry.Stack.Adapters.Take(plannedAmount), out var validationStack))
+                    return false;
                 validationEntry = new DragEntry(
-                    new ItemStack(operation.TargetItemAdapter, plannedAmount),
+                    validationStack,
                     operation.Entry.SourceSlot,
                     operation.Entry.SourceInventory);
             }

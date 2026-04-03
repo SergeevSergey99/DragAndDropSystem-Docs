@@ -29,22 +29,9 @@ namespace DragAndDropSystem.Core
 
         public bool IsEmpty => PrimaryAdapter == null || Count <= 0;
 
-        public ItemStack(IItemAdapter itemAdapter, int count = 1)
-        {
-            int safeCount = Math.Max(0, count);
-            if (itemAdapter == null || safeCount == 0)
-            {
-                RefreshHeader();
-                return;
-            }
+        private ItemStack() => RefreshHeader();
 
-            for (int i = 0; i < safeCount; i++)
-                _adapters.Add(itemAdapter);
-
-            RefreshHeader();
-        }
-
-        public static ItemStack Empty() => new ItemStack(null, 0);
+        public static ItemStack Empty() => new ItemStack();
 
         public static bool TryCreate(IEnumerable<IItemAdapter> adapters, out ItemStack stack)
         {

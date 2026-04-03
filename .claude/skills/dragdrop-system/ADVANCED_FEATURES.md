@@ -17,7 +17,8 @@
 `TryAddStackQuiet()` on `UniversalInventory` bypasses rule validation during `ReloadUI()`:
 
 ```csharp
-inventory.TryAddStackQuiet(new ItemStack(item, count), slotIndex);
+if (ItemStack.TryCreate(adapters, out var stack))
+    inventory.TryAddStackQuiet(stack, slotIndex);
 // internally calls strategy.TryAddQuite(...) which sets skipRules = true
 ```
 

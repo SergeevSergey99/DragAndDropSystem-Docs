@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DragAndDropSystem.Core;
@@ -213,6 +214,7 @@ namespace DragAndDropSystem.Inventories
                 }
                 else
                 {
+                    int adapterOffset = 0;
                     foreach (var allocation in plannedEntry.Allocations)
                     {
                         if (allocation.Amount <= 0)
@@ -221,12 +223,22 @@ namespace DragAndDropSystem.Inventories
                             break;
                         }
 
+                        if (!ItemStack.TryCreate(
+                                plannedEntry.Entry.Stack.Adapters.Skip(adapterOffset).Take(allocation.Amount),
+                                out var requestStack))
+                        {
+                            entryFailed = true;
+                            break;
+                        }
+
+                        adapterOffset += allocation.Amount;
+
                         var request = new InventoryTransferRequest(
                             plannedEntry.Entry.SourceInventory,
                             plannedEntry.Entry.SourceSlot,
                             plan.TargetInventory,
                             allocation.Slot,
-                            new ItemStack(plannedEntry.Entry.Stack.PrimaryAdapter, allocation.Amount));
+                            requestStack);
 
                         if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItemAdapter, out var domainContext))
                         {
@@ -726,7 +738,11 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            var previewStack = new ItemStack(targetPreviewItem, requestedAmount);
+            if (!ItemStack.TryCreate(draggedStack.Adapters, out var previewStack))
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to create preview stack</color>");
+                return false;
+            }
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 targetInventory,
                 targetPreviewItem,
@@ -825,9 +841,11 @@ namespace DragAndDropSystem.Inventories
 
             // Захватываем реально перенесённые адаптеры из target slot
             // Новые адаптеры добавлены в конец стека (TryAddToStack → AddRange)
-            var transferredStack = resolvedSlot?.Stack != null && actuallyAdded > 0
-                ? resolvedSlot.Stack.CreateCopy(actuallyAdded)
-                : new ItemStack(targetPreviewItem, actuallyAdded);
+            ItemStack transferredStack;
+            if (resolvedSlot?.Stack != null && actuallyAdded > 0)
+                transferredStack = resolvedSlot.Stack.CreateCopy(actuallyAdded);
+            else if (!ItemStack.TryCreate(draggedStack.Adapters.Take(actuallyAdded), out transferredStack))
+                transferredStack = ItemStack.Empty();
 
             result = new InventoryTransferResult(
                 sourceInventory,

@@ -537,7 +537,18 @@ namespace DragAndDropSystem.Inventories
             if (!allowForeignSlot && !ReferenceEquals(slot.Inventory, this))
                 return false;
 
-            var previewStack = new ItemStack(itemAdapter, previewCount);
+            var sourceAdapters = request?.SourceEntry?.Stack?.Adapters;
+            ItemStack previewStack;
+            if (sourceAdapters != null && sourceAdapters.Count >= previewCount)
+            {
+                if (!ItemStack.TryCreate(sourceAdapters.Take(previewCount), out previewStack))
+                    return false;
+            }
+            else
+            {
+                if (!ItemStack.TryCreate(new[] { itemAdapter }, out previewStack))
+                    return false;
+            }
             return ValidateRulesForPreview(slot, previewStack, request);
         }
 
@@ -582,11 +593,11 @@ namespace DragAndDropSystem.Inventories
             {
                 if (slot != null && !slot.IsEmpty)
                 {
-                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.PrimaryAdapter, slot.Stack.Count));
+                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.Adapters));
                 }
                 else
                 {
-                    slotsSnapshot.Add(new InventorySlotState(null, 0));
+                    slotsSnapshot.Add(new InventorySlotState(null));
                 }
             }
 
@@ -633,7 +644,8 @@ namespace DragAndDropSystem.Inventories
                 }
                 else
                 {
-                    slot.SetStack(new ItemStack(state.ItemAdapter, state.Count));
+                    if (ItemStack.TryCreate(state.Adapters, out var restoredStack))
+                        slot.SetStack(restoredStack);
                 }
 
                 slot.UpdateVisuals();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CodeUtils;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inspector;
@@ -597,7 +598,8 @@ namespace DragAndDropSystem
                     if (entry.TargetSlot is UniversalSlot targetUniversalSlot)
                         targetUniversalSlot.SetIconVisibility(false);
 
-                    var visualStack = new ItemStack(entry.ItemAdapter, entry.Amount);
+                    if (!ItemStack.TryCreate(entry.TargetSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
+                        continue;
                     var presenter = DragVisualPresenter.AutoCreateInstance;
                     var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceSlot.Inventory);
 

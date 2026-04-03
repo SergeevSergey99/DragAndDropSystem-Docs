@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Inventories;
@@ -198,15 +199,18 @@ namespace DragAndDropSystem.DataBinding
             if (_inventory == null || itemAdapter == null || count <= 0)
                 return;
 
+            if (!ItemStack.TryCreate(Enumerable.Repeat(itemAdapter, count), out var stack))
+                return;
+
             if (targetSlotIndex < 0)
             {
-                _inventory.TryAddStackQuiet(new ItemStack(itemAdapter, count), -1);
+                _inventory.TryAddStackQuiet(stack, -1);
                 return;
             }
 
             var slot = _inventory.GetSlot(targetSlotIndex);
             if (slot != null)
-                slot.SetStack(new ItemStack(itemAdapter, count));
+                slot.SetStack(stack);
         }
 
         #endregion
