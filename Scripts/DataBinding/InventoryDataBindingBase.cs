@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
@@ -79,6 +80,7 @@ namespace DragAndDropSystem.DataBinding
                 _inventory.OnSwapCompleted += HandleSwapCompleted;
             }
 
+            DragAndDropManager.OnDropCompleted += HandleDropCompleted;
             ReloadUI();
         }
 
@@ -89,6 +91,8 @@ namespace DragAndDropSystem.DataBinding
                 _inventory.OnSwapAttempting -= HandleSwapAttempting;
                 _inventory.OnSwapCompleted -= HandleSwapCompleted;
             }
+
+            DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
         }
 
         /// <summary>
@@ -113,6 +117,29 @@ namespace DragAndDropSystem.DataBinding
         private void HandleSwapCompleted(InventorySwapContext context)
         {
             OnSwapCompleted(context);
+        }
+
+        private void HandleDropCompleted(DragContext context)
+        {
+            if (context == null)
+                return;
+
+            bool isSource = false;
+            bool isTarget = ReferenceEquals(context.TargetInventory, _inventory);
+
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                if (ReferenceEquals(context.Entries[i].SourceInventory, _inventory))
+                {
+                    isSource = true;
+                    break;
+                }
+            }
+
+            if (isSource)
+                OnDropCompletedFrom(context);
+            if (isTarget)
+                OnDropCompletedTo(context);
         }
 
         /// <summary>
@@ -152,6 +179,17 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         /// <param name="context">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
         protected abstract void OnItemRemovedFromUI(InventoryItemEventContext context);
+
+        /// <summary>
+        /// Вызывается после завершения drop-операции, если этот инвентарь был источником.
+        /// Полезно для отложенной обработки (напр. потребление ингредиентов крафта).
+        /// </summary>
+        protected virtual void OnDropCompletedFrom(DragContext context) { }
+
+        /// <summary>
+        /// Вызывается после завершения drop-операции, если этот инвентарь был целью.
+        /// </summary>
+        protected virtual void OnDropCompletedTo(DragContext context) { }
 
         /// <summary>
         /// Синхронизировать UI с внешними данными.

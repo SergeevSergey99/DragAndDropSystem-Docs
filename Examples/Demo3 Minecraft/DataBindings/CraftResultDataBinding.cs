@@ -1,6 +1,5 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Rules;
 
 namespace DragAndDropSystem.Examples.Minecraft
@@ -10,7 +9,7 @@ namespace DragAndDropSystem.Examples.Minecraft
     /// Показывает результат подходящего рецепта.
     /// При вытаскивании предмета — потребляет ингредиенты со стола крафта.
     ///
-    /// Потребление отложено до OnDragEnded: при batch-трансфере (разбивка по нескольким
+    /// Потребление отложено до OnDropCompletedFrom: при batch-трансфере (разбивка по нескольким
     /// target слотам) каждая аллокация может быть не кратна ResultCount,
     /// но их сумма — кратна (планировщик это гарантирует через DragAmountStep).
     ///
@@ -27,7 +26,6 @@ namespace DragAndDropSystem.Examples.Minecraft
         {
             base.OnEnable();
             CraftingManager.AutoCreateInstance.OnCraftResultChanged += ReloadUI;
-            DragAndDropManager.OnDragEnded += FlushPendingCrafts;
         }
 
         protected override void OnDisable()
@@ -35,7 +33,6 @@ namespace DragAndDropSystem.Examples.Minecraft
             base.OnDisable();
             if (CraftingManager.IsInstanceExist)
                 CraftingManager.Instance.OnCraftResultChanged -= ReloadUI;
-            DragAndDropManager.OnDragEnded -= FlushPendingCrafts;
         }
 
         protected override void OnReloadUI()
@@ -64,7 +61,7 @@ namespace DragAndDropSystem.Examples.Minecraft
             _pendingRemovedItems += context.Stack.Count;
         }
 
-        private void FlushPendingCrafts()
+        protected override void OnDropCompletedFrom(DragContext context)
         {
             if (_pendingRemovedItems <= 0)
                 return;
