@@ -171,20 +171,27 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         /// <summary>
-        /// Потребить ингредиенты для указанного числа крафтов.
-        /// craftsToConsume — сколько раз выполнить рецепт (по 1 ингредиенту за раз с каждого слота).
+        /// Потребить ингредиенты для указанного числа крафтов в соответствии с CurrentRecipe.
+        /// craftsToConsume — сколько раз выполнить рецепт.
         /// </summary>
         public void ConsumeCraftIngredients(int craftsToConsume)
         {
-            if (craftsToConsume <= 0)
+            if (craftsToConsume <= 0 || _currentRecipe == null)
                 return;
+
+            var grid = new MinecraftItemSO[9];
+            for (int i = 0; i < 9; i++)
+                grid[i] = _craftTableItems[i]?.ItemSO;
+
+            var consumePerCraft = _currentRecipe.GetConsumeAmountsPerCraft(grid);
 
             for (int i = 0; i < _craftTableItems.Length; i++)
             {
-                if (_craftTableItems[i] == null)
+                int toConsume = consumePerCraft[i] * craftsToConsume;
+                if (toConsume <= 0 || _craftTableItems[i] == null)
                     continue;
 
-                _craftTableItems[i].Count -= craftsToConsume;
+                _craftTableItems[i].Count -= toConsume;
                 if (_craftTableItems[i].Count <= 0)
                     _craftTableItems[i] = null;
             }

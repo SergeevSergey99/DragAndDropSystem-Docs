@@ -198,6 +198,47 @@ namespace DragAndDropSystem.Examples.Minecraft
             return maxCrafts == int.MaxValue ? 0 : maxCrafts;
         }
 
+        /// <summary>
+        /// Возвращает массив [9]: сколько единиц потреблять из каждого слота за ОДИН крафт.
+        /// Вызывать только когда Matches(gridItems) == true.
+        /// </summary>
+        public int[] GetConsumeAmountsPerCraft(MinecraftItemSO[] gridItems)
+        {
+            return _shapeless
+                ? GetConsumeAmountsShapeless(gridItems)
+                : GetConsumeAmountsShaped(gridItems);
+        }
+
+        private int[] GetConsumeAmountsShaped(MinecraftItemSO[] gridItems)
+        {
+            var result = new int[9];
+            var patternItems = GetPatternItems();
+            GetBoundingBox(patternItems, out int pMinR, out int pMinC);
+            GetBoundingBox(gridItems,    out int gMinR, out int gMinC);
+            int offsetR = gMinR - pMinR;
+            int offsetC = gMinC - pMinC;
+
+            for (int i = 0; i < 9; i++)
+            {
+                if (patternItems[i] == null) continue;
+                int r = i / 3 + offsetR;
+                int c = i % 3 + offsetC;
+                int gridIdx = r * 3 + c;
+                if (gridIdx >= 0 && gridIdx < 9)
+                    result[gridIdx] = 1;
+            }
+            return result;
+        }
+
+        private static int[] GetConsumeAmountsShapeless(MinecraftItemSO[] gridItems)
+        {
+            var result = new int[9];
+            for (int i = 0; i < 9; i++)
+                if (gridItems[i] != null)
+                    result[i] = 1;
+            return result;
+        }
+
         private static void GetBoundingBox(MinecraftItemSO[] grid3x3, out int minR, out int minC)
         {
             minR = 3;
