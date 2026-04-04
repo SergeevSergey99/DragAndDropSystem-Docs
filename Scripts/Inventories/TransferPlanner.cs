@@ -271,10 +271,9 @@ namespace DragAndDropSystem.Inventories
 
             if (isFirstEntry &&
                 targetSlotHint != null &&
-                !targetSlotHint.IsEmpty &&
-                policy.BlockedTarget == BlockedTargetBehavior.Swap)
+                policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
             {
-                return PlanOccupiedHintWithSwapFallback(
+                return PlanHintOnlyEntry(
                     context,
                     entry,
                     policy,
@@ -406,7 +405,7 @@ namespace DragAndDropSystem.Inventories
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
         }
 
-        private PlannedEntryTransfer PlanOccupiedHintWithSwapFallback(
+        private PlannedEntryTransfer PlanHintOnlyEntry(
             DragContext context,
             DragEntry entry,
             ResolvedDropPolicy policy,
@@ -456,7 +455,9 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
             }
 
-            if (targetInventory is UniversalInventory occupiedUni && occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
+            if (!targetSlotHint.IsEmpty &&
+                targetInventory is UniversalInventory occupiedUni &&
+                occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
             {
                 return new PlannedEntryTransfer(
                     entry,

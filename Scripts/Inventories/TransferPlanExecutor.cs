@@ -738,27 +738,33 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            if (!ItemStack.TryCreate(draggedStack.Adapters, out var previewStack))
+            int acceptableCount = requestedAmount;
+            if (targetSlot == null)
             {
-                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to create preview stack</color>");
-                return false;
+                if (!ItemStack.TryCreate(draggedStack.Adapters, out var previewStack))
+                {
+                    Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to create preview stack</color>");
+                    return false;
+                }
+
+                var acceptanceRequest = new InventoryAcceptanceRequest(
+                    targetInventory,
+                    targetPreviewItem,
+                    requestedAmount,
+                    new DragContext(previewStack, sourceSlot, sourceInventory, targetSlot, targetInventory),
+                    new DragEntry(previewStack, sourceSlot, sourceInventory));
+                acceptableCount = targetInventory.GetAcceptableCount(acceptanceRequest);
+
+                if (acceptableCount <= 0)
+                {
+                    Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory cannot accept any items</color>");
+                    return false;
+                }
             }
 
-            var acceptanceRequest = new InventoryAcceptanceRequest(
-                targetInventory,
-                targetPreviewItem,
-                requestedAmount,
-                new DragContext(previewStack, sourceSlot, sourceInventory, targetSlot, targetInventory),
-                new DragEntry(previewStack, sourceSlot, sourceInventory));
-            int acceptableCount = targetInventory.GetAcceptableCount(acceptanceRequest);
-
-            if (acceptableCount <= 0)
-            {
-                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory cannot accept any items</color>");
-                return false;
-            }
-
-            int transferAmount = Math.Min(requestedAmount, acceptableCount);
+            int transferAmount = requestedAmount;
+            if (targetSlot == null)
+                transferAmount = Math.Min(requestedAmount, acceptableCount);
             int remainingAmount = requestedAmount - transferAmount;
 
             Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Acceptable: {acceptableCount}, Transfer: {transferAmount}, Remaining: {remainingAmount}</color>");
