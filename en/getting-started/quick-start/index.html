@@ -628,6 +628,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#common-first-project-mistakes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common first-project mistakes
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -998,6 +1009,62 @@
     
   
     Transfer Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/drop-policy-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drop Policy Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/item-conversion-cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook: Item Conversion
   
 
     
@@ -1469,6 +1536,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/logs-and-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs and Debugging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1611,6 +1734,17 @@
     <span class="md-ellipsis">
       
         What Next
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-first-project-mistakes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common first-project mistakes
       
     </span>
   </a>
@@ -1776,6 +1910,16 @@ Each one will have its own <code>_items</code> list.</p>
 <li><a href="../../examples/demo4-trading/">Demo4 Trading</a> — if you need fixed slots, different data models, and trading</li>
 <li><a href="../../examples/">Examples</a> — if you want to choose from all 5 demos</li>
 <li><a href="../../architecture/data-binding/">Data Binding</a> — if you need to understand the lifecycle and extension points</li>
+<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — if the basic scene does not work on the first try</li>
+</ul>
+<h2 id="common-first-project-mistakes">Common first-project mistakes</h2>
+<ul>
+<li><code>ItemId</code> does not match your stacking semantics, so items merge or fail to merge unexpectedly</li>
+<li>there is no <code>DragAndDropManager</code> in the scene, or there are multiple managers</li>
+<li>there is no <code>EventSystem</code> in the scene</li>
+<li>the binding points to the wrong <code>UniversalInventory</code></li>
+<li>data changes outside the pipeline, but <code>ReloadUI()</code> is never called</li>
+<li><code>ListInventoryDataBinding</code> is used for fixed slots, while <code>MappedSlotInventoryDataBinding</code> is the correct template</li>
 </ul>
 
 

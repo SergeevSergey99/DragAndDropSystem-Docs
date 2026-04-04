@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -11,32 +11,32 @@
       
       
       
-        <link rel="prev" href="../getting-started/quick-start/">
+        <link rel="prev" href="../transfer-pipeline/">
       
       
-        <link rel="next" href="demo1-inventories/">
+        <link rel="next" href="../item-conversion-cookbook/">
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="../../../architecture/drop-policy-matrix/" hreflang="ru">
         
-          <link rel="alternate" href="../en/examples/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Примеры - Drag & Drop Inventory System</title>
+        <title>Drop Policy Matrix - Drag & Drop Inventory System</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -55,9 +55,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
-          Перейти к содержанию
+        <a href="#drop-policy-matrix" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,8 +95,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
-    <a href=".." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Примеры
+              Drop Policy Matrix
             
           </span>
         </div>
@@ -156,20 +156,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
+            <a href="../../../architecture/drop-policy-matrix/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../en/examples/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -210,7 +210,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -231,7 +231,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -243,11 +243,31 @@
     
     
       <li class="md-tabs__item">
-        <a href=".." class="md-tabs__link">
+        <a href="../../" class="md-tabs__link">
           
   
   
-  Главная
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../examples/" class="md-tabs__link">
+          
+  
+  
+  Examples
 
         </a>
       </li>
@@ -265,11 +285,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../data-binding/" class="md-tabs__link">
           
   
   
-  Примеры
+  Core Concepts
 
         </a>
       </li>
@@ -285,11 +305,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../architecture/data-binding/" class="md-tabs__link">
+        <a href="../../systems/selection/" class="md-tabs__link">
           
   
   
-  Основные концепции
+  Advanced Systems
 
         </a>
       </li>
@@ -305,31 +325,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../systems/selection/" class="md-tabs__link">
+        <a href="../../reference/optional-interfaces/" class="md-tabs__link">
           
   
   
-  Продвинутые системы
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../reference/optional-interfaces/" class="md-tabs__link">
-          
-  
-  
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -343,13 +343,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../feedback/" class="md-tabs__link">
+      <a href="../../feedback/" class="md-tabs__link">
         
   
   
     
   
-  Обратная связь
+  Feedback
 
       </a>
     </li>
@@ -376,9 +376,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
+    <a href="../../" title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
@@ -421,7 +421,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -437,7 +437,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Home
   
 
           </label>
@@ -450,14 +450,14 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Введение
+    Introduction
   
 
     
@@ -478,14 +478,243 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/quick-start/" class="md-nav__link">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo1-inventories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo1 Inventories
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo2-loot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo2 Loot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo3 Minecraft
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo4-trading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo4 Trading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo5-containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo5 Containers
   
 
     
@@ -531,17 +760,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Примеры
+    Core Concepts
   
 
     
@@ -552,16 +781,100 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Core Concepts
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-binding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Binding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../binding-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binding Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transfer-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transfer Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -586,7 +899,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Drop Policy Matrix
   
 
     
@@ -604,7 +917,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Drop Policy Matrix
   
 
     
@@ -616,7 +929,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -625,15 +938,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#short-idea" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как читать этот раздел
+        Short idea
       
     </span>
   </a>
@@ -641,22 +954,66 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#basic-matrix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Какие демо входят в пакет
+        Basic matrix
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Какие демо входят в пакет">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-slot-drop-important-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct slot drop: important rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#occupied-slot-real-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Occupied slot: real order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partial-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Partial transfer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#same-inventory-vs-cross-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Same-inventory vs cross-inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Same-inventory vs cross-inventory">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#demo1-inventories" class="md-nav__link">
+  <a href="#same-inventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Demo1 Inventories
+        Same-inventory
       
     </span>
   </a>
@@ -664,43 +1021,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#demo2-loot" class="md-nav__link">
+  <a href="#cross-inventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Demo2 Loot
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#demo3-minecraft" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Demo3 Minecraft
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#demo4-trading" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Demo4 Trading
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#demo5-containers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Demo5 Containers
+        Cross-inventory
       
     </span>
   </a>
@@ -713,10 +1037,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#batch-drag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как выбрать нужное демо
+        Batch drag
       
     </span>
   </a>
@@ -724,21 +1048,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#practical-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что важно помнить
+        Practical examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed-equipment-slot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed equipment slot
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#inventory-area" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Куда идти после примеров
+        Inventory area
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-behavior-looks-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If behavior looks wrong
       
     </span>
   </a>
@@ -761,14 +1113,14 @@
   
   
     <li class="md-nav__item">
-      <a href="demo1-inventories/" class="md-nav__link">
+      <a href="../item-conversion-cookbook/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo1 Inventories
+    Cookbook: Item Conversion
   
 
     
@@ -789,14 +1141,14 @@
   
   
     <li class="md-nav__item">
-      <a href="demo2-loot/" class="md-nav__link">
+      <a href="../strategies/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo2 Loot
+    Placement Strategies
   
 
     
@@ -817,14 +1169,14 @@
   
   
     <li class="md-nav__item">
-      <a href="demo3-minecraft/" class="md-nav__link">
+      <a href="../rules/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Rules
   
 
     
@@ -845,327 +1197,14 @@
   
   
     <li class="md-nav__item">
-      <a href="demo4-trading/" class="md-nav__link">
+      <a href="../drop-areas/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo4 Trading
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="demo5-containers/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Demo5 Containers
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Основные концепции
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Основные концепции
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/data-binding/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Привязка данных (DataBinding)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/binding-templates/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Шаблоны DataBinding
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/transfer-pipeline/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Конвейер переноса
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/drop-policy-matrix/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Матрица Drop Policy
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/item-conversion-cookbook/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Cookbook: конвертация предметов
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/strategies/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Стратегии размещения
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/rules/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Правила (Rules)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/drop-areas/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1218,7 +1257,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Advanced Systems
   
 
     
@@ -1234,7 +1273,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Advanced Systems
   
 
           </label>
@@ -1247,14 +1286,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../systems/selection/" class="md-nav__link">
+      <a href="../../systems/selection/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1275,14 +1314,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../systems/context-menu/" class="md-nav__link">
+      <a href="../../systems/context-menu/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1303,14 +1342,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../systems/tooltips/" class="md-nav__link">
+      <a href="../../systems/tooltips/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1331,14 +1370,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../systems/filter-sort/" class="md-nav__link">
+      <a href="../../systems/filter-sort/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1359,14 +1398,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../systems/interaction/" class="md-nav__link">
+      <a href="../../systems/interaction/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1387,14 +1426,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../systems/world-3d/" class="md-nav__link">
+      <a href="../../systems/world-3d/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1447,7 +1486,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1463,7 +1502,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1476,14 +1515,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/optional-interfaces/" class="md-nav__link">
+      <a href="../../reference/optional-interfaces/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Optional Interfaces
   
 
     
@@ -1504,14 +1543,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/file-map/" class="md-nav__link">
+      <a href="../../reference/file-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    File Map
   
 
     
@@ -1532,14 +1571,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/events/" class="md-nav__link">
+      <a href="../../reference/events/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Event Reference
   
 
     
@@ -1560,14 +1599,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/logs-and-debugging/" class="md-nav__link">
+      <a href="../../reference/logs-and-debugging/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1588,7 +1627,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/troubleshooting/" class="md-nav__link">
+      <a href="../../reference/troubleshooting/" class="md-nav__link">
         
   
   
@@ -1623,14 +1662,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../feedback/" class="md-nav__link">
+      <a href="../../feedback/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1656,7 +1695,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1665,15 +1704,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#short-idea" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как читать этот раздел
+        Short idea
       
     </span>
   </a>
@@ -1681,22 +1720,66 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#basic-matrix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Какие демо входят в пакет
+        Basic matrix
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Какие демо входят в пакет">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-slot-drop-important-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct slot drop: important rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#occupied-slot-real-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Occupied slot: real order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partial-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Partial transfer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#same-inventory-vs-cross-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Same-inventory vs cross-inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Same-inventory vs cross-inventory">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#demo1-inventories" class="md-nav__link">
+  <a href="#same-inventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Demo1 Inventories
+        Same-inventory
       
     </span>
   </a>
@@ -1704,43 +1787,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#demo2-loot" class="md-nav__link">
+  <a href="#cross-inventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Demo2 Loot
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#demo3-minecraft" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Demo3 Minecraft
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#demo4-trading" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Demo4 Trading
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#demo5-containers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Demo5 Containers
+        Cross-inventory
       
     </span>
   </a>
@@ -1753,10 +1803,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#batch-drag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как выбрать нужное демо
+        Batch drag
       
     </span>
   </a>
@@ -1764,21 +1814,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#practical-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что важно помнить
+        Practical examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Practical examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed-equipment-slot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed equipment slot
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#inventory-area" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Куда идти после примеров
+        Inventory area
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-behavior-looks-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If behavior looks wrong
       
     </span>
   </a>
@@ -1802,132 +1880,161 @@
 
 
 
-<h1 id="_1">Примеры</h1>
-<p>Этот раздел описывает <strong>реальные demo-сцены из папки <code>Examples/</code></strong>: из каких частей они состоят, какие паттерны показывают и какие файлы смотреть в коде.</p>
-<p>Если быстрый старт отвечает на вопрос "как поднять первый инвентарь", то раздел примеров отвечает на другие вопросы:</p>
+<h1 id="drop-policy-matrix">Drop Policy Matrix</h1>
+<p>This page answers a practical question:
+"what exactly will the system do for my combination of target slot, policy, and slot state?"</p>
+<p>The full architecture is described in <a href="../transfer-pipeline/">Transfer Pipeline</a>.
+This page is the condensed behavior matrix.</p>
+<hr />
+<h2 id="short-idea">Short idea</h2>
+<p>There are three main switches:</p>
 <ul>
-<li>как конкретный demo устроен по слоям</li>
-<li>где в нём находятся данные, адаптеры, биндинги и UI</li>
-<li>как проходит основной flow внутри сцены</li>
-<li>какие файлы смотреть, если вы хотите вынести паттерн в свой проект</li>
+<li>whether a concrete <code>target slot</code> exists</li>
+<li>whether that slot is empty or occupied</li>
+<li>which <code>BlockedTargetBehavior</code> is selected</li>
+</ul>
+<p>Additional modifiers:</p>
+<ul>
+<li><code>AllowPartial</code></li>
+<li><code>BatchMode</code></li>
+<li>same-inventory vs cross-inventory transfer</li>
 </ul>
 <hr />
-<h2 id="_2">Как читать этот раздел</h2>
-<p>Каждая страница примера описывает:</p>
-<ol>
-<li><strong>Что показывает демо</strong></li>
-<li><strong>Как оно устроено</strong></li>
-<li><strong>Как работает основной сценарий</strong></li>
-<li><strong>Какие файлы смотреть</strong></li>
-</ol>
-<p>Идея не в том, чтобы просто повторить сцену, а в том, чтобы быстро понять её архитектурную форму.</p>
-<hr />
-<h2 id="_3">Какие демо входят в пакет</h2>
-<h3 id="demo1-inventories"><a href="demo1-inventories/">Demo1 Inventories</a></h3>
-<p>Когда использовать:
-- нужен самый простой пример списка предметов
-- хотите посмотреть <code>ListInventoryDataBinding</code> без лишней доменной логики
-- нужен пример локальных <code>CanStartDrag</code> и <code>CanDrop</code></p>
-<p>Что показывает:
-- <code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code>
-- загрузку списка в UI
-- синхронизацию списка обратно в данные
-- базовые inventory rules и custom validation hooks</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo1 Inventaries/*</code></p>
-<h3 id="demo2-loot"><a href="demo2-loot/">Demo2 Loot</a></h3>
-<p>Когда использовать:
-- нужен пример "мир -&gt; событие -&gt; UI -&gt; инвентарь"
-- нужны сундуки и открытие панели по взаимодействию
-- нужен pickup/drop предметов, связанных с миром</p>
-<p>Что показывает:
-- mediator между world layer и UI
-- два data binding-а для игрока и сундука
-- <code>IInteractable</code>, <code>Chest</code>, <code>PlayerInteraction</code>
-- интеграцию с world drop / pickup</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo2 Loot/*</code></p>
-<h3 id="demo3-minecraft"><a href="demo3-minecraft/">Demo3 Minecraft</a></h3>
-<p>Когда использовать:
-- нужен слот-индексированный inventory
-- нужен крафт по сетке и отдельный слот результата
-- нужен пример максимального размера стека на слот</p>
-<p>Что показывает:
-- <code>SlotIndexedInventoryDataBinding</code>
-- раздельные hotbar / inventory / craft table
-- <code>CraftingManager</code> как единый источник доменных данных
-- <code>CraftResultDataBinding</code> как read-only output slot с side effects</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo3 Minecraft/*</code></p>
-<h3 id="demo4-trading"><a href="demo4-trading/">Demo4 Trading</a></h3>
-<p>Когда использовать:
-- предметы пересекают границу между разными доменными моделями
-- нужны converters
-- операция зависит от денег, цен и commit-time проверок</p>
-<p>Что показывает:
-- player / merchant / equipment inventories
-- <code>ListInventoryDataBinding</code> и <code>MappedSlotInventoryDataBinding</code>
-- domain hooks и conversion pipeline
-- разделение mechanical validation и business validation</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo4 Trading/*</code></p>
-<h3 id="demo5-containers"><a href="demo5-containers/">Demo5 Containers</a></h3>
-<p>Когда использовать:
-- предмет может сам содержать другой inventory
-- нужно открывать контейнер из контекстного меню
-- нужны custom occupied-slot drops и защита от циклов</p>
-<p>Что показывает:
-- item instances вместо простых SO-элементов
-- контейнер как предмет и как источник данных одновременно
-- <code>ContainerUIController</code> и переключение активного контейнера
-- ограничения вида "контейнер нельзя положить в самого себя"</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo5 Containers/*</code></p>
-<hr />
-<h2 id="_4">Как выбрать нужное демо</h2>
+<h2 id="basic-matrix">Basic matrix</h2>
 <table>
 <thead>
 <tr>
-<th>Если вам нужно</th>
-<th>Начните с</th>
+<th>Scenario</th>
+<th><code>Reject</code></th>
+<th><code>Swap</code></th>
+<th><code>FindAlternative</code></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Базовый inventory list + простые hooks</td>
-<td><a href="demo1-inventories/">Demo1 Inventories</a></td>
+<td>concrete <code>target slot</code>, slot is empty and valid</td>
+<td>place into that slot</td>
+<td>place into that slot</td>
+<td>place into that slot</td>
 </tr>
 <tr>
-<td>UI для сундука и связь с миром</td>
-<td><a href="demo2-loot/">Demo2 Loot</a></td>
+<td>concrete <code>target slot</code>, slot is occupied but merge/placement is possible</td>
+<td>place into that slot</td>
+<td>place into that slot</td>
+<td>place into that slot</td>
 </tr>
 <tr>
-<td>Сетка крафта и slot-indexed data</td>
-<td><a href="demo3-minecraft/">Demo3 Minecraft</a></td>
+<td>concrete <code>target slot</code>, slot is occupied and normal placement is impossible</td>
+<td>reject if <code>occupied handler</code> does not intercept</td>
+<td>try <code>occupied handler</code>, then swap</td>
+<td>try <code>occupied handler</code>, then search other slots</td>
 </tr>
 <tr>
-<td>Торговля, конвертация и золото</td>
-<td><a href="demo4-trading/">Demo4 Trading</a></td>
+<td>concrete <code>target slot</code>, slot fails rules</td>
+<td>reject</td>
+<td>reject or swap if this is an occupied target and both swap directions pass rules</td>
+<td>may search for another slot</td>
 </tr>
 <tr>
-<td>Вложенные контейнеры и context menu</td>
-<td><a href="demo5-containers/">Demo5 Containers</a></td>
+<td>area-drop without a concrete slot</td>
+<td>inventory-wide search for valid placement</td>
+<td>usually behaves like normal inventory search, not slot-to-slot swap</td>
+<td>inventory-wide search for valid placement</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="_5">Что важно помнить</h2>
+<h2 id="direct-slot-drop-important-rule">Direct slot drop: important rule</h2>
+<p>When the operation already has a concrete <code>target slot</code>:</p>
 <ul>
-<li>Демки показывают <strong>паттерны интеграции</strong>, а не единственную правильную архитектуру.</li>
-<li>Между демо можно свободно переносить куски: например, взять контейнеры из Demo5 и fixed slots из Demo4.</li>
-<li>Если у вас иная доменная модель, обычно меняются bindings, adapters и converters, а не базовый transfer pipeline.</li>
+<li>with <code>Reject</code> and <code>Swap</code>, planner must not scan the rest of the inventory</li>
+<li>inventory-wide search is only valid for <code>FindAlternative</code></li>
+<li>executor for a concrete <code>targetSlot</code> must not repeat inventory-wide <code>GetAcceptableCount()</code></li>
+</ul>
+<p>This is especially important for fixed-slot inventories such as equipment.
+Otherwise you get misleading validation logs for neighboring slots.</p>
+<hr />
+<h2 id="occupied-slot-real-order">Occupied slot: real order</h2>
+<p>When the target slot is occupied and normal placement into that slot failed:</p>
+<ol>
+<li>planner first checks <code>DataBinding.CanHandleOccupiedSlotDrop(...)</code></li>
+<li>if the binding says "I can handle this myself" -&gt; build <code>RequiresOccupiedHandler</code></li>
+<li>if the binding does not intercept:</li>
+<li><code>Reject</code> -&gt; fail</li>
+<li><code>Swap</code> -&gt; build <code>RequiresSwap</code></li>
+<li><code>FindAlternative</code> -&gt; enumerate other candidate slots</li>
+</ol>
+<p>So the <code>occupied handler</code> has priority over both swap and alternative placement.</p>
+<hr />
+<h2 id="partial-transfer">Partial transfer</h2>
+<p><code>AllowPartial</code> only changes the amount, not the branch selection:</p>
+<ul>
+<li>if everything fits -&gt; normal success</li>
+<li>if only part fits and <code>AllowPartial = false</code> -&gt; fail</li>
+<li>if only part fits and <code>AllowPartial = true</code>:</li>
+<li>with <code>FindAlternative</code>, the remainder may search other slots</li>
+<li>with <code>Reject</code> and <code>Swap</code>, the remainder must not trigger inventory-wide search</li>
 </ul>
 <hr />
-<h2 id="_6">Куда идти после примеров</h2>
+<h2 id="same-inventory-vs-cross-inventory">Same-inventory vs cross-inventory</h2>
+<h3 id="same-inventory">Same-inventory</h3>
 <ul>
-<li><a href="../getting-started/quick-start/">Quick Start</a> — если нужен базовый запуск с нуля</li>
-<li><a href="../architecture/data-binding/">Data Binding</a> — если нужен полный lifecycle hooks</li>
-<li><a href="../architecture/transfer-pipeline/">Transfer Pipeline</a> — если нужно понять planning / execution / rollback</li>
+<li><code>FindAlternative</code> is not a global reshuffle or sort</li>
+<li>if the target fails, the item stays in place</li>
+<li>swap is only supported for a single entry and a full source stack</li>
+</ul>
+<h3 id="cross-inventory">Cross-inventory</h3>
+<ul>
+<li>conversion may change the adapter type across inventory boundaries</li>
+<li>swap must not be a raw stack exchange</li>
+<li>both directions must run through conversion independently</li>
+</ul>
+<hr />
+<h2 id="batch-drag">Batch drag</h2>
+<p>For batch drag, keep these separate:</p>
+<ul>
+<li><code>BlockedTargetBehavior</code></li>
+<li><code>BatchMode</code></li>
+</ul>
+<p><code>BatchMode</code> answers "what happens if one entry fails":</p>
+<ul>
+<li><code>Atomic</code> -&gt; all or nothing</li>
+<li><code>BestEffort</code> -&gt; move what can be moved</li>
+</ul>
+<p>Swap is not a general batch orchestration mode.
+The current swap implementation is aimed at a single entry and a full source stack.</p>
+<hr />
+<h2 id="practical-examples">Practical examples</h2>
+<h3 id="fixed-equipment-slot">Fixed equipment slot</h3>
+<p>Conditions:</p>
+<ul>
+<li>a concrete slot exists</li>
+<li>that slot is occupied</li>
+<li><code>BlockedTargetBehavior = Swap</code></li>
+</ul>
+<p>Expected behavior:</p>
+<ul>
+<li>planner works only with that slot</li>
+<li>it does not validate neighboring weapon/armor/artifact slots</li>
+<li>if normal placement fails and <code>occupied handler</code> does not intercept, planner builds a swap</li>
+</ul>
+<h3 id="inventory-area">Inventory area</h3>
+<p>Conditions:</p>
+<ul>
+<li>no concrete target slot</li>
+</ul>
+<p>Expected behavior:</p>
+<ul>
+<li>inventory-wide search is allowed</li>
+<li><code>GetAcceptableCount()</code> is allowed</li>
+<li>the placement strategy decides merge-first vs empty-first</li>
+</ul>
+<hr />
+<h2 id="if-behavior-looks-wrong">If behavior looks wrong</h2>
+<ul>
+<li><a href="../transfer-pipeline/">Transfer Pipeline</a> — overall phase order</li>
+<li><a href="../../reference/logs-and-debugging/">Logs and Debugging</a> — how to read planner/executor/rules logs</li>
+<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — common symptoms and causes</li>
 </ul>
 
 
@@ -1952,7 +2059,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -1984,10 +2091,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

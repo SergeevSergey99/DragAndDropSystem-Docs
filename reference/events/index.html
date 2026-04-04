@@ -14,7 +14,7 @@
         <link rel="prev" href="../file-map/">
       
       
-        <link rel="next" href="../../feedback/">
+        <link rel="next" href="../logs-and-debugging/">
       
       
         
@@ -880,6 +880,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../../architecture/drop-policy-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Матрица Drop Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/item-conversion-cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook: конвертация предметов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/strategies/" class="md-nav__link">
         
   
@@ -1509,6 +1565,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logs-and-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Логи и отладка
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1734,7 +1846,7 @@ flowchart TD
     DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
     style DragOver fill:#8884, stroke-dasharray: 5 5
     OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
     style OnDropCompleted fill:#4F44
     OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
     style OnDragEnded fill:#f4f4
@@ -1848,7 +1960,7 @@ flowchart TD
 <tr>
 <td><code>OnSwapCompleted</code></td>
 <td>Обмен выполнен</td>
-<td>Оба предмета поменялись местами</td>
+<td>Слоты уже содержат итоговые target-side стеки</td>
 </tr>
 </tbody>
 </table>
@@ -1887,14 +1999,9 @@ flowchart TD
 </thead>
 <tbody>
 <tr>
-<td><code>Item</code></td>
-<td><code>IItemAdapter</code></td>
-<td>Затронутый предмет</td>
-</tr>
-<tr>
-<td><code>Count</code></td>
-<td><code>int</code></td>
-<td>Количество добавленных/удалённых</td>
+<td><code>Stack</code></td>
+<td><code>ItemStack</code></td>
+<td>Полный стек события</td>
 </tr>
 <tr>
 <td><code>SlotIndex</code></td>
@@ -1923,6 +2030,12 @@ flowchart TD
 </tr>
 </tbody>
 </table>
+<p>Практически:</p>
+<ul>
+<li><code>context.Stack.PrimaryAdapter</code> даёт representative adapter</li>
+<li><code>context.Stack.Count</code> даёт количество</li>
+<li>для cross-inventory переноса remove обычно публикует stack до conversion, а add — stack после conversion</li>
+</ul>
 <hr />
 <h2 id="_6">Контекст обмена</h2>
 <h3 id="inventoryswapcontext">Поля InventorySwapContext</h3>
@@ -1938,12 +2051,12 @@ flowchart TD
 <tr>
 <td><code>SourceStack</code></td>
 <td><code>ItemStack</code></td>
-<td>Стак из исходного слота (будет перемещён в целевой)</td>
+<td>Pre-commit стак из исходного слота</td>
 </tr>
 <tr>
 <td><code>TargetStack</code></td>
 <td><code>ItemStack</code></td>
-<td>Стак из целевого слота (будет перемещён в исходный)</td>
+<td>Pre-commit стак из целевого слота</td>
 </tr>
 <tr>
 <td><code>SourceSlot</code></td>
@@ -1972,6 +2085,11 @@ flowchart TD
 </tr>
 </tbody>
 </table>
+<p>Важно:</p>
+<ul>
+<li>для cross-inventory swap это не обязательно те же adapter-объекты, которые будут лежать в слотах после commit</li>
+<li>итоговые слоты уже содержат target-side converted stacks</li>
+</ul>
 <hr />
 <h2 id="_7">Когда отправляются события</h2>
 <pre class="mermaid"><code>flowchart TB
@@ -1987,6 +2105,11 @@ flowchart TD
 <p class="admonition-title">Безопасность по умолчанию</p>
 <p>В атомарном режиме ни одно событие не отправляется, пока вся операция не завершится успешно. Это предотвращает реакцию подписчиков на изменения, которые могут быть откачены.</p>
 </div>
+<p>См. также:</p>
+<ul>
+<li><a href="../../architecture/transfer-pipeline/">Конвейер переноса</a></li>
+<li><a href="../logs-and-debugging/">Логи и отладка</a></li>
+</ul>
 
 
 

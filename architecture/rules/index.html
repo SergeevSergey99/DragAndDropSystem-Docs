@@ -883,6 +883,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../drop-policy-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Матрица Drop Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../item-conversion-cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook: конвертация предметов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../strategies/" class="md-nav__link">
         
   
@@ -1458,6 +1514,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/logs-and-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Логи и отладка
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1620,7 +1732,8 @@
 <div class="admonition note">
 <p class="admonition-title">Rules и business hooks — не одно и то же</p>
 <p>Rules отвечают за механические ограничения переноса: можно ли взять предмет, можно ли бросить его в слот, подходит ли тип.
-Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>), а не <code>CanDrop</code>.</p>
+Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>), а не <code>CanDrop</code>.
+Для быстрого сравнения см. также <a href="../transfer-pipeline/#три-типа-проверок">Конвейер переноса</a> и <a href="../drop-policy-matrix/">Матрица Drop Policy</a>.</p>
 </div>
 <hr />
 <h2 id="_2">Три уровня проверки</h2>
@@ -1786,6 +1899,7 @@
 <li><strong>Планирование переноса</strong> --- глобальные + инвентарные + слотовые правила цели.</li>
 <li><strong>Обмен (swap)</strong> --- правила проверяются в обоих направлениях (A&rarr;B и B&rarr;A).</li>
 </ol>
+<p>Если правила неожиданно вызываются "слишком часто", сначала посмотрите <a href="../../reference/logs-and-debugging/">Логи и отладка</a> и <a href="../../reference/troubleshooting/">Troubleshooting</a>.</p>
 <hr />
 <h2 id="_7">Ключевые классы</h2>
 <table>

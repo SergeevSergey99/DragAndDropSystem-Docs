@@ -628,6 +628,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Частые ошибки в первом проекте
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -998,6 +1009,62 @@
     
   
     Конвейер переноса
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/drop-policy-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Матрица Drop Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/item-conversion-cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook: конвертация предметов
   
 
     
@@ -1469,6 +1536,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/logs-and-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Логи и отладка
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1611,6 +1734,17 @@
     <span class="md-ellipsis">
       
         Что дальше
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Частые ошибки в первом проекте
       
     </span>
   </a>
@@ -1776,6 +1910,16 @@
 <li><a href="../../examples/demo4-trading/">Demo4 Trading</a> — если нужны fixed slots, разные модели данных и торговля</li>
 <li><a href="../../examples/">Примеры</a> — если хотите выбрать из всех 5 демо</li>
 <li><a href="../../architecture/data-binding/">Привязка данных</a> — если нужно понять lifecycle и точки расширения</li>
+<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — если базовая сцена не завелась с первого раза</li>
+</ul>
+<h2 id="_4">Частые ошибки в первом проекте</h2>
+<ul>
+<li><code>ItemId</code> не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно</li>
+<li>на сцене нет <code>DragAndDropManager</code> или их несколько</li>
+<li>на сцене нет <code>EventSystem</code></li>
+<li>binding привязан не к тому <code>UniversalInventory</code></li>
+<li>данные меняются вне pipeline, но <code>ReloadUI()</code> не вызывается</li>
+<li>для fixed slots используется <code>ListInventoryDataBinding</code>, хотя нужен <code>MappedSlotInventoryDataBinding</code></li>
 </ul>
 
 

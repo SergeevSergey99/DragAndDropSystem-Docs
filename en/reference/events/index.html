@@ -14,7 +14,7 @@
         <link rel="prev" href="../file-map/">
       
       
-        <link rel="next" href="../../feedback/">
+        <link rel="next" href="../logs-and-debugging/">
       
       
         
@@ -880,6 +880,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../../architecture/drop-policy-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drop Policy Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/item-conversion-cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook: Item Conversion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../architecture/strategies/" class="md-nav__link">
         
   
@@ -1509,6 +1565,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logs-and-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs and Debugging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1734,7 +1846,7 @@ flowchart TD
     DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
     style DragOver fill:#8884, stroke-dasharray: 5 5
     OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
     style OnDropCompleted fill:#4F44
     OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
     style OnDragEnded fill:#f4f4
@@ -1847,7 +1959,7 @@ flowchart TD
 <tr>
 <td><code>OnSwapCompleted</code></td>
 <td>Swap executed</td>
-<td>Both items swapped places</td>
+<td>Slots already contain final target-side stacks</td>
 </tr>
 </tbody>
 </table>
@@ -1886,14 +1998,9 @@ flowchart TD
 </thead>
 <tbody>
 <tr>
-<td><code>Item</code></td>
-<td><code>IItemAdapter</code></td>
-<td>Affected item</td>
-</tr>
-<tr>
-<td><code>Count</code></td>
-<td><code>int</code></td>
-<td>Number of items added/removed</td>
+<td><code>Stack</code></td>
+<td><code>ItemStack</code></td>
+<td>Full event stack</td>
 </tr>
 <tr>
 <td><code>SlotIndex</code></td>
@@ -1922,6 +2029,12 @@ flowchart TD
 </tr>
 </tbody>
 </table>
+<p>In practice:</p>
+<ul>
+<li><code>context.Stack.PrimaryAdapter</code> gives a representative adapter</li>
+<li><code>context.Stack.Count</code> gives the amount</li>
+<li>for cross-inventory transfer, remove usually publishes the pre-conversion stack, while add publishes the post-conversion stack</li>
+</ul>
 <hr />
 <h2 id="swap-context">Swap Context</h2>
 <h3 id="inventoryswapcontext-fields">InventorySwapContext Fields</h3>
@@ -1937,12 +2050,12 @@ flowchart TD
 <tr>
 <td><code>SourceStack</code></td>
 <td><code>ItemStack</code></td>
-<td>Stack from the source slot (will be moved to the target)</td>
+<td>Pre-commit stack from the source slot</td>
 </tr>
 <tr>
 <td><code>TargetStack</code></td>
 <td><code>ItemStack</code></td>
-<td>Stack from the target slot (will be moved to the source)</td>
+<td>Pre-commit stack from the target slot</td>
 </tr>
 <tr>
 <td><code>SourceSlot</code></td>
@@ -1971,6 +2084,11 @@ flowchart TD
 </tr>
 </tbody>
 </table>
+<p>Important:</p>
+<ul>
+<li>for cross-inventory swap, these are not necessarily the same adapter objects that remain in the slots after commit</li>
+<li>final slots already contain target-side converted stacks</li>
+</ul>
 <hr />
 <h2 id="when-events-are-dispatched">When Events Are Dispatched</h2>
 <pre class="mermaid"><code>flowchart TB
@@ -1986,6 +2104,11 @@ flowchart TD
 <p class="admonition-title">Safe by Default</p>
 <p>In atomic mode, no events are dispatched until the entire operation completes successfully. This prevents subscribers from reacting to changes that may be rolled back.</p>
 </div>
+<p>See also:</p>
+<ul>
+<li><a href="../../architecture/transfer-pipeline/">Transfer Pipeline</a></li>
+<li><a href="../logs-and-debugging/">Logs and Debugging</a></li>
+</ul>
 
 
 

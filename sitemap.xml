@@ -36,6 +36,20 @@
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/drop-areas/"/>
     </url>
     <url>
+        <loc>Nonearchitecture/drop-policy-matrix/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonearchitecture/drop-policy-matrix/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/drop-policy-matrix/"/>
+    </url>
+    <url>
+        <loc>Nonearchitecture/item-conversion-cookbook/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonearchitecture/item-conversion-cookbook/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/item-conversion-cookbook/"/>
+    </url>
+    <url>
         <loc>Nonearchitecture/rules/</loc>
         <lastmod>2026-04-04</lastmod>
         <changefreq>daily</changefreq>
@@ -141,11 +155,25 @@
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/file-map/"/>
     </url>
     <url>
+        <loc>Nonereference/logs-and-debugging/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/logs-and-debugging/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/logs-and-debugging/"/>
+    </url>
+    <url>
         <loc>Nonereference/optional-interfaces/</loc>
         <lastmod>2026-04-04</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/optional-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/optional-interfaces/"/>
+    </url>
+    <url>
+        <loc>Nonereference/troubleshooting/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/troubleshooting/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/troubleshooting/"/>
     </url>
     <url>
         <loc>Nonesystems/context-menu/</loc>
@@ -223,6 +251,20 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/drop-areas/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="Nonearchitecture/drop-areas/"/>
+    </url>
+    <url>
+        <loc>Noneen/architecture/drop-policy-matrix/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/drop-policy-matrix/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonearchitecture/drop-policy-matrix/"/>
+    </url>
+    <url>
+        <loc>Noneen/architecture/item-conversion-cookbook/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/architecture/item-conversion-cookbook/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonearchitecture/item-conversion-cookbook/"/>
     </url>
     <url>
         <loc>Noneen/architecture/rules/</loc>
@@ -330,11 +372,25 @@
         <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/file-map/"/>
     </url>
     <url>
+        <loc>Noneen/reference/logs-and-debugging/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/logs-and-debugging/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/logs-and-debugging/"/>
+    </url>
+    <url>
         <loc>Noneen/reference/optional-interfaces/</loc>
         <lastmod>2026-04-04</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/optional-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/optional-interfaces/"/>
+    </url>
+    <url>
+        <loc>Noneen/reference/troubleshooting/</loc>
+        <lastmod>2026-04-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/reference/troubleshooting/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="Nonereference/troubleshooting/"/>
     </url>
     <url>
         <loc>Noneen/systems/context-menu/</loc>

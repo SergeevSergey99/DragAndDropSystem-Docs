@@ -11,14 +11,14 @@
       
       
       
-        <link rel="prev" href="../binding-templates/">
+        <link rel="prev" href="../drop-policy-matrix/">
       
       
-        <link rel="next" href="../drop-policy-matrix/">
+        <link rel="next" href="../strategies/">
       
       
         
-          <link rel="alternate" href="../../../architecture/transfer-pipeline/" hreflang="ru">
+          <link rel="alternate" href="../../../architecture/item-conversion-cookbook/" hreflang="ru">
         
           <link rel="alternate" href="./" hreflang="en">
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Transfer Pipeline - Drag & Drop Inventory System</title>
+        <title>Cookbook: Item Conversion - Drag & Drop Inventory System</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#transfer-pipeline" class="md-skip">
+        <a href="#cookbook-item-conversion" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Transfer Pipeline
+              Cookbook: Item Conversion
             
           </span>
         </div>
@@ -163,7 +163,7 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../architecture/transfer-pipeline/" hreflang="ru" class="md-select__link">
+            <a href="../../../architecture/item-conversion-cookbook/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
@@ -852,37 +852,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Transfer Pipeline
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../transfer-pipeline/" class="md-nav__link">
         
   
   
@@ -898,230 +871,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#short-version" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Short version
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-a-normal-drop" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What happens on a normal drop
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-planning-exists" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why planning exists
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#planning-vs-commit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Planning vs commit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#three-types-of-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Three types of checks
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Three types of checks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rules-is-this-allowed-at-all" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rules — "is this allowed at all?"
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#business-checks-cancommittransfer-can-we-do-this-right-now" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Business checks (CanCommitTransfer) — "can we do this right now?"
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#success-notification-ontransfersucceeded-what-to-do-after" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Success notification (OnTransferSucceeded) — "what to do after?"
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#when-to-use-which" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use which
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#item-conversion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Item conversion
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#detailed-execution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Detailed execution order
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-happens-on-failure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What happens on failure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#temporary-override-through-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Temporary override through actions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drop-policy-processing-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drop Policy Processing Order
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batch-operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Batch operations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#swap-is-part-of-the-same-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Swap is part of the same pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-you-need-to-know-vs-what-you-dont" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What you need to know vs what you don't
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1159,10 +908,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../item-conversion-cookbook/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cookbook: Item Conversion
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1178,6 +954,253 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-a-converter-is-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a converter is needed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-converter-lives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the converter lives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-calls-conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who calls conversion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Who calls conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-planning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preview / planning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normal-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normal execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correct-mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Correct mental model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-an-adapter-must-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What an adapter must preserve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-not-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What not to do
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What not to do">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do-not-use-one-adapter-as-a-representative-for-the-entire-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do not use one adapter as a representative for the entire stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do not implement cross-inventory swap as a raw stack exchange
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#do-not-rely-on-preview-and-execution-sharing-the-same-object-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do not rely on preview and execution sharing the same object reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-a-converter-should-return-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a converter should return null
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-diagnose-conversion-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to diagnose conversion errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to diagnose conversion errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#symptom-wrong-item-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symptom: Wrong item type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symptom-first-swap-works-second-swap-breaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symptom: first swap works, second swap breaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symptom-preview-passes-commit-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symptom: preview passes, commit fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mini-checklist-for-new-converters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mini checklist for new converters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-continue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to continue
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1758,10 +1781,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#short-version" class="md-nav__link">
+  <a href="#when-a-converter-is-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Short version
+        When a converter is needed
       
     </span>
   </a>
@@ -1769,10 +1792,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-happens-on-a-normal-drop" class="md-nav__link">
+  <a href="#where-the-converter-lives" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What happens on a normal drop
+        Where the converter lives
       
     </span>
   </a>
@@ -1780,44 +1803,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-planning-exists" class="md-nav__link">
+  <a href="#who-calls-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why planning exists
+        Who calls conversion
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#planning-vs-commit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Planning vs commit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#three-types-of-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Three types of checks
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Three types of checks">
+    <nav class="md-nav" aria-label="Who calls conversion">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rules-is-this-allowed-at-all" class="md-nav__link">
+  <a href="#preview-planning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rules — "is this allowed at all?"
+        Preview / planning
       
     </span>
   </a>
@@ -1825,10 +1826,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-checks-cancommittransfer-can-we-do-this-right-now" class="md-nav__link">
+  <a href="#normal-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Business checks (CanCommitTransfer) — "can we do this right now?"
+        Normal execution
       
     </span>
   </a>
@@ -1836,21 +1837,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#success-notification-ontransfersucceeded-what-to-do-after" class="md-nav__link">
+  <a href="#swap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Success notification (OnTransferSucceeded) — "what to do after?"
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#when-to-use-which" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use which
+        Swap
       
     </span>
   </a>
@@ -1863,10 +1853,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#item-conversion" class="md-nav__link">
+  <a href="#correct-mental-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Item conversion
+        Correct mental model
       
     </span>
   </a>
@@ -1874,10 +1864,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#detailed-execution-order" class="md-nav__link">
+  <a href="#what-an-adapter-must-preserve" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Detailed execution order
+        What an adapter must preserve
       
     </span>
   </a>
@@ -1885,10 +1875,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-happens-on-failure" class="md-nav__link">
+  <a href="#what-not-to-do" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What happens on failure
+        What not to do
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What not to do">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do-not-use-one-adapter-as-a-representative-for-the-entire-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do not use one adapter as a representative for the entire stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do not implement cross-inventory swap as a raw stack exchange
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#do-not-rely-on-preview-and-execution-sharing-the-same-object-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Do not rely on preview and execution sharing the same object reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-a-converter-should-return-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a converter should return null
       
     </span>
   </a>
@@ -1896,10 +1936,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#drop-policy" class="md-nav__link">
+  <a href="#how-to-diagnose-conversion-errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Drop Policy
+        How to diagnose conversion errors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to diagnose conversion errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#symptom-wrong-item-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symptom: Wrong item type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symptom-first-swap-works-second-swap-breaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symptom: first swap works, second swap breaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#symptom-preview-passes-commit-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symptom: preview passes, commit fails
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mini-checklist-for-new-converters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mini checklist for new converters
       
     </span>
   </a>
@@ -1907,54 +1997,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#temporary-override-through-actions" class="md-nav__link">
+  <a href="#where-to-continue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Temporary override through actions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drop-policy-processing-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drop Policy Processing Order
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batch-operations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Batch operations
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#swap-is-part-of-the-same-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Swap is part of the same pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-you-need-to-know-vs-what-you-dont" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What you need to know vs what you don't
+        Where to continue
       
     </span>
   </a>
@@ -1978,340 +2024,150 @@
 
 
 
-<h1 id="transfer-pipeline">Transfer Pipeline</h1>
-<p>This page explains transfer from the asset user's perspective.</p>
-<p>The question is not "which helper classes exist?" but "in what order does the system decide, and where can I hook into it?"</p>
-<p>For practical follow-ups, also see:</p>
-<ul>
-<li><a href="../drop-policy-matrix/">Drop Policy Matrix</a></li>
-<li><a href="../item-conversion-cookbook/">Cookbook: Item Conversion</a></li>
-<li><a href="../../reference/logs-and-debugging/">Logs and Debugging</a></li>
-</ul>
+<h1 id="cookbook-item-conversion">Cookbook: Item Conversion</h1>
+<p>This page answers a practical question:
+"how should I configure conversion between two inventories that use different adapter models?"</p>
+<p>The architectural overview already exists in <a href="../transfer-pipeline/">Transfer Pipeline</a>.
+This page focuses on working rules and common mistakes.</p>
 <hr />
-<h2 id="short-version">Short version</h2>
-<pre class="mermaid"><code>flowchart LR
-    A["Player drops an item"] --&gt; B["Rule checks"]
-    B --&gt; C["Planning without mutation"]
-    C --&gt; D["Execution"]
-    D --&gt; E["Events and sync"]</code></pre>
-<hr />
-<h2 id="what-happens-on-a-normal-drop">What happens on a normal drop</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Player releases item\nover target slot"] --&gt; B["CanDrop and\nmechanical rule checks"]
-    B --&gt;|Failed| X1["Item returns\nto source"]
-    B --&gt;|Passed| C["Build plan:\nwhere and how much to place"]
-    C --&gt; D["Business checks:\nCanCommitTransfer"]
-    D --&gt;|Failed| X2["Item returns\nto source"]
-    D --&gt;|Passed| E["Execute transfer:\nsplit → conversion → placement"]
-    E --&gt; F["OnTransferSucceeded\n(business side effects)"]
-    F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
-<p>For direct slot drops this has one important consequence:</p>
+<h2 id="when-a-converter-is-needed">When a converter is needed</h2>
+<p>A converter is needed when two inventories use different representations of the same item.</p>
+<p>Typical examples:</p>
 <ul>
-<li>when the operation already has a concrete <code>target slot</code> and the policy is not <code>FindAlternative</code>, planner/executor must not scan the rest of the inventory</li>
-<li>inventory-wide <code>GetAcceptableCount()</code> is only needed for area-drop, deferred placement, and alternative-slot search</li>
+<li>a merchant stores <code>ScriptableObject</code>s while the player uses runtime models</li>
+<li>a UI-facing inventory uses lightweight adapters while the domain model uses rich instances</li>
+<li>an inventory boundary inside a container item uses another adapter model</li>
 </ul>
+<p>If both sides already use the same adapter type, a converter is usually unnecessary.</p>
 <hr />
-<h2 id="why-planning-exists">Why planning exists</h2>
-<p>Before any real mutation, the system decides:</p>
+<h2 id="where-the-converter-lives">Where the converter lives</h2>
+<p>The converter is declared on the inventory binding side:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IItemAdapterConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyItemAdapterConverter</span><span class="p">();</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">}</span>
+</code></pre></div>
+<p>So the binding defines:</p>
 <ul>
-<li>can the item fit</li>
-<li>is partial transfer needed</li>
-<li>is a swap required</li>
-<li>is there a valid target slot</li>
-<li>does the item need conversion for the target inventory</li>
+<li>how this inventory exports an item</li>
+<li>how this inventory imports an item</li>
 </ul>
-<p>This enables:</p>
-<ul>
-<li>no state corruption on invalid operations</li>
-<li>atomic execution with rollback</li>
-<li>uniform handling of drag, quick transfer and swap</li>
-</ul>
+<p>By default, the system uses an identity converter.</p>
 <hr />
-<h2 id="planning-vs-commit">Planning vs commit</h2>
-<ul>
-<li>planning does not mutate inventory state</li>
-<li>commit applies real changes</li>
-</ul>
-<p>That is why checks are split into several types, each with its own role.</p>
-<hr />
-<h2 id="three-types-of-checks">Three types of checks</h2>
-<p>The transfer pipeline has three distinct check mechanisms. They fire at different moments and serve different purposes:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Player releases item"] --&gt; B["Rules"]
-    B --&gt;|Rejected| X["Denied"]
-    B --&gt;|OK| C["Planning"]
-    C --&gt; D["Business checks\n(CanCommitTransfer)"]
-    D --&gt;|Rejected| X
-    D --&gt;|OK| E["Execute transfer"]
-    E --&gt; F["Success notification\n(OnTransferSucceeded)"]</code></pre>
-<h3 id="rules-is-this-allowed-at-all">Rules — "is this allowed at all?"</h3>
-<p>Rules are checked <strong>during the planning phase</strong>, before any transfer attempt. These are mechanical constraints: does the item type match, is the slot allowed, is the inventory locked.</p>
-<p>Rules work at three levels — the first rejection stops the operation:</p>
-<table>
-<thead>
-<tr>
-<th>Level</th>
-<th>What it checks</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Global</strong></td>
-<td>Entire application</td>
-<td>Prevent drop into same slot</td>
-</tr>
-<tr>
-<td><strong>Inventory</strong></td>
-<td>Specific inventory</td>
-<td>Unique item limit</td>
-</tr>
-<tr>
-<td><strong>Slot</strong></td>
-<td>Specific slot</td>
-<td>Only weapons in weapon slot</td>
-</tr>
-</tbody>
-</table>
-<p>DataBinding also participates in rules: its <code>CanDrop</code> is called as part of inventory rules during planning.</p>
-<p>For more on rules, see the <a href="../rules/">Rules</a> section.</p>
-<h3 id="business-checks-cancommittransfer-can-we-do-this-right-now">Business checks (CanCommitTransfer) — "can we do this right now?"</h3>
-<p>Business checks fire <strong>immediately before execution</strong>, when the plan is already built. They are needed for checks that depend on current state and may change between planning and execution.</p>
-<p>Order:</p>
+<h2 id="who-calls-conversion">Who calls conversion</h2>
+<h3 id="preview-planning">Preview / planning</h3>
+<p>During preview and planning, conversion is orchestrated by <code>TransferItemConversionUtility</code>.</p>
+<p>This is required so target rules and binding hooks see a target-side adapter rather than the original source-side adapter.</p>
+<h3 id="normal-execution">Normal execution</h3>
+<p>For a regular transfer, the chain is:</p>
 <ol>
-<li><code>CanCommitTransfer</code> — fast synchronous check</li>
-<li><code>CanCommitTransferAsync</code> — asynchronous check (if binding implements the interface)</li>
-<li>commit</li>
+<li>the item is taken from the source slot</li>
+<li><code>source outgoing</code> runs</li>
+<li>then <code>target incoming</code> runs</li>
+<li>only after that is the item placed into the target inventory</li>
 </ol>
-<p>DataBindings on <strong>both</strong> inventories (source and target) are checked.</p>
-<p>Example use cases:</p>
+<h3 id="swap">Swap</h3>
+<p>Swap is not one symmetric conversion.
+It is two separate chains:</p>
 <ul>
-<li>does the player have enough gold for the purchase</li>
-<li>did the server confirm the operation</li>
-<li>has state changed between planning and execution</li>
+<li><code>A -&gt; B</code></li>
+<li><code>B -&gt; A</code></li>
 </ul>
-<h3 id="success-notification-ontransfersucceeded-what-to-do-after">Success notification (OnTransferSucceeded) — "what to do after?"</h3>
-<p><code>OnTransferSucceeded</code> fires <strong>after all entries complete</strong>, only on success. This is not a check, but a callback for side effects.</p>
-<p>Examples:</p>
-<ul>
-<li>deduct currency</li>
-<li>update achievements</li>
-<li>record statistics</li>
-</ul>
-<h3 id="when-to-use-which">When to use which</h3>
-<table>
-<thead>
-<tr>
-<th>Task</th>
-<th>Where to write</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>"This item type can't go here"</td>
-<td>Rule (CanDrop)</td>
-</tr>
-<tr>
-<td>"Only weapons in weapon slot"</td>
-<td>Slot rule</td>
-</tr>
-<tr>
-<td>"Max 5 unique items"</td>
-<td>Inventory rule</td>
-</tr>
-<tr>
-<td>"Does the player have enough gold"</td>
-<td>CanCommitTransfer</td>
-</tr>
-<tr>
-<td>"Wait for server response"</td>
-<td>CanCommitTransferAsync</td>
-</tr>
-<tr>
-<td>"Deduct money after purchase"</td>
-<td>OnTransferSucceeded</td>
-</tr>
-</tbody>
-</table>
+<p>Each one runs through its own <code>outgoing -&gt; incoming</code>.</p>
 <hr />
-<h2 id="item-conversion">Item conversion</h2>
-<p>When source and target use different item representations, conversion happens in two stages:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Item split from\nsource slot"] --&gt; B["Outgoing conversion:\nsource releases item\nin its format"]
-    B --&gt; C["Incoming conversion:\ntarget accepts item\nin its format"]
-    C --&gt; D["Item placed\nin target slot"]</code></pre>
-<p>Example: a merchant stores items as ScriptableObjects, and the player uses runtime models. On purchase:</p>
-<ol>
-<li>Item is split from the merchant's slot</li>
-<li><strong>Outgoing</strong>: merchant releases the item (SO → intermediate format)</li>
-<li><strong>Incoming</strong>: player inventory accepts the item (intermediate → runtime model)</li>
-<li>Item is placed in the player's slot</li>
-</ol>
-<p>Important for asset users:</p>
+<h2 id="correct-mental-model">Correct mental model</h2>
+<p>Do not think in terms of "the source inventory gives the final target object".</p>
+<p>Think instead:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>source adapter
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -&gt; source outgoing
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  -&gt; intermediate representation
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  -&gt; target incoming
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  -&gt; target adapter
+</code></pre></div>
+<p>The intermediate representation does not need to be a dedicated type.
+What matters is that source and target boundaries stay independent.</p>
+<hr />
+<h2 id="what-an-adapter-must-preserve">What an adapter must preserve</h2>
+<p>If your items have instance state, the adapter must carry it safely through conversion:</p>
 <ul>
-<li>each adapter in the stack is converted individually (unique runtime data is preserved)</li>
-<li>if any adapter fails conversion, the entire operation rolls back</li>
-<li>the target inventory receives the item already in its own format</li>
+<li>a stable <code>ItemId</code>, if stacking semantics depend on it</li>
+<li>runtime fields of the specific instance</li>
+<li>a reference to the domain entity, if the item is unique</li>
+<li>data later used by <code>CanStartDrag</code>, <code>CanDrop</code>, tooltips, and side effects</li>
+</ul>
+<p>If the item "looks right after transfer but drag breaks later", the usual cause is that the target received the wrong adapter type or the wrong instance state.</p>
+<hr />
+<h2 id="what-not-to-do">What not to do</h2>
+<h3 id="do-not-use-one-adapter-as-a-representative-for-the-entire-stack">Do not use one adapter as a representative for the entire stack</h3>
+<p>If a stack contains different runtime instances, do not clone one adapter through <code>Repeat</code>.</p>
+<p>That causes:</p>
+<ul>
+<li>loss of instance state</li>
+<li>preview and execution diverging</li>
+<li>distorted remove/add payloads</li>
+</ul>
+<h3 id="do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange">Do not implement cross-inventory swap as a raw stack exchange</h3>
+<p>If swap merely swaps two <code>ItemStack</code> objects:</p>
+<ul>
+<li>the target slot receives a foreign adapter type</li>
+<li>the next <code>CanStartDrag</code> or <code>CanDrop</code> starts failing on type checks</li>
+</ul>
+<h3 id="do-not-rely-on-preview-and-execution-sharing-the-same-object-reference">Do not rely on preview and execution sharing the same object reference</h3>
+<p>The preview stack and the execution stack may be different objects.
+Stability must come from data and conversion semantics, not reference equality.</p>
+<hr />
+<h2 id="when-a-converter-should-return-null">When a converter should return <code>null</code></h2>
+<p><code>null</code> means not "I do not want to do it right now", but "this boundary cannot export/import this item".</p>
+<p>That is appropriate when:</p>
+<ul>
+<li>the item must never cross this boundary</li>
+<li>the binding cannot materialize the required target adapter</li>
+<li>data loss would be unacceptable</li>
+</ul>
+<p>If the operation is only temporarily forbidden by business logic, that is not the converter's job.
+Use:</p>
+<ul>
+<li>rules</li>
+<li><code>CanCommitTransfer</code></li>
+<li><code>CanCommitTransferAsync</code></li>
 </ul>
 <hr />
-<h2 id="detailed-execution-order">Detailed execution order</h2>
-<p>For each planned entry, the following happens:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Capture snapshots\nof source and target"] --&gt; B["Check CanCommitTransfer\non both inventories"]
-    B --&gt;|Rejected| X["Rollback: restore\nfrom snapshot"]
-    B --&gt;|OK| C["Take items from\nsource slot"]
-    C --&gt; D["Outgoing conversion\n(each adapter individually)"]
-    D --&gt;|Error| X
-    D --&gt;|OK| E["Place into target\ninventory (incoming\nconversion inside)"]
-    E --&gt;|Didn't fit| F["Return remainder\nto source"]
-    E --&gt;|Fits| G["Record outcome"]
-    F --&gt; G</code></pre>
-<p>After <strong>all</strong> entries are executed:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["All entries\ncompleted"] --&gt; B["OnTransferSucceeded\non each DataBinding"]
-    B --&gt; C["OnItemRemoved — source\n(with original adapters)"]
-    C --&gt; D["OnItemAdded — target\n(with final adapters)"]
-    D --&gt; E["OnDropCompleted"]</code></pre>
-<p>Important: events fire <strong>after the entire operation completes</strong>, not one per entry. This prevents false events when a later rollback occurs in Atomic mode.</p>
-<p>Additional note:</p>
+<h2 id="how-to-diagnose-conversion-errors">How to diagnose conversion errors</h2>
+<h3 id="symptom-wrong-item-type">Symptom: <code>Wrong item type</code></h3>
+<p>Usually means:</p>
 <ul>
-<li>if execution already targets a concrete <code>targetSlot</code>, executor must not re-run inventory-wide capacity search</li>
-<li>in that branch it should trust the plan and commit placement only into the requested slot</li>
+<li>the target binding received the source adapter type</li>
+<li>swap was committed as a raw exchange</li>
+<li>preview converted correctly, but execution did not</li>
+</ul>
+<h3 id="symptom-first-swap-works-second-swap-breaks">Symptom: first swap works, second swap breaks</h3>
+<p>Usually means:</p>
+<ul>
+<li>commit succeeded with the wrong adapter type stored in the slot</li>
+<li>after the first swap, the slot physically contains an object from the other inventory boundary</li>
+</ul>
+<h3 id="symptom-preview-passes-commit-fails">Symptom: preview passes, commit fails</h3>
+<p>Usually means:</p>
+<ul>
+<li>the preview stack was assembled correctly</li>
+<li>but execution used a different conversion route</li>
 </ul>
 <hr />
-<h2 id="what-happens-on-failure">What happens on failure</h2>
-<p>If a check or commit fails, the behavior depends on the policy:</p>
-<table>
-<thead>
-<tr>
-<th>Situation</th>
-<th>What happens</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>CanDrop</code> returns failure</td>
-<td>transfer does not start, item returns to source</td>
-</tr>
-<tr>
-<td><code>CanCommitTransfer</code> returns failure</td>
-<td>transfer is cancelled before commit, state unchanged</td>
-</tr>
-<tr>
-<td><code>CanCommitTransferAsync</code> returns failure</td>
-<td>transfer is cancelled before commit, state unchanged</td>
-</tr>
-<tr>
-<td>Atomic batch: one item fails</td>
-<td>entire operation is cancelled, no items are moved</td>
-</tr>
-<tr>
-<td>BestEffort batch: one item fails</td>
-<td>remaining items are transferred, failed ones stay in source</td>
-</tr>
-</tbody>
-</table>
-<p>The key point: if a check fails, inventories remain in their original state. Planning builds a plan without mutations, and commit only applies after all checks pass.</p>
-<hr />
-<h2 id="drop-policy">Drop Policy</h2>
-<p>The current model has three layers:</p>
+<h2 id="mini-checklist-for-new-converters">Mini checklist for new converters</h2>
 <ul>
-<li><code>DropRequestPolicy</code></li>
-<li>temporary per-operation override</li>
-<li>can override:<ul>
-<li><code>BlockedTargetBehavior</code></li>
-<li><code>AlternativePlacementMode</code></li>
-<li><code>AllowPartial</code></li>
-</ul>
-</li>
-<li><code>DropPolicySettings</code></li>
-<li>inventory-level defaults on <code>UniversalInventory</code></li>
-<li>defines:<ul>
-<li>blocked target behavior</li>
-<li>allow merge on drop</li>
-<li>allow partial</li>
-<li>batch mode</li>
-<li>alternative placement mode</li>
-</ul>
-</li>
-<li><code>ResolvedDropPolicy</code></li>
-<li>final non-nullable policy used by the planner</li>
-</ul>
-<p><code>BlockedTargetBehavior</code>:
-- <code>Reject</code>
-- <code>Swap</code>
-- <code>FindAlternative</code></p>
-<h2 id="temporary-override-through-actions">Temporary override through actions</h2>
-<p>Temporary drop policy override is done through action-level request policy, not by mutating <code>DragContext</code>.</p>
-<p>Example:
-- default <code>CompleteDragAction</code> calls <code>CompleteDrag(null)</code>
-- <code>Ctrl</code> variant of <code>CompleteDragAction</code> calls <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
-- <code>Shift</code> variant of <code>CompleteDragAction</code> calls <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
-- actions can also override <code>AllowPartial</code> and <code>AlternativePlacementMode</code> for a single transfer</p>
-<p>Important:
-- the override only applies to the current transfer operation
-- inventory-level <code>DropPolicySettings</code> stay unchanged
-- final <code>ResolvedDropPolicy</code> is assembled in this order:
-  1. action request override
-  2. drop-target override
-  3. inventory defaults</p>
-<h2 id="drop-policy-processing-order">Drop Policy Processing Order</h2>
-<p>For a single drag entry:</p>
-<ol>
-<li>Resolve <code>ResolvedDropPolicy</code></li>
-<li>Try placing into the target slot if one exists</li>
-<li>If everything fits, the entry succeeds</li>
-<li>If only part fits:</li>
-<li><code>AllowPartial = false</code> -&gt; fail</li>
-<li><code>AllowPartial = true</code> -&gt; partial success</li>
-<li>remainder can search for alternatives only when <code>BlockedTargetBehavior = FindAlternative</code></li>
-<li>If nothing fits into the target:</li>
-<li><code>Reject</code> -&gt; fail</li>
-<li><code>Swap</code> -&gt; planner creates a swap entry</li>
-<li><code>FindAlternative</code> -&gt; placement strategy enumerates alternative slots</li>
-<li>For same-inventory drops, <code>FindAlternative</code> does not reshuffle items across other slots. If the target fails, the item stays in place</li>
-</ol>
-<h2 id="batch-operations">Batch operations</h2>
-<p>When transferring multiple items at once, behavior is determined by <code>BatchMode</code> inside <code>DropPolicy</code>:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Transferring multiple\nitems"] --&gt; B{"Which policy?"}
-    B --&gt;|Atomic| C["All or nothing:\nif any item fails,\ncancel everything"]
-    B --&gt;|BestEffort| D["Transfer what fits,\nleave the rest\nin source"]</code></pre>
-<p>By default, batch mode comes from the target inventory's <code>DropPolicySettings</code>, while request overrides only affect temporary runtime behavior.</p>
-<hr />
-<h2 id="swap-is-part-of-the-same-pipeline">Swap is part of the same pipeline</h2>
-<pre class="mermaid"><code>flowchart LR
-    A["Target slot is occupied"] --&gt; B{"BlockedTargetBehavior = Swap?"}
-    B --&gt;|No| C["Reject"]
-    B --&gt;|Yes| D["Validate both directions\non target-side preview stacks"]
-    D --&gt; E["Capture copies of both stacks"]
-    E --&gt; F["source -&gt; target:\noutgoing -&gt; incoming"]
-    E --&gt; G["target -&gt; source:\noutgoing -&gt; incoming"]
-    F --&gt; H["Commit converted stacks\ninto opposite slots"]
-    G --&gt; H</code></pre>
-<p>In practice this means:</p>
-<ul>
-<li>cross-inventory swap must not be a raw stack exchange</li>
-<li>both directions are converted into the opposite inventory format before commit</li>
-<li><code>OnItemRemoved</code> publishes <code>before</code> stacks, while <code>OnItemAdded</code> publishes <code>after</code> stacks</li>
-<li>otherwise a foreign adapter type remains in the slot and the next operation fails in <code>CanStartDrag</code> / <code>CanDrop</code></li>
+<li>the binding really overrides <code>CreateItemConverter()</code></li>
+<li>outgoing and incoming are as symmetric as your domain model requires</li>
+<li>each adapter in a stack is converted individually</li>
+<li>the target stores its own inventory-specific adapter type after commit</li>
+<li>swap runs as two independent conversion chains</li>
 </ul>
 <hr />
-<h2 id="what-you-need-to-know-vs-what-you-dont">What you need to know vs what you don't</h2>
-<p>Usually an asset user needs to understand:</p>
+<h2 id="where-to-continue">Where to continue</h2>
 <ul>
-<li>where to write rules</li>
-<li>where to write business checks</li>
-<li>when data syncs</li>
-<li>why partial transfer and swap behave predictably</li>
+<li><a href="../transfer-pipeline/">Transfer Pipeline</a> — full planning/execution order</li>
+<li><a href="../../examples/demo4-trading/">Demo4 Trading</a> — working example of merchant/player/equipment conversion</li>
+<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — symptoms and common causes</li>
 </ul>
-<p>Usually not needed upfront:</p>
-<ul>
-<li>internal helper structures in the planning layer</li>
-<li>low-level execution layer steps</li>
-<li>map of all internal pipeline classes</li>
-</ul>
-<p>If you're modifying the asset itself rather than just using it, see the <a href="../../reference/file-map/">File Map</a>.</p>
 
 
 
