@@ -28,13 +28,6 @@ namespace DragAndDropSystem.Examples.Loot
         [SerializeField] private Color _highlightColorInvalid = new Color(1f, 0f, 0f, 0.3f);
         [SerializeField] private Color _normalColor = new Color(1f, 1f, 1f, 0f);
 
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            if (_spawnPoint == null)
-                _spawnPoint = transform;
-        }
-
         protected override bool CanAcceptEntry(DragEntry entry)
         {
             if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.Adapters == null)

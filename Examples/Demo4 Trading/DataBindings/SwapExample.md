@@ -1,6 +1,6 @@
 # Swap Functionality - Updated Examples
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-04-04
 
 ## Включение swap
 
@@ -56,9 +56,15 @@ protected override void OnSwapCompleted(InventorySwapContext args)
 2. Если обычное размещение не удалось и `BlockedTargetBehavior = Swap`, planner помечает entry как `RequiresSwap`
 3. `TransferPlanExecutor`:
    - валидирует swap в обе стороны правилами
+   - делает target-side conversion для обоих направлений ещё до commit
    - вызывает `SwapAttempting` (cancelable через `args.Cancel = true`)
-   - выполняет `UniversalInventory.TrySwapSlots(...)`
+   - коммитит в слоты уже конвертированные стэки, а не raw exchange
    - после успешного completion dispatch-ит swap events и вызывает `SwapCompleted`
+
+Для cross-inventory swap это критично:
+- `source -> target` проходит `source outgoing -> target incoming`
+- `target -> source` проходит `target outgoing -> source incoming`
+- в слотах после swap остаются adapter-типы, принадлежащие их собственным inventory/DataBinding
 
 ## Важное про события
 

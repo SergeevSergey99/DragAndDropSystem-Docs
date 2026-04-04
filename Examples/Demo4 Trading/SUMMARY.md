@@ -1,12 +1,13 @@
 # Trading System - Краткое описание
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-04-04
 
 ## Актуальность
 
 - дроп-логика использует pipeline (`DropPolicy` + planner + executor)
 - preview и planning используют target-side conversion
 - swap настраивается через `Drop Policy` (`BlockedTargetBehavior.Swap`), не manager-флагом
+- cross-inventory swap выполняется через двустороннюю conversion-aware commit-логику
 - DataBinding уведомляется напрямую из `UniversalInventory`
 - все биндинги используют шаблонные базовые классы
 
@@ -22,7 +23,7 @@
 ### Адаптеры
 
 - `TradableSoAdapter.cs`
-- `TradableItemModelAdapter.cs`
+- `TradableItemAdapterModelAdapter.cs`
 
 ### Экономика
 
@@ -35,17 +36,17 @@
 - `PlayerInventoryDataBinding.cs`
   - синхронизация с `PlayerData`
   - торговая логика через `TradingHelper`
-  - `ModelInventoryItemConverter`: SO -> Model
+  - `ModelItemAdapterConverter`: SO -> Model
 
 - `MerchantInventoryDataBinding.cs`
   - синхронизация с `MerchantData`
   - торговая логика в `AddToData` / `RemoveFromData`
-  - `MerchantInventoryItemConverter`: Model -> SO
+  - `MerchantItemAdapterConverter`: Model -> SO
 
 - `EquipmentInventoryDataBinding.cs`
-  - `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`
+  - `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>`
   - `CreateBindingMap()` со слотами и `canAccept`
-  - `ModelInventoryItemConverter`: SO -> Model
+  - `ModelItemAdapterConverter`: SO -> Model
   - preview slot validation работает через общий acceptance pipeline
 
 - `TradingHelper.cs`

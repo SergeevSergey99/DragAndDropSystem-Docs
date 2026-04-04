@@ -79,17 +79,6 @@ namespace DragAndDropSystem.Core
         /// </summary>
         protected virtual bool RemoveFromSource => true;
 
-        // ══════════════════════════════════════════════════════════
-        //  Lifecycle
-        // ══════════════════════════════════════════════════════════
-
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            if (_raycastGraphic == null)
-                _raycastGraphic = GetComponent<Graphic>();
-        }
-
         protected override void Awake()
         {
             base.Awake();

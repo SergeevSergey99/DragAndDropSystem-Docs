@@ -1,6 +1,6 @@
 # Trading System Example
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-04-04
 
 ## Актуальность под текущую архитектуру
 
@@ -10,6 +10,7 @@
 - preview/hover проверка использует target-side conversion и `InventoryAcceptanceRequest`
 - swap включается через `Drop Policy` (`BlockedTargetBehavior.Swap`), а не через manager-флаг
 - кастомные ограничения swap реализуются через `InventorySwapContext` в DataBinding
+- cross-inventory swap выполняется как двусторонний transfer с conversion в обе стороны, а не raw exchange стеков
 - DataBinding уведомляется напрямую из `UniversalInventory`
 - все биндинги используют шаблонные базовые классы (`ListInventoryDataBinding`, `MappedSlotInventoryDataBinding`)
 
@@ -40,7 +41,7 @@ TradingEconomyManager (Singleton)
 
 Торговцы и игрок используют разные представления предметов:
 - торговец: `TradableItemSO` -> `TradableSoAdapter`
-- игрок: `TradableItemModel` -> `TradableItemModelAdapter`
+- игрок: `TradableItemModel` -> `TradableItemAdapterModelAdapter`
 
 Конвертация между ними сейчас выполняется через inventory-side converter classes,
 а planner и area-drop preview уже работают с target-side preview item до фактического переноса.
@@ -52,10 +53,10 @@ Merchant -> Player:
 TradableSoAdapter
   -> source preview outgoing
   -> target preview incoming
-  -> TradableItemModelAdapter
+  -> TradableItemAdapterModelAdapter
 
 Player -> Merchant:
-TradableItemModelAdapter
+TradableItemAdapterModelAdapter
   -> source preview outgoing
   -> target preview incoming
   -> TradableSoAdapter
@@ -65,29 +66,29 @@ TradableItemModelAdapter
 
 1. `TradableItemSO` - ScriptableObject с ценами и метаданными
 2. `ITradableItem` - общий интерфейс для торговых адаптеров
-3. `TradableSoAdapter` / `TradableItemModelAdapter` - адаптеры
+3. `TradableSoAdapter` / `TradableItemAdapterModelAdapter` - адаптеры
 4. `TradingEconomyManager` - централизованный менеджер экономики
 5. `TradingHelper` - статический хелпер с общей торговой логикой
 
 ### DataBindings
 
-**PlayerInventoryDataBinding** — `ListInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`:
+**PlayerInventoryDataBinding** — `ListInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>`:
 - синхронизация с `PlayerData`
 - торговая логика через `TradingHelper`
 - `CanDrop()` — не содержит бизнес-валидации денег
-- `ModelInventoryItemConverter` — конвертация SO -> Model
+- `ModelItemAdapterConverter` — конвертация SO -> Model
 
 **MerchantInventoryDataBinding** — `ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>`:
 - синхронизация с `MerchantData`
 - торговая логика в `AddToData()` / `RemoveFromData()`
 - `CanStartDrag()` — не содержит бизнес-валидации денег
 - `CanDrop()` — только механическая проверка + запрет торговли между торговцами
-- `MerchantInventoryItemConverter` — конвертация Model -> SO
+- `MerchantItemAdapterConverter` — конвертация Model -> SO
 
-**EquipmentInventoryDataBinding** — `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemModelAdapter>`:
+**EquipmentInventoryDataBinding** — `MappedSlotInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>`:
 - `CreateBindingMap()` — словарь слотов с декларативными `canAccept`
 - `CanDrop()` — проверяет только slot/type compatibility
-- `ModelInventoryItemConverter` — конвертация SO -> Model
+- `ModelItemAdapterConverter` — конвертация SO -> Model
 - использует shared preview infrastructure, а не отдельные preview guards
 
 ## Что демонстрирует этот пример
@@ -102,6 +103,7 @@ TradableItemModelAdapter
 
 `IItemAdapterConverter` позволяет разным инвентарям работать с разными типами адаптеров.
 При этом preview теперь тоже знает о target-side conversion ещё до размещения в слот.
+То же самое касается и swap: оба направления конвертируются до фактического commit в слоты.
 
 ### 3. Декларативную валидацию слотов
 

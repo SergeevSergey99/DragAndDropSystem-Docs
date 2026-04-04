@@ -33,6 +33,7 @@ namespace DragAndDropSystem.UI
 
         public UniversalInventory Inventory => _inventory;
 
+#if UNITY_EDITOR
         // ══════════════════════════════════════════════════════════
         //  Lifecycle overrides
         // ══════════════════════════════════════════════════════════
@@ -43,6 +44,7 @@ namespace DragAndDropSystem.UI
             if (_inventory == null)
                 _inventory = GetComponentInParent<UniversalInventory>();
         }
+#endif
 
         // ══════════════════════════════════════════════════════════
         //  Gamepad focus

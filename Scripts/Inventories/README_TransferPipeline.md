@@ -1,6 +1,6 @@
 # Transfer Pipeline Architecture
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-04-04
 
 Документ описывает текущую архитектуру drop/transfer pipeline, включая batch transfer, swap и target-aware preview.
 
@@ -54,12 +54,16 @@
 
 Роль:
 - планирует размещение без изменения данных
-- использует `TransferItemConversionUtility` для target-side preview item
-- считает capacity через `InventoryAcceptanceRequest`
+- использует `TransferItemConversionUtility` для target-side preview item и preview stack
+- считает capacity через `InventoryAcceptanceRequest` только там, где реально нужен inventory-wide search
 - использует `VirtualSlotState` для batch planning
 - валидирует кандидатов через `RuleEvaluationService`
 - может пометить entry как `RequiresOccupiedHandler` (приоритет над swap)
 - может пометить entry как `RequiresSwap`
+
+Важно:
+- direct slot drop с `targetSlotHint != null` и `BlockedTarget != FindAlternative` не должен сканировать остальные слоты инвентаря
+- inventory-wide `GetAcceptableCount()` остаётся только для area-drop, deferred placement и сценариев поиска альтернативных слотов
 
 Порядок rule evaluation:
 - global rules
@@ -89,6 +93,9 @@
 - для обычных переносов executor dispatch-ит remove/add на основе итогового `InventoryTransferResult`
 - remove использует `SourceItem`
 - add использует `TargetItem`
+- direct slot execution с concrete `targetSlot` не должен повторно вызывать inventory-wide `GetAcceptableCount()`
+- cross-inventory swap больше не является raw exchange стэков: executor снимает копии обоих стэков, конвертирует их в обе стороны и только потом коммитит в противоположные слоты
+- swap add/remove events публикуют `before` для remove и `after` для add
 - обычные split/merge path теперь переносят реальные списки адаптеров внутри `ItemStack`, а не только абстрактное количество
 - event payloads и `InventoryTransferResult` по-прежнему публикуют representative adapter + count
 
@@ -119,10 +126,10 @@
 ### Item Conversion
 
 Current conversion ownership:
-- `UniversalInventory` owns `ItemConverter`
-- `IdentityItemAdapterConverter` is used by default
-- `TransferItemConversionUtility` remains the common preview entry point
-- `DataBinding` wires converter into inventory via `CreateItemConverter()` during initialization
+- `InventoryDataBindingBase.CreateItemConverter()` задаёт converter для конкретного инвентаря
+- `IdentityItemAdapterConverter` используется по умолчанию
+- `TransferItemConversionUtility` является общей точкой orchestration для preview, execution и swap conversion
+- planner/executor не должны дублировать source/target conversion вручную
 
 ### InventoryDropProcessor
 
@@ -148,7 +155,7 @@ Current conversion ownership:
 ### Порядок обработки одного entry
 
 1. planner валидирует source entry и target-side preview item
-2. пытается положить предмет в `target slot`, если он есть
+2. если есть `target slot`, planner сначала работает только с ним
 3. если в target вошло всё, entry успешен
 4. если вошла часть:
    - `AllowPartial = false` -> fail
@@ -160,6 +167,32 @@ Current conversion ownership:
    - `Swap` -> planner строит swap entry (если occupied handler не обрабатывает)
    - `FindAlternative` -> стратегия перечисляет alternative slots (если occupied handler не обрабатывает)
 6. для same-inventory `FindAlternative` не перераскладывает предметы по другим слотам: предмет остаётся на месте, если target не подошёл
+
+## Visual Flow
+
+```mermaid
+flowchart TD
+    A[DragContext + DragEntry] --> B[TransferPlanner.BuildPlan]
+    B --> C{targetSlotHint?}
+    C -->|yes + Reject/Swap| D[Hint-only planning]
+    C -->|area or FindAlternative| E[InventoryAcceptanceRequest + strategy search]
+    D --> F[RuleEvaluationService.ValidateEntryDrop]
+    E --> F
+    F --> G{Occupied target?}
+    G -->|handled| H[RequiresOccupiedHandler]
+    G -->|swap policy| I[RequiresSwap]
+    G -->|normal| J[Planned allocations]
+    H --> K[TransferPlanExecutor]
+    I --> K
+    J --> K
+    K --> L{Normal transfer?}
+    L -->|yes| M[source outgoing -> target incoming]
+    L -->|no, swap| N[source->target conversion and target->source conversion]
+    M --> O[Commit to target slot/inventory]
+    N --> P[Commit converted stacks to opposite slots]
+    O --> Q[Deferred ItemRemoved/ItemAdded events]
+    P --> Q
+```
 
 ## Preview flow
 
@@ -223,9 +256,11 @@ Flow:
 2. Если allocation невозможен — сначала проверяется occupied handler (см. выше)
 3. Если occupied handler не обрабатывает и `BlockedTargetBehavior = Swap`, entry получает `RequiresSwap`
 4. Executor:
-   - валидирует оба направления через rules
+   - валидирует оба направления через rules на target-side converted preview stacks
    - вызывает `SwapAttempting`
-   - выполняет `TrySwapSlots`
+   - снимает копии обоих стэков
+   - конвертирует `source -> target` и `target -> source`
+   - коммитит уже конвертированные стэки в противоположные слоты
    - откладывает `SwapCompleted` до конца успешного выполнения
 
 Текущие ограничения:
