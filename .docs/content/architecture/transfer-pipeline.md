@@ -32,6 +32,11 @@ flowchart TD
     F --> G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]
 ```
 
+Для direct slot drop это означает важное ограничение:
+
+- если у операции уже есть конкретный `target slot` и policy не равен `FindAlternative`, planner/executor не должны сканировать остальные слоты инвентаря
+- inventory-wide поиск по `GetAcceptableCount()` нужен только для area-drop, deferred placement и сценариев поиска альтернативных слотов
+
 ---
 
 ## Зачем нужен этап планирования
@@ -190,6 +195,11 @@ flowchart TD
 
 Важно: события стреляют **после завершения всей операции**, а не по одному на каждый entry. Это предотвращает ложные события при последующем откате в Atomic режиме.
 
+Дополнение:
+
+- если execution уже привязан к конкретному `targetSlot`, executor не должен повторно делать inventory-wide capacity search
+- в этой ветке он доверяет уже построенному plan и коммитит placement только в указанный слот
+
 ---
 
 ## Что происходит при отказе
@@ -293,9 +303,20 @@ flowchart TD
 flowchart LR
     A["Целевой слот занят"] --> B{"Политика позволяет swap?"}
     B -->|Нет| C["Отклонить"]
-    B -->|Да| D["Проверить оба направления"]
-    D --> E["Выполнить обмен"]
+    B -->|Да| D["Проверить оба направления\nна target-side preview stacks"]
+    D --> E["Снять копии обоих стеков"]
+    E --> F["source -> target:\noutgoing -> incoming"]
+    E --> G["target -> source:\noutgoing -> incoming"]
+    F --> H["Коммитить уже\nсконвертированные стеки\nв противоположные слоты"]
+    G --> H
 ```
+
+Практически это значит:
+
+- cross-inventory swap больше не должен быть raw exchange стеков
+- оба направления сначала конвертируются в формат противоположного инвентаря
+- `OnItemRemoved` публикует стеки `before`, а `OnItemAdded` — стеки `after`
+- иначе в слоте остаётся чужой adapter-тип и следующая операция начинает падать на `CanStartDrag`/`CanDrop`
 
 ---
 

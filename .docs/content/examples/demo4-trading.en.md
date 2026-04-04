@@ -11,6 +11,7 @@ This is the most feature-rich demo in the package. It combines cross-model trans
 - price and gold validation at commit time
 - separation of mechanical validation and domain side effects
 - `MappedSlotInventoryDataBinding` for equipment
+- cross-inventory swap with bidirectional conversion
 
 ## How it is structured
 
@@ -58,6 +59,14 @@ Buying from a merchant:
 5. After a successful commit the bindings update player and merchant data.
 6. Side effects update gold and related values.
 
+Swap between merchant and equipment/player inventory:
+
+1. The planner detects that normal placement is impossible and marks the entry as `RequiresSwap`.
+2. The executor validates both directions on target-side converted preview stacks.
+3. It then captures copies of both stacks and converts them in both directions.
+4. The opposite slots receive already converted stacks, not raw adapters.
+5. Because of that, the next drag from those slots does not fail with `Wrong item type`.
+
 Equipment:
 
 1. An item is dropped onto a fixed slot.
@@ -79,5 +88,6 @@ Equipment:
 
 - you need different data models on different sides of a transfer boundary
 - you need item conversion during transfer
+- you need correct cross-inventory swap between different adapter models
 - you need prices, gold, and commit-time validation
 - you need fixed slots on top of a regular inventory

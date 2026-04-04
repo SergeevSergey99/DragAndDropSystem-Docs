@@ -11,6 +11,7 @@
 - проверку цен и денег на commit-этапе
 - разделение mechanical validation и domain side effects
 - `MappedSlotInventoryDataBinding` для экипировки
+- cross-inventory swap с двусторонней конвертацией
 
 ## Как устроено
 
@@ -58,6 +59,14 @@ flowchart LR
 5. После успешного commit bindings обновляют данные игрока и торговца.
 6. Side effects меняют золото и другие связанные значения.
 
+Swap между merchant и equipment/player inventory:
+
+1. Planner решает, что обычное размещение невозможно, и помечает entry как `RequiresSwap`.
+2. Executor валидирует оба направления на target-side converted preview stacks.
+3. Затем он снимает копии обоих стеков и выполняет конвертацию в обе стороны.
+4. В противоположные слоты коммитятся уже сконвертированные стеки, а не raw adapters.
+5. Благодаря этому следующий drag из этих слотов не падает на `Неверный тип предмета`.
+
 Экипировка:
 
 1. Предмет перетаскивается на fixed slot.
@@ -79,5 +88,6 @@ flowchart LR
 
 - нужны разные модели данных по разные стороны transfer boundary
 - нужна конвертация предметов при переносе
+- нужен корректный cross-inventory swap между разными adapter-моделями
 - нужны цены, деньги и commit-time проверки
 - нужны fixed slots поверх обычного inventory

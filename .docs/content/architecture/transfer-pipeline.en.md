@@ -32,6 +32,11 @@ flowchart TD
     F --> G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]
 ```
 
+For direct slot drops this has one important consequence:
+
+- when the operation already has a concrete `target slot` and the policy is not `FindAlternative`, planner/executor must not scan the rest of the inventory
+- inventory-wide `GetAcceptableCount()` is only needed for area-drop, deferred placement, and alternative-slot search
+
 ---
 
 ## Why planning exists
@@ -188,6 +193,11 @@ flowchart TD
 
 Important: events fire **after the entire operation completes**, not one per entry. This prevents false events when a later rollback occurs in Atomic mode.
 
+Additional note:
+
+- if execution already targets a concrete `targetSlot`, executor must not re-run inventory-wide capacity search
+- in that branch it should trust the plan and commit placement only into the requested slot
+
 ---
 
 ## What happens on failure
@@ -288,9 +298,20 @@ By default, batch mode comes from the target inventory's `DropPolicySettings`, w
 flowchart LR
     A["Target slot is occupied"] --> B{"BlockedTargetBehavior = Swap?"}
     B -->|No| C["Reject"]
-    B -->|Yes| D["Validate both directions"]
-    D --> E["Execute swap"]
+    B -->|Yes| D["Validate both directions\non target-side preview stacks"]
+    D --> E["Capture copies of both stacks"]
+    E --> F["source -> target:\noutgoing -> incoming"]
+    E --> G["target -> source:\noutgoing -> incoming"]
+    F --> H["Commit converted stacks\ninto opposite slots"]
+    G --> H
 ```
+
+In practice this means:
+
+- cross-inventory swap must not be a raw stack exchange
+- both directions are converted into the opposite inventory format before commit
+- `OnItemRemoved` publishes `before` stacks, while `OnItemAdded` publishes `after` stacks
+- otherwise a foreign adapter type remains in the slot and the next operation fails in `CanStartDrag` / `CanDrop`
 
 ---
 
