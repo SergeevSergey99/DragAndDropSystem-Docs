@@ -434,34 +434,9 @@ namespace DragAndDropSystem.Inventories
             _strategy?.SetMaxStackSize(maxStackSize, allowItemOverride);
         }
 
-        internal bool TryPreviewIncomingItem(IItemAdapter itemAdapter, out IItemAdapter converted)
-        {
-            converted = DataBinding?.ItemConverter.TryConvertIncoming(itemAdapter);
-            return converted != null;
-        }
-
-        internal bool TryPreviewOutgoingItem(IItemAdapter itemAdapter, out IItemAdapter converted)
-        {
-            converted = DataBinding?.ItemConverter.TryConvertOutgoing(itemAdapter);
-            return converted != null;
-        }
-
-        bool TryConvertIncomingItem(ItemStack stack)
-        {
-            return stack.TryConvertAdapters(adapter => DataBinding?.ItemConverter.TryConvertIncoming(adapter));
-        }
-
-        internal bool TryConvertOutgoingItem(ItemStack stack)
-        {
-            return stack.TryConvertAdapters(adapter => DataBinding?.ItemConverter.TryConvertOutgoing(adapter));
-        }
-
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
         {
             if (stack == null || stack.IsEmpty)
-                return false;
-
-            if (!TryConvertIncomingItem(stack))
                 return false;
 
             EnsureStrategyInitialized();
@@ -499,9 +474,6 @@ namespace DragAndDropSystem.Inventories
             if (stack == null || stack.IsEmpty)
                 return false;
 
-            if (!TryConvertIncomingItem(stack))
-                return false;
-
             EnsureStrategyInitialized();
             return _placementStrategy.TryAddQuite(_slots, stack, targetSlotIndex);
         }
@@ -519,18 +491,10 @@ namespace DragAndDropSystem.Inventories
             if (!allowForeignSlot && !ReferenceEquals(slot.Inventory, this))
                 return false;
 
-            var sourceAdapters = request?.SourceEntry?.Stack?.Adapters;
-            ItemStack previewStack;
-            if (sourceAdapters != null && sourceAdapters.Count >= previewCount)
-            {
-                if (!ItemStack.TryCreate(sourceAdapters.Take(previewCount), out previewStack))
-                    return false;
-            }
-            else
-            {
-                if (!ItemStack.TryCreate(new[] { itemAdapter }, out previewStack))
-                    return false;
-            }
+            var previewStack = request?.CreatePreviewStack(previewCount, itemAdapter);
+            if (previewStack == null && !ItemStack.TryCreate(new[] { itemAdapter }, out previewStack))
+                return false;
+
             return ValidateRulesForPreview(slot, previewStack, request);
         }
 
@@ -884,9 +848,6 @@ namespace DragAndDropSystem.Inventories
             SlotOperationContext operationContext = null)
         {
             if (stack == null || stack.IsEmpty || targetSlot == null)
-                return false;
-
-            if (!TryConvertIncomingItem(stack))
                 return false;
 
             EnsureStrategyInitialized();

@@ -103,7 +103,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Удалить предметы из стака
+        /// Удалить предметы из стака с конца
         /// </summary>
         public int RemoveFromStack(int amount)
         {
@@ -149,8 +149,7 @@ namespace DragAndDropSystem.Core
             for (int i = startIndex; i < Count; i++)
                 takenAdapters.Add(_adapters[i]);
 
-            _adapters.RemoveRange(startIndex, toTake);
-            RefreshHeader();
+            RemoveFromStack(toTake);
 
             if (TryCreate(takenAdapters, out var splitStack))
                 return splitStack;

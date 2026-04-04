@@ -743,6 +743,7 @@ namespace DragAndDropSystem.Inventories
                 Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to create preview stack</color>");
                 return false;
             }
+
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 targetInventory,
                 targetPreviewItem,
@@ -773,14 +774,20 @@ namespace DragAndDropSystem.Inventories
             remainingAmount = requestedAmount - transferAmount;
             sourceSlot.UpdateVisuals();
 
-            // Снимок source-адаптеров до конвертации (для события удаления)
             var sourceRemovedStack = transferStack.CreateCopy();
 
-            // Outgoing-конвертация: один раз после Split, до размещения в target
-            if (sourceInventory is UniversalInventory srcUniversal && !srcUniversal.TryConvertOutgoingItem(transferStack))
+            if (!TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, transferStack))
             {
                 Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Source outgoing conversion failed, rolling back</color>");
                 sourceSlot.Stack.TryAddToStack(transferStack);
+                sourceSlot.UpdateVisuals();
+                return false;
+            }
+
+            if (!TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, transferStack))
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target incoming conversion failed, rolling back</color>");
+                sourceSlot.Stack.TryAddToStack(sourceRemovedStack);
                 sourceSlot.UpdateVisuals();
                 return false;
             }
@@ -808,7 +815,7 @@ namespace DragAndDropSystem.Inventories
             int actuallyAdded = transferAmount - (transferStack?.Count ?? 0);
             int actualRemaining = requestedAmount - actuallyAdded;
 
-            if (transferStack != null && !transferStack.IsEmpty)
+            if (!transferStack.IsEmpty)
             {
                 Extensions.DragAndDropLog($"<color=yellow>[TransferPlanExecutor] {transferStack.Count} items not placed, returning to source</color>");
                 if (sourceSlot.IsEmpty)

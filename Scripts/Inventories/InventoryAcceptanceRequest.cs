@@ -1,4 +1,3 @@
-using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Slots;
 
@@ -33,20 +32,19 @@ namespace DragAndDropSystem.Inventories
         public IInventory SourceInventory => SourceEntry.HasValue ? SourceEntry.Value.SourceInventory : null;
         public ISlot SourceSlot => SourceEntry.HasValue ? SourceEntry.Value.SourceSlot : null;
 
+        public ItemStack CreatePreviewStack(int previewCount, IItemAdapter previewItemAdapter = null)
+        {
+            return TransferItemConversionUtility.TryCreatePreviewStack(this, previewCount, previewItemAdapter, out var previewStack)
+                ? previewStack
+                : null;
+        }
+
         public DragContext CreateValidationContext(ISlot targetSlot, int previewCount, IItemAdapter previewItemAdapter = null)
         {
-            var sourceAdapters = SourceEntry?.Stack?.Adapters;
-            ItemStack stack;
-            if (sourceAdapters != null && sourceAdapters.Count >= previewCount)
-            {
-                if (!ItemStack.TryCreate(sourceAdapters.Take(previewCount), out stack))
-                    return null;
-            }
-            else
-            {
-                if (!ItemStack.TryCreate(new[] { previewItemAdapter ?? ItemAdapter }, out stack))
-                    return null;
-            }
+            var stack = CreatePreviewStack(previewCount, previewItemAdapter);
+            if (stack == null)
+                return null;
+
             return new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
         }
     }

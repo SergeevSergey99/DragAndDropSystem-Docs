@@ -775,7 +775,14 @@ namespace DragAndDropSystem.Inventories
                 operation.Entry.Stack.Count != plannedAmount ||
                 !ReferenceEquals(operation.Entry.Stack.PrimaryAdapter, operation.TargetItemAdapter))
             {
-                if (!ItemStack.TryCreate(operation.Entry.Stack.Adapters.Take(plannedAmount), out var validationStack))
+                var validationRequest = new InventoryAcceptanceRequest(
+                    operation.TargetInventory,
+                    operation.TargetItemAdapter,
+                    plannedAmount,
+                    operation.Context,
+                    operation.Entry);
+                var validationStack = validationRequest.CreatePreviewStack(plannedAmount, operation.TargetItemAdapter);
+                if (validationStack == null)
                     return false;
                 validationEntry = new DragEntry(
                     validationStack,
