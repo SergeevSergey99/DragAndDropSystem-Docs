@@ -7,7 +7,7 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public interface IItemAdapterConverter
     {
-        bool TryConvertIncoming(IItemAdapter itemAdapter, out IItemAdapter converted);
-        bool TryConvertOutgoing(IItemAdapter itemAdapter, out IItemAdapter converted);
+        IItemAdapter TryConvertIncoming(IItemAdapter itemAdapter);
+        IItemAdapter TryConvertOutgoing(IItemAdapter itemAdapter);
     }
 }

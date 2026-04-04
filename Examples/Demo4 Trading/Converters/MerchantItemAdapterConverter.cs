@@ -8,26 +8,19 @@ namespace DragAndDropSystem.Examples.Trading
     /// </summary>
     public sealed class MerchantItemAdapterConverter : IItemAdapterConverter
     {
-        public bool TryConvertIncoming(IItemAdapter itemAdapter, out IItemAdapter converted)
+        public IItemAdapter TryConvertIncoming(IItemAdapter itemAdapter)
         {
             switch (itemAdapter)
             {
                 case TradableSoAdapter:
-                    converted = itemAdapter;
-                    return true;
+                    return itemAdapter;
                 case ITradableItem tradable:
-                    converted = new TradableSoAdapter(tradable.OriginalSO);
-                    return true;
+                    return new TradableSoAdapter(tradable.OriginalSO);
                 default:
-                    converted = null;
-                    return false;
+                    return null;
             }
         }
 
-        public bool TryConvertOutgoing(IItemAdapter itemAdapter, out IItemAdapter converted)
-        {
-            converted = itemAdapter;
-            return itemAdapter != null;
-        }
+        public IItemAdapter TryConvertOutgoing(IItemAdapter itemAdapter) => itemAdapter;
     }
 }

@@ -94,7 +94,6 @@ namespace DragAndDropSystem.Inventories
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
-        private IItemAdapterConverter _itemAdapterConverter = IdentityItemAdapterConverter.Instance;
         private UniversalSlot _pointerHoveredSlot;
         private UniversalSlot _lastInteractedSlot;
 
@@ -149,8 +148,6 @@ namespace DragAndDropSystem.Inventories
                 return _queryStrategy;
             }
         }
-
-        public IItemAdapterConverter ItemAdapterConverter => _itemAdapterConverter ?? IdentityItemAdapterConverter.Instance;
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
@@ -259,11 +256,6 @@ namespace DragAndDropSystem.Inventories
         public void Initialize(InventoryDataBindingBase inventoryDataBindingBase)
         {
             DataBinding = inventoryDataBindingBase;
-        }
-
-        public void SetItemConverter(IItemAdapterConverter itemAdapterConverter)
-        {
-            _itemAdapterConverter = itemAdapterConverter ?? IdentityItemAdapterConverter.Instance;
         }
 
         private void OnValidate()
@@ -444,34 +436,24 @@ namespace DragAndDropSystem.Inventories
 
         internal bool TryPreviewIncomingItem(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            converted = itemAdapter;
-
-            if (itemAdapter == null)
-                return false;
-
-            return ItemAdapterConverter.TryConvertIncoming(itemAdapter, out converted);
+            converted = DataBinding?.ItemConverter.TryConvertIncoming(itemAdapter);
+            return converted != null;
         }
 
         internal bool TryPreviewOutgoingItem(IItemAdapter itemAdapter, out IItemAdapter converted)
         {
-            converted = itemAdapter;
-
-            if (itemAdapter == null)
-                return false;
-
-            return ItemAdapterConverter.TryConvertOutgoing(itemAdapter, out converted);
+            converted = DataBinding?.ItemConverter.TryConvertOutgoing(itemAdapter);
+            return converted != null;
         }
 
         bool TryConvertIncomingItem(ItemStack stack)
         {
-            return stack.TryConvertAdapters(adapter =>
-                ItemAdapterConverter.TryConvertIncoming(adapter, out var converted) ? converted : null);
+            return stack.TryConvertAdapters(adapter => DataBinding?.ItemConverter.TryConvertIncoming(adapter));
         }
 
         internal bool TryConvertOutgoingItem(ItemStack stack)
         {
-            return stack.TryConvertAdapters(adapter =>
-                ItemAdapterConverter.TryConvertOutgoing(adapter, out var converted) ? converted : null);
+            return stack.TryConvertAdapters(adapter => DataBinding?.ItemConverter.TryConvertOutgoing(adapter));
         }
 
         public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)

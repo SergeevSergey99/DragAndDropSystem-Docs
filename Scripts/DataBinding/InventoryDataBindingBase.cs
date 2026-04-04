@@ -63,7 +63,6 @@ namespace DragAndDropSystem.DataBinding
         {
             // Инициализируем инвентарь
             _inventory.Initialize(this);
-            _inventory.SetItemConverter(CreateItemConverter());
         }
 
         private void OnValidate()
@@ -307,11 +306,14 @@ namespace DragAndDropSystem.DataBinding
 
         #region Virtual Methods for Transfer Validation
 
+        private IItemAdapterConverter _itemConverter;
+        public IItemAdapterConverter ItemConverter => _itemConverter ??= CreateItemConverter();
+        
         /// <summary>
         /// Создать converter для преобразования предметов при входе/выходе из инвентаря.
         /// Верните null если конвертация не нужна.
         /// </summary>
-        protected virtual IItemAdapterConverter CreateItemConverter() => null;
+        protected virtual IItemAdapterConverter CreateItemConverter() => IdentityItemAdapterConverter.Instance;
 
         /// <summary>
         /// Проверить, можно ли начать перетаскивание из этого инвентаря

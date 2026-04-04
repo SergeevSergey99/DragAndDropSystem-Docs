@@ -9,20 +9,7 @@ namespace DragAndDropSystem.Inventories
     {
         public static readonly IdentityItemAdapterConverter Instance = new();
 
-        private IdentityItemAdapterConverter()
-        {
-        }
-
-        public bool TryConvertIncoming(IItemAdapter itemAdapter, out IItemAdapter converted)
-        {
-            converted = itemAdapter;
-            return itemAdapter != null;
-        }
-
-        public bool TryConvertOutgoing(IItemAdapter itemAdapter, out IItemAdapter converted)
-        {
-            converted = itemAdapter;
-            return itemAdapter != null;
-        }
+        public IItemAdapter TryConvertIncoming(IItemAdapter itemAdapter) => itemAdapter;
+        public IItemAdapter TryConvertOutgoing(IItemAdapter itemAdapter) => itemAdapter;
     }
 }
