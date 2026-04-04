@@ -4,6 +4,12 @@ This page explains transfer from the asset user's perspective.
 
 The question is not "which helper classes exist?" but "in what order does the system decide, and where can I hook into it?"
 
+For practical follow-ups, also see:
+
+- [Drop Policy Matrix](drop-policy-matrix.md)
+- [Cookbook: Item Conversion](item-conversion-cookbook.md)
+- [Logs and Debugging](../reference/logs-and-debugging.md)
+
 ---
 
 ## Short version

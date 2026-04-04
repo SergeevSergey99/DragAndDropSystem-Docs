@@ -91,3 +91,8 @@ Equipment:
 - you need correct cross-inventory swap between different adapter models
 - you need prices, gold, and commit-time validation
 - you need fixed slots on top of a regular inventory
+
+Related pages:
+
+- [Cookbook: Item Conversion](../architecture/item-conversion-cookbook.md)
+- [Troubleshooting](../reference/troubleshooting.md)

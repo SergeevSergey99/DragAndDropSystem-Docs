@@ -140,3 +140,13 @@ flowchart LR
 - [Demo4 Trading](../examples/demo4-trading.md) — если нужны fixed slots, разные модели данных и торговля
 - [Примеры](../examples/index.md) — если хотите выбрать из всех 5 демо
 - [Привязка данных](../architecture/data-binding.md) — если нужно понять lifecycle и точки расширения
+- [Troubleshooting](../reference/troubleshooting.md) — если базовая сцена не завелась с первого раза
+
+## Частые ошибки в первом проекте
+
+- `ItemId` не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно
+- на сцене нет `DragAndDropManager` или их несколько
+- на сцене нет `EventSystem`
+- binding привязан не к тому `UniversalInventory`
+- данные меняются вне pipeline, но `ReloadUI()` не вызывается
+- для fixed slots используется `ListInventoryDataBinding`, хотя нужен `MappedSlotInventoryDataBinding`

@@ -23,7 +23,7 @@ flowchart TD
     DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
     style DragOver fill:#8884, stroke-dasharray: 5 5
     OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
     style OnDropCompleted fill:#4F44
     OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
     style OnDragEnded fill:#f4f4
@@ -73,7 +73,7 @@ flowchart TD
 | Event | When it fires | Note |
 |-------|---------------|------|
 | `OnSwapAttempting` | Before swap execution | Set `Cancel = true` to cancel |
-| `OnSwapCompleted` | Swap executed | Both items swapped places |
+| `OnSwapCompleted` | Swap executed | Slots already contain final target-side stacks |
 
 ---
 
@@ -90,13 +90,18 @@ flowchart TD
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `Item` | `IItemAdapter` | Affected item |
-| `Count` | `int` | Number of items added/removed |
+| `Stack` | `ItemStack` | Full event stack |
 | `SlotIndex` | `int` | Target/source slot index |
 | `SourceInventory` | `IInventory` | Where the item came from (null if not from another inventory) |
 | `TargetInventory` | `IInventory` | Where the item was placed (null if not into another inventory) |
 | `SourceSlot` | `ISlot` | Source slot (null if unknown) |
 | `TargetSlot` | `ISlot` | Destination slot (null if unknown) |
+
+In practice:
+
+- `context.Stack.PrimaryAdapter` gives a representative adapter
+- `context.Stack.Count` gives the amount
+- for cross-inventory transfer, remove usually publishes the pre-conversion stack, while add publishes the post-conversion stack
 
 ---
 
@@ -106,13 +111,18 @@ flowchart TD
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `SourceStack` | `ItemStack` | Stack from the source slot (will be moved to the target) |
-| `TargetStack` | `ItemStack` | Stack from the target slot (will be moved to the source) |
+| `SourceStack` | `ItemStack` | Pre-commit stack from the source slot |
+| `TargetStack` | `ItemStack` | Pre-commit stack from the target slot |
 | `SourceSlot` | `ISlot` | Source slot (where dragging started) |
 | `TargetSlot` | `ISlot` | Target slot (where the drop is intended) |
 | `SourceInventory` | `IInventory` | Source inventory |
 | `TargetInventory` | `IInventory` | Target inventory |
 | `Cancel` | `bool` | Set to `true` to cancel the swap |
+
+Important:
+
+- for cross-inventory swap, these are not necessarily the same adapter objects that remain in the slots after commit
+- final slots already contain target-side converted stacks
 
 ---
 
@@ -132,3 +142,8 @@ flowchart TB
 
 !!! info "Safe by Default"
     In atomic mode, no events are dispatched until the entire operation completes successfully. This prevents subscribers from reacting to changes that may be rolled back.
+
+See also:
+
+- [Transfer Pipeline](../architecture/transfer-pipeline.md)
+- [Logs and Debugging](logs-and-debugging.md)

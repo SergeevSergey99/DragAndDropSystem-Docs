@@ -67,6 +67,8 @@ nav:
     - architecture/data-binding.md
     - architecture/binding-templates.md
     - architecture/transfer-pipeline.md
+    - architecture/drop-policy-matrix.md
+    - architecture/item-conversion-cookbook.md
     - architecture/strategies.md
     - architecture/rules.md
     - architecture/drop-areas.md
@@ -81,6 +83,8 @@ nav:
     - reference/optional-interfaces.md
     - reference/file-map.md
     - reference/events.md
+    - reference/logs-and-debugging.md
+    - reference/troubleshooting.md
   - feedback.md
 
 markdown_extensions:

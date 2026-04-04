@@ -91,3 +91,8 @@ Swap между merchant и equipment/player inventory:
 - нужен корректный cross-inventory swap между разными adapter-моделями
 - нужны цены, деньги и commit-time проверки
 - нужны fixed slots поверх обычного inventory
+
+Связанные страницы:
+
+- [Cookbook: конвертация предметов](../architecture/item-conversion-cookbook.md)
+- [Troubleshooting](../reference/troubleshooting.md)

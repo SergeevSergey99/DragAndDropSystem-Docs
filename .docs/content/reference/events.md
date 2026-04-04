@@ -23,7 +23,7 @@ flowchart TD
     DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
     style DragOver fill:#8884, stroke-dasharray: 5 5
     OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropAttempting" }
+    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
     style OnDropCompleted fill:#4F44
     OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
     style OnDragEnded fill:#f4f4
@@ -74,7 +74,7 @@ flowchart TD
 | Событие | Когда срабатывает | Примечание |
 |---------|-------------------|------------|
 | `OnSwapAttempting` | Перед выполнением обмена | Установите `Cancel = true` для отмены |
-| `OnSwapCompleted` | Обмен выполнен | Оба предмета поменялись местами |
+| `OnSwapCompleted` | Обмен выполнен | Слоты уже содержат итоговые target-side стеки |
 
 ---
 
@@ -91,13 +91,18 @@ flowchart TD
 
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `Item` | `IItemAdapter` | Затронутый предмет |
-| `Count` | `int` | Количество добавленных/удалённых |
+| `Stack` | `ItemStack` | Полный стек события |
 | `SlotIndex` | `int` | Индекс целевого/исходного слота |
 | `SourceInventory` | `IInventory` | Откуда взяли предмет (null если не из другого инвентаря) |
 | `TargetInventory` | `IInventory` | Куда положили предмет (null если не в другой инвентарь) |
 | `SourceSlot` | `ISlot` | Слот-источник (null если неизвестен) |
 | `TargetSlot` | `ISlot` | Слот-назначение (null если неизвестен) |
+
+Практически:
+
+- `context.Stack.PrimaryAdapter` даёт representative adapter
+- `context.Stack.Count` даёт количество
+- для cross-inventory переноса remove обычно публикует stack до conversion, а add — stack после conversion
 
 ---
 
@@ -107,13 +112,18 @@ flowchart TD
 
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `SourceStack` | `ItemStack` | Стак из исходного слота (будет перемещён в целевой) |
-| `TargetStack` | `ItemStack` | Стак из целевого слота (будет перемещён в исходный) |
+| `SourceStack` | `ItemStack` | Pre-commit стак из исходного слота |
+| `TargetStack` | `ItemStack` | Pre-commit стак из целевого слота |
 | `SourceSlot` | `ISlot` | Исходный слот (откуда начали перетаскивание) |
 | `TargetSlot` | `ISlot` | Целевой слот (куда хотим бросить) |
 | `SourceInventory` | `IInventory` | Исходный инвентарь |
 | `TargetInventory` | `IInventory` | Целевой инвентарь |
 | `Cancel` | `bool` | Установите в `true` чтобы отменить обмен |
+
+Важно:
+
+- для cross-inventory swap это не обязательно те же adapter-объекты, которые будут лежать в слотах после commit
+- итоговые слоты уже содержат target-side converted stacks
 
 ---
 
@@ -133,3 +143,8 @@ flowchart TB
 
 !!! info "Безопасность по умолчанию"
     В атомарном режиме ни одно событие не отправляется, пока вся операция не завершится успешно. Это предотвращает реакцию подписчиков на изменения, которые могут быть откачены.
+
+См. также:
+
+- [Конвейер переноса](../architecture/transfer-pipeline.md)
+- [Логи и отладка](logs-and-debugging.md)
