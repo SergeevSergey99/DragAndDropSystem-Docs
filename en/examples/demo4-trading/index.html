@@ -1578,6 +1578,7 @@
 <li>price and gold validation at commit time</li>
 <li>separation of mechanical validation and domain side effects</li>
 <li><code>MappedSlotInventoryDataBinding</code> for equipment</li>
+<li>cross-inventory swap with bidirectional conversion</li>
 </ul>
 <h2 id="how-it-is-structured">How it is structured</h2>
 <p>Data and economy:</p>
@@ -1619,6 +1620,14 @@
 <li>Domain validation checks gold and trade constraints.</li>
 <li>After a successful commit the bindings update player and merchant data.</li>
 <li>Side effects update gold and related values.</li>
+</ol>
+<p>Swap between merchant and equipment/player inventory:</p>
+<ol>
+<li>The planner detects that normal placement is impossible and marks the entry as <code>RequiresSwap</code>.</li>
+<li>The executor validates both directions on target-side converted preview stacks.</li>
+<li>It then captures copies of both stacks and converts them in both directions.</li>
+<li>The opposite slots receive already converted stacks, not raw adapters.</li>
+<li>Because of that, the next drag from those slots does not fail with <code>Wrong item type</code>.</li>
 </ol>
 <p>Equipment:</p>
 <ol>
@@ -1665,6 +1674,7 @@
 <ul>
 <li>you need different data models on different sides of a transfer boundary</li>
 <li>you need item conversion during transfer</li>
+<li>you need correct cross-inventory swap between different adapter models</li>
 <li>you need prices, gold, and commit-time validation</li>
 <li>you need fixed slots on top of a regular inventory</li>
 </ul>

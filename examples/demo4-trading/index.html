@@ -1578,6 +1578,7 @@
 <li>проверку цен и денег на commit-этапе</li>
 <li>разделение mechanical validation и domain side effects</li>
 <li><code>MappedSlotInventoryDataBinding</code> для экипировки</li>
+<li>cross-inventory swap с двусторонней конвертацией</li>
 </ul>
 <h2 id="_2">Как устроено</h2>
 <p>Данные и экономика:</p>
@@ -1619,6 +1620,14 @@
 <li>Domain validation проверяет деньги и ограничения сделки.</li>
 <li>После успешного commit bindings обновляют данные игрока и торговца.</li>
 <li>Side effects меняют золото и другие связанные значения.</li>
+</ol>
+<p>Swap между merchant и equipment/player inventory:</p>
+<ol>
+<li>Planner решает, что обычное размещение невозможно, и помечает entry как <code>RequiresSwap</code>.</li>
+<li>Executor валидирует оба направления на target-side converted preview stacks.</li>
+<li>Затем он снимает копии обоих стеков и выполняет конвертацию в обе стороны.</li>
+<li>В противоположные слоты коммитятся уже сконвертированные стеки, а не raw adapters.</li>
+<li>Благодаря этому следующий drag из этих слотов не падает на <code>Неверный тип предмета</code>.</li>
 </ol>
 <p>Экипировка:</p>
 <ol>
@@ -1665,6 +1674,7 @@
 <ul>
 <li>нужны разные модели данных по разные стороны transfer boundary</li>
 <li>нужна конвертация предметов при переносе</li>
+<li>нужен корректный cross-inventory swap между разными adapter-моделями</li>
 <li>нужны цены, деньги и commit-time проверки</li>
 <li>нужны fixed slots поверх обычного inventory</li>
 </ul>

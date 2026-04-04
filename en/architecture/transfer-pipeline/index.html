@@ -1887,6 +1887,11 @@
     D --&gt;|Passed| E["Execute transfer:\nsplit → conversion → placement"]
     E --&gt; F["OnTransferSucceeded\n(business side effects)"]
     F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
+<p>For direct slot drops this has one important consequence:</p>
+<ul>
+<li>when the operation already has a concrete <code>target slot</code> and the policy is not <code>FindAlternative</code>, planner/executor must not scan the rest of the inventory</li>
+<li>inventory-wide <code>GetAcceptableCount()</code> is only needed for area-drop, deferred placement, and alternative-slot search</li>
+</ul>
 <hr />
 <h2 id="why-planning-exists">Why planning exists</h2>
 <p>Before any real mutation, the system decides:</p>
@@ -2050,6 +2055,11 @@
     C --&gt; D["OnItemAdded — target\n(with final adapters)"]
     D --&gt; E["OnDropCompleted"]</code></pre>
 <p>Important: events fire <strong>after the entire operation completes</strong>, not one per entry. This prevents false events when a later rollback occurs in Atomic mode.</p>
+<p>Additional note:</p>
+<ul>
+<li>if execution already targets a concrete <code>targetSlot</code>, executor must not re-run inventory-wide capacity search</li>
+<li>in that branch it should trust the plan and commit placement only into the requested slot</li>
+</ul>
 <hr />
 <h2 id="what-happens-on-failure">What happens on failure</h2>
 <p>If a check or commit fails, the behavior depends on the policy:</p>
@@ -2155,8 +2165,19 @@
 <pre class="mermaid"><code>flowchart LR
     A["Target slot is occupied"] --&gt; B{"BlockedTargetBehavior = Swap?"}
     B --&gt;|No| C["Reject"]
-    B --&gt;|Yes| D["Validate both directions"]
-    D --&gt; E["Execute swap"]</code></pre>
+    B --&gt;|Yes| D["Validate both directions\non target-side preview stacks"]
+    D --&gt; E["Capture copies of both stacks"]
+    E --&gt; F["source -&gt; target:\noutgoing -&gt; incoming"]
+    E --&gt; G["target -&gt; source:\noutgoing -&gt; incoming"]
+    F --&gt; H["Commit converted stacks\ninto opposite slots"]
+    G --&gt; H</code></pre>
+<p>In practice this means:</p>
+<ul>
+<li>cross-inventory swap must not be a raw stack exchange</li>
+<li>both directions are converted into the opposite inventory format before commit</li>
+<li><code>OnItemRemoved</code> publishes <code>before</code> stacks, while <code>OnItemAdded</code> publishes <code>after</code> stacks</li>
+<li>otherwise a foreign adapter type remains in the slot and the next operation fails in <code>CanStartDrag</code> / <code>CanDrop</code></li>
+</ul>
 <hr />
 <h2 id="what-you-need-to-know-vs-what-you-dont">What you need to know vs what you don't</h2>
 <p>Usually an asset user needs to understand:</p>

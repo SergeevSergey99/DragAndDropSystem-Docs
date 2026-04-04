@@ -1887,6 +1887,11 @@
     D --&gt;|Прошло| E["Выполнить перенос:\nсплит → конвертация → размещение"]
     E --&gt; F["OnTransferSucceeded\n(бизнес side effects)"]
     F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
+<p>Для direct slot drop это означает важное ограничение:</p>
+<ul>
+<li>если у операции уже есть конкретный <code>target slot</code> и policy не равен <code>FindAlternative</code>, planner/executor не должны сканировать остальные слоты инвентаря</li>
+<li>inventory-wide поиск по <code>GetAcceptableCount()</code> нужен только для area-drop, deferred placement и сценариев поиска альтернативных слотов</li>
+</ul>
 <hr />
 <h2 id="_4">Зачем нужен этап планирования</h2>
 <p>Перед реальным переносом система сначала считает, что она собирается сделать:</p>
@@ -2051,6 +2056,11 @@
     C --&gt; D["OnItemAdded — цель\n(с итоговыми адаптерами)"]
     D --&gt; E["OnDropCompleted"]</code></pre>
 <p>Важно: события стреляют <strong>после завершения всей операции</strong>, а не по одному на каждый entry. Это предотвращает ложные события при последующем откате в Atomic режиме.</p>
+<p>Дополнение:</p>
+<ul>
+<li>если execution уже привязан к конкретному <code>targetSlot</code>, executor не должен повторно делать inventory-wide capacity search</li>
+<li>в этой ветке он доверяет уже построенному plan и коммитит placement только в указанный слот</li>
+</ul>
 <hr />
 <h2 id="_9">Что происходит при отказе</h2>
 <p>Если проверка или commit не прошли, поведение зависит от политики:</p>
@@ -2158,8 +2168,19 @@
 <pre class="mermaid"><code>flowchart LR
     A["Целевой слот занят"] --&gt; B{"Политика позволяет swap?"}
     B --&gt;|Нет| C["Отклонить"]
-    B --&gt;|Да| D["Проверить оба направления"]
-    D --&gt; E["Выполнить обмен"]</code></pre>
+    B --&gt;|Да| D["Проверить оба направления\nна target-side preview stacks"]
+    D --&gt; E["Снять копии обоих стеков"]
+    E --&gt; F["source -&gt; target:\noutgoing -&gt; incoming"]
+    E --&gt; G["target -&gt; source:\noutgoing -&gt; incoming"]
+    F --&gt; H["Коммитить уже\nсконвертированные стеки\nв противоположные слоты"]
+    G --&gt; H</code></pre>
+<p>Практически это значит:</p>
+<ul>
+<li>cross-inventory swap больше не должен быть raw exchange стеков</li>
+<li>оба направления сначала конвертируются в формат противоположного инвентаря</li>
+<li><code>OnItemRemoved</code> публикует стеки <code>before</code>, а <code>OnItemAdded</code> — стеки <code>after</code></li>
+<li>иначе в слоте остаётся чужой adapter-тип и следующая операция начинает падать на <code>CanStartDrag</code>/<code>CanDrop</code></li>
+</ul>
 <hr />
 <h2 id="_10">Что имеет смысл знать, а что нет</h2>
 <p>Обычно пользователю ассета нужно понимать:</p>
