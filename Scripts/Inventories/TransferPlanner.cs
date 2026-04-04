@@ -269,6 +269,23 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected itemAdapter conversion");
             }
 
+            if (isFirstEntry &&
+                targetSlotHint != null &&
+                !targetSlotHint.IsEmpty &&
+                policy.BlockedTarget == BlockedTargetBehavior.Swap)
+            {
+                return PlanOccupiedHintWithSwapFallback(
+                    context,
+                    entry,
+                    policy,
+                    targetInventory,
+                    targetSlotHint,
+                    virtualSlots,
+                    globalRules,
+                    requested,
+                    targetItem);
+            }
+
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 targetInventory,
                 targetItem,
@@ -387,6 +404,84 @@ namespace DragAndDropSystem.Inventories
             }
 
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
+        }
+
+        private PlannedEntryTransfer PlanOccupiedHintWithSwapFallback(
+            DragContext context,
+            DragEntry entry,
+            ResolvedDropPolicy policy,
+            IInventory targetInventory,
+            ISlot targetSlotHint,
+            IReadOnlyList<VirtualSlotState> virtualSlots,
+            GlobalRuleValidator globalRules,
+            int requested,
+            IItemAdapter targetItem)
+        {
+            var operation = new EntryPlanningOperation(
+                context,
+                entry,
+                policy,
+                targetInventory,
+                targetSlotHint,
+                preferHint: true,
+                virtualSlots,
+                globalRules,
+                targetItem,
+                requested,
+                requested);
+
+            IReadOnlyList<PlannedSlotAllocation> allocations = EmptyAllocations;
+            var hinted = FindVirtualSlot(targetSlotHint, virtualSlots);
+            if (hinted != null)
+            {
+                var hintedAllocations = new List<PlannedSlotAllocation>();
+                int placedIntoHint = IsUniqueInventory(targetInventory)
+                    ? TryAllocateIntoSlot(operation, hinted, 1, hintedAllocations, uniqueMode: true)
+                    : TryAllocateIntoSlot(operation, hinted, requested, hintedAllocations, uniqueMode: false);
+
+                if (placedIntoHint > 0)
+                    allocations = hintedAllocations;
+            }
+
+            int plannedAmount = 0;
+            foreach (var allocation in allocations)
+                plannedAmount += allocation.Amount;
+
+            plannedAmount = ApplySourceDragAmountStep(entry, plannedAmount, ref allocations);
+            if (plannedAmount > 0)
+            {
+                if (plannedAmount < requested && !policy.AllowPartial)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Entry cannot be placed fully");
+
+                return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
+            }
+
+            if (targetInventory is UniversalInventory occupiedUni && occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
+            {
+                return new PlannedEntryTransfer(
+                    entry,
+                    requested,
+                    requested,
+                    EmptyAllocations,
+                    previewTargetItemAdapter: targetItem,
+                    requiresOccupiedHandler: true,
+                    occupiedTargetSlot: targetSlotHint);
+            }
+
+            if (ShouldPlanSwap(context, entry, policy, targetSlotHint, preferHint: true))
+            {
+                return new PlannedEntryTransfer(
+                    entry,
+                    requested,
+                    requested,
+                    EmptyAllocations,
+                    failureReason: null,
+                    requiresSwap: true,
+                    swapTargetSlot: targetSlotHint,
+                    previewTargetItemAdapter: targetItem);
+            }
+
+            return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
         }
 
         private static int ApplySourceStepToAmount(DragEntry entry, int amount)
