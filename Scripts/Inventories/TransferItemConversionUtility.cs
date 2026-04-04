@@ -72,6 +72,28 @@ namespace DragAndDropSystem.Inventories
         public static bool TryConvertIncomingStack(IInventory targetInventory, ItemStack stack)
             => TryConvertStack(stack, adapter => ConvertIncoming(targetInventory, adapter));
 
+        public static bool TryCreateConvertedStack(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            ItemStack sourceStack,
+            out ItemStack convertedStack)
+        {
+            convertedStack = null;
+            if (sourceStack == null || sourceStack.IsEmpty)
+                return false;
+
+            var convertedAdapters = new List<IItemAdapter>(sourceStack.Count);
+            foreach (var adapter in sourceStack.Adapters)
+            {
+                if (!TryResolveTargetItem(sourceInventory, targetInventory, adapter, out var convertedAdapter))
+                    return false;
+
+                convertedAdapters.Add(convertedAdapter);
+            }
+
+            return ItemStack.TryCreate(convertedAdapters, out convertedStack);
+        }
+
         private static bool TryConvertStack(ItemStack stack, System.Func<IItemAdapter, IItemAdapter> converter)
         {
             return stack != null && !stack.IsEmpty && stack.TryConvertAdapters(converter);

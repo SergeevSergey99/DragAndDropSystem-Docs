@@ -1094,7 +1094,14 @@ namespace DragAndDropSystem.Inventories
                 sourceSlot.UpdateVisuals();
 
                 Extensions.DragAndDropLog($"<color=green>[{name}] Swap completed: slot {targetSlot.Index} ↔ slot {sourceSlot.Index}</color>");
-                result = new SwapOperationResult(targetStackBackup, sourceStackBackup);
+                var targetStackAfter = ItemStack.TryCreate(targetSlot.Stack.Adapters, out var targetAfter)
+                    ? targetAfter
+                    : ItemStack.Empty();
+                var sourceStackAfter = ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceAfter)
+                    ? sourceAfter
+                    : ItemStack.Empty();
+
+                result = new SwapOperationResult(targetStackBackup, sourceStackBackup, targetStackAfter, sourceStackAfter);
                 return true;
             }
             catch (Exception ex)
