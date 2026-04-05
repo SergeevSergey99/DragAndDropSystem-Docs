@@ -59,9 +59,19 @@ namespace DragAndDropSystem.Inventories
                 return false;
 
             // Fallback for generic acceptance requests that have no concrete source instances.
+            // We must still end up with distinct adapter objects; repeating the same reference
+            // would corrupt stacks that carry per-instance runtime state.
             var syntheticAdapters = new List<IItemAdapter>(previewCount);
             for (int i = 0; i < previewCount; i++)
-                syntheticAdapters.Add(previewAdapter);
+            {
+                if (!TryResolveTargetItem(request.SourceInventory, request.TargetInventory, previewAdapter, out var convertedPreviewAdapter))
+                    return false;
+
+                if (convertedPreviewAdapter == null || ContainsReference(syntheticAdapters, convertedPreviewAdapter))
+                    return false;
+
+                syntheticAdapters.Add(convertedPreviewAdapter);
+            }
 
             return ItemStack.TryCreate(syntheticAdapters, out previewStack);
         }
@@ -109,6 +119,17 @@ namespace DragAndDropSystem.Inventories
         {
             var converter = inventory?.DataBinding?.ItemConverter;
             return converter != null ? converter.TryConvertIncoming(itemAdapter) : itemAdapter;
+        }
+
+        private static bool ContainsReference(List<IItemAdapter> adapters, IItemAdapter candidate)
+        {
+            foreach (var adapter in adapters)
+            {
+                if (ReferenceEquals(adapter, candidate))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

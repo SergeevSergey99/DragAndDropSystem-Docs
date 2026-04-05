@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Interaction;
@@ -229,14 +229,15 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Добавить предмет в UI без триггера событий
+        /// Добавить предметы в UI без триггера событий.
+        /// Каждый элемент списка должен быть отдельным экземпляром адаптера.
         /// </summary>
-        protected void AddToUIQuiet(IItemAdapter itemAdapter, int count, int targetSlotIndex = -1)
+        protected void AddToUIQuiet(IEnumerable<IItemAdapter> adapters, int targetSlotIndex = -1)
         {
-            if (_inventory == null || itemAdapter == null || count <= 0)
+            if (_inventory == null || adapters == null)
                 return;
 
-            if (!ItemStack.TryCreate(Enumerable.Repeat(itemAdapter, count), out var stack))
+            if (!ItemStack.TryCreate(adapters, out var stack))
                 return;
 
             if (targetSlotIndex < 0)
@@ -248,6 +249,44 @@ namespace DragAndDropSystem.DataBinding
             var slot = _inventory.GetSlot(targetSlotIndex);
             if (slot != null)
                 slot.SetStack(stack);
+        }
+
+        /// <summary>
+        /// Добавить несколько предметов в UI через фабрику, создающую уникальный адаптер на каждый элемент стека.
+        /// </summary>
+        protected void AddToUIQuiet(Func<IItemAdapter> createAdapter, int count, int targetSlotIndex = -1)
+        {
+            if (_inventory == null || createAdapter == null || count <= 0)
+                return;
+
+            var adapters = new List<IItemAdapter>(count);
+            for (int i = 0; i < count; i++)
+            {
+                var adapter = createAdapter();
+                if (adapter == null)
+                    return;
+
+                if (ContainsReference(adapters, adapter))
+                {
+                    Debug.LogWarning($"[{GetType().Name}] AddToUIQuiet received the same adapter instance more than once. Aborting stack creation.");
+                    return;
+                }
+
+                adapters.Add(adapter);
+            }
+
+            AddToUIQuiet(adapters, targetSlotIndex);
+        }
+
+        private static bool ContainsReference(List<IItemAdapter> adapters, IItemAdapter candidate)
+        {
+            foreach (var adapter in adapters)
+            {
+                if (ReferenceEquals(adapter, candidate))
+                    return true;
+            }
+
+            return false;
         }
 
         #endregion

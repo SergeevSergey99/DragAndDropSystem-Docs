@@ -42,7 +42,7 @@ namespace DragAndDropSystem.Examples.Minecraft
             if (recipe != null && recipe.Result != null)
             {
                 int multiplier = CraftingManager.AutoCreateInstance.CraftMultiplier;
-                AddToUIQuiet(new MinecraftItemAdapterAdapter(recipe.Result), multiplier * recipe.ResultCount, 0);
+                AddToUIQuiet(() => new MinecraftItemAdapterAdapter(recipe.Result), multiplier * recipe.ResultCount, 0);
                 _inventory.SetDragAmountStep(recipe.ResultCount, DragAmountStepRounding.Ceil);
             }
             else

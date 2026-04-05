@@ -62,7 +62,7 @@ namespace DragAndDropSystem.DataBinding
                 var item = items[i];
                 if (item == null) continue;
 
-                AddToUIQuiet(CreateAdapter(item), 1);
+                AddToUIQuiet(new[] { CreateAdapter(item) });
             }
         }
 

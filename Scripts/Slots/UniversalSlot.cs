@@ -78,7 +78,12 @@ namespace DragAndDropSystem.Slots
             }
             else
             {
-                // Заменяем предмет, сохраняя количество
+                if (_stack.Count > 1)
+                {
+                    Extensions.DragAndDropLog("<color=red>[UniversalSlot] ReplaceItem cannot operate on stacks with multiple concrete adapters. Rebuild the slot stack explicitly.</color>");
+                    return;
+                }
+
                 _stack.ReplaceItem(newItemAdapter);
             }
 

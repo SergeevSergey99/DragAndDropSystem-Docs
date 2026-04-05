@@ -59,15 +59,15 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Добавить предметы к стаку без ограничений
+        /// Legacy API from the old "primary adapter + count" model.
+        /// Multi-item stacks must now be assembled from concrete adapter instances.
         /// </summary>
         public void AddToStack(int amount)
         {
             if (amount <= 0 || PrimaryAdapter == null)
                 return;
 
-            for (int i = 0; i < amount; i++)
-                _adapters.Add(PrimaryAdapter);
+            Debug.LogError("[ItemStack] AddToStack(int) is no longer supported because it duplicates the same adapter reference. Use TryAddToStack(IEnumerable<IItemAdapter>) with unique adapter instances.");
         }
 
         public bool TryAddToStack(ItemStack stack)
@@ -198,7 +198,8 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Заменить все адаптеры в стеке на один и тот же экземпляр.
+        /// Legacy API from the old "primary adapter + count" model.
+        /// Replacing a multi-item stack with a single adapter instance is unsafe.
         /// </summary>
         public void ReplaceItem(IItemAdapter newItemAdapter)
         {
@@ -209,10 +210,19 @@ namespace DragAndDropSystem.Core
             }
 
             if (_adapters.Count == 0)
+            {
+                _adapters.Add(newItemAdapter);
+                RefreshHeader();
                 return;
+            }
 
-            for (int i = 0; i < _adapters.Count; i++)
-                _adapters[i] = newItemAdapter;
+            if (_adapters.Count > 1)
+            {
+                Debug.LogError("[ItemStack] ReplaceItem(IItemAdapter) cannot replace a multi-item stack with one shared adapter instance. Rebuild the stack from concrete adapters instead.");
+                return;
+            }
+
+            _adapters[0] = newItemAdapter;
             RefreshHeader();
         }
 
