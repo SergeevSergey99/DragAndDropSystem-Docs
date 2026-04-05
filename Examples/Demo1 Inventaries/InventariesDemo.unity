@@ -1771,7 +1771,6 @@ GameObject:
   - component: {fileID: 485691799}
   - component: {fileID: 485691797}
   - component: {fileID: 485691798}
-  - component: {fileID: 910000000000000003}
   m_Layer: 5
   m_Name: Inventory3
   m_TagString: Untagged
@@ -3411,7 +3410,6 @@ GameObject:
   - component: {fileID: 1324997593}
   - component: {fileID: 1324997592}
   - component: {fileID: 1324997591}
-  - component: {fileID: 910000000000000004}
   m_Layer: 5
   m_Name: Inventory4
   m_TagString: Untagged
@@ -6413,46 +6411,6 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8671010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _useGlobalBindingsProfile: 1
-  _bindingsProfile: {fileID: 0}
-  _pointerBindings: []
-  _inputActionBindings: []
-  references:
-    version: 2
-    RefIds: []
---- !u!114 &910000000000000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 485691795}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InventoryInteractionCoordinator
-  _inventory: {fileID: 0}
-  _useGlobalBindingsProfile: 1
-  _bindingsProfile: {fileID: 0}
-  _pointerBindings: []
-  _inputActionBindings: []
-  references:
-    version: 2
-    RefIds: []
---- !u!114 &910000000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1324997587}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 41f31cd7eda1490ca2d8f83f5511eb67, type: 3}

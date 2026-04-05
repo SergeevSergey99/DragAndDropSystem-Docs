@@ -96,6 +96,7 @@ namespace DragAndDropSystem.Inventories
         private IInventoryQueryStrategy _queryStrategy;
         private UniversalSlot _pointerHoveredSlot;
         private UniversalSlot _lastInteractedSlot;
+        private StrategyConfiguration _appliedStrategyConfiguration;
 
         public IReadOnlyList<ISlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
@@ -262,6 +263,15 @@ namespace DragAndDropSystem.Inventories
         {
             // Сортируем правила при изменении в Inspector
             _ruleValidator?.OnValidate();
+
+            if (!Application.isPlaying || _strategy == null)
+                return;
+
+            var currentConfiguration = CaptureStrategyConfiguration();
+            if (_appliedStrategyConfiguration.Equals(currentConfiguration))
+                return;
+
+            RefreshStrategy();
         }
 
         private void OnDisable()
@@ -387,6 +397,27 @@ namespace DragAndDropSystem.Inventories
             _acceptanceStrategy = strategy;
             _dragPolicy = strategy;
             _queryStrategy = strategy;
+            _appliedStrategyConfiguration = CaptureStrategyConfiguration();
+        }
+
+        public void RefreshStrategy()
+        {
+            if (_slots == null)
+                _slots = new List<ISlot>();
+
+            if (_slots.Count == 0)
+                InitializeSlots();
+
+            InitializeStrategy();
+            EnsureFreeSlots();
+
+            if (Application.isPlaying && DataBinding != null)
+            {
+                DataBinding.ReloadUI();
+                return;
+            }
+
+            UpdateAllVisuals();
         }
 
         private void EnsureStrategyInitialized()
@@ -398,6 +429,18 @@ namespace DragAndDropSystem.Inventories
             InitializeSlots();
             InitializeStrategy();
             EnsureFreeSlots();
+        }
+
+        private StrategyConfiguration CaptureStrategyConfiguration()
+        {
+            return new StrategyConfiguration(
+                _itemBehavior,
+                _maxStackSize,
+                _allowItemStackOverride,
+                _slotManagement,
+                _maxDynamicSlots,
+                _maxFreeSlots,
+                _dropPolicy.AllowMergeOnDrop);
         }
 
         /// <summary>
