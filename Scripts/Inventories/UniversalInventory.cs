@@ -410,14 +410,17 @@ namespace DragAndDropSystem.Inventories
                 InitializeSlots();
 
             InitializeStrategy();
-            EnsureFreeSlots();
 
             if (Application.isPlaying && DataBinding != null)
             {
                 DataBinding.ReloadUI();
-                return;
             }
 
+            // EnsureFreeSlots/Trim должны выполняться ПОСЛЕ ReloadUI,
+            // иначе слоты, освободившиеся при переупаковке (например Unique→Stackable),
+            // не будут удалены.
+            EnsureFreeSlots();
+            TrimExcessFreeSlots(null);
             UpdateAllVisuals();
         }
 
