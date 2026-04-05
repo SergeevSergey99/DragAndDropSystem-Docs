@@ -42,6 +42,7 @@ plugins:
             Core Concepts: Основные концепции
             Advanced Systems: Продвинутые системы
             Reference: Справочник
+            Feedback: Обратная связь
         - locale: en
           name: English
           build: true
@@ -51,6 +52,7 @@ plugins:
             Core Concepts: Core Concepts
             Advanced Systems: Advanced Systems
             Reference: Reference
+            Feedback: Feedback
 
 nav:
   - Home:
@@ -85,7 +87,9 @@ nav:
     - reference/events.md
     - reference/logs-and-debugging.md
     - reference/troubleshooting.md
-  - feedback.md
+  - Feedback:
+    - feedback.md
+    - examples/showcase.md
 
 markdown_extensions:
   - admonition

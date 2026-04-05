@@ -26,6 +26,22 @@ The goal is to help you understand the architectural shape quickly, not just rep
 
 ## Included demos
 
+### [Showcase](showcase.md)
+
+Use it for:
+- presenting real shipped or in-progress projects using the asset
+- collecting screenshots, GIFs, videos, and external links
+- maintaining a single gallery of user case studies
+
+Shows:
+- project cards
+- screenshot and GIF galleries
+- YouTube embeds and external links
+- a recommended structure for each case study
+
+Real file location:
+- `.docs/content/examples/showcase.en.md`
+
 ### [Demo1 Inventories](demo1-inventories.md)
 
 Use it for:
@@ -112,6 +128,7 @@ Real code location:
 
 | If you need | Start with |
 |---|---|
+| A gallery of real projects and case studies | [Showcase](showcase.md) |
 | Basic inventory list + simple hooks | [Demo1 Inventories](demo1-inventories.md) |
 | Chest UI and world interaction | [Demo2 Loot](demo2-loot.md) |
 | Crafting grid and slot-indexed data | [Demo3 Minecraft](demo3-minecraft.md) |
