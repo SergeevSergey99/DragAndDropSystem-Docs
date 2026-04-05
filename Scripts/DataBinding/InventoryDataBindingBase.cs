@@ -23,10 +23,12 @@ namespace DragAndDropSystem.DataBinding
         [SerializeField, Tooltip("UI представление инвентаря")]
         protected UniversalInventory _inventory;
 
+        /*
         [FoldoutGroup("Rules", false)]
         [SerializeField, HideLabel]
         [Tooltip("Правила для проверки возможности переноса предметов в этот инвентарь")]
-        private InventoryRuleValidator _ruleValidator = new InventoryRuleValidator();
+        private InventoryRuleValidator _ruleValidator = new();
+        */
 
         private int _syncDepth = 0;
 
@@ -65,11 +67,11 @@ namespace DragAndDropSystem.DataBinding
             _inventory.Initialize(this);
         }
 
-        private void OnValidate()
+        /*private void OnValidate()
         {
             // Сортируем правила при изменении в Inspector
             _ruleValidator?.OnValidate();
-        }
+        }*/
 
         protected virtual void OnEnable()
         {
@@ -305,19 +307,13 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Получить валидатор правил этого DataBinding
-        /// </summary>
-        public InventoryRuleValidator RuleValidator => _ruleValidator;
-
-        /// <summary>
-        /// Проверяет DataBinding как отдельный этап после inventory rules:
-        /// сначала inline/preset rules самого binding, потом virtual hook.
+        /// Проверяет условия старта драга DataBinding
         /// </summary>
         internal RuleResult ValidateStartDragRules(DragContext context, DragEntry entry)
         {
-            var rulesResult = _ruleValidator.ValidateStartDrag(context, entry);
+            /*var rulesResult = _ruleValidator.ValidateStartDrag(context, entry);
             if (!rulesResult.IsValid)
-                return rulesResult;
+                return rulesResult;*/
 
             return CanStartDrag(context, entry);
         }
@@ -329,14 +325,13 @@ namespace DragAndDropSystem.DataBinding
             => ExecuteOccupiedSlotDrop(entry, occupiedSlot);
 
         /// <summary>
-        /// Проверяет DataBinding как отдельный этап после inventory rules:
-        /// сначала inline/preset rules самого binding, потом virtual hook.
+        /// Проверяет условия дропа DataBinding
         /// </summary>
         internal RuleResult ValidateDropRules(DragContext context, DragEntry entry)
         {
-            var rulesResult = _ruleValidator.ValidateDrop(context, entry);
+            /*var rulesResult = _ruleValidator.ValidateDrop(context, entry);
             if (!rulesResult.IsValid)
-                return rulesResult;
+                return rulesResult;*/
 
             return CanDrop(context, entry);
         }
