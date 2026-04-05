@@ -43,6 +43,30 @@ namespace DragAndDropSystem.Inventories
         public int Amount { get; }
     }
 
+    public sealed class PlannedSwapData
+    {
+        public PlannedSwapData(
+            ItemStack sourceStackBefore,
+            ItemStack targetStackBefore,
+            ItemStack targetStackAfter,
+            ItemStack sourceStackAfter)
+        {
+            SourceStackBefore = sourceStackBefore;
+            TargetStackBefore = targetStackBefore;
+            TargetStackAfter = targetStackAfter;
+            SourceStackAfter = sourceStackAfter;
+        }
+
+        /// <summary>Клон стека source-слота до свапа.</summary>
+        public ItemStack SourceStackBefore { get; }
+        /// <summary>Клон стека target-слота до свапа.</summary>
+        public ItemStack TargetStackBefore { get; }
+        /// <summary>Source-стек, сконвертированный для target inventory (что ляжет в target).</summary>
+        public ItemStack TargetStackAfter { get; }
+        /// <summary>Target-стек, сконвертированный для source inventory (что ляжет в source).</summary>
+        public ItemStack SourceStackAfter { get; }
+    }
+
     public sealed class PlannedEntryTransfer
     {
         public PlannedEntryTransfer(
@@ -55,7 +79,8 @@ namespace DragAndDropSystem.Inventories
             ISlot swapTargetSlot = null,
             IItemAdapter previewTargetItemAdapter = null,
             bool requiresOccupiedHandler = false,
-            ISlot occupiedTargetSlot = null)
+            ISlot occupiedTargetSlot = null,
+            PlannedSwapData swapData = null)
         {
             Entry = entry;
             RequestedAmount = requestedAmount;
@@ -67,6 +92,7 @@ namespace DragAndDropSystem.Inventories
             PreviewTargetItemAdapter = previewTargetItemAdapter ?? entry.Stack?.PrimaryAdapter;
             RequiresOccupiedHandler = requiresOccupiedHandler;
             OccupiedTargetSlot = occupiedTargetSlot;
+            SwapData = swapData;
         }
 
         public DragEntry Entry { get; }
@@ -79,6 +105,7 @@ namespace DragAndDropSystem.Inventories
         public IItemAdapter PreviewTargetItemAdapter { get; }
         public bool RequiresOccupiedHandler { get; }
         public ISlot OccupiedTargetSlot { get; }
+        public PlannedSwapData SwapData { get; }
         public bool IsPlanned => RequiresSwap || RequiresOccupiedHandler || (PlannedAmount > 0 && Allocations.Count > 0);
         public bool IsPartial => PlannedAmount > 0 && PlannedAmount < RequestedAmount;
     }
@@ -381,18 +408,10 @@ namespace DragAndDropSystem.Inventories
                         occupiedTargetSlot: targetSlotHint);
                 }
 
-                if (ShouldPlanSwap(operation.Context, operation.Entry, operation.Policy, operation.TargetSlotHint, operation.PreferHint))
-                {
-                    return new PlannedEntryTransfer(
-                        entry,
-                        requested,
-                        requested,
-                        EmptyAllocations,
-                        failureReason: null,
-                        requiresSwap: true,
-                        swapTargetSlot: targetSlotHint,
-                        previewTargetItemAdapter: targetItem);
-                }
+                var swapPlan = TryPlanSwap(operation.Context, operation.Entry, operation.Policy,
+                    targetInventory, operation.TargetSlotHint, operation.PreferHint, globalRules, requested, targetItem);
+                if (swapPlan != null)
+                    return swapPlan;
 
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
             }
@@ -469,18 +488,9 @@ namespace DragAndDropSystem.Inventories
                     occupiedTargetSlot: targetSlotHint);
             }
 
-            if (ShouldPlanSwap(context, entry, policy, targetSlotHint, preferHint: true))
-            {
-                return new PlannedEntryTransfer(
-                    entry,
-                    requested,
-                    requested,
-                    EmptyAllocations,
-                    failureReason: null,
-                    requiresSwap: true,
-                    swapTargetSlot: targetSlotHint,
-                    previewTargetItemAdapter: targetItem);
-            }
+            var swapPlan = TryPlanSwap(context, entry, policy, targetInventory, targetSlotHint, true, globalRules, requested, targetItem);
+            if (swapPlan != null)
+                return swapPlan;
 
             return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No valid slot found for entry");
         }
@@ -560,7 +570,7 @@ namespace DragAndDropSystem.Inventories
             if (context.IsBatchDrag)
                 return false;
 
-            return CanPlanSwap(entry, targetSlotHint);
+            return true;
         }
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForStrategyInventory(EntryPlanningOperation operation)
@@ -836,25 +846,80 @@ namespace DragAndDropSystem.Inventories
 
         private static int Min(int a, int b) => a < b ? a : b;
 
-        private static bool CanPlanSwap(DragEntry entry, ISlot targetSlot)
+        private PlannedEntryTransfer TryPlanSwap(
+            DragContext context,
+            DragEntry entry,
+            ResolvedDropPolicy policy,
+            IInventory targetInventory,
+            ISlot targetSlotHint,
+            bool preferHint,
+            GlobalRuleValidator globalRules,
+            int requested,
+            IItemAdapter targetItem)
         {
-            if (entry.SourceSlot == null || targetSlot == null)
-                return false;
+            if (!ShouldPlanSwap(context, entry, policy, targetSlotHint, preferHint))
+                return null;
 
-            if (ReferenceEquals(entry.SourceSlot, targetSlot))
-                return false;
-
-            if (targetSlot.IsEmpty)
-                return false;
-
-            if (entry.SourceSlot.IsEmpty || entry.SourceSlot.Stack == null || entry.SourceSlot.Stack.IsEmpty)
-                return false;
-
+            var sourceSlot = entry.SourceSlot;
+            if (sourceSlot == null || targetSlotHint == null)
+                return null;
+            if (ReferenceEquals(sourceSlot, targetSlotHint))
+                return null;
+            if (targetSlotHint.IsEmpty)
+                return null;
+            if (sourceSlot.IsEmpty || sourceSlot.Stack == null || sourceSlot.Stack.IsEmpty)
+                return null;
             if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.PrimaryAdapter == null)
-                return false;
-
+                return null;
             // Current swap implementation supports only full stack from source slot.
-            return entry.SourceSlot.Stack.Count == entry.Stack.Count;
+            if (sourceSlot.Stack.Count != entry.Stack.Count)
+                return null;
+
+            if (!ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceStackBefore))
+                return null;
+            if (!ItemStack.TryCreate(targetSlotHint.Stack.Adapters, out var targetStackBefore))
+                return null;
+
+            if (!TransferItemConversionUtility.TryCreateConvertedStack(
+                    entry.SourceInventory, targetInventory, sourceStackBefore, out var targetStackAfter))
+                return null;
+            if (!TransferItemConversionUtility.TryCreateConvertedStack(
+                    targetInventory, entry.SourceInventory, targetStackBefore, out var sourceStackAfter))
+                return null;
+
+            // Validate reverse direction: can target items go back to source?
+            var reverseContext = new DragContext(targetStackBefore, targetSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
+            var reverseEntry = reverseContext.Entries[0];
+            var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
+            if (!reverseStart.IsValid)
+                return null;
+
+            // Validate reverse drop: converted target items landing in source slot
+            var reverseDropContext = new DragContext(sourceStackAfter, targetSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
+            var reverseDropEntry = reverseDropContext.Entries[0];
+            var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseDropContext, reverseDropEntry, globalRules);
+            if (!reverseDrop.IsValid)
+                return null;
+
+            // Validate forward drop: converted source items landing in target slot
+            var sourceDropContext = new DragContext(targetStackAfter, sourceSlot, entry.SourceInventory, targetSlotHint, targetInventory);
+            var sourceDropEntry = sourceDropContext.Entries[0];
+            var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceDropContext, sourceDropEntry, globalRules);
+            if (!sourceDrop.IsValid)
+                return null;
+
+            var swapData = new PlannedSwapData(sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter);
+
+            return new PlannedEntryTransfer(
+                entry,
+                requested,
+                requested,
+                EmptyAllocations,
+                failureReason: null,
+                requiresSwap: true,
+                swapTargetSlot: targetSlotHint,
+                previewTargetItemAdapter: targetItem,
+                swapData: swapData);
         }
 
         private bool IsCandidateAllowedByRules(

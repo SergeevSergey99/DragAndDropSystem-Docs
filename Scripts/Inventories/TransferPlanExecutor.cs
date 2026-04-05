@@ -94,8 +94,6 @@ namespace DragAndDropSystem.Inventories
             public string FailureReason { get; }
         }
 
-        private readonly RuleEvaluationService _ruleEvaluationService = new RuleEvaluationService();
-
         public TransferExecutionSummary Execute(TransferPlan plan, TransferExecutionOptions options = null)
             => ExecuteCoreAsync(plan, options, allowAsyncDomainValidation: false, CancellationToken.None).GetAwaiter().GetResult();
 
@@ -182,9 +180,9 @@ namespace DragAndDropSystem.Inventories
                 }
                 else if (plannedEntry.RequiresSwap)
                 {
-                    var swapAttempt = allowAsyncDomainValidation
-                        ? await TryExecuteSwapAsync(plannedEntry, plan.TargetInventory, options, cancellationToken)
-                        : TryExecuteSwap(plannedEntry, plan.TargetInventory, options);
+                    var swapAttempt = await TryExecuteSwapCoreAsync(
+                        plannedEntry, plan.TargetInventory, options,
+                        allowAsyncDomainValidation, cancellationToken);
 
                     if (swapAttempt.Success)
                     {
@@ -360,16 +358,8 @@ namespace DragAndDropSystem.Inventories
         {
             context = null;
 
-            var targetPreviewItem = previewTargetItemAdapter;
-            if (targetPreviewItem == null &&
-                !TransferItemConversionUtility.TryResolveTargetItem(
-                    request.SourceInventory,
-                    request.TargetInventory,
-                    request.DraggedStack.PrimaryAdapter,
-                    out targetPreviewItem))
-            {
+            if (previewTargetItemAdapter == null)
                 return false;
-            }
 
             context = new TransferDomainContext(
                 request.SourceInventory,
@@ -377,36 +367,9 @@ namespace DragAndDropSystem.Inventories
                 request.SourceSlot,
                 request.TargetSlot,
                 request.DraggedStack.PrimaryAdapter,
-                targetPreviewItem,
+                previewTargetItemAdapter,
                 request.DraggedStack.Count,
                 DetermineTransferKind(request));
-            return true;
-        }
-
-        private static bool ValidateDomainHandlers(TransferDomainContext context, out string failureReason)
-        {
-            failureReason = null;
-
-            foreach (var handler in EnumerateDomainHandlers(context))
-            {
-                try
-                {
-                    var result = handler.CanCommitTransfer(context);
-                    if (!result.IsValid)
-                    {
-                        failureReason = string.IsNullOrEmpty(result.FailureReason)
-                            ? "Domain validation failed"
-                            : result.FailureReason;
-                        return false;
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    failureReason = ex.Message;
-                    return false;
-                }
-            }
-
             return true;
         }
 
@@ -489,146 +452,31 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        private SwapExecutionAttempt TryExecuteSwap(
-            PlannedEntryTransfer plannedEntry,
-            IInventory fallbackTargetInventory,
-            TransferExecutionOptions options)
-        {
-            var sourceSlot = plannedEntry.Entry.SourceSlot;
-            var sourceInventory = plannedEntry.Entry.SourceInventory;
-            var targetSlot = plannedEntry.SwapTargetSlot;
-            var targetInventory = targetSlot?.Inventory ?? fallbackTargetInventory;
-
-            if (sourceSlot == null || targetSlot == null || sourceInventory == null || targetInventory == null)
-            {
-                return new SwapExecutionAttempt(false, default, "Invalid swap target/source");
-            }
-
-            if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
-            {
-                return new SwapExecutionAttempt(false, default, "Swap requires non-empty source and target slots");
-            }
-
-            if (!ValidateSwapRules(sourceSlot, sourceInventory, targetSlot, targetInventory, options?.GlobalRules, out var validationFailure))
-            {
-                return new SwapExecutionAttempt(false, default, validationFailure);
-            }
-
-            if (!TryBuildSwapStacks(
-                    sourceSlot,
-                    sourceInventory,
-                    targetSlot,
-                    targetInventory,
-                    out var sourceStackBefore,
-                    out var targetStackBefore,
-                    out var targetStackAfter,
-                    out var sourceStackAfter,
-                    out validationFailure))
-            {
-                return new SwapExecutionAttempt(false, default, validationFailure);
-            }
-
-            var swapContext = new InventorySwapContext(
-                sourceStackBefore,
-                targetStackBefore,
-                sourceSlot,
-                targetSlot,
-                sourceInventory,
-                targetInventory);
-
-            var swapDomainContexts = BuildSwapDomainContexts(
-                sourceInventory,
-                targetInventory,
-                sourceSlot,
-                targetSlot,
-                sourceStackBefore,
-                targetStackBefore,
-                targetStackAfter,
-                sourceStackAfter);
-
-            if (!ValidateDomainHandlers(swapDomainContexts[0], out validationFailure) ||
-                !ValidateDomainHandlers(swapDomainContexts[1], out validationFailure))
-            {
-                return new SwapExecutionAttempt(false, default, validationFailure);
-            }
-
-            if (options?.SwapAttempting != null && !options.SwapAttempting(swapContext))
-            {
-                return new SwapExecutionAttempt(false, default, "Swap cancelled by listener");
-            }
-
-            var targetUniversal = targetInventory as UniversalInventory;
-            var sourceUniversal = sourceInventory as UniversalInventory;
-            if (!TryCommitConvertedSwap(
-                    sourceSlot,
-                    targetSlot,
-                    sourceStackBefore,
-                    targetStackBefore,
-                    targetStackAfter,
-                    sourceStackAfter,
-                    out var swapResult,
-                    out validationFailure))
-            {
-                return new SwapExecutionAttempt(false, default, validationFailure);
-            }
-
-            swapDomainContexts[0].MarkCommitted(targetSlot, targetStackAfter.PrimaryAdapter, targetStackAfter.Count);
-            swapDomainContexts[1].MarkCommitted(sourceSlot, sourceStackAfter.PrimaryAdapter, sourceStackAfter.Count);
-
-            var swapOutcome = new PendingSwapOutcome(
-                swapContext,
-                targetUniversal,
-                sourceUniversal,
-                targetSlot,
-                sourceSlot,
-                swapResult,
-                swapDomainContexts);
-            return new SwapExecutionAttempt(true, swapOutcome, null);
-        }
-
-        private async Task<SwapExecutionAttempt> TryExecuteSwapAsync(
+        private async Task<SwapExecutionAttempt> TryExecuteSwapCoreAsync(
             PlannedEntryTransfer plannedEntry,
             IInventory fallbackTargetInventory,
             TransferExecutionOptions options,
+            bool allowAsyncDomainValidation,
             CancellationToken cancellationToken)
         {
+            var swapData = plannedEntry.SwapData;
+            if (swapData == null)
+                return new SwapExecutionAttempt(false, default, "Missing swap data in plan");
+
             var sourceSlot = plannedEntry.Entry.SourceSlot;
             var sourceInventory = plannedEntry.Entry.SourceInventory;
             var targetSlot = plannedEntry.SwapTargetSlot;
             var targetInventory = targetSlot?.Inventory ?? fallbackTargetInventory;
 
             if (sourceSlot == null || targetSlot == null || sourceInventory == null || targetInventory == null)
-            {
                 return new SwapExecutionAttempt(false, default, "Invalid swap target/source");
-            }
 
             if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
-            {
                 return new SwapExecutionAttempt(false, default, "Swap requires non-empty source and target slots");
-            }
-
-            if (!ValidateSwapRules(sourceSlot, sourceInventory, targetSlot, targetInventory, options?.GlobalRules, out var validationFailure))
-            {
-                return new SwapExecutionAttempt(false, default, validationFailure);
-            }
-
-            if (!TryBuildSwapStacks(
-                    sourceSlot,
-                    sourceInventory,
-                    targetSlot,
-                    targetInventory,
-                    out var sourceStackBefore,
-                    out var targetStackBefore,
-                    out var targetStackAfter,
-                    out var sourceStackAfter,
-                    out validationFailure))
-            {
-                return new SwapExecutionAttempt(false, default, validationFailure);
-            }
 
             var swapContext = new InventorySwapContext(
-                sourceStackBefore,
-                targetStackBefore,
+                swapData.SourceStackBefore,
+                swapData.TargetStackBefore,
                 sourceSlot,
                 targetSlot,
                 sourceInventory,
@@ -639,46 +487,40 @@ namespace DragAndDropSystem.Inventories
                 targetInventory,
                 sourceSlot,
                 targetSlot,
-                sourceStackBefore,
-                targetStackBefore,
-                targetStackAfter,
-                sourceStackAfter);
+                swapData.SourceStackBefore,
+                swapData.TargetStackBefore,
+                swapData.TargetStackAfter,
+                swapData.SourceStackAfter);
 
-            var forwardValidation = await ValidateDomainHandlersAsync(swapDomainContexts[0], true, cancellationToken);
+            var forwardValidation = await ValidateDomainHandlersAsync(swapDomainContexts[0], allowAsyncDomainValidation, cancellationToken);
             if (!forwardValidation.IsValid)
-            {
                 return new SwapExecutionAttempt(false, default, forwardValidation.FailureReason);
-            }
 
-            var reverseValidation = await ValidateDomainHandlersAsync(swapDomainContexts[1], true, cancellationToken);
+            var reverseValidation = await ValidateDomainHandlersAsync(swapDomainContexts[1], allowAsyncDomainValidation, cancellationToken);
             if (!reverseValidation.IsValid)
-            {
                 return new SwapExecutionAttempt(false, default, reverseValidation.FailureReason);
-            }
 
             if (options?.SwapAttempting != null && !options.SwapAttempting(swapContext))
-            {
                 return new SwapExecutionAttempt(false, default, "Swap cancelled by listener");
-            }
 
-            var targetUniversal = targetInventory as UniversalInventory;
-            var sourceUniversal = sourceInventory as UniversalInventory;
             if (!TryCommitConvertedSwap(
                     sourceSlot,
                     targetSlot,
-                    sourceStackBefore,
-                    targetStackBefore,
-                    targetStackAfter,
-                    sourceStackAfter,
+                    swapData.SourceStackBefore,
+                    swapData.TargetStackBefore,
+                    swapData.TargetStackAfter,
+                    swapData.SourceStackAfter,
                     out var swapResult,
-                    out validationFailure))
+                    out var commitFailure))
             {
-                return new SwapExecutionAttempt(false, default, validationFailure);
+                return new SwapExecutionAttempt(false, default, commitFailure);
             }
 
-            swapDomainContexts[0].MarkCommitted(targetSlot, targetStackAfter.PrimaryAdapter, targetStackAfter.Count);
-            swapDomainContexts[1].MarkCommitted(sourceSlot, sourceStackAfter.PrimaryAdapter, sourceStackAfter.Count);
+            swapDomainContexts[0].MarkCommitted(targetSlot, swapData.TargetStackAfter.PrimaryAdapter, swapData.TargetStackAfter.Count);
+            swapDomainContexts[1].MarkCommitted(sourceSlot, swapData.SourceStackAfter.PrimaryAdapter, swapData.SourceStackAfter.Count);
 
+            var targetUniversal = targetInventory as UniversalInventory;
+            var sourceUniversal = sourceInventory as UniversalInventory;
             var swapOutcome = new PendingSwapOutcome(
                 swapContext,
                 targetUniversal,
@@ -721,44 +563,6 @@ namespace DragAndDropSystem.Inventories
                     targetStackBefore.Count,
                     TransferKind.Swap)
             };
-        }
-
-        private static bool TryBuildSwapStacks(
-            ISlot sourceSlot,
-            IInventory sourceInventory,
-            ISlot targetSlot,
-            IInventory targetInventory,
-            out ItemStack sourceStackBefore,
-            out ItemStack targetStackBefore,
-            out ItemStack targetStackAfter,
-            out ItemStack sourceStackAfter,
-            out string failureReason)
-        {
-            failureReason = null;
-            sourceStackBefore = CloneStack(sourceSlot?.Stack);
-            targetStackBefore = CloneStack(targetSlot?.Stack);
-            targetStackAfter = null;
-            sourceStackAfter = null;
-
-            if (sourceStackBefore.IsEmpty || targetStackBefore.IsEmpty)
-            {
-                failureReason = "Swap requires non-empty source and target stacks";
-                return false;
-            }
-
-            if (!TransferItemConversionUtility.TryCreateConvertedStack(sourceInventory, targetInventory, sourceStackBefore, out targetStackAfter))
-            {
-                failureReason = "Failed to convert source stack for target inventory";
-                return false;
-            }
-
-            if (!TransferItemConversionUtility.TryCreateConvertedStack(targetInventory, sourceInventory, targetStackBefore, out sourceStackAfter))
-            {
-                failureReason = "Failed to convert target stack for source inventory";
-                return false;
-            }
-
-            return true;
         }
 
         private static bool TryCommitConvertedSwap(
@@ -842,44 +646,9 @@ namespace DragAndDropSystem.Inventories
             var sourceSlotState = InventorySnapshotUtility.CaptureSlotState(sourceSlot);
 
             int requestedAmount = draggedStack.Count;
-            var stackItem = draggedStack.PrimaryAdapter;
-
-            if (!TransferItemConversionUtility.TryResolveTargetItem(sourceInventory, targetInventory, stackItem, out var targetPreviewItem))
-            {
-                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory rejected itemAdapter conversion</color>");
-                return false;
-            }
-
-            int acceptableCount = requestedAmount;
-            if (targetSlot == null)
-            {
-                if (!ItemStack.TryCreate(draggedStack.Adapters, out var previewStack))
-                {
-                    Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to create preview stack</color>");
-                    return false;
-                }
-
-                var acceptanceRequest = new InventoryAcceptanceRequest(
-                    targetInventory,
-                    targetPreviewItem,
-                    requestedAmount,
-                    new DragContext(previewStack, sourceSlot, sourceInventory, targetSlot, targetInventory),
-                    new DragEntry(previewStack, sourceSlot, sourceInventory));
-                acceptableCount = targetInventory.GetAcceptableCount(acceptanceRequest);
-
-                if (acceptableCount <= 0)
-                {
-                    Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target inventory cannot accept any items</color>");
-                    return false;
-                }
-            }
-
             int transferAmount = requestedAmount;
-            if (targetSlot == null)
-                transferAmount = Math.Min(requestedAmount, acceptableCount);
-            int remainingAmount = requestedAmount - transferAmount;
 
-            Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Acceptable: {acceptableCount}, Transfer: {transferAmount}, Remaining: {remainingAmount}</color>");
+            Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Transfer: {transferAmount}</color>");
 
             var transferStack = sourceSlot.Stack.Split(transferAmount);
             if (transferStack.IsEmpty)
@@ -889,7 +658,6 @@ namespace DragAndDropSystem.Inventories
             }
 
             transferAmount = transferStack.Count;
-            remainingAmount = requestedAmount - transferAmount;
             sourceSlot.UpdateVisuals();
 
             var sourceRemovedStack = transferStack.CreateCopy();
@@ -1047,66 +815,6 @@ namespace DragAndDropSystem.Inventories
             }
 
             return false;
-        }
-
-        private bool ValidateSwapRules(
-            ISlot sourceSlot,
-            IInventory sourceInventory,
-            ISlot targetSlot,
-            IInventory targetInventory,
-            GlobalRuleValidator globalRules,
-            out string failureReason)
-        {
-            failureReason = null;
-
-            var sourceStack = ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceCopy)
-                ? sourceCopy
-                : ItemStack.Empty();
-            var targetStack = ItemStack.TryCreate(targetSlot.Stack.Adapters, out var targetCopy)
-                ? targetCopy
-                : ItemStack.Empty();
-
-            if (!TransferItemConversionUtility.TryCreateConvertedStack(sourceInventory, targetInventory, sourceStack, out var sourceDropStack))
-            {
-                failureReason = "Failed to convert source stack for swap validation";
-                return false;
-            }
-
-            if (!TransferItemConversionUtility.TryCreateConvertedStack(targetInventory, sourceInventory, targetStack, out var reverseDropStack))
-            {
-                failureReason = "Failed to convert target stack for swap validation";
-                return false;
-            }
-
-            var reverseContext = new DragContext(targetStack, targetSlot, targetInventory, sourceSlot, sourceInventory);
-            var reverseEntry = reverseContext.Entries[0];
-            var reverseDropContext = new DragContext(reverseDropStack, targetSlot, targetInventory, sourceSlot, sourceInventory);
-            var reverseDropEntry = reverseDropContext.Entries[0];
-            var sourceDropContext = new DragContext(sourceDropStack, sourceSlot, sourceInventory, targetSlot, targetInventory);
-            var sourceDropEntry = sourceDropContext.Entries[0];
-
-            var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
-            if (!reverseStart.IsValid)
-            {
-                failureReason = reverseStart.FailureReason;
-                return false;
-            }
-
-            var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseDropContext, reverseDropEntry, globalRules);
-            if (!reverseDrop.IsValid)
-            {
-                failureReason = reverseDrop.FailureReason;
-                return false;
-            }
-
-            var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceDropContext, sourceDropEntry, globalRules);
-            if (!sourceDrop.IsValid)
-            {
-                failureReason = sourceDrop.FailureReason;
-                return false;
-            }
-
-            return true;
         }
 
         private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)
