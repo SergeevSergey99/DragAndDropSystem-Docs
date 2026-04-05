@@ -1659,9 +1659,9 @@ MonoBehaviour:
     <Money>k__BackingField: 1000
     _inventory:
     - originalSO: {fileID: 11400000, guid: 3422b3eb35408774ea7dec51ea25b0b9, type: 2}
-      GetTimestamp: 01.01.1970 00:00
+      GetTimestamp: 01.01.1970 00:00:00
     - originalSO: {fileID: 11400000, guid: db4a30e3f31508246887b927f63c43de, type: 2}
-      GetTimestamp: 01.01.1970 00:00
+      GetTimestamp: 01.01.1970 00:00:00
     _equippedWeapon:
       rid: -2
     _equippedArmor:

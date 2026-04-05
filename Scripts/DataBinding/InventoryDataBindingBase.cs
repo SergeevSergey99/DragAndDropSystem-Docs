@@ -23,7 +23,7 @@ namespace DragAndDropSystem.DataBinding
         [SerializeField, Tooltip("UI представление инвентаря")]
         protected UniversalInventory _inventory;
 
-        [FoldoutGroup("Rules")]
+        [FoldoutGroup("Rules", false)]
         [SerializeField, HideLabel]
         [Tooltip("Правила для проверки возможности переноса предметов в этот инвентарь")]
         private InventoryRuleValidator _ruleValidator = new InventoryRuleValidator();

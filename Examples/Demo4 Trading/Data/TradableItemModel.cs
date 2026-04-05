@@ -18,7 +18,7 @@ namespace DragAndDropSystem.Examples.Trading
         public TradableItemModel(TradableItemSO originalSo)
         {
             originalSO = originalSo;
-            GetTimestamp = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
+            GetTimestamp = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToLongTimeString();
         }
     }
 }
