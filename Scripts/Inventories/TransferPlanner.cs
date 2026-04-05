@@ -908,6 +908,20 @@ namespace DragAndDropSystem.Inventories
             if (!sourceDrop.IsValid)
                 return null;
 
+            // Validate reverse placement capacity: can target items actually fit into source inventory?
+            // Source slot will be freed by the swap, so mark it empty in virtual state.
+            if (!ValidateSwapPlacementFeasibility(
+                    reverseDropContext, reverseDropEntry, entry.SourceInventory, sourceSlot,
+                    sourceStackAfter, globalRules))
+                return null;
+
+            // Validate forward placement capacity: can source items fit into target inventory?
+            // Target slot will be freed by the swap.
+            if (!ValidateSwapPlacementFeasibility(
+                    sourceDropContext, sourceDropEntry, targetInventory, targetSlotHint,
+                    targetStackAfter, globalRules))
+                return null;
+
             var swapData = new PlannedSwapData(sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter);
 
             return new PlannedEntryTransfer(
@@ -920,6 +934,61 @@ namespace DragAndDropSystem.Inventories
                 swapTargetSlot: targetSlotHint,
                 previewTargetItemAdapter: targetItem,
                 swapData: swapData);
+        }
+
+        /// <summary>
+        /// Проверяет, можно ли разместить стек в инвентаре при свапе.
+        /// freedSlot будет освобождён свапом, поэтому помечается как пустой в виртуальном состоянии.
+        /// </summary>
+        private bool ValidateSwapPlacementFeasibility(
+            DragContext dropContext,
+            DragEntry dropEntry,
+            IInventory inventory,
+            ISlot freedSlot,
+            ItemStack convertedStack,
+            GlobalRuleValidator globalRules)
+        {
+            if (convertedStack == null || convertedStack.IsEmpty)
+                return false;
+
+            // Single item always fits into the freed slot (rules already validated above).
+            if (convertedStack.Count <= 1)
+                return true;
+
+            var virtualSlots = BuildVirtualSlots(inventory);
+            var freed = FindVirtualSlot(freedSlot, virtualSlots);
+            if (freed != null)
+                freed.MarkEmpty();
+
+            bool isUnique = IsUniqueInventory(inventory);
+            var placementPolicy = new ResolvedDropPolicy(
+                BlockedTargetBehavior.FindAlternative,
+                allowPartial: false,
+                BatchMode.BestEffort,
+                AlternativePlacementMode.EmptyFirst);
+
+            var operation = new EntryPlanningOperation(
+                dropContext,
+                dropEntry,
+                placementPolicy,
+                inventory,
+                freedSlot,
+                preferHint: true,
+                virtualSlots,
+                globalRules,
+                convertedStack.PrimaryAdapter,
+                convertedStack.Count,
+                convertedStack.Count);
+
+            var allocations = isUnique
+                ? AllocateForUniqueInventory(operation)
+                : AllocateForStrategyInventory(operation);
+
+            int allocated = 0;
+            foreach (var a in allocations)
+                allocated += a.Amount;
+
+            return allocated >= convertedStack.Count;
         }
 
         private bool IsCandidateAllowedByRules(

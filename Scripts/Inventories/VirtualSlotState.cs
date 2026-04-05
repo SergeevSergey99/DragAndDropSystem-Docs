@@ -42,6 +42,12 @@ namespace DragAndDropSystem.Inventories
                 && _itemAdapter.GetType() == itemAdapter.GetType();
         }
 
+        public void MarkEmpty()
+        {
+            _itemAdapter = null;
+            _count = 0;
+        }
+
         public void Apply(IItemAdapter itemAdapter, int amount)
         {
             if (amount <= 0 || itemAdapter == null)

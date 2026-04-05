@@ -503,13 +503,10 @@ namespace DragAndDropSystem.Inventories
             if (options?.SwapAttempting != null && !options.SwapAttempting(swapContext))
                 return new SwapExecutionAttempt(false, default, "Swap cancelled by listener");
 
-            if (!TryCommitConvertedSwap(
-                    sourceSlot,
-                    targetSlot,
-                    swapData.SourceStackBefore,
-                    swapData.TargetStackBefore,
-                    swapData.TargetStackAfter,
-                    swapData.SourceStackAfter,
+            if (!TryCommitSwapViaPlacement(
+                    sourceSlot, targetSlot,
+                    sourceInventory, targetInventory,
+                    swapData,
                     out var swapResult,
                     out var commitFailure))
             {
@@ -565,13 +562,12 @@ namespace DragAndDropSystem.Inventories
             };
         }
 
-        private static bool TryCommitConvertedSwap(
+        private static bool TryCommitSwapViaPlacement(
             ISlot sourceSlot,
             ISlot targetSlot,
-            ItemStack sourceStackBefore,
-            ItemStack targetStackBefore,
-            ItemStack targetStackAfter,
-            ItemStack sourceStackAfter,
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            PlannedSwapData swapData,
             out SwapOperationResult result,
             out string failureReason)
         {
@@ -584,30 +580,85 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
+            // Capture snapshots for rollback
+            var sourceSnapshotProvider = sourceInventory as IInventorySnapshotProvider;
+            var targetSnapshotProvider = targetInventory as IInventorySnapshotProvider;
+            var sourceSnapshot = sourceSnapshotProvider?.CaptureSnapshot();
+            var targetSnapshot = targetSnapshotProvider?.CaptureSnapshot();
+
             try
             {
-                sourceSlot.SetStack(CloneStack(sourceStackAfter));
-                targetSlot.SetStack(CloneStack(targetStackAfter));
+                // Clear both slots
+                sourceSlot.Clear();
+                targetSlot.Clear();
 
-                sourceSlot.UpdateVisuals();
-                targetSlot.UpdateVisuals();
+                // Clone converted stacks for placement (placement consumes items from the stack)
+                var forwardStack = CloneStack(swapData.TargetStackAfter);
+                var reverseStack = CloneStack(swapData.SourceStackAfter);
+
+                // Forward: place source items into target inventory at target slot
+                targetInventory.TryAddToSlot(forwardStack, targetSlot, sourceInventory, sourceSlot.Index);
+                if (!forwardStack.IsEmpty)
+                    targetInventory.TryAddStack(forwardStack, -1);
+
+                if (!forwardStack.IsEmpty)
+                {
+                    failureReason = "Failed to place source items into target inventory";
+                    RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                        targetInventory, targetSnapshotProvider, targetSnapshot);
+                    return false;
+                }
+
+                // Reverse: place target items into source inventory at source slot (+ distribute)
+                sourceInventory.TryAddToSlot(reverseStack, sourceSlot, targetInventory, targetSlot.Index);
+                if (!reverseStack.IsEmpty)
+                    sourceInventory.TryAddStack(reverseStack, -1);
+
+                if (!reverseStack.IsEmpty)
+                {
+                    failureReason = "Failed to place target items into source inventory";
+                    RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                        targetInventory, targetSnapshotProvider, targetSnapshot);
+                    return false;
+                }
+
+                sourceInventory.UpdateAllVisuals();
+                targetInventory.UpdateAllVisuals();
 
                 result = new SwapOperationResult(
-                    CloneStack(targetStackBefore),
-                    CloneStack(sourceStackBefore),
-                    CloneStack(targetStackAfter),
-                    CloneStack(sourceStackAfter));
+                    CloneStack(swapData.TargetStackBefore),
+                    CloneStack(swapData.SourceStackBefore),
+                    CloneStack(swapData.TargetStackAfter),
+                    CloneStack(swapData.SourceStackAfter));
                 return true;
             }
             catch (Exception ex)
             {
-                sourceSlot.SetStack(CloneStack(sourceStackBefore));
-                targetSlot.SetStack(CloneStack(targetStackBefore));
-                sourceSlot.UpdateVisuals();
-                targetSlot.UpdateVisuals();
-
+                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                    targetInventory, targetSnapshotProvider, targetSnapshot);
                 failureReason = ex.Message;
                 return false;
+            }
+        }
+
+        private static void RestoreSwapSnapshots(
+            IInventory sourceInventory,
+            IInventorySnapshotProvider sourceProvider,
+            InventorySnapshot sourceSnapshot,
+            IInventory targetInventory,
+            IInventorySnapshotProvider targetProvider,
+            InventorySnapshot targetSnapshot)
+        {
+            if (sourceProvider != null && sourceSnapshot != null)
+            {
+                sourceProvider.RestoreSnapshot(sourceSnapshot);
+                sourceInventory.UpdateAllVisuals();
+            }
+
+            if (targetProvider != null && targetSnapshot != null)
+            {
+                targetProvider.RestoreSnapshot(targetSnapshot);
+                targetInventory.UpdateAllVisuals();
             }
         }
 
