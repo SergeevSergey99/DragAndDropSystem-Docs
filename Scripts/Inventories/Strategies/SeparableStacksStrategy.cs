@@ -290,10 +290,7 @@ namespace DragAndDropSystem.Inventories
             if (canCreateNewSlot && totalCapacity < desiredCount)
             {
                 if (PrefabPassesRules(slots, slotPrefab, item, Math.Min(desiredCount, maxSize), request))
-                {
-                    long newCapacity = (long)maxSize * Math.Max(1, potentialNewSlots);
-                    totalCapacity = (int)Math.Min((long)totalCapacity + newCapacity, desiredCount);
-                }
+                    totalCapacity = AddSlotCapacity(totalCapacity, maxSize, Math.Max(1, potentialNewSlots), desiredCount);
             }
 
             return Math.Min(totalCapacity, desiredCount);

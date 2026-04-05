@@ -138,6 +138,31 @@ namespace DragAndDropSystem.Inventories
             return defaultMaxStackSize > 0 ? defaultMaxStackSize : int.MaxValue;
         }
 
+        /// <summary>
+        /// Безопасно прибавляет вместимость новых слотов (maxPerSlot × slotCount) к totalCapacity,
+        /// не превышая desiredCount и без integer overflow.
+        /// </summary>
+        protected static int AddSlotCapacity(int totalCapacity, int maxPerSlot, int slotCount, int desiredCount)
+        {
+            if (maxPerSlot <= 0 || slotCount <= 0 || totalCapacity >= desiredCount)
+                return totalCapacity;
+
+            int remaining = desiredCount - totalCapacity;
+
+            // Одного слота хватает на всё оставшееся
+            if (maxPerSlot >= remaining)
+                return desiredCount;
+
+            // ceil(remaining / maxPerSlot) — сколько слотов нужно для полного покрытия
+            int slotsNeeded = remaining / maxPerSlot + (remaining % maxPerSlot != 0 ? 1 : 0);
+            if (slotCount >= slotsNeeded)
+                return desiredCount;
+
+            // Гарантия: slotCount < slotsNeeded → maxPerSlot * slotCount < remaining,
+            // поэтому произведение не превышает remaining и overflow невозможен.
+            return totalCapacity + maxPerSlot * slotCount;
+        }
+
         protected bool PassesRules(ISlot slot, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request = null)
         {
             if (slot == null || itemAdapter == null || previewCount <= 0)
