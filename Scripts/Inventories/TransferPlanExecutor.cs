@@ -729,6 +729,8 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
+            var convertedTransferCopy = transferStack.CreateCopy();
+
             var operationContext = new SlotOperationContext();
             var placementOperation = new TargetPlacementOperation(
                 targetInventory,
@@ -783,12 +785,16 @@ namespace DragAndDropSystem.Inventories
                 targetWasEmpty = wasEmptyBefore;
             }
 
-            // Захватываем реально перенесённые адаптеры из target slot
-            // Новые адаптеры добавлены в конец стека (TryAddToStack → AddRange)
+            // Захватываем реально перенесённые адаптеры.
+            // Для single-slot placement (Stackable) берём из resolved slot (адаптеры добавлены в конец).
+            // Для multi-slot distribution (Unique) resolved slot содержит только 1 предмет,
+            // поэтому используем сохранённую копию сконвертированного стека.
             ItemStack transferredStack;
-            if (resolvedSlot?.Stack != null && actuallyAdded > 0)
+            if (resolvedSlot?.Stack != null && actuallyAdded > 0 && actuallyAdded <= resolvedSlot.Stack.Count)
                 transferredStack = resolvedSlot.Stack.CreateCopy(actuallyAdded);
-            else if (!ItemStack.TryCreate(draggedStack.Adapters.Take(actuallyAdded), out transferredStack))
+            else if (actuallyAdded > 0 && convertedTransferCopy != null && !convertedTransferCopy.IsEmpty)
+                transferredStack = convertedTransferCopy.CreateCopy(actuallyAdded);
+            else
                 transferredStack = ItemStack.Empty();
 
             result = new InventoryTransferResult(

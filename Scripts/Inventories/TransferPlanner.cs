@@ -370,10 +370,10 @@ namespace DragAndDropSystem.Inventories
             // Например: resultCount=6, вместимость=64 → переносим 60 (10 полных крафтов).
             plannedAmount = ApplySourceDragAmountStep(entry, plannedAmount, ref allocations);
 
-            // Inventory-area drop into dynamic inventories:
-            // when existing slots are all unsuitable/occupied, inventory may still accept items
-            // by creating new slots during execution (TryAddStack path).
-            if (plannedAmount == 0 && operation.TargetSlotHint == null && operation.AcceptableByInventory > 0)
+            // Dynamic inventories fallback: when virtual slot allocation found nothing
+            // but the inventory reports capacity (via potentialNewSlots), defer to execution
+            // which creates slots on the fly via TryAddStack / DynamicSlotDecorator.
+            if (plannedAmount == 0 && operation.AcceptableByInventory > 0)
             {
                 int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)

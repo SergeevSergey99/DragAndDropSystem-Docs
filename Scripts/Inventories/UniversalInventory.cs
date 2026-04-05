@@ -402,6 +402,7 @@ namespace DragAndDropSystem.Inventories
 
         public void RefreshStrategy()
         {
+            Debug.Log($"[{name}] RefreshStrategy called! Current strategy: {_strategy?.GetType().Name}, current config: {_appliedStrategyConfiguration}");
             if (_slots == null)
                 _slots = new List<ISlot>();
 
