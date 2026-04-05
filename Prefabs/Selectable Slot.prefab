@@ -167,7 +167,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
+  m_fontSize: 21.5
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -277,7 +277,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: fb612c6bc77b131469ecfaad52182f53, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -437,6 +437,7 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 9074624100229294965}
   _slot: {fileID: 360401508713574776}
+  _callBaseOnPointerDown: 0
   _onlyWhenNotEmpty: 1
   _ignoreHoverWhileDragging: 0
   _onSlotHoverEnter:
