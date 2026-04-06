@@ -32,7 +32,7 @@ namespace DragAndDropSystem.Rules
     public class SameInventoryRule : DragRuleBase, IInventoryRule
     {
         [SerializeField]
-        [Tooltip("Разрешить перемещение предметов внутри одного инвентаря")]
+        [Tooltip("Allow moving items within the same inventory")]
         private bool _allowMoveWithinInventory = true;
 
         public SameInventoryRule() { }
@@ -61,11 +61,11 @@ namespace DragAndDropSystem.Rules
     public class ItemIdFilterRule : DragRuleBase, IInventoryRule, ISlotRule
     {
         [SerializeField]
-        [Tooltip("ID разрешенных/запрещенных предметов")]
+        [Tooltip("IDs of allowed/disallowed items")]
         private string[] _allowedItemIds = new string[0];
 
         [SerializeField]
-        [Tooltip("true = разрешить только эти предметы (whitelist), false = запретить эти предметы (blacklist)")]
+        [Tooltip("true = allow only these items (whitelist), false = disallow these items (blacklist)")]
         private bool _whitelist = true;
 
         public ItemIdFilterRule() { }
@@ -103,7 +103,7 @@ namespace DragAndDropSystem.Rules
     public class UniqueItemLimitRule : DragRuleBase, IInventoryRule
     {
         [SerializeField]
-        [Tooltip("Максимальное количество уникальных предметов в инвентаре")]
+        [Tooltip("Maximum number of unique items in the inventory")]
         [Range(1, 100)]
         private int _maxUniqueItems = 50;
 

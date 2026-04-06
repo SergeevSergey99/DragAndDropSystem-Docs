@@ -27,10 +27,10 @@ namespace DragAndDropSystem.Slots
         [SerializeField] private Color _highlightColor = Color.yellow;
 
         [Header("Filter Settings")]
-        [SerializeField, Tooltip("Цвет затемнения для неактивных (отфильтрованных) слотов")]
+        [SerializeField, Tooltip("Tint color for inactive (filtered) slots")]
         private Color _nonInteractableColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
-        [SerializeField, Tooltip("Опционально: CanvasGroup для управления интерактивностью")]
+        [SerializeField, Tooltip("Optional: CanvasGroup for controlling interactivity")]
         private CanvasGroup _canvasGroup;
 
         //[FoldoutGroup("Slot Rules", expanded: false)]

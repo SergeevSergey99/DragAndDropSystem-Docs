@@ -21,7 +21,7 @@ namespace DragAndDropSystem.Selection
     public abstract class SelectByConditionOperation : SelectionOperationBase
     {
         [SerializeField] private UniversalInventory _inventory;
-        [SerializeField, Tooltip("Сначала снять существующее выделение")]
+        [SerializeField, Tooltip("Clear the existing selection first")]
         private bool _clearFirst = true;
 
         /// <summary>

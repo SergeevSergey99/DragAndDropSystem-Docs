@@ -9,7 +9,7 @@ namespace Plugins.DragAndDropSystem.Examples.General
     public class ItemTypeExampleFilterRule : DragRuleBase, IInventoryRule, ISlotRule
     {
         [SerializeField]
-        [Tooltip("ID разрешенных/запрещенных предметов")]
+        [Tooltip("IDs of allowed/disallowed items")]
         private string[] _allowedTypes = new string[0];
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)

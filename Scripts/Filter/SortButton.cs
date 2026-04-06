@@ -16,19 +16,19 @@ namespace DragAndDropSystem.Filter
         [SerializeField]
         private SortPreset _sortPreset;
 
-        [SerializeField, Tooltip("Если true, повторный клик сбрасывает сортировку")]
+        [SerializeField, Tooltip("If true, repeated click resets the sort")]
         private bool _toggleMode = true;
 
-        [SerializeField, Tooltip("Если true, повторный клик меняет направление сортировки")]
+        [SerializeField, Tooltip("If true, repeated click changes the sort direction")]
         private bool _toggleDirection = false;
 
-        [SerializeField, Tooltip("Визуальное выделение активной сортировки")]
+        [SerializeField, Tooltip("Visual highlight of the active sort")]
         private GameObject _activeIndicator;
 
-        [SerializeField, Tooltip("Индикатор направления сортировки (вверх)")]
+        [SerializeField, Tooltip("Sort direction indicator (up)")]
         private GameObject _ascendingIndicator;
 
-        [SerializeField, Tooltip("Индикатор направления сортировки (вниз)")]
+        [SerializeField, Tooltip("Sort direction indicator (down)")]
         private GameObject _descendingIndicator;
 
         private Button _button;

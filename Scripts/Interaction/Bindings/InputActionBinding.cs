@@ -8,13 +8,13 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public class InputActionBinding
     {
-        [SerializeField, Tooltip("Название для читаемости в инспекторе")]
+        [SerializeField, Tooltip("Name for readability in the Inspector")]
         private string _label;
 
-        [SerializeField, Tooltip("Действие Input System")]
+        [SerializeField, Tooltip("Input System action")]
         private InputActionReference _actionReference;
 
-        [SerializeField, Tooltip("Стадия действия, на которой выполняется действие")]
+        [SerializeField, Tooltip("Action phase at which the action is executed")]
         private TriggerPhaseEnum _triggerPhase = TriggerPhaseEnum.Performed;
 
         [SerializeReference, ManagedReferencePicker] private SlotInteractionAction _action;

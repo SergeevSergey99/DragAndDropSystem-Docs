@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Selection
         [SerializeField] private bool _completeOnPointerUp = true;
         [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
         [SerializeField] private bool _restrictToSameInventory = true;
-        [SerializeField, Tooltip("Временный override количества предметов для текущего StartDrag. Применяется к каждому выбранному source slot.")]
+        [SerializeField, Tooltip("Temporary item amount override for the current StartDrag. Applied to each selected source slot.")]
         private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
 
         public override bool IsDragBinding() => true;

@@ -20,15 +20,15 @@ namespace DragAndDropSystem.Inventories
     public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider, IDropPolicyProvider
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
-        [SerializeField, Required, Tooltip("Контейнер для слотов")]
+        [SerializeField, Required, Tooltip("Slot container")]
         private Transform _slotContainer;
 
         [FoldoutGroup("Slot Setup")]
-        [SerializeField, Required, Tooltip("Префаб слота")]
+        [SerializeField, Required, Tooltip("Slot prefab")]
         private UniversalSlot _slotPrefab;
 
         [FoldoutGroup("Slot Setup")]
-        [SerializeField, Tooltip("Количество слотов при инициализации")]
+        [SerializeField, Tooltip("Initial slot count")]
         private int _initialSlotCount = 10;
 
         [FoldoutGroup("Strategy", expanded: true)]
@@ -38,24 +38,24 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Strategy")]
         [SerializeField, LabelText("Drag Amount")]
-        [Tooltip("Сколько предметов брать при перетаскивании из стака")]
+        [Tooltip("How many items to take when dragging from a stack")]
         [ShowIf(nameof(ShowDragAmountSettings))]
         private DragAmount _dragAmount = DragAmount.All;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Количество предметов при Custom")]
+        [SerializeField, Tooltip("Item amount for Custom")]
         [ShowIf(nameof(ShowCustomDragAmount))]
         private int _customDragAmount = 1;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Максимальный размер стака. 0 или меньше = без ограничений.")]
+        [SerializeField, Tooltip("Maximum stack size. 0 or less = unlimited.")]
         [ShowIf(nameof(ShowDragAmountSettings))]
         private int _maxStackSize = 0;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Разрешить предметам переопределять лимит стака через IStackSizeLimitable. " +
-                                 "Если true — MaxStackSize предмета полностью заменяет _maxStackSize. " +
-                                 "Если false — IStackSizeLimitable игнорируется и используется только _maxStackSize.")]
+        [SerializeField, Tooltip("Allow items to override the stack limit via IStackSizeLimitable. " +
+                                 "If true, the item's MaxStackSize fully replaces _maxStackSize. " +
+                                 "If false, IStackSizeLimitable is ignored and only _maxStackSize is used.")]
         [ShowIf(nameof(ShowMaxStackOverride))]
         private bool _allowItemStackOverride = false;
 
@@ -64,12 +64,12 @@ namespace DragAndDropSystem.Inventories
         private SlotManagementType _slotManagement = SlotManagementType.Fixed;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Максимальное количество слотов (для Dynamic)")]
+        [SerializeField, Tooltip("Maximum number of slots (for Dynamic)")]
         [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxDynamicSlots = 100;
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Минимальное количество свободных слотов (для Dynamic). 0 = создавать только при TryAddItem, не при переносе в слоты")]
+        [SerializeField, Tooltip("Minimum number of free slots (for Dynamic). 0 = create only on TryAddItem, not when moving into slots")]
         [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxFreeSlots = 1;
 
@@ -86,7 +86,7 @@ namespace DragAndDropSystem.Inventories
         private DropPolicySettings _dropPolicy = new DropPolicySettings();
 
         [FoldoutGroup("Slot Setup", expanded: true)]
-        [SerializeField, Tooltip("Слоты, созданные в сцене. Можно задать вручную в инспекторе. Если пусто — будут найдены автоматически.")]
+        [SerializeField, Tooltip("Slots created in the scene. Can be assigned manually in the Inspector. If empty, they will be found automatically.")]
         private List<ISlot> _slots = new List<ISlot>();
 
         private IInventoryStrategy _strategy;

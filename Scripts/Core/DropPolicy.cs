@@ -129,15 +129,15 @@ namespace DragAndDropSystem.Core
     [Serializable]
     public sealed class DropPolicySettings
     {
-        [SerializeField, Tooltip("Что делать, если в целевой слот не удалось положить ничего: отклонить, попытаться обменять или искать другой слот.")]
+        [SerializeField, Tooltip("What to do if nothing can be placed into the target slot: reject, try swapping, or look for another slot.")]
         private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
-        [SerializeField, Tooltip("Только для SeparableStacks: разрешить merge при явном дропе на занятый слот с таким же предметом.")]
+        [SerializeField, Tooltip("For SeparableStacks only: allow merge when explicitly dropping onto an occupied slot with the same item.")]
         private bool _allowMergeOnDrop = true;
-        [SerializeField, Tooltip("Разрешить выполнить перенос частично, если вошла только часть запрошенного количества.")]
+        [SerializeField, Tooltip("Allow partial transfer if only part of the requested amount fits.")]
         private bool _allowPartial = true;
-        [SerializeField, Tooltip("Как обрабатывать batch-перенос: Atomic отменяет всю операцию при первой ошибке, BestEffort переносит то, что получилось.")]
+        [SerializeField, Tooltip("How to process batch transfers: Atomic cancels the whole operation on the first error, BestEffort transfers whatever succeeds.")]
         private BatchMode _batchMode = BatchMode.BestEffort;
-        [SerializeField, Tooltip("Порядок поиска альтернативных слотов для FindAlternative. Используется стратегией размещения.")]
+        [SerializeField, Tooltip("Order of alternative slot search for FindAlternative. Used by the placement strategy.")]
         private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
 
         public bool AllowMergeOnDrop => _allowMergeOnDrop;
@@ -194,11 +194,11 @@ namespace DragAndDropSystem.Core
     [Serializable]
     public sealed class DragRequestPolicySettings
     {
-        [SerializeField, LabelText("Override Drag Amount"), Tooltip("Временно переопределяет количество предметов только для текущего StartDrag.")]
+        [SerializeField, LabelText("Override Drag Amount"), Tooltip("Temporarily overrides the item amount only for the current StartDrag.")]
         private bool _overrideAmount;
-        [SerializeField, ShowIf(nameof(_overrideAmount)), LabelText("Amount"), Tooltip("Сколько предметов взять из source stack при старте драга.")]
+        [SerializeField, ShowIf(nameof(_overrideAmount)), LabelText("Amount"), Tooltip("How many items to take from the source stack when starting a drag.")]
         private DragAmount _amount = DragAmount.All;
-        [SerializeField, ShowIf(nameof(ShowCustomAmount)), LabelText("Custom Amount"), Tooltip("Используется только когда Amount = Custom.")]
+        [SerializeField, ShowIf(nameof(ShowCustomAmount)), LabelText("Custom Amount"), Tooltip("Used only when Amount = Custom.")]
         private int _customAmount = 1;
 
         private bool ShowCustomAmount => _overrideAmount && _amount == DragAmount.Custom;

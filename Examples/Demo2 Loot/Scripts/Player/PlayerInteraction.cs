@@ -11,13 +11,13 @@ namespace DragAndDropSystem.Examples.Loot
     public class PlayerInteraction : MonoBehaviour
     {
         [Header("Interaction Settings")]
-        [SerializeField, Tooltip("Радиус поиска интерактивных объектов")]
+        [SerializeField, Tooltip("Search radius for interactable objects")]
         private float _interactionRadius = 2f;
 
-        [SerializeField, Tooltip("Слой интерактивных объектов")]
+        [SerializeField, Tooltip("Interactable objects layer")]
         private LayerMask _interactableLayer = -1; // По умолчанию все слои
 
-        [SerializeField, Tooltip("Клавиша взаимодействия")]
+        [SerializeField, Tooltip("Interaction key")]
         private KeyCode _interactKey = KeyCode.E;
 
         // Components

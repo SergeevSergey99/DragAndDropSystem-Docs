@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Examples.Minecraft
     public class CraftingRecipeSO : ScriptableObject
     {
         [SerializeField]
-        [Tooltip("Паттерн 3x3. Порядок: строка за строкой, слева направо. null = пустая ячейка")]
+        [Tooltip("3x3 pattern. Order: row by row, left to right. null = empty cell")]
         private CraftingRecipePattern _pattern = new CraftingRecipePattern();
 
         [SerializeField] private bool _shapeless;

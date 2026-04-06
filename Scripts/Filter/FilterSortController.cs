@@ -18,17 +18,17 @@ namespace DragAndDropSystem.Filter
         private UniversalInventory _inventory;
 
         [Header("Filter Settings")]
-        [SerializeField, Tooltip("Скрывать отфильтрованные слоты (SetActive) или только затемнять")]
+        [SerializeField, Tooltip("Hide filtered slots (SetActive) or only dim them")]
         private FilterDisplayMode _filterDisplayMode = FilterDisplayMode.Dim;
 
-        [SerializeField, Tooltip("Скрывать пустые слоты при фильтрации")]
+        [SerializeField, Tooltip("Hide empty slots during filtering")]
         private bool _hideEmptySlots = false;
 
         [Header("Sort Settings")]
-        [SerializeField, Tooltip("Текущий режим сортировки")]
+        [SerializeField, Tooltip("Current sort mode")]
         private SortMode _sortMode = SortMode.None;
 
-        [SerializeField, Tooltip("Направление сортировки")]
+        [SerializeField, Tooltip("Sort direction")]
         private bool _sortAscending = true;
 
         [Header("Debug")]

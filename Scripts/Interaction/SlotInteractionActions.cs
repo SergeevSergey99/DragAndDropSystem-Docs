@@ -27,7 +27,7 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class DragSlotAction : AssetSafeSlotInteractionAction
     {
-        [SerializeField, Tooltip("Временный override количества предметов для текущего StartDrag. Не меняет inventory default.")]
+        [SerializeField, Tooltip("Temporary item amount override for the current StartDrag. Does not change the inventory default.")]
         private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
 
         public override bool IsDragBinding() => true;
@@ -104,7 +104,7 @@ namespace DragAndDropSystem.Interaction
     [Serializable]
     public sealed class InventorySlotAction : SlotInteractionAction
     {
-        [SerializeField, Tooltip("Сценовый action-компонент (MonoBehaviour).")]
+        [SerializeField, Tooltip("Scene action component (MonoBehaviour).")]
         private InventoryActionBase _sceneAction;
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)

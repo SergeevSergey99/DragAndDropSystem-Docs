@@ -20,13 +20,13 @@ namespace DragAndDropSystem.DataBinding
     public abstract class InventoryDataBindingBase : MonoBehaviour
     {
         [Header("UI Reference")]
-        [SerializeField, Tooltip("UI представление инвентаря")]
+        [SerializeField, Tooltip("Inventory UI representation")]
         protected UniversalInventory _inventory;
 
         /*
         [FoldoutGroup("Rules", false)]
         [SerializeField, HideLabel]
-        [Tooltip("Правила для проверки возможности переноса предметов в этот инвентарь")]
+        [Tooltip("Rules for validating whether items can be transferred into this inventory")]
         private InventoryRuleValidator _ruleValidator = new();
         */
 

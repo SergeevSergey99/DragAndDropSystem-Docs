@@ -20,27 +20,27 @@ namespace DragAndDropSystem.UI
         [SerializeField, Required]
         private Canvas _canvas;
         [Header("Default Tooltip View")]
-        [SerializeField, Required, Tooltip("Дефолтный префаб tooltip (должен реализовывать ITooltipView)")]
+        [SerializeField, Required, Tooltip("Default tooltip prefab (must implement ITooltipView)")]
         private BaseTooltipView _defaultTooltipPrefab;
 
         [Header("Positioning")]
-        [SerializeField, Tooltip("Смещение tooltip от курсора")]
+        [SerializeField, Tooltip("Tooltip offset from the cursor")]
         private Vector2 _offset = new Vector2(15, -15);
 
-        [SerializeField, Tooltip("Тип позиционирования tooltip")]
+        [SerializeField, Tooltip("Tooltip positioning type")]
         private TooltipAnchor _anchor = TooltipAnchor.Cursor;
 
-        [SerializeField, Tooltip("Pivot tooltip (0,0 = левый нижний угол, 1,1 = правый верхний)"), ShowIf(nameof(_anchor), TooltipAnchor.SlotPivot)]
+        [SerializeField, Tooltip("Tooltip pivot (0,0 = bottom-left corner, 1,1 = top-right corner)"), ShowIf(nameof(_anchor), TooltipAnchor.SlotPivot)]
         private Vector2 pivot;
         
-        [SerializeField, Tooltip("Отступы от краев экрана")]
+        [SerializeField, Tooltip("Padding from the screen edges")]
         private float _screenPadding = 10f;
 
-        [SerializeField, Tooltip("Минимальное расстояние между курсором и карточкой")]
+        [SerializeField, Tooltip("Minimum distance between the cursor and the card")]
         private float _cursorMargin = 5f;
 
         [Header("Timing")]
-        [SerializeField, Tooltip("Задержка перед показом tooltip (секунды)")]
+        [SerializeField, Tooltip("Delay before showing the tooltip (seconds)")]
         private float _showDelay = 0.5f;
         
         private Coroutine _showCoroutine;

@@ -11,7 +11,7 @@ namespace DragAndDropSystem.Rules
     {
         [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
         [Title("Inline Rules", TitleAlignment = TitleAlignments.Centered)]
-        [Tooltip("Правила, сохраненные внутри этого пресета")]
+        [Tooltip("Rules stored inside this preset")]
         private List<TRule> _inlineRules = new();
 
         /// <summary>

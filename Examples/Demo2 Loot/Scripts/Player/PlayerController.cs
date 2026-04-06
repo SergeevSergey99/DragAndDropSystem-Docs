@@ -10,27 +10,27 @@ namespace DragAndDropSystem.Examples.Loot
     public class PlayerController : MonoBehaviour
     {
         [Header("Movement")]
-        [SerializeField, Tooltip("Скорость ходьбы")]
+        [SerializeField, Tooltip("Walk speed")]
         private float _walkSpeed = 5f;
 
-        [SerializeField, Tooltip("Скорость бега")]
+        [SerializeField, Tooltip("Run speed")]
         private float _runSpeed = 8f;
 
-        [SerializeField, Tooltip("Плавность движения (0 = мгновенно, 1 = максимально плавно)")]
+        [SerializeField, Tooltip("Movement smoothing (0 = instant, 1 = maximum smoothing)")]
         [Range(0f, 1f)]
         private float _movementSmoothing = 0.05f;
 
         [Header("Camera")]
-        [SerializeField, Tooltip("Камера игрока (должна быть ортографической)")]
+        [SerializeField, Tooltip("Player camera (must be orthographic)")]
         private Camera _playerCamera;
 
-        [SerializeField, Tooltip("Камера следует за игроком")]
+        [SerializeField, Tooltip("Camera follows the player")]
         private bool _cameraFollowsPlayer = true;
 
-        [SerializeField, Tooltip("Плавность следования камеры (чем выше значение, тем медленнее камера следует)"), Range(0f, 1f)]
+        [SerializeField, Tooltip("Camera follow smoothing (higher values make the camera follow more slowly)"), Range(0f, 1f)]
         private float _cameraSmoothing = 0.05f;
 
-        [SerializeField, Tooltip("Смещение камеры от игрока")]
+        [SerializeField, Tooltip("Camera offset from the player")]
         private Vector3 _cameraOffset = new Vector3(0f, 0f, -10f);
 
         // State

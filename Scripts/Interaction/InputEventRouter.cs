@@ -21,7 +21,7 @@ namespace DragAndDropSystem.Interaction
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
         [Header("Navigation Focus")]
-        [SerializeField, Tooltip("Автоматически поддерживать фокус на слоте для gamepad/keyboard навигации")]
+        [SerializeField, Tooltip("Automatically keep focus on a slot for gamepad/keyboard navigation")]
         private bool _autoMaintainFocus = true;
 
         [Header("Pointer Gestures")]
@@ -51,7 +51,7 @@ namespace DragAndDropSystem.Interaction
 
         // Hold drag settings and state
         [Header("Hold Drag")]
-        [SerializeField, Tooltip("Настройки прогрессивного драга при удержании. Null = фича отключена.")]
+        [SerializeField, Tooltip("Progressive hold-drag settings. Null = feature disabled.")]
         private HoldDragSettings _holdDragSettings;
 
         private UniversalInventory _holdCountInventory;

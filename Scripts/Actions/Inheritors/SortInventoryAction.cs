@@ -19,10 +19,10 @@ namespace DragAndDropSystem.Inventories
             ByStackSize,    // По размеру стака (больше -> меньше)
         }
 
-        [SerializeField, Tooltip("Тип сортировки")]
+        [SerializeField, Tooltip("Sort type")]
         private SortType _sortType = SortType.ByName;
 
-        [SerializeField, Tooltip("Сортировать в обратном порядке")]
+        [SerializeField, Tooltip("Sort in reverse order")]
         private bool _reverse = false;
 
         public override string DisplayName => "Sort Inventory";

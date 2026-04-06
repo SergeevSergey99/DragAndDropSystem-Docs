@@ -5,13 +5,13 @@ namespace DragAndDropSystem.Interaction
     [CreateAssetMenu(fileName = "HoldDragSettings", menuName = "DragAndDrop/Interaction/Hold Drag Settings")]
     public class HoldDragSettings : ScriptableObject
     {
-        [SerializeField, Tooltip("Начальное количество предметов при мгновенном начале драга")]
+        [SerializeField, Tooltip("Initial item amount when starting a drag immediately")]
         private int _startAmount = 1;
 
-        [SerializeField, Min(0.01f), Tooltip("Интервал (секунды) между инкрементами количества")]
+        [SerializeField, Min(0.01f), Tooltip("Interval (seconds) between amount increments")]
         private float _intervalSeconds = 0.3f;
 
-        [SerializeField, Min(0), Tooltip("Максимальное количество (0 = без ограничения, берётся весь стак)")]
+        [SerializeField, Min(0), Tooltip("Maximum amount (0 = unlimited, the whole stack is taken)")]
         private int _maxAmount;
 
         public int StartAmount => _startAmount;

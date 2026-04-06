@@ -11,7 +11,7 @@ namespace DragAndDropSystem.Examples.Containers
     public class ContainerDemoManager : MonoSingleton<ContainerDemoManager>
     {
         [SerializeReference, ManagedReferencePicker]
-        [Tooltip("Предметы в инвентаре игрока при старте")]
+        [Tooltip("Starting items in the player's inventory")]
         private List<IContainerizeItemInstance> _items = new();
         
         public IReadOnlyList<IContainerizeItemInstance> Items =>  _items; 

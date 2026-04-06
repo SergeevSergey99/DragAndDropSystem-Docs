@@ -15,14 +15,14 @@ namespace DragAndDropSystem.Examples.Trading
         [SerializeField] private string _displayName;
         [SerializeField, PreviewField(100)] private Sprite _icon;
 
-        [SerializeField, Tooltip("Тип предмета (оружие, броня, артефакт и т.д.)")]
+        [SerializeField, Tooltip("Item type (weapon, armor, artifact, etc.)")]
         private ItemType _itemType = ItemType.Other;
 
         [Header("Trading")]
-        [SerializeField, Tooltip("Цена покупки у торговца (игрок платит)")]
+        [SerializeField, Tooltip("Buy price from the merchant (paid by the player)")]
         private int _buyPrice = 100;
 
-        [SerializeField, Tooltip("Цена продажи торговцу (торговец платит)")]
+        [SerializeField, Tooltip("Sell price to the merchant (paid by the merchant)")]
         private int _sellPrice = 50;
 
         [Header("Description")]

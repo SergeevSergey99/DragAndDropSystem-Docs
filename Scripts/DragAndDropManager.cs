@@ -25,13 +25,13 @@ namespace DragAndDropSystem
     {
         [Header("Quick Click Auto-Transfer (LMB)")]
         [SerializeField] private bool _enableQuickClickAutoTransfer = true;
-        [SerializeField, Range(0.05f, 1f), Tooltip("Максимальная длительность клика для автопереноса (секунды)")]
+        [SerializeField, Range(0.05f, 1f), Tooltip("Maximum click duration for auto-transfer (seconds)")]
         private float _quickClickTimeThreshold = 0.2f;
-        [SerializeField, Range(1f, 50f), Tooltip("Максимальное смещение мыши для автопереноса (пиксели)")]
+        [SerializeField, Range(1f, 50f), Tooltip("Maximum mouse movement for auto-transfer (pixels)")]
         private float _quickClickDistanceThreshold = 5f;
 
         [Header("Auto-Transfer Animation")]
-        [SerializeReference, ManagedReferencePicker, Tooltip("Стратегия анимации автопереноса. Null = мгновенный перенос")]
+        [SerializeReference, ManagedReferencePicker, Tooltip("Auto-transfer animation strategy. Null = instant transfer")]
         private AutoTransferAnimationStrategy _autoTransferAnimation;
 
         // Список активных анимационных визуалов для поддержки множественных анимаций

@@ -9,7 +9,7 @@ namespace DragAndDropSystem.Examples.Containers
     public class ContainerItemSO : BaseItemSO
     {
         [Header("Container Settings")]
-        [SerializeField, Range(1, 32), Tooltip("Количество слотов")]
+        [SerializeField, Range(1, 32), Tooltip("Number of slots")]
         private int _capacity = 6;
 
         public int Capacity => _capacity;

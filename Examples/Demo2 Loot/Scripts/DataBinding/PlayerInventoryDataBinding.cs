@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Examples.Loot
     public class PlayerInventoryDataBinding : SlotIndexedInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>
     {
         [Header("Player Data")]
-        [SerializeField, Tooltip("Компонент с данными инвентаря игрока")]
+        [SerializeField, Tooltip("Player inventory data component")]
         private PlayerInventoryData _playerData;
 
         protected override IEnumerable<(int index, ItemExampleWith3DSO item, int count)> GetOccupiedSlots()

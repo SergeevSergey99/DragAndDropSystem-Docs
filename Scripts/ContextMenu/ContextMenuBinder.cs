@@ -13,19 +13,19 @@ namespace DragAndDropSystem.ContextMenu
     {
         [SerializeField] private UniversalInventory _inventory;
 
-        [SerializeField, Tooltip("Пункты меню для непустого слота.")]
+        [SerializeField, Tooltip("Menu entries for a non-empty slot.")]
         private ContextMenuPreset _preset;
 
-        [SerializeField, Tooltip("Пункты меню для пустого слота. Если не задан — используется основной пресет.")]
+        [SerializeField, Tooltip("Menu entries for an empty slot. If not set, the main preset is used.")]
         private ContextMenuPreset _emptySlotPreset;
 
-        [SerializeField, Tooltip("Сценовые пункты меню для непустого слота.")]
+        [SerializeField, Tooltip("Scene menu entries for a non-empty slot.")]
         private List<ContextMenuSceneEntryBase> _sceneEntries = new();
 
-        [SerializeField, Tooltip("Переопределить сценовые пункты для пустого слота. Если выключено — используются обычные сценовые пункты.")]
+        [SerializeField, Tooltip("Override scene entries for an empty slot. If disabled, regular scene entries are used.")]
         private bool _overrideEmptySlotSceneEntries = false;
 
-        [SerializeField, Tooltip("Сценовые пункты меню для пустого слота. Работает только если включён Override Empty Slot Scene Entries.")]
+        [SerializeField, Tooltip("Scene menu entries for an empty slot. Works only if Override Empty Slot Scene Entries is enabled.")]
         private List<ContextMenuSceneEntryBase> _emptySlotSceneEntries = new();
 
         public UniversalInventory Inventory => _inventory;

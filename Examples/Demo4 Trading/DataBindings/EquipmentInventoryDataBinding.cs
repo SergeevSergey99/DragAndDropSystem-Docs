@@ -20,19 +20,19 @@ namespace DragAndDropSystem.Examples.Trading
     public class EquipmentInventoryDataBinding : MappedSlotInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
         [FoldoutGroup("Equipment Slots")]
-        [SerializeField, Required, Tooltip("Слот для оружия")]
+        [SerializeField, Required, Tooltip("Weapon slot")]
         private UniversalSlot _weaponSlot;
 
         [FoldoutGroup("Equipment Slots")]
-        [SerializeField, Required, Tooltip("Слот для брони")]
+        [SerializeField, Required, Tooltip("Armor slot")]
         private UniversalSlot _armorSlot;
 
         [FoldoutGroup("Equipment Slots")]
-        [SerializeField, Required, Tooltip("Первый слот для артефакта")]
+        [SerializeField, Required, Tooltip("First artifact slot")]
         private UniversalSlot _artifactSlot;
 
         [FoldoutGroup("Equipment Slots")]
-        [SerializeField, Required, Tooltip("Второй слот для артефакта")]
+        [SerializeField, Required, Tooltip("Second artifact slot")]
         private UniversalSlot _posionsSlot;
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;

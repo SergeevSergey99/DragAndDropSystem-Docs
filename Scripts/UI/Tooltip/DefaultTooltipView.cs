@@ -17,25 +17,25 @@ namespace DragAndDropSystem.UI
     public class DefaultTooltipView : BaseTooltipView
     {
         [Header("UI Elements")]
-        [SerializeField, Tooltip("Текст названия предмета")]
+        [SerializeField, Tooltip("Item name text")]
         private TextMeshProUGUI _itemNameText;
 
-        [SerializeField, Tooltip("Текст описания предмета")]
+        [SerializeField, Tooltip("Item description text")]
         private TextMeshProUGUI _itemDescriptionText;
 
-        [SerializeField, Tooltip("Иконка предмета")]
+        [SerializeField, Tooltip("Item icon")]
         private Image _itemIcon;
 
         [Header("Animation")]
-        [SerializeField, Tooltip("Использовать fade-in/out анимацию")]
+        [SerializeField, Tooltip("Use fade-in/out animation")]
         private bool _useFadeAnimation = true;
-        [SerializeField, Tooltip("CanvasGroup для анимации"), ShowIf(nameof(_useFadeAnimation))]
+        [SerializeField, Tooltip("CanvasGroup for animation"), ShowIf(nameof(_useFadeAnimation))]
         private CanvasGroup _canvasGroup;
 
-        [SerializeField, Tooltip("Скорость fade-in"), ShowIf(nameof(_useFadeAnimation))]
+        [SerializeField, Tooltip("Fade-in speed"), ShowIf(nameof(_useFadeAnimation))]
         private float _fadeInTime = 1f;
 
-        [SerializeField, Tooltip("Скорость fade-out"), ShowIf(nameof(_useFadeAnimation))]
+        [SerializeField, Tooltip("Fade-out speed"), ShowIf(nameof(_useFadeAnimation))]
         private float _fadeOutTime = 1f;
 
         // State

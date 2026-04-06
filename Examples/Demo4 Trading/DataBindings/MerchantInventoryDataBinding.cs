@@ -21,19 +21,19 @@ namespace DragAndDropSystem.Examples.Trading
         ITransferDomainHandler
     {
         [FoldoutGroup("Merchant Settings")]
-        [SerializeField, Tooltip("ID торговца (должен совпадать с ID в TradingEconomyManager)")]
+        [SerializeField, Tooltip("Merchant ID (must match the ID in TradingEconomyManager)")]
         private string _merchantId;
 
-        [FoldoutGroup("UI References")] [SerializeField, Tooltip("Текст для отображения имени торговца")]
+        [FoldoutGroup("UI References")] [SerializeField, Tooltip("Text for displaying the merchant's name")]
         private TextMeshProUGUI _merchantNameText;
 
-        [FoldoutGroup("UI References")] [SerializeField, Tooltip("Текст для отображения денег торговца")]
+        [FoldoutGroup("UI References")] [SerializeField, Tooltip("Text for displaying the merchant's money")]
         private TextMeshProUGUI _moneyText;
 
-        [FoldoutGroup("Settings")] [SerializeField, Tooltip("Префикс для отображения денег (например, 'Gold: ')")]
+        [FoldoutGroup("Settings")] [SerializeField, Tooltip("Prefix for displaying money (e.g. 'Gold: ')")]
         private string _moneyPrefix = "Gold: ";
 
-        [FoldoutGroup("Settings")] [SerializeField, Tooltip("Суффикс для отображения денег (например, 'g')")]
+        [FoldoutGroup("Settings")] [SerializeField, Tooltip("Suffix for displaying money (e.g. 'g')")]
         private string _moneySuffix = "g";
 
         private MerchantData _merchantData;

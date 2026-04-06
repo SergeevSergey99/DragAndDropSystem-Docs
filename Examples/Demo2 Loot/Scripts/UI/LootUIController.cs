@@ -12,26 +12,26 @@ namespace DragAndDropSystem.Examples.Loot
     public class LootUIController : MonoBehaviour
     {
         [Header("UI Panels")]
-        [SerializeField, Tooltip("Панель с инвентарем")]
+        [SerializeField, Tooltip("Inventory panel")]
         private GameObject _inventoryPanel;
-        [SerializeField, Tooltip("Панель с инвентарями и лутом")]
+        [SerializeField, Tooltip("Panel with inventories and loot")]
         private GameObject _lootPanel;
         [SerializeField]
         private GameObject _interactableButtonPanel;
 
         [Header("Data Bindings")]
 
-        [SerializeField, Tooltip("DataBinding инвентаря сундука")]
+        [SerializeField, Tooltip("Chest inventory DataBinding")]
         private ChestInventoryDataBinding _chestBinding;
 
         [Header("Settings")]
-        [SerializeField, Tooltip("Клавиша открытия/закрытия обычного инвентаря игрока")]
+        [SerializeField, Tooltip("Key to open/close the player's regular inventory")]
         private KeyCode _toggleInventoryKey = KeyCode.I;
 
-        [SerializeField, Tooltip("Клавиша закрытия UI")]
+        [SerializeField, Tooltip("UI close key")]
         private KeyCode _closeKey = KeyCode.Escape;
 
-        [SerializeField, Tooltip("Автоматически закрывать UI когда игрок отходит от сундука")]
+        [SerializeField, Tooltip("Automatically close the UI when the player moves away from the chest")]
         private bool _autoCloseOnDistanceExit = true;
 
         private Chest _currentChest;

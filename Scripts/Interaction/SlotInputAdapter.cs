@@ -22,16 +22,16 @@ namespace DragAndDropSystem.Interaction
 
         [SerializeField] private UniversalSlot _slot;
         [Header("Pointer Down")]
-        [SerializeField, Tooltip("Вызывать base.OnPointerDown (устанавливает EventSystem.selectedGameObject). Включить, если нужны Selectable transitions при нажатии мышью.")]
+        [SerializeField, Tooltip("Call base.OnPointerDown (sets EventSystem.selectedGameObject). Enable if you need Selectable transitions on mouse press.")]
         private bool _callBaseOnPointerDown = false;
         [Header("Hover Events")]
-        [SerializeField, Tooltip("Вызывать hover-события только если слот не пустой")]
+        [SerializeField, Tooltip("Raise hover events only if the slot is not empty")]
         private bool _onlyWhenNotEmpty = true;
-        [SerializeField, Tooltip("Игнорировать hover-события во время перетаскивания")]
+        [SerializeField, Tooltip("Ignore hover events during dragging")]
         private bool _ignoreHoverWhileDragging = false;
-        [SerializeField, Tooltip("Локальное событие наведения на слот")]
+        [SerializeField, Tooltip("Local slot hover event")]
         private UnityEvent _onSlotHoverEnter = new();
-        [SerializeField, Tooltip("Локальное событие ухода курсора со слота")]
+        [SerializeField, Tooltip("Local slot hover exit event")]
         private UnityEvent _onSlotHoverExit = new();
 
         public UniversalSlot Slot => _slot;

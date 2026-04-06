@@ -15,11 +15,11 @@ namespace DragAndDropSystem.Inventories
     [Serializable]
     public class AutoTransferAction : InventoryActionBase
     {
-        [SerializeField, Tooltip("Целевые инвентари для автопереноса")]
+        [SerializeField, Tooltip("Target inventories for auto-transfer")]
         [HideLabel]
         private InventoryList _targetInventories = new InventoryList();
 
-        [SerializeField, Tooltip("Использовать текущее выделение для множественного автопереноса")]
+        [SerializeField, Tooltip("Use the current selection for multi auto-transfer")]
         private bool _useSelectionForBatch = true;
 
         public override string DisplayName => "Auto Transfer";

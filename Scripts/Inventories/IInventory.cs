@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Inventories
         IReadOnlyList<ISlot> Slots { get; }
 
         /// <summary>
-        /// Количество слотов
+        /// Number of slots
         /// </summary>
         int SlotCount { get; }
 

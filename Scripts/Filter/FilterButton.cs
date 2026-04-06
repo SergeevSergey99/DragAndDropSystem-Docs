@@ -16,10 +16,10 @@ namespace DragAndDropSystem.Filter
         [SerializeField]
         private FilterPreset _filterPreset;
 
-        [SerializeField, Tooltip("Если true, повторный клик сбрасывает фильтр")]
+        [SerializeField, Tooltip("If true, repeated click resets the filter")]
         private bool _toggleMode = true;
 
-        [SerializeField, Tooltip("Визуальное выделение активного фильтра")]
+        [SerializeField, Tooltip("Visual highlight of the active filter")]
         private GameObject _activeIndicator;
 
         private Button _button;

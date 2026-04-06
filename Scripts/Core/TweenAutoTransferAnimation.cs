@@ -14,16 +14,16 @@ namespace DragAndDropSystem.Core
     public class TweenAutoTransferAnimation : AutoTransferAnimationStrategy
     {
         [Header("Animation Settings")]
-        [SerializeField, Range(0.1f, 2f), Tooltip("Длительность анимации перелета")]
+        [SerializeField, Range(0.1f, 2f), Tooltip("Flight animation duration")]
         private float _duration = 0.3f;
 
-        [SerializeField, Tooltip("Тип easing для анимации")]
+        [SerializeField, Tooltip("Animation easing type")]
         private MiniTweenEase _ease = MiniTweenEase.OutCubic;
 
-        [SerializeField, Tooltip("Использовать arc (дугу) при полете")]
+        [SerializeField, Tooltip("Use an arc during flight")]
         private bool _useArc = false;
 
-        [SerializeField, Range(0f, 500f), Tooltip("Высота дуги в пикселях Canvas (если useArc = true)")]
+        [SerializeField, Range(0f, 500f), Tooltip("Arc height in Canvas pixels (if useArc = true)")]
         private float _arcHeightPixels = 50f;
 
         public override GameObject AnimateTransfer(

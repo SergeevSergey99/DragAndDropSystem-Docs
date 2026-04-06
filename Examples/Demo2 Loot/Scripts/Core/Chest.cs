@@ -12,7 +12,7 @@ namespace DragAndDropSystem.Examples.Loot
     public class Chest : MonoBehaviour, IInteractable
     {
         [Header("Loot Configuration")]
-        [SerializeField, Tooltip("Содержимое сундука")]
+        [SerializeField, Tooltip("Chest contents")]
         private List<ItemExampleWith3DSO> _items = new();
 
         private bool _isOpen = false;

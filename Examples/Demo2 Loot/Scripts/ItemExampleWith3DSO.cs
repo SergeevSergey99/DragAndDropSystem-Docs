@@ -19,7 +19,7 @@ namespace Plugins.DragAndDropSystem.Examples
         [field: SerializeField]
         public string itemType { get; private set; }
         
-        [SerializeField, Tooltip("Префаб для создания в 3D мире при выбрасывании")]
+        [SerializeField, Tooltip("Prefab to spawn in the 3D world when dropped")]
         private ItemController _worldPrefab;
 
         // Публичное свойство для доступа из адаптера

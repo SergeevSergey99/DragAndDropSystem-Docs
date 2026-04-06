@@ -11,17 +11,17 @@ namespace DragAndDropSystem.Examples.Loot
     public class WorldDropZone : DropAreaBase
     {
         [Header("Spawn Settings")]
-        [SerializeField, Tooltip("Точка спавна предметов в мире")]
+        [SerializeField, Tooltip("World item spawn point")]
         private Transform _spawnPoint;
 
-        [SerializeField, Tooltip("Добавить случайное смещение при спавне")]
+        [SerializeField, Tooltip("Add random offset on spawn")]
         private bool _randomizePosition = true;
 
-        [SerializeField, Tooltip("Радиус случайного смещения")]
+        [SerializeField, Tooltip("Random offset radius")]
         private float _randomRadius = 1.5f;
 
         [Header("Visual Feedback")]
-        [SerializeField, Tooltip("Подсветка зоны при наведении")]
+        [SerializeField, Tooltip("Highlight zone on hover")]
         private UnityEngine.UI.Image _areaHighlight;
 
         [SerializeField] private Color _highlightColorValid = new Color(0f, 1f, 0f, 0.3f);

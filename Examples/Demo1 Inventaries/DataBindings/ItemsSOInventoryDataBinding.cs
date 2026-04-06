@@ -22,11 +22,11 @@ namespace Plugins.DragAndDropSystem.Examples.General
         private List<ItemExampleSO> items;
 
         [FoldoutGroup("Custom Validation (Example)")]
-        [SerializeField, Tooltip("Пример: запретить перетаскивание из этого инвентаря")]
+        [SerializeField, Tooltip("Example: prevent dragging from this inventory")]
         private bool _preventDragFromInventory = false;
 
         [FoldoutGroup("Custom Validation (Example)")]
-        [SerializeField, Tooltip("Пример: запретить сброс предметов в этот инвентарь")]
+        [SerializeField, Tooltip("Example: prevent dropping items into this inventory")]
         private bool _preventDropToInventory = false;
 
         protected override IReadOnlyList<ItemExampleSO> GetItems() => items;

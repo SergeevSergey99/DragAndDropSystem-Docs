@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Core
         string ItemId { get; }
 
         /// <summary>
-        /// Иконка предмета для отображения
+        /// Item icon для отображения
         /// </summary>
         Sprite Icon { get; }
 

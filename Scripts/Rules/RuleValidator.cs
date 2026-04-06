@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Rules
             ShowIndexLabels = true
             //, ListElementLabelName = "@$property.ValueEntry.WeakSmartValue is UnityEngine.Object obj ? obj.name : \"Null\""
         )]
-        [Tooltip("Наборы правил, задаваемые через ScriptableObject пресеты")]
+        [Tooltip("Rule sets defined via ScriptableObject presets")]
         private List<RulePreset<TRule>> _presets = new List<RulePreset<TRule>>();
 
         [SerializeReference, ManagedReferencePicker, Title("Inline Rules", TitleAlignment = TitleAlignments.Centered)]
@@ -33,7 +33,7 @@ namespace DragAndDropSystem.Rules
             ShowIndexLabels = true
             //, ListElementLabelName = "@$property.ValueEntry.WeakSmartValue is DragAndDropSystem.Rules.IDragRule rule && !string.IsNullOrEmpty(rule.RuleName) ? rule.RuleName : \"Null Rule\""
         )]
-        [Tooltip("Локальные inline правила, специфичные для текущего владельца")]
+        [Tooltip("Local inline rules specific to the current owner")]
         private List<TRule> _inlineRules = new List<TRule>();
 
         [NonSerialized]

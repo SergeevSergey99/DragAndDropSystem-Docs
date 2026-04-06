@@ -15,18 +15,18 @@ namespace DragAndDropSystem.UI
     /// </summary>
     public class InventoryDropArea : DropAreaBase
     {
-        [SerializeField, Tooltip("Инвентарь, к которому привязана эта область")]
+        [SerializeField, Tooltip("Inventory bound to this area")]
         private UniversalInventory _inventory;
 
         [Header("Visual Feedback")]
-        [SerializeField, Tooltip("Подсвечивать область при наведении (если может принять предмет)")]
+        [SerializeField, Tooltip("Highlight the area on hover (if it can accept the item)")]
         private UnityEngine.UI.Image _areaHighlight;
 
         [SerializeField] private Color _highlightColor = new Color(1f, 1f, 0f, 0.3f);
         [SerializeField] private Color _normalColor = new Color(1f, 1f, 1f, 0f);
 
         [Header("Drop Policy Override")]
-        [SerializeField, Tooltip("Опциональный override policy для этой зоны дропа. Если выключен - используется policy инвентаря.")]
+        [SerializeField, Tooltip("Optional policy override for this drop zone. If disabled, the inventory policy is used.")]
         private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
         private ISlot _foundSlot;

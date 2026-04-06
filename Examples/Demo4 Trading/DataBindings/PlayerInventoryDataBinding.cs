@@ -18,15 +18,15 @@ namespace DragAndDropSystem.Examples.Trading
     public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
         [FoldoutGroup("UI References")]
-        [SerializeField, Tooltip("Текст для отображения денег игрока")]
+        [SerializeField, Tooltip("Text for displaying the player's money")]
         private TextMeshProUGUI _moneyText;
 
         [FoldoutGroup("Settings")]
-        [SerializeField, Tooltip("Префикс для отображения денег")]
+        [SerializeField, Tooltip("Prefix for displaying money")]
         private string _moneyPrefix = "Gold: ";
 
         [FoldoutGroup("Settings")]
-        [SerializeField, Tooltip("Суффикс для отображения денег")]
+        [SerializeField, Tooltip("Suffix for displaying money")]
         private string _moneySuffix = "g";
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;

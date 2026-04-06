@@ -14,10 +14,10 @@ namespace DragAndDropSystem.Examples.Loot
     public class PlayerInventoryData : MonoBehaviour
     {
         [Header("Inventory Configuration")]
-        [SerializeField, Tooltip("Количество слотов в инвентаре")]
+        [SerializeField, Tooltip("Number of inventory slots")]
         private int _slotCount = 9;
 
-        [SerializeField, Tooltip("Предметы в инвентаре игрока (null = пустой слот)")]
+        [SerializeField, Tooltip("Items in the player's inventory (null = empty slot)")]
         private List<ItemExampleWith3DSO> _slots = new();
 
         // Events
