@@ -19,10 +19,10 @@ namespace DragAndDropSystem.Examples.Trading
         public static RuleResult ValidateMerchantDrop(DragEntry entry)
         {
             if (entry.SourceInventory?.DataBinding is IMerchantInventory)
-                return RuleResult.Failure("Нельзя торговать между торговцами!");
+                return RuleResult.Failure("Trading between merchants is not allowed.");
             
             if (entry.Stack.PrimaryAdapter is not ITradableItem)
-                return RuleResult.Failure("Неверный тип предмета");
+                return RuleResult.Failure("Invalid item type");
             
             return RuleResult.Success();
         }
@@ -33,11 +33,11 @@ namespace DragAndDropSystem.Examples.Trading
                 return RuleResult.Success();
 
             if (context.SourceItemAdapter is not ITradableItem tradable)
-                return RuleResult.Failure("Неверный тип предмета");
+                return RuleResult.Failure("Invalid item type");
 
             int totalPrice = tradable.BuyPrice * context.RequestedAmount;
             if (!TradingEconomyManager.AutoCreateInstance.CanPlayerAfford(totalPrice))
-                return RuleResult.Failure($"Недостаточно денег! Нужно {totalPrice}g, у вас {playerData.Money}g");
+                return RuleResult.Failure($"Not enough money. Required: {totalPrice}g, available: {playerData.Money}g");
 
             return RuleResult.Success();
         }
@@ -48,14 +48,14 @@ namespace DragAndDropSystem.Examples.Trading
                 return RuleResult.Success();
 
             if (context.SourceInventory?.DataBinding is IMerchantInventory)
-                return RuleResult.Failure("Нельзя торговать между торговцами!");
+                return RuleResult.Failure("Trading between merchants is not allowed.");
 
             if (context.SourceItemAdapter is not ITradableItem tradable)
-                return RuleResult.Failure("Неверный тип предмета");
+                return RuleResult.Failure("Invalid item type");
 
             int totalPrice = tradable.SellPrice * context.RequestedAmount;
             if (merchantData.Money <= totalPrice)
-                return RuleResult.Failure($"У торговца недостаточно денег! Нужно {totalPrice}g, у него {merchantData.Money}g");
+                return RuleResult.Failure($"The merchant does not have enough money. Required: {totalPrice}g, available: {merchantData.Money}g");
 
             return RuleResult.Success();
         }

@@ -25,7 +25,7 @@ protected override RuleResult CanSwap(InventorySwapContext args)
     if (args.SourceInventory?.DataBinding is IMerchantInventory ||
         args.TargetInventory?.DataBinding is IMerchantInventory)
     {
-        return RuleResult.Failure("Нельзя обменивать предметы с торговцем. Используйте покупку/продажу.");
+        return RuleResult.Failure("You cannot swap items with a merchant. Use buy/sell instead.");
     }
 
     return RuleResult.Success();

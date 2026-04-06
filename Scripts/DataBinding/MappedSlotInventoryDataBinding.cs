@@ -96,7 +96,7 @@ namespace DragAndDropSystem.DataBinding
     ///             clear: () =&gt; _data.Weapon = null,
     ///             canDrop: adapter =&gt; adapter.Model.Type == ItemType.Weapon
     ///                 ? RuleResult.Success()
-    ///                 : RuleResult.Failure("Только оружие")),
+    ///                 : RuleResult.Failure("Only weapons are allowed")),
     ///
     ///         // Стек предметов (list-конструктор)
     ///         [_potionSlot] = new(
@@ -106,7 +106,7 @@ namespace DragAndDropSystem.DataBinding
     ///             clear: () =&gt; _data.ClearPotions(),
     ///             canDrop: adapter =&gt; adapter.Model.Type == ItemType.Potion
     ///                 ? RuleResult.Success()
-    ///                 : RuleResult.Failure("Только зелья")),
+    ///                 : RuleResult.Failure("Only potions are allowed")),
     ///     };
     ///
     ///     protected override ItemModelAdapter CreateAdapter(ItemModel item) =&gt; new(item);
@@ -193,10 +193,10 @@ namespace DragAndDropSystem.DataBinding
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
             if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
-                return RuleResult.Failure("Неверный тип предмета");
+                return RuleResult.Failure("Invalid item type");
 
             if (!TryGetSourceBinding(entry.SourceSlot, out var binding))
-                return RuleResult.Failure("Неизвестный слот");
+                return RuleResult.Failure("Unknown slot");
 
             if (binding.CanStartDrag == null)
                 return RuleResult.Success();
@@ -207,10 +207,10 @@ namespace DragAndDropSystem.DataBinding
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
-                return RuleResult.Failure("Неверный тип предмета");
+                return RuleResult.Failure("Invalid item type");
 
             if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
-                return RuleResult.Failure("Неизвестный слот");
+                return RuleResult.Failure("Unknown slot");
 
             if (binding.CanDrop == null)
                 return RuleResult.Success();

@@ -39,7 +39,7 @@ namespace DragAndDropSystem.Examples.Loot
             // Проверяем, занят ли этот слот
             if (_playerData.GetItem(targetIndex) != null)
             {
-                return RuleResult.Failure("Этот слот уже занят!");
+                return RuleResult.Failure("This slot is already occupied!");
             }
 
             // Если слот свободен, разрешаем сброс

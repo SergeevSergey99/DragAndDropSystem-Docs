@@ -50,7 +50,7 @@ namespace DragAndDropSystem.Examples.Trading
                 clear: () => PlayerData.UnequipWeapon(),
                 canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Weapon
                     ? RuleResult.Success()
-                    : RuleResult.Failure("В этот слот можно положить только оружие")),
+                    : RuleResult.Failure("Only weapons can be placed in this slot")),
 
             [_armorSlot] = new(
                 get: () => PlayerData.EquippedArmor,
@@ -58,7 +58,7 @@ namespace DragAndDropSystem.Examples.Trading
                 clear: () => PlayerData.UnequipArmor(),
                 canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Armor
                     ? RuleResult.Success()
-                    : RuleResult.Failure("В этот слот можно положить только броню")),
+                    : RuleResult.Failure("Only armor can be placed in this slot")),
 
             [_artifactSlot] = new(
                 get: () => PlayerData.EquippedArtifact,
@@ -66,7 +66,7 @@ namespace DragAndDropSystem.Examples.Trading
                 clear: () => PlayerData.UnequipArtifact1(),
                 canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
                     ? RuleResult.Success()
-                    : RuleResult.Failure("В этот слот можно положить только артефакты")),
+                    : RuleResult.Failure("Only artifacts can be placed in this slot")),
             
             [_posionsSlot] = new(
                 getAll: () => PlayerData.EquippedPotions,
@@ -75,7 +75,7 @@ namespace DragAndDropSystem.Examples.Trading
                 remove: adapters => adapters.ToList().ForEach(adapter => PlayerData.RemovePotion(adapter.Item)),
                 canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Potion
                     ? RuleResult.Success()
-                    : RuleResult.Failure("В этот слот можно положить только артефакты")),
+                    : RuleResult.Failure("Only potions can be placed in this slot")),
         };
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);

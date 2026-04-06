@@ -83,7 +83,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            return RuleResult.Failure("Вы не можете положить предмет сюда! Заберите результат крафта, чтобы начать новый.");
+            return RuleResult.Failure("You cannot place an item here. Take the crafting result to start a new craft.");
         }
     }
 }

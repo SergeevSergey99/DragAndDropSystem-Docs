@@ -45,7 +45,7 @@ namespace Plugins.DragAndDropSystem.Examples.General
             // Пример: запрещаем перетаскивание из этого инвентаря
             if (_preventDragFromInventory)
             {
-                return RuleResult.Failure("Перетаскивание из этого инвентаря запрещено (пример)");
+                return RuleResult.Failure("Dragging from this inventory is disabled (example)");
             }
 
             // Вызываем базовую реализацию (по умолчанию разрешает)
@@ -64,7 +64,7 @@ namespace Plugins.DragAndDropSystem.Examples.General
             // Пример: запрещаем сброс предметов в этот инвентарь
             if (_preventDropToInventory)
             {
-                return RuleResult.Failure("Сброс предметов в этот инвентарь запрещен (пример)");
+                return RuleResult.Failure("Dropping items into this inventory is disabled (example)");
             }
 
             // Вызываем базовую реализацию (по умолчанию разрешает)
