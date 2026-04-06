@@ -42,6 +42,7 @@ namespace DragAndDropSystem.Filter
         private Comparison<ISlot> _currentSort;
         private List<ISlot> _filteredSlots = new List<ISlot>();
         private FilterPreset _activeFilterPreset;
+        private SortPreset _activeSortPreset;
 
         public UniversalInventory Inventory => _inventory;
         public bool IsFilterActive => _isFilterActive;
@@ -50,6 +51,7 @@ namespace DragAndDropSystem.Filter
         public SortMode CurrentSortMode => _sortMode;
         public bool SortAscending => _sortAscending;
         public FilterPreset ActiveFilterPreset => _activeFilterPreset;
+        public SortPreset ActiveSortPreset => _activeSortPreset;
 
         /// <summary>
         /// Событие изменения фильтра/сортировки
@@ -264,9 +266,32 @@ namespace DragAndDropSystem.Filter
         /// </summary>
         public void SetSortMode(SortMode mode, bool ascending = true)
         {
+            _activeSortPreset = null;
             _sortMode = mode;
             _sortAscending = ascending;
             _currentSort = CreateSortComparison(mode, ascending);
+            ApplyFilterAndSort();
+        }
+
+        /// <summary>
+        /// Применить сортировку из пресета и запомнить его как активный источник сортировки.
+        /// </summary>
+        public void ApplySortPreset(SortPreset preset, bool ascending)
+        {
+            _activeSortPreset = preset;
+
+            if (preset == null || preset.Mode == SortPreset.SortMode.None)
+            {
+                _sortMode = SortMode.None;
+                _sortAscending = ascending;
+                _currentSort = null;
+                ApplyFilterAndSort();
+                return;
+            }
+
+            _sortMode = ConvertPresetSortMode(preset.Mode);
+            _sortAscending = ascending;
+            _currentSort = CreateSortComparison(_sortMode, ascending);
             ApplyFilterAndSort();
         }
 
@@ -285,6 +310,7 @@ namespace DragAndDropSystem.Filter
         /// </summary>
         public void ClearSort()
         {
+            _activeSortPreset = null;
             _sortMode = SortMode.None;
             _currentSort = null;
             ApplyFilterAndSort();
@@ -296,6 +322,7 @@ namespace DragAndDropSystem.Filter
         public void ClearAll()
         {
             _activeFilterPreset = null;
+            _activeSortPreset = null;
             _currentFilter = null;
             _isFilterActive = false;
             _sortMode = SortMode.None;
@@ -489,6 +516,23 @@ namespace DragAndDropSystem.Filter
 
                 default:
                     return null;
+            }
+        }
+
+        private static SortMode ConvertPresetSortMode(SortPreset.SortMode mode)
+        {
+            switch (mode)
+            {
+                case SortPreset.SortMode.ByName:
+                    return SortMode.ByName;
+                case SortPreset.SortMode.ByCategory:
+                    return SortMode.ByCategory;
+                case SortPreset.SortMode.ByRarity:
+                    return SortMode.ByRarity;
+                case SortPreset.SortMode.BySortValue:
+                    return SortMode.BySortValue;
+                default:
+                    return SortMode.None;
             }
         }
 

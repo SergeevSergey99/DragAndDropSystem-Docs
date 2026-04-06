@@ -39,14 +39,7 @@ namespace DragAndDropSystem.Filter
             if (controller == null)
                 return;
 
-            if (_sortMode == SortMode.None)
-            {
-                controller.ClearSort();
-            }
-            else
-            {
-                controller.SetSortMode(ConvertToControllerMode(_sortMode), _ascending);
-            }
+            controller.ApplySortPreset(this, _ascending);
         }
 
         /// <summary>

@@ -32,7 +32,6 @@ namespace DragAndDropSystem.Filter
         private GameObject _descendingIndicator;
 
         private Button _button;
-        private bool _isActive;
         private bool _currentAscending = true;
 
         private void Awake()
@@ -52,6 +51,8 @@ namespace DragAndDropSystem.Filter
             {
                 _controller.OnFilterChanged += UpdateVisualState;
             }
+
+            UpdateVisualState();
         }
 
         private void OnDisable()
@@ -75,39 +76,29 @@ namespace DragAndDropSystem.Filter
             if (_controller == null)
                 return;
 
-            if (_isActive)
+            if (IsThisSortActive())
             {
                 if (_toggleDirection)
                 {
-                    // Переключить направление
                     _currentAscending = !_currentAscending;
                     ApplySort();
                 }
                 else if (_toggleMode)
                 {
-                    // Сбросить сортировку
                     _controller.ClearSort();
-                    _isActive = false;
                 }
             }
             else
             {
-                // Применить сортировку
                 ApplySort();
-                _isActive = true;
             }
-
-            UpdateVisualState();
         }
 
         private void ApplySort()
         {
             if (_sortPreset != null)
             {
-                // Применяем пресет с текущим направлением
-                _controller.SetSortMode(
-                    ConvertPresetMode(_sortPreset.Mode),
-                    _currentAscending);
+                _controller.ApplySortPreset(_sortPreset, _currentAscending);
             }
             else
             {
@@ -115,41 +106,32 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private FilterSortController.SortMode ConvertPresetMode(SortPreset.SortMode mode)
-        {
-            switch (mode)
-            {
-                case SortPreset.SortMode.ByName:
-                    return FilterSortController.SortMode.ByName;
-                case SortPreset.SortMode.ByCategory:
-                    return FilterSortController.SortMode.ByCategory;
-                case SortPreset.SortMode.ByRarity:
-                    return FilterSortController.SortMode.ByRarity;
-                case SortPreset.SortMode.BySortValue:
-                    return FilterSortController.SortMode.BySortValue;
-                default:
-                    return FilterSortController.SortMode.None;
-            }
-        }
-
         private void UpdateVisualState()
         {
-            bool isSortActive = _controller.CurrentSortMode != FilterSortController.SortMode.None;
+            bool isSortActive = IsThisSortActive();
 
             if (_activeIndicator != null)
             {
-                _activeIndicator.SetActive(_isActive && isSortActive);
+                _activeIndicator.SetActive(isSortActive);
             }
 
             if (_ascendingIndicator != null)
             {
-                _ascendingIndicator.SetActive(_isActive && isSortActive && _currentAscending);
+                _ascendingIndicator.SetActive(isSortActive && _controller.SortAscending);
             }
 
             if (_descendingIndicator != null)
             {
-                _descendingIndicator.SetActive(_isActive && isSortActive && !_currentAscending);
+                _descendingIndicator.SetActive(isSortActive && !_controller.SortAscending);
             }
+        }
+
+        private bool IsThisSortActive()
+        {
+            return _controller != null &&
+                   _sortPreset != null &&
+                   _controller.CurrentSortMode != FilterSortController.SortMode.None &&
+                   ReferenceEquals(_controller.ActiveSortPreset, _sortPreset);
         }
 
         /// <summary>
@@ -168,6 +150,8 @@ namespace DragAndDropSystem.Filter
             {
                 _controller.OnFilterChanged += UpdateVisualState;
             }
+
+            UpdateVisualState();
         }
 
         /// <summary>
@@ -180,6 +164,8 @@ namespace DragAndDropSystem.Filter
             {
                 _currentAscending = preset.Ascending;
             }
+
+            UpdateVisualState();
         }
     }
 }
