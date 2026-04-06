@@ -26,22 +26,6 @@
 
 ## Какие демо входят в пакет
 
-### [Showcase](showcase.md)
-
-Когда использовать:
-- хотите показать реальный проект, использующий ассет
-- нужен раздел с фото, gif, видео и ссылками
-- хотите собрать кейсы пользователей в одном месте
-
-Что показывает:
-- карточки проектов
-- галерею скриншотов и gif
-- embed YouTube и внешние ссылки
-- рекомендуемую структуру описания кейса
-
-Реальная кодовая база:
-- `.docs/content/examples/showcase.md`
-
 ### [Demo1 Inventories](demo1-inventories.md)
 
 Когда использовать:
@@ -55,8 +39,7 @@
 - синхронизацию списка обратно в данные
 - базовые inventory rules и custom validation hooks
 
-Реальная кодовая база:
-- `Examples/Demo1 Inventaries/*`
+`Examples/Demo1 Inventaries/*`
 
 ### [Demo2 Loot](demo2-loot.md)
 
@@ -71,8 +54,7 @@
 - `IInteractable`, `Chest`, `PlayerInteraction`
 - интеграцию с world drop / pickup
 
-Реальная кодовая база:
-- `Examples/Demo2 Loot/*`
+`Examples/Demo2 Loot/*`
 
 ### [Demo3 Minecraft](demo3-minecraft.md)
 
@@ -87,8 +69,7 @@
 - `CraftingManager` как единый источник доменных данных
 - `CraftResultDataBinding` как read-only output slot с side effects
 
-Реальная кодовая база:
-- `Examples/Demo3 Minecraft/*`
+`Examples/Demo3 Minecraft/*`
 
 ### [Demo4 Trading](demo4-trading.md)
 
@@ -103,8 +84,7 @@
 - domain hooks и conversion pipeline
 - разделение mechanical validation и business validation
 
-Реальная кодовая база:
-- `Examples/Demo4 Trading/*`
+`Examples/Demo4 Trading/*`
 
 ### [Demo5 Containers](demo5-containers.md)
 
@@ -119,8 +99,7 @@
 - `ContainerUIController` и переключение активного контейнера
 - ограничения вида "контейнер нельзя положить в самого себя"
 
-Реальная кодовая база:
-- `Examples/Demo5 Containers/*`
+`Examples/Demo5 Containers/*`
 
 ---
 

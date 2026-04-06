@@ -99,6 +99,5 @@ flowchart LR
 
 - [Быстрый старт](getting-started/quick-start.md) — первый рабочий инвентарь
 - [Примеры](examples/index.md) — обзор всех 5 демо и их архитектуры
-- [Demo4 Trading](examples/demo4-trading.md) — конвертация предметов, деньги и fixed slots
 - [Привязка данных](architecture/data-binding.md) — где писать sync, rules и business hooks
 - [Обратная связь](feedback.md) — куда писать о багах, идеях и проблемах интеграции

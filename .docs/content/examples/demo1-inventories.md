@@ -1,5 +1,14 @@
 # Demo1 Inventories
 
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/PDbjvVL8-aQ"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 `Examples/Demo1 Inventaries/InventariesDemo.unity`
 
 Это самый базовый пример пакета. Он показывает inventory без отдельной игровой логики, экономики или world-интеграции.

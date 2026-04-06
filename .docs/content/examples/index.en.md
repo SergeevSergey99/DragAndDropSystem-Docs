@@ -26,22 +26,6 @@ The goal is to help you understand the architectural shape quickly, not just rep
 
 ## Included demos
 
-### [Showcase](showcase.md)
-
-Use it for:
-- presenting real shipped or in-progress projects using the asset
-- collecting screenshots, GIFs, videos, and external links
-- maintaining a single gallery of user case studies
-
-Shows:
-- project cards
-- screenshot and GIF galleries
-- YouTube embeds and external links
-- a recommended structure for each case study
-
-Real file location:
-- `.docs/content/examples/showcase.en.md`
-
 ### [Demo1 Inventories](demo1-inventories.md)
 
 Use it for:
@@ -55,8 +39,7 @@ Shows:
 - syncing the list back into data
 - basic inventory rules and custom validation hooks
 
-Real code location:
-- `Examples/Demo1 Inventaries/*`
+`Examples/Demo1 Inventaries/*`
 
 ### [Demo2 Loot](demo2-loot.md)
 
@@ -71,8 +54,7 @@ Shows:
 - `IInteractable`, `Chest`, and `PlayerInteraction`
 - world drop / pickup integration
 
-Real code location:
-- `Examples/Demo2 Loot/*`
+`Examples/Demo2 Loot/*`
 
 ### [Demo3 Minecraft](demo3-minecraft.md)
 
@@ -87,8 +69,7 @@ Shows:
 - `CraftingManager` as the domain source of truth
 - `CraftResultDataBinding` as a read-only output slot with side effects
 
-Real code location:
-- `Examples/Demo3 Minecraft/*`
+`Examples/Demo3 Minecraft/*`
 
 ### [Demo4 Trading](demo4-trading.md)
 
@@ -103,8 +84,7 @@ Shows:
 - domain hooks and conversion pipeline
 - separation of mechanical validation and business validation
 
-Real code location:
-- `Examples/Demo4 Trading/*`
+`Examples/Demo4 Trading/*`
 
 ### [Demo5 Containers](demo5-containers.md)
 
@@ -119,8 +99,7 @@ Shows:
 - `ContainerUIController` and active-container switching
 - safeguards such as "a container cannot be placed into itself"
 
-Real code location:
-- `Examples/Demo5 Containers/*`
+`Examples/Demo5 Containers/*`
 
 ---
 
