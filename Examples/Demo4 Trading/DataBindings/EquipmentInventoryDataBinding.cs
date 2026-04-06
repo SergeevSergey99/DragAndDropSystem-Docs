@@ -49,6 +49,7 @@ namespace DragAndDropSystem.Examples.Trading
                 set: adapter => PlayerData.EquipWeapon(adapter.Item),
                 clear: () => PlayerData.UnequipWeapon(),
                 canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Weapon
+                    && adapter.ItemId != _weaponSlot.Stack.ID // block same item
                     ? RuleResult.Success()
                     : RuleResult.Failure("Only weapons can be placed in this slot")),
 
@@ -56,7 +57,8 @@ namespace DragAndDropSystem.Examples.Trading
                 get: () => PlayerData.EquippedArmor,
                 set: adapter => PlayerData.EquipArmor(adapter.Item),
                 clear: () => PlayerData.UnequipArmor(),
-                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Armor
+                canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Armor 
+                    && adapter.ItemId != _armorSlot.Stack.ID // block same item
                     ? RuleResult.Success()
                     : RuleResult.Failure("Only armor can be placed in this slot")),
 
@@ -65,6 +67,7 @@ namespace DragAndDropSystem.Examples.Trading
                 set: adapter => PlayerData.EquipArtifact1(adapter.Item),
                 clear: () => PlayerData.UnequipArtifact1(),
                 canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Artifact
+                    && adapter.ItemId != _artifactSlot.Stack.ID // block same item
                     ? RuleResult.Success()
                     : RuleResult.Failure("Only artifacts can be placed in this slot")),
             

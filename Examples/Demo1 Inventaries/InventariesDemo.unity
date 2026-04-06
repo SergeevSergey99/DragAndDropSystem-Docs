@@ -6626,7 +6626,7 @@ Canvas:
   m_GameObject: {fileID: 1840686954}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 1437108917}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -7459,6 +7459,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1437108917}
+    - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      propertyPath: m_RenderMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
       value: 25

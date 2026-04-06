@@ -1553,16 +1553,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.EquipmentInventoryDataBinding
   _inventory: {fileID: 520690177}
-  _ruleValidator:
-    _presets: []
-    _inlineRules: []
   _weaponSlot: {fileID: 519712178}
   _armorSlot: {fileID: 1919514845}
   _artifactSlot: {fileID: 13640017}
   _posionsSlot: {fileID: 1042347259}
-  references:
-    version: 2
-    RefIds: []
 --- !u!1 &562443573
 GameObject:
   m_ObjectHideFlags: 0
@@ -1615,17 +1609,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.MerchantInventoryDataBinding
   _inventory: {fileID: 515452348}
-  _ruleValidator:
-    _presets: []
-    _inlineRules: []
   _merchantId: id_2
   _merchantNameText: {fileID: 1980043956}
   _moneyText: {fileID: 1683429039}
   _moneyPrefix: 'Gold: '
   _moneySuffix: g
-  references:
-    version: 2
-    RefIds: []
 --- !u!1 &566112811
 GameObject:
   m_ObjectHideFlags: 0
@@ -4832,17 +4820,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.MerchantInventoryDataBinding
   _inventory: {fileID: 1383874838}
-  _ruleValidator:
-    _presets: []
-    _inlineRules: []
   _merchantId: id_1
   _merchantNameText: {fileID: 1193174531}
   _moneyText: {fileID: 2131016124}
   _moneyPrefix: 'Gold: '
   _moneySuffix: g
-  references:
-    version: 2
-    RefIds: []
 --- !u!224 &1491290778 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
@@ -6107,15 +6089,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.PlayerInventoryDataBinding
   _inventory: {fileID: 1818827037}
-  _ruleValidator:
-    _presets: []
-    _inlineRules: []
   _moneyText: {fileID: 606092000}
   _moneyPrefix: 'Gold: '
   _moneySuffix: g
-  references:
-    version: 2
-    RefIds: []
 --- !u!1 &1840686954
 GameObject:
   m_ObjectHideFlags: 0
@@ -7275,6 +7251,18 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1437108917}
+    - target: {fileID: 3768956763668302545, guid: 7007273127c636b40a9fc2ac564883ac, type: 3}
+      propertyPath: _anchor
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3768956763668302545, guid: 7007273127c636b40a9fc2ac564883ac, type: 3}
+      propertyPath: pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3768956763668302545, guid: 7007273127c636b40a9fc2ac564883ac, type: 3}
+      propertyPath: pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 8071404392599537586, guid: 7007273127c636b40a9fc2ac564883ac, type: 3}
       propertyPath: m_Name
       value: TooltipCanvas
