@@ -55,7 +55,7 @@ Below is a template you can copy for new case studies.
     <p>A short 2-3 sentence description of the project. Explain what it is and where the inventory system is used.</p>
 
     <div class="showcase-media">
-      <img src="/assets/showcase/placeholder-cover.svg" alt="Project screenshot placeholder">
+      <img src="../../../assets/showcase/placeholder-cover.svg" alt="Project screenshot placeholder">
     </div>
 
     <p><strong>How the asset is used:</strong></p>
