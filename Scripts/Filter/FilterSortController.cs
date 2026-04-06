@@ -41,6 +41,7 @@ namespace DragAndDropSystem.Filter
         private Predicate<IItemAdapter> _currentFilter;
         private Comparison<ISlot> _currentSort;
         private List<ISlot> _filteredSlots = new List<ISlot>();
+        private FilterPreset _activeFilterPreset;
 
         public UniversalInventory Inventory => _inventory;
         public bool IsFilterActive => _isFilterActive;
@@ -48,6 +49,7 @@ namespace DragAndDropSystem.Filter
         public FilterDisplayMode DisplayMode => _filterDisplayMode;
         public SortMode CurrentSortMode => _sortMode;
         public bool SortAscending => _sortAscending;
+        public FilterPreset ActiveFilterPreset => _activeFilterPreset;
 
         /// <summary>
         /// Событие изменения фильтра/сортировки
@@ -119,8 +121,78 @@ namespace DragAndDropSystem.Filter
         /// </summary>
         public void SetFilter(Predicate<IItemAdapter> filter)
         {
+            _activeFilterPreset = null;
             _currentFilter = filter;
             _isFilterActive = filter != null;
+            ApplyFilterAndSort();
+        }
+
+        /// <summary>
+        /// Применить фильтр из пресета и запомнить его как активный источник фильтра.
+        /// </summary>
+        public void ApplyFilterPreset(FilterPreset preset)
+        {
+            _activeFilterPreset = preset;
+
+            if (preset == null || preset.Type == FilterPreset.FilterType.None)
+            {
+                _currentFilter = null;
+                _isFilterActive = false;
+                ApplyFilterAndSort();
+                return;
+            }
+
+            switch (preset.Type)
+            {
+                case FilterPreset.FilterType.Category:
+                    if (string.IsNullOrEmpty(preset.Category))
+                    {
+                        _currentFilter = null;
+                        _isFilterActive = false;
+                    }
+                    else
+                    {
+                        _currentFilter = item =>
+                        {
+                            if (item is IFilterable filterable)
+                                return string.Equals(filterable.Category, preset.Category, StringComparison.OrdinalIgnoreCase);
+                            return false;
+                        };
+                        _isFilterActive = true;
+                    }
+                    break;
+
+                case FilterPreset.FilterType.Rarity:
+                    _currentFilter = item =>
+                    {
+                        if (item is IFilterable filterable)
+                            return filterable.Rarity >= preset.MinRarity && filterable.Rarity <= preset.MaxRarity;
+                        return false;
+                    };
+                    _isFilterActive = true;
+                    break;
+
+                case FilterPreset.FilterType.Name:
+                    if (string.IsNullOrEmpty(preset.SearchText))
+                    {
+                        _currentFilter = null;
+                        _isFilterActive = false;
+                    }
+                    else
+                    {
+                        _currentFilter = item =>
+                            item.DisplayName != null &&
+                            item.DisplayName.IndexOf(preset.SearchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                        _isFilterActive = true;
+                    }
+                    break;
+
+                default:
+                    _currentFilter = null;
+                    _isFilterActive = false;
+                    break;
+            }
+
             ApplyFilterAndSort();
         }
 
@@ -181,6 +253,7 @@ namespace DragAndDropSystem.Filter
         /// </summary>
         public void ClearFilter()
         {
+            _activeFilterPreset = null;
             _currentFilter = null;
             _isFilterActive = false;
             ApplyFilterAndSort();
@@ -222,6 +295,7 @@ namespace DragAndDropSystem.Filter
         /// </summary>
         public void ClearAll()
         {
+            _activeFilterPreset = null;
             _currentFilter = null;
             _isFilterActive = false;
             _sortMode = SortMode.None;

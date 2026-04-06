@@ -23,8 +23,6 @@ namespace DragAndDropSystem.Filter
         private GameObject _activeIndicator;
 
         private Button _button;
-        private bool _isActive;
-
         private void Awake()
         {
             _button = GetComponent<Button>();
@@ -37,6 +35,8 @@ namespace DragAndDropSystem.Filter
             {
                 _controller.OnFilterChanged += UpdateVisualState;
             }
+
+            UpdateVisualState();
         }
 
         private void OnDisable()
@@ -60,15 +60,12 @@ namespace DragAndDropSystem.Filter
             if (_controller == null)
                 return;
 
-            if (_toggleMode && _isActive)
+            if (_toggleMode && IsThisFilterActive())
             {
-                // Сбросить фильтр
                 _controller.ClearFilter();
-                _isActive = false;
             }
             else
             {
-                // Применить фильтр
                 if (_filterPreset != null)
                 {
                     _filterPreset.ApplyTo(_controller);
@@ -77,18 +74,23 @@ namespace DragAndDropSystem.Filter
                 {
                     _controller.ClearFilter();
                 }
-                _isActive = true;
             }
-
-            UpdateVisualState();
         }
 
         private void UpdateVisualState()
         {
             if (_activeIndicator != null)
             {
-                _activeIndicator.SetActive(_isActive && _controller.IsFilterActive);
+                _activeIndicator.SetActive(IsThisFilterActive());
             }
+        }
+
+        private bool IsThisFilterActive()
+        {
+            return _controller != null &&
+                   _filterPreset != null &&
+                   _controller.IsFilterActive &&
+                   ReferenceEquals(_controller.ActiveFilterPreset, _filterPreset);
         }
 
         /// <summary>
@@ -107,6 +109,8 @@ namespace DragAndDropSystem.Filter
             {
                 _controller.OnFilterChanged += UpdateVisualState;
             }
+
+            UpdateVisualState();
         }
 
         /// <summary>
@@ -115,6 +119,7 @@ namespace DragAndDropSystem.Filter
         public void SetPreset(FilterPreset preset)
         {
             _filterPreset = preset;
+            UpdateVisualState();
         }
     }
 }

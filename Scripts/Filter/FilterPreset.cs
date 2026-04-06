@@ -53,24 +53,7 @@ namespace DragAndDropSystem.Filter
             if (controller == null)
                 return;
 
-            switch (_filterType)
-            {
-                case FilterType.None:
-                    controller.ClearFilter();
-                    break;
-
-                case FilterType.Category:
-                    controller.SetCategoryFilter(_category);
-                    break;
-
-                case FilterType.Rarity:
-                    controller.SetRarityFilter(_minRarity, _maxRarity);
-                    break;
-
-                case FilterType.Name:
-                    controller.SetNameFilter(_searchText);
-                    break;
-            }
+            controller.ApplyFilterPreset(this);
         }
 
         /// <summary>
