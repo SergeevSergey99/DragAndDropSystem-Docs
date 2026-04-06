@@ -1,5 +1,14 @@
 # Demo5 Containers
 
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/ZYOjIkwxcdU"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 `Examples/Demo5 Containers/Containers Demo.unity`
 
 Это пример inventory-предметов, которые сами содержат вложенный inventory.

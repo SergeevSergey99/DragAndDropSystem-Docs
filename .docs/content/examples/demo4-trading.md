@@ -1,5 +1,14 @@
 # Demo4 Trading
 
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/vaQK6jWpT2g"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 `Examples/Demo4 Trading/TradingDemo.unity`
 
 Это самое насыщенное демо в пакете. Оно показывает перенос между разными доменными моделями, экономику и fixed-slot экипировку в одной сцене.

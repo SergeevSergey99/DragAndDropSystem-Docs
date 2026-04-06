@@ -1,5 +1,14 @@
 # Demo2 Loot
 
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/sjPC_8PYXR8"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 `Examples/Demo2 Loot/LootDemo.unity`
 
 This demo is not about a special inventory type. It is about wiring game world events to UI.

@@ -1,5 +1,14 @@
 # Demo3 Minecraft
 
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/vai7yQJLLVc"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 `Examples/Demo3 Minecraft/MinecraftDemo.unity`
 
 This is a slot-indexed inventory and crafting sample where UI syncs with fixed domain arrays rather than a plain list.
