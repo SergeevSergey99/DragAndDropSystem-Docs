@@ -39,8 +39,8 @@ namespace DragAndDropSystem.Examples.Containers
                 return false;
 
             container.AddItem(sourceAdapter.Instance);
-            ContainerDemoManager.AutoCreateInstance.RemovePlayerItem(sourceAdapter.Instance);
-
+            RemoveFromData(sourceAdapter);
+            
             entry.SourceSlot.Clear();
             entry.SourceSlot.UpdateVisuals();
 
