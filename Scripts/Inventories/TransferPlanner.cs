@@ -370,6 +370,22 @@ namespace DragAndDropSystem.Inventories
             // Например: resultCount=6, вместимость=64 → переносим 60 (10 полных крафтов).
             plannedAmount = ApplySourceDragAmountStep(entry, plannedAmount, ref allocations);
 
+            // Occupied slot handler takes priority: data binding may handle drop onto occupied slot
+            // (e.g. placing item into a container). Must check before deferred allocation.
+            if (plannedAmount == 0 && isFirstEntry && targetSlotHint != null && !targetSlotHint.IsEmpty
+                && targetInventory is UniversalInventory occupiedUni
+                && occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
+            {
+                return new PlannedEntryTransfer(
+                    entry,
+                    requested,
+                    requested,
+                    EmptyAllocations,
+                    previewTargetItemAdapter: targetItem,
+                    requiresOccupiedHandler: true,
+                    occupiedTargetSlot: targetSlotHint);
+            }
+
             // Dynamic inventories fallback: when virtual slot allocation found nothing
             // but the inventory reports capacity (via potentialNewSlots), defer to execution
             // which creates slots on the fly via TryAddStack / DynamicSlotDecorator.
@@ -394,20 +410,6 @@ namespace DragAndDropSystem.Inventories
 
             if (plannedAmount == 0)
             {
-                if (isFirstEntry && targetSlotHint != null && !targetSlotHint.IsEmpty
-                    && targetInventory is UniversalInventory occupiedUni
-                    && occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
-                {
-                    return new PlannedEntryTransfer(
-                        entry,
-                        requested,
-                        requested,
-                        EmptyAllocations,
-                        previewTargetItemAdapter: targetItem,
-                        requiresOccupiedHandler: true,
-                        occupiedTargetSlot: targetSlotHint);
-                }
-
                 var swapPlan = TryPlanSwap(operation.Context, operation.Entry, operation.Policy,
                     targetInventory, operation.TargetSlotHint, operation.PreferHint, globalRules, requested, targetItem);
                 if (swapPlan != null)
