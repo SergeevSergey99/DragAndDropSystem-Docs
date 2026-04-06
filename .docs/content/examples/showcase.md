@@ -49,13 +49,22 @@
 
 <div class="showcase-grid">
   <div class="showcase-card">
-    <h3>Название проекта</h3>
-    <p><strong>Жанр:</strong> RPG / Survival / Sandbox / Tool</p>
-    <p><strong>Статус:</strong> Prototype / In Development / Released</p>
+    <h3>Violent Horror Stories 2 / The Exit Is Inside</h3>
+    <p><strong>Жанр:</strong> Horror</p>
+    <p><strong>Статус:</strong> Released</p>
     <p>Короткое описание проекта в 2-3 предложениях. Что это за игра, какой у неё сеттинг и в каком контексте используется inventory.</p>
 
     <div class="showcase-media">
       <img src="../../assets/showcase/placeholder-cover.svg" alt="Project screenshot placeholder">
+    </div>
+
+    <div class="showcase-video">
+      <iframe
+        src="https://www.youtube.com/embed/YWx4Bcbx7kI"
+        title="Project showcase video"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen>
+      </iframe>
     </div>
 
     <p><strong>Как используется ассет:</strong></p>
@@ -66,9 +75,7 @@
     </ul>
 
     <div class="showcase-links">
-      <a href="https://youtube.com/" target="_blank" rel="noopener">YouTube</a>
-      <a href="https://itch.io/" target="_blank" rel="noopener">itch.io</a>
-      <a href="https://store.steampowered.com/" target="_blank" rel="noopener">Steam</a>
+      <a href="https://store.steampowered.com/app/3636960/Violent_Horror_Stories_2/" target="_blank" rel="noopener">Steam</a>
     </div>
   </div>
 </div>
