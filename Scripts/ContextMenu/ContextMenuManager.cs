@@ -56,12 +56,24 @@ namespace DragAndDropSystem.ContextMenu
         /// </summary>
         public void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx)
         {
+            var visible = entries
+                .Where(e => e != null && e.CanShow(ctx))
+                .OrderBy(e => e.Order)
+                .ToList();
+            
+            if (visible.Count == 0)
+            {
+                Hide();
+                return;
+            }
+            
             var view = ResolveView(ctx.Inventory);
             if (view == null)
             {
                 Debug.LogWarning("[ContextMenuManager] View prefab/instance is not assigned.");
                 return;
             }
+            _activeView = view;
 
             if (IsOpen)
             {
@@ -73,18 +85,6 @@ namespace DragAndDropSystem.ContextMenu
             }
             _lastContext = ctx;
 
-            var visible = entries
-                .Where(e => e != null && e.CanShow(ctx))
-                .OrderBy(e => e.Order)
-                .ToList();
-
-            if (visible.Count == 0)
-            {
-                IsOpen = false;
-                return;
-            }
-
-            _activeView = view;
             _activeView.Show(visible, ctx);
             IsOpen = true;
             OnOpened?.Invoke();
