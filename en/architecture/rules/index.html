@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -1370,6 +1370,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1610,7 +1638,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1626,7 +1654,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1639,7 +1667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1667,7 +1695,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
         
   
   
@@ -1824,7 +1880,7 @@
 <p class="admonition-title">Rules are not the same as business hooks</p>
 <p>Rules handle mechanical transfer constraints: can the item be dragged, can it be dropped into this target, does the slot accept this type.
 If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>) instead of <code>CanDrop</code>.
-For a compact comparison, also see <a href="../transfer-pipeline/#three-types-of-checks">Transfer Pipeline</a> and <a href="../drop-policy-matrix/">Drop Policy Matrix</a>.</p>
+For a compact comparison, also see <a href="../transfer-pipeline/">Transfer Pipeline</a> and <a href="../drop-policy-matrix/">Drop Policy Matrix</a>.</p>
 </div>
 <hr />
 <h2 id="three-validation-levels">Three Validation Levels</h2>
@@ -1900,11 +1956,6 @@ For a compact comparison, also see <a href="../transfer-pipeline/#three-types-of
 <td>Limits the number of unique items</td>
 </tr>
 <tr>
-<td><code>MaxStackSizeRule</code></td>
-<td>Inventory</td>
-<td>Limits stack size in a slot</td>
-</tr>
-<tr>
 <td><code>SlotLockRule</code></td>
 <td>Inventory</td>
 <td>Locks specific slots</td>
@@ -1940,7 +1991,7 @@ For a compact comparison, also see <a href="../transfer-pipeline/#three-types-of
 <a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanDrop</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">DragEntry</span><span class="w"> </span><span class="n">entry</span><span class="p">)</span>
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="c1">// Get item from context</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">Item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ILeveledItem</span><span class="w"> </span><span class="n">leveled</span><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">PrimaryAdapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ILeveledItem</span><span class="w"> </span><span class="n">leveled</span><span class="p">)</span>
 <a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">        </span><span class="p">{</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">leveled</span><span class="p">.</span><span class="n">Level</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">_minLevel</span><span class="p">)</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">$&quot;Requires level {_minLevel}+&quot;</span><span class="p">);</span>

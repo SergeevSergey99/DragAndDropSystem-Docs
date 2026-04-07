@@ -339,11 +339,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1237,6 +1237,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1477,7 +1505,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1493,7 +1521,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1506,7 +1534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1534,14 +1562,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1788,20 +1844,13 @@
 - bindings синхронизируют UI и доменные данные</p>
 <hr />
 <h2 id="_5">Покупка: правильная последовательность</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant U as Игрок
-    participant M as Merchant Inventory
-    participant P as Player Inventory
-    participant D as Domain Hook
-    participant Data as Player / Merchant Data
-
-    U-&gt;&gt;P: Бросает товар торговца
-    P-&gt;&gt;P: CanDrop (механика, совместимость)
-    M-&gt;&gt;P: Конвертация предмета в формат игрока
-    P-&gt;&gt;D: CanCommitTransfer (хватает ли золота?)
-    P-&gt;&gt;P: Выполнить перенос
-    P-&gt;&gt;D: OnTransferSucceeded (обновить золото)
-    P-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Игрок бросает товар торговца"] --&gt; B["Player Inventory: CanDrop\nмеханика и совместимость"]
+    B --&gt; C["Merchant Inventory → Player Inventory\nконвертация предмета"]
+    C --&gt; D["Domain Hook: CanCommitTransfer\nхватает ли золота?"]
+    D --&gt; E["Выполнить перенос"]
+    E --&gt; F["Domain Hook: OnTransferSucceeded\nобновить золото"]
+    F --&gt; G["Player / Merchant Data\nAddToData / RemoveFromData"]</code></pre>
 <hr />
 <h2 id="_6">Где писать какую логику</h2>
 <table>
@@ -1814,7 +1863,7 @@
 <tbody>
 <tr>
 <td>Только подходящий тип в слот экипировки</td>
-<td><code>canAccept</code> или <code>CanDrop</code></td>
+<td><code>canDrop</code> или <code>CanDrop</code></td>
 </tr>
 <tr>
 <td>Проверка, хватает ли денег</td>
@@ -1881,7 +1930,7 @@
 </tr>
 <tr>
 <td>Нельзя положить броню в слот оружия</td>
-<td><code>canAccept</code> / <code>CanDrop</code></td>
+<td><code>canDrop</code> / <code>CanDrop</code></td>
 </tr>
 <tr>
 <td>Нельзя продать неподходящий предмет торговцу</td>

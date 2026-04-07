@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../feedback/" class="md-tabs__link">
+        <a href="../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -652,17 +652,6 @@
   
     <nav class="md-nav" aria-label="Included demos">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#showcase" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Showcase
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#demo1-inventories" class="md-nav__link">
@@ -1420,6 +1409,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1660,7 +1677,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1676,7 +1693,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1689,7 +1706,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../feedback/" class="md-nav__link">
+      <a href="../more/feedback/" class="md-nav__link">
         
   
   
@@ -1717,7 +1734,35 @@
   
   
     <li class="md-nav__item">
-      <a href="showcase/" class="md-nav__link">
+      <a href="../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../more/showcase/" class="md-nav__link">
         
   
   
@@ -1793,17 +1838,6 @@
   
     <nav class="md-nav" aria-label="Included demos">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#showcase" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Showcase
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#demo1-inventories" class="md-nav__link">
@@ -1916,8 +1950,8 @@
 
 
 <h1 id="examples">Examples</h1>
-<p>This section describes the <strong>actual demo scenes shipped in <code>Examples/</code></strong>: how they are composed, which patterns they demonstrate, and which files are worth reading first.</p>
-<p>If Quick Start answers "how do I get my first inventory working?", the Examples section answers different questions:</p>
+<p>This section describes the <strong>demo scenes shipped in <code>Examples/</code></strong>: how they are composed, which patterns they demonstrate, and which files are worth reading first.</p>
+<p>The Examples section answers questions:</p>
 <ul>
 <li>how each demo is structured by layers</li>
 <li>where data, adapters, bindings, and UI live</li>
@@ -1936,78 +1970,79 @@
 <p>The goal is to help you understand the architectural shape quickly, not just reproduce a scene.</p>
 <hr />
 <h2 id="included-demos">Included demos</h2>
-<h3 id="showcase"><a href="showcase/">Showcase</a></h3>
-<p>Use it for:
-- presenting real shipped or in-progress projects using the asset
-- collecting screenshots, GIFs, videos, and external links
-- maintaining a single gallery of user case studies</p>
-<p>Shows:
-- project cards
-- screenshot and GIF galleries
-- YouTube embeds and external links
-- a recommended structure for each case study</p>
-<p>Real file location:
-- <code>.docs/content/examples/showcase.en.md</code></p>
 <h3 id="demo1-inventories"><a href="demo1-inventories/">Demo1 Inventories</a></h3>
-<p>Use it for:
-- the simplest list-based inventory example
-- understanding <code>ListInventoryDataBinding</code> without extra domain complexity
-- local <code>CanStartDrag</code> and <code>CanDrop</code> overrides</p>
-<p>Shows:
-- <code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code>
-- loading a list into UI
-- syncing the list back into data
-- basic inventory rules and custom validation hooks</p>
-<p>Real code location:
-- <code>Examples/Demo1 Inventaries/*</code></p>
+<p>Use it for:</p>
+<ul>
+<li>the simplest list-based inventory example</li>
+<li>understanding <code>ListInventoryDataBinding</code> without extra domain complexity</li>
+<li>local <code>CanStartDrag</code> and <code>CanDrop</code> overrides</li>
+</ul>
+<p>Shows:</p>
+<ul>
+<li><code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code></li>
+<li>loading a list into UI</li>
+<li>drop areas</li>
+<li>basic inventory rules</li>
+</ul>
+<p><code>Examples/Demo1 Inventaries/*</code></p>
 <h3 id="demo2-loot"><a href="demo2-loot/">Demo2 Loot</a></h3>
-<p>Use it for:
-- world -&gt; event -&gt; UI -&gt; inventory flow
-- chests and interaction-driven UI opening
-- pickup / drop flows connected to world objects</p>
-<p>Shows:
-- a mediator between world layer and UI
-- separate bindings for player and chest inventories
-- <code>IInteractable</code>, <code>Chest</code>, and <code>PlayerInteraction</code>
-- world drop / pickup integration</p>
-<p>Real code location:
-- <code>Examples/Demo2 Loot/*</code></p>
+<p>Use it for:</p>
+<ul>
+<li>world -&gt; event -&gt; UI -&gt; inventory flow</li>
+<li>chests and interaction-driven UI opening</li>
+<li>pickup / drop flows connected to world objects</li>
+</ul>
+<p>Shows:</p>
+<ul>
+<li>a mediator between world layer and UI</li>
+<li>changing the chest's data binding data source</li>
+<li>world drop / pickup integration</li>
+<li>item filters</li>
+</ul>
+<p><code>Examples/Demo2 Loot/*</code></p>
 <h3 id="demo3-minecraft"><a href="demo3-minecraft/">Demo3 Minecraft</a></h3>
-<p>Use it for:
-- slot-indexed inventories
-- a crafting grid plus a dedicated result slot
-- per-slot max stack rules</p>
-<p>Shows:
-- <code>SlotIndexedInventoryDataBinding</code>
-- separate hotbar / inventory / craft table bindings
-- <code>CraftingManager</code> as the domain source of truth
-- <code>CraftResultDataBinding</code> as a read-only output slot with side effects</p>
-<p>Real code location:
-- <code>Examples/Demo3 Minecraft/*</code></p>
+<p>Use it for:</p>
+<ul>
+<li>slot-indexed inventories</li>
+<li>a crafting grid plus a dedicated result slot</li>
+<li>per-slot max stack rules</li>
+</ul>
+<p>Shows:</p>
+<ul>
+<li><code>SlotIndexedInventoryDataBinding</code></li>
+<li>separate hotbar / inventory / craft table bindings</li>
+<li><code>CraftingManager</code> as the domain source of truth</li>
+<li><code>CraftResultDataBinding</code> as a custom read-only output inventory</li>
+</ul>
+<p><code>Examples/Demo3 Minecraft/*</code></p>
 <h3 id="demo4-trading"><a href="demo4-trading/">Demo4 Trading</a></h3>
-<p>Use it for:
-- cross-inventory transfers between different domain models
-- converters
-- gold, prices, and commit-time validation</p>
-<p>Shows:
-- player / merchant / equipment inventories
-- <code>ListInventoryDataBinding</code> and <code>MappedSlotInventoryDataBinding</code>
-- domain hooks and conversion pipeline
-- separation of mechanical validation and business validation</p>
-<p>Real code location:
-- <code>Examples/Demo4 Trading/*</code></p>
+<p>Use it for:</p>
+<ul>
+<li>data conversions between inventories are needed </li>
+<li>the operation depends on money, prices and checks at the time of transfer</li>
+</ul>
+<p>Shows:</p>
+<ul>
+<li>player / merchants / equipment inventories</li>
+<li><code>ListInventoryDataBinding</code> and <code>MappedSlotInventoryDataBinding</code></li>
+<li>data models changes during cross-inventory transfers</li>
+</ul>
+<p><code>Examples/Demo4 Trading/*</code></p>
 <h3 id="demo5-containers"><a href="demo5-containers/">Demo5 Containers</a></h3>
-<p>Use it for:
-- items that contain their own inventory
-- opening a container from a context menu
-- custom occupied-slot drops and cycle prevention</p>
-<p>Shows:
-- item instances instead of plain ScriptableObject rows
-- a container acting as both an item and a data source
-- <code>ContainerUIController</code> and active-container switching
-- safeguards such as "a container cannot be placed into itself"</p>
-<p>Real code location:
-- <code>Examples/Demo5 Containers/*</code></p>
+<p>Use it for:</p>
+<ul>
+<li>items that contain their own inventory</li>
+<li>opening a nested container from a context menu</li>
+<li>the item must drop into the slot occupied by the container item and must be protected from cycles</li>
+</ul>
+<p>Shows:</p>
+<ul>
+<li>item instances instead of plain ScriptableObject rows</li>
+<li>a container acting as both an item and a data source</li>
+<li><code>ContainerUIController</code> and active-container switching</li>
+<li>safeguards such as "a container cannot be placed into itself"</li>
+</ul>
+<p><code>Examples/Demo5 Containers/*</code></p>
 <hr />
 <h2 id="how-to-choose-a-demo">How to choose a demo</h2>
 <table>
@@ -2018,10 +2053,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>A gallery of real projects and case studies</td>
-<td><a href="showcase/">Showcase</a></td>
-</tr>
 <tr>
 <td>Basic inventory list + simple hooks</td>
 <td><a href="demo1-inventories/">Demo1 Inventories</a></td>

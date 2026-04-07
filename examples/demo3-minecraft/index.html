@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1348,6 +1348,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1588,7 +1616,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1604,7 +1632,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1617,7 +1645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1645,14 +1673,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1772,18 +1828,26 @@
 
 
 <h1 id="demo3-minecraft">Demo3 Minecraft</h1>
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/vai7yQJLLVc"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 <p><code>Examples/Demo3 Minecraft/MinecraftDemo.unity</code></p>
 <p>Это пример slot-indexed inventory и крафта, где UI синхронизируется не со списком, а с фиксированными массивами доменных данных.</p>
 <h2 id="_1">Что показывает демо</h2>
 <ul>
 <li><code>SlotIndexedInventoryDataBinding</code></li>
-<li>отдельные панели для hotbar, main inventory и craft table</li>
+<li>отдельные панели для быстрого доступа, основной инвентарь и стола крафта</li>
 <li>ограничение максимального стека на слот</li>
-<li>вычисление рецепта и отдельный result slot</li>
-<li>side effects при взятии результата крафта</li>
+<li><code>CraftResultDataBinding</code> как кастомный тип инвентаря для доставания результата</li>
 </ul>
 <h2 id="_2">Как устроено</h2>
-<p>Центральная точка доменной логики:</p>
+<p>Центральная точка логики:</p>
 <ul>
 <li><code>Crafting/CraftingManager.cs</code></li>
 </ul>
@@ -1836,27 +1900,27 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingManager.cs</code></td>
+<td><code>Crafting/CraftingManager.cs</code></td>
 <td>доменные данные и логика крафта</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs</code></td>
+<td><code>DataBindings/MainInventoryDataBinding.cs</code></td>
 <td>main inventory binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs</code></td>
+<td><code>DataBindings/HotbarDataBinding.cs</code></td>
 <td>hotbar binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs</code></td>
+<td><code>DataBindings/CraftTableDataBinding.cs</code></td>
 <td>craft table binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs</code></td>
+<td><code>DataBindings/CraftResultDataBinding.cs</code></td>
 <td>result slot binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs</code></td>
+<td><code>Crafting/CraftingRecipeSO.cs</code></td>
 <td>рецепт и matching</td>
 </tr>
 </tbody>

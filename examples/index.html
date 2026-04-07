@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../feedback/" class="md-tabs__link">
+        <a href="../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -652,17 +652,6 @@
   
     <nav class="md-nav" aria-label="Какие демо входят в пакет">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#showcase" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Showcase
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#demo1-inventories" class="md-nav__link">
@@ -1420,6 +1409,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1660,7 +1677,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1676,7 +1693,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1689,7 +1706,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../feedback/" class="md-nav__link">
+      <a href="../more/feedback/" class="md-nav__link">
         
   
   
@@ -1717,14 +1734,42 @@
   
   
     <li class="md-nav__item">
-      <a href="showcase/" class="md-nav__link">
+      <a href="../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1793,17 +1838,6 @@
   
     <nav class="md-nav" aria-label="Какие демо входят в пакет">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#showcase" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Showcase
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#demo1-inventories" class="md-nav__link">
@@ -1916,8 +1950,8 @@
 
 
 <h1 id="_1">Примеры</h1>
-<p>Этот раздел описывает <strong>реальные demo-сцены из папки <code>Examples/</code></strong>: из каких частей они состоят, какие паттерны показывают и какие файлы смотреть в коде.</p>
-<p>Если быстрый старт отвечает на вопрос "как поднять первый инвентарь", то раздел примеров отвечает на другие вопросы:</p>
+<p>Этот раздел описывает <strong>demo-сцены из папки <code>Examples/</code></strong>: из каких частей они состоят, какие паттерны показывают и какие файлы смотреть в коде.</p>
+<p>Этот раздел примеров отвечает на вопросы:</p>
 <ul>
 <li>как конкретный demo устроен по слоям</li>
 <li>где в нём находятся данные, адаптеры, биндинги и UI</li>
@@ -1936,78 +1970,79 @@
 <p>Идея не в том, чтобы просто повторить сцену, а в том, чтобы быстро понять её архитектурную форму.</p>
 <hr />
 <h2 id="_3">Какие демо входят в пакет</h2>
-<h3 id="showcase"><a href="showcase/">Showcase</a></h3>
-<p>Когда использовать:
-- хотите показать реальный проект, использующий ассет
-- нужен раздел с фото, gif, видео и ссылками
-- хотите собрать кейсы пользователей в одном месте</p>
-<p>Что показывает:
-- карточки проектов
-- галерею скриншотов и gif
-- embed YouTube и внешние ссылки
-- рекомендуемую структуру описания кейса</p>
-<p>Реальная кодовая база:
-- <code>.docs/content/examples/showcase.md</code></p>
 <h3 id="demo1-inventories"><a href="demo1-inventories/">Demo1 Inventories</a></h3>
-<p>Когда использовать:
-- нужен самый простой пример списка предметов
-- хотите посмотреть <code>ListInventoryDataBinding</code> без лишней доменной логики
-- нужен пример локальных <code>CanStartDrag</code> и <code>CanDrop</code></p>
-<p>Что показывает:
-- <code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code>
-- загрузку списка в UI
-- синхронизацию списка обратно в данные
-- базовые inventory rules и custom validation hooks</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo1 Inventaries/*</code></p>
+<p>Когда использовать:</p>
+<ul>
+<li>нужен самый простой пример списка предметов</li>
+<li>хотите посмотреть <code>ListInventoryDataBinding</code> без лишней доменной логики</li>
+<li>нужен пример локальных <code>CanStartDrag</code> и <code>CanDrop</code></li>
+</ul>
+<p>Что показывает:</p>
+<ul>
+<li><code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code></li>
+<li>загрузку списка в UI</li>
+<li>области дропа</li>
+<li>базовые правила инвентаря</li>
+</ul>
+<p><code>Examples/Demo1 Inventaries/*</code></p>
 <h3 id="demo2-loot"><a href="demo2-loot/">Demo2 Loot</a></h3>
-<p>Когда использовать:
-- нужен пример "мир -&gt; событие -&gt; UI -&gt; инвентарь"
-- нужны сундуки и открытие панели по взаимодействию
-- нужен pickup/drop предметов, связанных с миром</p>
-<p>Что показывает:
-- mediator между world layer и UI
-- два data binding-а для игрока и сундука
-- <code>IInteractable</code>, <code>Chest</code>, <code>PlayerInteraction</code>
-- интеграцию с world drop / pickup</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo2 Loot/*</code></p>
+<p>Когда использовать:</p>
+<ul>
+<li>нужен пример "мир -&gt; событие -&gt; UI -&gt; инвентарь"</li>
+<li>нужны сундуки и открытие панели по взаимодействию</li>
+<li>нужен pickup/drop предметов, связанных с миром</li>
+</ul>
+<p>Что показывает:</p>
+<ul>
+<li>mediator между world layer и UI</li>
+<li>смена источника данных data binding-а сундука</li>
+<li>интеграцию с world drop / pickup</li>
+<li>фильтры предметов</li>
+</ul>
+<p><code>Examples/Demo2 Loot/*</code></p>
 <h3 id="demo3-minecraft"><a href="demo3-minecraft/">Demo3 Minecraft</a></h3>
-<p>Когда использовать:
-- нужен слот-индексированный inventory
-- нужен крафт по сетке и отдельный слот результата
-- нужен пример максимального размера стека на слот</p>
-<p>Что показывает:
-- <code>SlotIndexedInventoryDataBinding</code>
-- раздельные hotbar / inventory / craft table
-- <code>CraftingManager</code> как единый источник доменных данных
-- <code>CraftResultDataBinding</code> как read-only output slot с side effects</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo3 Minecraft/*</code></p>
+<p>Когда использовать:</p>
+<ul>
+<li>нужен слот-индексированный инвентарь</li>
+<li>нужен крафт по сетке и отдельный слот результата</li>
+<li>нужен пример максимального размера стека на слот</li>
+</ul>
+<p>Что показывает:</p>
+<ul>
+<li><code>SlotIndexedInventoryDataBinding</code></li>
+<li>раздельные hotbar / inventory / craft table</li>
+<li><code>CraftingManager</code> как единый источник данных</li>
+<li><code>CraftResultDataBinding</code> как кастомный тип инвентаря для доставания результата</li>
+</ul>
+<p><code>Examples/Demo3 Minecraft/*</code></p>
 <h3 id="demo4-trading"><a href="demo4-trading/">Demo4 Trading</a></h3>
-<p>Когда использовать:
-- предметы пересекают границу между разными доменными моделями
-- нужны converters
-- операция зависит от денег, цен и commit-time проверок</p>
-<p>Что показывает:
-- player / merchant / equipment inventories
-- <code>ListInventoryDataBinding</code> и <code>MappedSlotInventoryDataBinding</code>
-- domain hooks и conversion pipeline
-- разделение mechanical validation и business validation</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo4 Trading/*</code></p>
+<p>Когда использовать:</p>
+<ul>
+<li>нужны конвертации данных между инвентарями</li>
+<li>операция зависит от денег, цен и проверок в момент переноса</li>
+</ul>
+<p>Что показывает:</p>
+<ul>
+<li>инвентари игрок / продавцов / снаряжения</li>
+<li><code>ListInventoryDataBinding</code> и <code>MappedSlotInventoryDataBinding</code></li>
+<li>предметы при переносе меняют вид своих моделей данных</li>
+</ul>
+<p><code>Examples/Demo4 Trading/*</code></p>
 <h3 id="demo5-containers"><a href="demo5-containers/">Demo5 Containers</a></h3>
-<p>Когда использовать:
-- предмет может сам содержать другой inventory
-- нужно открывать контейнер из контекстного меню
-- нужны custom occupied-slot drops и защита от циклов</p>
-<p>Что показывает:
-- item instances вместо простых SO-элементов
-- контейнер как предмет и как источник данных одновременно
-- <code>ContainerUIController</code> и переключение активного контейнера
-- ограничения вида "контейнер нельзя положить в самого себя"</p>
-<p>Реальная кодовая база:
-- <code>Examples/Demo5 Containers/*</code></p>
+<p>Когда использовать:</p>
+<ul>
+<li>предмет может сам содержать другой inventory</li>
+<li>нужно открывать вложенный контейнер из контекстного меню</li>
+<li>нужнен дроп предмета в занятый предметом-контейнером слот и защита от циклов</li>
+</ul>
+<p>Что показывает:</p>
+<ul>
+<li>item instances вместо простых SO-элементов</li>
+<li>контейнер как предмет и как источник данных одновременно</li>
+<li><code>ContainerUIController</code> и переключение активного контейнера</li>
+<li>ограничения вида "контейнер нельзя положить в самого себя"</li>
+</ul>
+<p><code>Examples/Demo5 Containers/*</code></p>
 <hr />
 <h2 id="_4">Как выбрать нужное демо</h2>
 <table>
@@ -2018,10 +2053,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>Галерея реальных проектов и кейсов использования</td>
-<td><a href="showcase/">Showcase</a></td>
-</tr>
 <tr>
 <td>Базовый inventory list + простые hooks</td>
 <td><a href="demo1-inventories/">Demo1 Inventories</a></td>

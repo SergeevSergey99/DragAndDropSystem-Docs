@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -1454,6 +1454,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1694,7 +1722,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1710,7 +1738,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1723,7 +1751,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1751,7 +1779,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
         
   
   
@@ -2039,22 +2095,16 @@
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="how-it-works-inside">How It Works Inside</h3>
-<pre class="mermaid"><code>sequenceDiagram
-    participant Player
-    participant Base as DropAreaBase
-    participant Sub as TrashDropZone
-    participant Source as Source Inventory
-
-    Player-&gt;&gt;Base: Drops item
-    loop For each entry
-        Base-&gt;&gt;Sub: CanAcceptEntry(entry)?
-        Sub--&gt;&gt;Base: true
-        Base-&gt;&gt;Base: Copies stack from source slot
-        Base-&gt;&gt;Sub: ProcessEntry(freshStack, entry)
-        Sub--&gt;&gt;Base: true
-        Base-&gt;&gt;Source: Removes items + emits events
-    end
-    Base--&gt;&gt;Player: DropResult.Succeeded</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Player drops item"] --&gt; B["DropAreaBase starts processing"]
+    B --&gt; C["For each entry"]
+    C --&gt; D{"CanAcceptEntry(entry)?"}
+    D --&gt;|Yes| E["Copy stack from source slot"]
+    E --&gt; F{"ProcessEntry(freshStack, entry)"}
+    F --&gt;|true| G["Remove items from source + emit events"]
+    G --&gt; H{"More entries left?"}
+    H --&gt;|Yes| C
+    H --&gt;|No| I["DropResult.Succeeded"]</code></pre>
 <hr />
 <h2 id="delegation">Delegation</h2>
 <p>When you need complex drop logic (planner/executor, policies, swaps), override <code>GetDropProcessor()</code>:</p>
@@ -2163,6 +2213,7 @@
 <hr />
 <h2 id="subclass-examples">Subclass Examples</h2>
 <h3 id="worlddropzone-spawn-in-3d-world">WorldDropZone --- Spawn in 3D World</h3>
+<p>The snippet below follows the current <code>Demo2 Loot</code> implementation.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">WorldDropZone</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">DropAreaBase</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Transform</span><span class="w"> </span><span class="n">_spawnPoint</span><span class="p">;</span>
@@ -2171,7 +2222,7 @@
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="c1">// All adapters must have a 3D prefab</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">adapter</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">Stack</span><span class="p">.</span><span class="n">Adapters</span><span class="p">)</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">adapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">IWorld3DAdapter</span><span class="w"> </span><span class="n">w</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">WorldPrefab</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">adapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">ItemAdapterSoWith3DAdapter</span><span class="w"> </span><span class="n">with3D</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">with3D</span><span class="p">.</span><span class="n">WorldPrefab</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="k">false</span><span class="p">;</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="p">}</span>
@@ -2180,8 +2231,8 @@
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">adapter</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">freshStack</span><span class="p">.</span><span class="n">Adapters</span><span class="p">)</span>
 <a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">        </span><span class="p">{</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">            </span><span class="kt">var</span><span class="w"> </span><span class="n">w</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">IWorld3DAdapter</span><span class="p">)</span><span class="n">adapter</span><span class="p">;</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">            </span><span class="n">Instantiate</span><span class="p">(</span><span class="n">w</span><span class="p">.</span><span class="n">WorldPrefab</span><span class="p">,</span><span class="w"> </span><span class="n">_spawnPoint</span><span class="p">.</span><span class="n">position</span><span class="p">,</span><span class="w"> </span><span class="n">Quaternion</span><span class="p">.</span><span class="n">identity</span><span class="p">);</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">            </span><span class="kt">var</span><span class="w"> </span><span class="n">with3D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">ItemAdapterSoWith3DAdapter</span><span class="p">)</span><span class="n">adapter</span><span class="p">;</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">            </span><span class="n">Instantiate</span><span class="p">(</span><span class="n">with3D</span><span class="p">.</span><span class="n">WorldPrefab</span><span class="p">,</span><span class="w"> </span><span class="n">_spawnPoint</span><span class="p">.</span><span class="n">position</span><span class="p">,</span><span class="w"> </span><span class="n">Quaternion</span><span class="p">.</span><span class="n">identity</span><span class="p">);</span>
 <a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
 <a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="p">}</span>

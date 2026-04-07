@@ -339,11 +339,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -1237,6 +1237,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1477,7 +1505,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1493,7 +1521,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1506,7 +1534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1534,7 +1562,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
         
   
   
@@ -1734,21 +1790,15 @@
     PI --&gt;|"drop into world"| I</code></pre>
 <hr />
 <h2 id="chest-interaction">Chest Interaction</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant P as Player
-    participant D as Detection
-    participant C as Chest
-    participant UC as UI controller
-    participant UI as Inventories
-
-    P-&gt;&gt;D: Approaches the chest
-    P-&gt;&gt;D: Presses interaction button
-    D-&gt;&gt;C: Interact()
-    C-&gt;&gt;UC: Chest opened
-    UC-&gt;&gt;UI: Show inventories (chest + player)
-    P-&gt;&gt;UI: Drags items
-    P-&gt;&gt;UC: Closes UI
-    UC-&gt;&gt;UI: Hide inventories</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Player approaches the chest"] --&gt; B["Detection system finds the interactive object"]
+    B --&gt; C["Player presses the interaction button"]
+    C --&gt; D["Chest: Interact()"]
+    D --&gt; E["UI controller receives the open event"]
+    E --&gt; F["Show inventories\nchest + player"]
+    F --&gt; G["Player drags items"]
+    G --&gt; H["Player closes the UI"]
+    H --&gt; I["UI controller hides the inventories"]</code></pre>
 <p>Sequence of actions:</p>
 <ol>
 <li>The player approaches a chest --- the detection system identifies the nearest interactive object.</li>
@@ -1806,13 +1856,13 @@
 <p>Process:</p>
 <ol>
 <li>The player drags an item from the inventory onto the world zone (WorldDropZone).</li>
-<li>The system checks whether the item has a 3D representation (whether it implements IWorld3DAdapter).</li>
+<li>The system checks whether the item's adapter is accepted by <code>WorldDropZone</code> and whether it has a <code>WorldPrefab</code>.</li>
 <li>If it does --- the item is removed from the inventory and appears as a 3D object in the world.</li>
 <li>This object can be picked back up by approaching it and pressing the interaction button.</li>
 </ol>
 <p>At code level this usually looks like:
 - UI sends an <code>ItemStack</code> into <code>WorldDropZone</code>
-- <code>WorldDropZone</code> checks the representative adapter for <code>IWorld3DAdapter</code>
+- <code>WorldDropZone</code> checks <code>ItemAdapterSoWith3DAdapter</code> and its <code>WorldPrefab</code>
 - on success, a world object is spawned and the source stack is reduced
 - on pickup, the world object adds the item back into inventory data/UI</p>
 <hr />
@@ -1904,8 +1954,8 @@
 <td>ScriptableObject item with a reference to a 3D prefab</td>
 </tr>
 <tr>
-<td><code>ItemSOWith3DAdapter.cs</code></td>
-<td>Adapter linking the item to IWorld3DAdapter</td>
+<td><code>ItemAdapterSoWith3DAdapter.cs</code></td>
+<td>Adapter linking the item to a 3D prefab</td>
 </tr>
 </tbody>
 </table>
@@ -1914,7 +1964,7 @@
 <p>If you only want one part of the scenario:</p>
 <ul>
 <li>for event-driven chest UI: inspect <code>LootUIController</code> and the bindings</li>
-<li>for dropping inventory items into the world: inspect <code>WorldDropZone</code> and <code>IWorld3DAdapter</code></li>
+<li>for dropping inventory items into the world: inspect <code>WorldDropZone</code> and <code>ItemAdapterSoWith3DAdapter</code></li>
 <li>for pickup from the ground: inspect <code>ItemController</code>, <code>PlayerInteraction</code>, and player data sync</li>
 </ul>
 <hr />

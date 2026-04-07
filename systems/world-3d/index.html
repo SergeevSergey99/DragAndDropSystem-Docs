@@ -14,7 +14,7 @@
         <link rel="prev" href="../interaction/">
       
       
-        <link rel="next" href="../../reference/optional-interfaces/">
+        <link rel="next" href="../free-form-layout/">
       
       
         
@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1319,10 +1319,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-iworld3dadapter" class="md-nav__link">
+  <a href="#1-worldprefab" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Реализуйте IWorld3DAdapter в вашем предмете
+        1. Используйте адаптер с WorldPrefab
       
     </span>
   </a>
@@ -1393,6 +1393,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1638,7 +1666,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1654,7 +1682,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1667,7 +1695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1695,14 +1723,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1784,10 +1840,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-iworld3dadapter" class="md-nav__link">
+  <a href="#1-worldprefab" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Реализуйте IWorld3DAdapter в вашем предмете
+        1. Используйте адаптер с WorldPrefab
       
     </span>
   </a>
@@ -1872,7 +1928,7 @@
 
 
 <h1 id="3d">3D мир</h1>
-<p>Система 3D-мира позволяет выбрасывать предметы из UI-инвентаря в трёхмерную сцену и подбирать их обратно. Предмет, выброшенный в мир, становится 3D-объектом; подобранный --- возвращается в инвентарь.</p>
+<p>Эта интеграция позволяет выбрасывать предметы из UI-инвентаря в трёхмерную сцену и подбирать их обратно. В текущем пакете она реализована как пример из <code>Demo2 Loot</code>: <code>WorldDropZone</code> и <code>WorldItem</code> находятся в папке <code>Examples</code>, а не в core-части ассета.</p>
 <hr />
 <h2 id="_1">Как это работает</h2>
 <pre class="mermaid"><code>flowchart LR
@@ -1902,29 +1958,27 @@
 </tr>
 <tr>
 <td><strong>WorldItem</strong></td>
-<td>Компонент на 3D-объекте в мире. Хранит ссылку на <code>IItemAdapter</code> и количество</td>
+<td>Компонент на 3D-объекте в мире. В демо хранит ссылку на <code>ItemExampleWith3DSO</code></td>
 </tr>
 <tr>
-<td><strong>IWorld3DAdapter</strong></td>
-<td>Интерфейс на предмете: связывает инвентарный предмет с его 3D-префабом</td>
+<td><strong>ItemAdapterSoWith3DAdapter</strong></td>
+<td>Demo-адаптер, который связывает предмет с 3D-префабом через свойство <code>WorldPrefab</code></td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="_3">Настройка</h2>
-<h3 id="1-iworld3dadapter">1. Реализуйте <code>IWorld3DAdapter</code> в вашем предмете</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="na">[CreateAssetMenu(menuName = &quot;Game/Item With 3D&quot;)]</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">GameItemSO</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ScriptableObject</span><span class="p">,</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IWorld3DAdapter</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">{</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">_name</span><span class="p">;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">_icon</span><span class="p">;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">GameObject</span><span class="w"> </span><span class="n">_worldPrefab</span><span class="p">;</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">DisplayName</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_name</span><span class="p">;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_icon</span><span class="p">;</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">GameObject</span><span class="w"> </span><span class="n">WorldPrefab</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_worldPrefab</span><span class="p">;</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
+<h3 id="1-worldprefab">1. Используйте адаптер с <code>WorldPrefab</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemAdapterSoWith3DAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IFilterable</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">ItemExampleWith3DSO</span><span class="w"> </span><span class="n">item</span><span class="p">;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">DisplayName</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">ItemName</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">Icon</span><span class="p">;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">GameObject</span><span class="w"> </span><span class="n">WorldPrefab</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">WorldPrefab</span><span class="p">.</span><span class="n">gameObject</span><span class="p">;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">}</span>
 </code></pre></div>
+<p>В текущей реализации <code>WorldDropZone</code> из <code>Demo2 Loot</code> принимает именно <code>ItemAdapterSoWith3DAdapter</code>. Если в проекте нужен другой тип адаптера, нужно адаптировать проверку в <code>CanAcceptEntry</code> и логику спавна.</p>
 <h3 id="2-worlddropzone">2. Добавьте WorldDropZone</h3>
 <p>Создайте UI-панель (Image с RectTransform) и добавьте компонент <code>WorldDropZone</code>. Настройте:</p>
 <ul>
@@ -1935,31 +1989,26 @@
 </ul>
 <h3 id="3-worlditem-3d-">3. Добавьте WorldItem на 3D-префабы</h3>
 <p>На префабе 3D-объекта добавьте компонент <code>WorldItem</code>. Если забудете --- <code>WorldDropZone</code> добавит его автоматически при спавне.</p>
-<p>Для подбора обратно в инвентарь реализуйте свою логику взаимодействия: при контакте с игроком считайте <code>worldItem.itemData</code> и <code>worldItem.count</code>, добавьте в инвентарь и уничтожьте 3D-объект.</p>
+<p>Для подбора обратно в инвентарь реализуйте свою логику взаимодействия: при контакте с игроком считайте <code>worldItem.Item</code>, добавьте предмет в инвентарь и уничтожьте 3D-объект.</p>
 <hr />
 <h2 id="_4">Полный цикл</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant Игрок
-    participant UI as UI инвентаря
-    participant Зона as WorldDropZone
-    participant Мир as 3D сцена
+<pre class="mermaid"><code>flowchart TD
+    subgraph Drop["Выбрасывание"]
+        A["Игрок перетаскивает предмет в UI"] --&gt; B["Бросает на WorldDropZone"]
+        B --&gt; C["WorldDropZone проверяет адаптер\nи наличие WorldPrefab"]
+        C --&gt; D["Создать 3D-объект в сцене"]
+        D --&gt; E["Удалить предмет из инвентаря"]
+    end
 
-    Note over Игрок,Мир: Выбрасывание
-    Игрок-&gt;&gt;UI: Перетаскивает предмет
-    UI-&gt;&gt;Зона: Бросает на зону мира
-    Зона-&gt;&gt;Зона: Проверяет IWorld3DAdapter
-    Зона-&gt;&gt;Мир: Создаёт 3D объект
-    Зона-&gt;&gt;UI: Удаляет из инвентаря
-
-    Note over Игрок,Мир: Подбор
-    Игрок-&gt;&gt;Мир: Подходит и взаимодействует
-    Мир-&gt;&gt;UI: Предмет добавляется в инвентарь
-    Мир-&gt;&gt;Мир: 3D объект удаляется</code></pre>
+    subgraph Pickup["Подбор"]
+        F["Игрок подходит и взаимодействует"] --&gt; G["Предмет добавляется в инвентарь"]
+        G --&gt; H["3D-объект удаляется из сцены"]
+    end</code></pre>
 <hr />
 <h2 id="_5">Детали реализации</h2>
 <ul>
 <li><code>WorldDropZone</code> наследует <a href="../../architecture/drop-areas/"><code>DropAreaBase</code></a> и использует паттерн <strong>простого потребления</strong> --- переопределяет <code>CanAcceptEntry</code> и <code>ProcessEntry</code>. Удаление предметов из источника и подсветка зоны обрабатываются базовым классом автоматически.</li>
-<li><code>WorldDropZone</code> проверяет <strong>каждый</strong> предмет в контексте перетаскивания через <code>IWorld3DAdapter</code>. Если хоть один предмет не имеет 3D-префаба --- дроп отклоняется.</li>
+<li><code>WorldDropZone</code> проверяет <strong>каждый</strong> предмет в контексте перетаскивания: в демо это должен быть <code>ItemAdapterSoWith3DAdapter</code> с ненулевым <code>WorldPrefab</code>. Если хоть один предмет не подходит --- дроп отклоняется.</li>
 <li>Для стаков каждый экземпляр спавнится отдельным объектом с небольшим смещением.</li>
 <li>Подсветка зоны работает автоматически: зелёная если предмет можно бросить, красная если нельзя.</li>
 </ul>
@@ -1983,11 +2032,11 @@
 </tr>
 <tr>
 <td><code>WorldItem</code></td>
-<td>Компонент на 3D-объекте: хранит данные предмета</td>
+<td>Компонент на 3D-объекте: в демо хранит <code>ItemExampleWith3DSO</code></td>
 </tr>
 <tr>
-<td><code>IWorld3DAdapter</code></td>
-<td>Интерфейс: связывает предмет с 3D-префабом</td>
+<td><code>ItemAdapterSoWith3DAdapter</code></td>
+<td>Demo-адаптер с доступом к <code>WorldPrefab</code></td>
 </tr>
 </tbody>
 </table>

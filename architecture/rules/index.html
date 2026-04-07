@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1370,6 +1370,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1610,7 +1638,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1626,7 +1654,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1639,7 +1667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1667,14 +1695,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1824,7 +1880,7 @@
 <p class="admonition-title">Rules и business hooks — не одно и то же</p>
 <p>Rules отвечают за механические ограничения переноса: можно ли взять предмет, можно ли бросить его в слот, подходит ли тип.
 Если вам нужна проверка уровня всей операции, например хватает ли денег, разрешил ли сервер перенос или нужно применить side effects после успеха, используйте transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>), а не <code>CanDrop</code>.
-Для быстрого сравнения см. также <a href="../transfer-pipeline/#три-типа-проверок">Конвейер переноса</a> и <a href="../drop-policy-matrix/">Матрица Drop Policy</a>.</p>
+Для быстрого сравнения см. также <a href="../transfer-pipeline/">Конвейер переноса</a> и <a href="../drop-policy-matrix/">Матрица Drop Policy</a>.</p>
 </div>
 <hr />
 <h2 id="_2">Три уровня проверки</h2>
@@ -1900,11 +1956,6 @@
 <td>Ограничивает количество уникальных предметов</td>
 </tr>
 <tr>
-<td><code>MaxStackSizeRule</code></td>
-<td>Инвентарное</td>
-<td>Ограничивает размер стака в слоте</td>
-</tr>
-<tr>
 <td><code>SlotLockRule</code></td>
 <td>Инвентарное</td>
 <td>Блокировка определённых слотов</td>
@@ -1940,7 +1991,7 @@
 <a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanDrop</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">DragEntry</span><span class="w"> </span><span class="n">entry</span><span class="p">)</span>
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="c1">// Получаем предмет из контекста</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">Item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ILeveledItem</span><span class="w"> </span><span class="n">leveled</span><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">PrimaryAdapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ILeveledItem</span><span class="w"> </span><span class="n">leveled</span><span class="p">)</span>
 <a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">        </span><span class="p">{</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">leveled</span><span class="p">.</span><span class="n">Level</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">_minLevel</span><span class="p">)</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">$&quot;Нужен уровень {_minLevel}+&quot;</span><span class="p">);</span>

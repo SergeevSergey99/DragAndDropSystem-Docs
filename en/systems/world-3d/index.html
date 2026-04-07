@@ -14,7 +14,7 @@
         <link rel="prev" href="../interaction/">
       
       
-        <link rel="next" href="../../reference/optional-interfaces/">
+        <link rel="next" href="../free-form-layout/">
       
       
         
@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -1319,10 +1319,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-implement-iworld3dadapter-in-your-item" class="md-nav__link">
+  <a href="#1-use-an-adapter-with-worldprefab" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Implement IWorld3DAdapter in your item
+        1. Use an adapter with WorldPrefab
       
     </span>
   </a>
@@ -1393,6 +1393,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1638,7 +1666,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1654,7 +1682,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1667,7 +1695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1695,7 +1723,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
         
   
   
@@ -1784,10 +1840,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-implement-iworld3dadapter-in-your-item" class="md-nav__link">
+  <a href="#1-use-an-adapter-with-worldprefab" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Implement IWorld3DAdapter in your item
+        1. Use an adapter with WorldPrefab
       
     </span>
   </a>
@@ -1872,7 +1928,7 @@
 
 
 <h1 id="3d-world">3D World</h1>
-<p>The 3D world system allows dropping items from the UI inventory into a three-dimensional scene and picking them back up. An item dropped into the world becomes a 3D object; a picked-up item returns to the inventory.</p>
+<p>This integration allows dropping items from the UI inventory into a 3D scene and picking them back up. In the current package it is implemented as a <code>Demo2 Loot</code> example: <code>WorldDropZone</code> and <code>WorldItem</code> live under <code>Examples</code>, not in the core runtime.</p>
 <hr />
 <h2 id="how-it-works">How It Works</h2>
 <pre class="mermaid"><code>flowchart LR
@@ -1902,29 +1958,27 @@
 </tr>
 <tr>
 <td><strong>WorldItem</strong></td>
-<td>Component on a 3D object in the world. Stores a reference to <code>IItemAdapter</code> and the count</td>
+<td>Component on a 3D object in the world. In the demo it stores a reference to <code>ItemExampleWith3DSO</code></td>
 </tr>
 <tr>
-<td><strong>IWorld3DAdapter</strong></td>
-<td>Interface on the item: links an inventory item to its 3D prefab</td>
+<td><strong>ItemAdapterSoWith3DAdapter</strong></td>
+<td>Demo adapter that exposes a 3D prefab through its <code>WorldPrefab</code> property</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="setup">Setup</h2>
-<h3 id="1-implement-iworld3dadapter-in-your-item">1. Implement <code>IWorld3DAdapter</code> in your item</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="na">[CreateAssetMenu(menuName = &quot;Game/Item With 3D&quot;)]</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">GameItemSO</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ScriptableObject</span><span class="p">,</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IWorld3DAdapter</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">{</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">_name</span><span class="p">;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">_icon</span><span class="p">;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">GameObject</span><span class="w"> </span><span class="n">_worldPrefab</span><span class="p">;</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">DisplayName</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_name</span><span class="p">;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_icon</span><span class="p">;</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">GameObject</span><span class="w"> </span><span class="n">WorldPrefab</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_worldPrefab</span><span class="p">;</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
+<h3 id="1-use-an-adapter-with-worldprefab">1. Use an adapter with <code>WorldPrefab</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemAdapterSoWith3DAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IFilterable</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">ItemExampleWith3DSO</span><span class="w"> </span><span class="n">item</span><span class="p">;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">DisplayName</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">ItemName</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Sprite</span><span class="w"> </span><span class="n">Icon</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">Icon</span><span class="p">;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">GameObject</span><span class="w"> </span><span class="n">WorldPrefab</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">WorldPrefab</span><span class="p">.</span><span class="n">gameObject</span><span class="p">;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">}</span>
 </code></pre></div>
+<p>In the current implementation, <code>WorldDropZone</code> from <code>Demo2 Loot</code> accepts <code>ItemAdapterSoWith3DAdapter</code> specifically. If your project uses a different adapter type, update <code>CanAcceptEntry</code> and the spawn logic accordingly.</p>
 <h3 id="2-add-worlddropzone">2. Add WorldDropZone</h3>
 <p>Create a UI panel (Image with RectTransform) and add the <code>WorldDropZone</code> component. Configure:</p>
 <ul>
@@ -1935,31 +1989,26 @@
 </ul>
 <h3 id="3-add-worlditem-to-3d-prefabs">3. Add WorldItem to 3D prefabs</h3>
 <p>On the 3D object prefab, add the <code>WorldItem</code> component. If you forget --- <code>WorldDropZone</code> will add it automatically on spawn.</p>
-<p>To pick up items back into the inventory, implement your own interaction logic: on contact with the player, read <code>worldItem.itemData</code> and <code>worldItem.count</code>, add to the inventory, and destroy the 3D object.</p>
+<p>To pick items back up into the inventory, implement your own interaction logic: on contact with the player, read <code>worldItem.Item</code>, add it to the inventory, and destroy the 3D object.</p>
 <hr />
 <h2 id="full-cycle">Full Cycle</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant Player
-    participant UI as Inventory UI
-    participant Zone as WorldDropZone
-    participant World as 3D Scene
+<pre class="mermaid"><code>flowchart TD
+    subgraph Drop["Dropping"]
+        A["Player drags an item in the UI"] --&gt; B["Drops it onto WorldDropZone"]
+        B --&gt; C["WorldDropZone checks the adapter\nand the WorldPrefab"]
+        C --&gt; D["Create a 3D object in the scene"]
+        D --&gt; E["Remove the item from inventory"]
+    end
 
-    Note over Player,World: Dropping
-    Player-&gt;&gt;UI: Drags item
-    UI-&gt;&gt;Zone: Drops onto world zone
-    Zone-&gt;&gt;Zone: Checks IWorld3DAdapter
-    Zone-&gt;&gt;World: Creates 3D object
-    Zone-&gt;&gt;UI: Removes from inventory
-
-    Note over Player,World: Picking Up
-    Player-&gt;&gt;World: Approaches and interacts
-    World-&gt;&gt;UI: Item is added to inventory
-    World-&gt;&gt;World: 3D object is removed</code></pre>
+    subgraph Pickup["Picking Up"]
+        F["Player approaches and interacts"] --&gt; G["Item is added back to inventory"]
+        G --&gt; H["3D object is removed from the scene"]
+    end</code></pre>
 <hr />
 <h2 id="implementation-details">Implementation Details</h2>
 <ul>
 <li><code>WorldDropZone</code> extends <a href="../../architecture/drop-areas/"><code>DropAreaBase</code></a> using the <strong>simple consumption</strong> pattern --- it overrides <code>CanAcceptEntry</code> and <code>ProcessEntry</code>. Source removal and zone highlighting are handled automatically by the base class.</li>
-<li><code>WorldDropZone</code> checks <strong>every</strong> item in the drag context via <code>IWorld3DAdapter</code>. If even one item does not have a 3D prefab --- the drop is rejected.</li>
+<li><code>WorldDropZone</code> checks <strong>every</strong> item in the drag context: in the demo it must be an <code>ItemAdapterSoWith3DAdapter</code> with a non-null <code>WorldPrefab</code>. If even one item fails that check, the drop is rejected.</li>
 <li>For stacks, each instance is spawned as a separate object with a slight offset.</li>
 <li>Zone highlighting works automatically: green if the item can be dropped, red if it cannot.</li>
 </ul>
@@ -1983,11 +2032,11 @@
 </tr>
 <tr>
 <td><code>WorldItem</code></td>
-<td>Component on a 3D object: stores item data</td>
+<td>Component on a 3D object: in the demo it stores <code>ItemExampleWith3DSO</code></td>
 </tr>
 <tr>
-<td><code>IWorld3DAdapter</code></td>
-<td>Interface: links an item to a 3D prefab</td>
+<td><code>ItemAdapterSoWith3DAdapter</code></td>
+<td>Demo adapter with access to <code>WorldPrefab</code></td>
 </tr>
 </tbody>
 </table>

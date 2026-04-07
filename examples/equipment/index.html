@@ -339,11 +339,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1237,6 +1237,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1477,7 +1505,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1493,7 +1521,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1506,7 +1534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1534,14 +1562,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1775,28 +1831,32 @@
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="p">;</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">;</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">ISlot</span><span class="p">,</span><span class="w"> </span><span class="n">SlotBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">CreateBindingMap</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">()</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">ISlot</span><span class="p">,</span><span class="w"> </span><span class="n">SlotBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">CreateBindingMap</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">()</span>
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="na">[_weaponSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">EquipWeapon</span><span class="p">(</span><span class="n">adapter</span><span class="p">),</span>
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">            </span><span class="n">canAccept</span><span class="p">:</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">ItemType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Weapon&quot;</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">                </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">                </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;Только оружие&quot;</span><span class="p">)),</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">        </span><span class="na">[_armorSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">,</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">,</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">            </span><span class="n">canAccept</span><span class="p">:</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">ItemType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;Armor&quot;</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">                </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">                </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;Только броня&quot;</span><span class="p">)),</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="p">};</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="p">}</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">            </span><span class="n">canDrop</span><span class="p">:</span><span class="w"> </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ValidateWeapon</span><span class="p">(</span><span class="n">adapter</span><span class="p">)),</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="na">[_armorSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">EquipArmor</span><span class="p">(</span><span class="n">adapter</span><span class="p">),</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">            </span><span class="n">canDrop</span><span class="p">:</span><span class="w"> </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ValidateArmor</span><span class="p">(</span><span class="n">adapter</span><span class="p">)),</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p">};</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">EquipWeapon</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* записать в модель данных */</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">EquipArmor</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* записать в модель данных */</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">ValidateWeapon</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="cm">/* проверить тип */</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">();</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">ValidateArmor</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="cm">/* проверить тип */</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">();</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="p">}</span>
 </code></pre></div>
 <hr />
 <h2 id="_6">Что здесь важно</h2>
@@ -1804,38 +1864,32 @@
 <li><code>get</code> читает текущее значение из вашей модели данных</li>
 <li><code>set</code> записывает предмет в конкретное поле</li>
 <li><code>clear</code> очищает поле, когда слот освобождается</li>
-<li><code>canAccept</code> отвечает только за механическую совместимость слота</li>
+<li><code>canDrop</code> отвечает только за механическую совместимость слота</li>
 </ul>
-<p><code>canAccept</code> подходит для правил вроде:</p>
+<p><code>canDrop</code> подходит для правил вроде:</p>
 <ul>
 <li>только оружие в слот оружия</li>
 <li>только броня в слот брони</li>
 <li>только артефакты в два специальных слота</li>
 </ul>
-<p>Если вам нужна бизнес-логика уровня всей операции, например цена экипировки, серверная проверка или особые доменные ограничения, не помещайте её в <code>canAccept</code> или <code>CanDrop</code>. Для этого используйте transfer-level hooks, описанные в <a href="../../architecture/data-binding/">Data Binding Lifecycle</a>.</p>
+<p>Если вам нужна бизнес-логика уровня всей операции, например цена экипировки, серверная проверка или особые доменные ограничения, не помещайте её в <code>canDrop</code> или <code>CanDrop</code>. Для этого используйте transfer-level hooks, описанные в <a href="../../architecture/data-binding/">Data Binding Lifecycle</a>.</p>
 <hr />
 <h2 id="_7">Как проходит перенос</h2>
 <ol>
-<li>Игрок перетаскивает предмет на fixed slot.</li>
+<li>Игрок перетаскивает предмет в фиксированный слот.</li>
 <li><code>MappedSlotInventoryDataBinding.CanDrop(...)</code> берёт representative adapter (<code>PrimaryAdapter</code>) из стека.</li>
 <li>Binding находит <code>SlotBinding</code> для целевого слота.</li>
-<li><code>canAccept</code> проверяет механическую совместимость.</li>
+<li><code>canDrop</code> проверяет механическую совместимость.</li>
 <li>Если перенос успешен, <code>OnItemRemovedFromUI</code> и <code>OnItemAddedToUI</code> обновляют конкретные поля доменной модели.</li>
 </ol>
 <hr />
 <h2 id="_8">Типичный поток</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant PI as Инвентарь игрока
-    participant EQ as EquipmentBinding
-    participant Slot as SlotBinding
-    participant Data as Данные игрока
-
-    PI-&gt;&gt;EQ: CanDrop
-    EQ-&gt;&gt;Slot: canAccept(item)
-    Slot--&gt;&gt;EQ: Success / Failure
-    PI-&gt;&gt;PI: Перенос выполнен
-    PI-&gt;&gt;EQ: OnItemRemoved / OnItemAdded
-    EQ-&gt;&gt;Data: Обновить поля Weapon / Armor</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Инвентарь игрока: CanDrop"] --&gt; B["EquipmentBinding вызывает canDrop(adapter)"]
+    B --&gt; C{"SlotBinding вернул успех или отказ"}
+    C --&gt;|Успех| D["Перенос выполнен"]
+    D --&gt; E["OnItemRemoved / OnItemAdded"]
+    E --&gt; F["Обновить поля Weapon / Armor в данных игрока"]</code></pre>
 <hr />
 <h2 id="_9">Что смотреть в коде</h2>
 <table>

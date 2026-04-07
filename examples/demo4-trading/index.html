@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1348,6 +1348,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1588,7 +1616,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1604,7 +1632,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1617,7 +1645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1645,14 +1673,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1772,16 +1828,25 @@
 
 
 <h1 id="demo4-trading">Demo4 Trading</h1>
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/vaQK6jWpT2g"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 <p><code>Examples/Demo4 Trading/TradingDemo.unity</code></p>
-<p>Это самое насыщенное демо в пакете. Оно показывает перенос между разными доменными моделями, экономику и fixed-slot экипировку в одной сцене.</p>
+<p>Это самое насыщенное демо в пакете. Оно показывает перенос между разными доменными моделями, экономику и экипировку с фиксированными слотами в одной сцене.</p>
 <h2 id="_1">Что показывает демо</h2>
 <ul>
-<li>player inventory, merchant inventory и equipment slots</li>
-<li>converters между разными item models</li>
+<li>инвентарь игрока, инвентарь торговца и слоты экипировки</li>
+<li>конвертеры между разными моделями предметов</li>
 <li>проверку цен и денег на commit-этапе</li>
-<li>разделение mechanical validation и domain side effects</li>
+<li>разделение механической валидации и доменных побочных эффектов</li>
 <li><code>MappedSlotInventoryDataBinding</code> для экипировки</li>
-<li>cross-inventory swap с двусторонней конвертацией</li>
+<li>обмен между инвентарями с двусторонней конвертацией</li>
 </ul>
 <h2 id="_2">Как устроено</h2>
 <p>Данные и экономика:</p>
@@ -1817,25 +1882,25 @@
 <h2 id="_3">Как работает</h2>
 <p>Покупка у торговца:</p>
 <ol>
-<li>Drag начинается из merchant inventory.</li>
-<li>Target-side preview и converter готовят представление предмета для инвентаря игрока.</li>
-<li>Mechanical validation проверяет placement.</li>
-<li>Domain validation проверяет деньги и ограничения сделки.</li>
+<li>Перетаскивание начинается из инвентаря торговца.</li>
+<li>Предпросмотр на стороне цели и конвертер готовят представление предмета для инвентаря игрока.</li>
+<li>Механическая валидация проверяет размещение.</li>
+<li>Доменная валидация проверяет деньги и ограничения сделки.</li>
 <li>После успешного commit bindings обновляют данные игрока и торговца.</li>
-<li>Side effects меняют золото и другие связанные значения.</li>
+<li>Побочные эффекты меняют золото и другие связанные значения.</li>
 </ol>
-<p>Swap между merchant и equipment/player inventory:</p>
+<p>Обмен между инвентарём торговца и инвентарём игрока или экипировкой:</p>
 <ol>
-<li>Planner решает, что обычное размещение невозможно, и помечает entry как <code>RequiresSwap</code>.</li>
-<li>Executor валидирует оба направления на target-side converted preview stacks.</li>
+<li>Planner решает, что обычное размещение невозможно, и помечает запись как <code>RequiresSwap</code>.</li>
+<li>Executor валидирует оба направления на предварительно сконвертированных стеках со стороны цели.</li>
 <li>Затем он снимает копии обоих стеков и выполняет конвертацию в обе стороны.</li>
-<li>В противоположные слоты коммитятся уже сконвертированные стеки, а не raw adapters.</li>
+<li>В противоположные слоты коммитятся уже сконвертированные стеки, а не исходные адаптеры.</li>
 <li>Благодаря этому следующий drag из этих слотов не падает на <code>Неверный тип предмета</code>.</li>
 </ol>
 <p>Экипировка:</p>
 <ol>
-<li>Предмет перетаскивается на fixed slot.</li>
-<li><code>EquipmentInventoryDataBinding</code> проверяет <code>PrimaryAdapter</code> и slot-specific <code>canAccept</code>.</li>
+<li>Предмет перетаскивается в фиксированный слот.</li>
+<li><code>EquipmentInventoryDataBinding</code> проверяет <code>PrimaryAdapter</code> и slot-specific <code>canDrop</code>.</li>
 <li>При успехе конкретное поле в <code>PlayerData</code> синхронизируется с нужным слотом.</li>
 </ol>
 <h2 id="_4">Что смотреть в коде</h2>
@@ -1848,38 +1913,38 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Examples/Demo4 Trading/Data/TradingEconomyManager.cs</code></td>
+<td><code>Data/TradingEconomyManager.cs</code></td>
 <td>центральная экономика</td>
 </tr>
 <tr>
-<td><code>Examples/Demo4 Trading/DataBindings/PlayerInventoryDataBinding.cs</code></td>
+<td><code>DataBindings/PlayerInventoryDataBinding.cs</code></td>
 <td>binding инвентаря игрока</td>
 </tr>
 <tr>
-<td><code>Examples/Demo4 Trading/DataBindings/MerchantInventoryDataBinding.cs</code></td>
+<td><code>DataBindings/MerchantInventoryDataBinding.cs</code></td>
 <td>binding инвентаря торговца</td>
 </tr>
 <tr>
-<td><code>Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs</code></td>
+<td><code>DataBindings/EquipmentInventoryDataBinding.cs</code></td>
 <td>fixed-slot экипировка</td>
 </tr>
 <tr>
-<td><code>Examples/Demo4 Trading/DataBindings/TradingHelper.cs</code></td>
+<td><code>DataBindings/TradingHelper.cs</code></td>
 <td>доменные проверки и side effects</td>
 </tr>
 <tr>
-<td><code>Examples/Demo4 Trading/Converters/*</code></td>
+<td><code>Converters/*</code></td>
 <td>конвертация между моделями</td>
 </tr>
 </tbody>
 </table>
 <h2 id="_5">Когда брать этот пример за основу</h2>
 <ul>
-<li>нужны разные модели данных по разные стороны transfer boundary</li>
+<li>нужны разные модели данных по разные стороны границы переноса</li>
 <li>нужна конвертация предметов при переносе</li>
-<li>нужен корректный cross-inventory swap между разными adapter-моделями</li>
+<li>нужен корректный обмен между инвентарями с разными adapter-моделями</li>
 <li>нужны цены, деньги и commit-time проверки</li>
-<li>нужны fixed slots поверх обычного inventory</li>
+<li>нужны фиксированные слоты поверх обычного инвентаря</li>
 </ul>
 <p>Связанные страницы:</p>
 <ul>

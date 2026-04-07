@@ -339,11 +339,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Обратная связь
+  Еще
 
         </a>
       </li>
@@ -1237,6 +1237,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Свободное размещение
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1477,7 +1505,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Еще
   
 
     
@@ -1493,7 +1521,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Обратная связь
+    Еще
   
 
           </label>
@@ -1506,7 +1534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1534,14 +1562,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Showcase
+    Планы на будущее
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Витрина проектов
   
 
     
@@ -1734,21 +1790,15 @@
     ИИ --&gt;|"выброс в мир"| П</code></pre>
 <hr />
 <h2 id="_2">Взаимодействие с сундуком</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant И as Игрок
-    participant Р as Обнаружение
-    participant С as Сундук
-    participant К as UI контроллер
-    participant UI as Инвентари
-
-    И-&gt;&gt;Р: Подходит к сундуку
-    И-&gt;&gt;Р: Нажимает кнопку взаимодействия
-    Р-&gt;&gt;С: Interact()
-    С-&gt;&gt;К: Сундук открыт
-    К-&gt;&gt;UI: Показать инвентари (сундук + игрок)
-    И-&gt;&gt;UI: Перетаскивает предметы
-    И-&gt;&gt;К: Закрывает UI
-    К-&gt;&gt;UI: Скрыть инвентари</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Игрок подходит к сундуку"] --&gt; B["Система обнаружения находит интерактивный объект"]
+    B --&gt; C["Игрок нажимает кнопку взаимодействия"]
+    C --&gt; D["Сундук: Interact()"]
+    D --&gt; E["UI контроллер получает событие открытия"]
+    E --&gt; F["Показать инвентари\nсундук + игрок"]
+    F --&gt; G["Игрок перетаскивает предметы"]
+    G --&gt; H["Игрок закрывает UI"]
+    H --&gt; I["UI контроллер скрывает инвентари"]</code></pre>
 <p>Последовательность действий:</p>
 <ol>
 <li>Игрок подходит к сундуку --- система обнаружения определяет ближайший интерактивный объект.</li>
@@ -1806,13 +1856,13 @@
 <p>Процесс:</p>
 <ol>
 <li>Игрок перетаскивает предмет из инвентаря на зону мира (WorldDropZone).</li>
-<li>Система проверяет, есть ли у предмета 3D-представление (реализует ли он IWorld3DAdapter).</li>
+<li>Система проверяет, подходит ли адаптер предмета для <code>WorldDropZone</code> и есть ли у него <code>WorldPrefab</code>.</li>
 <li>Если есть --- предмет удаляется из инвентаря и появляется как 3D-объект в мире.</li>
 <li>Этот объект можно подобрать обратно, подойдя к нему и нажав кнопку взаимодействия.</li>
 </ol>
 <p>На уровне кода это обычно выглядит так:
 - UI отдаёт <code>ItemStack</code> в <code>WorldDropZone</code>
-- <code>WorldDropZone</code> проверяет representative adapter на <code>IWorld3DAdapter</code>
+- <code>WorldDropZone</code> проверяет адаптер <code>ItemAdapterSoWith3DAdapter</code> и его <code>WorldPrefab</code>
 - при успехе создаётся world object и исходный stack уменьшается
 - при pickup world object снова добавляет предмет в inventory data/UI</p>
 <hr />
@@ -1904,8 +1954,8 @@
 <td>ScriptableObject предмета с ссылкой на 3D-префаб</td>
 </tr>
 <tr>
-<td><code>ItemSOWith3DAdapter.cs</code></td>
-<td>Адаптер, связывающий предмет с IWorld3DAdapter</td>
+<td><code>ItemAdapterSoWith3DAdapter.cs</code></td>
+<td>Адаптер, связывающий предмет с 3D-префабом</td>
 </tr>
 </tbody>
 </table>
@@ -1914,7 +1964,7 @@
 <p>Если вы хотите повторить только часть сценария:</p>
 <ul>
 <li>нужны сундуки и открытие UI по событию: смотрите <code>LootUIController</code> и binding-и</li>
-<li>нужен выброс предметов в мир: смотрите <code>WorldDropZone</code> и <code>IWorld3DAdapter</code></li>
+<li>нужен выброс предметов в мир: смотрите <code>WorldDropZone</code> и <code>ItemAdapterSoWith3DAdapter</code></li>
 <li>нужен pickup объектов с земли: смотрите <code>ItemController</code>, <code>PlayerInteraction</code> и player data sync</li>
 </ul>
 <hr />

@@ -339,11 +339,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -1237,6 +1237,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1477,7 +1505,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1493,7 +1521,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1506,7 +1534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1534,7 +1562,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
         
   
   
@@ -1766,20 +1822,13 @@
 - bindings synchronize UI with domain data</p>
 <hr />
 <h2 id="purchase-flow">Purchase flow</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant U as Player
-    participant M as Merchant Inventory
-    participant P as Player Inventory
-    participant D as Domain Hook
-    participant Data as Player / Merchant Data
-
-    U-&gt;&gt;P: Drops merchant item
-    P-&gt;&gt;P: CanDrop (mechanics, compatibility)
-    M-&gt;&gt;P: Convert item into player format
-    P-&gt;&gt;D: CanCommitTransfer (enough gold?)
-    P-&gt;&gt;P: Execute transfer
-    P-&gt;&gt;D: OnTransferSucceeded (update gold)
-    P-&gt;&gt;Data: AddToData / RemoveFromData</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Player drops merchant item"] --&gt; B["Player Inventory: CanDrop\nmechanics and compatibility"]
+    B --&gt; C["Merchant Inventory → Player Inventory\nconvert item into player format"]
+    C --&gt; D["Domain Hook: CanCommitTransfer\nenough gold?"]
+    D --&gt; E["Execute transfer"]
+    E --&gt; F["Domain Hook: OnTransferSucceeded\nupdate gold"]
+    F --&gt; G["Player / Merchant Data\nAddToData / RemoveFromData"]</code></pre>
 <hr />
 <h2 id="where-each-piece-belongs">Where each piece belongs</h2>
 <table>
@@ -1792,7 +1841,7 @@
 <tbody>
 <tr>
 <td>Only valid item type in equipment slot</td>
-<td><code>canAccept</code> or <code>CanDrop</code></td>
+<td><code>canDrop</code> or <code>CanDrop</code></td>
 </tr>
 <tr>
 <td>Check available gold</td>

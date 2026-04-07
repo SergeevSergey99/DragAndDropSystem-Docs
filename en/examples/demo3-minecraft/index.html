@@ -345,11 +345,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../feedback/" class="md-tabs__link">
+        <a href="../../more/feedback/" class="md-tabs__link">
           
   
   
-  Feedback
+  More
 
         </a>
       </li>
@@ -1348,6 +1348,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../systems/free-form-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Free-Form Layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1588,7 +1616,7 @@
   <span class="md-ellipsis">
     
   
-    Feedback
+    More
   
 
     
@@ -1604,7 +1632,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Feedback
+    More
   
 
           </label>
@@ -1617,7 +1645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../feedback/" class="md-nav__link">
+      <a href="../../more/feedback/" class="md-nav__link">
         
   
   
@@ -1645,7 +1673,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../showcase/" class="md-nav__link">
+      <a href="../../more/future-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../more/showcase/" class="md-nav__link">
         
   
   
@@ -1772,6 +1828,15 @@
 
 
 <h1 id="demo3-minecraft">Demo3 Minecraft</h1>
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/vai7yQJLLVc"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
 <p><code>Examples/Demo3 Minecraft/MinecraftDemo.unity</code></p>
 <p>This is a slot-indexed inventory and crafting sample where UI syncs with fixed domain arrays rather than a plain list.</p>
 <h2 id="what-the-demo-shows">What the demo shows</h2>
@@ -1779,8 +1844,7 @@
 <li><code>SlotIndexedInventoryDataBinding</code></li>
 <li>separate panels for hotbar, main inventory, and craft table</li>
 <li>per-slot max stack limits</li>
-<li>recipe evaluation plus a dedicated result slot</li>
-<li>side effects when the crafted result is taken</li>
+<li><code>CraftResultDataBinding</code> as a custom read-only output inventory</li>
 </ul>
 <h2 id="how-it-is-structured">How it is structured</h2>
 <p>The central domain entry point is:</p>
@@ -1836,27 +1900,27 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingManager.cs</code></td>
+<td><code>Crafting/CraftingManager.cs</code></td>
 <td>domain data and crafting logic</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs</code></td>
+<td><code>DataBindings/MainInventoryDataBinding.cs</code></td>
 <td>main inventory binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs</code></td>
+<td><code>DataBindings/HotbarDataBinding.cs</code></td>
 <td>hotbar binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs</code></td>
+<td><code>DataBindings/CraftTableDataBinding.cs</code></td>
 <td>craft table binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs</code></td>
+<td><code>DataBindings/CraftResultDataBinding.cs</code></td>
 <td>result slot binding</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs</code></td>
+<td><code>Crafting/CraftingRecipeSO.cs</code></td>
 <td>recipe and matching</td>
 </tr>
 </tbody>
