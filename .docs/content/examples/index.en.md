@@ -1,8 +1,8 @@
 # Examples
 
-This section describes the **actual demo scenes shipped in `Examples/`**: how they are composed, which patterns they demonstrate, and which files are worth reading first.
+This section describes the **demo scenes shipped in `Examples/`**: how they are composed, which patterns they demonstrate, and which files are worth reading first.
 
-If Quick Start answers "how do I get my first inventory working?", the Examples section answers different questions:
+The Examples section answers questions:
 
 - how each demo is structured by layers
 - where data, adapters, bindings, and UI live
@@ -29,41 +29,47 @@ The goal is to help you understand the architectural shape quickly, not just rep
 ### [Demo1 Inventories](demo1-inventories.md)
 
 Use it for:
+
 - the simplest list-based inventory example
 - understanding `ListInventoryDataBinding` without extra domain complexity
 - local `CanStartDrag` and `CanDrop` overrides
 
 Shows:
+
 - `ListInventoryDataBinding<ItemExampleSO, ItemAdapterSoAdapter>`
 - loading a list into UI
-- syncing the list back into data
-- basic inventory rules and custom validation hooks
+- drop areas
+- basic inventory rules
 
 `Examples/Demo1 Inventaries/*`
 
 ### [Demo2 Loot](demo2-loot.md)
 
 Use it for:
+
 - world -> event -> UI -> inventory flow
 - chests and interaction-driven UI opening
 - pickup / drop flows connected to world objects
 
 Shows:
+
 - a mediator between world layer and UI
-- separate bindings for player and chest inventories
-- `IInteractable`, `Chest`, and `PlayerInteraction`
+- changing the chest's data binding data source
 - world drop / pickup integration
+- item filters
 
 `Examples/Demo2 Loot/*`
 
 ### [Demo3 Minecraft](demo3-minecraft.md)
 
 Use it for:
+
 - slot-indexed inventories
 - a crafting grid plus a dedicated result slot
 - per-slot max stack rules
 
 Shows:
+
 - `SlotIndexedInventoryDataBinding`
 - separate hotbar / inventory / craft table bindings
 - `CraftingManager` as the domain source of truth
@@ -74,26 +80,28 @@ Shows:
 ### [Demo4 Trading](demo4-trading.md)
 
 Use it for:
-- cross-inventory transfers between different domain models
-- converters
-- gold, prices, and commit-time validation
+
+- data conversions between inventories are needed 
+- the operation depends on money, prices and checks at the time of transfer
 
 Shows:
-- player / merchant / equipment inventories
+
+- player / merchants / equipment inventories
 - `ListInventoryDataBinding` and `MappedSlotInventoryDataBinding`
-- domain hooks and conversion pipeline
-- separation of mechanical validation and business validation
+- data models changes during cross-inventory transfers
 
 `Examples/Demo4 Trading/*`
 
 ### [Demo5 Containers](demo5-containers.md)
 
 Use it for:
+
 - items that contain their own inventory
-- opening a container from a context menu
-- custom occupied-slot drops and cycle prevention
+- opening a nested container from a context menu
+- the item must drop into the slot occupied by the container item and must be protected from cycles
 
 Shows:
+
 - item instances instead of plain ScriptableObject rows
 - a container acting as both an item and a data source
 - `ContainerUIController` and active-container switching
@@ -107,7 +115,6 @@ Shows:
 
 | If you need | Start with |
 |---|---|
-| A gallery of real projects and case studies | [Showcase](showcase.md) |
 | Basic inventory list + simple hooks | [Demo1 Inventories](demo1-inventories.md) |
 | Chest UI and world interaction | [Demo2 Loot](demo2-loot.md) |
 | Crafting grid and slot-indexed data | [Demo3 Minecraft](demo3-minecraft.md) |
