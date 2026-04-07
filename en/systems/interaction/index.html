@@ -1922,15 +1922,11 @@
 <hr />
 <h2 id="press-phases">Press Phases</h2>
 <p>The system distinguishes several press types by duration and cursor movement:</p>
-<pre class="mermaid"><code>stateDiagram-v2
-    [*] --&gt; Press
-    Press --&gt; Quick_click : Released quickly,\ncursor did not move
-    Press --&gt; Long_press : Held longer\nthan threshold (0.35 sec)
-    Press --&gt; Dragging : Cursor moved\nbeyond threshold (8 px)
-
-    Quick_click --&gt; [*]
-    Long_press --&gt; [*]
-    Dragging --&gt; [*]</code></pre>
+<pre class="mermaid"><code>flowchart TD
+    A["Press"] --&gt; B{"What happened next?"}
+    B --&gt;|"Released quickly\nand cursor did not move"| C["Quick click"]
+    B --&gt;|"Held longer than threshold\n0.35 sec"| D["Long press"]
+    B --&gt;|"Cursor moved\nbeyond 8 px"| E["Dragging"]</code></pre>
 <table>
 <thead>
 <tr>
