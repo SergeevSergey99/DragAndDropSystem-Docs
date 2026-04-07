@@ -146,18 +146,12 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
 ## Типичный поток
 
 ```mermaid
-sequenceDiagram
-    participant PI as Инвентарь игрока
-    participant EQ as EquipmentBinding
-    participant Slot as SlotBinding
-    participant Data as Данные игрока
-
-    PI->>EQ: CanDrop
-    EQ->>Slot: canAccept(item)
-    Slot-->>EQ: Success / Failure
-    PI->>PI: Перенос выполнен
-    PI->>EQ: OnItemRemoved / OnItemAdded
-    EQ->>Data: Обновить поля Weapon / Armor
+flowchart TD
+    A["Инвентарь игрока: CanDrop"] --> B["EquipmentBinding вызывает canAccept(item)"]
+    B --> C{"SlotBinding вернул Success / Failure"}
+    C -->|Success| D["Перенос выполнен"]
+    D --> E["OnItemRemoved / OnItemAdded"]
+    E --> F["Обновить поля Weapon / Armor в данных игрока"]
 ```
 
 ---

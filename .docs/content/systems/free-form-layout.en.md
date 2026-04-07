@@ -70,27 +70,21 @@ Standard `InventoryDropArea` --- no subclasses needed.
 ## Lifecycle
 
 ```mermaid
-sequenceDiagram
-    participant Player
-    participant DropArea as InventoryDropArea
-    participant Manager as DragAndDropManager
-    participant Layout as FreeFormSlotLayout
-    participant Inv as UniversalInventory
+flowchart TD
+    subgraph Drop["Item Drop"]
+        A["Player releases item"] --> B["InventoryDropArea calls CompleteDrag()"]
+        B --> C["DragAndDropManager: OnDropAttempting"]
+        C --> D["FreeFormSlotLayout stores Input.mousePosition"]
+        D --> E["UniversalInventory: ProcessDrop → Planner → Executor"]
+        E --> F["CreateSlot() for a dynamic slot"]
+        F --> G["OnSlotCreated(slot)"]
+        G --> H["Convert screen → local and ClampToBounds"]
+        H --> I["slot.anchoredPosition = dropPos"]
+    end
 
-    Note over Player,Inv: Item Drop
-    Player->>DropArea: Releases item
-    DropArea->>Manager: CompleteDrag()
-    Manager->>Manager: OnDropAttempting
-    Manager->>Layout: Layout stores Input.mousePosition
-    Manager->>Inv: ProcessDrop → Planner → Executor
-    Inv->>Inv: CreateSlot() (Dynamic)
-    Inv->>Layout: OnSlotCreated(slot)
-    Layout->>Layout: Convert screen → local, ClampToBounds
-    Layout->>Inv: slot.anchoredPosition = dropPos
-
-    Note over Player,Inv: Initialization / ReloadUI
-    Player->>Layout: ArrangeAllSlots()
-    Layout->>Layout: Arranges slots in grid
+    subgraph Init["Initialization / ReloadUI"]
+        J["Call ArrangeAllSlots()"] --> K["FreeFormSlotLayout arranges slots in a grid"]
+    end
 ```
 
 ---

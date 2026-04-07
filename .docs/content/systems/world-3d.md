@@ -70,23 +70,18 @@ public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
 ## Полный цикл
 
 ```mermaid
-sequenceDiagram
-    participant Игрок
-    participant UI as UI инвентаря
-    participant Зона as WorldDropZone
-    participant Мир as 3D сцена
+flowchart TD
+    subgraph Drop["Выбрасывание"]
+        A["Игрок перетаскивает предмет в UI"] --> B["Бросает на WorldDropZone"]
+        B --> C["WorldDropZone проверяет IWorld3DAdapter"]
+        C --> D["Создать 3D-объект в сцене"]
+        D --> E["Удалить предмет из инвентаря"]
+    end
 
-    Note over Игрок,Мир: Выбрасывание
-    Игрок->>UI: Перетаскивает предмет
-    UI->>Зона: Бросает на зону мира
-    Зона->>Зона: Проверяет IWorld3DAdapter
-    Зона->>Мир: Создаёт 3D объект
-    Зона->>UI: Удаляет из инвентаря
-
-    Note over Игрок,Мир: Подбор
-    Игрок->>Мир: Подходит и взаимодействует
-    Мир->>UI: Предмет добавляется в инвентарь
-    Мир->>Мир: 3D объект удаляется
+    subgraph Pickup["Подбор"]
+        F["Игрок подходит и взаимодействует"] --> G["Предмет добавляется в инвентарь"]
+        G --> H["3D-объект удаляется из сцены"]
+    end
 ```
 
 ---

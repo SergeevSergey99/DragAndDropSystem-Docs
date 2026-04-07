@@ -52,22 +52,16 @@ public class TrashDropZone : DropAreaBase
 ### How It Works Inside
 
 ```mermaid
-sequenceDiagram
-    participant Player
-    participant Base as DropAreaBase
-    participant Sub as TrashDropZone
-    participant Source as Source Inventory
-
-    Player->>Base: Drops item
-    loop For each entry
-        Base->>Sub: CanAcceptEntry(entry)?
-        Sub-->>Base: true
-        Base->>Base: Copies stack from source slot
-        Base->>Sub: ProcessEntry(freshStack, entry)
-        Sub-->>Base: true
-        Base->>Source: Removes items + emits events
-    end
-    Base-->>Player: DropResult.Succeeded
+flowchart TD
+    A["Player drops item"] --> B["DropAreaBase starts processing"]
+    B --> C["For each entry"]
+    C --> D{"CanAcceptEntry(entry)?"}
+    D -->|Yes| E["Copy stack from source slot"]
+    E --> F{"ProcessEntry(freshStack, entry)"}
+    F -->|true| G["Remove items from source + emit events"]
+    G --> H{"More entries left?"}
+    H -->|Yes| C
+    H -->|No| I["DropResult.Succeeded"]
 ```
 
 ---

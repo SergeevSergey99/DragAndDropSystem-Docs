@@ -52,22 +52,16 @@ public class TrashDropZone : DropAreaBase
 ### Как работает внутри
 
 ```mermaid
-sequenceDiagram
-    participant Игрок
-    participant База as DropAreaBase
-    participant Подкласс as TrashDropZone
-    participant Источник as Исходный инвентарь
-
-    Игрок->>База: Бросает предмет
-    loop Для каждого entry
-        База->>Подкласс: CanAcceptEntry(entry)?
-        Подкласс-->>База: true
-        База->>База: Копирует стак из source slot
-        База->>Подкласс: ProcessEntry(freshStack, entry)
-        Подкласс-->>База: true
-        База->>Источник: Удаляет предметы + события
-    end
-    База-->>Игрок: DropResult.Succeeded
+flowchart TD
+    A["Игрок бросает предмет"] --> B["DropAreaBase начинает обработку"]
+    B --> C["Для каждого entry"]
+    C --> D{"CanAcceptEntry(entry)?"}
+    D -->|Да| E["Скопировать стак из source slot"]
+    E --> F{"ProcessEntry(freshStack, entry)"}
+    F -->|true| G["Удалить предметы из источника + вызвать события"]
+    G --> H{"Есть ещё entry?"}
+    H -->|Да| C
+    H -->|Нет| I["DropResult.Succeeded"]
 ```
 
 ---

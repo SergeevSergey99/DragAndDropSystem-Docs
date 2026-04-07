@@ -70,27 +70,21 @@ flowchart LR
 ## Жизненный цикл
 
 ```mermaid
-sequenceDiagram
-    participant Игрок
-    participant DropArea as InventoryDropArea
-    participant Manager as DragAndDropManager
-    participant Layout as FreeFormSlotLayout
-    participant Inv as UniversalInventory
+flowchart TD
+    subgraph Drop["Дроп предмета"]
+        A["Игрок отпускает предмет"] --> B["InventoryDropArea вызывает CompleteDrag()"]
+        B --> C["DragAndDropManager: OnDropAttempting"]
+        C --> D["FreeFormSlotLayout запоминает Input.mousePosition"]
+        D --> E["UniversalInventory: ProcessDrop → Planner → Executor"]
+        E --> F["CreateSlot() для Dynamic-слота"]
+        F --> G["OnSlotCreated(slot)"]
+        G --> H["screen → local + ClampToBounds"]
+        H --> I["slot.anchoredPosition = dropPos"]
+    end
 
-    Note over Игрок,Inv: Дроп предмета
-    Игрок->>DropArea: Отпускает предмет
-    DropArea->>Manager: CompleteDrag()
-    Manager->>Manager: OnDropAttempting
-    Manager->>Layout: Layout запоминает Input.mousePosition
-    Manager->>Inv: ProcessDrop → Planner → Executor
-    Inv->>Inv: CreateSlot() (Dynamic)
-    Inv->>Layout: OnSlotCreated(slot)
-    Layout->>Layout: Конвертирует screen → local, ClampToBounds
-    Layout->>Inv: slot.anchoredPosition = dropPos
-
-    Note over Игрок,Inv: Инициализация / ReloadUI
-    Игрок->>Layout: ArrangeAllSlots()
-    Layout->>Layout: Раскладывает слоты сеткой
+    subgraph Init["Инициализация / ReloadUI"]
+        J["Вызов ArrangeAllSlots()"] --> K["FreeFormSlotLayout раскладывает слоты сеткой"]
+    end
 ```
 
 ---

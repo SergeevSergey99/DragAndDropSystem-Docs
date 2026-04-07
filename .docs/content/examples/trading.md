@@ -81,20 +81,13 @@ flowchart LR
 ## Покупка: правильная последовательность
 
 ```mermaid
-sequenceDiagram
-    participant U as Игрок
-    participant M as Merchant Inventory
-    participant P as Player Inventory
-    participant D as Domain Hook
-    participant Data as Player / Merchant Data
-
-    U->>P: Бросает товар торговца
-    P->>P: CanDrop (механика, совместимость)
-    M->>P: Конвертация предмета в формат игрока
-    P->>D: CanCommitTransfer (хватает ли золота?)
-    P->>P: Выполнить перенос
-    P->>D: OnTransferSucceeded (обновить золото)
-    P->>Data: AddToData / RemoveFromData
+flowchart TD
+    A["Игрок бросает товар торговца"] --> B["Player Inventory: CanDrop\nмеханика и совместимость"]
+    B --> C["Merchant Inventory → Player Inventory\nконвертация предмета"]
+    C --> D["Domain Hook: CanCommitTransfer\nхватает ли золота?"]
+    D --> E["Выполнить перенос"]
+    E --> F["Domain Hook: OnTransferSucceeded\nобновить золото"]
+    F --> G["Player / Merchant Data\nAddToData / RemoveFromData"]
 ```
 
 ---

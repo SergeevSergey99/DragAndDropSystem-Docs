@@ -78,7 +78,7 @@ If a binding implements both versions, the order is:
 
 If the sync check fails, the async check is not called.
 
-For more on the three types of checks (rules, business checks, notifications), see [Three types of checks](transfer-pipeline.md#three-types-of-checks) in the transfer pipeline page.
+For more on the three types of checks (rules, business checks, notifications), see the [Transfer Pipeline](transfer-pipeline.md) page.
 
 ---
 
@@ -188,7 +188,7 @@ protected override IItemAdapterConverter CreateItemConverter()
 }
 ```
 
-For details on how conversion works in the transfer pipeline, see [Item conversion](transfer-pipeline.md#item-conversion).
+For details on how conversion works in the transfer pipeline, see [Transfer Pipeline](transfer-pipeline.md).
 
 ---
 

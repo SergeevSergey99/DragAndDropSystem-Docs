@@ -70,23 +70,18 @@ To pick up items back into the inventory, implement your own interaction logic: 
 ## Full Cycle
 
 ```mermaid
-sequenceDiagram
-    participant Player
-    participant UI as Inventory UI
-    participant Zone as WorldDropZone
-    participant World as 3D Scene
+flowchart TD
+    subgraph Drop["Dropping"]
+        A["Player drags an item in the UI"] --> B["Drops it onto WorldDropZone"]
+        B --> C["WorldDropZone checks IWorld3DAdapter"]
+        C --> D["Create a 3D object in the scene"]
+        D --> E["Remove the item from inventory"]
+    end
 
-    Note over Player,World: Dropping
-    Player->>UI: Drags item
-    UI->>Zone: Drops onto world zone
-    Zone->>Zone: Checks IWorld3DAdapter
-    Zone->>World: Creates 3D object
-    Zone->>UI: Removes from inventory
-
-    Note over Player,World: Picking Up
-    Player->>World: Approaches and interacts
-    World->>UI: Item is added to inventory
-    World->>World: 3D object is removed
+    subgraph Pickup["Picking Up"]
+        F["Player approaches and interacts"] --> G["Item is added back to inventory"]
+        G --> H["3D object is removed from the scene"]
+    end
 ```
 
 ---

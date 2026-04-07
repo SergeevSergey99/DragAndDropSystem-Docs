@@ -136,18 +136,12 @@ Do not put transfer-wide business logic there. For pricing, server checks, or do
 ## Typical flow
 
 ```mermaid
-sequenceDiagram
-    participant PI as Player Inventory
-    participant EQ as EquipmentBinding
-    participant Slot as SlotBinding
-    participant Data as Player Data
-
-    PI->>EQ: CanDrop
-    EQ->>Slot: canAccept(item)
-    Slot-->>EQ: Success / Failure
-    PI->>PI: Transfer executes
-    PI->>EQ: OnItemRemoved / OnItemAdded
-    EQ->>Data: Update Weapon / Armor fields
+flowchart TD
+    A["Player Inventory: CanDrop"] --> B["EquipmentBinding calls canAccept(item)"]
+    B --> C{"SlotBinding returns Success / Failure"}
+    C -->|Success| D["Transfer executes"]
+    D --> E["OnItemRemoved / OnItemAdded"]
+    E --> F["Update Weapon / Armor fields in player data"]
 ```
 
 ---

@@ -81,20 +81,13 @@ Responsibility split:
 ## Purchase flow
 
 ```mermaid
-sequenceDiagram
-    participant U as Player
-    participant M as Merchant Inventory
-    participant P as Player Inventory
-    participant D as Domain Hook
-    participant Data as Player / Merchant Data
-
-    U->>P: Drops merchant item
-    P->>P: CanDrop (mechanics, compatibility)
-    M->>P: Convert item into player format
-    P->>D: CanCommitTransfer (enough gold?)
-    P->>P: Execute transfer
-    P->>D: OnTransferSucceeded (update gold)
-    P->>Data: AddToData / RemoveFromData
+flowchart TD
+    A["Player drops merchant item"] --> B["Player Inventory: CanDrop\nmechanics and compatibility"]
+    B --> C["Merchant Inventory → Player Inventory\nconvert item into player format"]
+    C --> D["Domain Hook: CanCommitTransfer\nenough gold?"]
+    D --> E["Execute transfer"]
+    E --> F["Domain Hook: OnTransferSucceeded\nupdate gold"]
+    F --> G["Player / Merchant Data\nAddToData / RemoveFromData"]
 ```
 
 ---

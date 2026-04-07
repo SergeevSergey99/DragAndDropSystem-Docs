@@ -40,21 +40,15 @@ flowchart TB
 ## Chest Interaction
 
 ```mermaid
-sequenceDiagram
-    participant P as Player
-    participant D as Detection
-    participant C as Chest
-    participant UC as UI controller
-    participant UI as Inventories
-
-    P->>D: Approaches the chest
-    P->>D: Presses interaction button
-    D->>C: Interact()
-    C->>UC: Chest opened
-    UC->>UI: Show inventories (chest + player)
-    P->>UI: Drags items
-    P->>UC: Closes UI
-    UC->>UI: Hide inventories
+flowchart TD
+    A["Player approaches the chest"] --> B["Detection system finds the interactive object"]
+    B --> C["Player presses the interaction button"]
+    C --> D["Chest: Interact()"]
+    D --> E["UI controller receives the open event"]
+    E --> F["Show inventories\nchest + player"]
+    F --> G["Player drags items"]
+    G --> H["Player closes the UI"]
+    H --> I["UI controller hides the inventories"]
 ```
 
 Sequence of actions:
