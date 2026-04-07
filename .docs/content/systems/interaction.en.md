@@ -27,15 +27,11 @@ The slot itself does not know what to do with input. It forwards raw events (pre
 The system distinguishes several press types by duration and cursor movement:
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Press
-    Press --> Quick_click : Released quickly,\ncursor did not move
-    Press --> Long_press : Held longer\nthan threshold (0.35 sec)
-    Press --> Dragging : Cursor moved\nbeyond threshold (8 px)
-
-    Quick_click --> [*]
-    Long_press --> [*]
-    Dragging --> [*]
+flowchart TD
+    A["Press"] --> B{"What happened next?"}
+    B -->|"Released quickly\nand cursor did not move"| C["Quick click"]
+    B -->|"Held longer than threshold\n0.35 sec"| D["Long press"]
+    B -->|"Cursor moved\nbeyond 8 px"| E["Dragging"]
 ```
 
 | Phase | Condition | Typical Action |
