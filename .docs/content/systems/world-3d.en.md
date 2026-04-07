@@ -1,6 +1,6 @@
 # 3D World
 
-The 3D world system allows dropping items from the UI inventory into a three-dimensional scene and picking them back up. An item dropped into the world becomes a 3D object; a picked-up item returns to the inventory.
+This integration allows dropping items from the UI inventory into a 3D scene and picking them back up. In the current package it is implemented as a `Demo2 Loot` example: `WorldDropZone` and `WorldItem` live under `Examples`, not in the core runtime.
 
 ---
 
@@ -27,28 +27,27 @@ flowchart LR
 | Component | Purpose |
 |-----------|---------|
 | **WorldDropZone** | UI area for dropping items into the world. On drop, creates a 3D object and removes the item from the inventory |
-| **WorldItem** | Component on a 3D object in the world. Stores a reference to `IItemAdapter` and the count |
-| **IWorld3DAdapter** | Interface on the item: links an inventory item to its 3D prefab |
+| **WorldItem** | Component on a 3D object in the world. In the demo it stores a reference to `ItemExampleWith3DSO` |
+| **ItemAdapterSoWith3DAdapter** | Demo adapter that exposes a 3D prefab through its `WorldPrefab` property |
 
 ---
 
 ## Setup
 
-### 1. Implement `IWorld3DAdapter` in your item
+### 1. Use an adapter with `WorldPrefab`
 
 ```csharp
-[CreateAssetMenu(menuName = "Game/Item With 3D")]
-public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
+public class ItemAdapterSoWith3DAdapter : IItemAdapter, IFilterable
 {
-    [SerializeField] private string _name;
-    [SerializeField] private Sprite _icon;
-    [SerializeField] private GameObject _worldPrefab;
+    public readonly ItemExampleWith3DSO item;
 
-    public string DisplayName => _name;
-    public Sprite Icon => _icon;
-    public GameObject WorldPrefab => _worldPrefab;
+    public string DisplayName => item.ItemName;
+    public Sprite Icon => item.Icon;
+    public GameObject WorldPrefab => item.WorldPrefab.gameObject;
 }
 ```
+
+In the current implementation, `WorldDropZone` from `Demo2 Loot` accepts `ItemAdapterSoWith3DAdapter` specifically. If your project uses a different adapter type, update `CanAcceptEntry` and the spawn logic accordingly.
 
 ### 2. Add WorldDropZone
 
@@ -63,7 +62,7 @@ Create a UI panel (Image with RectTransform) and add the `WorldDropZone` compone
 
 On the 3D object prefab, add the `WorldItem` component. If you forget --- `WorldDropZone` will add it automatically on spawn.
 
-To pick up items back into the inventory, implement your own interaction logic: on contact with the player, read `worldItem.itemData` and `worldItem.count`, add to the inventory, and destroy the 3D object.
+To pick items back up into the inventory, implement your own interaction logic: on contact with the player, read `worldItem.Item`, add it to the inventory, and destroy the 3D object.
 
 ---
 
@@ -73,7 +72,7 @@ To pick up items back into the inventory, implement your own interaction logic: 
 flowchart TD
     subgraph Drop["Dropping"]
         A["Player drags an item in the UI"] --> B["Drops it onto WorldDropZone"]
-        B --> C["WorldDropZone checks IWorld3DAdapter"]
+        B --> C["WorldDropZone checks the adapter\nand the WorldPrefab"]
         C --> D["Create a 3D object in the scene"]
         D --> E["Remove the item from inventory"]
     end
@@ -89,7 +88,7 @@ flowchart TD
 ## Implementation Details
 
 - `WorldDropZone` extends [`DropAreaBase`](../architecture/drop-areas.en.md) using the **simple consumption** pattern --- it overrides `CanAcceptEntry` and `ProcessEntry`. Source removal and zone highlighting are handled automatically by the base class.
-- `WorldDropZone` checks **every** item in the drag context via `IWorld3DAdapter`. If even one item does not have a 3D prefab --- the drop is rejected.
+- `WorldDropZone` checks **every** item in the drag context: in the demo it must be an `ItemAdapterSoWith3DAdapter` with a non-null `WorldPrefab`. If even one item fails that check, the drop is rejected.
 - For stacks, each instance is spawned as a separate object with a slight offset.
 - Zone highlighting works automatically: green if the item can be dropped, red if it cannot.
 
@@ -101,5 +100,5 @@ flowchart TD
 |-------|------|
 | `DropAreaBase` | Base class for drop areas (see [Drop Areas](../architecture/drop-areas.en.md)) |
 | `WorldDropZone` | UI drop zone: creates 3D objects on drop |
-| `WorldItem` | Component on a 3D object: stores item data |
-| `IWorld3DAdapter` | Interface: links an item to a 3D prefab |
+| `WorldItem` | Component on a 3D object: in the demo it stores `ItemExampleWith3DSO` |
+| `ItemAdapterSoWith3DAdapter` | Demo adapter with access to `WorldPrefab` |

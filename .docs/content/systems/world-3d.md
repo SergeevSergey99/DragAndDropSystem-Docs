@@ -1,6 +1,6 @@
 # 3D мир
 
-Система 3D-мира позволяет выбрасывать предметы из UI-инвентаря в трёхмерную сцену и подбирать их обратно. Предмет, выброшенный в мир, становится 3D-объектом; подобранный --- возвращается в инвентарь.
+Эта интеграция позволяет выбрасывать предметы из UI-инвентаря в трёхмерную сцену и подбирать их обратно. В текущем пакете она реализована как пример из `Demo2 Loot`: `WorldDropZone` и `WorldItem` находятся в папке `Examples`, а не в core-части ассета.
 
 ---
 
@@ -27,28 +27,27 @@ flowchart LR
 | Компонент | Назначение |
 |-----------|------------|
 | **WorldDropZone** | UI-область для сброса предметов в мир. При дропе создаёт 3D-объект и удаляет предмет из инвентаря |
-| **WorldItem** | Компонент на 3D-объекте в мире. Хранит ссылку на `IItemAdapter` и количество |
-| **IWorld3DAdapter** | Интерфейс на предмете: связывает инвентарный предмет с его 3D-префабом |
+| **WorldItem** | Компонент на 3D-объекте в мире. В демо хранит ссылку на `ItemExampleWith3DSO` |
+| **ItemAdapterSoWith3DAdapter** | Demo-адаптер, который связывает предмет с 3D-префабом через свойство `WorldPrefab` |
 
 ---
 
 ## Настройка
 
-### 1. Реализуйте `IWorld3DAdapter` в вашем предмете
+### 1. Используйте адаптер с `WorldPrefab`
 
 ```csharp
-[CreateAssetMenu(menuName = "Game/Item With 3D")]
-public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
+public class ItemAdapterSoWith3DAdapter : IItemAdapter, IFilterable
 {
-    [SerializeField] private string _name;
-    [SerializeField] private Sprite _icon;
-    [SerializeField] private GameObject _worldPrefab;
+    public readonly ItemExampleWith3DSO item;
 
-    public string DisplayName => _name;
-    public Sprite Icon => _icon;
-    public GameObject WorldPrefab => _worldPrefab;
+    public string DisplayName => item.ItemName;
+    public Sprite Icon => item.Icon;
+    public GameObject WorldPrefab => item.WorldPrefab.gameObject;
 }
 ```
+
+В текущей реализации `WorldDropZone` из `Demo2 Loot` принимает именно `ItemAdapterSoWith3DAdapter`. Если в проекте нужен другой тип адаптера, нужно адаптировать проверку в `CanAcceptEntry` и логику спавна.
 
 ### 2. Добавьте WorldDropZone
 
@@ -63,7 +62,7 @@ public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
 
 На префабе 3D-объекта добавьте компонент `WorldItem`. Если забудете --- `WorldDropZone` добавит его автоматически при спавне.
 
-Для подбора обратно в инвентарь реализуйте свою логику взаимодействия: при контакте с игроком считайте `worldItem.itemData` и `worldItem.count`, добавьте в инвентарь и уничтожьте 3D-объект.
+Для подбора обратно в инвентарь реализуйте свою логику взаимодействия: при контакте с игроком считайте `worldItem.Item`, добавьте предмет в инвентарь и уничтожьте 3D-объект.
 
 ---
 
@@ -73,7 +72,7 @@ public class GameItemSO : ScriptableObject, IItemAdapter, IWorld3DAdapter
 flowchart TD
     subgraph Drop["Выбрасывание"]
         A["Игрок перетаскивает предмет в UI"] --> B["Бросает на WorldDropZone"]
-        B --> C["WorldDropZone проверяет IWorld3DAdapter"]
+        B --> C["WorldDropZone проверяет адаптер\nи наличие WorldPrefab"]
         C --> D["Создать 3D-объект в сцене"]
         D --> E["Удалить предмет из инвентаря"]
     end
@@ -89,7 +88,7 @@ flowchart TD
 ## Детали реализации
 
 - `WorldDropZone` наследует [`DropAreaBase`](../architecture/drop-areas.md) и использует паттерн **простого потребления** --- переопределяет `CanAcceptEntry` и `ProcessEntry`. Удаление предметов из источника и подсветка зоны обрабатываются базовым классом автоматически.
-- `WorldDropZone` проверяет **каждый** предмет в контексте перетаскивания через `IWorld3DAdapter`. Если хоть один предмет не имеет 3D-префаба --- дроп отклоняется.
+- `WorldDropZone` проверяет **каждый** предмет в контексте перетаскивания: в демо это должен быть `ItemAdapterSoWith3DAdapter` с ненулевым `WorldPrefab`. Если хоть один предмет не подходит --- дроп отклоняется.
 - Для стаков каждый экземпляр спавнится отдельным объектом с небольшим смещением.
 - Подсветка зоны работает автоматически: зелёная если предмет можно бросить, красная если нельзя.
 
@@ -101,5 +100,5 @@ flowchart TD
 |-------|------|
 | `DropAreaBase` | Базовый класс для зон дропа (см. [Зоны дропа](../architecture/drop-areas.md)) |
 | `WorldDropZone` | UI-зона сброса: создаёт 3D-объекты при дропе |
-| `WorldItem` | Компонент на 3D-объекте: хранит данные предмета |
-| `IWorld3DAdapter` | Интерфейс: связывает предмет с 3D-префабом |
+| `WorldItem` | Компонент на 3D-объекте: в демо хранит `ItemExampleWith3DSO` |
+| `ItemAdapterSoWith3DAdapter` | Demo-адаптер с доступом к `WorldPrefab` |

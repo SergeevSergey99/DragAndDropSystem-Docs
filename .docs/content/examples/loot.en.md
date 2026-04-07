@@ -121,13 +121,13 @@ flowchart TB
 Process:
 
 1. The player drags an item from the inventory onto the world zone (WorldDropZone).
-2. The system checks whether the item has a 3D representation (whether it implements IWorld3DAdapter).
+2. The system checks whether the item's adapter is accepted by `WorldDropZone` and whether it has a `WorldPrefab`.
 3. If it does --- the item is removed from the inventory and appears as a 3D object in the world.
 4. This object can be picked back up by approaching it and pressing the interaction button.
 
 At code level this usually looks like:
 - UI sends an `ItemStack` into `WorldDropZone`
-- `WorldDropZone` checks the representative adapter for `IWorld3DAdapter`
+- `WorldDropZone` checks `ItemAdapterSoWith3DAdapter` and its `WorldPrefab`
 - on success, a world object is spawned and the source stack is reduced
 - on pickup, the world object adds the item back into inventory data/UI
 
@@ -158,7 +158,7 @@ At code level this usually looks like:
 | `ChestInventoryDataBinding.cs` | Chest data binding to UI |
 | `PlayerInventoryDataBinding.cs` | Player data binding to UI (preserves slot positions) |
 | `ItemExampleWith3DSO.cs` | ScriptableObject item with a reference to a 3D prefab |
-| `ItemSOWith3DAdapter.cs` | Adapter linking the item to IWorld3DAdapter |
+| `ItemAdapterSoWith3DAdapter.cs` | Adapter linking the item to a 3D prefab |
 
 ---
 
@@ -167,7 +167,7 @@ At code level this usually looks like:
 If you only want one part of the scenario:
 
 - for event-driven chest UI: inspect `LootUIController` and the bindings
-- for dropping inventory items into the world: inspect `WorldDropZone` and `IWorld3DAdapter`
+- for dropping inventory items into the world: inspect `WorldDropZone` and `ItemAdapterSoWith3DAdapter`
 - for pickup from the ground: inspect `ItemController`, `PlayerInteraction`, and player data sync
 
 ---

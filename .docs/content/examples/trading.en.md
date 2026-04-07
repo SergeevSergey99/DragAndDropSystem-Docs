@@ -96,7 +96,7 @@ flowchart TD
 
 | Task | Where it belongs |
 |---|---|
-| Only valid item type in equipment slot | `canAccept` or `CanDrop` |
+| Only valid item type in equipment slot | `canDrop` or `CanDrop` |
 | Check available gold | `CanCommitTransfer` |
 | Apply gold changes | `OnTransferSucceeded` |
 | Convert `SO <-> Model` | `CreateItemConverter()` |

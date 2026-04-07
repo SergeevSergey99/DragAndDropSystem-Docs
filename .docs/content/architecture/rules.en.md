@@ -47,7 +47,6 @@ Each rule returns a `RuleResult` --- success or denial with a reason. Rules are 
 | `SameInventoryRule` | Inventory | Allows/denies movement within the same inventory |
 | `ItemIdFilterRule` | Inventory / Slot | Whitelist or blacklist items by ID |
 | `UniqueItemLimitRule` | Inventory | Limits the number of unique items |
-| `MaxStackSizeRule` | Inventory | Limits stack size in a slot |
 | `SlotLockRule` | Inventory | Locks specific slots |
 | `CustomRule` | Inventory | Arbitrary validation via lambdas |
 
@@ -78,7 +77,7 @@ public class ItemLevelRule : DragRuleBase, ISlotRule
     public override RuleResult CanDrop(DragContext context, DragEntry entry)
     {
         // Get item from context
-        if (entry.Stack?.Item is ILeveledItem leveled)
+        if (entry.Stack?.PrimaryAdapter is ILeveledItem leveled)
         {
             if (leveled.Level < _minLevel)
                 return RuleResult.Failure($"Requires level {_minLevel}+");

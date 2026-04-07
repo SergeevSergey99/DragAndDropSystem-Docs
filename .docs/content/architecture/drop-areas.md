@@ -164,6 +164,8 @@ public abstract class DropAreaBase : Selectable, IDropTarget, IDropProcessor
 
 ### WorldDropZone --- спавн в 3D мире
 
+Ниже пример по мотивам реализации из `Demo2 Loot`.
+
 ```csharp
 public class WorldDropZone : DropAreaBase
 {
@@ -173,7 +175,7 @@ public class WorldDropZone : DropAreaBase
     {
         // Все адаптеры должны иметь 3D-префаб
         foreach (var adapter in entry.Stack.Adapters)
-            if (adapter is not IWorld3DAdapter w || w.WorldPrefab == null)
+            if (adapter is not ItemAdapterSoWith3DAdapter with3D || with3D.WorldPrefab == null)
                 return false;
         return true;
     }
@@ -182,8 +184,8 @@ public class WorldDropZone : DropAreaBase
     {
         foreach (var adapter in freshStack.Adapters)
         {
-            var w = (IWorld3DAdapter)adapter;
-            Instantiate(w.WorldPrefab, _spawnPoint.position, Quaternion.identity);
+            var with3D = (ItemAdapterSoWith3DAdapter)adapter;
+            Instantiate(with3D.WorldPrefab, _spawnPoint.position, Quaternion.identity);
         }
         return true;
     }

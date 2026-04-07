@@ -47,7 +47,6 @@ flowchart TD
 | `SameInventoryRule` | Инвентарное | Разрешает/запрещает перемещение внутри одного инвентаря |
 | `ItemIdFilterRule` | Инвентарное / Слотовое | Whitelist или blacklist предметов по ID |
 | `UniqueItemLimitRule` | Инвентарное | Ограничивает количество уникальных предметов |
-| `MaxStackSizeRule` | Инвентарное | Ограничивает размер стака в слоте |
 | `SlotLockRule` | Инвентарное | Блокировка определённых слотов |
 | `CustomRule` | Инвентарное | Произвольная проверка через лямбды |
 
@@ -78,7 +77,7 @@ public class ItemLevelRule : DragRuleBase, ISlotRule
     public override RuleResult CanDrop(DragContext context, DragEntry entry)
     {
         // Получаем предмет из контекста
-        if (entry.Stack?.Item is ILeveledItem leveled)
+        if (entry.Stack?.PrimaryAdapter is ILeveledItem leveled)
         {
             if (leveled.Level < _minLevel)
                 return RuleResult.Failure($"Нужен уровень {_minLevel}+");

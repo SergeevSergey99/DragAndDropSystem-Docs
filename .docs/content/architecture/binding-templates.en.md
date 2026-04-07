@@ -216,7 +216,7 @@ new SlotBinding<TData, TAdapter>(
 |---|---|---|
 | Slot identity | Numeric index | `ISlot` object reference |
 | Slot data | Same pattern for all | Individual get/set/clear per slot |
-| Validation | Shared via `CanDrop` override | Individual `CanAccept` per slot |
+| Validation | Shared via `CanDrop` override | Individual `canDrop` / `canStartDrag` per slot |
 | Stacks | Via count parameter | Via list-based API (each adapter individually) |
 | Slot count | Can be many | Usually < 10 |
 

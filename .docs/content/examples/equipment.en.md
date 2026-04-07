@@ -90,27 +90,31 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
     private ItemSO _equippedWeapon;
     private ItemSO _equippedArmor;
 
-    protected override Dictionary<ISlot, SlotBinding<ItemSO>> CreateBindingMap() => new()
+    protected override Dictionary<ISlot, SlotBinding<ItemSO, ItemSOAdapter>> CreateBindingMap() => new()
     {
         [_weaponSlot] = new(
             get:   () => _equippedWeapon,
-            set:   item => _equippedWeapon = item,
+            set:   adapter => EquipWeapon(adapter),
             clear: () => _equippedWeapon = null,
-            canAccept: item => item.ItemType == "Weapon"
-                ? RuleResult.Success()
-                : RuleResult.Failure("Weapon only")),
+            canDrop: adapter => ValidateWeapon(adapter)),
 
         [_armorSlot] = new(
             get:   () => _equippedArmor,
-            set:   item => _equippedArmor = item,
+            set:   adapter => EquipArmor(adapter),
             clear: () => _equippedArmor = null,
-            canAccept: item => item.ItemType == "Armor"
-                ? RuleResult.Success()
-                : RuleResult.Failure("Armor only")),
+            canDrop: adapter => ValidateArmor(adapter)),
     };
 
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
-    protected override ItemSO ExtractData(ItemSOAdapter a) => a.Data;
+
+    private void EquipWeapon(ItemSOAdapter adapter) { /* write into your data model */ }
+    private void EquipArmor(ItemSOAdapter adapter) { /* write into your data model */ }
+
+    private RuleResult ValidateWeapon(ItemSOAdapter adapter)
+        => /* check type */ RuleResult.Success();
+
+    private RuleResult ValidateArmor(ItemSOAdapter adapter)
+        => /* check type */ RuleResult.Success();
 }
 ```
 
@@ -121,9 +125,9 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
 - `get` reads from your model
 - `set` writes into the matching field
 - `clear` resets that field when the slot is emptied
-- `canAccept` is for slot compatibility only
+- `canDrop` is for slot compatibility only
 
-Use `canAccept` for rules like:
+Use `canDrop` for rules like:
 
 - only weapons in a weapon slot
 - only armor in an armor slot
@@ -137,7 +141,7 @@ Do not put transfer-wide business logic there. For pricing, server checks, or do
 
 ```mermaid
 flowchart TD
-    A["Player Inventory: CanDrop"] --> B["EquipmentBinding calls canAccept(item)"]
+    A["Player Inventory: CanDrop"] --> B["EquipmentBinding calls canDrop(adapter)"]
     B --> C{"SlotBinding returns Success / Failure"}
     C -->|Success| D["Transfer executes"]
     D --> E["OnItemRemoved / OnItemAdded"]

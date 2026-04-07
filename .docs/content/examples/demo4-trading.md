@@ -79,7 +79,7 @@ flowchart LR
 Экипировка:
 
 1. Предмет перетаскивается в фиксированный слот.
-2. `EquipmentInventoryDataBinding` проверяет `PrimaryAdapter` и slot-specific `canAccept`.
+2. `EquipmentInventoryDataBinding` проверяет `PrimaryAdapter` и slot-specific `canDrop`.
 3. При успехе конкретное поле в `PlayerData` синхронизируется с нужным слотом.
 
 ## Что смотреть в коде

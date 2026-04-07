@@ -96,7 +96,7 @@ flowchart TD
 
 | Задача | Где писать |
 |---|---|
-| Только подходящий тип в слот экипировки | `canAccept` или `CanDrop` |
+| Только подходящий тип в слот экипировки | `canDrop` или `CanDrop` |
 | Проверка, хватает ли денег | `CanCommitTransfer` |
 | Списание и начисление золота | `OnTransferSucceeded` |
 | Конвертация `SO <-> Model` | `CreateItemConverter()` |
@@ -147,7 +147,7 @@ flowchart LR
 |---|---|
 | Недостаточно золота у игрока | `CanCommitTransfer` |
 | Недостаточно золота у торговца | `CanCommitTransfer` |
-| Нельзя положить броню в слот оружия | `canAccept` / `CanDrop` |
+| Нельзя положить броню в слот оружия | `canDrop` / `CanDrop` |
 | Нельзя продать неподходящий предмет торговцу | target-side mechanical validation |
 
 ---

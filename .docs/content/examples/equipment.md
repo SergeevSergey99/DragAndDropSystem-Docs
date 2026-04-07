@@ -90,27 +90,31 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
     private ItemSO _equippedWeapon;
     private ItemSO _equippedArmor;
 
-    protected override Dictionary<ISlot, SlotBinding<ItemSO>> CreateBindingMap() => new()
+    protected override Dictionary<ISlot, SlotBinding<ItemSO, ItemSOAdapter>> CreateBindingMap() => new()
     {
         [_weaponSlot] = new(
             get:   () => _equippedWeapon,
-            set:   item => _equippedWeapon = item,
+            set:   adapter => EquipWeapon(adapter),
             clear: () => _equippedWeapon = null,
-            canAccept: item => item.ItemType == "Weapon"
-                ? RuleResult.Success()
-                : RuleResult.Failure("Только оружие")),
+            canDrop: adapter => ValidateWeapon(adapter)),
 
         [_armorSlot] = new(
             get:   () => _equippedArmor,
-            set:   item => _equippedArmor = item,
+            set:   adapter => EquipArmor(adapter),
             clear: () => _equippedArmor = null,
-            canAccept: item => item.ItemType == "Armor"
-                ? RuleResult.Success()
-                : RuleResult.Failure("Только броня")),
+            canDrop: adapter => ValidateArmor(adapter)),
     };
 
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
-    protected override ItemSO ExtractData(ItemSOAdapter a) => a.Data;
+
+    private void EquipWeapon(ItemSOAdapter adapter) { /* записать в модель данных */ }
+    private void EquipArmor(ItemSOAdapter adapter) { /* записать в модель данных */ }
+
+    private RuleResult ValidateWeapon(ItemSOAdapter adapter)
+        => /* проверить тип */ RuleResult.Success();
+
+    private RuleResult ValidateArmor(ItemSOAdapter adapter)
+        => /* проверить тип */ RuleResult.Success();
 }
 ```
 
@@ -121,24 +125,24 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
 - `get` читает текущее значение из вашей модели данных
 - `set` записывает предмет в конкретное поле
 - `clear` очищает поле, когда слот освобождается
-- `canAccept` отвечает только за механическую совместимость слота
+- `canDrop` отвечает только за механическую совместимость слота
 
-`canAccept` подходит для правил вроде:
+`canDrop` подходит для правил вроде:
 
 - только оружие в слот оружия
 - только броня в слот брони
 - только артефакты в два специальных слота
 
-Если вам нужна бизнес-логика уровня всей операции, например цена экипировки, серверная проверка или особые доменные ограничения, не помещайте её в `canAccept` или `CanDrop`. Для этого используйте transfer-level hooks, описанные в [Data Binding Lifecycle](../architecture/data-binding.md).
+Если вам нужна бизнес-логика уровня всей операции, например цена экипировки, серверная проверка или особые доменные ограничения, не помещайте её в `canDrop` или `CanDrop`. Для этого используйте transfer-level hooks, описанные в [Data Binding Lifecycle](../architecture/data-binding.md).
 
 ---
 
 ## Как проходит перенос
 
-1. Игрок перетаскивает предмет на fixed slot.
+1. Игрок перетаскивает предмет в фиксированный слот.
 2. `MappedSlotInventoryDataBinding.CanDrop(...)` берёт representative adapter (`PrimaryAdapter`) из стека.
 3. Binding находит `SlotBinding` для целевого слота.
-4. `canAccept` проверяет механическую совместимость.
+4. `canDrop` проверяет механическую совместимость.
 5. Если перенос успешен, `OnItemRemovedFromUI` и `OnItemAddedToUI` обновляют конкретные поля доменной модели.
 
 ---
@@ -147,7 +151,7 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
 
 ```mermaid
 flowchart TD
-    A["Инвентарь игрока: CanDrop"] --> B["EquipmentBinding вызывает canAccept(item)"]
+    A["Инвентарь игрока: CanDrop"] --> B["EquipmentBinding вызывает canDrop(adapter)"]
     B --> C{"SlotBinding вернул успех или отказ"}
     C -->|Успех| D["Перенос выполнен"]
     D --> E["OnItemRemoved / OnItemAdded"]

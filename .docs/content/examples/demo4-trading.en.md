@@ -79,7 +79,7 @@ Swap between merchant and equipment/player inventory:
 Equipment:
 
 1. An item is dropped onto a fixed slot.
-2. `EquipmentInventoryDataBinding` checks `PrimaryAdapter` and slot-specific `canAccept`.
+2. `EquipmentInventoryDataBinding` checks `PrimaryAdapter` and slot-specific `canDrop`.
 3. On success the matching field in `PlayerData` is synchronized with that slot.
 
 ## Files to inspect

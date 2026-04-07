@@ -121,13 +121,13 @@ flowchart TB
 Процесс:
 
 1. Игрок перетаскивает предмет из инвентаря на зону мира (WorldDropZone).
-2. Система проверяет, есть ли у предмета 3D-представление (реализует ли он IWorld3DAdapter).
+2. Система проверяет, подходит ли адаптер предмета для `WorldDropZone` и есть ли у него `WorldPrefab`.
 3. Если есть --- предмет удаляется из инвентаря и появляется как 3D-объект в мире.
 4. Этот объект можно подобрать обратно, подойдя к нему и нажав кнопку взаимодействия.
 
 На уровне кода это обычно выглядит так:
 - UI отдаёт `ItemStack` в `WorldDropZone`
-- `WorldDropZone` проверяет representative adapter на `IWorld3DAdapter`
+- `WorldDropZone` проверяет адаптер `ItemAdapterSoWith3DAdapter` и его `WorldPrefab`
 - при успехе создаётся world object и исходный stack уменьшается
 - при pickup world object снова добавляет предмет в inventory data/UI
 
@@ -158,7 +158,7 @@ flowchart TB
 | `ChestInventoryDataBinding.cs` | Привязка данных сундука к UI |
 | `PlayerInventoryDataBinding.cs` | Привязка данных игрока к UI (сохраняет позиции в слотах) |
 | `ItemExampleWith3DSO.cs` | ScriptableObject предмета с ссылкой на 3D-префаб |
-| `ItemSOWith3DAdapter.cs` | Адаптер, связывающий предмет с IWorld3DAdapter |
+| `ItemAdapterSoWith3DAdapter.cs` | Адаптер, связывающий предмет с 3D-префабом |
 
 ---
 
@@ -167,7 +167,7 @@ flowchart TB
 Если вы хотите повторить только часть сценария:
 
 - нужны сундуки и открытие UI по событию: смотрите `LootUIController` и binding-и
-- нужен выброс предметов в мир: смотрите `WorldDropZone` и `IWorld3DAdapter`
+- нужен выброс предметов в мир: смотрите `WorldDropZone` и `ItemAdapterSoWith3DAdapter`
 - нужен pickup объектов с земли: смотрите `ItemController`, `PlayerInteraction` и player data sync
 
 ---
