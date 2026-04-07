@@ -26,15 +26,16 @@ Even in the basic scenario, you usually need to write a small amount of integrat
 2. Add `UniversalInventory` to it.
 3. Set:
 
-| Field | Value |
-|---|---|
-| `Item Behavior` | `Unique` for the simplest start, so each item is in a separate slot |
-| `Slot Management` | `Fixed` for a fixed number of slots |
-| `Initial Slot Count` | for example `10`. They will be created in `Slot Container` on startup. If you have already created them manually there, you can cache them by pressing the button |
-| `Slot Prefab` | `Prefabs/Slot.prefab` |
-| `Slot Container` | parent for the slots, preferably with `GridLayout` or another component that controls child layout |
+    | Field | Value |
+    |---|---|
+    | `Item Behavior` | `Unique` for the simplest start, so each item is in a separate slot |
+    | `Slot Management` | `Fixed` for a fixed number of slots |
+    | `Initial Slot Count` | for example `10`. They will be created in `Slot Container` on startup. If you have already created them manually there, you can cache them by pressing the button |
+    | `Slot Prefab` | `Prefabs/Slot.prefab` |
+    | `Slot Container` | parent for the slots, preferably with `GridLayout` or another component that controls child layout |
 
 4. Duplicate the object and create a second inventory, for example `Chest`.
+
 ---
 
 ## Step 3. Define an item type
@@ -69,6 +70,7 @@ public class ItemSOAdapter : IItemAdapter
 ```
 
 Meaning of the required fields:
+
 - `ItemId` is needed to determine whether items can be merged into one slot for `Stackable` and `SeparableStacks` modes.
 - `Icon` is needed to display the item image in the slot.
 - `DisplayName` is used in some additional systems. It can be an empty string.
@@ -97,6 +99,7 @@ public class SimpleBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 ```
 
 Meaning of the required methods:
+
 - `GetItems` is used for the initial data render.
 - `CreateAdapter` is needed to create the adapter and pass it the required parameters from your data.
 - `AddToData` is called when an item is transferred **into this** inventory.
@@ -134,18 +137,16 @@ flowchart LR
     C --> D["Your List<ItemSO> is updated"]
 ```
 
-## What Next
-
-- [Demo4 Trading](../examples/demo4-trading.md) — if you need fixed slots, different data models, and trading
-- [Examples](../examples/index.md) — if you want to choose from all 5 demos
-- [Data Binding](../architecture/data-binding.md) — if you need to understand the lifecycle and extension points
-- [Troubleshooting](../reference/troubleshooting.md) — if the basic scene does not work on the first try
-
 ## Common first-project mistakes
 
 - `ItemId` does not match your stacking semantics, so items merge or fail to merge unexpectedly
 - there is no `DragAndDropManager` in the scene, or there are multiple managers
 - there is no `EventSystem` in the scene
 - the binding points to the wrong `UniversalInventory`
-- data changes outside the pipeline, but `ReloadUI()` is never called
-- `ListInventoryDataBinding` is used for fixed slots, while `MappedSlotInventoryDataBinding` is the correct template
+- data changes outside the pipeline, but `ReloadUI()` is never called. Add a ReloadUI call to your DataBinding on data change event.
+
+## What Next
+
+- [Examples](../examples/index.md) — if you want to choose from all 5 demos
+- [Data Binding](../architecture/data-binding.md) — if you need to understand the lifecycle and extension points
+- [Troubleshooting](../reference/troubleshooting.md) — if the basic scene does not work on the first try

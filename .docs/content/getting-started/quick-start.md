@@ -26,15 +26,16 @@
 2. Добавьте на него `UniversalInventory`.
 3. Укажите:
 
-| Поле | Значение |
-|---|---|
-| `Item Behavior` | `Unique` для самого простого старта - каждый предмет в отдельном слоте|
-| `Slot Management` | `Fixed` - фиксированное количество слотов|
-| `Initial Slot Count` | например `10`. При запуске они создасться в `Slot Container`. Если вы сами их там уже создали, можете их закешировать нажав на кнопку |
-| `Slot Prefab` | `Prefabs/Slot.prefab` |
-| `Slot Container` | родитель для слотов (желательно с `GridLayout` или другим компонентом управляющим расположением дочерних объектов) |
+    | Поле | Значение |
+    |---|---|
+    | `Item Behavior` | `Unique` для самого простого старта - каждый предмет в отдельном слоте|
+    | `Slot Management` | `Fixed` - фиксированное количество слотов|
+    | `Initial Slot Count` | например `10`. При запуске они создасться в `Slot Container`. Если вы сами их там уже создали, можете их закешировать нажав на кнопку |
+    | `Slot Prefab` | `Prefabs/Slot.prefab` |
+    | `Slot Container` | родитель для слотов (желательно с `GridLayout` или другим компонентом управляющим расположением дочерних объектов) |
 
 4. Скопируйте объект и сделайте второй инвентарь, например `Chest`.
+
 ---
 
 ## Шаг 3. Опишите тип предмета
@@ -69,6 +70,7 @@ public class ItemSOAdapter : IItemAdapter
 ```
 
 Значения обязательных полей:
+
 - `ItemId` - Нужен чтобы различать можно ли объеденить предметы в один слот для режимов `Stackable` и `SeparableStacks`.
 - `Icon` - Нужно чтобы отображать карткинку предмета в слоте
 - `DisplayName` - Используется в некоторых дополнительных системах. Можно оставить равным пустой строке
@@ -97,6 +99,7 @@ public class SimpleBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 ```
 
 Значения обязательных методов:
+
 - `GetItems` - Используется для первичного рендера данных
 - `CreateAdapter` - Нужен для создания адаптера и передачи ему необходимых параметров о ваших данных
 - `AddToData` - вызывается при переносе предмета **в этот** инвентарь
@@ -135,18 +138,16 @@ flowchart LR
     C --> D["Ваш List<ItemSO> обновляется"]
 ```
 
-## Что дальше
-
-- [Demo4 Trading](../examples/demo4-trading.md) — если нужны fixed slots, разные модели данных и торговля
-- [Примеры](../examples/index.md) — если хотите выбрать из всех 5 демо
-- [Привязка данных](../architecture/data-binding.md) — если нужно понять lifecycle и точки расширения
-- [Troubleshooting](../reference/troubleshooting.md) — если базовая сцена не завелась с первого раза
-
 ## Частые ошибки в первом проекте
 
 - `ItemId` не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно
 - на сцене нет `DragAndDropManager` или их несколько
 - на сцене нет `EventSystem`
 - binding привязан не к тому `UniversalInventory`
-- данные меняются вне pipeline, но `ReloadUI()` не вызывается
-- для fixed slots используется `ListInventoryDataBinding`, хотя нужен `MappedSlotInventoryDataBinding`
+- данные меняются вне pipeline, но `ReloadUI()` не вызывается. Добавьте в вашем DataBinding вызов ReloadUI по событию изменения данных
+
+## Что дальше
+
+- [Примеры](../examples/index.md) — если хотите выбрать из всех 5 демо
+- [Привязка данных](../architecture/data-binding.md) — если нужно понять lifecycle и точки расширения
+- [Troubleshooting](../reference/troubleshooting.md) — если базовая сцена не завелась с первого раза
