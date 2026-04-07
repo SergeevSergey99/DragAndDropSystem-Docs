@@ -81,6 +81,7 @@ nav:
     - systems/filter-sort.md
     - systems/interaction.md
     - systems/world-3d.md
+    - systems/free-form-layout.md
   - Reference:
     - reference/optional-interfaces.md
     - reference/file-map.md
