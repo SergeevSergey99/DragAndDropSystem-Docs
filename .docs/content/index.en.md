@@ -53,6 +53,9 @@ For some common cases, template `DataBinding` classes are already provided, whic
 
 ## Basic Model
 
+<div class="showcase-media">
+    <img src="../../assets/showcase/basic-diagram.png" alt="Basic Diagram">
+</div>
 For most projects, it is useful to keep exactly this diagram in mind:
 
 ```mermaid

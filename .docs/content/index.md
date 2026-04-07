@@ -55,6 +55,9 @@
 
 ## Базовая модель
 
+<div class="showcase-media">
+    <img src="../../assets/showcase/basic-diagram.png" alt="Basic Diagram">
+</div>
 Для большинства проектов полезно держать в голове ровно эту схему:
 
 ```mermaid
