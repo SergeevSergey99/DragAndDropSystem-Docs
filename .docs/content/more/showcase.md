@@ -1,6 +1,6 @@
-# Showcase
+# Витрина проектов
 
-Этот подраздел предназначен для **реальных проектов, использующих ассет**: игр, прототипов, vertical slice, джем-версий и внутренних tools.
+Этот подраздел предназначен для **реальных проектов, использующих ассет**: игр, прототипов, вертикальных срезов, джем-версий и внутренних инструментов.
 
 ---
 
@@ -9,13 +9,13 @@
 <div class="showcase-grid">
   <div class="showcase-card">
     <h3>Violent Horror Stories 2 / The Exit Is Inside</h3>
-    <p><strong>Жанр:</strong> Horror</p>
-    <p><strong>Статус:</strong> Released</p>
+    <p><strong>Жанр:</strong> Хоррор</p>
+    <p><strong>Статус:</strong> Релиз состоялся</p>
 
     <div class="showcase-video">
       <iframe
         src="https://www.youtube.com/embed/YWx4Bcbx7kI"
-        title="Project showcase video"
+        title="Видео проекта"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen>
       </iframe>
@@ -35,9 +35,9 @@
 
 ---
 
-Ваш проект также можно добавить сюжа
+Ваш проект также можно добавить сюда.
 Для этого пришлите:
 
 - скриншоты
-- YouTube-видео или gif с геймплеем или UI
+- YouTube-видео или GIF с геймплеем или UI
 - ссылки на Steam, itch.io, GitHub, ArtStation или сайт проекта

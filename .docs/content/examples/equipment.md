@@ -148,8 +148,8 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
 ```mermaid
 flowchart TD
     A["Инвентарь игрока: CanDrop"] --> B["EquipmentBinding вызывает canAccept(item)"]
-    B --> C{"SlotBinding вернул Success / Failure"}
-    C -->|Success| D["Перенос выполнен"]
+    B --> C{"SlotBinding вернул успех или отказ"}
+    C -->|Успех| D["Перенос выполнен"]
     D --> E["OnItemRemoved / OnItemAdded"]
     E --> F["Обновить поля Weapon / Armor в данных игрока"]
 ```
