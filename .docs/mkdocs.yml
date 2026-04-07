@@ -90,6 +90,7 @@ nav:
     - reference/troubleshooting.md
   - More:
     - more/feedback.md
+    - more/future-plans.md
     - more/showcase.md
 
 markdown_extensions:
