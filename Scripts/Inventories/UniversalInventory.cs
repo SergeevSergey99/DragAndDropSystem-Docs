@@ -104,6 +104,7 @@ namespace DragAndDropSystem.Inventories
         public ItemBehaviorType ItemBehavior => _itemBehavior;
         public SlotManagementType SlotManagement => _slotManagement;
         public UniversalSlot SlotPrefab => _slotPrefab;
+        public Transform SlotContainer => _slotContainer;
 
         public IInventoryStrategy Strategy
         {
@@ -157,6 +158,12 @@ namespace DragAndDropSystem.Inventories
 
         internal bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
             => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedSlot);
+
+        /// <summary>
+        /// Событие создания нового слота (после Instantiate + Initialize).
+        /// Используется FreeFormSlotLayout для позиционирования динамически создаваемых слотов.
+        /// </summary>
+        public event Action<ISlot> OnSlotCreated;
 
         /// <summary>
         /// Событие добавления предмета в этот инвентарь
@@ -347,6 +354,7 @@ namespace DragAndDropSystem.Inventories
             _slots.Add(slotGO);
 
             Extensions.DragAndDropLog($"<color=magenta>[{name}] CreateSlot SUCCESS! New count: {_slots.Count}</color>");
+            OnSlotCreated?.Invoke(slotGO);
             return slotGO;
         }
 
