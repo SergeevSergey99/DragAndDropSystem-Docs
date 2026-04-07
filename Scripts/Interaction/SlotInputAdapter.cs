@@ -20,7 +20,7 @@ namespace DragAndDropSystem.Interaction
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverEnter;
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverExit;
 
-        [SerializeField] private UniversalSlot _slot;
+        [SerializeField] private ISlot _slot;
         [Header("Pointer Down")]
         [SerializeField, Tooltip("Call base.OnPointerDown (sets EventSystem.selectedGameObject). Enable if you need Selectable transitions on mouse press.")]
         private bool _callBaseOnPointerDown = false;
@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField, Tooltip("Local slot hover exit event")]
         private UnityEvent _onSlotHoverExit = new();
 
-        public UniversalSlot Slot => _slot;
+        public ISlot Slot => _slot;
         public bool IsHovering { get; private set; }
         
         public UnityEvent OnSlotHoverEnter => _onSlotHoverEnter;
@@ -45,7 +45,7 @@ namespace DragAndDropSystem.Interaction
         {
             base.Awake();
             if (_slot == null)
-                _slot = GetComponent<UniversalSlot>();
+                _slot = GetComponent<ISlot>();
 
             // Ensure navigation is Automatic after base class change from MonoBehaviour to Selectable.
             // Prefabs serialized before the change may have default(Navigation) = None.

@@ -24,13 +24,13 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Auto Transfer";
 
-        public override ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot)
+        public override ActionResult Execute(UniversalInventory inventory, ISlot activeSlot)
         {
             var dragManager = DragAndDropManager.AutoCreateInstance;
             if (dragManager == null || dragManager.IsDragging)
                 return ActionResult.Failed("Invalid drag manager state");
             
-            var sourceSlots = ResolveSourceSlots(inventory, activeSlot);
+            var sourceSlots = ResolveSourceSlots(inventory);
             if (sourceSlots.Count == 0)
                 return ActionResult.Failed("No valid source slots for auto transfer");
 
@@ -65,7 +65,7 @@ namespace DragAndDropSystem.Inventories
             return ActionResult.Failed("Auto transfer failed for all targets");
         }
 
-        public override bool CanExecute(UniversalInventory inventory, UniversalSlot activeSlot)
+        public override bool CanExecute(UniversalInventory inventory, ISlot activeSlot)
         {
             if (!base.CanExecute(inventory, activeSlot))
                 return false;
@@ -104,7 +104,7 @@ namespace DragAndDropSystem.Inventories
             return result;
         }
 
-        private List<ISlot> ResolveSourceSlots(UniversalInventory inventory, UniversalSlot activeSlot)
+        private List<ISlot> ResolveSourceSlots(UniversalInventory inventory)
         {
             var result = new List<ISlot>();
 
@@ -160,7 +160,7 @@ namespace DragAndDropSystem.Inventories
             return false;
         }
 
-        private UniversalSlot ResolveContextSourceSlot(UniversalInventory inventory)
+        private ISlot ResolveContextSourceSlot(UniversalInventory inventory)
         {
             var contextSlot = InputEventRouter.IsInstanceExist
                 ? InputEventRouter.AutoCreateInstance.ResolveQuickActionSlot(inventory, requireActiveInventory: true)

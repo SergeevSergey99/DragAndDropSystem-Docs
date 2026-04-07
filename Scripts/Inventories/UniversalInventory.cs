@@ -25,7 +25,7 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Slot Setup")]
         [SerializeField, Required, Tooltip("Slot prefab")]
-        private UniversalSlot _slotPrefab;
+        private ISlot _slotPrefab;
 
         [FoldoutGroup("Slot Setup")]
         [SerializeField, Tooltip("Initial slot count")]
@@ -94,8 +94,8 @@ namespace DragAndDropSystem.Inventories
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
-        private UniversalSlot _pointerHoveredSlot;
-        private UniversalSlot _lastInteractedSlot;
+        private ISlot _pointerHoveredSlot;
+        private ISlot _lastInteractedSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
 
         public IReadOnlyList<ISlot> Slots => _slots.AsReadOnly();
@@ -103,7 +103,7 @@ namespace DragAndDropSystem.Inventories
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public ItemBehaviorType ItemBehavior => _itemBehavior;
         public SlotManagementType SlotManagement => _slotManagement;
-        public UniversalSlot SlotPrefab => _slotPrefab;
+        public ISlot SlotPrefab => _slotPrefab;
         public Transform SlotContainer => _slotContainer;
 
         public IInventoryStrategy Strategy
@@ -773,7 +773,7 @@ namespace DragAndDropSystem.Inventories
             return items;
         }
 
-        internal void NotifyPointerEnter(UniversalSlot slot)
+        internal void NotifyPointerEnter(ISlot slot)
         {
             if (slot == null || !ReferenceEquals(slot.Inventory, this))
                 return;
@@ -781,7 +781,7 @@ namespace DragAndDropSystem.Inventories
             _pointerHoveredSlot = slot;
         }
 
-        internal void NotifyPointerExit(UniversalSlot slot)
+        internal void NotifyPointerExit(ISlot slot)
         {
             if (_pointerHoveredSlot == slot)
             {
@@ -789,7 +789,7 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        internal void NotifySlotInteracted(UniversalSlot slot)
+        internal void NotifySlotInteracted(ISlot slot)
         {
             if (slot == null || !ReferenceEquals(slot.Inventory, this))
                 return;
@@ -801,7 +801,7 @@ namespace DragAndDropSystem.Inventories
         /// Найти активный слот для автопереноса.
         /// Приоритет: курсор → выбранный UI элемент → последний взаимодействовавший слот.
         /// </summary>
-        public UniversalSlot ResolveAutoTransferSlot()
+        public ISlot ResolveAutoTransferSlot()
         {
             if (_pointerHoveredSlot != null && ReferenceEquals(_pointerHoveredSlot.Inventory, this))
                 return _pointerHoveredSlot;
@@ -812,8 +812,8 @@ namespace DragAndDropSystem.Inventories
 
             if (selectedObject != null)
             {
-                var selectedSlot = selectedObject.GetComponent<UniversalSlot>()
-                    ?? selectedObject.GetComponentInParent<UniversalSlot>();
+                var selectedSlot = selectedObject.GetComponent<ISlot>()
+                    ?? selectedObject.GetComponentInParent<ISlot>();
 
                 if (selectedSlot != null && ReferenceEquals(selectedSlot.Inventory, this))
                     return selectedSlot;

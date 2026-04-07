@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Selection
     /// </summary>
     public class SlotSelectionView : MonoBehaviour
     {
-        [SerializeField] private UniversalSlot _slot;
+        [SerializeField] private ISlot _slot;
 
         [Header("Visuals")]
         [SerializeField] private GameObject _selectionHighlight;
@@ -35,7 +35,7 @@ namespace DragAndDropSystem.Selection
         private void Awake()
         {
             if (_slot == null)
-                _slot = GetComponent<UniversalSlot>();
+                _slot = GetComponent<ISlot>();
         }
 
         private void OnEnable()

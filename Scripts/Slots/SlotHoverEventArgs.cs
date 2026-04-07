@@ -18,7 +18,7 @@ namespace DragAndDropSystem.Slots
         /// <summary>
         /// Слот на который навели курсор
         /// </summary>
-        public UniversalSlot Slot { get; }
+        public ISlot Slot { get; }
 
         /// <summary>
         /// Позиция курсора в экранных координатах
@@ -52,7 +52,7 @@ namespace DragAndDropSystem.Slots
 
         public SlotHoverEventArgs(
             IItemAdapter itemAdapter,
-            UniversalSlot slot,
+            ISlot slot,
             Vector2 screenPosition,
             RectTransform rectTransform,
             bool isEnter)

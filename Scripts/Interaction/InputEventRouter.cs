@@ -136,8 +136,8 @@ namespace DragAndDropSystem.Interaction
                 return true;
 
             var state = GetOrCreateState(inventory);
-            var activeSlot = state.FocusedSlot as UniversalSlot
-                             ?? state.HoveredSlot as UniversalSlot
+            var activeSlot = state.FocusedSlot
+                             ?? state.HoveredSlot
                              ?? inventory.ResolveAutoTransferSlot();
             if (!action.CanExecute(inventory, activeSlot))
             {
@@ -175,19 +175,19 @@ namespace DragAndDropSystem.Interaction
             return true;
         }
 
-        public UniversalSlot ResolveFocusedSlot(UniversalInventory inventory)
+        public ISlot ResolveFocusedSlot(UniversalInventory inventory)
         {
             if (inventory == null)
                 return null;
 
             var state = GetOrCreateState(inventory);
-            return state.FocusedSlot as UniversalSlot;
+            return state.FocusedSlot;
         }
 
         public bool IsInventoryActive(UniversalInventory inventory)
             => inventory != null && ReferenceEquals(_activeInventory, inventory);
 
-        public UniversalSlot ResolveQuickActionSlot(UniversalInventory inventory, bool requireActiveInventory = true)
+        public ISlot ResolveQuickActionSlot(UniversalInventory inventory, bool requireActiveInventory = true)
         {
             if (inventory == null)
                 return null;
@@ -196,8 +196,8 @@ namespace DragAndDropSystem.Interaction
                 return null;
 
             var state = GetOrCreateState(inventory);
-            return state.FocusedSlot as UniversalSlot
-                   ?? state.HoveredSlot as UniversalSlot
+            return state.FocusedSlot
+                   ?? state.HoveredSlot
                    ?? inventory.ResolveAutoTransferSlot();
         }
 
@@ -793,13 +793,7 @@ namespace DragAndDropSystem.Interaction
             }
         }
 
-        private static SlotInputAdapter ResolveAdapterFromSlot(ISlot slot)
-        {
-            if (slot is UniversalSlot universalSlot)
-                return universalSlot.GetComponent<SlotInputAdapter>();
-
-            return null;
-        }
+        private static SlotInputAdapter ResolveAdapterFromSlot(ISlot slot) => slot.GetComponent<SlotInputAdapter>();
 
         private bool TryGetInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
         {
@@ -1040,12 +1034,10 @@ namespace DragAndDropSystem.Interaction
             var slots = inventory.Slots;
             for (int i = 0; i < slots.Count; i++)
             {
-                if (slots[i] is UniversalSlot slot)
-                {
-                    var adapter = slot.GetComponent<SlotInputAdapter>();
-                    if (adapter != null && adapter.isActiveAndEnabled)
-                        return adapter;
-                }
+                if (slots[i] == null) continue;
+                var adapter = slots[i].GetComponent<SlotInputAdapter>();
+                if (adapter != null && adapter.isActiveAndEnabled)
+                    return adapter;
             }
 
             var dropArea = inventory.GetComponentInChildren<InventoryDropArea>(includeInactive: false);

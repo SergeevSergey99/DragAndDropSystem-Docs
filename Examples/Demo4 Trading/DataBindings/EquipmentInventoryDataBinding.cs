@@ -21,19 +21,19 @@ namespace DragAndDropSystem.Examples.Trading
     {
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Weapon slot")]
-        private UniversalSlot _weaponSlot;
+        private ISlot _weaponSlot;
 
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Armor slot")]
-        private UniversalSlot _armorSlot;
+        private ISlot _armorSlot;
 
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("First artifact slot")]
-        private UniversalSlot _artifactSlot;
+        private ISlot _artifactSlot;
 
         [FoldoutGroup("Equipment Slots")]
         [SerializeField, Required, Tooltip("Second artifact slot")]
-        private UniversalSlot _posionsSlot;
+        private ISlot _posionsSlot;
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
 

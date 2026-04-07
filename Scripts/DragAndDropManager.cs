@@ -595,8 +595,8 @@ namespace DragAndDropSystem
                     if (entry.SourceSlot == null || entry.TargetSlot == null || entry.ItemAdapter == null || entry.Amount <= 0)
                         continue;
 
-                    if (entry.TargetSlot is UniversalSlot targetUniversalSlot)
-                        targetUniversalSlot.SetIconVisibility(false);
+                    if (entry.TargetSlot != null)
+                        entry.TargetSlot.SetIconVisibility(false);
 
                     if (!ItemStack.TryCreate(entry.TargetSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
                         continue;
@@ -614,8 +614,8 @@ namespace DragAndDropSystem
                         presenter.PresentationCanvas,
                         () =>
                         {
-                            if (entry.TargetSlot is UniversalSlot slotForVisual)
-                                slotForVisual.SetIconVisibility(true);
+                            if (entry.TargetSlot != null)
+                                entry.TargetSlot.SetIconVisibility(true);
                             animationCompleted();
                         });
 

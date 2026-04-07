@@ -27,7 +27,7 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Sort Inventory";
 
-        public override ActionResult Execute(UniversalInventory inventory, UniversalSlot activeSlot)
+        public override ActionResult Execute(UniversalInventory inventory, ISlot activeSlot)
         {
             if (inventory == null)
             {
@@ -39,7 +39,7 @@ namespace DragAndDropSystem.Inventories
                 : ActionResult.Failed("No items to sort");
         }
 
-        public override bool CanExecute(UniversalInventory inventory, UniversalSlot activeSlot)
+        public override bool CanExecute(UniversalInventory inventory, ISlot activeSlot)
         {
             if (!base.CanExecute(inventory, activeSlot))
                 return false;

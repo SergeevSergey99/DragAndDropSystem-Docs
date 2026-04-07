@@ -130,7 +130,7 @@ namespace DragAndDropSystem.Slots
             }
         }
 
-        public virtual void Highlight(bool highlight)
+        public override void Highlight(bool highlight)
         {
             if (_iconImage != null && !IsEmpty)
             {
@@ -141,7 +141,7 @@ namespace DragAndDropSystem.Slots
         /// <summary>
         /// Временно скрыть/показать визуал слота (для анимаций автопереноса)
         /// </summary>
-        public void SetIconVisibility(bool visible)
+        public override void SetIconVisibility(bool visible)
         {
             if (visible)
             {

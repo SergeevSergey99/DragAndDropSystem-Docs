@@ -59,5 +59,9 @@ namespace DragAndDropSystem.Slots
         }
 
         public int GetDragAmount() => Inventory?.GetDragAmount(this) ?? 0;
+
+        public virtual void SetIconVisibility(bool b){}
+
+        public virtual void Highlight(bool highlight) {}
     }
 }
