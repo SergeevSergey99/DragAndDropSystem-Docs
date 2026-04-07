@@ -86,12 +86,12 @@ Equipment:
 
 | File | Role |
 |---|---|
-| `Examples/Demo4 Trading/Data/TradingEconomyManager.cs` | central economy |
-| `Examples/Demo4 Trading/DataBindings/PlayerInventoryDataBinding.cs` | player inventory binding |
-| `Examples/Demo4 Trading/DataBindings/MerchantInventoryDataBinding.cs` | merchant inventory binding |
-| `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot equipment |
-| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | domain checks and side effects |
-| `Examples/Demo4 Trading/Converters/*` | model conversion |
+| `Data/TradingEconomyManager.cs` | central economy |
+| `DataBindings/PlayerInventoryDataBinding.cs` | player inventory binding |
+| `DataBindings/MerchantInventoryDataBinding.cs` | merchant inventory binding |
+| `DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot equipment |
+| `DataBindings/TradingHelper.cs` | domain checks and side effects |
+| `Converters/*` | model conversion |
 
 ## When to use this as a starting point
 

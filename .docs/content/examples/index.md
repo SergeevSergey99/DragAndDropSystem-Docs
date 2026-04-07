@@ -72,8 +72,8 @@
 
 - `SlotIndexedInventoryDataBinding`
 - раздельные hotbar / inventory / craft table
-- `CraftingManager` как единый источник доменных данных
-- `CraftResultDataBinding` как read-only output slot с side effects
+- `CraftingManager` как единый источник данных
+- `CraftResultDataBinding` как кастомный тип инвентаря для доставания результата
 
 `Examples/Demo3 Minecraft/*`
 

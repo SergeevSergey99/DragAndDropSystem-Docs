@@ -86,12 +86,12 @@ Swap между merchant и equipment/player inventory:
 
 | Файл | Роль |
 |---|---|
-| `Examples/Demo4 Trading/Data/TradingEconomyManager.cs` | центральная экономика |
-| `Examples/Demo4 Trading/DataBindings/PlayerInventoryDataBinding.cs` | binding инвентаря игрока |
-| `Examples/Demo4 Trading/DataBindings/MerchantInventoryDataBinding.cs` | binding инвентаря торговца |
-| `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot экипировка |
-| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | доменные проверки и side effects |
-| `Examples/Demo4 Trading/Converters/*` | конвертация между моделями |
+| `Data/TradingEconomyManager.cs` | центральная экономика |
+| `DataBindings/PlayerInventoryDataBinding.cs` | binding инвентаря игрока |
+| `DataBindings/MerchantInventoryDataBinding.cs` | binding инвентаря торговца |
+| `DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot экипировка |
+| `DataBindings/TradingHelper.cs` | доменные проверки и side effects |
+| `Converters/*` | конвертация между моделями |
 
 ## Когда брать этот пример за основу
 

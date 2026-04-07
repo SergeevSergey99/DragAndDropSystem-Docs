@@ -16,14 +16,13 @@
 ## Что показывает демо
 
 - `SlotIndexedInventoryDataBinding`
-- отдельные панели для hotbar, main inventory и craft table
+- отдельные панели для быстрого доступа, основной инвентарь и стола крафта
 - ограничение максимального стека на слот
-- вычисление рецепта и отдельный result slot
-- side effects при взятии результата крафта
+- `CraftResultDataBinding` как кастомный тип инвентаря для доставания результата
 
 ## Как устроено
 
-Центральная точка доменной логики:
+Центральная точка логики:
 
 - `Crafting/CraftingManager.cs`
 
@@ -75,12 +74,12 @@ flowchart TB
 
 | Файл | Роль |
 |---|---|
-| `Examples/Demo3 Minecraft/Crafting/CraftingManager.cs` | доменные данные и логика крафта |
-| `Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs` | main inventory binding |
-| `Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs` | hotbar binding |
-| `Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs` | craft table binding |
-| `Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs` | result slot binding |
-| `Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs` | рецепт и matching |
+| `Crafting/CraftingManager.cs` | доменные данные и логика крафта |
+| `DataBindings/MainInventoryDataBinding.cs` | main inventory binding |
+| `DataBindings/HotbarDataBinding.cs` | hotbar binding |
+| `DataBindings/CraftTableDataBinding.cs` | craft table binding |
+| `DataBindings/CraftResultDataBinding.cs` | result slot binding |
+| `Crafting/CraftingRecipeSO.cs` | рецепт и matching |
 
 ## Когда брать этот пример за основу
 

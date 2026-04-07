@@ -27,7 +27,7 @@
 
 - `ItemExampleSO.cs` — данные предмета
 - `Adapters/ItemAdapterSoAdapter.cs` — адаптер UI-слоя
-- `DataBindings/ItemsSOInventoryDataBinding.cs` — binding между списком и inventory
+- `DataBindings/ItemsSOInventoryDataBinding.cs` — binding между списком данных и inventory
 - `SO/Rules/*` — пример rule preset
 
 Архитектурно это самая короткая цепочка в проекте:
@@ -56,13 +56,13 @@ flowchart LR
 
 | Файл | Роль |
 |---|---|
-| `Examples/Demo1 Inventaries/DataBindings/ItemsSOInventoryDataBinding.cs` | основной binding примера |
-| `Examples/Demo1 Inventaries/Adapters/ItemAdapterSoAdapter.cs` | адаптер для `ItemExampleSO` |
-| `Examples/Demo1 Inventaries/ItemExampleSO.cs` | модель данных предмета |
+| `DataBindings/ItemsSOInventoryDataBinding.cs` | основной binding примера |
+| `Adapters/ItemAdapterSoAdapter.cs` | адаптер для `ItemExampleSO` |
+| `ItemExampleSO.cs` | модель данных предмета |
 | `Scripts/DataBinding/ListInventoryDataBinding.cs` | базовый класс list-based binding |
 
 ## Когда брать этот пример за основу
 
 - нужен первый inventory без сложной доменной модели
 - нужно понять lifecycle `ListInventoryDataBinding`
-- нужно быстро проверить slot rules, filters или visual setup
+- нужно быстро проверить правила или визуальную настройку

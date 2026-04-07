@@ -71,12 +71,12 @@ flowchart LR
 
 | Файл | Роль |
 |---|---|
-| `Examples/Demo5 Containers/Scripts/ContainerDemoManager.cs` | корневой список предметов игрока |
-| `Examples/Demo5 Containers/Scripts/Bindings/PlayerContainerInventoryDataBinding.cs` | binding инвентаря игрока |
-| `Examples/Demo5 Containers/Scripts/Bindings/ContainerInventoryDataBinding.cs` | binding активного контейнера |
-| `Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs` | переключение активного контейнера и панели |
-| `Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | пункт контекстного меню |
-| `Examples/Demo5 Containers/Scripts/Data/ContainerItemInstance.cs` | контейнер как item instance |
+| `Scripts/ContainerDemoManager.cs` | корневой список предметов игрока |
+| `Scripts/Bindings/PlayerContainerInventoryDataBinding.cs` | binding инвентаря игрока |
+| `Scripts/Bindings/ContainerInventoryDataBinding.cs` | binding активного контейнера |
+| `Scripts/UI/ContainerUIController.cs` | переключение активного контейнера и панели |
+| `Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | пункт контекстного меню |
+| `Scripts/Data/ContainerItemInstance.cs` | контейнер как item instance |
 
 ## Когда брать этот пример за основу
 

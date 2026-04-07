@@ -11,12 +11,11 @@
 
 `Examples/Demo2 Loot/LootDemo.unity`
 
-Это пример не про отдельный тип inventory, а про связку игрового мира, событий и UI.
+Это пример slot-indexed инвентаря и связки игрового мира, событий и UI.
 
 ## Что показывает демо
 
 - сундуки как интерактивные world-объекты
-- player interaction и открытие UI по событию
 - отдельные bindings для игрока и сундука
 - pickup/drop сценарии, связанные с миром
 - mediator-подход: мир не знает о UI напрямую
@@ -64,12 +63,12 @@ flowchart LR
 
 | Файл | Роль |
 |---|---|
-| `Examples/Demo2 Loot/Scripts/UI/LootUIController.cs` | посредник world -> UI |
-| `Examples/Demo2 Loot/Scripts/Core/Chest.cs` | контейнер игрового мира |
-| `Examples/Demo2 Loot/Scripts/Player/PlayerInteraction.cs` | обнаружение и запуск взаимодействия |
-| `Examples/Demo2 Loot/Scripts/DataBinding/ChestInventoryDataBinding.cs` | binding сундука |
-| `Examples/Demo2 Loot/Scripts/DataBinding/PlayerInventoryDataBinding.cs` | binding игрока |
-| `Examples/Demo2 Loot/Scripts/Core/ItemController.cs` | world item / pickup flow |
+| `Scripts/UI/LootUIController.cs` | посредник world -> UI |
+| `Scripts/Core/Chest.cs` | контейнер игрового мира |
+| `Scripts/Player/PlayerInteraction.cs` | обнаружение и запуск взаимодействия |
+| `Scripts/DataBinding/ChestInventoryDataBinding.cs` | binding сундука |
+| `DataBinding/PlayerInventoryDataBinding.cs` | binding игрока |
+| `Scripts/Core/ItemController.cs` | world item / pickup flow |
 
 ## Когда брать этот пример за основу
 

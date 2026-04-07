@@ -18,8 +18,7 @@ This is a slot-indexed inventory and crafting sample where UI syncs with fixed d
 - `SlotIndexedInventoryDataBinding`
 - separate panels for hotbar, main inventory, and craft table
 - per-slot max stack limits
-- recipe evaluation plus a dedicated result slot
-- side effects when the crafted result is taken
+- `CraftResultDataBinding` as a custom read-only output inventory
 
 ## How it is structured
 
@@ -75,12 +74,12 @@ This is a good example of a read-only slot that rejects incoming drops but still
 
 | File | Role |
 |---|---|
-| `Examples/Demo3 Minecraft/Crafting/CraftingManager.cs` | domain data and crafting logic |
-| `Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs` | main inventory binding |
-| `Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs` | hotbar binding |
-| `Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs` | craft table binding |
-| `Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs` | result slot binding |
-| `Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs` | recipe and matching |
+| `Crafting/CraftingManager.cs` | domain data and crafting logic |
+| `DataBindings/MainInventoryDataBinding.cs` | main inventory binding |
+| `DataBindings/HotbarDataBinding.cs` | hotbar binding |
+| `DataBindings/CraftTableDataBinding.cs` | craft table binding |
+| `DataBindings/CraftResultDataBinding.cs` | result slot binding |
+| `Crafting/CraftingRecipeSO.cs` | recipe and matching |
 
 ## When to use this as a starting point
 

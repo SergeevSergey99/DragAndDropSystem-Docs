@@ -27,7 +27,7 @@ Main pieces:
 
 - `ItemExampleSO.cs` — item data
 - `Adapters/ItemAdapterSoAdapter.cs` — UI-layer adapter
-- `DataBindings/ItemsSOInventoryDataBinding.cs` — binding between the list and the inventory
+- `DataBindings/ItemsSOInventoryDataBinding.cs` — binding between the data list and the inventory
 - `SO/Rules/*` — example rule preset
 
 Architecturally this is the shortest chain in the project:
@@ -56,13 +56,13 @@ The demo also shows where simple local restrictions fit best:
 
 | File | Role |
 |---|---|
-| `Examples/Demo1 Inventaries/DataBindings/ItemsSOInventoryDataBinding.cs` | main binding of the sample |
-| `Examples/Demo1 Inventaries/Adapters/ItemAdapterSoAdapter.cs` | adapter for `ItemExampleSO` |
-| `Examples/Demo1 Inventaries/ItemExampleSO.cs` | item data model |
+| `DataBindings/ItemsSOInventoryDataBinding.cs` | main binding of the sample |
+| `Adapters/ItemAdapterSoAdapter.cs` | adapter for `ItemExampleSO` |
+| `ItemExampleSO.cs` | item data model |
 | `Scripts/DataBinding/ListInventoryDataBinding.cs` | base class for list-based bindings |
 
 ## When to use this as a starting point
 
 - you need a first inventory without a complex domain model
 - you want to understand the `ListInventoryDataBinding` lifecycle
-- you want a quick place to test slot rules, filters, or visual setup
+- you want a quick place to test rules or visual setup

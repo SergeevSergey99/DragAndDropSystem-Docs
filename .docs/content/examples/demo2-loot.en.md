@@ -11,12 +11,11 @@
 
 `Examples/Demo2 Loot/LootDemo.unity`
 
-This demo is not about a special inventory type. It is about wiring game world events to UI.
+This is an example of slot-indexed inventory and wiring game world events to UI.
 
 ## What the demo shows
 
 - chests as interactive world objects
-- player interaction and event-driven UI opening
 - separate bindings for the player and the chest
 - pickup/drop flows connected to the world
 - a mediator approach: world objects do not know about UI directly
@@ -64,12 +63,12 @@ Moving items:
 
 | File | Role |
 |---|---|
-| `Examples/Demo2 Loot/Scripts/UI/LootUIController.cs` | world -> UI mediator |
-| `Examples/Demo2 Loot/Scripts/Core/Chest.cs` | world-side container |
-| `Examples/Demo2 Loot/Scripts/Player/PlayerInteraction.cs` | interaction discovery and trigger |
-| `Examples/Demo2 Loot/Scripts/DataBinding/ChestInventoryDataBinding.cs` | chest binding |
-| `Examples/Demo2 Loot/Scripts/DataBinding/PlayerInventoryDataBinding.cs` | player binding |
-| `Examples/Demo2 Loot/Scripts/Core/ItemController.cs` | world item / pickup flow |
+| `Scripts/UI/LootUIController.cs` | world -> UI mediator |
+| `Scripts/Core/Chest.cs` | world-side container |
+| `Scripts/Player/PlayerInteraction.cs` | interaction discovery and trigger |
+| `Scripts/DataBinding/ChestInventoryDataBinding.cs` | chest binding |
+| `Scripts/DataBinding/PlayerInventoryDataBinding.cs` | player binding |
+| `Scripts/Core/ItemController.cs` | world item / pickup flow |
 
 ## When to use this as a starting point
 

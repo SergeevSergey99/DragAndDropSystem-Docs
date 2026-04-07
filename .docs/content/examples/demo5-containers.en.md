@@ -71,12 +71,12 @@ Moving items:
 
 | File | Role |
 |---|---|
-| `Examples/Demo5 Containers/Scripts/ContainerDemoManager.cs` | root list of player items |
-| `Examples/Demo5 Containers/Scripts/Bindings/PlayerContainerInventoryDataBinding.cs` | player inventory binding |
-| `Examples/Demo5 Containers/Scripts/Bindings/ContainerInventoryDataBinding.cs` | active container binding |
-| `Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs` | active-container and panel switching |
-| `Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | context menu entry |
-| `Examples/Demo5 Containers/Scripts/Data/ContainerItemInstance.cs` | container as an item instance |
+| `Scripts/ContainerDemoManager.cs` | root list of player items |
+| `Scripts/Bindings/PlayerContainerInventoryDataBinding.cs` | player inventory binding |
+| `Scripts/Bindings/ContainerInventoryDataBinding.cs` | active container binding |
+| `Scripts/UI/ContainerUIController.cs` | active-container and panel switching |
+| `Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | context menu entry |
+| `Scripts/Data/ContainerItemInstance.cs` | container as an item instance |
 
 ## When to use this as a starting point
 

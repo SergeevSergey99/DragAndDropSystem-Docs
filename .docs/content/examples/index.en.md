@@ -73,7 +73,7 @@ Shows:
 - `SlotIndexedInventoryDataBinding`
 - separate hotbar / inventory / craft table bindings
 - `CraftingManager` as the domain source of truth
-- `CraftResultDataBinding` as a read-only output slot with side effects
+- `CraftResultDataBinding` as a custom read-only output inventory
 
 `Examples/Demo3 Minecraft/*`
 
