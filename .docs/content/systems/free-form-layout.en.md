@@ -8,16 +8,18 @@ The `FreeFormSlotLayout` component is an example layout system for inventories w
 
 ```mermaid
 flowchart LR
+    subgraph Initialization
+        E["ReloadUI /\ndata load"] --> F["ArrangeAllSlots()"]
+        F --> G["Slots arranged\nin grid without overlap"]
+    end
+
     subgraph Drop
         A["Player drops\nitem on area"] --> B["Mouse coordinates\ncaptured"]
         B --> C["Dynamic slot\ncreated"]
         C --> D["Slot positioned\nat drop point"]
     end
 
-    subgraph Initialization
-        E["ReloadUI /\ndata load"] --> F["ArrangeAllSlots()"]
-        F --> G["Slots arranged\nin grid without overlap"]
-    end
+    Initialization ~~~ Drop
 ```
 
 Key idea: coordinates are **not passed** through the transfer pipeline (policy / planner / executor). Positioning is a pure UI concern, solved through two hooks:

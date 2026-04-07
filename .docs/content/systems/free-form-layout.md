@@ -8,16 +8,18 @@
 
 ```mermaid
 flowchart LR
-    subgraph Дроп
+    subgraph Initialization
+        E["ReloadUI /\nзагрузка данных"] --> F["ArrangeAllSlots()"]
+        F --> G["Слоты раскладываются\nсеткой без перекрытий"]
+    end
+
+    subgraph Drop
         A["Игрок бросает\nпредмет на область"] --> B["Захватываются\nкоординаты мыши"]
         B --> C["Динамический слот\nсоздаётся"]
         C --> D["Слот позиционируется\nв точке дропа"]
     end
-
-    subgraph Инициализация
-        E["ReloadUI /\nзагрузка данных"] --> F["ArrangeAllSlots()"]
-        F --> G["Слоты раскладываются\nсеткой без перекрытий"]
-    end
+    
+    Initialization ~~~ Drop
 ```
 
 Ключевая идея: координаты **не прокидываются** через transfer pipeline (policy / planner / executor). Позиционирование --- чисто UI-задача, решаемая через два хука:
