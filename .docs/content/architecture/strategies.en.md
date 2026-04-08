@@ -114,37 +114,37 @@ To create your own placement strategy:
 public class MyCustomStrategy : InventoryStrategyBase
 {
     // Add an item to the inventory
-    public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
+    public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex)
     {
         // Your placement logic
     }
 
     // Add an item to a specific slot
-    public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack,
-        ISlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
+    public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack,
+        BaseSlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
     {
         // Your logic for a specific slot
     }
 
     // Remove an item
-    public override bool TryRemove(List<ISlot> slots, IItemAdapter item,
+    public override bool TryRemove(List<BaseSlot> slots, IItemAdapter item,
         int count, int sourceIndex)
     {
         // Your removal logic
     }
 
     // How many items the inventory can accept
-    public override int GetAcceptableCount(List<ISlot> slots,
+    public override int GetAcceptableCount(List<BaseSlot> slots,
         InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, ISlot slotPrefab)
+        int potentialNewSlots, BaseSlot slotPrefab)
     {
         // Your counting logic
     }
 
     // Can the inventory accept the item
-    public override bool CanAcceptItem(List<ISlot> slots,
+    public override bool CanAcceptItem(List<BaseSlot> slots,
         InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        int potentialNewSlots, BaseSlot slotPrefab, out BaseSlot suggestedSlot)
     {
         // Your validation logic
     }

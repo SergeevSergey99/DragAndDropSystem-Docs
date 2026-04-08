@@ -89,7 +89,7 @@ public class CustomInventoryArea : DropAreaBase
         return new InventoryDropProcessor(_inventory, DragManager?.GlobalRules);
     }
 
-    public override ISlot GetTargetSlot() => null;
+    public override BaseSlot GetTargetSlot() => null;
 }
 ```
 

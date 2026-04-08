@@ -95,8 +95,8 @@ flowchart TD
 | `SlotIndex` | `int` | Индекс целевого/исходного слота |
 | `SourceInventory` | `IInventory` | Откуда взяли предмет (null если не из другого инвентаря) |
 | `TargetInventory` | `IInventory` | Куда положили предмет (null если не в другой инвентарь) |
-| `SourceSlot` | `ISlot` | Слот-источник (null если неизвестен) |
-| `TargetSlot` | `ISlot` | Слот-назначение (null если неизвестен) |
+| `SourceSlot` | `BaseSlot` | Слот-источник (null если неизвестен) |
+| `TargetSlot` | `BaseSlot` | Слот-назначение (null если неизвестен) |
 
 Практически:
 

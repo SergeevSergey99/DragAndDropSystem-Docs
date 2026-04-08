@@ -89,7 +89,7 @@ public class CustomInventoryArea : DropAreaBase
         return new InventoryDropProcessor(_inventory, DragManager?.GlobalRules);
     }
 
-    public override ISlot GetTargetSlot() => null;
+    public override BaseSlot GetTargetSlot() => null;
 }
 ```
 
@@ -136,7 +136,7 @@ public abstract class DropAreaBase : Selectable, IDropTarget, IDropProcessor
     public virtual IDropProcessor GetDropProcessor();
     // Default: this (simple consumption)
 
-    public virtual ISlot GetTargetSlot();
+    public virtual BaseSlot GetTargetSlot();
     // Default: null
 
     // ── Common ──────────────────────────────────

@@ -49,7 +49,7 @@ When an item does not pass the filter, it can be handled in one of three ways:
 | **ByCategory** | `IFilterable.Category` | `IFilterable` |
 | **ByRarity** | `IFilterable.Rarity` | `IFilterable` |
 | **BySortValue** | `ISortable.SortValue` | `ISortable` |
-| **Custom** | Arbitrary `Comparison<ISlot>` | --- |
+| **Custom** | Arbitrary `Comparison<BaseSlot>` | --- |
 
 All modes support ascending and descending sorting.
 

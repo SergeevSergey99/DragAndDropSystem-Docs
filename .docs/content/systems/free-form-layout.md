@@ -155,7 +155,7 @@ public class MyCustomLayout : MonoBehaviour
         _inventory.OnSlotCreated -= HandleSlotCreated;
     }
 
-    void HandleSlotCreated(ISlot slot)
+    void HandleSlotCreated(BaseSlot slot)
     {
         // Ваша логика позиционирования
         var rt = slot.Transform as RectTransform;
@@ -171,7 +171,7 @@ public class MyCustomLayout : MonoBehaviour
         }
     }
 
-    Vector2 CalculatePosition(ISlot slot) { /* ... */ return Vector2.zero; }
+    Vector2 CalculatePosition(BaseSlot slot) { /* ... */ return Vector2.zero; }
 }
 ```
 

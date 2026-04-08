@@ -49,7 +49,7 @@ flowchart LR
 | **По категории** (ByCategory) | `IFilterable.Category` | `IFilterable` |
 | **По редкости** (ByRarity) | `IFilterable.Rarity` | `IFilterable` |
 | **По значению** (BySortValue) | `ISortable.SortValue` | `ISortable` |
-| **Кастомный** (Custom) | Произвольный `Comparison<ISlot>` | --- |
+| **Кастомный** (Custom) | Произвольный `Comparison<BaseSlot>` | --- |
 
 Все режимы поддерживают сортировку по возрастанию и убыванию.
 

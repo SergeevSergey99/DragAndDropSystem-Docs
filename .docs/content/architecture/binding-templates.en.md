@@ -134,7 +134,7 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
     [SerializeField] private CharacterData _data;
 
     // 1. Declarative map: slot → how to read, write, clear, validate
-    protected override Dictionary<ISlot, SlotBinding<ItemModel, ItemModelAdapter>> CreateBindingMap() => new()
+    protected override Dictionary<BaseSlot, SlotBinding<ItemModel, ItemModelAdapter>> CreateBindingMap() => new()
     {
         // Single item (simple constructor)
         [_weaponSlot] = new(
@@ -214,7 +214,7 @@ new SlotBinding<TData, TAdapter>(
 
 | | SlotIndexed | MappedSlot |
 |---|---|---|
-| Slot identity | Numeric index | `ISlot` object reference |
+| Slot identity | Numeric index | `BaseSlot` object reference |
 | Slot data | Same pattern for all | Individual get/set/clear per slot |
 | Validation | Shared via `CanDrop` override | Individual `canDrop` / `canStartDrag` per slot |
 | Stacks | Via count parameter | Via list-based API (each adapter individually) |

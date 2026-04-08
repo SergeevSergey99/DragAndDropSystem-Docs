@@ -114,37 +114,37 @@ flowchart TD
 public class MyCustomStrategy : InventoryStrategyBase
 {
     // Добавить предмет в инвентарь
-    public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)
+    public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex)
     {
         // Ваша логика размещения
     }
 
     // Добавить предмет в конкретный слот
-    public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack,
-        ISlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
+    public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack,
+        BaseSlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
     {
         // Ваша логика для конкретного слота
     }
 
     // Удалить предмет
-    public override bool TryRemove(List<ISlot> slots, IItemAdapter item,
+    public override bool TryRemove(List<BaseSlot> slots, IItemAdapter item,
         int count, int sourceIndex)
     {
         // Ваша логика удаления
     }
 
     // Сколько предметов инвентарь может принять
-    public override int GetAcceptableCount(List<ISlot> slots,
+    public override int GetAcceptableCount(List<BaseSlot> slots,
         InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, ISlot slotPrefab)
+        int potentialNewSlots, BaseSlot slotPrefab)
     {
         // Ваша логика подсчёта
     }
 
     // Может ли инвентарь принять предмет
-    public override bool CanAcceptItem(List<ISlot> slots,
+    public override bool CanAcceptItem(List<BaseSlot> slots,
         InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        int potentialNewSlots, BaseSlot slotPrefab, out BaseSlot suggestedSlot)
     {
         // Ваша логика проверки
     }

@@ -69,7 +69,7 @@ public class UseItemEntry : ContextMenuEntryDefinitionSO
 
 | Поле | Тип | Описание |
 |------|-----|----------|
-| `Slot` | `ISlot` | Слот, на котором вызвали меню |
+| `Slot` | `BaseSlot` | Слот, на котором вызвали меню |
 | `Item` | `IItemAdapter` | Предмет в слоте (null если пустой) |
 | `ItemCount` | `int` | Количество предметов в стаке |
 | `Inventory` | `UniversalInventory` | Инвентарь, которому принадлежит слот |

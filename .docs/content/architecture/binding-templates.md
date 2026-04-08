@@ -134,7 +134,7 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemModel, ItemMo
     [SerializeField] private CharacterData _data;
 
     // 1. Декларативная карта: слот → как читать, писать, очищать, валидировать
-    protected override Dictionary<ISlot, SlotBinding<ItemModel, ItemModelAdapter>> CreateBindingMap() => new()
+    protected override Dictionary<BaseSlot, SlotBinding<ItemModel, ItemModelAdapter>> CreateBindingMap() => new()
     {
         // Единичный предмет (простой конструктор)
         [_weaponSlot] = new(
@@ -214,7 +214,7 @@ new SlotBinding<TData, TAdapter>(
 
 | | SlotIndexed | MappedSlot |
 |---|---|---|
-| Идентификация слота | Числовой индекс | Ссылка на объект `ISlot` |
+| Идентификация слота | Числовой индекс | Ссылка на объект `BaseSlot` |
 | Данные слота | Общий паттерн для всех | Индивидуальный get/set/clear на каждый |
 | Валидация | Общая через `CanDrop` override | Индивидуальная `canDrop` / `canStartDrag` на слот |
 | Стеки | Через count параметр | Через list-based API (каждый адаптер индивидуально) |

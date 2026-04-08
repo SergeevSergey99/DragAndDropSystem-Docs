@@ -94,8 +94,8 @@ flowchart TD
 | `SlotIndex` | `int` | Target/source slot index |
 | `SourceInventory` | `IInventory` | Where the item came from (null if not from another inventory) |
 | `TargetInventory` | `IInventory` | Where the item was placed (null if not into another inventory) |
-| `SourceSlot` | `ISlot` | Source slot (null if unknown) |
-| `TargetSlot` | `ISlot` | Destination slot (null if unknown) |
+| `SourceSlot` | `BaseSlot` | Source slot (null if unknown) |
+| `TargetSlot` | `BaseSlot` | Destination slot (null if unknown) |
 
 In practice:
 
@@ -113,8 +113,8 @@ In practice:
 |-------|------|-------------|
 | `SourceStack` | `ItemStack` | Pre-commit stack from the source slot |
 | `TargetStack` | `ItemStack` | Pre-commit stack from the target slot |
-| `SourceSlot` | `ISlot` | Source slot (where dragging started) |
-| `TargetSlot` | `ISlot` | Target slot (where the drop is intended) |
+| `SourceSlot` | `BaseSlot` | Source slot (where dragging started) |
+| `TargetSlot` | `BaseSlot` | Target slot (where the drop is intended) |
 | `SourceInventory` | `IInventory` | Source inventory |
 | `TargetInventory` | `IInventory` | Target inventory |
 | `Cancel` | `bool` | Set to `true` to cancel the swap |

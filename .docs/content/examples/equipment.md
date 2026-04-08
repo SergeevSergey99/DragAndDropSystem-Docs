@@ -90,7 +90,7 @@ public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAda
     private ItemSO _equippedWeapon;
     private ItemSO _equippedArmor;
 
-    protected override Dictionary<ISlot, SlotBinding<ItemSO, ItemSOAdapter>> CreateBindingMap() => new()
+    protected override Dictionary<BaseSlot, SlotBinding<ItemSO, ItemSOAdapter>> CreateBindingMap() => new()
     {
         [_weaponSlot] = new(
             get:   () => _equippedWeapon,
