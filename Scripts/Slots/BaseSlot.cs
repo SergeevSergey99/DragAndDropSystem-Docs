@@ -50,7 +50,42 @@ namespace DragAndDropSystem.Slots
             Stack = ItemStack.Empty();
             UpdateVisuals();
         }
-        public abstract void UpdateVisuals();
+        
+        /// <summary>Флаг подсветки (hover / drop-preview). Сохраняется между UpdateVisuals.</summary>
+        protected bool _isHighlighted;
+
+        /// <summary>
+        /// Флаг видимости иконки. Выставляется анимационными системами через
+        /// <see cref="SetIconVisibility"/> и учитывается при следующем UpdateVisuals.
+        /// </summary>
+        protected bool _iconVisible = true;
+        
+        /// <summary>
+        /// Единая точка входа для полного обновления визуала.
+        /// Вызывается после любого изменения данных слота.
+        /// </summary>
+        public virtual void UpdateVisuals()
+        {
+            if (_iconVisible && !IsEmpty)
+                RenderFilled();
+            else
+                RenderEmpty();
+
+            OnVisualsUpdated();
+        }
+        
+        /// <summary>Рендер непустого слота: иконка + счётчик.</summary>
+        protected virtual void RenderFilled(){}
+        
+        /// <summary>Рендер пустого слота: убираем иконку и счётчик.</summary>
+        protected virtual void RenderEmpty(){}
+        
+        /// <summary>
+        /// Хук для дочерних классов: вызывается в конце каждого UpdateVisuals.
+        /// Используйте для рендера дополнительных элементов (рамки, эффекты и т.п.)
+        /// без необходимости вызывать base.UpdateVisuals().
+        /// </summary>
+        protected virtual void OnVisualsUpdated() { }
         
         /// <summary>
         /// Установить состояние интерактивности слота.
@@ -62,24 +97,31 @@ namespace DragAndDropSystem.Slots
                 return;
 
             IsInteractable = interactable;
-            OnInteractableChanged?.Invoke(interactable);
             UpdateInteractableVisuals();
+            OnInteractableChanged?.Invoke(interactable);
         }
 
         /// <summary>
         /// Обновить визуальное состояние в зависимости от интерактивности.
         /// Переопределите в наследниках для кастомного поведения.
         /// </summary>
-        protected virtual void UpdateInteractableVisuals()
+        protected virtual void UpdateInteractableVisuals() {}
+
+        /// <summary>
+        /// Временно скрыть/показать иконку (для анимаций авто-переноса).
+        /// Сохраняет флаг и делает полный UpdateVisuals, чтобы остальные
+        /// визуальные состояния не сбросились.
+        /// </summary>
+        public virtual void SetIconVisibility(bool visible)
         {
-            // По умолчанию ничего не делаем - наследники могут переопределить
+            _iconVisible = visible;
+            UpdateVisuals();
         }
 
         /// <summary>
-        /// Временно скрыть/показать визуал слота (для анимаций автопереноса)
+        /// Включить/выключить подсветку слота (hover, drop-preview и т.п.).
+        /// Состояние сохраняется — следующий UpdateVisuals его не сбросит.
         /// </summary>
-        public virtual void SetIconVisibility(bool b){}
-
         public virtual void Highlight(bool highlight) {}
         
         protected void OnValidate()

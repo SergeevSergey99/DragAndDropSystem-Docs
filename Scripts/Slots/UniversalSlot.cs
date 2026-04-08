@@ -1,17 +1,15 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Inspector;
-using DragAndDropSystem.Rules;
 using DragAndDropSystem.Tools;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace DragAndDropSystem.Slots
 {
     /// <summary>
-    /// Универсальный слот, работающий через композицию
-    /// Не требует наследования для разных типов данных
+    /// Универсальный слот с визуальным слоем на основе Image + TMP_Text.
+    /// Расширяется через переопределение виртуальных Render-методов
+    /// и хука <see cref="OnVisualsUpdated"/>.
     /// </summary>
     public class UniversalSlot : BaseSlot
     {
@@ -22,9 +20,9 @@ namespace DragAndDropSystem.Slots
 
         [Header("Settings")]
         [SerializeField] private bool _showCount = true;
-        [SerializeField] private Color _emptyColor = new Color(1, 1, 1, 0.3f);
-        [SerializeField] private Color _normalColor = Color.white;
-        [SerializeField] private Color _highlightColor = Color.yellow;
+        [SerializeField] private Color _emptyColor       = new Color(1, 1, 1, 0.3f);
+        [SerializeField] private Color _normalColor      = Color.white;
+        [SerializeField] private Color _highlightColor   = Color.yellow;
 
         [Header("Filter Settings")]
         [SerializeField, Tooltip("Tint color for inactive (filtered) slots")]
@@ -33,79 +31,69 @@ namespace DragAndDropSystem.Slots
         [SerializeField, Tooltip("Optional: CanvasGroup for controlling interactivity")]
         private CanvasGroup _canvasGroup;
 
-        public override void UpdateVisuals()
+        protected override void RenderFilled()
         {
-            SetIconVisibility(IsEmpty == false);
+            _iconImage.sprite  = Stack.Icon;
+            _iconImage.color   = ResolveIconColor();
+            _iconImage.enabled = true;
+            RenderCounter();
         }
-        
-        protected virtual void RenderEmpty()
+
+        protected override void RenderEmpty()
         {
-            _iconImage.sprite = null;
-            _iconImage.color = _emptyColor;
+            _iconImage.sprite  = null;
+            _iconImage.color   = _emptyColor;
             _iconImage.enabled = false;
             if (_countContainer != null)
                 _countContainer.SetActive(false);
         }
-        protected virtual void RenderSetted()
-        {
-            _iconImage.sprite = Stack.Icon;
-            _iconImage.color = _normalColor;
-            _iconImage.enabled = true;
-        }
-
+        
+        /// <summary>Обновляет счётчик стака. Показывается только если предметов больше одного.</summary>
         protected virtual void RenderCounter()
         {
-            if (_countContainer != null && _showCount)
-            {
-                bool shouldShowCount = !IsEmpty && Stack.Count > 1;
-                _countContainer.SetActive(shouldShowCount);
+            if (_countContainer == null || !_showCount) return;
 
-                if (shouldShowCount && _countText != null)
-                {
-                    _countText.text = Stack.Count.ToString();
-                }
-            }
+            bool shouldShow = !IsEmpty && Stack.Count > 1;
+            _countContainer.SetActive(shouldShow);
+
+            if (shouldShow && _countText != null)
+                _countText.text = Stack.Count.ToString();
         }
-
+        
         public override void Highlight(bool highlight)
         {
-            if (_iconImage != null && !IsEmpty)
-            {
-                _iconImage.color = highlight ? _highlightColor : _normalColor;
-            }
-        }
-
-        public override void SetIconVisibility(bool visible)
-        {
-            if (visible)
-            {
-                RenderSetted();
-                RenderCounter();
-            }
-            else
-            {
-                RenderEmpty();
-            }
+            _isHighlighted = highlight;
+            if (_iconImage != null)
+                _iconImage.color = ResolveIconColor();
         }
 
         /// <summary>
-        /// Обновить визуальное состояние в зависимости от интерактивности.
-        /// Затемняет слот когда он неактивен (отфильтрован).
+        /// Обновляет визуал при смене интерактивности.
+        /// CanvasGroup блокирует raycast; цвет иконки идёт через ResolveIconColor,
+        /// чтобы не конфликтовать с Highlight и другими состояниями.
         /// </summary>
         protected override void UpdateInteractableVisuals()
         {
             if (_canvasGroup != null)
             {
-                _canvasGroup.interactable = IsInteractable;
+                _canvasGroup.interactable  = IsInteractable;
                 _canvasGroup.blocksRaycasts = IsInteractable;
-                _canvasGroup.alpha = IsInteractable ? 1f : 0.5f;
+                _canvasGroup.alpha         = IsInteractable ? 1f : 0.5f;
             }
 
-            // Обновляем цвет иконки
-            if (_iconImage != null && !IsEmpty)
-            {
-                _iconImage.color = IsInteractable ? _normalColor : _nonInteractableColor;
-            }
+            if (_iconImage != null)
+                _iconImage.color = ResolveIconColor();
+        }
+        
+        /// <summary>
+        /// Возвращает актуальный цвет иконки с учётом всех активных состояний.
+        /// Приоритет: NonInteractable → Highlighted → Normal / Empty.
+        /// </summary>
+        private Color ResolveIconColor()
+        {
+            if (!IsInteractable) return _nonInteractableColor;
+            if (_isHighlighted)  return _highlightColor;
+            return IsEmpty ? _emptyColor : _normalColor;
         }
     }
 }
