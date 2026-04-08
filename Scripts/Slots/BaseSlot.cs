@@ -9,7 +9,7 @@ namespace DragAndDropSystem.Slots
     /// <summary>
     /// Базовый класс для слотов. Наследуется от MonoBehaviour, чтобы можно было ссылаться в инспекторе.
     /// </summary>
-    public abstract class ISlot : MonoBehaviour
+    public abstract class BaseSlot : MonoBehaviour
     {
         public abstract ItemStack Stack { get; }
         public abstract int Index { get; }

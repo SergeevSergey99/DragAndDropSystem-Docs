@@ -20,15 +20,15 @@ namespace DragAndDropSystem.Inventories
         /// Выполнить действие
         /// </summary>
         /// <param name="inventory">Инвентарь, на котором выполняется действие</param>
-        /// <param name="activeSlot">Активный слот (под курсором или последний взаимодействовавший)</param>
+        /// <param name="activeBaseSlot">Активный слот (под курсором или последний взаимодействовавший)</param>
         /// <param name="logWarnings">Писать ли предупреждения в консоль</param>
         /// <returns>Результат выполнения действия</returns>
-        public abstract ActionResult Execute(UniversalInventory inventory, ISlot activeSlot);
+        public abstract ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot);
 
         /// <summary>
         /// Можно ли выполнить действие (проверка перед выполнением)
         /// </summary>
-        public virtual bool CanExecute(UniversalInventory inventory, ISlot activeSlot)
+        public virtual bool CanExecute(UniversalInventory inventory, BaseSlot activeBaseSlot)
         {
             return inventory != null;
         }

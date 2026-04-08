@@ -28,14 +28,14 @@ namespace DragAndDropSystem.Core
 
         public override GameObject AnimateTransfer(
             ItemStack stack,
-            ISlot sourceSlot,
-            ISlot targetSlot,
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
             MonoBehaviour visualPrefab,
             Transform visualContainer,
             Canvas canvas,
             Action onComplete)
         {
-            if (sourceSlot == null || targetSlot == null || visualPrefab == null)
+            if (sourceBaseSlot == null || targetBaseSlot == null || visualPrefab == null)
             {
                 Debug.LogWarning("TweenAutoTransferAnimation: Invalid parameters, falling back to instant");
                 onComplete?.Invoke();
@@ -64,15 +64,15 @@ namespace DragAndDropSystem.Core
             }
 
             // Получаем мировые позиции слотов
-            Vector3 startPos = GetSlotWorldPosition(sourceSlot);
-            Vector3 endPos = GetSlotWorldPosition(targetSlot);
+            Vector3 startPos = GetSlotWorldPosition(sourceBaseSlot);
+            Vector3 endPos = GetSlotWorldPosition(targetBaseSlot);
 
             // Устанавливаем начальную позицию
             visualRect.position = startPos;
 
             // Показываем визуал с предметом
             // Create a temporary DragEntry for the visual
-            var entries = new[] { new DragEntry(stack, sourceSlot, null) };
+            var entries = new[] { new DragEntry(stack, sourceBaseSlot, null) };
             dragVisual.Show(entries);
 
             Func<float, Vector3> customPath = null;
@@ -114,22 +114,22 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// Получить мировую позицию слота для анимации
         /// </summary>
-        private Vector3 GetSlotWorldPosition(ISlot slot)
+        private Vector3 GetSlotWorldPosition(BaseSlot baseSlot)
         {
-            if (slot?.Transform == null)
+            if (baseSlot?.Transform == null)
             {
                 Debug.LogWarning("GetSlotWorldPosition: Slot or Transform is null");
                 return Vector3.zero;
             }
 
             // Для RectTransform используем position (мировая позиция с учетом canvas)
-            if (slot.Transform is RectTransform rectTransform)
+            if (baseSlot.Transform is RectTransform rectTransform)
             {
                 return rectTransform.position;
             }
 
             // Fallback на обычный Transform
-            return slot.Transform.position;
+            return baseSlot.Transform.position;
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace DragAndDropSystem.Inventories
         public DragEntry? SourceEntry { get; }
 
         public IInventory SourceInventory => SourceEntry.HasValue ? SourceEntry.Value.SourceInventory : null;
-        public ISlot SourceSlot => SourceEntry.HasValue ? SourceEntry.Value.SourceSlot : null;
+        public BaseSlot SourceBaseSlot => SourceEntry.HasValue ? SourceEntry.Value.SourceBaseSlot : null;
 
         public ItemStack CreatePreviewStack(int previewCount, IItemAdapter previewItemAdapter = null)
         {
@@ -39,13 +39,13 @@ namespace DragAndDropSystem.Inventories
                 : null;
         }
 
-        public DragContext CreateValidationContext(ISlot targetSlot, int previewCount, IItemAdapter previewItemAdapter = null)
+        public DragContext CreateValidationContext(BaseSlot targetBaseSlot, int previewCount, IItemAdapter previewItemAdapter = null)
         {
             var stack = CreatePreviewStack(previewCount, previewItemAdapter);
             if (stack == null)
                 return null;
 
-            return new DragContext(stack, SourceSlot, SourceInventory, targetSlot, TargetInventory);
+            return new DragContext(stack, SourceBaseSlot, SourceInventory, targetBaseSlot, TargetInventory);
         }
     }
 }

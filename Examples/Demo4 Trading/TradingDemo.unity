@@ -1038,6 +1038,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 459411976}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &459411978 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 459411976}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &504213134
 GameObject:
   m_ObjectHideFlags: 0
@@ -1228,7 +1239,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Inventories.UniversalInventory
   _slotContainer: {fileID: 1527925729}
-  _slotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 8
   _itemBehavior: 0
   _dragAmount: 0
@@ -1479,7 +1490,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Inventories.UniversalInventory
   _slotContainer: {fileID: 667194795}
-  _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  baseSlotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 4
   _itemBehavior: 1
   _dragAmount: 2
@@ -1498,7 +1509,11 @@ MonoBehaviour:
     _allowPartial: 1
     _batchMode: 1
     _alternativePlacement: 0
-  _slots: []
+  _slots:
+  - {fileID: 519712178}
+  - {fileID: 1919514845}
+  - {fileID: 13640017}
+  - {fileID: 1042347259}
   references:
     version: 2
     RefIds: []
@@ -1553,10 +1568,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.EquipmentInventoryDataBinding
   _inventory: {fileID: 520690177}
-  _weaponSlot: {fileID: 519712178}
-  _armorSlot: {fileID: 1919514845}
-  _artifactSlot: {fileID: 13640017}
-  _posionsSlot: {fileID: 1042347259}
+  weaponBaseSlot: {fileID: 519712178}
+  armorBaseSlot: {fileID: 1919514845}
+  artifactBaseSlot: {fileID: 13640017}
+  posionsBaseSlot: {fileID: 1042347259}
 --- !u!1 &562443573
 GameObject:
   m_ObjectHideFlags: 0
@@ -2627,6 +2642,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 711575191}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &711575193 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 711575191}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &858273839
 GameObject:
   m_ObjectHideFlags: 0
@@ -3135,6 +3161,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 1038755530}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1038755532 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 1038755530}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1001 &1042347257
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3377,6 +3414,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 1180264806}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1180264808 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 1180264806}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1001 &1181299575
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4421,7 +4469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Inventories.UniversalInventory
   _slotContainer: {fileID: 1601878449}
-  _slotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+  baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 8
   _itemBehavior: 0
   _dragAmount: 0
@@ -5757,6 +5805,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 1723931653}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1723931655 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 1723931653}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1783280763
 GameObject:
   m_ObjectHideFlags: 0
@@ -6053,7 +6112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Inventories.UniversalInventory
   _slotContainer: {fileID: 1858480037}
-  _slotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  baseSlotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 8
   _itemBehavior: 2
   _dragAmount: 2
@@ -6072,7 +6131,15 @@ MonoBehaviour:
     _allowPartial: 1
     _batchMode: 1
     _alternativePlacement: 0
-  _slots: []
+  _slots:
+  - {fileID: 9060904737983262871}
+  - {fileID: 1180264808}
+  - {fileID: 711575193}
+  - {fileID: 1723931655}
+  - {fileID: 1840816618}
+  - {fileID: 1038755532}
+  - {fileID: 1937240698}
+  - {fileID: 459411978}
   references:
     version: 2
     RefIds: []
@@ -6311,6 +6378,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 1840816616}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1840816618 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 1840816616}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1858480036
 GameObject:
   m_ObjectHideFlags: 0
@@ -6758,6 +6836,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 1937240696}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1937240698 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 1937240696}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1 &1980043954
 GameObject:
   m_ObjectHideFlags: 0
@@ -7386,6 +7475,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   m_PrefabInstance: {fileID: 9060904737983262869}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9060904737983262871 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
+  m_PrefabInstance: {fileID: 9060904737983262869}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Slots.UniversalSlot
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

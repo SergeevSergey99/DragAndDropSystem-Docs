@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public class InventoryDropProcessor : IDropRequestProcessor
     {
-        private readonly ISlot _targetSlot;
+        private readonly BaseSlot _targetBaseSlot;
         private readonly IInventory _targetInventory;
         private readonly DropRequestPolicy? _boundRequestOverride;
         private readonly GlobalRuleValidator _globalRules;
@@ -28,14 +28,14 @@ namespace DragAndDropSystem.Inventories
         /// Create a processor for a specific slot
         /// </summary>
         public InventoryDropProcessor(
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
             DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
             Action<InventorySwapContext> swapCompleted = null)
         {
-            _targetSlot = targetSlot;
+            _targetBaseSlot = targetBaseSlot;
             _targetInventory = targetInventory;
             _boundRequestOverride = boundRequestOverride;
             _globalRules = globalRules;
@@ -77,7 +77,7 @@ namespace DragAndDropSystem.Inventories
                 context,
                 effectivePolicy,
                 _targetInventory,
-                _targetSlot,
+                _targetBaseSlot,
                 _globalRules);
 
             if (!plan.IsValid)
@@ -167,7 +167,7 @@ namespace DragAndDropSystem.Inventories
 
             var entry = context.Entries[0];
             var source = entry.SourceInventory;
-            var sourceSlot = entry.SourceSlot;
+            var sourceSlot = entry.SourceBaseSlot;
             var draggedStack = entry.Stack;
 
             if (source == null || sourceSlot == null || draggedStack == null)
@@ -189,7 +189,7 @@ namespace DragAndDropSystem.Inventories
                 context,
                 effectivePolicy,
                 _targetInventory,
-                _targetSlot,
+                _targetBaseSlot,
                 _globalRules);
 
             if (plan == null || !plan.IsValid)
@@ -199,7 +199,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             var policy = plan.Policy;
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetSlot?.Index.ToString() ?? "AREA"} | Policy=[Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
+            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetBaseSlot?.Index.ToString() ?? "AREA"} | Policy=[Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
             return true;
         }
 
@@ -216,9 +216,9 @@ namespace DragAndDropSystem.Inventories
                 return summary;
             }
 
-            if (summary.DropResult.TargetSlot != null && summary.DropResult.TargetInventory != null)
+            if (summary.DropResult.TargetBaseSlot != null && summary.DropResult.TargetInventory != null)
             {
-                context.SetTarget(summary.DropResult.TargetSlot, summary.DropResult.TargetInventory);
+                context.SetTarget(summary.DropResult.TargetBaseSlot, summary.DropResult.TargetInventory);
             }
 
             Extensions.DragAndDropLog($"<color=green>[InventoryDropProcessor] {successLogPrefix}: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");

@@ -318,11 +318,11 @@ namespace DragAndDropSystem.DataBinding
             return CanStartDrag(context, entry);
         }
 
-        internal bool CheckOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
-            => CanHandleOccupiedSlotDrop(entry, occupiedSlot);
+        internal bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+            => CanHandleOccupiedSlotDrop(entry, occupiedBaseSlot);
 
-        internal bool DoOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
-            => ExecuteOccupiedSlotDrop(entry, occupiedSlot);
+        internal bool DoOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+            => ExecuteOccupiedSlotDrop(entry, occupiedBaseSlot);
 
         /// <summary>
         /// Проверяет условия дропа DataBinding
@@ -411,14 +411,14 @@ namespace DragAndDropSystem.DataBinding
         /// Верните true если этот DataBinding может обработать такой дроп (например, добавить предмет внутрь контейнера).
         /// Если false — pipeline продолжит стандартную логику (swap, findAlternative, reject).
         /// </summary>
-        protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot) => false;
+        protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
 
         /// <summary>
         /// Выполняет дроп на занятый слот. Вызывается executor-ом если CanHandleOccupiedSlotDrop вернул true.
         /// Реализация должна обработать перенос полностью: добавить предмет в целевое место,
         /// очистить source слот и обновить данные.
         /// </summary>
-        protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot) => false;
+        protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
 
         #endregion
     }

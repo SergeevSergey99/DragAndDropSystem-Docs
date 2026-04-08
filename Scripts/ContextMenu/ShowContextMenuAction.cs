@@ -41,7 +41,7 @@ namespace DragAndDropSystem.ContextMenu
 
             var binder = inventory.GetComponent<ContextMenuBinder>();
             
-            var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
+            var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
             
             List<IContextMenuEntry> entries = new();
             if (binder == null)
@@ -71,7 +71,7 @@ namespace DragAndDropSystem.ContextMenu
             var ctx = new ContextMenuContext
             {
                 Inventory      = inventory,
-                Slot           = slot,
+                BaseSlot           = slot,
                 ItemAdapter           = slot?.Stack?.PrimaryAdapter,
                 ItemCount      = slot?.Stack?.Count ?? 0,
                 ScreenPosition = eventData?.position ?? Vector2.zero,

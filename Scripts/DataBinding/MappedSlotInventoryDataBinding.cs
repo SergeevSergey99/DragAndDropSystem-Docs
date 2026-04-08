@@ -116,19 +116,19 @@ namespace DragAndDropSystem.DataBinding
     public abstract class MappedSlotInventoryDataBinding<TData, TAdapter> : InventoryDataBindingBase
         where TAdapter : class, IItemAdapter
     {
-        private Dictionary<ISlot, SlotBinding<TData, TAdapter>> _bindingMap;
+        private Dictionary<BaseSlot, SlotBinding<TData, TAdapter>> _bindingMap;
 
         /// <summary>
         /// Словарь привязок слотов. Строится один раз из CreateBindingMap().
         /// </summary>
-        protected Dictionary<ISlot, SlotBinding<TData, TAdapter>> BindingMap
+        protected Dictionary<BaseSlot, SlotBinding<TData, TAdapter>> BindingMap
             => _bindingMap ??= CreateBindingMap();
 
         /// <summary>
         /// Создать словарь привязок: ключ — слот, значение — SlotBinding с геттером, сеттером,
         /// очисткой и опциональной валидацией.
         /// </summary>
-        protected abstract Dictionary<ISlot, SlotBinding<TData, TAdapter>> CreateBindingMap();
+        protected abstract Dictionary<BaseSlot, SlotBinding<TData, TAdapter>> CreateBindingMap();
 
         /// <summary>
         /// Создать адаптер (IItemAdapter) из элемента данных.
@@ -136,16 +136,16 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
 
-        protected bool TryGetTargetBinding(ISlot targetSlot, out SlotBinding<TData, TAdapter> binding)
+        protected bool TryGetTargetBinding(BaseSlot targetBaseSlot, out SlotBinding<TData, TAdapter> binding)
         {
             binding = default;
-            return targetSlot != null && BindingMap.TryGetValue(targetSlot, out binding);
+            return targetBaseSlot != null && BindingMap.TryGetValue(targetBaseSlot, out binding);
         }
 
-        protected bool TryGetSourceBinding(ISlot sourceSlot, out SlotBinding<TData, TAdapter> binding)
+        protected bool TryGetSourceBinding(BaseSlot sourceBaseSlot, out SlotBinding<TData, TAdapter> binding)
         {
             binding = default;
-            return sourceSlot != null && BindingMap.TryGetValue(sourceSlot, out binding);
+            return sourceBaseSlot != null && BindingMap.TryGetValue(sourceBaseSlot, out binding);
         }
 
         protected override void OnReloadUI()
@@ -174,7 +174,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (!TryGetTargetBinding(context.TargetSlot, out var binding)) return;
+            if (!TryGetTargetBinding(context.TargetBaseSlot, out var binding)) return;
 
             var added = FilterAdapters(context.Stack);
             if (added.Count > 0)
@@ -183,7 +183,7 @@ namespace DragAndDropSystem.DataBinding
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (!TryGetSourceBinding(context.SourceSlot, out var binding)) return;
+            if (!TryGetSourceBinding(context.SourceBaseSlot, out var binding)) return;
 
             var removed = FilterAdapters(context.Stack);
             if (removed.Count > 0)
@@ -195,7 +195,7 @@ namespace DragAndDropSystem.DataBinding
             if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
                 return RuleResult.Failure("Invalid item type");
 
-            if (!TryGetSourceBinding(entry.SourceSlot, out var binding))
+            if (!TryGetSourceBinding(entry.SourceBaseSlot, out var binding))
                 return RuleResult.Failure("Unknown slot");
 
             if (binding.CanStartDrag == null)
@@ -209,7 +209,7 @@ namespace DragAndDropSystem.DataBinding
             if (entry.Stack.PrimaryAdapter is not TAdapter adapter)
                 return RuleResult.Failure("Invalid item type");
 
-            if (!TryGetTargetBinding(context?.TargetSlot, out var binding))
+            if (!TryGetTargetBinding(context?.TargetBaseSlot, out var binding))
                 return RuleResult.Failure("Unknown slot");
 
             if (binding.CanDrop == null)

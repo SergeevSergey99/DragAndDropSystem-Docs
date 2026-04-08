@@ -7,18 +7,18 @@ namespace DragAndDropSystem.Inventories
     {
         public TargetPlacementOperation(
             IInventory targetInventory,
-            ISlot requestedSlot,
+            BaseSlot requestedBaseSlot,
             IInventory sourceInventory,
-            ISlot sourceSlot,
+            BaseSlot sourceBaseSlot,
             ItemStack transferStack,
             int transferAmount,
             InventorySnapshot targetSnapshot,
             SlotOperationContext operationContext)
         {
             TargetInventory = targetInventory;
-            RequestedSlot = requestedSlot;
+            RequestedBaseSlot = requestedBaseSlot;
             SourceInventory = sourceInventory;
-            SourceSlot = sourceSlot;
+            SourceBaseSlot = sourceBaseSlot;
             TransferStack = transferStack;
             TransferAmount = transferAmount;
             TargetSnapshot = targetSnapshot;
@@ -26,9 +26,9 @@ namespace DragAndDropSystem.Inventories
         }
 
         public IInventory TargetInventory { get; }
-        public ISlot RequestedSlot { get; }
+        public BaseSlot RequestedBaseSlot { get; }
         public IInventory SourceInventory { get; }
-        public ISlot SourceSlot { get; }
+        public BaseSlot SourceBaseSlot { get; }
         public ItemStack TransferStack { get; }
         public int TransferAmount { get; }
         public InventorySnapshot TargetSnapshot { get; }

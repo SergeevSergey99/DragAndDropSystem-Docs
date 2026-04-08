@@ -14,15 +14,15 @@ namespace DragAndDropSystem.Inventories
         public override bool RequiresStrategyPlacement(ItemStack stack) => stack != null && !stack.IsEmpty && stack.Count > 1;
         public override bool UsesPerItemSlotPlanning => true;
 
-        public override bool CanUseAlternativeSlot(ISlot slot, IItemAdapter itemAdapter)
+        public override bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
-            if (slot == null || itemAdapter == null)
+            if (baseSlot == null || itemAdapter == null)
                 return false;
 
-            return slot.IsEmpty;
+            return baseSlot.IsEmpty;
         }
 
-        public override IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, ISlot excludeSlot)
+        public override IEnumerable<BaseSlot> EnumerateAlternativeSlots(List<BaseSlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, BaseSlot excludeBaseSlot)
         {
             if (mode == AlternativePlacementMode.MergeOnly)
                 yield break;
@@ -33,14 +33,14 @@ namespace DragAndDropSystem.Inventories
             for (int i = 0; i < slots.Count; i++)
             {
                 var slot = slots[i];
-                if (slot == null || ReferenceEquals(slot, excludeSlot) || !slot.IsEmpty)
+                if (slot == null || ReferenceEquals(slot, excludeBaseSlot) || !slot.IsEmpty)
                     continue;
 
                 yield return slot;
             }
         }
 
-        public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
+        public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -82,7 +82,7 @@ namespace DragAndDropSystem.Inventories
             return stack.IsEmpty;
         }
 
-        public override bool TryRemove(List<ISlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
+        public override bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
         {
             if (sourceIndex >= 0 && sourceIndex < slots.Count)
             {
@@ -106,20 +106,20 @@ namespace DragAndDropSystem.Inventories
             return false;
         }
 
-        public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {
-            if (stack == null || stack.IsEmpty || targetSlot == null || !targetSlot.IsEmpty)
+            if (stack == null || stack.IsEmpty || targetBaseSlot == null || !targetBaseSlot.IsEmpty)
                 return false;
 
-            if (!PassesRules(targetSlot, stack.PrimaryAdapter, 1))
+            if (!PassesRules(targetBaseSlot, stack.PrimaryAdapter, 1))
                 return false;
 
-            return TryPlaceIntoEmptySlot(stack, targetSlot, 1, ensureFreeSlots, operationContext);
+            return TryPlaceIntoEmptySlot(stack, targetBaseSlot, 1, ensureFreeSlots, operationContext);
         }
 
-        public override bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        public override bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
         {
-            suggestedSlot = null;
+            suggestedBaseSlot = null;
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
@@ -129,15 +129,15 @@ namespace DragAndDropSystem.Inventories
             {
                 if (slot.IsEmpty && PassesRules(slot, item, 1, request))
                 {
-                    suggestedSlot = slot;
+                    suggestedBaseSlot = slot;
                     return true;
                 }
             }
 
-            return canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, slotPrefab, item, 1, request);
+            return canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, baseSlotPrefab, item, 1, request);
         }
 
-        public override int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
@@ -151,7 +151,7 @@ namespace DragAndDropSystem.Inventories
                     acceptableCount++;
             }
 
-            if (canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, slotPrefab, item, 1, request))
+            if (canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, baseSlotPrefab, item, 1, request))
                 acceptableCount += potentialNewSlots;
 
             return System.Math.Min(acceptableCount, desiredCount);

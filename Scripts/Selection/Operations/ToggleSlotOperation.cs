@@ -10,13 +10,13 @@ namespace DragAndDropSystem.Selection
     {
         public override string DisplayName => "Toggle Slot";
 
-        public override void Execute(SelectionManager manager, ISlot contextSlot = null)
+        public override void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null)
         {
-            if (contextSlot != null)
-                manager.Toggle(contextSlot);
+            if (contextBaseSlot != null)
+                manager.Toggle(contextBaseSlot);
         }
 
-        public override bool CanExecute(SelectionManager manager, ISlot contextSlot = null)
-            => base.CanExecute(manager, contextSlot) && contextSlot != null;
+        public override bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
+            => base.CanExecute(manager, contextBaseSlot) && contextBaseSlot != null;
     }
 }

@@ -7,27 +7,27 @@ namespace DragAndDropSystem.Inventories
     {
         public InventoryTransferRequest(
             IInventory sourceInventory,
-            ISlot sourceSlot,
+            BaseSlot sourceBaseSlot,
             IInventory targetInventory,
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             ItemStack draggedStack)
         {
             SourceInventory = sourceInventory;
-            SourceSlot = sourceSlot;
+            SourceBaseSlot = sourceBaseSlot;
             TargetInventory = targetInventory;
-            TargetSlot = targetSlot;
+            TargetBaseSlot = targetBaseSlot;
             DraggedStack = draggedStack;
         }
 
         public IInventory SourceInventory { get; }
-        public ISlot SourceSlot { get; }
+        public BaseSlot SourceBaseSlot { get; }
         public IInventory TargetInventory { get; }
-        public ISlot TargetSlot { get; }
+        public BaseSlot TargetBaseSlot { get; }
         public ItemStack DraggedStack { get; }
 
         public bool IsValid =>
             SourceInventory != null &&
-            SourceSlot != null &&
+            SourceBaseSlot != null &&
             TargetInventory != null &&
             DraggedStack != null &&
             DraggedStack.PrimaryAdapter != null &&
@@ -39,8 +39,8 @@ namespace DragAndDropSystem.Inventories
         public InventoryTransferResult(
             IInventory sourceInventory,
             IInventory targetInventory,
-            ISlot sourceSlot,
-            ISlot targetSlot,
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
             ItemStack sourceRemovedStack,
             ItemStack transferredStack,
             bool targetWasEmptyBefore,
@@ -48,8 +48,8 @@ namespace DragAndDropSystem.Inventories
         {
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
-            SourceSlot = sourceSlot;
-            TargetSlot = targetSlot;
+            SourceBaseSlot = sourceBaseSlot;
+            TargetBaseSlot = targetBaseSlot;
             SourceRemovedStack = sourceRemovedStack ?? ItemStack.Empty();
             TransferredStack = transferredStack ?? ItemStack.Empty();
             TargetWasEmptyBefore = targetWasEmptyBefore;
@@ -58,8 +58,8 @@ namespace DragAndDropSystem.Inventories
 
         public IInventory SourceInventory { get; }
         public IInventory TargetInventory { get; }
-        public ISlot SourceSlot { get; }
-        public ISlot TargetSlot { get; }
+        public BaseSlot SourceBaseSlot { get; }
+        public BaseSlot TargetBaseSlot { get; }
 
         /// <summary>
         /// Стек адаптеров, удалённых из source (до конвертации)

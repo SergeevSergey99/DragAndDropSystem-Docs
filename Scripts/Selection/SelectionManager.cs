@@ -15,11 +15,11 @@ namespace DragAndDropSystem.Selection
     public class SelectionManager : MonoSingleton<SelectionManager>
     {
         // Внутреннее мутабельное состояние
-        private readonly HashSet<ISlot> _selected = new HashSet<ISlot>();
-        private readonly Dictionary<IInventory, List<ISlot>> _byInventory = new Dictionary<IInventory, List<ISlot>>();
+        private readonly HashSet<BaseSlot> _selected = new HashSet<BaseSlot>();
+        private readonly Dictionary<IInventory, List<BaseSlot>> _byInventory = new Dictionary<IInventory, List<BaseSlot>>();
 
         // Последний выделенный слот — нужен для диапазонного выделения (Shift+Click)
-        private ISlot _lastSelectedSlot;
+        private BaseSlot _lastSelectedBaseSlot;
 
         /// <summary>
         /// Текущий неизменяемый снимок выделения.
@@ -34,59 +34,59 @@ namespace DragAndDropSystem.Selection
 
         // ===== Публичное API =====
 
-        public bool IsSelected(ISlot slot) => slot != null && _selected.Contains(slot);
+        public bool IsSelected(BaseSlot baseSlot) => baseSlot != null && _selected.Contains(baseSlot);
 
         /// <summary>
         /// Добавить слот к выделению
         /// </summary>
-        public void Select(ISlot slot)
+        public void Select(BaseSlot baseSlot)
         {
-            if (slot == null || _selected.Contains(slot)) return;
-            AddInternal(slot);
-            _lastSelectedSlot = slot;
+            if (baseSlot == null || _selected.Contains(baseSlot)) return;
+            AddInternal(baseSlot);
+            _lastSelectedBaseSlot = baseSlot;
             RebuildContext();
         }
 
         /// <summary>
         /// Убрать слот из выделения
         /// </summary>
-        public void Deselect(ISlot slot)
+        public void Deselect(BaseSlot baseSlot)
         {
-            if (slot == null || !_selected.Contains(slot)) return;
-            RemoveInternal(slot);
+            if (baseSlot == null || !_selected.Contains(baseSlot)) return;
+            RemoveInternal(baseSlot);
             RebuildContext();
         }
 
         /// <summary>
         /// Переключить состояние выделения слота
         /// </summary>
-        public void Toggle(ISlot slot)
+        public void Toggle(BaseSlot baseSlot)
         {
-            if (slot == null) return;
-            if (_selected.Contains(slot)) Deselect(slot);
-            else Select(slot);
+            if (baseSlot == null) return;
+            if (_selected.Contains(baseSlot)) Deselect(baseSlot);
+            else Select(baseSlot);
         }
 
         /// <summary>
         /// Выделить диапазон слотов от последнего выделенного до указанного (в одном инвентаре).
         /// Если нет последнего выделенного или он из другого инвентаря — просто выделяет указанный слот.
         /// </summary>
-        public void SelectRange(ISlot toSlot)
+        public void SelectRange(BaseSlot toBaseSlot)
         {
-            if (toSlot == null) return;
+            if (toBaseSlot == null) return;
 
-            if (_lastSelectedSlot == null || _lastSelectedSlot.Inventory != toSlot.Inventory)
+            if (_lastSelectedBaseSlot == null || _lastSelectedBaseSlot.Inventory != toBaseSlot.Inventory)
             {
-                Select(toSlot);
+                Select(toBaseSlot);
                 return;
             }
 
-            int from = _lastSelectedSlot.Index;
-            int to   = toSlot.Index;
+            int from = _lastSelectedBaseSlot.Index;
+            int to   = toBaseSlot.Index;
             int min  = Mathf.Min(from, to);
             int max  = Mathf.Max(from, to);
 
-            var inventory = toSlot.Inventory;
+            var inventory = toBaseSlot.Inventory;
             for (int i = min; i <= max; i++)
             {
                 var slot = inventory.GetSlot(i);
@@ -94,7 +94,7 @@ namespace DragAndDropSystem.Selection
                     AddInternal(slot);
             }
 
-            _lastSelectedSlot = toSlot;
+            _lastSelectedBaseSlot = toBaseSlot;
             RebuildContext();
         }
 
@@ -122,38 +122,38 @@ namespace DragAndDropSystem.Selection
             if (_selected.Count == 0) return;
             _selected.Clear();
             _byInventory.Clear();
-            _lastSelectedSlot = null;
+            _lastSelectedBaseSlot = null;
             RebuildContext();
         }
 
         // ===== Приватные методы =====
 
-        private void AddInternal(ISlot slot)
+        private void AddInternal(BaseSlot baseSlot)
         {
-            _selected.Add(slot);
+            _selected.Add(baseSlot);
 
-            if (!_byInventory.TryGetValue(slot.Inventory, out var list))
+            if (!_byInventory.TryGetValue(baseSlot.Inventory, out var list))
             {
-                list = new List<ISlot>();
-                _byInventory[slot.Inventory] = list;
+                list = new List<BaseSlot>();
+                _byInventory[baseSlot.Inventory] = list;
             }
-            list.Add(slot);
+            list.Add(baseSlot);
         }
 
-        private void RemoveInternal(ISlot slot)
+        private void RemoveInternal(BaseSlot baseSlot)
         {
-            _selected.Remove(slot);
+            _selected.Remove(baseSlot);
 
-            if (!_byInventory.TryGetValue(slot.Inventory, out var list)) return;
-            list.Remove(slot);
+            if (!_byInventory.TryGetValue(baseSlot.Inventory, out var list)) return;
+            list.Remove(baseSlot);
             if (list.Count == 0)
-                _byInventory.Remove(slot.Inventory);
+                _byInventory.Remove(baseSlot.Inventory);
         }
 
         private void RebuildContext()
         {
             // Строим плоский список из _byInventory чтобы сохранить порядок по инвентарям
-            var allSlots = new List<ISlot>(_selected.Count);
+            var allSlots = new List<BaseSlot>(_selected.Count);
             foreach (var slots in _byInventory.Values)
                 allSlots.AddRange(slots);
 

@@ -1,6 +1,7 @@
 using System;
 using DragAndDropSystem.Slots;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace DragAndDropSystem.Selection
@@ -14,7 +15,7 @@ namespace DragAndDropSystem.Selection
     /// </summary>
     public class SlotSelectionView : MonoBehaviour
     {
-        [SerializeField] private ISlot _slot;
+        [FormerlySerializedAs("_slot")] [SerializeField] private BaseSlot baseSlot;
 
         [Header("Visuals")]
         [SerializeField] private GameObject _selectionHighlight;
@@ -34,8 +35,8 @@ namespace DragAndDropSystem.Selection
 
         private void Awake()
         {
-            if (_slot == null)
-                _slot = GetComponent<ISlot>();
+            if (baseSlot == null)
+                baseSlot = GetComponent<BaseSlot>();
         }
 
         private void OnEnable()
@@ -53,7 +54,7 @@ namespace DragAndDropSystem.Selection
 
         private void Refresh(SelectionContext context)
         {
-            bool selected = context.Contains(_slot);
+            bool selected = context.Contains(baseSlot);
             if (selected == IsSelected) return;
 
             IsSelected = selected;

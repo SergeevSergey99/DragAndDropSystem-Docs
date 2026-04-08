@@ -24,7 +24,7 @@ namespace DragAndDropSystem.Inventories
 
         public override string DisplayName => "Auto Transfer";
 
-        public override ActionResult Execute(UniversalInventory inventory, ISlot activeSlot)
+        public override ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot)
         {
             var dragManager = DragAndDropManager.AutoCreateInstance;
             if (dragManager == null || dragManager.IsDragging)
@@ -53,8 +53,8 @@ namespace DragAndDropSystem.Inventories
 
                 if (success)
                 {
-                    if (activeSlot != null)
-                        inventory.NotifySlotInteracted(activeSlot);
+                    if (activeBaseSlot != null)
+                        inventory.NotifySlotInteracted(activeBaseSlot);
                     
                     if (SelectionManager.IsInstanceExist)
                         SelectionManager.AutoCreateInstance.Clear();
@@ -65,9 +65,9 @@ namespace DragAndDropSystem.Inventories
             return ActionResult.Failed("Auto transfer failed for all targets");
         }
 
-        public override bool CanExecute(UniversalInventory inventory, ISlot activeSlot)
+        public override bool CanExecute(UniversalInventory inventory, BaseSlot activeBaseSlot)
         {
-            if (!base.CanExecute(inventory, activeSlot))
+            if (!base.CanExecute(inventory, activeBaseSlot))
                 return false;
 
             if (InputEventRouter.IsInstanceExist && !InputEventRouter.AutoCreateInstance.IsInventoryActive(inventory))
@@ -104,9 +104,9 @@ namespace DragAndDropSystem.Inventories
             return result;
         }
 
-        private List<ISlot> ResolveSourceSlots(UniversalInventory inventory)
+        private List<BaseSlot> ResolveSourceSlots(UniversalInventory inventory)
         {
-            var result = new List<ISlot>();
+            var result = new List<BaseSlot>();
 
             if (_useSelectionForBatch && SelectionManager.IsInstanceExist)
             {
@@ -160,7 +160,7 @@ namespace DragAndDropSystem.Inventories
             return false;
         }
 
-        private ISlot ResolveContextSourceSlot(UniversalInventory inventory)
+        private BaseSlot ResolveContextSourceSlot(UniversalInventory inventory)
         {
             var contextSlot = InputEventRouter.IsInstanceExist
                 ? InputEventRouter.AutoCreateInstance.ResolveQuickActionSlot(inventory, requireActiveInventory: true)

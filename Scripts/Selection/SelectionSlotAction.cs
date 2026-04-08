@@ -25,7 +25,7 @@ namespace DragAndDropSystem.Selection
                 return ActionResult.Failed("Selection operation is not available");
 
             var manager = SelectionManager.AutoCreateInstance;
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             if (_operation.CanExecute(manager, slot))
             {
                 _operation.Execute(manager, slot);

@@ -39,8 +39,8 @@ namespace DragAndDropSystem.Filter
         private bool _isFilterActive;
 
         private Predicate<IItemAdapter> _currentFilter;
-        private Comparison<ISlot> _currentSort;
-        private List<ISlot> _filteredSlots = new List<ISlot>();
+        private Comparison<BaseSlot> _currentSort;
+        private List<BaseSlot> _filteredSlots = new List<BaseSlot>();
         private FilterPreset _activeFilterPreset;
         private SortPreset _activeSortPreset;
 
@@ -298,7 +298,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Установить кастомную сортировку
         /// </summary>
-        public void SetCustomSort(Comparison<ISlot> comparison)
+        public void SetCustomSort(Comparison<BaseSlot> comparison)
         {
             _sortMode = SortMode.Custom;
             _currentSort = comparison;
@@ -367,10 +367,10 @@ namespace DragAndDropSystem.Filter
             OnFilterChanged?.Invoke();
         }
 
-        private bool EvaluateSlot(ISlot slot)
+        private bool EvaluateSlot(BaseSlot baseSlot)
         {
             // Пустые слоты
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
             {
                 return !_hideEmptySlots && !_isFilterActive;
             }
@@ -382,12 +382,12 @@ namespace DragAndDropSystem.Filter
             }
 
             // Применяем фильтр к предмету
-            return _currentFilter(slot.Stack.PrimaryAdapter);
+            return _currentFilter(baseSlot.Stack.PrimaryAdapter);
         }
 
-        private void ApplyVisualChanges(IReadOnlyList<ISlot> allSlots)
+        private void ApplyVisualChanges(IReadOnlyList<BaseSlot> allSlots)
         {
-            var filteredSet = new HashSet<ISlot>(_filteredSlots);
+            var filteredSet = new HashSet<BaseSlot>(_filteredSlots);
 
             switch (_filterDisplayMode)
             {
@@ -405,7 +405,7 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private void ApplyHideMode(IReadOnlyList<ISlot> allSlots, HashSet<ISlot> visibleSlots)
+        private void ApplyHideMode(IReadOnlyList<BaseSlot> allSlots, HashSet<BaseSlot> visibleSlots)
         {
             int siblingIndex = 0;
 
@@ -428,7 +428,7 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private void ApplyDimMode(IReadOnlyList<ISlot> allSlots, HashSet<ISlot> visibleSlots)
+        private void ApplyDimMode(IReadOnlyList<BaseSlot> allSlots, HashSet<BaseSlot> visibleSlots)
         {
             int siblingIndex = 0;
 
@@ -452,7 +452,7 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private void ApplyMoveToEndMode(IReadOnlyList<ISlot> allSlots, HashSet<ISlot> visibleSlots)
+        private void ApplyMoveToEndMode(IReadOnlyList<BaseSlot> allSlots, HashSet<BaseSlot> visibleSlots)
         {
             int siblingIndex = 0;
 
@@ -476,7 +476,7 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private Comparison<ISlot> CreateSortComparison(SortMode mode, bool ascending)
+        private Comparison<BaseSlot> CreateSortComparison(SortMode mode, bool ascending)
         {
             int direction = ascending ? 1 : -1;
 
@@ -536,34 +536,34 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private string GetCategory(ISlot slot)
+        private string GetCategory(BaseSlot baseSlot)
         {
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return "";
 
-            if (slot.Stack.PrimaryAdapter is IFilterable filterable)
+            if (baseSlot.Stack.PrimaryAdapter is IFilterable filterable)
                 return filterable.Category ?? "";
 
             return "";
         }
 
-        private int GetRarity(ISlot slot)
+        private int GetRarity(BaseSlot baseSlot)
         {
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return -1;
 
-            if (slot.Stack.PrimaryAdapter is IFilterable filterable)
+            if (baseSlot.Stack.PrimaryAdapter is IFilterable filterable)
                 return filterable.Rarity;
 
             return 0;
         }
 
-        private int GetSortValue(ISlot slot)
+        private int GetSortValue(BaseSlot baseSlot)
         {
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return int.MinValue;
 
-            if (slot.Stack.PrimaryAdapter is ISortable sortable)
+            if (baseSlot.Stack.PrimaryAdapter is ISortable sortable)
                 return sortable.SortValue;
 
             return 0;
@@ -572,7 +572,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Получить список видимых (прошедших фильтр) слотов
         /// </summary>
-        public IReadOnlyList<ISlot> GetVisibleSlots()
+        public IReadOnlyList<BaseSlot> GetVisibleSlots()
         {
             return _filteredSlots.AsReadOnly();
         }
@@ -580,9 +580,9 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Проверить, виден ли слот (проходит фильтр)
         /// </summary>
-        public bool IsSlotVisible(ISlot slot)
+        public bool IsSlotVisible(BaseSlot baseSlot)
         {
-            return _filteredSlots.Contains(slot);
+            return _filteredSlots.Contains(baseSlot);
         }
 
 #if UNITY_EDITOR

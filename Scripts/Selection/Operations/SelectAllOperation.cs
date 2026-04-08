@@ -17,9 +17,9 @@ namespace DragAndDropSystem.Selection
 
         public override string DisplayName => "Select All";
 
-        public override void Execute(SelectionManager manager, ISlot contextSlot = null)
+        public override void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null)
         {
-            IInventory target = _inventory != null ? _inventory : contextSlot?.Inventory;
+            IInventory target = _inventory != null ? _inventory : contextBaseSlot?.Inventory;
             if (target == null) return;
 
             if (_clearFirst)
@@ -28,8 +28,8 @@ namespace DragAndDropSystem.Selection
             manager.SelectAll(target);
         }
 
-        public override bool CanExecute(SelectionManager manager, ISlot contextSlot = null)
-            => base.CanExecute(manager, contextSlot)
-               && (_inventory != null || contextSlot?.Inventory != null);
+        public override bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
+            => base.CanExecute(manager, contextBaseSlot)
+               && (_inventory != null || contextBaseSlot?.Inventory != null);
     }
 }

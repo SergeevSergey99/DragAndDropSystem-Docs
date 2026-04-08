@@ -99,18 +99,18 @@ namespace DragAndDropSystem.UI
             _hasPendingDropPosition = false;
         }
 
-        private void HandleSlotCreated(ISlot slot)
+        private void HandleSlotCreated(BaseSlot baseSlot)
         {
             if (_containerRect == null)
                 CacheContainerRect();
 
             if (_hasPendingDropPosition)
             {
-                PositionSlotAtScreenPoint(slot, _pendingDropScreenPosition);
+                PositionSlotAtScreenPoint(baseSlot, _pendingDropScreenPosition);
             }
             else
             {
-                PositionSlotInAutoLayout(slot);
+                PositionSlotInAutoLayout(baseSlot);
             }
         }
 
@@ -118,9 +118,9 @@ namespace DragAndDropSystem.UI
         //  Drop positioning
         // ══════════════════════════════════════════════════════════
 
-        private void PositionSlotAtScreenPoint(ISlot slot, Vector2 screenPos)
+        private void PositionSlotAtScreenPoint(BaseSlot baseSlot, Vector2 screenPos)
         {
-            var slotRect = slot.Transform as RectTransform;
+            var slotRect = baseSlot.Transform as RectTransform;
             if (slotRect == null || _containerRect == null)
                 return;
 
@@ -173,19 +173,19 @@ namespace DragAndDropSystem.UI
             }
         }
 
-        private void PositionSlotInAutoLayout(ISlot slot)
+        private void PositionSlotInAutoLayout(BaseSlot baseSlot)
         {
-            var slotRect = slot.Transform as RectTransform;
+            var slotRect = baseSlot.Transform as RectTransform;
             if (slotRect == null || _containerRect == null)
                 return;
 
-            var slotSize = GetSlotSize(slot);
+            var slotSize = GetSlotSize(baseSlot);
             var bounds = GetBoundsRect();
             float cellW = slotSize.x + _slotSpacing;
             float cellH = slotSize.y + _slotSpacing;
 
             int columns = Mathf.Max(1, Mathf.FloorToInt(bounds.width / cellW));
-            int index = slot.Index;
+            int index = baseSlot.Index;
 
             int col = index % columns;
             int row = index / columns;
@@ -253,9 +253,9 @@ namespace DragAndDropSystem.UI
         /// Установить позицию слота в локальных координатах контейнера.
         /// Удобно для ручного восстановления позиций из persistence.
         /// </summary>
-        public void SetSlotPosition(ISlot slot, Vector2 localPosition)
+        public void SetSlotPosition(BaseSlot baseSlot, Vector2 localPosition)
         {
-            var slotRect = slot?.Transform as RectTransform;
+            var slotRect = baseSlot?.Transform as RectTransform;
             if (slotRect == null)
                 return;
 
@@ -266,9 +266,9 @@ namespace DragAndDropSystem.UI
         /// Получить нормализованную позицию слота (0..1, 0..1) относительно контейнера.
         /// Полезно для persistence — сохранение позиции независимо от размера контейнера.
         /// </summary>
-        public Vector2 GetNormalizedPosition(ISlot slot)
+        public Vector2 GetNormalizedPosition(BaseSlot baseSlot)
         {
-            var slotRect = slot?.Transform as RectTransform;
+            var slotRect = baseSlot?.Transform as RectTransform;
             if (slotRect == null || _containerRect == null)
                 return Vector2.zero;
 
@@ -305,9 +305,9 @@ namespace DragAndDropSystem.UI
             _containerRect = container as RectTransform;
         }
 
-        private static Vector2 GetSlotSize(ISlot slot)
+        private static Vector2 GetSlotSize(BaseSlot baseSlot)
         {
-            var rt = slot?.Transform as RectTransform;
+            var rt = baseSlot?.Transform as RectTransform;
             return rt != null ? rt.rect.size : new Vector2(64, 64);
         }
     }

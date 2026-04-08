@@ -9,7 +9,7 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public interface IInventoryQueryStrategy
     {
-        int GetItemCount(List<ISlot> slots, IItemAdapter itemAdapter);
-        bool Contains(List<ISlot> slots, IItemAdapter itemAdapter);
+        int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter);
+        bool Contains(List<BaseSlot> slots, IItemAdapter itemAdapter);
     }
 }

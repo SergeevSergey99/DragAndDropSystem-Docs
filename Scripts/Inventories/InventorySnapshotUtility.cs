@@ -8,37 +8,37 @@ namespace DragAndDropSystem.Inventories
     /// </summary>
     public static class InventorySnapshotUtility
     {
-        public static InventorySlotState CaptureSlotState(ISlot slot)
+        public static InventorySlotState CaptureSlotState(BaseSlot baseSlot)
         {
-            if (slot == null || slot.IsEmpty)
+            if (baseSlot == null || baseSlot.IsEmpty)
                 return new InventorySlotState(null);
 
-            return new InventorySlotState(slot.Stack.Adapters);
+            return new InventorySlotState(baseSlot.Stack.Adapters);
         }
 
-        public static void RestoreSlotState(ISlot slot, InventorySlotState state)
+        public static void RestoreSlotState(BaseSlot baseSlot, InventorySlotState state)
         {
-            if (slot == null)
+            if (baseSlot == null)
                 return;
 
             if (state.IsEmpty)
             {
-                slot.Clear();
+                baseSlot.Clear();
             }
             else
             {
                 if (ItemStack.TryCreate(state.Adapters, out var restoredStack))
-                    slot.SetStack(restoredStack);
+                    baseSlot.SetStack(restoredStack);
             }
 
-            slot.UpdateVisuals();
+            baseSlot.UpdateVisuals();
         }
 
         public static void RestoreInventorySnapshot(
             IInventory inventory,
             IInventorySnapshotProvider provider,
             InventorySnapshot snapshot,
-            ISlot fallbackSlot,
+            BaseSlot fallbackBaseSlot,
             InventorySlotState fallbackState)
         {
             if (inventory == null)
@@ -49,19 +49,19 @@ namespace DragAndDropSystem.Inventories
                 provider.RestoreSnapshot(snapshot);
                 inventory.UpdateAllVisuals();
             }
-            else if (fallbackSlot != null)
+            else if (fallbackBaseSlot != null)
             {
-                RestoreSlotState(fallbackSlot, fallbackState);
+                RestoreSlotState(fallbackBaseSlot, fallbackState);
             }
         }
 
         public static bool TryResolveSlotChange(
             IInventory inventory,
             InventorySnapshot snapshot,
-            out ISlot changedSlot,
+            out BaseSlot changedBaseSlot,
             out bool wasEmptyBefore)
         {
-            changedSlot = null;
+            changedBaseSlot = null;
             wasEmptyBefore = false;
 
             if (inventory == null || snapshot == null)
@@ -72,7 +72,7 @@ namespace DragAndDropSystem.Inventories
 
             if (slots.Count > previousCount)
             {
-                changedSlot = inventory.GetSlot(slots.Count - 1);
+                changedBaseSlot = inventory.GetSlot(slots.Count - 1);
                 wasEmptyBefore = true;
                 return true;
             }
@@ -98,7 +98,7 @@ namespace DragAndDropSystem.Inventories
 
                 if (changed)
                 {
-                    changedSlot = slot;
+                    changedBaseSlot = slot;
                     wasEmptyBefore = prevEmpty;
                     return true;
                 }

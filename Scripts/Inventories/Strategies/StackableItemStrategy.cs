@@ -22,7 +22,7 @@ namespace DragAndDropSystem.Inventories
             _allowItemOverride = allowItemOverride;
         }
 
-        public override bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
+        public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -126,7 +126,7 @@ namespace DragAndDropSystem.Inventories
             return stack.IsEmpty;
         }
 
-        public override bool TryRemove(List<ISlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
+        public override bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
         {
             int remaining = count;
 
@@ -157,31 +157,31 @@ namespace DragAndDropSystem.Inventories
             return remaining < count;
         }
 
-        public override bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, Action ensureFreeSlots, SlotOperationContext operationContext)
+        public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, Action ensureFreeSlots, SlotOperationContext operationContext)
         {
-            if (stack == null || stack.IsEmpty || targetSlot == null)
+            if (stack == null || stack.IsEmpty || targetBaseSlot == null)
                 return false;
 
             int maxSize = GetMaxStackSize(stack.PrimaryAdapter, _defaultMaxStackSize, _allowItemOverride);
 
-            if (!targetSlot.IsEmpty)
+            if (!targetBaseSlot.IsEmpty)
             {
-                if (!targetSlot.Stack.CanStack(stack.PrimaryAdapter))
+                if (!targetBaseSlot.Stack.CanStack(stack.PrimaryAdapter))
                     return false;
 
-                int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
+                int canFit = Math.Max(0, maxSize - targetBaseSlot.Stack.Count);
                 int toAdd = Math.Min(stack.Count, canFit);
-                if (toAdd <= 0 || !PassesRules(targetSlot, stack.PrimaryAdapter, toAdd))
+                if (toAdd <= 0 || !PassesRules(targetBaseSlot, stack.PrimaryAdapter, toAdd))
                     return false;
 
-                return TryMergeIntoSlot(stack, targetSlot, maxSize, ensureFreeSlots, operationContext);
+                return TryMergeIntoSlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
             }
 
             if (_autoMergeOnDrop)
             {
                 foreach (var slot in slots)
                 {
-                    if (slot == targetSlot || slot.IsEmpty || !slot.Stack.CanStack(stack.PrimaryAdapter))
+                    if (slot == targetBaseSlot || slot.IsEmpty || !slot.Stack.CanStack(stack.PrimaryAdapter))
                         continue;
 
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
@@ -193,30 +193,30 @@ namespace DragAndDropSystem.Inventories
                 }
             }
 
-            if (!PassesRules(targetSlot, stack.PrimaryAdapter, Math.Min(stack.Count, maxSize)))
+            if (!PassesRules(targetBaseSlot, stack.PrimaryAdapter, Math.Min(stack.Count, maxSize)))
                 return false;
 
-            return TryPlaceIntoEmptySlot(stack, targetSlot, maxSize, ensureFreeSlots, operationContext);
+            return TryPlaceIntoEmptySlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
         }
 
-        public override bool CanUseAlternativeSlot(ISlot slot, IItemAdapter itemAdapter)
+        public override bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
-            if (slot == null || itemAdapter == null)
+            if (baseSlot == null || itemAdapter == null)
                 return false;
 
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return true;
 
-            if (slot.Stack == null || !slot.Stack.CanStack(itemAdapter))
+            if (baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
                 return false;
 
             int maxSize = GetMaxStackSize(itemAdapter, _defaultMaxStackSize, _allowItemOverride);
-            return slot.Stack.Count < maxSize;
+            return baseSlot.Stack.Count < maxSize;
         }
 
-        public override bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        public override bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
         {
-            suggestedSlot = null;
+            suggestedBaseSlot = null;
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
@@ -231,24 +231,24 @@ namespace DragAndDropSystem.Inventories
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                     if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))
                     {
-                        suggestedSlot = slot;
+                        suggestedBaseSlot = slot;
                         return true;
                     }
                 }
 
-                if (slot.IsEmpty && suggestedSlot == null && PassesRules(slot, item, Math.Min(desiredCount, maxSize), request))
+                if (slot.IsEmpty && suggestedBaseSlot == null && PassesRules(slot, item, Math.Min(desiredCount, maxSize), request))
                 {
-                    suggestedSlot = slot;
+                    suggestedBaseSlot = slot;
                 }
             }
 
-            if (suggestedSlot != null)
+            if (suggestedBaseSlot != null)
                 return true;
 
-            return canCreateNewSlot && PrefabPassesRules(slots, slotPrefab, item, Math.Min(desiredCount, maxSize), request);
+            return canCreateNewSlot && PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request);
         }
 
-        public override int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
@@ -277,7 +277,7 @@ namespace DragAndDropSystem.Inventories
 
             if (canCreateNewSlot && totalCapacity < desiredCount)
             {
-                if (PrefabPassesRules(slots, slotPrefab, item, Math.Min(desiredCount, maxSize), request))
+                if (PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request))
                     totalCapacity = AddSlotCapacity(totalCapacity, maxSize, Math.Max(1, potentialNewSlots), desiredCount);
             }
 

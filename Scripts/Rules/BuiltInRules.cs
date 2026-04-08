@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Rules
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // Для batch TargetSlot — UI-хинт, не реальная цель entry; slot-валидация выполняется execution pipeline
-            if (!context.IsBatchDrag && entry.SourceSlot == context.TargetSlot)
+            if (!context.IsBatchDrag && entry.SourceBaseSlot == context.TargetBaseSlot)
                 return RuleResult.Failure("Cannot drop to the same slot");
 
             return RuleResult.Success();

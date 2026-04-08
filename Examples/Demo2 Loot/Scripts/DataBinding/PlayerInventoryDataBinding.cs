@@ -34,7 +34,7 @@ namespace DragAndDropSystem.Examples.Loot
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // Получаем индекс слота, на который пытаются сбросить предмет
-            int targetIndex = context.TargetSlot.Index;
+            int targetIndex = context.TargetBaseSlot.Index;
 
             // Проверяем, занят ли этот слот
             if (_playerData.GetItem(targetIndex) != null)

@@ -11,9 +11,9 @@ namespace DragAndDropSystem.Selection
     {
         public override string DisplayName => "Clear And Select";
 
-        public override void Execute(SelectionManager manager, ISlot contextSlot = null)
+        public override void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null)
         {
-            if (contextSlot == null)
+            if (contextBaseSlot == null)
             {
                 manager.Clear();
                 return;
@@ -21,7 +21,7 @@ namespace DragAndDropSystem.Selection
 
             // Если этот слот уже единственный выделенный — снимаем
             bool isOnlySelected = manager.CurrentContext.TotalSlotsCount == 1
-                                  && manager.IsSelected(contextSlot);
+                                  && manager.IsSelected(contextBaseSlot);
             if (isOnlySelected)
             {
                 manager.Clear();
@@ -29,10 +29,10 @@ namespace DragAndDropSystem.Selection
             }
 
             manager.Clear();
-            manager.Select(contextSlot);
+            manager.Select(contextBaseSlot);
         }
 
-        public override bool CanExecute(SelectionManager manager, ISlot contextSlot = null)
-            => base.CanExecute(manager, contextSlot);
+        public override bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
+            => base.CanExecute(manager, contextBaseSlot);
     }
 }

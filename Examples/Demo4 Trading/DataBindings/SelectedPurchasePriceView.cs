@@ -62,13 +62,13 @@ namespace DragAndDropSystem.Examples.Trading
             return total;
         }
 
-        private static int GetSlotPurchasePrice(ISlot slot)
+        private static int GetSlotPurchasePrice(BaseSlot baseSlot)
         {
-            if (slot == null || slot.IsEmpty || slot.Stack == null || slot.Stack.PrimaryAdapter == null)
+            if (baseSlot == null || baseSlot.IsEmpty || baseSlot.Stack == null || baseSlot.Stack.PrimaryAdapter == null)
                 return 0;
 
             int unitPrice = 0;
-            if (slot.Stack.PrimaryAdapter is ITradableItem tradable)
+            if (baseSlot.Stack.PrimaryAdapter is ITradableItem tradable)
             {
                 unitPrice = tradable.BuyPrice;
             }
@@ -76,7 +76,7 @@ namespace DragAndDropSystem.Examples.Trading
             if (unitPrice <= 0)
                 return 0;
 
-            return unitPrice * slot.Stack.Count;
+            return unitPrice * baseSlot.Stack.Count;
         }
 
         private void UpdateText(int totalPrice)

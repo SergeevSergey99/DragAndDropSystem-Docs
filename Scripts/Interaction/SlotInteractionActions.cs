@@ -36,7 +36,7 @@ namespace DragAndDropSystem.Interaction
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return true;
 
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
@@ -48,7 +48,7 @@ namespace DragAndDropSystem.Interaction
                 return ActionResult.Succeeded();
             }
 
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
@@ -112,7 +112,7 @@ namespace DragAndDropSystem.Interaction
             if (_sceneAction == null || inventory == null)
                 return false;
 
-            var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
+            var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
             return _sceneAction.CanExecute(inventory, slot);
         }
 
@@ -121,7 +121,7 @@ namespace DragAndDropSystem.Interaction
             if (_sceneAction == null || inventory == null)
                 return ActionResult.Failed("Inventory action is not configured");
 
-            var slot = adapter?.Slot ?? inventory.ResolveAutoTransferSlot();
+            var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
             if (!_sceneAction.CanExecute(inventory, slot))
                 return ActionResult.Failed("Inventory action cannot execute");
 

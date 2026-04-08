@@ -27,7 +27,7 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// The slot where items were placed (null for world drops or area drops)
         /// </summary>
-        public ISlot TargetSlot { get; }
+        public BaseSlot TargetBaseSlot { get; }
 
         /// <summary>
         /// The inventory where items were placed (null for world drops)
@@ -63,7 +63,7 @@ namespace DragAndDropSystem.Core
             bool success,
             IItemAdapter itemAdapter,
             int amount,
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             IInventory targetInventory,
             string failureReason,
             bool isPartialTransfer,
@@ -74,7 +74,7 @@ namespace DragAndDropSystem.Core
             Success = success;
             ItemAdapter = itemAdapter;
             Amount = amount;
-            TargetSlot = targetSlot;
+            TargetBaseSlot = targetBaseSlot;
             TargetInventory = targetInventory;
             FailureReason = failureReason;
             IsPartialTransfer = isPartialTransfer;
@@ -89,7 +89,7 @@ namespace DragAndDropSystem.Core
         public static DropResult Succeeded(
             IItemAdapter itemAdapter,
             int amount,
-            ISlot targetSlot = null,
+            BaseSlot targetBaseSlot = null,
             IInventory targetInventory = null,
             bool isPartialTransfer = false,
             int remainingInSource = 0,
@@ -100,7 +100,7 @@ namespace DragAndDropSystem.Core
                 success: true,
                 itemAdapter: itemAdapter,
                 amount: amount,
-                targetSlot: targetSlot,
+                targetBaseSlot: targetBaseSlot,
                 targetInventory: targetInventory,
                 failureReason: null,
                 isPartialTransfer: isPartialTransfer,
@@ -118,7 +118,7 @@ namespace DragAndDropSystem.Core
                 success: false,
                 itemAdapter: null,
                 amount: 0,
-                targetSlot: null,
+                targetBaseSlot: null,
                 targetInventory: null,
                 failureReason: reason,
                 isPartialTransfer: false,
@@ -133,7 +133,7 @@ namespace DragAndDropSystem.Core
         public static DropResult SucceededBatch(
             IItemAdapter itemAdapter,
             int amount,
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             IInventory targetInventory,
             int succeededEntries,
             int failedEntries,
@@ -144,7 +144,7 @@ namespace DragAndDropSystem.Core
                 success: true,
                 itemAdapter: itemAdapter,
                 amount: amount,
-                targetSlot: targetSlot,
+                targetBaseSlot: targetBaseSlot,
                 targetInventory: targetInventory,
                 failureReason: null,
                 isPartialTransfer: isPartialTransfer,
@@ -165,7 +165,7 @@ namespace DragAndDropSystem.Core
                 success: false,
                 itemAdapter: null,
                 amount: 0,
-                targetSlot: null,
+                targetBaseSlot: null,
                 targetInventory: null,
                 failureReason: reason,
                 isPartialTransfer: false,

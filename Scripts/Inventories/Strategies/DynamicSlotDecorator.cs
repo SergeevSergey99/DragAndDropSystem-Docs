@@ -12,18 +12,18 @@ namespace DragAndDropSystem.Inventories
     public class DynamicSlotDecorator : IInventoryStrategy
     {
         private readonly IInventoryStrategy _baseStrategy;
-        private readonly System.Func<ISlot> _createSlotFunc;
+        private readonly System.Func<BaseSlot> _createSlotFunc;
         private readonly int _maxSlots;
         private readonly int _maxFreeSlots;
-        private readonly System.Func<List<ISlot>> _getSlotsFunc;
+        private readonly System.Func<List<BaseSlot>> _getSlotsFunc;
         private readonly System.Action _ensureFreeSlotsFunc;
 
         public DynamicSlotDecorator(
             IInventoryStrategy baseStrategy,
-            System.Func<ISlot> createSlotFunc,
+            System.Func<BaseSlot> createSlotFunc,
             int maxSlots = 100,
             int maxFreeSlots = 1,
-            System.Func<List<ISlot>> getSlotsFunc = null,
+            System.Func<List<BaseSlot>> getSlotsFunc = null,
             System.Action ensureFreeSlotsFunc = null)
         {
             _baseStrategy = baseStrategy;
@@ -34,9 +34,9 @@ namespace DragAndDropSystem.Inventories
             _ensureFreeSlotsFunc = ensureFreeSlotsFunc;
         }
 
-        public bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
+        public bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
 
-        public bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
+        public bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -108,7 +108,7 @@ namespace DragAndDropSystem.Inventories
             return stack.Count == 0;
         }
 
-        public bool TryRemove(List<ISlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
+        public bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
         {
             bool removed = _baseStrategy.TryRemove(slots, itemAdapter, count, sourceIndex);
 
@@ -121,12 +121,12 @@ namespace DragAndDropSystem.Inventories
             return removed;
         }
 
-        public int GetItemCount(List<ISlot> slots, IItemAdapter itemAdapter)
+        public int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
             return _baseStrategy.GetItemCount(slots, itemAdapter);
         }
 
-        public bool Contains(List<ISlot> slots, IItemAdapter itemAdapter)
+        public bool Contains(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
             return _baseStrategy.Contains(slots, itemAdapter);
         }
@@ -143,29 +143,29 @@ namespace DragAndDropSystem.Inventories
 
         public bool UsesPerItemSlotPlanning => _baseStrategy.UsesPerItemSlotPlanning;
 
-        public bool CanUseAlternativeSlot(ISlot slot, IItemAdapter itemAdapter)
+        public bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.CanUseAlternativeSlot(slot, itemAdapter);
+            return _baseStrategy.CanUseAlternativeSlot(baseSlot, itemAdapter);
         }
 
-        public IEnumerable<ISlot> EnumerateAlternativeSlots(List<ISlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, ISlot excludeSlot)
+        public IEnumerable<BaseSlot> EnumerateAlternativeSlots(List<BaseSlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, BaseSlot excludeBaseSlot)
         {
-            return _baseStrategy.EnumerateAlternativeSlots(slots, itemAdapter, mode, excludeSlot);
+            return _baseStrategy.EnumerateAlternativeSlots(slots, itemAdapter, mode, excludeBaseSlot);
         }
 
-        public bool TryAddToSlot(List<ISlot> slots, ItemStack stack, ISlot targetSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+        public bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {
-            return _baseStrategy.TryAddToSlot(slots, stack, targetSlot, ensureFreeSlots, operationContext);
+            return _baseStrategy.TryAddToSlot(slots, stack, targetBaseSlot, ensureFreeSlots, operationContext);
         }
 
-        public bool CanAcceptItem(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab, out ISlot suggestedSlot)
+        public bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
         {
-            return _baseStrategy.CanAcceptItem(slots, request, canCreateNewSlot, potentialNewSlots, slotPrefab, out suggestedSlot);
+            return _baseStrategy.CanAcceptItem(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
         }
 
-        public int GetAcceptableCount(List<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, ISlot slotPrefab)
+        public int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
-            return _baseStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, slotPrefab);
+            return _baseStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
         }
 
         public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)

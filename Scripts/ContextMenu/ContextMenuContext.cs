@@ -11,7 +11,7 @@ namespace DragAndDropSystem.ContextMenu
         public Inventories.UniversalInventory Inventory;
 
         /// <summary>Слот, на котором кликнули (может быть null).</summary>
-        public ISlot Slot;
+        public BaseSlot BaseSlot;
 
         /// <summary>Предмет в слоте. null если слот пустой.</summary>
         public IItemAdapter ItemAdapter;

@@ -21,7 +21,7 @@ namespace DragAndDropSystem.ContextMenu.UI
             gameObject.SetActive(true);
             try
             {
-                label.text = ctx.Slot.Stack.DisplayName;
+                label.text = ctx.BaseSlot.Stack.DisplayName;
                 label.gameObject.SetActive(true);
             }
             catch (Exception)
@@ -48,7 +48,7 @@ namespace DragAndDropSystem.ContextMenu.UI
                 }
             }
             
-            slotInputAdapter = ctx.Slot.GetComponent<SlotInputAdapter>();
+            slotInputAdapter = ctx.BaseSlot.GetComponent<SlotInputAdapter>();
             if (slotInputAdapter != null)
             {
                 lastSlotNavigation = slotInputAdapter.navigation;
@@ -105,7 +105,7 @@ namespace DragAndDropSystem.ContextMenu.UI
             Camera targetCamera = GetCanvasCamera(rt);
             Vector2 fallbackScreenPos = ctx.ScreenPosition;
 
-            if (!TryGetSlotBoundsInParent(ctx.Slot?.transform as RectTransform, parentRT, targetCamera, out var slotCenterLocal, out float halfSlotWidthLocal, out var slotCenterScreenPos))
+            if (!TryGetSlotBoundsInParent(ctx.BaseSlot?.transform as RectTransform, parentRT, targetCamera, out var slotCenterLocal, out float halfSlotWidthLocal, out var slotCenterScreenPos))
             {
                 slotCenterScreenPos = fallbackScreenPos;
                 if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRT, fallbackScreenPos, targetCamera, out slotCenterLocal))

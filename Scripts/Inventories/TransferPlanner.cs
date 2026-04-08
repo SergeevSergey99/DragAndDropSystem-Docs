@@ -33,13 +33,13 @@ namespace DragAndDropSystem.Inventories
 
     public readonly struct PlannedSlotAllocation
     {
-        public PlannedSlotAllocation(ISlot slot, int amount)
+        public PlannedSlotAllocation(BaseSlot baseSlot, int amount)
         {
-            Slot = slot;
+            BaseSlot = baseSlot;
             Amount = amount;
         }
 
-        public ISlot Slot { get; }
+        public BaseSlot BaseSlot { get; }
         public int Amount { get; }
     }
 
@@ -76,10 +76,10 @@ namespace DragAndDropSystem.Inventories
             IReadOnlyList<PlannedSlotAllocation> allocations,
             string failureReason = null,
             bool requiresSwap = false,
-            ISlot swapTargetSlot = null,
+            BaseSlot swapTargetBaseSlot = null,
             IItemAdapter previewTargetItemAdapter = null,
             bool requiresOccupiedHandler = false,
-            ISlot occupiedTargetSlot = null,
+            BaseSlot occupiedTargetBaseSlot = null,
             PlannedSwapData swapData = null)
         {
             Entry = entry;
@@ -88,10 +88,10 @@ namespace DragAndDropSystem.Inventories
             Allocations = allocations;
             FailureReason = failureReason;
             RequiresSwap = requiresSwap;
-            SwapTargetSlot = swapTargetSlot;
+            SwapTargetBaseSlot = swapTargetBaseSlot;
             PreviewTargetItemAdapter = previewTargetItemAdapter ?? entry.Stack?.PrimaryAdapter;
             RequiresOccupiedHandler = requiresOccupiedHandler;
-            OccupiedTargetSlot = occupiedTargetSlot;
+            OccupiedTargetBaseSlot = occupiedTargetBaseSlot;
             SwapData = swapData;
         }
 
@@ -101,10 +101,10 @@ namespace DragAndDropSystem.Inventories
         public IReadOnlyList<PlannedSlotAllocation> Allocations { get; }
         public string FailureReason { get; }
         public bool RequiresSwap { get; }
-        public ISlot SwapTargetSlot { get; }
+        public BaseSlot SwapTargetBaseSlot { get; }
         public IItemAdapter PreviewTargetItemAdapter { get; }
         public bool RequiresOccupiedHandler { get; }
-        public ISlot OccupiedTargetSlot { get; }
+        public BaseSlot OccupiedTargetBaseSlot { get; }
         public PlannedSwapData SwapData { get; }
         public bool IsPlanned => RequiresSwap || RequiresOccupiedHandler || (PlannedAmount > 0 && Allocations.Count > 0);
         public bool IsPartial => PlannedAmount > 0 && PlannedAmount < RequestedAmount;
@@ -116,14 +116,14 @@ namespace DragAndDropSystem.Inventories
             bool isValid,
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             IReadOnlyList<PlannedEntryTransfer> entries,
             PlanFailure failure = null)
         {
             IsValid = isValid;
             Policy = policy;
             TargetInventory = targetInventory;
-            TargetSlotHint = targetSlotHint;
+            TargetBaseSlotHint = targetBaseSlotHint;
             Entries = entries ?? new List<PlannedEntryTransfer>();
             Failure = failure;
         }
@@ -131,7 +131,7 @@ namespace DragAndDropSystem.Inventories
         public bool IsValid { get; }
         public ResolvedDropPolicy Policy { get; }
         public IInventory TargetInventory { get; }
-        public ISlot TargetSlotHint { get; }
+        public BaseSlot TargetBaseSlotHint { get; }
         public IReadOnlyList<PlannedEntryTransfer> Entries { get; }
         public PlanFailure Failure { get; }
 
@@ -161,24 +161,24 @@ namespace DragAndDropSystem.Inventories
             DragContext context,
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             GlobalRuleValidator globalRules = null)
         {
             if (context == null || context.Entries == null || context.Entries.Count == 0)
             {
-                return Fail(policy, targetInventory, targetSlotHint, TransferPlanFailureCode.InvalidContext, "Drag context is empty");
+                return Fail(policy, targetInventory, targetBaseSlotHint, TransferPlanFailureCode.InvalidContext, "Drag context is empty");
             }
 
             if (targetInventory == null)
             {
-                return Fail(policy, targetInventory, targetSlotHint, TransferPlanFailureCode.InvalidTargetInventory, "Target inventory is null");
+                return Fail(policy, targetInventory, targetBaseSlotHint, TransferPlanFailureCode.InvalidTargetInventory, "Target inventory is null");
             }
 
             bool hasExistingSlots = targetInventory.Slots != null && targetInventory.Slots.Count > 0;
-            bool canDeferSlotResolution = !hasExistingSlots && targetSlotHint == null;
+            bool canDeferSlotResolution = !hasExistingSlots && targetBaseSlotHint == null;
             if (!hasExistingSlots && !canDeferSlotResolution)
             {
-                return Fail(policy, targetInventory, targetSlotHint, TransferPlanFailureCode.NoTargetSlots, "Target inventory has no slots");
+                return Fail(policy, targetInventory, targetBaseSlotHint, TransferPlanFailureCode.NoTargetSlots, "Target inventory has no slots");
             }
 
             var virtualSlots = BuildVirtualSlots(targetInventory);
@@ -200,7 +200,7 @@ namespace DragAndDropSystem.Inventories
                         return Fail(
                             policy,
                             targetInventory,
-                            targetSlotHint,
+                            targetBaseSlotHint,
                             TransferPlanFailureCode.StrictTargetRejected,
                             startValidation.FailureReason,
                             entry);
@@ -214,7 +214,7 @@ namespace DragAndDropSystem.Inventories
                     entry,
                     policy,
                     targetInventory,
-                    targetSlotHint,
+                    targetBaseSlotHint,
                     isFirstEntry,
                     virtualSlots,
                     globalRules);
@@ -228,7 +228,7 @@ namespace DragAndDropSystem.Inventories
                         return Fail(
                             policy,
                             targetInventory,
-                            targetSlotHint,
+                            targetBaseSlotHint,
                             TransferPlanFailureCode.NotEnoughCapacity,
                             planned.FailureReason ?? "Entry cannot be placed",
                             entry);
@@ -242,7 +242,7 @@ namespace DragAndDropSystem.Inventories
                     return Fail(
                         policy,
                         targetInventory,
-                        targetSlotHint,
+                        targetBaseSlotHint,
                         TransferPlanFailureCode.NotEnoughCapacity,
                         "Partial planning is not allowed by policy",
                         entry);
@@ -253,7 +253,7 @@ namespace DragAndDropSystem.Inventories
                 isValid: true,
                 policy: policy,
                 targetInventory: targetInventory,
-                targetSlotHint: targetSlotHint,
+                targetBaseSlotHint: targetBaseSlotHint,
                 entries: plannedEntries);
 
             if (!plan.HasAnyTransfer)
@@ -261,7 +261,7 @@ namespace DragAndDropSystem.Inventories
                 return Fail(
                     policy,
                     targetInventory,
-                    targetSlotHint,
+                    targetBaseSlotHint,
                     TransferPlanFailureCode.NotEnoughCapacity,
                     "No entries could be planned");
             }
@@ -274,12 +274,12 @@ namespace DragAndDropSystem.Inventories
             DragEntry entry,
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             bool isFirstEntry,
             IReadOnlyList<VirtualSlotState> virtualSlots,
             GlobalRuleValidator globalRules)
         {
-            if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null || entry.Stack.IsEmpty)
+            if (entry.SourceInventory == null || entry.SourceBaseSlot == null || entry.Stack == null || entry.Stack.IsEmpty)
             {
                 return new PlannedEntryTransfer(entry, 0, 0, EmptyAllocations, "Invalid source entry");
             }
@@ -297,7 +297,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             if (isFirstEntry &&
-                targetSlotHint != null &&
+                targetBaseSlotHint != null &&
                 policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
             {
                 return PlanHintOnlyEntry(
@@ -305,7 +305,7 @@ namespace DragAndDropSystem.Inventories
                     entry,
                     policy,
                     targetInventory,
-                    targetSlotHint,
+                    targetBaseSlotHint,
                     virtualSlots,
                     globalRules,
                     requested,
@@ -329,8 +329,8 @@ namespace DragAndDropSystem.Inventories
                 entry,
                 policy,
                 targetInventory,
-                targetSlotHint,
-                preferHint: targetSlotHint != null && isFirstEntry,
+                targetBaseSlotHint,
+                preferHint: targetBaseSlotHint != null && isFirstEntry,
                 virtualSlots,
                 globalRules,
                 targetItem,
@@ -339,7 +339,7 @@ namespace DragAndDropSystem.Inventories
 
             // Inventory-area drop (no target slot) into dynamic inventory can start with 0 slots.
             // In this case actual slot is resolved during execution via TryAddStack/TryAddToSlot.
-            if ((operation.VirtualSlots == null || operation.VirtualSlots.Count == 0) && operation.TargetSlotHint == null)
+            if ((operation.VirtualSlots == null || operation.VirtualSlots.Count == 0) && operation.TargetBaseSlotHint == null)
             {
                 int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
@@ -372,9 +372,9 @@ namespace DragAndDropSystem.Inventories
 
             // Occupied slot handler takes priority: data binding may handle drop onto occupied slot
             // (e.g. placing item into a container). Must check before deferred allocation.
-            if (plannedAmount == 0 && isFirstEntry && targetSlotHint != null && !targetSlotHint.IsEmpty
+            if (plannedAmount == 0 && isFirstEntry && targetBaseSlotHint != null && !targetBaseSlotHint.IsEmpty
                 && targetInventory is UniversalInventory occupiedUni
-                && occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
+                && occupiedUni.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
             {
                 return new PlannedEntryTransfer(
                     entry,
@@ -383,7 +383,7 @@ namespace DragAndDropSystem.Inventories
                     EmptyAllocations,
                     previewTargetItemAdapter: targetItem,
                     requiresOccupiedHandler: true,
-                    occupiedTargetSlot: targetSlotHint);
+                    occupiedTargetBaseSlot: targetBaseSlotHint);
             }
 
             // Dynamic inventories fallback: when virtual slot allocation found nothing
@@ -411,7 +411,7 @@ namespace DragAndDropSystem.Inventories
             if (plannedAmount == 0)
             {
                 var swapPlan = TryPlanSwap(operation.Context, operation.Entry, operation.Policy,
-                    targetInventory, operation.TargetSlotHint, operation.PreferHint, globalRules, requested, targetItem);
+                    targetInventory, operation.TargetBaseSlotHint, operation.PreferHint, globalRules, requested, targetItem);
                 if (swapPlan != null)
                     return swapPlan;
 
@@ -431,7 +431,7 @@ namespace DragAndDropSystem.Inventories
             DragEntry entry,
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             IReadOnlyList<VirtualSlotState> virtualSlots,
             GlobalRuleValidator globalRules,
             int requested,
@@ -442,7 +442,7 @@ namespace DragAndDropSystem.Inventories
                 entry,
                 policy,
                 targetInventory,
-                targetSlotHint,
+                targetBaseSlotHint,
                 preferHint: true,
                 virtualSlots,
                 globalRules,
@@ -451,7 +451,7 @@ namespace DragAndDropSystem.Inventories
                 requested);
 
             IReadOnlyList<PlannedSlotAllocation> allocations = EmptyAllocations;
-            var hinted = FindVirtualSlot(targetSlotHint, virtualSlots);
+            var hinted = FindVirtualSlot(targetBaseSlotHint, virtualSlots);
             if (hinted != null)
             {
                 var hintedAllocations = new List<PlannedSlotAllocation>();
@@ -476,9 +476,9 @@ namespace DragAndDropSystem.Inventories
                 return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
             }
 
-            if (!targetSlotHint.IsEmpty &&
+            if (!targetBaseSlotHint.IsEmpty &&
                 targetInventory is UniversalInventory occupiedUni &&
-                occupiedUni.CheckOccupiedSlotDrop(entry, targetSlotHint))
+                occupiedUni.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
             {
                 return new PlannedEntryTransfer(
                     entry,
@@ -487,10 +487,10 @@ namespace DragAndDropSystem.Inventories
                     EmptyAllocations,
                     previewTargetItemAdapter: targetItem,
                     requiresOccupiedHandler: true,
-                    occupiedTargetSlot: targetSlotHint);
+                    occupiedTargetBaseSlot: targetBaseSlotHint);
             }
 
-            var swapPlan = TryPlanSwap(context, entry, policy, targetInventory, targetSlotHint, true, globalRules, requested, targetItem);
+            var swapPlan = TryPlanSwap(context, entry, policy, targetInventory, targetBaseSlotHint, true, globalRules, requested, targetItem);
             if (swapPlan != null)
                 return swapPlan;
 
@@ -549,7 +549,7 @@ namespace DragAndDropSystem.Inventories
                 if (newAmount <= 0)
                     trimmed.RemoveAt(i);
                 else
-                    trimmed[i] = new PlannedSlotAllocation(trimmed[i].Slot, newAmount);
+                    trimmed[i] = new PlannedSlotAllocation(trimmed[i].BaseSlot, newAmount);
             }
 
             allocations = trimmed;
@@ -560,10 +560,10 @@ namespace DragAndDropSystem.Inventories
             DragContext context,
             DragEntry entry,
             ResolvedDropPolicy policy,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             bool preferHint)
         {
-            if (!preferHint || targetSlotHint == null)
+            if (!preferHint || targetBaseSlotHint == null)
                 return false;
 
             if (policy.BlockedTarget != BlockedTargetBehavior.Swap)
@@ -589,9 +589,9 @@ namespace DragAndDropSystem.Inventories
             int remaining = totalToAllocate;
             bool anyPlaced = false;
 
-            if (operation.PreferHint && operation.TargetSlotHint != null)
+            if (operation.PreferHint && operation.TargetBaseSlotHint != null)
             {
-                var hinted = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
+                var hinted = FindVirtualSlot(operation.TargetBaseSlotHint, operation.VirtualSlots);
                 int placedIntoHint = TryAllocateIntoSlot(operation, hinted, remaining, allocations, uniqueMode: false);
                 if (placedIntoHint > 0)
                 {
@@ -612,7 +612,7 @@ namespace DragAndDropSystem.Inventories
             if (remaining <= 0 || !canSearchAlternatives)
                 return allocations;
 
-            ISlot excludeFromAlternatives = operation.PreferHint ? operation.TargetSlotHint : null;
+            BaseSlot excludeFromAlternatives = operation.PreferHint ? operation.TargetBaseSlotHint : null;
             var candidates = EnumerateAlternativeVirtualSlots(operation, excludeFromAlternatives);
             foreach (var candidate in candidates)
             {
@@ -639,15 +639,15 @@ namespace DragAndDropSystem.Inventories
             var allocations = new List<PlannedSlotAllocation>(desiredAmount);
 
             // Для первого entry можно попробовать попасть в слот-хинт как в приоритетную цель.
-            if (operation.PreferHint && operation.TargetSlotHint != null)
+            if (operation.PreferHint && operation.TargetBaseSlotHint != null)
             {
-                var preferred = FindVirtualSlot(operation.TargetSlotHint, operation.VirtualSlots);
+                var preferred = FindVirtualSlot(operation.TargetBaseSlotHint, operation.VirtualSlots);
                 if (preferred != null &&
                     preferred.CanAccept(operation.TargetItemAdapter, uniqueMode: true) &&
-                    IsCandidateAllowedByRules(operation, preferred.Slot, 1))
+                    IsCandidateAllowedByRules(operation, preferred.BaseSlot, 1))
                 {
                     preferred.Apply(operation.TargetItemAdapter, 1);
-                    allocations.Add(new PlannedSlotAllocation(preferred.Slot, 1));
+                    allocations.Add(new PlannedSlotAllocation(preferred.BaseSlot, 1));
                 }
                 else if (!canSearchAlternatives)
                 {
@@ -657,7 +657,7 @@ namespace DragAndDropSystem.Inventories
 
             if (allocations.Count > 0 &&
                 operation.PreferHint &&
-                operation.TargetSlotHint != null &&
+                operation.TargetBaseSlotHint != null &&
                 !canSearchAlternatives)
                 return allocations;
 
@@ -671,20 +671,20 @@ namespace DragAndDropSystem.Inventories
                     break;
 
                 slot.Apply(operation.TargetItemAdapter, 1);
-                allocations.Add(new PlannedSlotAllocation(slot.Slot, 1));
+                allocations.Add(new PlannedSlotAllocation(slot.BaseSlot, 1));
             }
 
             return allocations;
         }
 
-        private static VirtualSlotState FindVirtualSlot(ISlot slot, IReadOnlyList<VirtualSlotState> states)
+        private static VirtualSlotState FindVirtualSlot(BaseSlot baseSlot, IReadOnlyList<VirtualSlotState> states)
         {
-            if (slot == null || states == null)
+            if (baseSlot == null || states == null)
                 return null;
 
             foreach (var state in states)
             {
-                if (ReferenceEquals(state.Slot, slot))
+                if (ReferenceEquals(state.BaseSlot, baseSlot))
                     return state;
             }
 
@@ -705,11 +705,11 @@ namespace DragAndDropSystem.Inventories
             if (capacity <= 0)
                 return 0;
 
-            if (!IsCandidateAllowedByRules(operation, slot.Slot, capacity))
+            if (!IsCandidateAllowedByRules(operation, slot.BaseSlot, capacity))
                 return 0;
 
             slot.Apply(operation.TargetItemAdapter, capacity);
-            allocations.Add(new PlannedSlotAllocation(slot.Slot, capacity));
+            allocations.Add(new PlannedSlotAllocation(slot.BaseSlot, capacity));
             return capacity;
         }
 
@@ -772,10 +772,10 @@ namespace DragAndDropSystem.Inventories
             if (placementStrategy == null)
                 return true;
 
-            return placementStrategy.CanUseAlternativeSlot(slot.Slot, operation.TargetItemAdapter);
+            return placementStrategy.CanUseAlternativeSlot(slot.BaseSlot, operation.TargetItemAdapter);
         }
 
-        private IEnumerable<VirtualSlotState> EnumerateAlternativeVirtualSlots(EntryPlanningOperation operation, ISlot excludeSlot)
+        private IEnumerable<VirtualSlotState> EnumerateAlternativeVirtualSlots(EntryPlanningOperation operation, BaseSlot excludeBaseSlot)
         {
             if (operation.VirtualSlots == null || operation.VirtualSlots.Count == 0)
                 yield break;
@@ -784,11 +784,11 @@ namespace DragAndDropSystem.Inventories
             if (placementStrategy == null)
                 yield break;
 
-            IEnumerable<ISlot> orderedSlots = placementStrategy.EnumerateAlternativeSlots(
+            IEnumerable<BaseSlot> orderedSlots = placementStrategy.EnumerateAlternativeSlots(
                 GetInventorySlots(operation.TargetInventory),
                 operation.TargetItemAdapter,
                 operation.Policy.AlternativePlacement,
-                excludeSlot);
+                excludeBaseSlot);
 
             if (orderedSlots == null)
                 yield break;
@@ -805,15 +805,15 @@ namespace DragAndDropSystem.Inventories
             EntryPlanningOperation operation,
             int amountForValidation,
             bool uniqueMode,
-            ISlot preferredSlot = null)
+            BaseSlot preferredBaseSlot = null)
         {
-            if (preferredSlot != null)
+            if (preferredBaseSlot != null)
             {
                 foreach (var state in operation.VirtualSlots)
                 {
-                    if (ReferenceEquals(state.Slot, preferredSlot) &&
+                    if (ReferenceEquals(state.BaseSlot, preferredBaseSlot) &&
                         state.CanAccept(operation.TargetItemAdapter, uniqueMode) &&
-                        IsCandidateAllowedByRules(operation, state.Slot, amountForValidation))
+                        IsCandidateAllowedByRules(operation, state.BaseSlot, amountForValidation))
                         return state;
                 }
             }
@@ -821,7 +821,7 @@ namespace DragAndDropSystem.Inventories
             foreach (var state in operation.VirtualSlots)
             {
                 if (state.CanAccept(operation.TargetItemAdapter, uniqueMode) &&
-                    IsCandidateAllowedByRules(operation, state.Slot, amountForValidation))
+                    IsCandidateAllowedByRules(operation, state.BaseSlot, amountForValidation))
                     return state;
             }
 
@@ -853,21 +853,21 @@ namespace DragAndDropSystem.Inventories
             DragEntry entry,
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             bool preferHint,
             GlobalRuleValidator globalRules,
             int requested,
             IItemAdapter targetItem)
         {
-            if (!ShouldPlanSwap(context, entry, policy, targetSlotHint, preferHint))
+            if (!ShouldPlanSwap(context, entry, policy, targetBaseSlotHint, preferHint))
                 return null;
 
-            var sourceSlot = entry.SourceSlot;
-            if (sourceSlot == null || targetSlotHint == null)
+            var sourceSlot = entry.SourceBaseSlot;
+            if (sourceSlot == null || targetBaseSlotHint == null)
                 return null;
-            if (ReferenceEquals(sourceSlot, targetSlotHint))
+            if (ReferenceEquals(sourceSlot, targetBaseSlotHint))
                 return null;
-            if (targetSlotHint.IsEmpty)
+            if (targetBaseSlotHint.IsEmpty)
                 return null;
             if (sourceSlot.IsEmpty || sourceSlot.Stack == null || sourceSlot.Stack.IsEmpty)
                 return null;
@@ -879,7 +879,7 @@ namespace DragAndDropSystem.Inventories
 
             if (!ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceStackBefore))
                 return null;
-            if (!ItemStack.TryCreate(targetSlotHint.Stack.Adapters, out var targetStackBefore))
+            if (!ItemStack.TryCreate(targetBaseSlotHint.Stack.Adapters, out var targetStackBefore))
                 return null;
 
             if (!TransferItemConversionUtility.TryCreateConvertedStack(
@@ -890,21 +890,21 @@ namespace DragAndDropSystem.Inventories
                 return null;
 
             // Validate reverse direction: can target items go back to source?
-            var reverseContext = new DragContext(targetStackBefore, targetSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
+            var reverseContext = new DragContext(targetStackBefore, targetBaseSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
             var reverseEntry = reverseContext.Entries[0];
             var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
             if (!reverseStart.IsValid)
                 return null;
 
             // Validate reverse drop: converted target items landing in source slot
-            var reverseDropContext = new DragContext(sourceStackAfter, targetSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
+            var reverseDropContext = new DragContext(sourceStackAfter, targetBaseSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
             var reverseDropEntry = reverseDropContext.Entries[0];
             var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseDropContext, reverseDropEntry, globalRules);
             if (!reverseDrop.IsValid)
                 return null;
 
             // Validate forward drop: converted source items landing in target slot
-            var sourceDropContext = new DragContext(targetStackAfter, sourceSlot, entry.SourceInventory, targetSlotHint, targetInventory);
+            var sourceDropContext = new DragContext(targetStackAfter, sourceSlot, entry.SourceInventory, targetBaseSlotHint, targetInventory);
             var sourceDropEntry = sourceDropContext.Entries[0];
             var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceDropContext, sourceDropEntry, globalRules);
             if (!sourceDrop.IsValid)
@@ -920,7 +920,7 @@ namespace DragAndDropSystem.Inventories
             // Validate forward placement capacity: can source items fit into target inventory?
             // Target slot will be freed by the swap.
             if (!ValidateSwapPlacementFeasibility(
-                    sourceDropContext, sourceDropEntry, targetInventory, targetSlotHint,
+                    sourceDropContext, sourceDropEntry, targetInventory, targetBaseSlotHint,
                     targetStackAfter, globalRules))
                 return null;
 
@@ -933,7 +933,7 @@ namespace DragAndDropSystem.Inventories
                 EmptyAllocations,
                 failureReason: null,
                 requiresSwap: true,
-                swapTargetSlot: targetSlotHint,
+                swapTargetBaseSlot: targetBaseSlotHint,
                 previewTargetItemAdapter: targetItem,
                 swapData: swapData);
         }
@@ -946,7 +946,7 @@ namespace DragAndDropSystem.Inventories
             DragContext dropContext,
             DragEntry dropEntry,
             IInventory inventory,
-            ISlot freedSlot,
+            BaseSlot freedBaseSlot,
             ItemStack convertedStack,
             GlobalRuleValidator globalRules)
         {
@@ -958,7 +958,7 @@ namespace DragAndDropSystem.Inventories
                 return true;
 
             var virtualSlots = BuildVirtualSlots(inventory);
-            var freed = FindVirtualSlot(freedSlot, virtualSlots);
+            var freed = FindVirtualSlot(freedBaseSlot, virtualSlots);
             if (freed != null)
                 freed.MarkEmpty();
 
@@ -974,7 +974,7 @@ namespace DragAndDropSystem.Inventories
                 dropEntry,
                 placementPolicy,
                 inventory,
-                freedSlot,
+                freedBaseSlot,
                 preferHint: true,
                 virtualSlots,
                 globalRules,
@@ -995,7 +995,7 @@ namespace DragAndDropSystem.Inventories
 
         private bool IsCandidateAllowedByRules(
             EntryPlanningOperation operation,
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             int plannedAmount)
         {
             if (plannedAmount <= 0 || operation.TargetItemAdapter == null)
@@ -1018,12 +1018,12 @@ namespace DragAndDropSystem.Inventories
                     return false;
                 validationEntry = new DragEntry(
                     validationStack,
-                    operation.Entry.SourceSlot,
+                    operation.Entry.SourceBaseSlot,
                     operation.Entry.SourceInventory);
             }
 
             var result = _ruleEvaluationService.ValidateEntryDrop(
-                operation.Context.WithTarget(targetSlot, operation.TargetInventory),
+                operation.Context.WithTarget(targetBaseSlot, operation.TargetInventory),
                 validationEntry,
                 operation.GlobalRules);
             return result.IsValid;
@@ -1035,12 +1035,12 @@ namespace DragAndDropSystem.Inventories
             return universal != null ? universal.PlacementStrategy : null;
         }
 
-        private static List<ISlot> GetInventorySlots(IInventory inventory)
+        private static List<BaseSlot> GetInventorySlots(IInventory inventory)
         {
             if (inventory == null || inventory.Slots == null)
                 return null;
 
-            return inventory.Slots as List<ISlot> ?? new List<ISlot>(inventory.Slots);
+            return inventory.Slots as List<BaseSlot> ?? new List<BaseSlot>(inventory.Slots);
         }
 
         private static int GetMaxStackSize(IInventory inventory, IItemAdapter itemAdapter)
@@ -1057,7 +1057,7 @@ namespace DragAndDropSystem.Inventories
         private static TransferPlan Fail(
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             TransferPlanFailureCode code,
             string reason,
             DragEntry? failedEntry = null)
@@ -1066,7 +1066,7 @@ namespace DragAndDropSystem.Inventories
                 isValid: false,
                 policy: policy,
                 targetInventory: targetInventory,
-                targetSlotHint: targetSlotHint,
+                targetBaseSlotHint: targetBaseSlotHint,
                 entries: new List<PlannedEntryTransfer>(),
                 failure: new PlanFailure(code, reason, failedEntry));
         }

@@ -45,7 +45,7 @@ namespace DragAndDropSystem.Filter
         /// <summary>
         /// Создать компаратор сортировки из пресета
         /// </summary>
-        public Comparison<ISlot> CreateComparison()
+        public Comparison<BaseSlot> CreateComparison()
         {
             int direction = _ascending ? 1 : -1;
 
@@ -105,34 +105,34 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private static string GetCategory(ISlot slot)
+        private static string GetCategory(BaseSlot baseSlot)
         {
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return "";
 
-            if (slot.Stack.PrimaryAdapter is IFilterable filterable)
+            if (baseSlot.Stack.PrimaryAdapter is IFilterable filterable)
                 return filterable.Category ?? "";
 
             return "";
         }
 
-        private static int GetRarity(ISlot slot)
+        private static int GetRarity(BaseSlot baseSlot)
         {
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return -1;
 
-            if (slot.Stack.PrimaryAdapter is IFilterable filterable)
+            if (baseSlot.Stack.PrimaryAdapter is IFilterable filterable)
                 return filterable.Rarity;
 
             return 0;
         }
 
-        private static int GetSortValue(ISlot slot)
+        private static int GetSortValue(BaseSlot baseSlot)
         {
-            if (slot.IsEmpty)
+            if (baseSlot.IsEmpty)
                 return int.MinValue;
 
-            if (slot.Stack.PrimaryAdapter is ISortable sortable)
+            if (baseSlot.Stack.PrimaryAdapter is ISortable sortable)
                 return sortable.SortValue;
 
             return 0;

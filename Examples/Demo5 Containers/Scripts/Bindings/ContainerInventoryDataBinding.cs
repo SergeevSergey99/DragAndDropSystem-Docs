@@ -20,9 +20,9 @@ namespace DragAndDropSystem.Examples.Containers
         protected override void AddToData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.AddItem(adapterAdapter.Instance);
         protected override void RemoveFromData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.RemoveItem(adapterAdapter.Instance);
         
-        protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+        protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
-            if (occupiedSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
+            if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
 
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
@@ -37,9 +37,9 @@ namespace DragAndDropSystem.Examples.Containers
             return true;
         }
 
-        protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+        protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
-            if (occupiedSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
+            if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
 
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
@@ -48,8 +48,8 @@ namespace DragAndDropSystem.Examples.Containers
             container.AddItem(sourceAdapter.Instance);
             RemoveFromData(sourceAdapter);
 
-            entry.SourceSlot.Clear();
-            entry.SourceSlot.UpdateVisuals();
+            entry.SourceBaseSlot.Clear();
+            entry.SourceBaseSlot.UpdateVisuals();
 
             Events.InvokeContainerContentChanged(container);
             return true;

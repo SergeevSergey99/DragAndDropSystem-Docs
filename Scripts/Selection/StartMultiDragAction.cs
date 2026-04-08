@@ -49,10 +49,10 @@ namespace DragAndDropSystem.Selection
                 : ActionResult.Failed("Failed to start multi drag");
         }
 
-        private List<ISlot> BuildSourceSlots(UniversalInventory inventory, SlotInputAdapter adapter)
+        private List<BaseSlot> BuildSourceSlots(UniversalInventory inventory, SlotInputAdapter adapter)
         {
-            var result = new List<ISlot>();
-            var activeSlot = adapter?.Slot;
+            var result = new List<BaseSlot>();
+            var activeSlot = adapter?.BaseSlot;
 
             if (SelectionManager.IsInstanceExist)
             {
@@ -77,12 +77,12 @@ namespace DragAndDropSystem.Selection
             return result;
         }
 
-        private bool IsEligible(ISlot slot, UniversalInventory inventory)
+        private bool IsEligible(BaseSlot baseSlot, UniversalInventory inventory)
         {
-            if (slot == null || slot.IsEmpty || !slot.IsInteractable)
+            if (baseSlot == null || baseSlot.IsEmpty || !baseSlot.IsInteractable)
                 return false;
 
-            if (_restrictToSameInventory && inventory != null && !ReferenceEquals(slot.Inventory, inventory))
+            if (_restrictToSameInventory && inventory != null && !ReferenceEquals(baseSlot.Inventory, inventory))
                 return false;
 
             return true;

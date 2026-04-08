@@ -8,28 +8,28 @@ namespace DragAndDropSystem.Inventories
         private IItemAdapter _itemAdapter;
         private int _count;
 
-        public VirtualSlotState(ISlot slot)
+        public VirtualSlotState(BaseSlot baseSlot)
         {
-            Slot = slot;
-            if (slot == null || slot.IsEmpty || slot.Stack?.PrimaryAdapter == null)
+            BaseSlot = baseSlot;
+            if (baseSlot == null || baseSlot.IsEmpty || baseSlot.Stack?.PrimaryAdapter == null)
             {
                 _itemAdapter = null;
                 _count = 0;
                 return;
             }
 
-            _itemAdapter = slot.Stack.PrimaryAdapter;
-            _count = slot.Stack.Count;
+            _itemAdapter = baseSlot.Stack.PrimaryAdapter;
+            _count = baseSlot.Stack.Count;
         }
 
-        public ISlot Slot { get; }
+        public BaseSlot BaseSlot { get; }
         public bool IsEmpty => _itemAdapter == null || _count <= 0;
         public IItemAdapter ItemAdapter => _itemAdapter;
         public int Count => _count;
 
         public bool CanAccept(IItemAdapter itemAdapter, bool uniqueMode)
         {
-            if (Slot == null || itemAdapter == null || !Slot.IsInteractable)
+            if (BaseSlot == null || itemAdapter == null || !BaseSlot.IsInteractable)
                 return false;
 
             if (uniqueMode)

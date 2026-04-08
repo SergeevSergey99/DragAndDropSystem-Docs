@@ -13,7 +13,7 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Все слоты инвентаря
         /// </summary>
-        IReadOnlyList<ISlot> Slots { get; }
+        IReadOnlyList<BaseSlot> Slots { get; }
 
         /// <summary>
         /// Number of slots
@@ -24,7 +24,7 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Получить слот по индексу
         /// </summary>
-        ISlot GetSlot(int index);
+        BaseSlot GetSlot(int index);
 
         /// <summary>
         /// Попытаться добавить стак
@@ -44,18 +44,18 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Получить количество предметов для перетаскивания из слота
         /// </summary>
-        int GetDragAmount(ISlot slot, DragAmount? overrideAmount = null, int? overrideCustom = null);
+        int GetDragAmount(BaseSlot baseSlot, DragAmount? overrideAmount = null, int? overrideCustom = null);
 
         /// <summary>
         /// Попытаться добавить предмет в конкретный слот с учетом настроек инвентаря
         /// </summary>
         /// <param name="stack">Стак предметов для добавления</param>
-        /// <param name="targetSlot">Целевой слот</param>
+        /// <param name="targetBaseSlot">Целевой слот</param>
         /// <param name="sourceInventory">Инвентарь-источник (для событий)</param>
         /// <param name="sourceSlotIndex">Индекс исходного слота (для событий)</param>
         bool TryAddToSlot(
             ItemStack stack,
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             IInventory sourceInventory = null,
             int sourceSlotIndex = -1,
             SlotOperationContext operationContext = null);

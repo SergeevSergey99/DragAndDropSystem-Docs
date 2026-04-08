@@ -12,7 +12,7 @@ namespace DragAndDropSystem.Inventories
             DragEntry entry,
             ResolvedDropPolicy policy,
             IInventory targetInventory,
-            ISlot targetSlotHint,
+            BaseSlot targetBaseSlotHint,
             bool preferHint,
             IReadOnlyList<VirtualSlotState> virtualSlots,
             GlobalRuleValidator globalRules,
@@ -24,7 +24,7 @@ namespace DragAndDropSystem.Inventories
             Entry = entry;
             Policy = policy;
             TargetInventory = targetInventory;
-            TargetSlotHint = targetSlotHint;
+            TargetBaseSlotHint = targetBaseSlotHint;
             PreferHint = preferHint;
             VirtualSlots = virtualSlots;
             GlobalRules = globalRules;
@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Inventories
         public DragEntry Entry { get; }
         public ResolvedDropPolicy Policy { get; }
         public IInventory TargetInventory { get; }
-        public ISlot TargetSlotHint { get; }
+        public BaseSlot TargetBaseSlotHint { get; }
         public bool PreferHint { get; }
         public IReadOnlyList<VirtualSlotState> VirtualSlots { get; }
         public GlobalRuleValidator GlobalRules { get; }

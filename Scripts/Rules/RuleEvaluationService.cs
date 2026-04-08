@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Rules
             if (context == null)
                 return RuleResult.Failure("Drag context is null");
 
-            if (entry.SourceInventory == null || entry.SourceSlot == null || entry.Stack == null || entry.Stack.PrimaryAdapter == null)
+            if (entry.SourceInventory == null || entry.SourceBaseSlot == null || entry.Stack == null || entry.Stack.PrimaryAdapter == null)
                 return RuleResult.Failure("Invalid source entry");
 
             if (globalRules != null)
@@ -78,9 +78,9 @@ namespace DragAndDropSystem.Rules
                     return bindingDropResult;
             }
 
-            if (context.TargetSlot?.SlotRuleValidator != null)
+            if (context.TargetBaseSlot?.SlotRuleValidator != null)
             {
-                var slotDropResult = context.TargetSlot.SlotRuleValidator.ValidateDrop(context, entry);
+                var slotDropResult = context.TargetBaseSlot.SlotRuleValidator.ValidateDrop(context, entry);
                 if (!slotDropResult.IsValid)
                     return slotDropResult;
             }

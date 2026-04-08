@@ -10,13 +10,13 @@ namespace DragAndDropSystem.Core
     public readonly struct DragEntry
     {
         public ItemStack Stack { get; }
-        public ISlot SourceSlot { get; }
+        public BaseSlot SourceBaseSlot { get; }
         public IInventory SourceInventory { get; }
 
-        public DragEntry(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
+        public DragEntry(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory)
         {
             Stack = stack;
-            SourceSlot = sourceSlot;
+            SourceBaseSlot = sourceBaseSlot;
             SourceInventory = sourceInventory;
         }
     }
@@ -40,7 +40,7 @@ namespace DragAndDropSystem.Core
         /// Правила должны использовать <see cref="IsBatchDrag"/> чтобы игнорировать TargetSlot при batch-валидации.
         /// </para>
         /// </summary>
-        public ISlot TargetSlot { get; set; }
+        public BaseSlot TargetBaseSlot { get; set; }
 
         public IInventory TargetInventory { get; set; }
 
@@ -48,12 +48,12 @@ namespace DragAndDropSystem.Core
         /// True if we have any target (slot or inventory).
         /// For world drops, both may be null - use processor-based validation instead.
         /// </summary>
-        public bool HasTarget => TargetSlot != null || TargetInventory != null;
+        public bool HasTarget => TargetBaseSlot != null || TargetInventory != null;
 
         /// <summary>
         /// True if we have a specific target slot
         /// </summary>
-        public bool HasTargetSlot => TargetSlot != null;
+        public bool HasTargetSlot => TargetBaseSlot != null;
 
         /// <summary>
         /// True if we have a target inventory
@@ -63,17 +63,17 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// Конструктор для одиночного entry (основной сценарий)
         /// </summary>
-        public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory)
+        public DragContext(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory)
         {
-            Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
+            Entries = new[] { new DragEntry(stack, sourceBaseSlot, sourceInventory) };
         }
         /// <summary>
         /// Конструктор для одиночного entry с целью (например, вызов из кода с заранее известной целью)
         /// </summary>
-        public DragContext(ItemStack stack, ISlot sourceSlot, IInventory sourceInventory, ISlot targetSlot, IInventory targetInventory)
+        public DragContext(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory, BaseSlot targetBaseSlot, IInventory targetInventory)
         {
-            Entries = new[] { new DragEntry(stack, sourceSlot, sourceInventory) };
-            SetTarget(targetSlot, targetInventory);
+            Entries = new[] { new DragEntry(stack, sourceBaseSlot, sourceInventory) };
+            SetTarget(targetBaseSlot, targetInventory);
         }
 
         /// <summary>
@@ -84,10 +84,10 @@ namespace DragAndDropSystem.Core
             Entries = entries;
         }
 
-        private DragContext(IReadOnlyList<DragEntry> entries, ISlot targetSlot, IInventory targetInventory)
+        private DragContext(IReadOnlyList<DragEntry> entries, BaseSlot targetBaseSlot, IInventory targetInventory)
         {
             Entries = entries;
-            TargetSlot = targetSlot;
+            TargetBaseSlot = targetBaseSlot;
             TargetInventory = targetInventory;
         }
 
@@ -95,18 +95,18 @@ namespace DragAndDropSystem.Core
         /// Создаёт копию контекста с заданной целью для валидации правил.
         /// Оригинальный контекст не изменяется.
         /// </summary>
-        public DragContext WithTarget(ISlot targetSlot, IInventory targetInventory)
-            => new DragContext(Entries, targetSlot, targetInventory);
+        public DragContext WithTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
+            => new DragContext(Entries, targetBaseSlot, targetInventory);
 
-        public void SetTarget(ISlot targetSlot, IInventory targetInventory)
+        public void SetTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
         {
-            TargetSlot = targetSlot;
+            TargetBaseSlot = targetBaseSlot;
             TargetInventory = targetInventory;
         }
 
         public void ClearTarget()
         {
-            TargetSlot = null;
+            TargetBaseSlot = null;
             TargetInventory = null;
         }
     }

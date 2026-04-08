@@ -15,11 +15,11 @@ namespace DragAndDropSystem.Inventories
         /// Попытаться переместить occupant из подходящего слота, затем повторить размещение.
         /// </summary>
         public static bool TryRelocateAndRetry(
-            List<ISlot> slots,
+            List<BaseSlot> slots,
             ItemStack stack,
             int targetSlotIndex,
             IPlacementStrategy placementStrategy,
-            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules,
+            Func<BaseSlot, IItemAdapter, int, bool> canAcceptByRules,
             Func<InventorySnapshot> captureSnapshot,
             Action<InventorySnapshot> restoreSnapshot)
         {
@@ -52,13 +52,13 @@ namespace DragAndDropSystem.Inventories
             return false;
         }
 
-        private static List<ISlot> BuildRelocationCandidates(
-            List<ISlot> slots,
+        private static List<BaseSlot> BuildRelocationCandidates(
+            List<BaseSlot> slots,
             ItemStack stack,
             int targetSlotIndex,
-            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
+            Func<BaseSlot, IItemAdapter, int, bool> canAcceptByRules)
         {
-            var result = new List<ISlot>();
+            var result = new List<BaseSlot>();
 
             if (targetSlotIndex >= 0 && targetSlotIndex < slots.Count)
             {
@@ -94,23 +94,23 @@ namespace DragAndDropSystem.Inventories
         }
 
         private static bool TryRelocateOccupant(
-            List<ISlot> slots,
-            ISlot slotToFree,
+            List<BaseSlot> slots,
+            BaseSlot baseSlotToFree,
             ItemStack incomingStack,
-            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
+            Func<BaseSlot, IItemAdapter, int, bool> canAcceptByRules)
         {
-            if (slotToFree == null || slotToFree.IsEmpty)
+            if (baseSlotToFree == null || baseSlotToFree.IsEmpty)
                 return false;
 
-            var occupantStack = slotToFree.Stack;
+            var occupantStack = baseSlotToFree.Stack;
             if (occupantStack == null || occupantStack.IsEmpty)
                 return false;
 
-            var destinations = new List<ISlot>();
+            var destinations = new List<BaseSlot>();
             for (int i = 0; i < slots.Count; i++)
             {
                 var slot = slots[i];
-                if (slot == slotToFree)
+                if (slot == baseSlotToFree)
                     continue;
 
                 if (!slot.IsEmpty)
@@ -136,7 +136,7 @@ namespace DragAndDropSystem.Inventories
 
             foreach (var destination in destinations)
             {
-                if (TryMoveStack(slotToFree, destination, canAcceptByRules))
+                if (TryMoveStack(baseSlotToFree, destination, canAcceptByRules))
                     return true;
             }
 
@@ -144,10 +144,10 @@ namespace DragAndDropSystem.Inventories
         }
 
         private static int CompareDestinations(
-            ISlot a,
-            ISlot b,
+            BaseSlot a,
+            BaseSlot b,
             ItemStack incomingStack,
-            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
+            Func<BaseSlot, IItemAdapter, int, bool> canAcceptByRules)
         {
             bool aAllowsIncoming = canAcceptByRules(a, incomingStack.PrimaryAdapter, 1);
             bool bAllowsIncoming = canAcceptByRules(b, incomingStack.PrimaryAdapter, 1);
@@ -159,45 +159,45 @@ namespace DragAndDropSystem.Inventories
         }
 
         private static bool TryMoveStack(
-            ISlot sourceSlot,
-            ISlot destinationSlot,
-            Func<ISlot, IItemAdapter, int, bool> canAcceptByRules)
+            BaseSlot sourceBaseSlot,
+            BaseSlot destinationBaseSlot,
+            Func<BaseSlot, IItemAdapter, int, bool> canAcceptByRules)
         {
-            if (sourceSlot == null || destinationSlot == null)
+            if (sourceBaseSlot == null || destinationBaseSlot == null)
                 return false;
 
-            var sourceStack = sourceSlot.Stack;
+            var sourceStack = sourceBaseSlot.Stack;
             if (sourceStack == null || sourceStack.IsEmpty)
                 return false;
 
             int amountToMove = sourceStack.Count;
             var itemToMove = sourceStack.PrimaryAdapter;
 
-            if (!destinationSlot.IsEmpty)
+            if (!destinationBaseSlot.IsEmpty)
             {
-                if (!destinationSlot.Stack.CanStack(itemToMove))
+                if (!destinationBaseSlot.Stack.CanStack(itemToMove))
                     return false;
 
-                if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
+                if (!canAcceptByRules(destinationBaseSlot, itemToMove, amountToMove))
                     return false;
 
-                if (!destinationSlot.Stack.TryAddToStack(sourceStack))
+                if (!destinationBaseSlot.Stack.TryAddToStack(sourceStack))
                     return false;
 
-                destinationSlot.UpdateVisuals();
-                sourceSlot.Clear();
+                destinationBaseSlot.UpdateVisuals();
+                sourceBaseSlot.Clear();
                 return true;
             }
 
-            if (!canAcceptByRules(destinationSlot, itemToMove, amountToMove))
+            if (!canAcceptByRules(destinationBaseSlot, itemToMove, amountToMove))
                 return false;
 
             if (!ItemStack.TryCreate(sourceStack.Adapters, out var movedStack))
                 return false;
 
-            destinationSlot.SetStack(movedStack);
-            destinationSlot.UpdateVisuals();
-            sourceSlot.Clear();
+            destinationBaseSlot.SetStack(movedStack);
+            destinationBaseSlot.UpdateVisuals();
+            sourceBaseSlot.Clear();
             return true;
         }
     }

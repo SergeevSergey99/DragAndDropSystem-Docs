@@ -15,8 +15,8 @@ namespace DragAndDropSystem.Core
         /// Анимировать перенос предмета из источника в цель
         /// </summary>
         /// <param name="stack">Стак предметов для отображения</param>
-        /// <param name="sourceSlot">Слот-источник</param>
-        /// <param name="targetSlot">Слот-цель</param>
+        /// <param name="sourceBaseSlot">Слот-источник</param>
+        /// <param name="targetBaseSlot">Слот-цель</param>
         /// <param name="visualPrefab">Префаб визуала для анимации</param>
         /// <param name="visualContainer">Контейнер для создания визуала</param>
         /// <param name="canvas">Canvas для расчета координат</param>
@@ -24,8 +24,8 @@ namespace DragAndDropSystem.Core
         /// <returns>GameObject визуала для отслеживания в DragAndDropManager</returns>
         public abstract GameObject AnimateTransfer(
             ItemStack stack,
-            ISlot sourceSlot,
-            ISlot targetSlot,
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
             MonoBehaviour visualPrefab,
             Transform visualContainer,
             Canvas canvas,

@@ -6,6 +6,7 @@ using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace DragAndDropSystem.Interaction
@@ -20,7 +21,7 @@ namespace DragAndDropSystem.Interaction
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverEnter;
         public static event Action<SlotHoverEventArgs> OnAnySlotHoverExit;
 
-        [SerializeField] private ISlot _slot;
+        [FormerlySerializedAs("_slot")] [SerializeField] private BaseSlot baseSlot;
         [Header("Pointer Down")]
         [SerializeField, Tooltip("Call base.OnPointerDown (sets EventSystem.selectedGameObject). Enable if you need Selectable transitions on mouse press.")]
         private bool _callBaseOnPointerDown = false;
@@ -34,7 +35,7 @@ namespace DragAndDropSystem.Interaction
         [SerializeField, Tooltip("Local slot hover exit event")]
         private UnityEvent _onSlotHoverExit = new();
 
-        public ISlot Slot => _slot;
+        public BaseSlot BaseSlot => baseSlot;
         public bool IsHovering { get; private set; }
         
         public UnityEvent OnSlotHoverEnter => _onSlotHoverEnter;
@@ -44,8 +45,8 @@ namespace DragAndDropSystem.Interaction
         protected override void Awake()
         {
             base.Awake();
-            if (_slot == null)
-                _slot = GetComponent<ISlot>();
+            if (baseSlot == null)
+                baseSlot = GetComponent<BaseSlot>();
 
             // Ensure navigation is Automatic after base class change from MonoBehaviour to Selectable.
             // Prefabs serialized before the change may have default(Navigation) = None.
@@ -60,7 +61,7 @@ namespace DragAndDropSystem.Interaction
         protected override void OnDisable()
         {
             base.OnDisable();
-            if (_slot == null || DragAndDropManager.IsInstanceExist == false)
+            if (baseSlot == null || DragAndDropManager.IsInstanceExist == false)
             {
                 if (IsHovering)
                     ForceHoverExit();
@@ -72,9 +73,9 @@ namespace DragAndDropSystem.Interaction
                 DragAndDropManager.AutoCreateInstance.PopDropTarget(this);
             }
 
-            if (_slot.Inventory is UniversalInventory universalInventory)
+            if (baseSlot.Inventory is UniversalInventory universalInventory)
             {
-                universalInventory.NotifyPointerExit(_slot);
+                universalInventory.NotifyPointerExit(baseSlot);
             }
 
             if (IsHovering)
@@ -84,9 +85,9 @@ namespace DragAndDropSystem.Interaction
         public override void OnPointerEnter(PointerEventData eventData)
         {
             base.OnPointerEnter(eventData);
-            if (_slot?.Inventory is UniversalInventory universalInventory)
+            if (baseSlot?.Inventory is UniversalInventory universalInventory)
             {
-                universalInventory.NotifyPointerEnter(_slot);
+                universalInventory.NotifyPointerEnter(baseSlot);
             }
 
             TryRaiseHoverEnter(eventData);
@@ -96,9 +97,9 @@ namespace DragAndDropSystem.Interaction
         public override void OnPointerExit(PointerEventData eventData)
         {
             base.OnPointerExit(eventData);
-            if (_slot?.Inventory is UniversalInventory universalInventory)
+            if (baseSlot?.Inventory is UniversalInventory universalInventory)
             {
-                universalInventory.NotifyPointerExit(_slot);
+                universalInventory.NotifyPointerExit(baseSlot);
             }
 
             TryRaiseHoverExit(eventData);
@@ -114,18 +115,18 @@ namespace DragAndDropSystem.Interaction
             if (_callBaseOnPointerDown)
                 base.OnPointerDown(eventData);
 
-            if (_slot == null)
+            if (baseSlot == null)
                 return;
 
-            if (!_slot.IsInteractable)
+            if (!baseSlot.IsInteractable)
             {
                 Extensions.DragAndDropLog($"OnPointerDown blocked - slot {name} is not interactable (filtered)");
                 return;
             }
 
-            if (_slot.Inventory is UniversalInventory universalInventory)
+            if (baseSlot.Inventory is UniversalInventory universalInventory)
             {
-                universalInventory.NotifySlotInteracted(_slot);
+                universalInventory.NotifySlotInteracted(baseSlot);
             }
 
             InputEventRouter.AutoCreateInstance.RoutePointerDown(this, eventData);
@@ -171,7 +172,7 @@ namespace DragAndDropSystem.Interaction
 
         // ===== IDropTarget =====
 
-        public ISlot GetTargetSlot() => _slot;
+        public BaseSlot GetTargetSlot() => baseSlot;
 
         public IDropProcessor GetDropProcessor()
         {
@@ -179,8 +180,8 @@ namespace DragAndDropSystem.Interaction
             System.Action<InventorySwapContext> swapCompleted = DragAndDropManager.AutoCreateInstance.RaiseSwapCompleted;
 
             return new InventoryDropProcessor(
-                _slot,
-                _slot?.Inventory,
+                baseSlot,
+                baseSlot?.Inventory,
                 DragAndDropManager.AutoCreateInstance.GlobalRules,
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);
@@ -188,14 +189,14 @@ namespace DragAndDropSystem.Interaction
 
         public void OnBecomeActiveTarget()
         {
-            if (_slot != null)
-                _slot.Highlight(true);
+            if (baseSlot != null)
+                baseSlot.Highlight(true);
         }
 
         public void OnBecomeInactiveTarget()
         {
-            if (_slot != null)
-                _slot.Highlight(false);
+            if (baseSlot != null)
+                baseSlot.Highlight(false);
         }
 
         private void TryRaiseHoverEnter(PointerEventData eventData)
@@ -242,10 +243,10 @@ namespace DragAndDropSystem.Interaction
 
         private bool ShouldTriggerHoverEvent()
         {
-            if (_slot == null || !_slot.IsInteractable)
+            if (baseSlot == null || !baseSlot.IsInteractable)
                 return false;
 
-            if (_onlyWhenNotEmpty && _slot.IsEmpty)
+            if (_onlyWhenNotEmpty && baseSlot.IsEmpty)
                 return false;
 
             if (_ignoreHoverWhileDragging && DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
@@ -257,8 +258,8 @@ namespace DragAndDropSystem.Interaction
         private SlotHoverEventArgs CreateHoverEventArgs(PointerEventData eventData, bool isEnter)
         {
             return new SlotHoverEventArgs(
-                _slot?.Stack?.PrimaryAdapter,
-                _slot,
+                baseSlot?.Stack?.PrimaryAdapter,
+                baseSlot,
                 eventData?.position ?? Vector2.zero,
                 GetComponent<RectTransform>(),
                 isEnter

@@ -13,7 +13,7 @@ namespace DragAndDropSystem.Slots
     /// Универсальный слот, работающий через композицию
     /// Не требует наследования для разных типов данных
     /// </summary>
-    public class UniversalSlot : ISlot
+    public class UniversalBaseSlot : BaseSlot
     {
         [Header("Visual Components")]
         [SerializeField] protected Image _iconImage;

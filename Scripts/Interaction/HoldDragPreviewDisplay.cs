@@ -17,7 +17,7 @@ namespace DragAndDropSystem.Interaction
 
         private RectTransform _rectTransform;
         private Canvas _canvas;
-        private ISlot _trackedSlot;
+        private BaseSlot _trackedBaseSlot;
 
         private void Awake()
         {
@@ -42,9 +42,9 @@ namespace DragAndDropSystem.Interaction
             InputEventRouter.OnHoldPreviewEnded -= OnPreviewEnded;
         }
 
-        private void OnPreviewChanged(ISlot slot, int amount, int maxAmount)
+        private void OnPreviewChanged(BaseSlot baseSlot, int amount, int maxAmount)
         {
-            _trackedSlot = slot;
+            _trackedBaseSlot = baseSlot;
 
             if (_countText != null)
                 _countText.text = amount.ToString();
@@ -57,7 +57,7 @@ namespace DragAndDropSystem.Interaction
 
         private void OnPreviewEnded()
         {
-            _trackedSlot = null;
+            _trackedBaseSlot = null;
 
             if (_container != null)
                 _container.SetActive(false);
@@ -65,16 +65,16 @@ namespace DragAndDropSystem.Interaction
 
         private void LateUpdate()
         {
-            if (_trackedSlot != null)
+            if (_trackedBaseSlot != null)
                 UpdatePosition();
         }
 
         private void UpdatePosition()
         {
-            if (_rectTransform == null || _trackedSlot == null)
+            if (_rectTransform == null || _trackedBaseSlot == null)
                 return;
 
-            var slotTransform = (_trackedSlot as MonoBehaviour)?.transform as RectTransform;
+            var slotTransform = (_trackedBaseSlot as MonoBehaviour)?.transform as RectTransform;
             if (slotTransform == null)
                 return;
 

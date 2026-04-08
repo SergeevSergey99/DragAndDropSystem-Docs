@@ -23,9 +23,10 @@ namespace DragAndDropSystem.Inventories
         [SerializeField, Required, Tooltip("Slot container")]
         private Transform _slotContainer;
 
+        [FormerlySerializedAs("_slotPrefab")]
         [FoldoutGroup("Slot Setup")]
         [SerializeField, Required, Tooltip("Slot prefab")]
-        private ISlot _slotPrefab;
+        private BaseSlot baseSlotPrefab;
 
         [FoldoutGroup("Slot Setup")]
         [SerializeField, Tooltip("Initial slot count")]
@@ -87,23 +88,23 @@ namespace DragAndDropSystem.Inventories
 
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Tooltip("Slots created in the scene. Can be assigned manually in the Inspector. If empty, they will be found automatically.")]
-        private List<ISlot> _slots = new List<ISlot>();
+        private List<BaseSlot> _slots = new List<BaseSlot>();
 
         private IInventoryStrategy _strategy;
         private IPlacementStrategy _placementStrategy;
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
-        private ISlot _pointerHoveredSlot;
-        private ISlot _lastInteractedSlot;
+        private BaseSlot _pointerHoveredBaseSlot;
+        private BaseSlot _lastInteractedBaseSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
 
-        public IReadOnlyList<ISlot> Slots => _slots.AsReadOnly();
+        public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public ItemBehaviorType ItemBehavior => _itemBehavior;
         public SlotManagementType SlotManagement => _slotManagement;
-        public ISlot SlotPrefab => _slotPrefab;
+        public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
 
         public IInventoryStrategy Strategy
@@ -153,17 +154,17 @@ namespace DragAndDropSystem.Inventories
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
-        internal bool CheckOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
-            => DataBinding != null && DataBinding.CheckOccupiedSlotDrop(entry, occupiedSlot);
+        internal bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+            => DataBinding != null && DataBinding.CheckOccupiedSlotDrop(entry, occupiedBaseSlot);
 
-        internal bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
-            => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedSlot);
+        internal bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+            => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedBaseSlot);
 
         /// <summary>
         /// Событие создания нового слота (после Instantiate + Initialize).
         /// Используется FreeFormSlotLayout для позиционирования динамически создаваемых слотов.
         /// </summary>
-        public event Action<ISlot> OnSlotCreated;
+        public event Action<BaseSlot> OnSlotCreated;
 
         /// <summary>
         /// Событие добавления предмета в этот инвентарь
@@ -186,19 +187,19 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         public event Action<InventorySwapContext> OnSwapCompleted;
 
-        internal void EmitItemAdded(ItemStack stack, int slotIndex, IInventory sourceInventory, ISlot sourceSlot, ISlot targetSlot)
+        internal void EmitItemAdded(ItemStack stack, int slotIndex, IInventory sourceInventory, BaseSlot sourceBaseSlot, BaseSlot targetBaseSlot)
         {
             var context = new InventoryItemEventContext(
-                stack, slotIndex, sourceInventory, this, sourceSlot, targetSlot);
+                stack, slotIndex, sourceInventory, this, sourceBaseSlot, targetBaseSlot);
 
             DataBinding?.HandleItemAdded(context);
             OnItemAdded?.Invoke(context);
         }
 
-        internal void EmitItemRemoved(ItemStack stack, int slotIndex, IInventory targetInventory, ISlot sourceSlot, ISlot targetSlot)
+        internal void EmitItemRemoved(ItemStack stack, int slotIndex, IInventory targetInventory, BaseSlot sourceBaseSlot, BaseSlot targetBaseSlot)
         {
             var context = new InventoryItemEventContext(
-                stack, slotIndex, this, targetInventory, sourceSlot, targetSlot);
+                stack, slotIndex, this, targetInventory, sourceBaseSlot, targetBaseSlot);
 
             DataBinding?.HandleItemRemoved(context);
             OnItemRemoved?.Invoke(context);
@@ -210,19 +211,19 @@ namespace DragAndDropSystem.Inventories
         /// которые не проходят через TransferPlanExecutor.
         /// </summary>
         /// <returns>Стак удалённых предметов, или пустой стак если ничего не удалено</returns>
-        internal int RemoveItemsFromSlot(ISlot sourceSlot, ItemStack stackToRemove, IInventory targetInventory = null, ISlot targetSlot = null)
+        internal int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
         {
-            if (sourceSlot?.Stack == null || sourceSlot.Stack.IsEmpty || stackToRemove == null || stackToRemove.IsEmpty)
+            if (sourceBaseSlot?.Stack == null || sourceBaseSlot.Stack.IsEmpty || stackToRemove == null || stackToRemove.IsEmpty)
                 return 0;
 
-            int removed = sourceSlot.Stack.RemoveAdapters(stackToRemove.Adapters);
+            int removed = sourceBaseSlot.Stack.RemoveAdapters(stackToRemove.Adapters);
             if (removed <= 0)
                 return 0;
 
-            sourceSlot.UpdateVisuals();
+            sourceBaseSlot.UpdateVisuals();
 
-            EmitItemRemoved(stackToRemove, sourceSlot.Index, targetInventory, sourceSlot, targetSlot);
-            HandleSlotEmptied(sourceSlot);
+            EmitItemRemoved(stackToRemove, sourceBaseSlot.Index, targetInventory, sourceBaseSlot, targetBaseSlot);
+            HandleSlotEmptied(sourceBaseSlot);
 
             return removed;
         }
@@ -283,8 +284,8 @@ namespace DragAndDropSystem.Inventories
 
         private void OnDisable()
         {
-            _pointerHoveredSlot = null;
-            _lastInteractedSlot = null;
+            _pointerHoveredBaseSlot = null;
+            _lastInteractedBaseSlot = null;
         }
 
         [FoldoutGroup("Slot Setup", expanded: true), Button("Cache Slots")]
@@ -297,14 +298,14 @@ namespace DragAndDropSystem.Inventories
             }
             if (_slots == null)
             {
-                _slots = new List<ISlot>();
+                _slots = new List<BaseSlot>();
             }
 
             // Удаляем возможные пустые ссылки
             _slots.RemoveAll(slot => slot == null);
 
 
-            var autoSlots = _slotContainer.GetComponentsInChildren<ISlot>(includeInactive: true).ToList();
+            var autoSlots = _slotContainer.GetComponentsInChildren<BaseSlot>(includeInactive: true).ToList();
             foreach (var slot in autoSlots)
             {
                 if (slot != null && !_slots.Contains(slot))
@@ -333,11 +334,11 @@ namespace DragAndDropSystem.Inventories
             }
         }
 
-        private ISlot CreateSlot()
+        private BaseSlot CreateSlot()
         {
             Extensions.DragAndDropLog($"<color=magenta>[{name}] CreateSlot called! Current count: {_slots.Count}</color>");
 
-            if (_slotPrefab == null)
+            if (baseSlotPrefab == null)
             {
                 Extensions.DragAndDropLog($"[{name}] CreateSlot: _slotPrefab is NULL!");
                 return null;
@@ -349,7 +350,7 @@ namespace DragAndDropSystem.Inventories
                 return null;
             }
 
-            var slotGO = Instantiate(_slotPrefab, _slotContainer);
+            var slotGO = Instantiate(baseSlotPrefab, _slotContainer);
             slotGO.Initialize(_slots.Count, this);
             _slots.Add(slotGO);
 
@@ -412,7 +413,7 @@ namespace DragAndDropSystem.Inventories
         {
             Debug.Log($"[{name}] RefreshStrategy called! Current strategy: {_strategy?.GetType().Name}, current config: {_appliedStrategyConfiguration}");
             if (_slots == null)
-                _slots = new List<ISlot>();
+                _slots = new List<BaseSlot>();
 
             if (_slots.Count == 0)
                 InitializeSlots();
@@ -471,7 +472,7 @@ namespace DragAndDropSystem.Inventories
             _ruleValidator.RemoveRule(rule);
         }
 
-        public ISlot GetSlot(int index)
+        public BaseSlot GetSlot(int index)
         {
             if (index >= 0 && index < _slots.Count)
                 return _slots[index];
@@ -534,32 +535,32 @@ namespace DragAndDropSystem.Inventories
         }
 
         internal bool CanAcceptByRules(
-            ISlot slot,
+            BaseSlot baseSlot,
             IItemAdapter itemAdapter,
             int previewCount,
             InventoryAcceptanceRequest request = null,
             bool allowForeignSlot = false)
         {
-            if (slot == null || itemAdapter == null || previewCount <= 0)
+            if (baseSlot == null || itemAdapter == null || previewCount <= 0)
                 return false;
 
-            if (!allowForeignSlot && !ReferenceEquals(slot.Inventory, this))
+            if (!allowForeignSlot && !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
 
             var previewStack = request?.CreatePreviewStack(previewCount, itemAdapter);
             if (previewStack == null && !ItemStack.TryCreate(new[] { itemAdapter }, out previewStack))
                 return false;
 
-            return ValidateRulesForPreview(slot, previewStack, request);
+            return ValidateRulesForPreview(baseSlot, previewStack, request);
         }
 
-        private bool ValidateRulesForPreview(ISlot slot, ItemStack previewStack, InventoryAcceptanceRequest request)
+        private bool ValidateRulesForPreview(BaseSlot baseSlot, ItemStack previewStack, InventoryAcceptanceRequest request)
         {
-            if (slot == null || previewStack == null || previewStack.IsEmpty)
+            if (baseSlot == null || previewStack == null || previewStack.IsEmpty)
                 return false;
 
-            var context = request?.CreateValidationContext(slot, previewStack.Count, previewStack.PrimaryAdapter)
-                ?? new DragContext(previewStack, null, null, slot, this);
+            var context = request?.CreateValidationContext(baseSlot, previewStack.Count, previewStack.PrimaryAdapter)
+                ?? new DragContext(previewStack, null, null, baseSlot, this);
             var entry = context.Entries[0];
 
             if (_ruleValidator != null)
@@ -577,9 +578,9 @@ namespace DragAndDropSystem.Inventories
                     return false;
             }
 
-            if (slot.SlotRuleValidator != null)
+            if (baseSlot.SlotRuleValidator != null)
             {
-                var slotResult = slot.SlotRuleValidator.ValidateDrop(context, entry);
+                var slotResult = baseSlot.SlotRuleValidator.ValidateDrop(context, entry);
                 if (!slotResult.IsValid)
                     return false;
             }
@@ -612,7 +613,7 @@ namespace DragAndDropSystem.Inventories
 
             if (_slots == null)
             {
-                _slots = new List<ISlot>();
+                _slots = new List<BaseSlot>();
             }
 
             int desiredCount = snapshot.Slots.Count;
@@ -659,19 +660,19 @@ namespace DragAndDropSystem.Inventories
             slotCount = Mathf.Max(0, slotCount);
             _initialSlotCount = slotCount;
 
-            _pointerHoveredSlot = null;
-            _lastInteractedSlot = null;
+            _pointerHoveredBaseSlot = null;
+            _lastInteractedBaseSlot = null;
 
             if (_slots == null)
-                _slots = new List<ISlot>();
+                _slots = new List<BaseSlot>();
 
             for (int i = _slots.Count - 1; i >= 0; i--)
             {
-                ISlot slot = _slots[i];
-                if (slot?.Transform != null)
+                BaseSlot baseSlot = _slots[i];
+                if (baseSlot?.Transform != null)
                 {
-                    slot.Transform.gameObject.SetActive(false);
-                    Destroy(slot.Transform.gameObject);
+                    baseSlot.Transform.gameObject.SetActive(false);
+                    Destroy(baseSlot.Transform.gameObject);
                 }
             }
 
@@ -688,7 +689,7 @@ namespace DragAndDropSystem.Inventories
             if (beforeSnapshot == null || beforeSnapshot.Slots.Count == 0)
                 return;
 
-            var emptiedSlots = new List<ISlot>();
+            var emptiedSlots = new List<BaseSlot>();
             int limit = Math.Min(beforeSnapshot.Slots.Count, _slots.Count);
 
             for (int i = 0; i < limit; i++)
@@ -733,8 +734,8 @@ namespace DragAndDropSystem.Inventories
                 slot.Clear();
             }
 
-            _pointerHoveredSlot = null;
-            _lastInteractedSlot = null;
+            _pointerHoveredBaseSlot = null;
+            _lastInteractedBaseSlot = null;
         }
 
         /// <summary>
@@ -773,38 +774,38 @@ namespace DragAndDropSystem.Inventories
             return items;
         }
 
-        internal void NotifyPointerEnter(ISlot slot)
+        internal void NotifyPointerEnter(BaseSlot baseSlot)
         {
-            if (slot == null || !ReferenceEquals(slot.Inventory, this))
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return;
 
-            _pointerHoveredSlot = slot;
+            _pointerHoveredBaseSlot = baseSlot;
         }
 
-        internal void NotifyPointerExit(ISlot slot)
+        internal void NotifyPointerExit(BaseSlot baseSlot)
         {
-            if (_pointerHoveredSlot == slot)
+            if (_pointerHoveredBaseSlot == baseSlot)
             {
-                _pointerHoveredSlot = null;
+                _pointerHoveredBaseSlot = null;
             }
         }
 
-        internal void NotifySlotInteracted(ISlot slot)
+        internal void NotifySlotInteracted(BaseSlot baseSlot)
         {
-            if (slot == null || !ReferenceEquals(slot.Inventory, this))
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return;
 
-            _lastInteractedSlot = slot;
+            _lastInteractedBaseSlot = baseSlot;
         }
 
         /// <summary>
         /// Найти активный слот для автопереноса.
         /// Приоритет: курсор → выбранный UI элемент → последний взаимодействовавший слот.
         /// </summary>
-        public ISlot ResolveAutoTransferSlot()
+        public BaseSlot ResolveAutoTransferSlot()
         {
-            if (_pointerHoveredSlot != null && ReferenceEquals(_pointerHoveredSlot.Inventory, this))
-                return _pointerHoveredSlot;
+            if (_pointerHoveredBaseSlot != null && ReferenceEquals(_pointerHoveredBaseSlot.Inventory, this))
+                return _pointerHoveredBaseSlot;
 
             var selectedObject = EventSystem.current != null
                 ? EventSystem.current.currentSelectedGameObject
@@ -812,15 +813,15 @@ namespace DragAndDropSystem.Inventories
 
             if (selectedObject != null)
             {
-                var selectedSlot = selectedObject.GetComponent<ISlot>()
-                    ?? selectedObject.GetComponentInParent<ISlot>();
+                var selectedSlot = selectedObject.GetComponent<BaseSlot>()
+                    ?? selectedObject.GetComponentInParent<BaseSlot>();
 
                 if (selectedSlot != null && ReferenceEquals(selectedSlot.Inventory, this))
                     return selectedSlot;
             }
 
-            if (_lastInteractedSlot != null && ReferenceEquals(_lastInteractedSlot.Inventory, this))
-                return _lastInteractedSlot;
+            if (_lastInteractedBaseSlot != null && ReferenceEquals(_lastInteractedBaseSlot.Inventory, this))
+                return _lastInteractedBaseSlot;
 
             return null;
         }
@@ -829,15 +830,15 @@ namespace DragAndDropSystem.Inventories
         /// Получить количество предметов для перетаскивания из слота.
         /// Без параметров использует настройки инвентаря, с параметрами — переданные override.
         /// </summary>
-        public int GetDragAmount(ISlot slot, DragAmount? overrideAmount = null, int? overrideCustom = null)
+        public int GetDragAmount(BaseSlot baseSlot, DragAmount? overrideAmount = null, int? overrideCustom = null)
         {
-            if (slot == null || slot.IsEmpty)
+            if (baseSlot == null || baseSlot.IsEmpty)
                 return 0;
 
             EnsureStrategyInitialized();
             var amount = overrideAmount ?? _dragAmount;
             var custom = overrideAmount.HasValue ? (overrideCustom ?? 0) : _customDragAmount;
-            var result = _dragPolicy.ResolveDragAmount(slot.Stack.Count, amount, custom);
+            var result = _dragPolicy.ResolveDragAmount(baseSlot.Stack.Count, amount, custom);
 
             if (_dragAmountStep > 1)
             {
@@ -848,7 +849,7 @@ namespace DragAndDropSystem.Inventories
                     _                              => (result / _dragAmountStep) * _dragAmountStep
                 };
 
-                result = Math.Min(result, slot.Stack.Count);
+                result = Math.Min(result, baseSlot.Stack.Count);
             }
 
             return result;
@@ -892,36 +893,36 @@ namespace DragAndDropSystem.Inventories
         /// Попытаться добавить предмет в конкретный слот с учетом автоматического объединения
         /// </summary>
         /// <param name="stack">Стак предметов для добавления</param>
-        /// <param name="targetSlot">Целевой слот</param>
+        /// <param name="targetBaseSlot">Целевой слот</param>
         /// <param name="sourceInventory">Инвентарь-источник (для событий)</param>
         /// <param name="sourceSlotIndex">Индекс исходного слота (для событий)</param>
         public bool TryAddToSlot(
             ItemStack stack,
-            ISlot targetSlot,
+            BaseSlot targetBaseSlot,
             IInventory sourceInventory = null,
             int sourceSlotIndex = -1,
             SlotOperationContext operationContext = null)
         {
-            if (stack == null || stack.IsEmpty || targetSlot == null)
+            if (stack == null || stack.IsEmpty || targetBaseSlot == null)
                 return false;
 
             EnsureStrategyInitialized();
-            return _placementStrategy.TryAddToSlot(_slots, stack, targetSlot, EnsureFreeSlots, operationContext);
+            return _placementStrategy.TryAddToSlot(_slots, stack, targetBaseSlot, EnsureFreeSlots, operationContext);
         }
 
         /// <summary>
         /// Проверить, может ли инвентарь принять предмет (без привязки к конкретному слоту)
         /// Проверяет правила инвентаря + наличие подходящих слотов или возможность создания нового
         /// </summary>
-        public bool CanAcceptItem(IItemAdapter itemAdapter, int count, out ISlot suggestedSlot)
-            => CanAcceptItem(new InventoryAcceptanceRequest(this, itemAdapter, count), out suggestedSlot);
+        public bool CanAcceptItem(IItemAdapter itemAdapter, int count, out BaseSlot suggestedBaseSlot)
+            => CanAcceptItem(new InventoryAcceptanceRequest(this, itemAdapter, count), out suggestedBaseSlot);
 
         /// <summary>
         /// Проверить, может ли инвентарь принять предмет в контексте текущей drag/drop операции.
         /// </summary>
-        public bool CanAcceptItem(InventoryAcceptanceRequest request, out ISlot suggestedSlot)
+        public bool CanAcceptItem(InventoryAcceptanceRequest request, out BaseSlot suggestedBaseSlot)
         {
-            suggestedSlot = null;
+            suggestedBaseSlot = null;
 
             if (request?.ItemAdapter == null || request.DesiredCount <= 0)
                 return false;
@@ -930,7 +931,7 @@ namespace DragAndDropSystem.Inventories
 
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
-            bool canAccept = _acceptanceStrategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab, out suggestedSlot);
+            bool canAccept = _acceptanceStrategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
 
             if (canAccept)
                 Extensions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
@@ -949,7 +950,7 @@ namespace DragAndDropSystem.Inventories
 
             bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
             int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
-            int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, _slotPrefab);
+            int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
             Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: itemAdapter={request.ItemAdapter.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }
@@ -977,42 +978,42 @@ namespace DragAndDropSystem.Inventories
         /// Уведомить инвентарь о том, что указанный слот стал пустым.
         /// Используется для динамического удаления лишних слотов.
         /// </summary>
-        public void HandleSlotEmptied(ISlot slot)
+        public void HandleSlotEmptied(BaseSlot baseSlot)
         {
-            if (_slotManagement != SlotManagementType.Dynamic || slot == null)
+            if (_slotManagement != SlotManagementType.Dynamic || baseSlot == null)
                 return;
 
-            if (!ReferenceEquals(slot.Inventory, this))
+            if (!ReferenceEquals(baseSlot.Inventory, this))
                 return;
 
-            if (!_slots.Contains(slot))
+            if (!_slots.Contains(baseSlot))
                 return;
 
-            if (_lastInteractedSlot == slot)
+            if (_lastInteractedBaseSlot == baseSlot)
             {
-                _lastInteractedSlot = null;
+                _lastInteractedBaseSlot = null;
             }
 
-            if (_pointerHoveredSlot == slot)
+            if (_pointerHoveredBaseSlot == baseSlot)
             {
-                _pointerHoveredSlot = null;
+                _pointerHoveredBaseSlot = null;
             }
 
-            if (!slot.IsEmpty)
+            if (!baseSlot.IsEmpty)
                 return;
 
-            TrimExcessFreeSlots(slot);
+            TrimExcessFreeSlots(baseSlot);
         }
 
-        private void TrimExcessFreeSlots(ISlot preferredSlot)
+        private void TrimExcessFreeSlots(BaseSlot preferredBaseSlot)
         {
             if (_slotManagement != SlotManagementType.Dynamic)
                 return;
 
             bool removedAny = false;
-            if (preferredSlot != null && preferredSlot.IsEmpty && CanRemoveAnotherSlot())
+            if (preferredBaseSlot != null && preferredBaseSlot.IsEmpty && CanRemoveAnotherSlot())
             {
-                removedAny |= TryRemoveSlot(preferredSlot);
+                removedAny |= TryRemoveSlot(preferredBaseSlot);
             }
 
             while (CanRemoveAnotherSlot())
@@ -1048,7 +1049,7 @@ namespace DragAndDropSystem.Inventories
             return true;
         }
 
-        private ISlot FindLastEmptySlot()
+        private BaseSlot FindLastEmptySlot()
         {
             for (int i = _slots.Count - 1; i >= 0; i--)
             {
@@ -1060,19 +1061,19 @@ namespace DragAndDropSystem.Inventories
             return null;
         }
 
-        private bool TryRemoveSlot(ISlot slot)
+        private bool TryRemoveSlot(BaseSlot baseSlot)
         {
-            if (slot == null || !slot.IsEmpty)
+            if (baseSlot == null || !baseSlot.IsEmpty)
                 return false;
 
-            int index = _slots.IndexOf(slot);
+            int index = _slots.IndexOf(baseSlot);
             if (index < 0)
                 return false;
 
             if (_slots.Count - 1 < _initialSlotCount)
                 return false;
 
-            var slotTransform = slot.Transform;
+            var slotTransform = baseSlot.Transform;
             _slots.RemoveAt(index);
 
             for (int i = index; i < _slots.Count; i++)
@@ -1104,55 +1105,55 @@ namespace DragAndDropSystem.Inventories
         /// Выполнить обмен предметов между двумя слотами (возможно из разных инвентарей).
         /// События не генерируются напрямую, информация возвращается через SwapOperationResult.
         /// </summary>
-        /// <param name="targetSlot">Целевой слот (из этого инвентаря)</param>
-        /// <param name="sourceSlot">Исходный слот (может быть из другого инвентаря)</param>
+        /// <param name="targetBaseSlot">Целевой слот (из этого инвентаря)</param>
+        /// <param name="sourceBaseSlot">Исходный слот (может быть из другого инвентаря)</param>
         /// <param name="result">Результат обмена для генерации событий</param>
         /// <returns>True если swap успешен</returns>
-        public bool TrySwapSlots(ISlot targetSlot, ISlot sourceSlot, out SwapOperationResult result)
+        public bool TrySwapSlots(BaseSlot targetBaseSlot, BaseSlot sourceBaseSlot, out SwapOperationResult result)
         {
             result = default;
-            if (targetSlot == null || sourceSlot == null)
+            if (targetBaseSlot == null || sourceBaseSlot == null)
             {
                 Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Slot is null</color>");
                 return false;
             }
 
-            if (targetSlot.IsEmpty || sourceSlot.IsEmpty)
+            if (targetBaseSlot.IsEmpty || sourceBaseSlot.IsEmpty)
             {
                 Extensions.DragAndDropLog("<color=red>[TrySwapSlots] One of the slots is empty</color>");
                 return false;
             }
 
             // Проверяем что targetSlot принадлежит этому инвентарю
-            if (!ReferenceEquals(targetSlot.Inventory, this))
+            if (!ReferenceEquals(targetBaseSlot.Inventory, this))
             {
                 Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Target slot doesn't belong to this inventory</color>");
                 return false;
             }
 
             // Сохраняем копии стаков для событий
-            var targetStackBackup = ItemStack.TryCreate(targetSlot.Stack.Adapters, out var targetBackup)
+            var targetStackBackup = ItemStack.TryCreate(targetBaseSlot.Stack.Adapters, out var targetBackup)
                 ? targetBackup
                 : ItemStack.Empty();
-            var sourceStackBackup = ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceBackup)
+            var sourceStackBackup = ItemStack.TryCreate(sourceBaseSlot.Stack.Adapters, out var sourceBackup)
                 ? sourceBackup
                 : ItemStack.Empty();
 
             try
             {
                 // Выполняем обмен
-                var tempStack = targetSlot.Stack;
-                targetSlot.SetStack(sourceSlot.Stack);
-                sourceSlot.SetStack(tempStack);
+                var tempStack = targetBaseSlot.Stack;
+                targetBaseSlot.SetStack(sourceBaseSlot.Stack);
+                sourceBaseSlot.SetStack(tempStack);
 
-                targetSlot.UpdateVisuals();
-                sourceSlot.UpdateVisuals();
+                targetBaseSlot.UpdateVisuals();
+                sourceBaseSlot.UpdateVisuals();
 
-                Extensions.DragAndDropLog($"<color=green>[{name}] Swap completed: slot {targetSlot.Index} ↔ slot {sourceSlot.Index}</color>");
-                var targetStackAfter = ItemStack.TryCreate(targetSlot.Stack.Adapters, out var targetAfter)
+                Extensions.DragAndDropLog($"<color=green>[{name}] Swap completed: slot {targetBaseSlot.Index} ↔ slot {sourceBaseSlot.Index}</color>");
+                var targetStackAfter = ItemStack.TryCreate(targetBaseSlot.Stack.Adapters, out var targetAfter)
                     ? targetAfter
                     : ItemStack.Empty();
-                var sourceStackAfter = ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceAfter)
+                var sourceStackAfter = ItemStack.TryCreate(sourceBaseSlot.Stack.Adapters, out var sourceAfter)
                     ? sourceAfter
                     : ItemStack.Empty();
 
@@ -1164,10 +1165,10 @@ namespace DragAndDropSystem.Inventories
                 Debug.LogError($"[{name}] TrySwapSlots exception: {ex.Message}");
 
                 // Откатываем изменения
-                targetSlot.SetStack(targetStackBackup);
-                sourceSlot.SetStack(sourceStackBackup);
-                targetSlot.UpdateVisuals();
-                sourceSlot.UpdateVisuals();
+                targetBaseSlot.SetStack(targetStackBackup);
+                sourceBaseSlot.SetStack(sourceStackBackup);
+                targetBaseSlot.UpdateVisuals();
+                sourceBaseSlot.UpdateVisuals();
 
                 return false;
             }

@@ -11,7 +11,7 @@ namespace DragAndDropSystem.Inventories
         /// <summary>
         /// Фактический слот, куда был положен предмет (учитывая автослияние и переупаковку).
         /// </summary>
-        public ISlot ResolvedSlot { get; private set; }
+        public BaseSlot ResolvedBaseSlot { get; private set; }
 
         /// <summary>
         /// Был ли слот пустым до операции (полезно для визуалов и анимаций).
@@ -23,16 +23,16 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         public int AddedCount { get; private set; }
 
-        public void RecordResult(ISlot slot, bool wasEmptyBefore, int addedCount)
+        public void RecordResult(BaseSlot baseSlot, bool wasEmptyBefore, int addedCount)
         {
-            ResolvedSlot = slot;
+            ResolvedBaseSlot = baseSlot;
             TargetWasEmptyBefore = wasEmptyBefore;
             AddedCount = addedCount;
         }
 
         public void ResetResult()
         {
-            ResolvedSlot = null;
+            ResolvedBaseSlot = null;
             TargetWasEmptyBefore = false;
             AddedCount = 0;
         }

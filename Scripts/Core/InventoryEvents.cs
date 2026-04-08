@@ -28,28 +28,28 @@ namespace DragAndDropSystem.Core
         /// Слот-источник (откуда взяли предмет)
         /// Null если слот неизвестен или недоступен
         /// </summary>
-        public ISlot SourceSlot { get; }
+        public BaseSlot SourceBaseSlot { get; }
 
         /// <summary>
         /// Слот-назначение (куда положили предмет)
         /// Null если слот неизвестен или недоступен
         /// </summary>
-        public ISlot TargetSlot { get; }
+        public BaseSlot TargetBaseSlot { get; }
 
         public InventoryItemEventContext(
             ItemStack stack,
             int slotIndex = -1,
             IInventory sourceInventory = null,
             IInventory targetInventory = null,
-            ISlot sourceSlot = null,
-            ISlot targetSlot = null)
+            BaseSlot sourceBaseSlot = null,
+            BaseSlot targetBaseSlot = null)
         {
             Stack = stack ?? ItemStack.Empty();
             SlotIndex = slotIndex;
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
-            SourceSlot = sourceSlot;
-            TargetSlot = targetSlot;
+            SourceBaseSlot = sourceBaseSlot;
+            TargetBaseSlot = targetBaseSlot;
         }
     }
 
@@ -71,12 +71,12 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// Исходный слот (откуда начали перетаскивание)
         /// </summary>
-        public ISlot SourceSlot { get; }
+        public BaseSlot SourceBaseSlot { get; }
 
         /// <summary>
         /// Целевой слот (куда хотим бросить)
         /// </summary>
-        public ISlot TargetSlot { get; }
+        public BaseSlot TargetBaseSlot { get; }
 
         /// <summary>
         /// Исходный инвентарь
@@ -96,15 +96,15 @@ namespace DragAndDropSystem.Core
         public InventorySwapContext(
             ItemStack sourceStack,
             ItemStack targetStack,
-            ISlot sourceSlot,
-            ISlot targetSlot,
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
             IInventory sourceInventory,
             IInventory targetInventory)
         {
             SourceStack = sourceStack;
             TargetStack = targetStack;
-            SourceSlot = sourceSlot;
-            TargetSlot = targetSlot;
+            SourceBaseSlot = sourceBaseSlot;
+            TargetBaseSlot = targetBaseSlot;
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
             Cancel = false;

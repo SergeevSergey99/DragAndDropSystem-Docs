@@ -10,10 +10,10 @@ namespace DragAndDropSystem.Selection
     {
         public override string DisplayName => "Clear Selection";
 
-        public override void Execute(SelectionManager manager, ISlot contextSlot = null)
+        public override void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null)
             => manager.Clear();
 
-        public override bool CanExecute(SelectionManager manager, ISlot contextSlot = null)
-            => base.CanExecute(manager, contextSlot) && manager.CurrentContext.HasSelection;
+        public override bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
+            => base.CanExecute(manager, contextBaseSlot) && manager.CurrentContext.HasSelection;
     }
 }

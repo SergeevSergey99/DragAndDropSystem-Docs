@@ -19,13 +19,13 @@ namespace DragAndDropSystem.Selection
         /// Выполнить операцию выделения.
         /// </summary>
         /// <param name="manager">Менеджер выделения</param>
-        /// <param name="contextSlot">Слот, инициировавший операцию (может быть null для кнопок/хоткеев)</param>
-        public abstract void Execute(SelectionManager manager, ISlot contextSlot = null);
+        /// <param name="contextBaseSlot">Слот, инициировавший операцию (может быть null для кнопок/хоткеев)</param>
+        public abstract void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null);
 
         /// <summary>
         /// Можно ли выполнить операцию прямо сейчас
         /// </summary>
-        public virtual bool CanExecute(SelectionManager manager, ISlot contextSlot = null)
+        public virtual bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
             => manager != null;
     }
 }

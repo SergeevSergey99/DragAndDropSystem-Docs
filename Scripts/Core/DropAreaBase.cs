@@ -143,7 +143,7 @@ namespace DragAndDropSystem.Core
         //  IDropTarget
         // ══════════════════════════════════════════════════════════
 
-        public virtual ISlot GetTargetSlot() => null;
+        public virtual BaseSlot GetTargetSlot() => null;
 
         public virtual IDropProcessor GetDropProcessor() => this;
 
@@ -194,7 +194,7 @@ namespace DragAndDropSystem.Core
             {
                 var entry = context.Entries[i];
                 var stack = entry.Stack;
-                var sourceSlot = entry.SourceSlot;
+                var sourceSlot = entry.SourceBaseSlot;
 
                 if (stack == null || stack.IsEmpty)
                 {
@@ -234,7 +234,7 @@ namespace DragAndDropSystem.Core
                     ? DropResult.SucceededBatch(
                         itemAdapter: lastAdapter,
                         amount: totalProcessed,
-                        targetSlot: null,
+                        targetBaseSlot: null,
                         targetInventory: null,
                         succeededEntries: succeededEntries,
                         failedEntries: failedEntries,
@@ -242,7 +242,7 @@ namespace DragAndDropSystem.Core
                     : DropResult.Succeeded(
                         itemAdapter: lastAdapter,
                         amount: totalProcessed,
-                        targetSlot: null,
+                        targetBaseSlot: null,
                         targetInventory: null);
             }
 

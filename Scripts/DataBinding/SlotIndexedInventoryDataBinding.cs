@@ -71,7 +71,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
 
-            int index = context.TargetSlot?.Index ?? -1;
+            int index = context.TargetBaseSlot?.Index ?? -1;
             if (index < 0) return;
 
             AddToSlotData(index, adapter, context.Stack.Count);
@@ -81,7 +81,7 @@ namespace DragAndDropSystem.DataBinding
         {
             if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
 
-            int index = context.SourceSlot?.Index ?? -1;
+            int index = context.SourceBaseSlot?.Index ?? -1;
             if (index < 0) return;
 
             RemoveFromSlotData(index, adapter, context.Stack.Count);

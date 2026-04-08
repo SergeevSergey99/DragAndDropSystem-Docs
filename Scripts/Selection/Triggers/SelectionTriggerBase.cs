@@ -19,8 +19,8 @@ namespace DragAndDropSystem.Selection
         /// <summary>
         /// Выполнить операцию. Вызывается конкретными триггерами.
         /// </summary>
-        /// <param name="contextSlot">Слот, инициировавший операцию (null для кнопок/хоткеев)</param>
-        protected void TryExecute(ISlot contextSlot = null)
+        /// <param name="contextBaseSlot">Слот, инициировавший операцию (null для кнопок/хоткеев)</param>
+        protected void TryExecute(BaseSlot contextBaseSlot = null)
         {
             var manager = SelectionManager.AutoCreateInstance;
             if (manager == null)
@@ -37,14 +37,14 @@ namespace DragAndDropSystem.Selection
                 return;
             }
 
-            if (!_operation.CanExecute(manager, contextSlot))
+            if (!_operation.CanExecute(manager, contextBaseSlot))
             {
                 if (_logWarnings)
                     Debug.LogWarning($"[{name}] Operation '{_operation.DisplayName}' cannot execute.");
                 return;
             }
 
-            _operation.Execute(manager, contextSlot);
+            _operation.Execute(manager, contextBaseSlot);
         }
     }
 }

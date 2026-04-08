@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Inventories
     public sealed class AutoTransferService
     {
         public bool TryCreateContext(
-            IReadOnlyList<ISlot> sourceSlots,
+            IReadOnlyList<BaseSlot> sourceSlots,
             IInventory sourceInventory,
             IInventory targetInventory,
             out DragContext context,
@@ -37,7 +37,7 @@ namespace DragAndDropSystem.Inventories
             }
 
             var entries = new List<DragEntry>(sourceSlots.Count);
-            var seen = new HashSet<ISlot>();
+            var seen = new HashSet<BaseSlot>();
 
             for (int i = 0; i < sourceSlots.Count; i++)
             {
@@ -94,7 +94,7 @@ namespace DragAndDropSystem.Inventories
                 return (DropResult.Failed("Auto-transfer target inventory is null"), null);
 
             var handler = new InventoryDropProcessor(
-                targetSlot: null,
+                targetBaseSlot: null,
                 targetInventory: targetInventory,
                 globalRules: globalRules,
                 swapAttempting: swapAttempting,

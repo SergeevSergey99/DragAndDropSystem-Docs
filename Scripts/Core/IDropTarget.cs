@@ -11,7 +11,7 @@ namespace DragAndDropSystem.Core
         /// <summary>
         /// Get the target slot (can be null for areas like InventoryDropArea or WorldDropZone)
         /// </summary>
-        ISlot GetTargetSlot();
+        BaseSlot GetTargetSlot();
 
         /// <summary>
         /// Get the drop processor responsible for validating and executing drops on this target.

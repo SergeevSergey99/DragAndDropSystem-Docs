@@ -19,13 +19,13 @@ namespace DragAndDropSystem.Interaction
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
@@ -49,13 +49,13 @@ namespace DragAndDropSystem.Interaction
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            var slot = adapter?.Slot;
+            var slot = adapter?.BaseSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 

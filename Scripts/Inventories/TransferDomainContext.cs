@@ -13,8 +13,8 @@ namespace DragAndDropSystem.Inventories
         public TransferDomainContext(
             IInventory sourceInventory,
             IInventory targetInventory,
-            ISlot sourceSlot,
-            ISlot plannedTargetSlot,
+            BaseSlot sourceBaseSlot,
+            BaseSlot plannedTargetBaseSlot,
             IItemAdapter sourceItemAdapter,
             IItemAdapter previewTargetItemAdapter,
             int requestedAmount,
@@ -22,12 +22,12 @@ namespace DragAndDropSystem.Inventories
         {
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
-            SourceSlot = sourceSlot;
-            PlannedTargetSlot = plannedTargetSlot;
+            SourceBaseSlot = sourceBaseSlot;
+            PlannedTargetBaseSlot = plannedTargetBaseSlot;
             SourceItemAdapter = sourceItemAdapter;
             PreviewTargetItemAdapter = previewTargetItemAdapter ?? sourceItemAdapter;
             RequestedAmount = requestedAmount;
-            TargetSlot = plannedTargetSlot;
+            TargetBaseSlot = plannedTargetBaseSlot;
             TargetItemAdapter = PreviewTargetItemAdapter;
             CommittedAmount = requestedAmount;
             Kind = kind;
@@ -37,9 +37,9 @@ namespace DragAndDropSystem.Inventories
         public IInventory TargetInventory { get; }
         public InventoryDataBindingBase SourceBinding => SourceInventory?.DataBinding;
         public InventoryDataBindingBase TargetBinding => TargetInventory?.DataBinding;
-        public ISlot SourceSlot { get; }
-        public ISlot PlannedTargetSlot { get; }
-        public ISlot TargetSlot { get; private set; }
+        public BaseSlot SourceBaseSlot { get; }
+        public BaseSlot PlannedTargetBaseSlot { get; }
+        public BaseSlot TargetBaseSlot { get; private set; }
         public IItemAdapter SourceItemAdapter { get; }
         public IItemAdapter PreviewTargetItemAdapter { get; }
         public IItemAdapter TargetItemAdapter { get; private set; }
@@ -51,15 +51,15 @@ namespace DragAndDropSystem.Inventories
         public void MarkCommitted(InventoryTransferResult outcome)
         {
             IsCommitted = true;
-            TargetSlot = outcome.TargetSlot ?? PlannedTargetSlot;
+            TargetBaseSlot = outcome.TargetBaseSlot ?? PlannedTargetBaseSlot;
             TargetItemAdapter = outcome.TargetItemAdapter ?? PreviewTargetItemAdapter;
             CommittedAmount = outcome.Amount;
         }
 
-        public void MarkCommitted(ISlot targetSlot, IItemAdapter targetItemAdapter, int committedAmount)
+        public void MarkCommitted(BaseSlot targetBaseSlot, IItemAdapter targetItemAdapter, int committedAmount)
         {
             IsCommitted = true;
-            TargetSlot = targetSlot ?? PlannedTargetSlot;
+            TargetBaseSlot = targetBaseSlot ?? PlannedTargetBaseSlot;
             TargetItemAdapter = targetItemAdapter ?? PreviewTargetItemAdapter;
             CommittedAmount = committedAmount;
         }

@@ -123,12 +123,12 @@ namespace DragAndDropSystem
         /// <summary>
         /// Начать перетаскивание из слота
         /// </summary>
-        public bool StartDrag(ISlot sourceSlot, DragRequestPolicy? requested = null) => sourceSlot != null && StartDrag(new List<ISlot> { sourceSlot }, requested);
+        public bool StartDrag(BaseSlot sourceBaseSlot, DragRequestPolicy? requested = null) => sourceBaseSlot != null && StartDrag(new List<BaseSlot> { sourceBaseSlot }, requested);
 
         /// <summary>
         /// Начать перетаскивание из одного или нескольких слотов
         /// </summary>
-        public bool StartDrag(IReadOnlyList<ISlot> sourceSlots, DragRequestPolicy? requested = null)
+        public bool StartDrag(IReadOnlyList<BaseSlot> sourceSlots, DragRequestPolicy? requested = null)
         {
             if (IsDragging || sourceSlots == null || sourceSlots.Count == 0)
                 return false;
@@ -355,9 +355,9 @@ namespace DragAndDropSystem
 
                         if (success)
                         {
-                            if (result.TargetSlot != null && result.TargetInventory != null)
+                            if (result.TargetBaseSlot != null && result.TargetInventory != null)
                             {
-                                dragContext.SetTarget(result.TargetSlot, result.TargetInventory);
+                                dragContext.SetTarget(result.TargetBaseSlot, result.TargetInventory);
                             }
 
                             if (dragContext.IsBatchDrag && SelectionManager.IsInstanceExist)
@@ -397,18 +397,18 @@ namespace DragAndDropSystem
             }
         }
 
-        private static int ResolveDragCount(ISlot slot, DragRequestPolicy? requested)
+        private static int ResolveDragCount(BaseSlot baseSlot, DragRequestPolicy? requested)
         {
-            if (slot == null || slot.IsEmpty || slot.Inventory == null)
+            if (baseSlot == null || baseSlot.IsEmpty || baseSlot.Inventory == null)
                 return 0;
 
             if (!requested.HasValue || !requested.Value.Amount.HasValue)
-                return slot.Inventory.GetDragAmount(slot);
+                return baseSlot.Inventory.GetDragAmount(baseSlot);
 
-            if (slot.Inventory is UniversalInventory universal)
-                return universal.GetDragAmount(slot, requested.Value.Amount.Value, requested.Value.CustomAmount);
+            if (baseSlot.Inventory is UniversalInventory universal)
+                return universal.GetDragAmount(baseSlot, requested.Value.Amount.Value, requested.Value.CustomAmount);
 
-            return slot.Inventory.GetDragAmount(slot);
+            return baseSlot.Inventory.GetDragAmount(baseSlot);
         }
 
         /// <summary>
@@ -446,13 +446,13 @@ namespace DragAndDropSystem
         /// <summary>
         /// Выполнить автоперенос предмета из слота в целевой инвентарь
         /// </summary>
-        public bool TryAutoTransfer(ISlot sourceSlot, IInventory sourceInventory, IInventory targetInventory)
+        public bool TryAutoTransfer(BaseSlot sourceBaseSlot, IInventory sourceInventory, IInventory targetInventory)
         {
-            if (sourceSlot == null)
+            if (sourceBaseSlot == null)
                 return false;
 
             return TryAutoTransfer(
-                new[] { sourceSlot },
+                new[] { sourceBaseSlot },
                 sourceInventory,
                 targetInventory);
         }
@@ -460,7 +460,7 @@ namespace DragAndDropSystem
         /// <summary>
         /// Выполнить автоперенос одного или нескольких слотов в целевой инвентарь через общий transfer pipeline.
         /// </summary>
-        public bool TryAutoTransfer(IReadOnlyList<ISlot> sourceSlots, IInventory sourceInventory, IInventory targetInventory)
+        public bool TryAutoTransfer(IReadOnlyList<BaseSlot> sourceSlots, IInventory sourceInventory, IInventory targetInventory)
         {
             if (sourceSlots == null || sourceSlots.Count == 0 || sourceInventory == null || targetInventory == null)
                 return false;
@@ -476,7 +476,7 @@ namespace DragAndDropSystem
         }
 
         public async Task<bool> TryAutoTransferAsync(
-            IReadOnlyList<ISlot> sourceSlots,
+            IReadOnlyList<BaseSlot> sourceSlots,
             IInventory sourceInventory,
             IInventory targetInventory,
             CancellationToken cancellationToken = default)
@@ -500,7 +500,7 @@ namespace DragAndDropSystem
                 {
                     for (int i = 0; i < sourceSlots.Count; i++)
                     {
-                        if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceSlot)
+                        if (sourceSlots[i] != null && sourceSlots[i] == _currentContext.Entries[0].SourceBaseSlot)
                         {
                             Extensions.DragAndDropLog("<color=red>TryAutoTransfer: Source slot is currently dragged manually</color>");
                             return false;
@@ -550,10 +550,10 @@ namespace DragAndDropSystem
             {
                 var entry = context.Entries[i];
                 if (entry.SourceInventory is UniversalInventory sourceUniversal &&
-                    entry.SourceSlot != null &&
-                    entry.SourceSlot.IsEmpty)
+                    entry.SourceBaseSlot != null &&
+                    entry.SourceBaseSlot.IsEmpty)
                 {
-                    sourceUniversal.HandleSlotEmptied(entry.SourceSlot);
+                    sourceUniversal.HandleSlotEmptied(entry.SourceBaseSlot);
                 }
             }
         }
@@ -566,7 +566,7 @@ namespace DragAndDropSystem
         {
             var transferredItem = dropResult.ItemAdapter;
             int transferredAmount = dropResult.Amount;
-            var finalTargetSlot = dropResult.TargetSlot;
+            var finalTargetSlot = dropResult.TargetBaseSlot;
             var executedEntries = executionSummary?.ExecutedEntries;
             bool canAnimate = _autoTransferAnimation != null
                               && executedEntries != null
@@ -592,30 +592,30 @@ namespace DragAndDropSystem
                 for (int i = 0; i < executedEntries.Count; i++)
                 {
                     var entry = executedEntries[i];
-                    if (entry.SourceSlot == null || entry.TargetSlot == null || entry.ItemAdapter == null || entry.Amount <= 0)
+                    if (entry.SourceBaseSlot == null || entry.TargetBaseSlot == null || entry.ItemAdapter == null || entry.Amount <= 0)
                         continue;
 
-                    if (entry.TargetSlot != null)
-                        entry.TargetSlot.SetIconVisibility(false);
+                    if (entry.TargetBaseSlot != null)
+                        entry.TargetBaseSlot.SetIconVisibility(false);
 
-                    if (!ItemStack.TryCreate(entry.TargetSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
+                    if (!ItemStack.TryCreate(entry.TargetBaseSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
                         continue;
                     var presenter = DragVisualPresenter.AutoCreateInstance;
-                    var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceSlot.Inventory);
+                    var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceBaseSlot.Inventory);
 
                     pendingAnimations++;
 
                     GameObject animationVisual = _autoTransferAnimation.AnimateTransfer(
                         visualStack,
-                        entry.SourceSlot,
-                        entry.TargetSlot,
+                        entry.SourceBaseSlot,
+                        entry.TargetBaseSlot,
                         visualPrefab,
                         presenter.VisualContainer,
                         presenter.PresentationCanvas,
                         () =>
                         {
-                            if (entry.TargetSlot != null)
-                                entry.TargetSlot.SetIconVisibility(true);
+                            if (entry.TargetBaseSlot != null)
+                                entry.TargetBaseSlot.SetIconVisibility(true);
                             animationCompleted();
                         });
 

@@ -78,7 +78,7 @@ namespace DragAndDropSystem.ContextMenu
             if (IsOpen)
             {
                 Hide();
-                if (ctx.Slot == _lastContext.Slot && ctx.Inventory == _lastContext.Inventory)
+                if (ctx.BaseSlot == _lastContext.BaseSlot && ctx.Inventory == _lastContext.Inventory)
                 {
                     return;
                 }
