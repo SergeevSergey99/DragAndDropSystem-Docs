@@ -539,27 +539,29 @@ namespace DragAndDropSystem.Inventories
             ItemStack targetStackAfter,
             ItemStack sourceStackAfter)
         {
-            return new[]
-            {
-                new TransferDomainContext(
-                    sourceInventory,
-                    targetInventory,
-                    sourceBaseSlot,
-                    targetBaseSlot,
-                    sourceStackBefore.PrimaryAdapter,
-                    targetStackAfter.PrimaryAdapter,
-                    sourceStackBefore.Count,
-                    TransferKind.Swap),
-                new TransferDomainContext(
-                    targetInventory,
-                    sourceInventory,
-                    targetBaseSlot,
-                    sourceBaseSlot,
-                    targetStackBefore.PrimaryAdapter,
-                    sourceStackAfter.PrimaryAdapter,
-                    targetStackBefore.Count,
-                    TransferKind.Swap)
-            };
+            var forward = new TransferDomainContext(
+                sourceInventory,
+                targetInventory,
+                sourceBaseSlot,
+                targetBaseSlot,
+                sourceStackBefore.PrimaryAdapter,
+                targetStackAfter.PrimaryAdapter,
+                sourceStackBefore.Count,
+                TransferKind.Swap);
+            var reverse = new TransferDomainContext(
+                targetInventory,
+                sourceInventory,
+                targetBaseSlot,
+                sourceBaseSlot,
+                targetStackBefore.PrimaryAdapter,
+                sourceStackAfter.PrimaryAdapter,
+                targetStackBefore.Count,
+                TransferKind.Swap);
+
+            forward.CounterpartContext = reverse;
+            reverse.CounterpartContext = forward;
+
+            return new[] { forward, reverse };
         }
 
         private static bool TryCommitSwapViaPlacement(

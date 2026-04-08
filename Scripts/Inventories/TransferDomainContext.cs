@@ -47,6 +47,7 @@ namespace DragAndDropSystem.Inventories
         public int CommittedAmount { get; private set; }
         public bool IsCommitted { get; private set; }
         public TransferKind Kind { get; }
+        public TransferDomainContext CounterpartContext { get; internal set; }
 
         public void MarkCommitted(InventoryTransferResult outcome)
         {

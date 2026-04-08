@@ -35,9 +35,16 @@ namespace DragAndDropSystem.Examples.Trading
             if (context.SourceItemAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Invalid item type");
 
-            int totalPrice = tradable.BuyPrice * context.RequestedAmount;
-            if (!TradingEconomyManager.AutoCreateInstance.CanPlayerAfford(totalPrice))
-                return RuleResult.Failure($"Not enough money. Required: {totalPrice}g, available: {playerData.Money}g");
+            int cost = tradable.BuyPrice * context.RequestedAmount;
+
+            if (context.Kind == TransferKind.Swap &&
+                context.CounterpartContext?.SourceItemAdapter is ITradableItem sellItem)
+            {
+                cost -= sellItem.SellPrice * context.CounterpartContext.RequestedAmount;
+            }
+
+            if (cost > 0 && !TradingEconomyManager.AutoCreateInstance.CanPlayerAfford(cost))
+                return RuleResult.Failure($"Not enough money. Required: {cost}g, available: {playerData.Money}g");
 
             return RuleResult.Success();
         }
@@ -53,9 +60,16 @@ namespace DragAndDropSystem.Examples.Trading
             if (context.SourceItemAdapter is not ITradableItem tradable)
                 return RuleResult.Failure("Invalid item type");
 
-            int totalPrice = tradable.SellPrice * context.RequestedAmount;
-            if (merchantData.Money <= totalPrice)
-                return RuleResult.Failure($"The merchant does not have enough money. Required: {totalPrice}g, available: {merchantData.Money}g");
+            int cost = tradable.SellPrice * context.RequestedAmount;
+
+            if (context.Kind == TransferKind.Swap &&
+                context.CounterpartContext?.SourceItemAdapter is ITradableItem buyItem)
+            {
+                cost -= buyItem.BuyPrice * context.CounterpartContext.RequestedAmount;
+            }
+
+            if (cost > 0 && merchantData.Money < cost)
+                return RuleResult.Failure($"The merchant does not have enough money. Required: {cost}g, available: {merchantData.Money}g");
 
             return RuleResult.Success();
         }
