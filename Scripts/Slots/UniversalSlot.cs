@@ -33,69 +33,6 @@ namespace DragAndDropSystem.Slots
         [SerializeField, Tooltip("Optional: CanvasGroup for controlling interactivity")]
         private CanvasGroup _canvasGroup;
 
-        //[FoldoutGroup("Slot Rules", expanded: false)]
-        [InfoBox("Правила фильтрации для этого конкретного слота. Оставьте пустым для слота без ограничений.")]
-        [SerializeField, HideLabel]
-        private SlotRuleValidator _slotRuleValidator = new SlotRuleValidator();
-        
-        private ItemStack _stack = ItemStack.Empty();
-        private int _index;
-        private IInventory _inventory;
-
-
-        public override ItemStack Stack => _stack;
-        public override int Index => _index;
-        public override bool IsEmpty => _stack == null || _stack.IsEmpty;
-        public override IInventory Inventory => _inventory;
-        public override SlotRuleValidator SlotRuleValidator => _slotRuleValidator;
-
-        private void OnValidate()
-        {
-            // Сортируем правила при изменении в Inspector
-            _slotRuleValidator?.OnValidate();
-        }
-
-        public override void Initialize(int index, IInventory inventory)
-        {
-            _inventory = inventory;
-            _index = index;
-            UpdateVisuals();
-        }
-
-        public override void SetStack(ItemStack stack)
-        {
-            _stack = stack ?? ItemStack.Empty();
-            UpdateVisuals();
-        }
-
-        public override void ReplaceItem(IItemAdapter newItemAdapter)
-        {
-            if (_stack == null || _stack.IsEmpty)
-            {
-                // Если слот пуст, создаем новый стек с количеством 1
-                if (!ItemStack.TryCreate(new[] { newItemAdapter }, out _stack))
-                    return;
-            }
-            else
-            {
-                if (_stack.Count > 1)
-                {
-                    Extensions.DragAndDropLog("<color=red>[UniversalSlot] ReplaceItem cannot operate on stacks with multiple concrete adapters. Rebuild the slot stack explicitly.</color>");
-                    return;
-                }
-
-                _stack.ReplaceItem(newItemAdapter);
-            }
-
-            UpdateVisuals();
-        }
-
-        public override void Clear()
-        {
-            _stack = ItemStack.Empty();
-            UpdateVisuals();
-        }
-
         public override void UpdateVisuals()
         {
             SetIconVisibility(IsEmpty == false);
@@ -111,7 +48,7 @@ namespace DragAndDropSystem.Slots
         }
         protected virtual void RenderSetted()
         {
-            _iconImage.sprite = _stack.Icon;
+            _iconImage.sprite = Stack.Icon;
             _iconImage.color = _normalColor;
             _iconImage.enabled = true;
         }
@@ -120,12 +57,12 @@ namespace DragAndDropSystem.Slots
         {
             if (_countContainer != null && _showCount)
             {
-                bool shouldShowCount = !IsEmpty && _stack.Count > 1;
+                bool shouldShowCount = !IsEmpty && Stack.Count > 1;
                 _countContainer.SetActive(shouldShowCount);
 
                 if (shouldShowCount && _countText != null)
                 {
-                    _countText.text = _stack.Count.ToString();
+                    _countText.text = Stack.Count.ToString();
                 }
             }
         }
@@ -138,9 +75,6 @@ namespace DragAndDropSystem.Slots
             }
         }
 
-        /// <summary>
-        /// Временно скрыть/показать визуал слота (для анимаций автопереноса)
-        /// </summary>
         public override void SetIconVisibility(bool visible)
         {
             if (visible)

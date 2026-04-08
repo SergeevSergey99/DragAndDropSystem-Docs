@@ -1,5 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using UnityEngine;
@@ -11,12 +12,15 @@ namespace DragAndDropSystem.Slots
     /// </summary>
     public abstract class BaseSlot : MonoBehaviour
     {
-        public abstract ItemStack Stack { get; }
-        public abstract int Index { get; }
-        public abstract bool IsEmpty { get; }
+        [field: InfoBox("Правила фильтрации для этого конкретного слота. Оставьте пустым для слота без ограничений.")]
+        [field: SerializeField, HideLabel, FoldoutGroup("Slot Rules", expanded: false)]
+        public SlotRuleValidator SlotRuleValidator { get; protected set; } = new();
+        
+        public ItemStack Stack { get; protected set; } = ItemStack.Empty();
+        public int Index { get; protected set; }
+        public bool IsEmpty => Stack == null || Stack.IsEmpty;
         public virtual Transform Transform => transform;
-        public abstract IInventory Inventory { get; }
-        public abstract SlotRuleValidator SlotRuleValidator { get; }
+        public IInventory Inventory { get; protected set; }
 
         /// <summary>
         /// Можно ли взаимодействовать со слотом (drag/drop).
@@ -29,10 +33,23 @@ namespace DragAndDropSystem.Slots
         /// </summary>
         public event Action<bool> OnInteractableChanged;
 
-        public abstract void Initialize(int index, IInventory inventory);
-        public abstract void SetStack(ItemStack stack);
-        public abstract void ReplaceItem(IItemAdapter newItemAdapter);
-        public abstract void Clear();
+        public virtual void Initialize(int index, IInventory inventory)
+        {
+            Inventory = inventory;
+            Index = index;
+            UpdateVisuals();
+        }
+
+        public virtual void SetStack(ItemStack stack)
+        {
+            Stack = stack ?? ItemStack.Empty();
+            UpdateVisuals();
+        }
+        public virtual void Clear()
+        {
+            Stack = ItemStack.Empty();
+            UpdateVisuals();
+        }
         public abstract void UpdateVisuals();
         
         /// <summary>
@@ -58,10 +75,17 @@ namespace DragAndDropSystem.Slots
             // По умолчанию ничего не делаем - наследники могут переопределить
         }
 
-        public int GetDragAmount() => Inventory?.GetDragAmount(this) ?? 0;
-
+        /// <summary>
+        /// Временно скрыть/показать визуал слота (для анимаций автопереноса)
+        /// </summary>
         public virtual void SetIconVisibility(bool b){}
 
         public virtual void Highlight(bool highlight) {}
+        
+        protected void OnValidate()
+        {
+            // Сортируем правила при изменении в Inspector
+            SlotRuleValidator?.OnValidate();
+        }
     }
 }
