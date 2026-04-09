@@ -17,6 +17,7 @@ This is an example of slot-indexed inventory and wiring game world events to UI.
 
 - chests as interactive world objects
 - separate bindings for the player and the chest
+- switching different data sources for DataBinding
 - pickup/drop flows connected to the world
 - a mediator approach: world objects do not know about UI directly
 
