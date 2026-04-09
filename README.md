@@ -1,6 +1,6 @@
-# Drag & Drop Inventory System
+# Universal Drag & Drop System
 
-Flexible Unity inventory system with drag and drop, stacking, swapping, quick transfer, rules, context menu, multi-selection, and data-binding driven integration.
+Flexible Unity data-binding driven inventory system with drag and drop, stacking, swapping, quick transfer, rules, input actions, context menu and multi-selection integration.
 
 This package is built around a simple idea:
 
@@ -37,23 +37,12 @@ Because of that separation, the asset can work with:
 - `Demo4 Trading`: trading, equipment slots, converters, and money checks
 - `Demo5 Containers`: nested inventories and container items
 
-## Start Here
-
-- Quick start: [.docs/content/getting-started/quick-start.md](.docs/content/getting-started/quick-start.md)
-- Examples overview: [.docs/content/examples/index.md](.docs/content/examples/index.md)
-- Data binding: [.docs/content/architecture/data-binding.md](.docs/content/architecture/data-binding.md)
-- Transfer pipeline: [.docs/content/architecture/transfer-pipeline.md](.docs/content/architecture/transfer-pipeline.md)
-- File map: [.docs/content/reference/file-map.md](.docs/content/reference/file-map.md)
-
-English documentation is available alongside the Russian pages via the `.en.md` files in `.docs/content/`.
-
 ## Package Layout
 
 - `Scripts/`: runtime and editor code
 - `Prefabs/`: ready-to-use scene prefabs
 - `Settings/`: presets and default assets
 - `Examples/`: demo scenes and integration samples
-- `.docs/content/`: MkDocs documentation sources
 
 ## Notes
 
@@ -61,6 +50,6 @@ English documentation is available alongside the Russian pages via the `.en.md` 
 - Runtime code is split into asmdefs for cleaner integration.
 - Example scenes are meant to show integration patterns, not the only valid architecture.
 
-## Support
+## Full Documentation
 
-- Feedback and contact: [.docs/content/feedback.md](.docs/content/feedback.md)
+Full documentation can be found at https://sergeevsergey99.github.io/DragAndDropSystem-Docs/
