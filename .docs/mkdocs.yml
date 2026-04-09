@@ -3,7 +3,7 @@ site_description: Unity inventory system with drag & drop, stacking, swapping, a
 
 theme:
   name: material
-  language: ru
+  language: en
   palette:
     - scheme: slate
       primary: deep purple
@@ -32,19 +32,9 @@ plugins:
   - i18n:
       docs_structure: suffix
       languages:
-        - locale: ru
-          name: Русский
-          default: true
-          build: true
-          nav_translations:
-            Home: Главная
-            Examples: Примеры
-            Core Concepts: Основные концепции
-            Advanced Systems: Продвинутые системы
-            Reference: Справочник
-            More: Еще
         - locale: en
           name: English
+          default: true
           build: true
           nav_translations:
             Home: Home
@@ -53,6 +43,16 @@ plugins:
             Advanced Systems: Advanced Systems
             Reference: Reference
             More: More
+        - locale: ru
+          name: Русский
+          build: true
+          nav_translations:
+            Home: Главная
+            Examples: Примеры
+            Core Concepts: Основные концепции
+            Advanced Systems: Продвинутые системы
+            Reference: Справочник
+            More: Еще
 
 nav:
   - Home:
