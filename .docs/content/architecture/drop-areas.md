@@ -136,7 +136,7 @@ public abstract class DropAreaBase : Selectable, IDropTarget, IDropProcessor
     public virtual IDropProcessor GetDropProcessor();
     // По умолчанию: this (простое потребление)
 
-    public virtual ISlot GetTargetSlot();
+    public virtual BaseSlot GetTargetSlot();
     // По умолчанию: null
 
     // ── Общие ────────────────────────────────────

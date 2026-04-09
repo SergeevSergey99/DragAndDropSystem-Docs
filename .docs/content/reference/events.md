@@ -114,8 +114,8 @@ flowchart TD
 |------|-----|----------|
 | `SourceStack` | `ItemStack` | Pre-commit стак из исходного слота |
 | `TargetStack` | `ItemStack` | Pre-commit стак из целевого слота |
-| `SourceSlot` | `ISlot` | Исходный слот (откуда начали перетаскивание) |
-| `TargetSlot` | `ISlot` | Целевой слот (куда хотим бросить) |
+| `SourceSlot` | `BaseSlot` | Исходный слот (откуда начали перетаскивание) |
+| `TargetSlot` | `BaseSlot` | Целевой слот (куда хотим бросить) |
 | `SourceInventory` | `IInventory` | Исходный инвентарь |
 | `TargetInventory` | `IInventory` | Целевой инвентарь |
 | `Cancel` | `bool` | Установите в `true` чтобы отменить обмен |
