@@ -46,13 +46,13 @@ Bindings:
 ```mermaid
 flowchart LR
     MerchantData["MerchantData"] <--> MerchantBinding["MerchantInventoryDataBinding"]
+    MerchantBinding <--> MerchantUI["Merchant Inventory UI"]
     PlayerData["PlayerData"] <--> PlayerBinding["PlayerInventoryDataBinding"]
     PlayerData <--> EquipmentBinding["EquipmentInventoryDataBinding"]
-    MerchantBinding --- Converters["Converters"]
-    PlayerBinding --- Converters
-    MerchantBinding --- Domain["TradingHelper / economy checks"]
-    PlayerBinding --- Domain
-    MerchantBinding <--> MerchantUI["Merchant Inventory UI"]
+    MerchantBinding -.- Converters["Converters"]
+    PlayerBinding -.- Converters
+    MerchantBinding === Domain["TradingHelper / economy checks"]
+    PlayerBinding === Domain
     PlayerBinding <--> PlayerUI["Player Inventory UI"]
     EquipmentBinding <--> EquipUI["Equipment UI"]
 ```
