@@ -70,7 +70,7 @@ flowchart LR
 ## Жизненный цикл
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Drop["Дроп предмета"]
         A["Игрок отпускает предмет"] --> B["InventoryDropArea вызывает CompleteDrag()"]
         B --> C["DragAndDropManager: OnDropAttempting"]

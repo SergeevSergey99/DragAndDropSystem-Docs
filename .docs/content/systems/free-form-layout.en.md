@@ -70,7 +70,7 @@ Standard `InventoryDropArea` --- no subclasses needed.
 ## Lifecycle
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Drop["Item Drop"]
         A["Player releases item"] --> B["InventoryDropArea calls CompleteDrag()"]
         B --> C["DragAndDropManager: OnDropAttempting"]
