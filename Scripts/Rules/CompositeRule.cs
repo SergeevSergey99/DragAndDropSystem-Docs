@@ -1,5 +1,5 @@
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Rules

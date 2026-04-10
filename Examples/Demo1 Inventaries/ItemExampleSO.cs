@@ -1,4 +1,4 @@
-﻿using DragAndDropSystem.Inspector;
+﻿using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples.General

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Examples.Trading;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Plugins.DragAndDropSystem.Examples.Trading.Data
 {

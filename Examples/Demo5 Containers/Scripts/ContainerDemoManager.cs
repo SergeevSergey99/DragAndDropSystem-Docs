@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using CodeUtils;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Containers

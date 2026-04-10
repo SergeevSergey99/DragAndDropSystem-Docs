@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Inspector;
-using DragAndDropSystem.Slots;
+using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Minecraft

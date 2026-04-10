@@ -1,5 +1,5 @@
 ﻿using DragAndDropSystem.Examples.Minecraft;
-using DragAndDropSystem.Inspector.Editor;
+using DragAndDropSystem.Tools.Inspector.Editor;
 using UnityEditor;
 using UnityEngine;
 

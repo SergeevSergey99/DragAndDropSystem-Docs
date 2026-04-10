@@ -1,7 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Slots;
 using UnityEngine;

@@ -1,13 +1,8 @@
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Inspector;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Examples.Containers.UI;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
-using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace DragAndDropSystem.Examples.Containers
 {

@@ -1,4 +1,4 @@
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Minecraft

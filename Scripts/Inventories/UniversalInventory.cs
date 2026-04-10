@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;
 using DragAndDropSystem.Tools;

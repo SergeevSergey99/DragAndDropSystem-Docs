@@ -1,6 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Inventories;
 using UnityEngine.EventSystems;

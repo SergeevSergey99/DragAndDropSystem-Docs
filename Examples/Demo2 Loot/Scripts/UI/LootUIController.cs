@@ -1,5 +1,4 @@
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Loot

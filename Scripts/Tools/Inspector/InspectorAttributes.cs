@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace DragAndDropSystem.Inspector
+namespace DragAndDropSystem.Tools.Inspector
 {
     public enum InfoMessageType
     {

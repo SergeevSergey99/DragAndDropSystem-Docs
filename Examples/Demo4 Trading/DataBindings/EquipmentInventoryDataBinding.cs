@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.Trading.Data;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using DragAndDropSystem.Slots;

@@ -1,6 +1,4 @@
-﻿using DragAndDropSystem.Inspector;
-
-namespace DragAndDropSystem.Examples.Minecraft
+﻿namespace DragAndDropSystem.Examples.Minecraft
 {
     [System.Serializable]
     public class RuntimeItem

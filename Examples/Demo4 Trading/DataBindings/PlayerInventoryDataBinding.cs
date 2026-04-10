@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;

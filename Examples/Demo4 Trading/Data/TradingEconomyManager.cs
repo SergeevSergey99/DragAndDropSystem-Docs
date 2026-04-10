@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using CodeUtils;
 using DragAndDropSystem.Examples.Trading.Data;
-using DragAndDropSystem.Inspector;
-using DragAndDropSystem.Tools;
+using DragAndDropSystem.Tools.Inspector;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
 using UnityEngine;
 

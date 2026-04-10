@@ -2,7 +2,7 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
 using DragAndDropSystem.Examples.General;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Rules;
 using UnityEngine;
 

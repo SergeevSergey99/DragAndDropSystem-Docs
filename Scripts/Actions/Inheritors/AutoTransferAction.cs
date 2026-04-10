@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Inspector;
+using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Interaction;
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
