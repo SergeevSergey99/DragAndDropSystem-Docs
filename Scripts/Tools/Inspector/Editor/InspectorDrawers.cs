@@ -1320,6 +1320,7 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
         }
     }
 
+#if !ODIN_INSPECTOR
     [CanEditMultipleObjects]
     [CustomEditor(typeof(MonoBehaviour), true, isFallback = true)]
     internal sealed class GroupedMonoBehaviourEditor : GroupedInspectorEditorBase
@@ -1331,6 +1332,7 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
     internal sealed class GroupedScriptableObjectEditor : GroupedInspectorEditorBase
     {
     }
+#endif
 
     [CustomPropertyDrawer(typeof(ShowIfAttribute))]
     public sealed class ShowIfPropertyDrawer : PropertyDrawer
