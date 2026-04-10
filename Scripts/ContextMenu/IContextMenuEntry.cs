@@ -3,8 +3,8 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Runtime-контракт пункта контекстного меню.
-    /// Позволяет смешивать asset-based и scene-based entries в одном списке.
+    /// Runtime contract for a context menu entry.
+    /// Allows mixing asset-based and scene-based entries in the same list.
     /// </summary>
     public interface IContextMenuEntry
     {
@@ -12,7 +12,7 @@ namespace DragAndDropSystem.ContextMenu
         string GetLabel(ContextMenuContext ctx);
         Sprite GetIcon(ContextMenuContext ctx);
         bool CanShow(ContextMenuContext ctx);
-        /// <summary>Активен ли пункт. false — пункт отображается, но недоступен для выбора.</summary>
+        /// <summary>Whether the entry is active. false means the entry is visible but cannot be selected.</summary>
         bool IsEnabled(ContextMenuContext ctx);
         void Execute(ContextMenuContext ctx);
     }

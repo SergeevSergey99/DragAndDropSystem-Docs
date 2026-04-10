@@ -7,11 +7,11 @@ using UnityEngine;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Менеджер tooltip для отображения информации о предметах при наведении на слоты.
-    /// ОПЦИОНАЛЬНЫЙ компонент - работает только если добавлен на сцену.
-    /// Подписывается на статические hover-события SlotInputAdapter.
+    /// Tooltip manager used to display item information when hovering slots.
+    /// OPTIONAL component: works only if it is present in the scene.
+    /// Subscribes to static hover events from SlotInputAdapter.
     ///
-    /// Использует ITooltipView для визуализации - можно указать разные префабы tooltip для разных предметов.
+    /// Uses ITooltipView for rendering, so different tooltip prefabs can be assigned for different items.
     /// </summary>
     public class TooltipManager : MonoBehaviour
     {
@@ -48,27 +48,27 @@ namespace DragAndDropSystem.UI
 
         private void OnEnable()
         {
-            // Подписываемся на глобальные статические события слотов
+            // Subscribe to global static slot events
             SlotInputAdapter.OnAnySlotHoverEnter += OnSlotHoverEnter;
             SlotInputAdapter.OnAnySlotHoverExit += OnSlotHoverExit;
         }
 
         private void OnDisable()
         {
-            // Отписываемся от событий
+            // Unsubscribe from events
             SlotInputAdapter.OnAnySlotHoverEnter -= OnSlotHoverEnter;
             SlotInputAdapter.OnAnySlotHoverExit -= OnSlotHoverExit;
 
-            // Останавливаем корутины
+            // Stop coroutines
             StopAllTooltipCoroutines();
 
-            // Скрываем tooltip
+            // Hide the tooltip
             HideTooltip();
         }
 
         private void Update()
         {
-            // Если tooltip виден и привязан к курсору, обновляем позицию
+            // If the tooltip is visible and anchored to the cursor, update its position
             if (_currentBaseTooltipView != null)
             {
                 if (_anchor == TooltipAnchor.Cursor)
@@ -82,35 +82,35 @@ namespace DragAndDropSystem.UI
         #region Event Handlers
 
         /// <summary>
-        /// Обработчик наведения на слот
+        /// Slot hover enter handler
         /// </summary>
         private void OnSlotHoverEnter(SlotHoverEventArgs args)
         {
-            // Игнорируем если нет предмета
+            // Ignore if there is no item
             if (!args.HasItem) return;
 
             _currentHoverArgs = args;
 
-            // Отменяем предыдущий показ если был
+            // Cancel the previous show operation if there was one
             StopAllTooltipCoroutines();
 
-            // Показываем с задержкой
+            // Show with delay
             _showCoroutine = StartCoroutine(ShowTooltipDelayed(args));
         }
 
         /// <summary>
-        /// Обработчик ухода курсора со слота
+        /// Slot hover exit handler
         /// </summary>
         private void OnSlotHoverExit(SlotHoverEventArgs args)
         {
-            // Отменяем показ если еще не показали
+            // Cancel showing if it has not been shown yet
             if (_showCoroutine != null)
             {
                 StopCoroutine(_showCoroutine);
                 _showCoroutine = null;
             }
 
-            // Скрываем tooltip
+            // Hide the tooltip
             HideTooltip();
         }
 
@@ -119,7 +119,7 @@ namespace DragAndDropSystem.UI
         #region Tooltip Display
 
         /// <summary>
-        /// Показать tooltip с задержкой
+        /// Show the tooltip with a delay
         /// </summary>
         private IEnumerator ShowTooltipDelayed(SlotHoverEventArgs args)
         {
@@ -128,19 +128,19 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Показать tooltip
+        /// Show the tooltip
         /// </summary>
         private void ShowTooltip(SlotHoverEventArgs args)
         {
             if (args.ItemAdapter == null) return;
 
-            // Скрываем предыдущий tooltip если был
+            // Hide the previous tooltip if one exists
             if (_currentBaseTooltipView != null)
             {
                 HideTooltip();
             }
 
-            // Получаем или создаем tooltip view
+            // Create the tooltip view
             _currentBaseTooltipView = Instantiate(_defaultTooltipPrefab, _canvas.transform);
 
             if (_currentBaseTooltipView == null)
@@ -149,15 +149,15 @@ namespace DragAndDropSystem.UI
                 return;
             }
 
-            // Показываем tooltip с содержимым
+            // Show the tooltip with content
             _currentBaseTooltipView.Show(args.ItemAdapter);
 
-            // Позиционируем
+            // Position it
             UpdateTooltipPosition(args);
         }
 
         /// <summary>
-        /// Скрыть tooltip
+        /// Hide the tooltip
         /// </summary>
         public void HideTooltip()
         {
@@ -176,7 +176,7 @@ namespace DragAndDropSystem.UI
         #region Positioning
 
         /// <summary>
-        /// Обновить позицию tooltip
+        /// Update tooltip position
         /// </summary>
         private void UpdateTooltipPosition(SlotHoverEventArgs args)
         {
@@ -185,7 +185,7 @@ namespace DragAndDropSystem.UI
 
             Vector2 position;
 
-            // Используем адаптивное позиционирование
+            // Use adaptive positioning
             position = CalculateAdaptivePosition(
                 args.ScreenPosition,
                 _currentBaseTooltipView.GetSize(),
@@ -197,12 +197,12 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Получить bounds карточки в экранных координатах
+        /// Get the card bounds in screen coordinates
         /// </summary>
-        /// <param name="position">Позиция карточки (anchor точка)</param>
-        /// <param name="size">Размер карточки</param>
-        /// <param name="pivot">Pivot карточки (0,0 = левый нижний угол, 1,1 = правый верхний)</param>
-        /// <returns>Rect в экранных координатах</returns>
+        /// <param name="position">Card position (anchor point)</param>
+        /// <param name="size">Card size</param>
+        /// <param name="pivot">Card pivot (0,0 = bottom-left corner, 1,1 = top-right corner)</param>
+        /// <returns>Rect in screen coordinates</returns>
         private Rect GetTooltipScreenBounds(Vector2 position, Vector2 size, Vector2 pivot)
         {
             float left = position.x - size.x * pivot.x;
@@ -211,7 +211,7 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Проверить попадание точки в прямоугольник
+        /// Check whether a point is inside a rect
         /// </summary>
         private bool IsPointInRect(Vector2 point, Rect rect)
         {
@@ -219,83 +219,83 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Рассчитать адаптивную позицию tooltip с учетом границ экрана и курсора
+        /// Calculate an adaptive tooltip position taking screen bounds and the cursor into account
         /// </summary>
-        /// <param name="cursorPosition">Позиция курсора</param>
-        /// <param name="tooltipSize">Размер tooltip</param>
+        /// <param name="cursorPosition">Cursor position</param>
+        /// <param name="tooltipSize">Tooltip size</param>
         /// <param name="tooltipPivot">Pivot tooltip</param>
-        /// <param name="baseOffset">Базовое смещение от курсора</param>
-        /// <returns>Оптимальная позиция tooltip</returns>
+        /// <param name="baseOffset">Base offset from the cursor</param>
+        /// <returns>Optimal tooltip position</returns>
         private Vector2 CalculateAdaptivePosition(
             Vector2 cursorPosition,
             Vector2 tooltipSize,
             Vector2 tooltipPivot,
             Vector2 baseOffset)
         {
-            // Копируем offset чтобы его можно было изменять
+            // Copy the offset so it can be adjusted
             Vector2 adjustedOffset = baseOffset;
 
-            // Шаг 1: Рассчитываем начальную позицию
+            // Step 1: Calculate the initial position
             Vector2 position = cursorPosition + adjustedOffset;
 
-            // Шаг 2: Получаем bounds карточки
+            // Step 2: Get the card bounds
             Rect bounds = GetTooltipScreenBounds(position, tooltipSize, tooltipPivot);
 
-            // Шаг 3: Adaptive флип по горизонтали
+            // Step 3: Adaptive horizontal flip
             if (bounds.xMax > Screen.width - _screenPadding)
             {
-                // Не влезает справа → показываем слева от курсора
+                // Does not fit on the right -> show it to the left of the cursor
                 adjustedOffset.x = -Mathf.Abs(baseOffset.x) - tooltipSize.x * (1f - tooltipPivot.x);
             }
             else if (bounds.xMin < _screenPadding)
             {
-                // Не влезает слева → показываем справа от курсора
+                // Does not fit on the left -> show it to the right of the cursor
                 adjustedOffset.x = Mathf.Abs(baseOffset.x) + tooltipSize.x * tooltipPivot.x;
             }
 
-            // Шаг 4: Adaptive флип по вертикали
+            // Step 4: Adaptive vertical flip
             if (bounds.yMax > Screen.height - _screenPadding)
             {
-                // Не влезает сверху → показываем снизу от курсора
+                // Does not fit above -> show it below the cursor
                 adjustedOffset.y = -Mathf.Abs(baseOffset.y) - tooltipSize.y * (1f - tooltipPivot.y);
             }
             else if (bounds.yMin < _screenPadding)
             {
-                // Не влезает снизу → показываем сверху от курсора
+                // Does not fit below -> show it above the cursor
                 adjustedOffset.y = Mathf.Abs(baseOffset.y) + tooltipSize.y * tooltipPivot.y;
             }
 
-            // Шаг 5: Пересчитываем позицию с новым offset
+            // Step 5: Recalculate the position with the new offset
             position = cursorPosition + adjustedOffset;
             bounds = GetTooltipScreenBounds(position, tooltipSize, tooltipPivot);
 
-            // Шаг 6: Проверяем пересечение с курсором
+            // Step 6: Check for cursor overlap
             if (IsPointInRect(cursorPosition, bounds))
             {
-                // Курсор попадает в карточку - нужно сдвинуть её
+                // The cursor overlaps the card, so it needs to be shifted
                 float centerX = bounds.center.x;
 
                 if (cursorPosition.x >= centerX)
                 {
-                    // Курсор в правой части карточки → сдвигаем карточку влево
+                    // Cursor is on the right side of the card -> move the card left
                     position.x = cursorPosition.x - tooltipSize.x - _cursorMargin - tooltipSize.x * tooltipPivot.x;
                 }
                 else
                 {
-                    // Курсор в левой части карточки → сдвигаем карточку вправо
+                    // Cursor is on the left side of the card -> move the card right
                     position.x = cursorPosition.x + _cursorMargin + tooltipSize.x * (1f - tooltipPivot.x);
                 }
 
-                // Обновляем bounds после сдвига
+                // Update bounds after shifting
                 bounds = GetTooltipScreenBounds(position, tooltipSize, tooltipPivot);
             }
 
-            // Шаг 7: Финальный clamp (на случай очень больших карточек или края экрана)
-            // Ограничиваем так чтобы карточка была полностью на экране
+            // Step 7: Final clamp (for very large cards or screen edges)
+            // Keep the entire card visible on screen
             float clampedX = position.x;
             float clampedY = position.y;
 
-            // Clamp по X с учетом pivot
+            // Clamp X with pivot taken into account
             if (bounds.xMin < _screenPadding)
             {
                 clampedX = _screenPadding + tooltipSize.x * tooltipPivot.x;
@@ -305,7 +305,7 @@ namespace DragAndDropSystem.UI
                 clampedX = Screen.width - _screenPadding - tooltipSize.x * (1f - tooltipPivot.x);
             }
 
-            // Clamp по Y с учетом pivot
+            // Clamp Y with pivot taken into account
             if (bounds.yMin < _screenPadding)
             {
                 clampedY = _screenPadding + tooltipSize.y * tooltipPivot.y;
@@ -321,7 +321,7 @@ namespace DragAndDropSystem.UI
         #endregion
 
         /// <summary>
-        /// Остановить все корутины tooltip
+        /// Stop all tooltip coroutines
         /// </summary>
         private void StopAllTooltipCoroutines()
         {

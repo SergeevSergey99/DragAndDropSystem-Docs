@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Filter
 {
     /// <summary>
-    /// Компонент для кнопки сортировки. Привязывается к Button и применяет пресет сортировки при клике.
+    /// Component for a sort button. Binds to a Button and applies a sort preset on click.
     /// </summary>
     [RequireComponent(typeof(Button))]
     public class SortButton : MonoBehaviour
@@ -135,7 +135,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Программно установить контроллер
+        /// Set the controller programmatically
         /// </summary>
         public void SetController(FilterSortController controller)
         {
@@ -155,7 +155,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Программно установить пресет
+        /// Set the preset programmatically
         /// </summary>
         public void SetPreset(SortPreset preset)
         {

@@ -7,9 +7,9 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Slots
 {
     /// <summary>
-    /// Универсальный слот с визуальным слоем на основе Image + TMP_Text.
-    /// Расширяется через переопределение виртуальных Render-методов
-    /// и хука <see cref="OnVisualsUpdated"/>.
+    /// Universal slot with a visual layer based on Image + TMP_Text.
+    /// Extend it by overriding virtual render methods
+    /// and the <see cref="OnVisualsUpdated"/> hook.
     /// </summary>
     public class UniversalSlot : BaseSlot
     {
@@ -48,7 +48,7 @@ namespace DragAndDropSystem.Slots
                 _countContainer.SetActive(false);
         }
         
-        /// <summary>Обновляет счётчик стака. Показывается только если предметов больше одного.</summary>
+        /// <summary>Updates the stack counter. It is shown only when there is more than one item.</summary>
         protected virtual void RenderCounter()
         {
             if (_countContainer == null || !_showCount) return;
@@ -68,9 +68,9 @@ namespace DragAndDropSystem.Slots
         }
 
         /// <summary>
-        /// Обновляет визуал при смене интерактивности.
-        /// CanvasGroup блокирует raycast; цвет иконки идёт через ResolveIconColor,
-        /// чтобы не конфликтовать с Highlight и другими состояниями.
+        /// Updates visuals when interactability changes.
+        /// CanvasGroup blocks raycasts; icon color is resolved through ResolveIconColor
+        /// so it does not conflict with Highlight and other states.
         /// </summary>
         protected override void UpdateInteractableVisuals()
         {
@@ -86,8 +86,8 @@ namespace DragAndDropSystem.Slots
         }
         
         /// <summary>
-        /// Возвращает актуальный цвет иконки с учётом всех активных состояний.
-        /// Приоритет: NonInteractable → Highlighted → Normal / Empty.
+        /// Returns the current icon color taking all active states into account.
+        /// Priority: NonInteractable -> Highlighted -> Normal / Empty.
         /// </summary>
         private Color ResolveIconColor()
         {

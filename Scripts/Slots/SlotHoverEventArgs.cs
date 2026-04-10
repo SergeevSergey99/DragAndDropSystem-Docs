@@ -5,48 +5,48 @@ using UnityEngine;
 namespace DragAndDropSystem.Slots
 {
     /// <summary>
-    /// Аргументы события наведения на слот.
-    /// Содержит всю информацию о слоте, предмете и позиции для использования в tooltip и других системах.
+    /// Arguments for a slot hover event.
+    /// Contains all information about the slot, item, and position for use in tooltips and other systems.
     /// </summary>
     public class SlotHoverEventArgs
     {
         /// <summary>
-        /// Предмет в слоте (может быть null если слот пустой)
+        /// Item in the slot (can be null if the slot is empty)
         /// </summary>
         public IItemAdapter ItemAdapter { get; }
 
         /// <summary>
-        /// Слот на который навели курсор
+        /// Slot being hovered
         /// </summary>
         public BaseSlot BaseSlot { get; }
 
         /// <summary>
-        /// Позиция курсора в экранных координатах
+        /// Cursor position in screen coordinates
         /// </summary>
         public Vector2 ScreenPosition { get; set; }
 
         /// <summary>
-        /// RectTransform слота (для позиционирования tooltip относительно слота)
+        /// Slot RectTransform (for positioning a tooltip relative to the slot)
         /// </summary>
         public RectTransform SlotRectTransform { get; }
 
         /// <summary>
-        /// True если это событие входа (OnPointerEnter), False если выхода (OnPointerExit)
+        /// True if this is an enter event (OnPointerEnter), false if it is an exit event (OnPointerExit)
         /// </summary>
         public bool IsEnter { get; }
 
         /// <summary>
-        /// Инвентарь к которому принадлежит слот
+        /// Inventory that owns the slot
         /// </summary>
         public IInventory Inventory { get; }
 
         /// <summary>
-        /// Индекс слота в инвентаре
+        /// Slot index within the inventory
         /// </summary>
         public int SlotIndex { get; }
 
         /// <summary>
-        /// Флаг для отмены дальнейшей обработки события (можно использовать в наследниках)
+        /// Flag used to cancel further event processing (can be used by derived classes)
         /// </summary>
         public bool Cancel { get; set; }
 
@@ -68,17 +68,17 @@ namespace DragAndDropSystem.Slots
         }
 
         /// <summary>
-        /// Проверить что в слоте есть предмет
+        /// Check whether the slot contains an item
         /// </summary>
         public bool HasItem => ItemAdapter != null;
 
         /// <summary>
-        /// Проверить что слот пустой
+        /// Check whether the slot is empty
         /// </summary>
         public bool IsEmpty => ItemAdapter == null;
 
         /// <summary>
-        /// Получить позицию слота в мировых координатах
+        /// Get the slot position in world coordinates
         /// </summary>
         public Vector3 GetSlotWorldPosition()
         {
@@ -86,7 +86,7 @@ namespace DragAndDropSystem.Slots
         }
 
         /// <summary>
-        /// Получить размер слота
+        /// Get the slot size
         /// </summary>
         public Vector2 GetSlotSize()
         {

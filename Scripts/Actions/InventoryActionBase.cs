@@ -6,27 +6,27 @@ using UnityEngine;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Базовый класс для действий инвентаря, которые можно привязать к клавишам через Input System
+    /// Base class for inventory actions that can be bound to keys through the Input System
     /// </summary>
     [Serializable]
     public abstract class InventoryActionBase : MonoBehaviour
     {
         /// <summary>
-        /// Имя типа действия для отображения в инспекторе
+        /// Action type name shown in the Inspector
         /// </summary>
         public virtual string DisplayName => GetType().Name.Replace("Action", "");
 
         /// <summary>
-        /// Выполнить действие
+        /// Execute the action
         /// </summary>
-        /// <param name="inventory">Инвентарь, на котором выполняется действие</param>
-        /// <param name="activeBaseSlot">Активный слот (под курсором или последний взаимодействовавший)</param>
-        /// <param name="logWarnings">Писать ли предупреждения в консоль</param>
-        /// <returns>Результат выполнения действия</returns>
+        /// <param name="inventory">Inventory the action is executed on</param>
+        /// <param name="activeBaseSlot">Active slot (under the cursor or the last interacted one)</param>
+        /// <param name="logWarnings">Whether to write warnings to the console</param>
+        /// <returns>Action execution result</returns>
         public abstract ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot);
 
         /// <summary>
-        /// Можно ли выполнить действие (проверка перед выполнением)
+        /// Whether the action can be executed (pre-check before execution)
         /// </summary>
         public virtual bool CanExecute(UniversalInventory inventory, BaseSlot activeBaseSlot)
         {

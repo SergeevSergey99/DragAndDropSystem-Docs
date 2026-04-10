@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Filter
 {
     /// <summary>
-    /// ScriptableObject пресет фильтра для удобной настройки в инспекторе.
-    /// Можно назначать на кнопки UI для быстрого переключения фильтров.
+    /// ScriptableObject filter preset for convenient Inspector configuration.
+    /// Can be assigned to UI buttons for quick filter switching.
     /// </summary>
     [CreateAssetMenu(fileName = "FilterPreset", menuName = "DragAndDrop/Filter/Filter Preset", order = 100)]
     public class FilterPreset : ScriptableObject
@@ -46,7 +46,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Применить пресет к контроллеру (только фильтр)
+        /// Apply the preset to the controller (filter only)
         /// </summary>
         public void ApplyTo(FilterSortController controller)
         {
@@ -57,7 +57,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Создать предикат фильтра из пресета
+        /// Create a filter predicate from the preset
         /// </summary>
         public Predicate<IItemAdapter> CreateFilter()
         {

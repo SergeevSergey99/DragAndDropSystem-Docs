@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Rules
 {
     /// <summary>
-    /// Запрещает бросать предмет в тот же слот, откуда взяли
-    /// Применяется глобально
+    /// Prevents dropping an item into the same slot it was taken from
+    /// Applied globally
     /// </summary>
     [Serializable]
     public class SameSlotRule : DragRuleBase, IGlobalRule
@@ -16,7 +16,7 @@ namespace DragAndDropSystem.Rules
 
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            // Для batch TargetSlot — UI-хинт, не реальная цель entry; slot-валидация выполняется execution pipeline
+            // For batch operations TargetSlot is a UI hint, not the actual entry target; slot validation is handled by the execution pipeline
             if (!context.IsBatchDrag && entry.SourceBaseSlot == context.TargetBaseSlot)
                 return RuleResult.Failure("Cannot drop to the same slot");
 
@@ -25,8 +25,8 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Правило для перемещения внутри одного инвентаря
-    /// Применяется к инвентарям
+    /// Rule for moving items within the same inventory
+    /// Applied to inventories
     /// </summary>
     [Serializable]
     public class SameInventoryRule : DragRuleBase, IInventoryRule
@@ -54,8 +54,8 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Правило для фильтрации предметов по типу
-    /// Универсальное правило - применимо к инвентарям и слотам
+    /// Rule for filtering items by type
+    /// Universal rule that can be applied to inventories and slots
     /// </summary>
     [Serializable]
     public class ItemIdFilterRule : DragRuleBase, IInventoryRule, ISlotRule
@@ -96,8 +96,8 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Правило максимального количества уникальных предметов в инвентаре
-    /// Применяется к инвентарям
+    /// Rule that limits the maximum number of unique items in an inventory
+    /// Applied to inventories
     /// </summary>
     [Serializable]
     public class UniqueItemLimitRule : DragRuleBase, IInventoryRule
@@ -121,11 +121,11 @@ namespace DragAndDropSystem.Rules
             if (context.TargetInventory == null)
                 return RuleResult.Failure("No target inventory");
 
-            // Если предмет уже есть в инвентаре, разрешаем
+            // If the item is already present in the inventory, allow it
             if (context.TargetInventory.Contains(entry.Stack.PrimaryAdapter))
                 return RuleResult.Success();
 
-            // Подсчитываем уникальные предметы
+            // Count unique items
             var uniqueItems = context.TargetInventory.Slots
                 .Where(s => !s.IsEmpty)
                 .Select(s => s.Stack.ID)
@@ -140,7 +140,7 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Правило для блокировки определенных слотов
+    /// Rule for locking specific slots
     /// </summary>
     public class SlotLockRule : DragRuleBase, IInventoryRule
     {
@@ -171,7 +171,7 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Кастомное правило с лямбдами
+    /// Custom rule based on lambdas
     /// </summary>
     public class CustomRule : DragRuleBase, IInventoryRule
     {

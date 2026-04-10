@@ -4,7 +4,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Rules
 {
     /// <summary>
-    /// Результат валидации правила
+    /// Rule validation result
     /// </summary>
     public struct RuleResult
     {
@@ -27,55 +27,55 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Базовый интерфейс для правила drag-and-drop
-    /// Каждое правило получает контекст (Target) и конкретный entry (Source/Stack)
+    /// Base interface for a drag-and-drop rule
+    /// Each rule receives the context (Target) and a specific entry (Source/Stack)
     /// </summary>
     public interface IDragRule
     {
         /// <summary>
-        /// Приоритет выполнения правила (меньше = раньше)
+        /// Rule execution priority (lower = earlier)
         /// </summary>
         int Priority { get; }
 
         /// <summary>
-        /// Отображаемое имя правила в Inspector
+        /// Display name of the rule in the Inspector
         /// </summary>
         string RuleName { get; }
 
         /// <summary>
-        /// Проверить, можно ли начать перетаскивание
+        /// Check whether dragging can start
         /// </summary>
         RuleResult CanStartDrag(DragContext context, DragEntry entry);
 
         /// <summary>
-        /// Проверить, можно ли бросить предмет в целевой слот
+        /// Check whether the item can be dropped into the target slot
         /// </summary>
         RuleResult CanDrop(DragContext context, DragEntry entry);
     }
 
     /// <summary>
-    /// Маркерный интерфейс для правил, применимых к глобальному менеджеру
+    /// Marker interface for rules applicable to the global manager
     /// </summary>
     public interface IGlobalRule : IDragRule { }
 
     /// <summary>
-    /// Маркерный интерфейс для правил, применимых к инвентарю
+    /// Marker interface for rules applicable to an inventory
     /// </summary>
     public interface IInventoryRule : IDragRule { }
 
     /// <summary>
-    /// Маркерный интерфейс для правил, применимых к конкретному слоту
+    /// Marker interface for rules applicable to a specific slot
     /// </summary>
     public interface ISlotRule : IDragRule { }
 
     /// <summary>
-    /// Базовый класс для упрощения создания правил
+    /// Base class that simplifies rule creation
     /// </summary>
     public abstract class DragRuleBase : IDragRule
     {
         public virtual int Priority => 100;
 
-        // Для отображения в Odin Inspector
+        // Used for display in Odin Inspector
         public virtual string RuleName => $"[{Priority}] {GetType().Name.Replace("Rule", "")}";
 
         public virtual RuleResult CanStartDrag(DragContext context, DragEntry entry)

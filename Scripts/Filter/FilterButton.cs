@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Filter
 {
     /// <summary>
-    /// Компонент для кнопки фильтра. Привязывается к Button и применяет пресет фильтра при клике.
+    /// Component for a filter button. Binds to a Button and applies a filter preset on click.
     /// </summary>
     [RequireComponent(typeof(Button))]
     public class FilterButton : MonoBehaviour
@@ -94,7 +94,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Программно установить контроллер
+        /// Set the controller programmatically
         /// </summary>
         public void SetController(FilterSortController controller)
         {
@@ -114,7 +114,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Программно установить пресет
+        /// Set the preset programmatically
         /// </summary>
         public void SetPreset(FilterPreset preset)
         {

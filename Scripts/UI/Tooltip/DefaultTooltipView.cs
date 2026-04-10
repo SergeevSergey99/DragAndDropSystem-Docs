@@ -9,9 +9,9 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Стандартная визуализация tooltip предмета.
-    /// Простая карточка с названием, описанием и иконкой.
-    /// Можно создавать кастомные визуализации реализовав ITooltipView.
+    /// Default item tooltip visualization.
+    /// Simple card with a name, description, and icon.
+    /// Custom visualizations can be created by implementing ITooltipView.
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class DefaultTooltipView : BaseTooltipView
@@ -47,7 +47,7 @@ namespace DragAndDropSystem.UI
 
         private void Awake()
         {
-            // Добавляем CanvasGroup если нужна анимация
+            // Add CanvasGroup if animation is enabled
             if (_useFadeAnimation)
             {
                 _canvasGroup = GetComponent<CanvasGroup>();
@@ -58,7 +58,7 @@ namespace DragAndDropSystem.UI
                 _canvasGroup.alpha = 0f;
             }
 
-            // Изначально скрываем
+            // Hide initially
             gameObject.SetActive(false);
         }
 
@@ -70,13 +70,13 @@ namespace DragAndDropSystem.UI
                 return;
             }
 
-            // Заполняем содержимое
+            // Fill content
             SetContent(itemAdapter);
 
-            // Показываем
+            // Show
             gameObject.SetActive(true);
 
-            // Анимация fade-in
+            // Fade-in animation
             if (_useFadeAnimation && _canvasGroup != null)
             {
                 if (_fadeCoroutine != null)
@@ -89,7 +89,7 @@ namespace DragAndDropSystem.UI
         {
             _currentItemAdapter = null;
 
-            // Анимация fade-out
+            // Fade-out animation
             if (_useFadeAnimation && _canvasGroup != null && gameObject.activeSelf)
             {
                 if (_fadeCoroutine != null)
@@ -98,7 +98,7 @@ namespace DragAndDropSystem.UI
             }
             else
             {
-                // Мгновенно скрываем
+                // Hide immediately
                 gameObject.SetActive(false);
                 OnCompleted?.Invoke();
             }
@@ -107,23 +107,23 @@ namespace DragAndDropSystem.UI
         #region Content Population
 
         /// <summary>
-        /// Заполнить содержимое tooltip
+        /// Fill tooltip content
         /// </summary>
         public override void SetContent(IItemAdapter itemAdapter)
         {
             if (itemAdapter == null) return;
             _currentItemAdapter = itemAdapter;
             
-            // Иконка
+            // Icon
             SetItemIcon(itemAdapter);
-            // Название
+            // Name
             SetItemName(itemAdapter);
-            // Описание
+            // Description
             SetItemDescription(itemAdapter);
         }
 
         /// <summary>
-        /// Установить название предмета
+        /// Set the item name
         /// </summary>
         private void SetItemName(IItemAdapter itemAdapter)
         {
@@ -131,7 +131,7 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Установить описание предмета
+        /// Set the item description
         /// </summary>
         private void SetItemDescription(IItemAdapter itemAdapter)
         {
@@ -152,7 +152,7 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Установить иконку предмета
+        /// Set the item icon
         /// </summary>
         private void SetItemIcon(IItemAdapter itemAdapter)
         {
@@ -171,7 +171,7 @@ namespace DragAndDropSystem.UI
         }
         
         /// <summary>
-        /// Получить текст описания в зависимости от формата
+        /// Get description text depending on the item format
         /// </summary>
         private string GetDescriptionText(IItemAdapter itemAdapter)
         {

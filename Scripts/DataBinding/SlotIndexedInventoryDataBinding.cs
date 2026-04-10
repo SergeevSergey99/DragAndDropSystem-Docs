@@ -4,14 +4,14 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.DataBinding
 {
     /// <summary>
-    /// Шаблонный DataBinding для инвентарей с фиксированными слотами.
-    /// Автоматически обрабатывает ReloadUI, OnItemAdded и OnItemRemoved —
-    /// наследнику достаточно определить 5 методов-примитивов.
+    /// Template DataBinding for inventories with fixed slots.
+    /// Automatically handles ReloadUI, OnItemAdded, and OnItemRemoved.
+    /// Derived classes only need to implement 5 primitive methods.
     ///
-    /// TData — тип элемента данных (например, ItemSO, ItemModel)
-    /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemAdapterSoAdapter)
+    /// TData is the data item type (for example, ItemSO or ItemModel)
+    /// TAdapter is the adapter type implementing IItemAdapter (for example, ItemAdapterSoAdapter)
     ///
-    /// Пример использования:
+    /// Usage example:
     /// <code>
     /// public class MyBinding : SlotIndexedInventoryDataBinding&lt;ItemSO, ItemAdapterSoAdapter&gt;
     /// {
@@ -34,26 +34,26 @@ namespace DragAndDropSystem.DataBinding
         where TAdapter : class, IItemAdapter
     {
         /// <summary>
-        /// Получить занятые слоты с их индексами, данными и количеством.
-        /// Пустые слоты можно не возвращать.
+        /// Get occupied slots with their indices, data, and counts.
+        /// Empty slots may be omitted.
         /// </summary>
         protected abstract IEnumerable<(int index, TData item, int count)> GetOccupiedSlots();
 
         /// <summary>
-        /// Создать адаптер (IItemAdapter) из элемента данных.
-        /// Вызывается при загрузке данных в UI (ReloadUI).
+        /// Create an adapter (IItemAdapter) from a data item.
+        /// Called when data is loaded into the UI (ReloadUI).
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
 
         /// <summary>
-        /// Обновить данные слота при добавлении предмета.
-        /// Вызывается когда предмет добавлен в слот через drag&amp;drop.
+        /// Update slot data when an item is added.
+        /// Called when an item is added to the slot via drag&amp;drop.
         /// </summary>
         protected abstract void AddToSlotData(int index, TAdapter adapter, int count);
 
         /// <summary>
-        /// Обновить данные слота при удалении предмета.
-        /// Вызывается когда предмет удалён из слота через drag&amp;drop.
+        /// Update slot data when an item is removed.
+        /// Called when an item is removed from the slot via drag&amp;drop.
         /// </summary>
         protected abstract void RemoveFromSlotData(int index, TAdapter item, int count);
 

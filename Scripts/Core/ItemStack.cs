@@ -6,11 +6,11 @@ using UnityEngine;
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Универсальная обертка для предмета с количеством
-    /// Работает с любым типом, реализующим IItemAdapter
-    /// Лимиты стака задаются через настройку Max Stack Size в UniversalInventory
-    /// или через IStackSizeLimitable на конкретном предмете,
-    /// если в инвентаре включен allowItemStackOverride
+    /// Universal wrapper for an item with an amount
+    /// Works with any type implementing IItemAdapter
+    /// Stack limits are defined through Max Stack Size in UniversalInventory
+    /// or through IStackSizeLimitable on a specific item
+    /// if allowItemStackOverride is enabled in the inventory
     /// </summary>
     [Serializable]
     public class ItemStack
@@ -48,7 +48,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Проверить, можно ли стакнуть с другим предметом (одинаковый ItemId)
+        /// Check whether this stack can be stacked with another item (same ItemId)
         /// </summary>
         public bool CanStack(IItemAdapter otherItemAdapter)
         {
@@ -103,7 +103,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Удалить предметы из стака с конца
+        /// Remove items from the end of the stack
         /// </summary>
         public int RemoveFromStack(int amount)
         {
@@ -117,7 +117,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Удалить конкретные экземпляры адаптеров из стака (по ссылке)
+        /// Remove specific adapter instances from the stack (by reference)
         /// </summary>
         public int RemoveAdapters(IReadOnlyList<IItemAdapter> adaptersToRemove)
         {
@@ -136,7 +136,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Разделить стак на две части
+        /// Split the stack into two parts
         /// </summary>
         public ItemStack Split(int amount)
         {
@@ -174,8 +174,8 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Конвертировать каждый адаптер в стеке индивидуально.
-        /// Атомарная операция: если хотя бы одна конвертация вернёт null, стек не изменяется.
+        /// Convert each adapter in the stack individually.
+        /// Atomic operation: if any conversion returns null, the stack is left unchanged.
         /// </summary>
         public bool TryConvertAdapters(Func<IItemAdapter, IItemAdapter> converter)
         {
@@ -227,7 +227,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Очистить стак
+        /// Clear the stack
         /// </summary>
         public void Clear()
         {

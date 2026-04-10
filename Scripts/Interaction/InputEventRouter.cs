@@ -28,25 +28,25 @@ namespace DragAndDropSystem.Interaction
         [SerializeField, Min(0.01f)] private float _longClickThresholdSeconds = 0.35f;
         [SerializeField, Min(0f)] private float _clickMoveTolerancePixels = 8f;
 
-        // Словарь для переопределения привязок на уровне конкретного инвентаря (например, для разных UI или режимов работы)
+        // Dictionary for overriding bindings for a specific inventory (for example, different UIs or operating modes)
         private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
-        // Словарь для хранения runtime-состояния (наведенный слот, источник фокуса, нажатые кнопки и т.д.) для каждого инвентаря
+        // Dictionary storing runtime state for each inventory (hovered slot, focus source, pressed buttons, etc.)
         private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
-        // Словарь для хранения подписок на InputAction для каждого инвентаря, чтобы можно было отписаться при необходимости
+        // Dictionary storing InputAction subscriptions per inventory so they can be unsubscribed when needed
         private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
-        // Подписки на InputAction из default profile (глобальные, роутятся в _activeInventory)
+        // InputAction subscriptions from the default profile (global, routed into _activeInventory)
         private readonly List<InputActionSubscription> _defaultProfileSubscriptions = new();
-        // Последний инвентарь, с которым пользователь явно взаимодействовал. Используется только для inventory-scoped quick actions.
+        // The last inventory the user explicitly interacted with. Used only for inventory-scoped quick actions.
         private UniversalInventory _activeInventory;
 
-        // Набор для дедупликации вызовов действий в рамках одного кадра, чтобы избежать повторного срабатывания при нескольких событиях (например, PointerDown + InputAction)
+        // Set used to deduplicate action invocations within a frame and prevent double execution from multiple events (for example, PointerDown + InputAction)
         private readonly HashSet<IntentDedupKey> _handledThisFrame = new();
-        // Набор для отслеживания, какие кнопки мыши уже были обработаны в рамках глобального PointerUp во время перетаскивания, чтобы не обрабатывать их несколько раз
+        // Set tracking which mouse buttons have already been handled during global PointerUp while dragging, so they are not processed multiple times
         private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame = new ();
-        // Время и позиция нажатия для определения фазы клика (Short/Long) при глобальных pointer-событиях
+        // Press time and position used to determine the click phase (Short/Long) for global pointer events
         private readonly float[] _globalPressTime = new float[3];
         private readonly Vector2[] _globalPressPosition = new Vector2[3];
-        // Временный список для очистки словарей от невалидных (уничтоженных) инвентарей
+        // Temporary list used to remove invalid (destroyed) inventories from dictionaries
         private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
 
         // Hold drag settings and state
@@ -61,13 +61,13 @@ namespace DragAndDropSystem.Interaction
         public HoldDragSettings HoldDragSettings => _holdDragSettings;
 
         /// <summary>
-        /// Срабатывает каждый кадр пока активен hold count.
-        /// Параметры: (слот, текущее количество, максимальное количество стака).
+        /// Fired every frame while hold count is active.
+        /// Parameters: (slot, current amount, maximum stack amount).
         /// </summary>
         public static event Action<BaseSlot, int, int> OnHoldPreviewChanged;
 
         /// <summary>
-        /// Срабатывает когда hold count заканчивается (начался драг, отпустили кнопку).
+        /// Fired when hold count ends (drag started or the button was released).
         /// </summary>
         public static event Action OnHoldPreviewEnded;
 
@@ -446,9 +446,9 @@ namespace DragAndDropSystem.Interaction
             if (inventory == null)
                 return;
 
-            // InputAction — глобальный: подписки есть на все инвентари с ExtraBinder.
-            // Обрабатываем только активный инвентарь, иначе Submit на одном инвентаре
-            // вызовет действия на всех остальных.
+            // InputAction is global: subscriptions exist on every inventory with an ExtraBinder.
+            // Handle only the active inventory, otherwise Submit on one inventory
+            // would trigger actions on all the others.
             if (!ReferenceEquals(inventory, _activeInventory))
                 return;
 
@@ -564,8 +564,8 @@ namespace DragAndDropSystem.Interaction
 
             if (binder == null) return;
 
-            // Подписываем только локальные InputAction (local + profile).
-            // Глобальные подписки делает HandleDefaultProfileInputAction.
+            // Subscribe only local InputActions (local + profile).
+            // Global subscriptions are handled by HandleDefaultProfileInputAction.
             var bindings = binder.LocalInputActionBindings;
             var subs = new List<InputActionSubscription>();
             _actionSubscriptionsByInventory[inventory] = subs;
@@ -666,7 +666,7 @@ namespace DragAndDropSystem.Interaction
         }
 
         /// <summary>
-        /// Начать подсчёт удержания. Вызывается из StartHoldCountAction (Down фаза).
+        /// Start hold counting. Called from StartHoldCountAction (Down phase).
         /// </summary>
         public void BeginHoldCount(UniversalInventory inventory, BaseSlot baseSlot)
         {
@@ -679,8 +679,8 @@ namespace DragAndDropSystem.Interaction
         }
 
         /// <summary>
-        /// Получить текущее накопленное количество для слота.
-        /// Вызывается из StartHoldDragAction (BeginDrag фаза).
+        /// Get the current accumulated amount for the slot.
+        /// Called from StartHoldDragAction (BeginDrag phase).
         /// </summary>
         public int GetHoldDragAmount(BaseSlot baseSlot)
         {
@@ -915,7 +915,7 @@ namespace DragAndDropSystem.Interaction
 
         private void ProcessUnhandledGlobalPointerEvents()
         {
-            // Во время драга глобальные pointer up обрабатываются в ProcessGlobalPointerUpsWhileDragging
+            // During drag, global pointer-up events are handled in ProcessGlobalPointerUpsWhileDragging
             if (DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 

@@ -7,8 +7,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Анимация автопереноса на встроенном lightweight tween runner
-    /// Визуал летит от источника к цели, целевой слот обновляется только после завершения анимации
+    /// Auto-transfer animation built on the lightweight tween runner
+    /// The visual moves from source to target, and the target slot is updated only after the animation completes
     /// </summary>
     [Serializable]
     public class TweenAutoTransferAnimation : AutoTransferAnimationStrategy
@@ -42,7 +42,7 @@ namespace DragAndDropSystem.Core
                 return null;
             }
 
-            // Создаем экземпляр визуала
+            // Create the visual instance
             var visualInstance = UnityEngine.Object.Instantiate(visualPrefab, visualContainer);
 
             if (!(visualInstance is IDragVisual dragVisual))
@@ -53,7 +53,7 @@ namespace DragAndDropSystem.Core
                 return null;
             }
 
-            // Получаем RectTransform визуала
+            // Get the visual RectTransform
             var visualRect = visualInstance.transform as RectTransform;
             if (visualRect == null)
             {
@@ -63,14 +63,14 @@ namespace DragAndDropSystem.Core
                 return null;
             }
 
-            // Получаем мировые позиции слотов
+            // Get slot world positions
             Vector3 startPos = GetSlotWorldPosition(sourceBaseSlot);
             Vector3 endPos = GetSlotWorldPosition(targetBaseSlot);
 
-            // Устанавливаем начальную позицию
+            // Set the initial position
             visualRect.position = startPos;
 
-            // Показываем визуал с предметом
+            // Show the visual with the item
             // Create a temporary DragEntry for the visual
             var entries = new[] { new DragEntry(stack, sourceBaseSlot, null) };
             dragVisual.Show(entries);
@@ -107,12 +107,12 @@ namespace DragAndDropSystem.Core
                 },
                 customPath: customPath);
 
-            // Возвращаем GameObject визуала для отслеживания
+            // Return the visual GameObject for tracking
             return visualInstance.gameObject;
         }
 
         /// <summary>
-        /// Получить мировую позицию слота для анимации
+        /// Get the world position of a slot for animation
         /// </summary>
         private Vector3 GetSlotWorldPosition(BaseSlot baseSlot)
         {
@@ -122,18 +122,18 @@ namespace DragAndDropSystem.Core
                 return Vector3.zero;
             }
 
-            // Для RectTransform используем position (мировая позиция с учетом canvas)
+            // For RectTransform use position (world position including canvas transform)
             if (baseSlot.Transform is RectTransform rectTransform)
             {
                 return rectTransform.position;
             }
 
-            // Fallback на обычный Transform
+            // Fallback to a regular Transform
             return baseSlot.Transform.position;
         }
 
         /// <summary>
-        /// Конвертировать пиксели Canvas в мировые координаты по высоте
+        /// Convert canvas pixels into world coordinates along the height axis
         /// </summary>
         private float ConvertPixelsToWorldHeight(float pixels, Canvas canvas)
         {
@@ -144,15 +144,15 @@ namespace DragAndDropSystem.Core
             if (canvasRect == null)
                 return pixels;
 
-            // Создаем две точки в локальных координатах Canvas с разницей в pixels
+            // Create two points in Canvas local coordinates with a difference in pixels
             Vector2 localPoint1 = Vector2.zero;
             Vector2 localPoint2 = new Vector2(0, pixels);
 
-            // Конвертируем в мировые координаты
+            // Convert them to world coordinates
             Vector3 worldPoint1 = canvasRect.TransformPoint(localPoint1);
             Vector3 worldPoint2 = canvasRect.TransformPoint(localPoint2);
 
-            // Вычисляем разницу в мировых координатах
+            // Compute the world-space difference
             float worldHeight = worldPoint2.y - worldPoint1.y;
 
             return worldHeight;

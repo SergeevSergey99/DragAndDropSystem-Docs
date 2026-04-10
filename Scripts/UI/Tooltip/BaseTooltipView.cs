@@ -5,17 +5,17 @@ using UnityEngine;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Интерфейс для визуализации tooltip предмета.
-    /// Аналог IDragVisual - позволяет создавать разные визуальные представления tooltip.
+    /// Base abstraction for item tooltip visualization.
+    /// Similar to IDragVisual, it allows creating different tooltip presentations.
     /// </summary>
     public abstract class BaseTooltipView : MonoBehaviour
     {
         public RectTransform rectTransform => transform as RectTransform;
 
         /// <summary>
-        /// Показать tooltip с указанным предметом
+        /// Show the tooltip for the specified item
         /// </summary>
-        /// <param name="itemAdapter">Предмет для отображения</param>
+        /// <param name="itemAdapter">Item to display</param>
         public virtual void Show(IItemAdapter itemAdapter, Action OnCompleted = null)
         {
             gameObject.SetActive(true);
@@ -23,7 +23,7 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Скрыть tooltip
+        /// Hide the tooltip
         /// </summary>
         public virtual void Hide(Action OnCompleted = null)
         {
@@ -32,19 +32,19 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Обновить позицию tooltip
+        /// Update tooltip position
         /// </summary>
-        /// <param name="position">Новая позиция в экранных координатах</param>
+        /// <param name="position">New position in screen coordinates</param>
         public virtual void UpdatePosition(Vector2 position){ transform.position = position; }
 
         /// <summary>
-        /// Обновить содержимое tooltip (если предмет изменился но tooltip все еще показывается)
+        /// Update tooltip content (if the item changed while the tooltip is still visible)
         /// </summary>
-        /// <param name="itemAdapter">Обновленный предмет</param>
+        /// <param name="itemAdapter">Updated item</param>
         public abstract void SetContent(IItemAdapter itemAdapter);
 
         /// <summary>
-        /// Получить размер tooltip
+        /// Get tooltip size
         /// </summary>
         public virtual Vector2 GetSize() => rectTransform.rect.size;
     }

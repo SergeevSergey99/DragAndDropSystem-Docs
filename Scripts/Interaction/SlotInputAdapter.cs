@@ -12,8 +12,8 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Interaction
 {
     /// <summary>
-    /// Тонкий slot-adapter: пересылает raw-события в InputEventRouter.
-    /// Доменную логику не содержит.
+    /// Thin slot adapter: forwards raw events to InputEventRouter.
+    /// Contains no domain logic.
     /// </summary>
     public class SlotInputAdapter : Selectable,
         IBeginDragHandler, IDropTarget
@@ -108,10 +108,10 @@ namespace DragAndDropSystem.Interaction
 
         public override void OnPointerDown(PointerEventData eventData)
         {
-            // По умолчанию не вызываем base.OnPointerDown — он делает EventSystem.SetSelectedGameObject,
-            // что не нужно при работе мышью. Selection управляется только через navigation
-            // (OnSelect/OnDeselect для gamepad/keyboard).
-            // Включается через _callBaseOnPointerDown, если нужны Selectable transitions при нажатии.
+            // By default we do not call base.OnPointerDown because it invokes EventSystem.SetSelectedGameObject,
+            // which is not needed for mouse input. Selection is driven only through navigation
+            // (OnSelect/OnDeselect for gamepad/keyboard).
+            // Enable it through _callBaseOnPointerDown if you need Selectable transitions on press.
             if (_callBaseOnPointerDown)
                 base.OnPointerDown(eventData);
 

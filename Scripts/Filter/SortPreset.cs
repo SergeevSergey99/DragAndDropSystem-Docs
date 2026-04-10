@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Filter
 {
     /// <summary>
-    /// ScriptableObject пресет сортировки для удобной настройки в инспекторе.
-    /// Можно назначать на кнопки UI для быстрого переключения сортировки.
+    /// ScriptableObject sort preset for convenient Inspector configuration.
+    /// Can be assigned to UI buttons for quick sort switching.
     /// </summary>
     [CreateAssetMenu(fileName = "SortPreset", menuName = "DragAndDrop/Filter/Sort Preset", order = 101)]
     public class SortPreset : ScriptableObject
@@ -32,7 +32,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Применить пресет к контроллеру (только сортировку)
+        /// Apply the preset to the controller (sort only)
         /// </summary>
         public void ApplyTo(FilterSortController controller)
         {
@@ -43,7 +43,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Создать компаратор сортировки из пресета
+        /// Create a sort comparison from the preset
         /// </summary>
         public Comparison<BaseSlot> CreateComparison()
         {

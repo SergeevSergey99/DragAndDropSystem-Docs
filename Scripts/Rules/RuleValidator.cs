@@ -7,9 +7,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Rules
 {
     /// <summary>
-    /// Generic валидатор, проверяющий все правила определенного типа
-    /// Поддерживает настройку через Inspector
-    /// Обеспечивает типобезопасность через generic ограничение
+    /// Generic validator that checks all rules of a given type
+    /// Supports configuration through the Inspector
+    /// Ensures type safety through a generic constraint
     /// </summary>
     [Serializable]
     public class RuleValidator<TRule> where TRule : IDragRule
@@ -44,7 +44,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Добавить правило программно
+        /// Add a rule programmatically
         /// </summary>
         public void AddRule(TRule rule)
         {
@@ -54,7 +54,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Удалить inline правило
+        /// Remove an inline rule
         /// </summary>
         public void RemoveRule(TRule rule)
         {
@@ -62,7 +62,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Очистить все inline правила
+        /// Clear all inline rules
         /// </summary>
         public void ClearRules()
         {
@@ -70,7 +70,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Добавить пресет правил
+        /// Add a rule preset
         /// </summary>
         public void AddPreset(RulePreset<TRule> preset)
         {
@@ -79,7 +79,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Удалить пресет правил
+        /// Remove a rule preset
         /// </summary>
         public void RemovePreset(RulePreset<TRule> preset)
         {
@@ -88,7 +88,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Очистить список пресетов
+        /// Clear the preset list
         /// </summary>
         public void ClearPresets()
         {
@@ -96,12 +96,12 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Получить все правила (для отладки)
+        /// Get all rules (for debugging)
         /// </summary>
         public IReadOnlyList<TRule> GetRules() => BuildCombinedRules();
 
         /// <summary>
-        /// Валидация начала перетаскивания для конкретного entry
+        /// Validate drag start for a specific entry
         /// </summary>
         public RuleResult ValidateStartDrag(DragContext context, DragEntry entry)
         {
@@ -119,7 +119,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Валидация сброса предмета для конкретного entry
+        /// Validate dropping an item for a specific entry
         /// </summary>
         public RuleResult ValidateDrop(DragContext context, DragEntry entry)
         {
@@ -140,7 +140,7 @@ namespace DragAndDropSystem.Rules
         {
             _combinedRules.Clear();
 
-            // Добавляем правила из пресетов
+            // Add rules from presets
             foreach (var preset in _presets)
             {
                 if (preset == null) continue;
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.Rules
                 }
             }
 
-            // Добавляем локальные inline правила
+            // Add local inline rules
             foreach (var rule in _inlineRules)
             {
                 if (rule == null) continue;
@@ -181,7 +181,7 @@ namespace DragAndDropSystem.Rules
         }
 
         /// <summary>
-        /// Метод для валидации в Editor (вызывается при изменениях в Inspector)
+        /// Validation method for the Editor (called when values change in the Inspector)
         /// </summary>
         public void OnValidate()
         {
@@ -190,7 +190,7 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Валидатор для глобальных правил (применяется в DragAndDropManager)
+    /// Validator for global rules (used in DragAndDropManager)
     /// </summary>
     [Serializable]
     public class GlobalRuleValidator : RuleValidator<IGlobalRule>
@@ -198,7 +198,7 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Валидатор для правил инвентаря (применяется в UniversalInventory)
+    /// Validator for inventory rules (used in UniversalInventory)
     /// </summary>
     [Serializable]
     public class InventoryRuleValidator : RuleValidator<IInventoryRule>
@@ -206,7 +206,7 @@ namespace DragAndDropSystem.Rules
     }
 
     /// <summary>
-    /// Валидатор для правил слота (применяется в UniversalSlot)
+    /// Validator for slot rules (used in UniversalSlot)
     /// </summary>
     [Serializable]
     public class SlotRuleValidator : RuleValidator<ISlotRule>

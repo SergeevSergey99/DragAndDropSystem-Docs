@@ -17,8 +17,8 @@ using UnityEngine;
 namespace DragAndDropSystem
 {
     /// <summary>
-    /// Новое поколение менеджера drag-and-drop
-    /// Работает через композицию, правила и стратегии
+    /// Next-generation drag-and-drop manager
+    /// Built around composition, rules, and strategies
     /// </summary>
     [DisallowMultipleComponent]
     public class DragAndDropManager : MonoSingleton<DragAndDropManager>
@@ -34,7 +34,7 @@ namespace DragAndDropSystem
         [SerializeReference, ManagedReferencePicker, Tooltip("Auto-transfer animation strategy. Null = instant transfer")]
         private AutoTransferAnimationStrategy _autoTransferAnimation;
 
-        // Список активных анимационных визуалов для поддержки множественных анимаций
+        // Active animation visuals list to support multiple simultaneous animations
         private List<GameObject> _activeAnimationVisuals = new List<GameObject>();
 
         private DragContext _currentContext;
@@ -42,7 +42,7 @@ namespace DragAndDropSystem
         private IDropProcessor _currentProcessor;
         private GlobalRuleValidator _globalRules = new GlobalRuleValidator();
 
-        // Стек целей drop операций (для корректной обработки вложенных областей и слотов)
+        // Drop target stack for correct handling of nested areas and slots
         private List<IDropTarget> _dropTargetStack = new List<IDropTarget>();
 
         private readonly AutoTransferService _autoTransferService = new AutoTransferService();
@@ -62,7 +62,7 @@ namespace DragAndDropSystem
         public float QuickClickTimeThreshold => _quickClickTimeThreshold;
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
 
-        // События drag-and-drop
+        // Drag-and-drop events
         public static event Action<DragContext> OnDragAttempting;
         public static event Action<DragContext> OnDragStarted;
         public static event Action<DragContext> OnDragEnterSlot;
@@ -72,12 +72,12 @@ namespace DragAndDropSystem
         public static event Action<DragContext> OnDragCancelled;
         public static event Action OnDragEnded;
 
-        // События автопереноса
+        // Auto-transfer events
         public static event Action<DragContext> OnAutoTransferAttempting;
         public static event Action<DragContext> OnAutoTransferCompleted;
         public static event Action<DragContext> OnAutoTransferFailed;
 
-        // События обмена предметов (swap)
+        // Item swap events
         public static event Action<InventorySwapContext> OnSwapAttempting;
         public static event Action<InventorySwapContext> OnSwapCompleted;
 
@@ -85,7 +85,7 @@ namespace DragAndDropSystem
         {
             base.Init();
 
-            // Добавляем базовые правила
+            // Add base rules
             _globalRules.AddRule(new SameSlotRule());
         }
 
@@ -93,7 +93,7 @@ namespace DragAndDropSystem
         {
             base.DeInit();
 
-            // Уничтожаем все активные визуалы анимаций
+            // Destroy all active animation visuals
             foreach (var visual in _activeAnimationVisuals)
             {
                 if (visual != null)
@@ -105,7 +105,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Добавить глобальное правило для всех операций drag-and-drop
+        /// Add a global rule for all drag-and-drop operations
         /// </summary>
         public void AddGlobalRule(IGlobalRule rule)
         {
@@ -113,7 +113,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Удалить глобальное правило
+        /// Remove a global rule
         /// </summary>
         public void RemoveGlobalRule(IGlobalRule rule)
         {
@@ -121,12 +121,12 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Начать перетаскивание из слота
+        /// Start dragging from a slot
         /// </summary>
         public bool StartDrag(BaseSlot sourceBaseSlot, DragRequestPolicy? requested = null) => sourceBaseSlot != null && StartDrag(new List<BaseSlot> { sourceBaseSlot }, requested);
 
         /// <summary>
-        /// Начать перетаскивание из одного или нескольких слотов
+        /// Start dragging from one or more slots
         /// </summary>
         public bool StartDrag(IReadOnlyList<BaseSlot> sourceSlots, DragRequestPolicy? requested = null)
         {
@@ -182,40 +182,40 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Добавить цель в стек (вызывается при OnPointerEnter)
-        /// Автоматически активирует новый верхний target
+        /// Add a target to the stack (called on OnPointerEnter)
+        /// Automatically activates the new top target
         /// </summary>
         public void PushDropTarget(IDropTarget target)
         {
             if (!IsDragging || target == null)
                 return;
 
-            // Защита от дублей
+            // Guard against duplicates
             if (_dropTargetStack.Contains(target))
             {
                 Extensions.DragAndDropLog($"<color=yellow>PushDropTarget: Target already in stack, ignoring</color>");
                 return;
             }
 
-            // Деактивируем текущий top
+            // Deactivate the current top
             if (_dropTargetStack.Count > 0)
             {
                 var currentTop = _dropTargetStack[_dropTargetStack.Count - 1];
                 currentTop.OnBecomeInactiveTarget();
             }
 
-            // Добавляем новый target
+            // Add the new target
             _dropTargetStack.Add(target);
 
             Extensions.DragAndDropLog($"<color=cyan>PushDropTarget: Added to stack (size={_dropTargetStack.Count})</color>");
 
-            // Активируем новый top
+            // Activate the new top
             ActivateTopTarget();
         }
 
         /// <summary>
-        /// Удалить цель из стека (вызывается при OnPointerExit или OnDisable)
-        /// Если удаляется top, автоматически активирует предыдущий target
+        /// Remove a target from the stack (called on OnPointerExit or OnDisable)
+        /// If the top target is removed, automatically activates the previous target
         /// </summary>
         public void PopDropTarget(IDropTarget target)
         {
@@ -231,18 +231,18 @@ namespace DragAndDropSystem
 
             bool wasTop = (index == _dropTargetStack.Count - 1);
 
-            // Деактивируем если это был top
+            // Deactivate it if it was the top target
             if (wasTop)
             {
                 target.OnBecomeInactiveTarget();
             }
 
-            // Удаляем из стека
+            // Remove it from the stack
             _dropTargetStack.RemoveAt(index);
 
             Extensions.DragAndDropLog($"<color=cyan>PopDropTarget: Removed from stack (size={_dropTargetStack.Count})</color>");
 
-            // Если убрали top - активируем новый top (или очищаем)
+            // If the top was removed, activate the new top (or clear state)
             if (wasTop)
             {
                 ActivateTopTarget();
@@ -412,7 +412,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Отменить перетаскивание
+        /// Cancel dragging
         /// </summary>
         public void CancelDrag()
         {
@@ -425,7 +425,7 @@ namespace DragAndDropSystem
 
         private void EndDrag()
         {
-            // Деактивируем все targets в стеке
+            // Deactivate all targets in the stack
             foreach (var target in _dropTargetStack)
             {
                 target.OnBecomeInactiveTarget();
@@ -444,7 +444,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Выполнить автоперенос предмета из слота в целевой инвентарь
+        /// Perform auto-transfer of an item from a slot to the target inventory
         /// </summary>
         public bool TryAutoTransfer(BaseSlot sourceBaseSlot, IInventory sourceInventory, IInventory targetInventory)
         {
@@ -458,7 +458,7 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Выполнить автоперенос одного или нескольких слотов в целевой инвентарь через общий transfer pipeline.
+        /// Perform auto-transfer of one or more slots into the target inventory through the shared transfer pipeline.
         /// </summary>
         public bool TryAutoTransfer(IReadOnlyList<BaseSlot> sourceSlots, IInventory sourceInventory, IInventory targetInventory)
         {
@@ -640,17 +640,17 @@ namespace DragAndDropSystem
         }
 
         /// <summary>
-        /// Корутина для автоматического удаления визуала из списка после уничтожения
+        /// Coroutine that automatically removes a visual from the list after it is destroyed
         /// </summary>
         private System.Collections.IEnumerator RemoveAnimationVisualWhenDestroyed(GameObject visual)
         {
-            // Ждем пока визуал существует
+            // Wait while the visual still exists
             while (visual != null)
             {
                 yield return null;
             }
 
-            // Визуал уничтожен - удаляем из списка
+            // The visual was destroyed, remove it from the list
             _activeAnimationVisuals.Remove(visual);
         }
 

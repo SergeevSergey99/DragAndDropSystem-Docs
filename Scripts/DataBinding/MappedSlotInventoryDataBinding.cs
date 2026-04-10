@@ -7,31 +7,31 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.DataBinding
 {
     /// <summary>
-    /// Привязка слота к данным с поддержкой как единичных предметов, так и стеков.
-    /// Внутренне всегда работает со списками (GetAll/Add/Remove/Clear).
-    /// Для единичных предметов используйте простой конструктор — обёртки генерируются автоматически.
+    /// Slot-to-data binding with support for both single items and stacks.
+    /// Internally it always works with lists (GetAll/Add/Remove/Clear).
+    /// For single items, use the simple constructor and wrappers will be generated automatically.
     /// </summary>
     public readonly struct SlotBinding<TData, TAdapter>
         where TAdapter : class, IItemAdapter
     {
-        /// <summary>Все элементы данных, находящиеся в слоте (для ReloadUI).</summary>
+        /// <summary>All data items currently stored in the slot (for ReloadUI).</summary>
         public readonly Func<IReadOnlyList<TData>> GetAll;
 
-        /// <summary>Добавить адаптеры в слот (вызывается при OnItemAddedToUI).</summary>
+        /// <summary>Add adapters to the slot (called from OnItemAddedToUI).</summary>
         public readonly Action<IReadOnlyList<TAdapter>> Add;
 
-        /// <summary>Удалить адаптеры из слота (вызывается при OnItemRemovedFromUI).</summary>
+        /// <summary>Remove adapters from the slot (called from OnItemRemovedFromUI).</summary>
         public readonly Action<IReadOnlyList<TAdapter>> Remove;
 
-        /// <summary>Опциональная валидация адаптера для CanDrop.</summary>
+        /// <summary>Optional adapter validation for CanDrop.</summary>
         public readonly Func<TAdapter, RuleResult> CanDrop;
 
-        /// <summary>Опциональная валидация адаптера для CanStartDrag.</summary>
+        /// <summary>Optional adapter validation for CanStartDrag.</summary>
         public readonly Func<TAdapter, RuleResult> CanStartDrag;
 
         /// <summary>
-        /// Конструктор для единичных предметов (один предмет на слот).
-        /// Get/Set/Clear автоматически оборачиваются в list-based API.
+        /// Constructor for single-item slots (one item per slot).
+        /// Get/Set/Clear are automatically wrapped into a list-based API.
         /// </summary>
         public SlotBinding(
             Func<TData> get,
@@ -52,8 +52,8 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Конструктор для стекаемых слотов (несколько одинаковых предметов в слоте).
-        /// Позволяет контролировать добавление/удаление каждого экземпляра индивидуально.
+        /// Constructor for stackable slots (multiple identical items in the slot).
+        /// Allows controlling addition and removal of each instance individually.
         /// </summary>
         public SlotBinding(
             Func<IReadOnlyList<TData>> getAll,
@@ -72,16 +72,16 @@ namespace DragAndDropSystem.DataBinding
     }
 
     /// <summary>
-    /// Шаблонный DataBinding для инвентарей с фиксированными именованными слотами.
-    /// Каждый слот декларативно привязывается к данным через SlotBinding в словаре.
-    /// Поддерживает как единичные предметы, так и стеки в одном BindingMap.
-    /// Автоматически обрабатывает ReloadUI, OnItemAdded, OnItemRemoved, CanDrop и CanStartDrag —
-    /// наследнику достаточно определить CreateBindingMap() и CreateAdapter().
+    /// Template DataBinding for inventories with fixed named slots.
+    /// Each slot is declaratively bound to data through SlotBinding in a dictionary.
+    /// Supports both single items and stacks in the same BindingMap.
+    /// Automatically handles ReloadUI, OnItemAdded, OnItemRemoved, CanDrop, and CanStartDrag.
+    /// Derived classes only need to define CreateBindingMap() and CreateAdapter().
     ///
-    /// TData — тип элемента данных (например, ItemModel)
-    /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemModelAdapter)
+    /// TData is the data item type (for example, ItemModel)
+    /// TAdapter is the adapter type implementing IItemAdapter (for example, ItemModelAdapter)
     ///
-    /// Пример использования:
+    /// Usage example:
     /// <code>
     /// public class EquipmentBinding : MappedSlotInventoryDataBinding&lt;ItemModel, ItemModelAdapter&gt;
     /// {
@@ -89,7 +89,7 @@ namespace DragAndDropSystem.DataBinding
     ///
     ///     protected override Dictionary&lt;ISlot, SlotBinding&lt;ItemModel, ItemModelAdapter&gt;&gt; CreateBindingMap() =&gt; new()
     ///     {
-    ///         // Единичный предмет (простой конструктор)
+    ///         // Single item (simple constructor)
     ///         [_weaponSlot] = new(
     ///             get: () =&gt; _data.Weapon,
     ///             set: adapter =&gt; _data.Weapon = adapter.Model,
@@ -98,7 +98,7 @@ namespace DragAndDropSystem.DataBinding
     ///                 ? RuleResult.Success()
     ///                 : RuleResult.Failure("Only weapons are allowed")),
     ///
-    ///         // Стек предметов (list-конструктор)
+    ///         // Item stack (list constructor)
     ///         [_potionSlot] = new(
     ///             getAll: () =&gt; _data.Potions,
     ///             add: adapters =&gt; _data.AddPotions(adapters),
@@ -119,20 +119,20 @@ namespace DragAndDropSystem.DataBinding
         private Dictionary<BaseSlot, SlotBinding<TData, TAdapter>> _bindingMap;
 
         /// <summary>
-        /// Словарь привязок слотов. Строится один раз из CreateBindingMap().
+        /// Slot binding dictionary. Built once from CreateBindingMap().
         /// </summary>
         protected Dictionary<BaseSlot, SlotBinding<TData, TAdapter>> BindingMap
             => _bindingMap ??= CreateBindingMap();
 
         /// <summary>
-        /// Создать словарь привязок: ключ — слот, значение — SlotBinding с геттером, сеттером,
-        /// очисткой и опциональной валидацией.
+        /// Create the binding dictionary: key is a slot, value is a SlotBinding with getter, setter,
+        /// clear action, and optional validation.
         /// </summary>
         protected abstract Dictionary<BaseSlot, SlotBinding<TData, TAdapter>> CreateBindingMap();
 
         /// <summary>
-        /// Создать адаптер (IItemAdapter) из элемента данных.
-        /// Вызывается при загрузке данных в UI (ReloadUI).
+        /// Create an adapter (IItemAdapter) from a data item.
+        /// Called when data is loaded into the UI (ReloadUI).
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
 
