@@ -3,7 +3,7 @@ using DragAndDropSystem.Rules;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Опциональный hook для domain-логики вокруг уже спланированного переноса.
+    /// Optional hook for domain logic around an already planned transfer.
     /// </summary>
     public interface ITransferDomainHandler
     {

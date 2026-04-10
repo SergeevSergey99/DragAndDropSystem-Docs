@@ -57,13 +57,13 @@ namespace DragAndDropSystem.Inventories
             SourceStackAfter = sourceStackAfter;
         }
 
-        /// <summary>Клон стека source-слота до свапа.</summary>
+        /// <summary>Clone of the source-slot stack before swap.</summary>
         public ItemStack SourceStackBefore { get; }
-        /// <summary>Клон стека target-слота до свапа.</summary>
+        /// <summary>Clone of the target-slot stack before swap.</summary>
         public ItemStack TargetStackBefore { get; }
-        /// <summary>Source-стек, сконвертированный для target inventory (что ляжет в target).</summary>
+        /// <summary>Source stack converted for the target inventory (what will be placed into target).</summary>
         public ItemStack TargetStackAfter { get; }
-        /// <summary>Target-стек, сконвертированный для source inventory (что ляжет в source).</summary>
+        /// <summary>Target stack converted for the source inventory (what will be placed into source).</summary>
         public ItemStack SourceStackAfter { get; }
     }
 
@@ -150,8 +150,8 @@ namespace DragAndDropSystem.Inventories
     }
 
     /// <summary>
-    /// Планировщик переноса. Строит план без изменения состояния инвентарей.
-    /// Выполнение плана будет добавлено отдельным executor-ом.
+    /// Transfer planner. Builds a plan without mutating inventory state.
+    /// Plan execution is handled by a separate executor.
     /// </summary>
     public class TransferPlanner
     {
@@ -366,8 +366,8 @@ namespace DragAndDropSystem.Inventories
             foreach (var allocation in allocations)
                 plannedAmount += allocation.Amount;
 
-            // Округление общего количества до кратного DragAmountStep источника.
-            // Например: resultCount=6, вместимость=64 → переносим 60 (10 полных крафтов).
+            // Round total amount down to a multiple of the source DragAmountStep.
+            // Example: resultCount=6, capacity=64 -> transfer 60 (10 full crafts).
             plannedAmount = ApplySourceDragAmountStep(entry, plannedAmount, ref allocations);
 
             // Occupied slot handler takes priority: data binding may handle drop onto occupied slot
@@ -506,8 +506,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Если source inventory имеет DragAmountStep > 1, округляет plannedAmount вниз
-        /// до кратного step и обрезает аллокации с конца.
+        /// If the source inventory has DragAmountStep > 1, rounds plannedAmount down
+        /// to a multiple of step and trims allocations from the end.
         /// </summary>
         private static int ApplySourceDragAmountStep(
             DragEntry entry,
@@ -539,7 +539,7 @@ namespace DragAndDropSystem.Inventories
             for (int i = 0; i < allocations.Count; i++)
                 trimmed.Add(allocations[i]);
 
-            // Обрезаем с конца
+            // Trim from the end
             for (int i = trimmed.Count - 1; i >= 0 && excess > 0; i--)
             {
                 int cut = Min(trimmed[i].Amount, excess);
@@ -638,7 +638,7 @@ namespace DragAndDropSystem.Inventories
 
             var allocations = new List<PlannedSlotAllocation>(desiredAmount);
 
-            // Для первого entry можно попробовать попасть в слот-хинт как в приоритетную цель.
+            // For the first entry, try using the hinted slot as the preferred target.
             if (operation.PreferHint && operation.TargetBaseSlotHint != null)
             {
                 var preferred = FindVirtualSlot(operation.TargetBaseSlotHint, operation.VirtualSlots);
@@ -939,8 +939,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Проверяет, можно ли разместить стек в инвентаре при свапе.
-        /// freedSlot будет освобождён свапом, поэтому помечается как пустой в виртуальном состоянии.
+        /// Checks whether a stack can be placed into the inventory during a swap.
+        /// freedSlot will be freed by the swap, so it is marked as empty in virtual state.
         /// </summary>
         private bool ValidateSwapPlacementFeasibility(
             DragContext dropContext,

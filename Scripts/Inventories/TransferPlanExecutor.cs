@@ -63,8 +63,8 @@ namespace DragAndDropSystem.Inventories
     }
 
     /// <summary>
-    /// Исполняет готовый TransferPlan.
-    /// Поддерживает атомарный режим (с откатом) и BestEffort.
+    /// Executes a prepared TransferPlan.
+    /// Supports atomic mode (with rollback) and BestEffort.
     /// </summary>
     public class TransferPlanExecutor
     {
@@ -337,8 +337,8 @@ namespace DragAndDropSystem.Inventories
                 isPartialTransfer: isPartial,
                 remainingInSource: 0);
 
-            // Эмитим события только после успешного завершения всей операции.
-            // В Atomic это предотвращает "ложные" события при последующем откате.
+            // Emit events only after the whole operation completes successfully.
+            // In Atomic mode this prevents false-positive events before a later rollback.
             DispatchDomainSuccessHooks(successfulDomainContexts);
             DispatchTransferEvents(successfulOutcomes);
             DispatchSwapEvents(successfulSwaps, options);
@@ -787,10 +787,10 @@ namespace DragAndDropSystem.Inventories
                 targetWasEmpty = wasEmptyBefore;
             }
 
-            // Захватываем реально перенесённые адаптеры.
-            // Для single-slot placement (Stackable) берём из resolved slot (адаптеры добавлены в конец).
-            // Для multi-slot distribution (Unique) resolved slot содержит только 1 предмет,
-            // поэтому используем сохранённую копию сконвертированного стека.
+            // Capture the adapters that were actually transferred.
+            // For single-slot placement (Stackable), take them from the resolved slot (adapters were appended at the end).
+            // For multi-slot distribution (Unique), the resolved slot contains only 1 item,
+            // so use the saved copy of the converted stack instead.
             ItemStack transferredStack;
             if (resolvedSlot?.Stack != null && actuallyAdded > 0 && actuallyAdded <= resolvedSlot.Stack.Count)
                 transferredStack = resolvedSlot.Stack.CreateCopy(actuallyAdded);

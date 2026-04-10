@@ -258,7 +258,7 @@ namespace DragAndDropSystem.Inventories
             {
                 InitializeSlots();
                 InitializeStrategy();
-                EnsureFreeSlots(); // Создаем начальные свободные слоты для Dynamic
+                EnsureFreeSlots(); // Create initial free slots for Dynamic mode
             }
         }
 
@@ -269,7 +269,7 @@ namespace DragAndDropSystem.Inventories
 
         private void OnValidate()
         {
-            // Сортируем правила при изменении в Inspector
+            // Sort rules when values change in the Inspector
             _ruleValidator?.OnValidate();
 
             if (!Application.isPlaying || _strategy == null)
@@ -301,7 +301,7 @@ namespace DragAndDropSystem.Inventories
                 _slots = new List<BaseSlot>();
             }
 
-            // Удаляем возможные пустые ссылки
+            // Remove possible null references
             _slots.RemoveAll(slot => slot == null);
 
 
@@ -361,7 +361,7 @@ namespace DragAndDropSystem.Inventories
 
         private void InitializeStrategy()
         {
-            // Создаем базовую стратегию на основе поведения предметов
+            // Create the base strategy based on item behavior
             IInventoryStrategy baseStrategy;
             switch (_itemBehavior)
             {
@@ -383,7 +383,7 @@ namespace DragAndDropSystem.Inventories
                     break;
             }
 
-            // Оборачиваем в декоратор для динамических слотов, если нужно
+            // Wrap it in a decorator for dynamic slots if needed
             if (_slotManagement == SlotManagementType.Dynamic)
             {
                 SetStrategy(new DynamicSlotDecorator(baseStrategy, CreateSlot, _maxDynamicSlots, _maxFreeSlots, () => _slots, EnsureFreeSlots));
@@ -397,7 +397,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Изменить стратегию инвентаря в рантайме
+        /// Change the inventory strategy at runtime
         /// </summary>
         public void SetStrategy(IInventoryStrategy strategy)
         {
@@ -425,9 +425,9 @@ namespace DragAndDropSystem.Inventories
                 DataBinding.ReloadUI();
             }
 
-            // EnsureFreeSlots/Trim должны выполняться ПОСЛЕ ReloadUI,
-            // иначе слоты, освободившиеся при переупаковке (например Unique→Stackable),
-            // не будут удалены.
+            // EnsureFreeSlots/Trim must run AFTER ReloadUI,
+            // otherwise slots freed during repacking (for example Unique -> Stackable)
+            // will not be removed.
             EnsureFreeSlots();
             TrimExcessFreeSlots(null);
             UpdateAllVisuals();
@@ -457,7 +457,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Добавить правило к инвентарю
+        /// Add a rule to the inventory
         /// </summary>
         public void AddRule(IInventoryRule rule)
         {
@@ -465,7 +465,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Удалить правило
+        /// Remove a rule
         /// </summary>
         public void RemoveRule(IInventoryRule rule)
         {
@@ -480,8 +480,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Задать лимит стака в рантайме (например, из DataBinding).
-        /// maxStackSize = 0 означает без ограничений.
+        /// Set the stack limit at runtime (for example, from DataBinding).
+        /// maxStackSize = 0 means unlimited.
         /// </summary>
         public void SetMaxStackSize(int maxStackSize, bool allowItemOverride = false)
         {
@@ -618,13 +618,13 @@ namespace DragAndDropSystem.Inventories
 
             int desiredCount = snapshot.Slots.Count;
 
-            // Увеличиваем количество слотов до нужного значения
+            // Increase the number of slots to the required amount
             while (_slots.Count < desiredCount)
             {
                 CreateSlot();
             }
 
-            // Удаляем лишние слоты (если были созданы новые в процессе неуспешной операции)
+            // Remove extra slots (if new ones were created during a failed operation)
             while (_slots.Count > desiredCount)
             {
                 var slot = _slots[_slots.Count - 1];
@@ -725,7 +725,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Очистить весь инвентарь
+        /// Clear the entire inventory
         /// </summary>
         public void ClearAll()
         {
@@ -739,7 +739,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Получить все непустые стаки
+        /// Get all non-empty stacks
         /// </summary>
         public List<ItemStack> GetAllStacks()
         {
@@ -755,7 +755,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Получить все уникальные предметы
+        /// Get all unique items
         /// </summary>
         public List<IItemAdapter> GetUniqueItems()
         {
@@ -799,8 +799,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Найти активный слот для автопереноса.
-        /// Приоритет: курсор → выбранный UI элемент → последний взаимодействовавший слот.
+        /// Find the active slot for auto-transfer.
+        /// Priority: cursor -> selected UI element -> last interacted slot.
         /// </summary>
         public BaseSlot ResolveAutoTransferSlot()
         {
@@ -827,8 +827,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Получить количество предметов для перетаскивания из слота.
-        /// Без параметров использует настройки инвентаря, с параметрами — переданные override.
+        /// Get the number of items to drag from a slot.
+        /// Without parameters it uses inventory settings, with parameters it uses the provided overrides.
         /// </summary>
         public int GetDragAmount(BaseSlot baseSlot, DragAmount? overrideAmount = null, int? overrideCustom = null)
         {
@@ -859,13 +859,13 @@ namespace DragAndDropSystem.Inventories
         private DragAmountStepRounding _dragAmountStepRounding;
 
         /// <summary>
-        /// Текущий шаг округления драга. 0 или 1 — без округления.
+        /// Current drag rounding step. 0 or 1 means no rounding.
         /// </summary>
         public int DragAmountStep => _dragAmountStep;
 
         /// <summary>
-        /// Округлять количество драга до кратного step.
-        /// step &lt;= 1 — без округления.
+        /// Round drag amount to a multiple of step.
+        /// step &lt;= 1 means no rounding.
         /// </summary>
         public void SetDragAmountStep(int step, DragAmountStepRounding rounding = DragAmountStepRounding.Floor)
         {
@@ -890,12 +890,12 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Попытаться добавить предмет в конкретный слот с учетом автоматического объединения
+        /// Try to add an item to a specific slot with automatic merge handling
         /// </summary>
-        /// <param name="stack">Стак предметов для добавления</param>
-        /// <param name="targetBaseSlot">Целевой слот</param>
-        /// <param name="sourceInventory">Инвентарь-источник (для событий)</param>
-        /// <param name="sourceSlotIndex">Индекс исходного слота (для событий)</param>
+        /// <param name="stack">Item stack to add</param>
+        /// <param name="targetBaseSlot">Target slot</param>
+        /// <param name="sourceInventory">Source inventory (for events)</param>
+        /// <param name="sourceSlotIndex">Source slot index (for events)</param>
         public bool TryAddToSlot(
             ItemStack stack,
             BaseSlot targetBaseSlot,
@@ -911,14 +911,14 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Проверить, может ли инвентарь принять предмет (без привязки к конкретному слоту)
-        /// Проверяет правила инвентаря + наличие подходящих слотов или возможность создания нового
+        /// Check whether the inventory can accept an item (without targeting a specific slot)
+        /// Checks inventory rules plus matching slot availability or the ability to create a new slot
         /// </summary>
         public bool CanAcceptItem(IItemAdapter itemAdapter, int count, out BaseSlot suggestedBaseSlot)
             => CanAcceptItem(new InventoryAcceptanceRequest(this, itemAdapter, count), out suggestedBaseSlot);
 
         /// <summary>
-        /// Проверить, может ли инвентарь принять предмет в контексте текущей drag/drop операции.
+        /// Check whether the inventory can accept an item in the context of the current drag/drop operation.
         /// </summary>
         public bool CanAcceptItem(InventoryAcceptanceRequest request, out BaseSlot suggestedBaseSlot)
         {
@@ -956,7 +956,7 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Обеспечить минимальное количество свободных слотов (для Dynamic инвентаря)
+        /// Ensure the minimum number of free slots (for Dynamic inventory mode)
         /// </summary>
         public void EnsureFreeSlots()
         {
@@ -965,7 +965,7 @@ namespace DragAndDropSystem.Inventories
 
             int freeSlots = CountFreeSlots();
 
-            // Создаем недостающие слоты
+            // Create missing slots
             int slotsToCreate = _maxFreeSlots - freeSlots;
             for (int i = 0; i < slotsToCreate && _slots.Count < _maxDynamicSlots; i++)
             {
@@ -975,8 +975,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Уведомить инвентарь о том, что указанный слот стал пустым.
-        /// Используется для динамического удаления лишних слотов.
+        /// Notify the inventory that the specified slot became empty.
+        /// Used to dynamically remove extra slots.
         /// </summary>
         public void HandleSlotEmptied(BaseSlot baseSlot)
         {
@@ -1102,13 +1102,13 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Выполнить обмен предметов между двумя слотами (возможно из разных инвентарей).
-        /// События не генерируются напрямую, информация возвращается через SwapOperationResult.
+        /// Perform an item swap between two slots (possibly from different inventories).
+        /// Events are not emitted directly; information is returned through SwapOperationResult.
         /// </summary>
-        /// <param name="targetBaseSlot">Целевой слот (из этого инвентаря)</param>
-        /// <param name="sourceBaseSlot">Исходный слот (может быть из другого инвентаря)</param>
-        /// <param name="result">Результат обмена для генерации событий</param>
-        /// <returns>True если swap успешен</returns>
+        /// <param name="targetBaseSlot">Target slot (from this inventory)</param>
+        /// <param name="sourceBaseSlot">Source slot (may belong to another inventory)</param>
+        /// <param name="result">Swap result used for event generation</param>
+        /// <returns>True if the swap succeeds</returns>
         public bool TrySwapSlots(BaseSlot targetBaseSlot, BaseSlot sourceBaseSlot, out SwapOperationResult result)
         {
             result = default;
@@ -1124,14 +1124,14 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            // Проверяем что targetSlot принадлежит этому инвентарю
+            // Check that targetSlot belongs to this inventory
             if (!ReferenceEquals(targetBaseSlot.Inventory, this))
             {
                 Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Target slot doesn't belong to this inventory</color>");
                 return false;
             }
 
-            // Сохраняем копии стаков для событий
+            // Save stack copies for events
             var targetStackBackup = ItemStack.TryCreate(targetBaseSlot.Stack.Adapters, out var targetBackup)
                 ? targetBackup
                 : ItemStack.Empty();
@@ -1141,7 +1141,7 @@ namespace DragAndDropSystem.Inventories
 
             try
             {
-                // Выполняем обмен
+                // Perform the swap
                 var tempStack = targetBaseSlot.Stack;
                 targetBaseSlot.SetStack(sourceBaseSlot.Stack);
                 sourceBaseSlot.SetStack(tempStack);
@@ -1164,7 +1164,7 @@ namespace DragAndDropSystem.Inventories
             {
                 Debug.LogError($"[{name}] TrySwapSlots exception: {ex.Message}");
 
-                // Откатываем изменения
+                // Roll back changes
                 targetBaseSlot.SetStack(targetStackBackup);
                 sourceBaseSlot.SetStack(sourceStackBackup);
                 targetBaseSlot.UpdateVisuals();

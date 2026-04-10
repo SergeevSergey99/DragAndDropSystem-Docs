@@ -6,10 +6,10 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Стратегия: предметы стакаются (группируются по типу)
-    /// Один тип предмета может занимать несколько слотов
-    /// Поддерживает дефолтный лимит стратегии и,
-    /// при allowItemOverride = true, per-item лимиты через IStackSizeLimitable
+    /// Strategy: items are stackable (grouped by type)
+    /// One item type can occupy multiple slots
+    /// Supports the strategy default limit and,
+    /// when allowItemOverride = true, per-item limits via IStackSizeLimitable
     /// </summary>
     public class StackableItemStrategy : InventoryStrategyBase
     {
@@ -30,12 +30,12 @@ namespace DragAndDropSystem.Inventories
             int remaining = stack.Count;
             int maxSize = GetMaxStackSize(stack.PrimaryAdapter, _defaultMaxStackSize, _allowItemOverride);
 
-            // Если указан целевой слот
+            // If a target slot is specified
             if (targetIndex >= 0 && targetIndex < slots.Count)
             {
                 var targetSlot = slots[targetIndex];
 
-                // Если слот пустой - создаем новый стак
+                // If the slot is empty, create a new stack
                 if (targetSlot.IsEmpty)
                 {
                     int toPlace = Math.Min(remaining, maxSize);
@@ -49,7 +49,7 @@ namespace DragAndDropSystem.Inventories
                         remaining -= toPlace;
                     }
                 }
-                // Если в слоте тот же предмет - добавляем с учётом лимита
+                // If the slot contains the same item, add with limit handling
                 else if (targetSlot.Stack.CanStack(stack.PrimaryAdapter))
                 {
                     int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
@@ -73,7 +73,7 @@ namespace DragAndDropSystem.Inventories
             }
             else
             {
-                // Сначала пытаемся заполнить существующие стаки
+                // First try filling existing stacks
                 foreach (var slot in slots)
                 {
                     if (remaining <= 0) break;
@@ -100,7 +100,7 @@ namespace DragAndDropSystem.Inventories
                     }
                 }
 
-                // Затем создаем новые стаки в пустых слотах
+                // Then create new stacks in empty slots
                 if (remaining > 0)
                 {
                     foreach (var slot in slots)
@@ -142,7 +142,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            // Удаляем из всех слотов с этим предметом
+            // Remove from all slots containing this item
             foreach (var slot in slots)
             {
                 if (remaining <= 0) break;

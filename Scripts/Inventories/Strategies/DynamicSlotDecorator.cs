@@ -6,8 +6,8 @@ using DragAndDropSystem.Tools;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Декоратор для динамического создания слотов
-    /// Оборачивает любую стратегию (Unique или Stackable) и добавляет автоматическое создание слотов
+    /// Decorator for dynamic slot creation
+    /// Wraps any strategy (Unique or Stackable) and adds automatic slot creation
     /// </summary>
     public class DynamicSlotDecorator : IInventoryStrategy
     {
@@ -43,10 +43,10 @@ namespace DragAndDropSystem.Inventories
 
             int initialCount = stack.Count;
 
-            // РЕЖИМ 1: targetIndex указан (перенос в конкретный слот)
+            // MODE 1: targetIndex is specified (transfer into a specific slot)
             if (targetIndex >= 0)
             {
-                // Если targetIndex выходит за пределы - создаем слоты до него (только если maxFreeSlots > 0)
+                // If targetIndex is out of range, create slots up to it (only if maxFreeSlots > 0)
                 if (targetIndex >= slots.Count && _maxFreeSlots > 0 && slots.Count < _maxSlots)
                 {
                     while (slots.Count <= targetIndex && slots.Count < _maxSlots)
@@ -58,10 +58,10 @@ namespace DragAndDropSystem.Inventories
                     }
                 }
 
-                // Пытаемся добавить в целевой слот
+                // Try to add into the target slot
                 bool added = _baseStrategy.TryAdd(slots, stack, targetIndex, skipRules);
 
-                // После добавления обеспечиваем минимум свободных слотов
+                // Ensure the minimum number of free slots after adding
                 if (added && stack.IsEmpty)
                 {
                     _ensureFreeSlotsFunc?.Invoke();
@@ -70,13 +70,13 @@ namespace DragAndDropSystem.Inventories
                 return added;
             }
 
-            // РЕЖИМ 2: targetIndex не указан (добавление через TryAddItem)
-            // В этом режиме мы ВСЕГДА создаем слоты если нужно (независимо от maxFreeSlots)
+            // MODE 2: targetIndex is not specified (addition through TryAddItem)
+            // In this mode we ALWAYS create slots if needed (regardless of maxFreeSlots)
 
-            // Сначала пробуем добавить в существующие слоты
+            // First try adding into existing slots
             bool initialAdded = _baseStrategy.TryAdd(slots, stack, -1, skipRules);
 
-            // Если не поместилось - создаем новые слоты и продолжаем
+            // If everything does not fit, create new slots and continue
             if (!stack.IsEmpty && slots.Count < _maxSlots)
             {
                 Extensions.DragAndDropLog($"<color=yellow>[DynamicSlots] Stack not empty ({stack.Count} remaining), creating new slots...</color>");
@@ -91,20 +91,20 @@ namespace DragAndDropSystem.Inventories
                     createdSlots++;
                     Extensions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} for remaining items</color>");
 
-                    // Пытаемся добавить в новый слот
+                    // Try to add into the new slot
                     _baseStrategy.TryAdd(slots, stack, slots.Count - 1, skipRules);
                 }
 
                 Extensions.DragAndDropLog($"<color=cyan>[DynamicSlots] Created {createdSlots} new slots, {stack.Count} items still remaining</color>");
             }
 
-            // После добавления обеспечиваем минимум свободных слотов
+            // Ensure the minimum number of free slots after adding
             if (stack.Count < initialCount)
             {
                 _ensureFreeSlotsFunc?.Invoke();
             }
 
-            // Возвращаем true если хоть что-то добавилось
+            // Return true if anything was added at all
             return stack.Count == 0;
         }
 
@@ -112,7 +112,7 @@ namespace DragAndDropSystem.Inventories
         {
             bool removed = _baseStrategy.TryRemove(slots, itemAdapter, count, sourceIndex);
 
-            // После удаления обеспечиваем минимум свободных слотов
+            // Ensure the minimum number of free slots after removal
             if (removed)
             {
                 _ensureFreeSlotsFunc?.Invoke();

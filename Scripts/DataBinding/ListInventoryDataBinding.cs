@@ -4,14 +4,14 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.DataBinding
 {
     /// <summary>
-    /// Шаблонный DataBinding для инвентарей на основе списка.
-    /// Автоматически обрабатывает ReloadUI, OnItemAdded и OnItemRemoved —
-    /// наследнику достаточно определить 5 методов-примитивов.
+    /// Template DataBinding for list-based inventories.
+    /// Automatically handles ReloadUI, OnItemAdded, and OnItemRemoved.
+    /// Derived classes only need to implement 5 primitive methods.
     ///
-    /// TData — тип элемента данных (например, ItemSO, ItemModel)
-    /// TAdapter — тип адаптера, реализующий IItemAdapter (например, ItemAdapterSoAdapter)
+    /// TData is the data item type (for example, ItemSO or ItemModel)
+    /// TAdapter is the adapter type implementing IItemAdapter (for example, ItemAdapterSoAdapter)
     ///
-    /// Пример использования:
+    /// Usage example:
     /// <code>
     /// public class MyBinding : ListInventoryDataBinding&lt;ItemSO, ItemAdapterSoAdapter&gt;
     /// {
@@ -29,26 +29,26 @@ namespace DragAndDropSystem.DataBinding
         where TAdapter : class, IItemAdapter
     {
         /// <summary>
-        /// Получить текущий список данных для отображения в UI.
-        /// Может возвращать null — в этом случае UI останется пустым.
+        /// Get the current data list for display in the UI.
+        /// May return null, in which case the UI stays empty.
         /// </summary>
         protected abstract IReadOnlyList<TData> GetItems();
 
         /// <summary>
-        /// Создать адаптер (IItemAdapter) из элемента данных.
-        /// Вызывается при загрузке данных в UI (ReloadUI).
+        /// Create an adapter (IItemAdapter) from a data item.
+        /// Called when data is loaded into the UI (ReloadUI).
         /// </summary>
         protected abstract TAdapter CreateAdapter(TData item);
 
         /// <summary>
-        /// Добавить элемент во внешний источник данных.
-        /// Вызывается когда предмет добавлен в UI через drag&amp;drop.
+        /// Add an item to the external data source.
+        /// Called when an item is added to the UI via drag&amp;drop.
         /// </summary>
         protected abstract void AddToData(TAdapter adapter);
 
         /// <summary>
-        /// Удалить элемент из внешнего источника данных.
-        /// Вызывается когда предмет удалён из UI через drag&amp;drop.
+        /// Remove an item from the external data source.
+        /// Called when an item is removed from the UI via drag&amp;drop.
         /// </summary>
         protected abstract void RemoveFromData(TAdapter adapter);
 

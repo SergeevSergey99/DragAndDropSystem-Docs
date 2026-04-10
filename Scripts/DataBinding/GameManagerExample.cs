@@ -7,48 +7,48 @@ using UnityEngine;
 namespace DragAndDropSystem.DataBinding
 {
     /// <summary>
-    /// ПРИМЕР расширения GameManager с методами и событиями для Data Binding
-    /// Скопируй эти методы в свой GameManager или адаптируй под свою структуру
+    /// EXAMPLE of extending GameManager with methods and events for Data Binding
+    /// Copy these methods into your own GameManager or adapt them to your structure
     /// </summary>
     public class GameManagerExample : MonoBehaviour
     {
-        // Твои существующие списки
+        // Your existing lists
         private List<ItemData> _itemsInInventory = new List<ItemData>();
         private List<ItemData> _itemsOnCraftTable = new List<ItemData>();
 
-        // События для Data Binding
+        // Events for Data Binding
         public event Action OnInventoryChanged;
         public event Action OnCraftTableChanged;
 
         #region Player Inventory Methods
 
         /// <summary>
-        /// Добавить предмет в инвентарь игрока
+        /// Add an item to the player inventory
         /// </summary>
         public void AddToInventory(IItemAdapter itemAdapter, int count)
         {
             Extensions.DragAndDropLog($"[GameManager] AddToInventory: {itemAdapter.DisplayName} x{count}");
 
-            // Ищем существующий предмет
+            // Search for an existing item
             var existing = _itemsInInventory.Find(x => x.ItemId == itemAdapter.ItemId);
 
             if (existing != null)
             {
-                // Увеличиваем количество
+                // Increase the quantity
                 existing.Count += count;
             }
             else
             {
-                // Добавляем новый
+                // Add a new entry
                 _itemsInInventory.Add(new ItemData(itemAdapter, count));
             }
 
-            // Вызываем событие
+            // Raise the event
             OnInventoryChanged?.Invoke();
         }
 
         /// <summary>
-        /// Удалить предмет из инвентаря игрока
+        /// Remove an item from the player inventory
         /// </summary>
         public void RemoveFromInventory(IItemAdapter itemAdapter, int count)
         {
@@ -60,19 +60,19 @@ namespace DragAndDropSystem.DataBinding
             {
                 existing.Count -= count;
 
-                // Если количество <= 0, удаляем из списка
+                // If quantity <= 0, remove it from the list
                 if (existing.Count <= 0)
                 {
                     _itemsInInventory.Remove(existing);
                 }
             }
 
-            // Вызываем событие
+            // Raise the event
             OnInventoryChanged?.Invoke();
         }
 
         /// <summary>
-        /// Получить все предметы в инвентаре
+        /// Get all items in the inventory
         /// </summary>
         public List<ItemData> GetInventoryItems()
         {
@@ -80,7 +80,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Очистить инвентарь
+        /// Clear the inventory
         /// </summary>
         public void ClearInventory()
         {
@@ -93,32 +93,32 @@ namespace DragAndDropSystem.DataBinding
         #region Craft Table Methods
 
         /// <summary>
-        /// Добавить предмет на крафт-стол
+        /// Add an item to the crafting table
         /// </summary>
         public void AddToCraftTable(IItemAdapter itemAdapter, int count)
         {
             Extensions.DragAndDropLog($"[GameManager] AddToCraftTable: {itemAdapter.DisplayName} x{count}");
 
-            // Ищем существующий предмет
+            // Search for an existing item
             var existing = _itemsOnCraftTable.Find(x => x.ItemId == itemAdapter.ItemId);
 
             if (existing != null)
             {
-                // Увеличиваем количество
+                // Increase the quantity
                 existing.Count += count;
             }
             else
             {
-                // Добавляем новый
+                // Add a new entry
                 _itemsOnCraftTable.Add(new ItemData(itemAdapter, count));
             }
 
-            // Вызываем событие
+            // Raise the event
             OnCraftTableChanged?.Invoke();
         }
 
         /// <summary>
-        /// Удалить предмет с крафт-стола
+        /// Remove an item from the crafting table
         /// </summary>
         public void RemoveFromCraftTable(IItemAdapter itemAdapter, int count)
         {
@@ -130,19 +130,19 @@ namespace DragAndDropSystem.DataBinding
             {
                 existing.Count -= count;
 
-                // Если количество <= 0, удаляем из списка
+                // If quantity <= 0, remove it from the list
                 if (existing.Count <= 0)
                 {
                     _itemsOnCraftTable.Remove(existing);
                 }
             }
 
-            // Вызываем событие
+            // Raise the event
             OnCraftTableChanged?.Invoke();
         }
 
         /// <summary>
-        /// Получить все предметы на крафт-столе
+        /// Get all items on the crafting table
         /// </summary>
         public List<ItemData> GetCraftTableItems()
         {
@@ -150,7 +150,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Очистить крафт-стол
+        /// Clear the crafting table
         /// </summary>
         public void ClearCraftTable()
         {
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.DataBinding
         #region Helper Methods
 
         /// <summary>
-        /// Проверить, есть ли предмет в инвентаре
+        /// Check whether the inventory contains an item
         /// </summary>
         public bool HasItemInInventory(string itemId, int minCount = 1)
         {
@@ -172,7 +172,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Получить количество предмета в инвентаре
+        /// Get the quantity of an item in the inventory
         /// </summary>
         public int GetItemCountInInventory(string itemId)
         {
@@ -184,8 +184,8 @@ namespace DragAndDropSystem.DataBinding
     }
 
     /// <summary>
-    /// Класс-обертка для хранения данных предмета
-    /// Адаптируй под свою структуру
+    /// Wrapper class for storing item data
+    /// Adapt it to your own structure
     /// </summary>
     [System.Serializable]
     public class ItemData
@@ -193,7 +193,7 @@ namespace DragAndDropSystem.DataBinding
         public string ItemId;
         public int Count;
 
-        // Опционально: ссылка на ItemSO или IItemAdapter
+        // Optional: reference to ItemSO or IItemAdapter
         // public ItemSO ItemSO;
         // public IItemAdapter _PrimaryAdapter;
 

@@ -62,12 +62,12 @@ namespace DragAndDropSystem.Inventories
         public BaseSlot TargetBaseSlot { get; }
 
         /// <summary>
-        /// Стек адаптеров, удалённых из source (до конвертации)
+        /// Stack of adapters removed from the source (before conversion)
         /// </summary>
         public ItemStack SourceRemovedStack { get; }
 
         /// <summary>
-        /// Стек адаптеров, добавленных в target (после конвертации)
+        /// Stack of adapters added to the target (after conversion)
         /// </summary>
         public ItemStack TransferredStack { get; }
 

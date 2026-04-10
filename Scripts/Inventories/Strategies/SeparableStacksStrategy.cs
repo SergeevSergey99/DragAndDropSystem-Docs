@@ -6,12 +6,12 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Стратегия в стиле Heroes of Might & Magic
-    /// Предметы могут стакаться, но НЕ автоматически мержатся
-    /// Можно иметь несколько стаков одного предмета в разных слотах
-    /// Мерж происходит только при явном дропе на тот же предмет (если allowMergeOnDrop = true)
-    /// Поддерживает дефолтный лимит стратегии и,
-    /// при allowItemOverride = true, per-item лимиты стаков через IStackSizeLimitable
+    /// Heroes of Might & Magic style strategy
+    /// Items can stack but do NOT merge automatically
+    /// Multiple stacks of the same item can exist in different slots
+    /// Merge happens only on explicit drop onto the same item (if allowMergeOnDrop = true)
+    /// Supports the strategy default limit and,
+    /// when allowItemOverride = true, per-item stack limits via IStackSizeLimitable
     /// </summary>
     public class SeparableStacksStrategy : InventoryStrategyBase
     {
@@ -35,12 +35,12 @@ namespace DragAndDropSystem.Inventories
             int remaining = stack.Count;
             int maxSize = GetMaxStackSize(stack.PrimaryAdapter);
 
-            // Если указан конкретный слот (drag to slot)
+            // If a specific slot is specified (drag to slot)
             if (targetIndex >= 0 && targetIndex < slots.Count)
             {
                 var targetSlot = slots[targetIndex];
 
-                // Если слот пустой - кладём с учётом лимита
+                // If the slot is empty, place with limit handling
                 if (targetSlot.IsEmpty)
                 {
                     int toPlace = Math.Min(remaining, maxSize);
@@ -54,7 +54,7 @@ namespace DragAndDropSystem.Inventories
                         remaining -= toPlace;
                     }
                 }
-                // Если в слоте ТОТ ЖЕ предмет и разрешён мерж - объединяем с учётом лимита
+                // If the slot contains the SAME item and merge is allowed, merge with limit handling
                 else if (_allowMergeOnDrop && targetSlot.Stack.CanStack(stack.PrimaryAdapter))
                 {
                     int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
@@ -75,12 +75,12 @@ namespace DragAndDropSystem.Inventories
                         remaining -= toAdd;
                     }
                 }
-                // Иначе не можем добавить (слот занят другим предметом или мерж выключен)
+                // Otherwise we cannot add (slot is occupied by another item or merge is disabled)
             }
             else
             {
-                // Если слот не указан (TryAddItem) - это программное добавление
-                // Сначала пытаемся добавить к существующим стакам
+                // If no slot is specified (TryAddItem), this is a programmatic add
+                // First try adding to existing stacks
                 foreach (var slot in slots)
                 {
                     if (remaining <= 0) break;
@@ -107,7 +107,7 @@ namespace DragAndDropSystem.Inventories
                     }
                 }
 
-                // Если не нашли существующий стак или не всё влезло - создаём новые стаки в пустых слотах
+                // If no existing stack was found or not everything fit, create new stacks in empty slots
                 if (remaining > 0)
                 {
                     foreach (var slot in slots)
@@ -149,7 +149,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            // Удаляем из всех слотов с этим предметом
+            // Remove from all slots containing this item
             foreach (var slot in slots)
             {
                 if (remaining <= 0) break;
@@ -175,7 +175,7 @@ namespace DragAndDropSystem.Inventories
             if (!_allowMergeOnDrop || baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
                 return false;
 
-            // Слот подходит для мержа только если есть свободное место
+            // A slot is suitable for merge only if it has free space
             int maxSize = GetMaxStackSize(itemAdapter);
             return baseSlot.Stack.Count < maxSize;
         }

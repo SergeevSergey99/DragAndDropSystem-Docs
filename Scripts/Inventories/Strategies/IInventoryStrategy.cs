@@ -6,13 +6,13 @@ namespace DragAndDropSystem.Inventories
 {
 
     /// <summary>
-    /// Стратегия управления слотами инвентаря
+    /// Strategy for managing inventory slots
     /// </summary>
     public interface IInventoryStrategy : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
     {
         /// <summary>
-        /// Задать лимит стака в рантайме.
-        /// maxStackSize = 0 означает без ограничений.
+        /// Set the stack limit at runtime.
+        /// maxStackSize = 0 means unlimited.
         /// </summary>
         void SetMaxStackSize(int maxStackSize, bool allowItemOverride);
     }

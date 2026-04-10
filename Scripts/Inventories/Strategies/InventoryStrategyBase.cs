@@ -6,7 +6,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Базовая стратегия с общими методами
+    /// Base strategy with shared methods
     /// </summary>
     public abstract class InventoryStrategyBase : IInventoryStrategy
     {
@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Inventories
         protected bool _allowItemOverride;
 
         /// <summary>
-        /// Задать лимит стака в рантайме (например, из DataBinding).
+        /// Set the stack limit at runtime (for example, from DataBinding).
         /// </summary>
         public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)
         {
@@ -127,9 +127,9 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Лимит стака для предмета.
-        /// Если allowItemOverride и предмет реализует IStackSizeLimitable — используется лимит предмета.
-        /// Иначе — defaultMaxStackSize (0 = без ограничений).
+        /// Stack limit for an item.
+        /// If allowItemOverride is enabled and the item implements IStackSizeLimitable, the item limit is used.
+        /// Otherwise, defaultMaxStackSize is used (0 = unlimited).
         /// </summary>
         protected static int GetMaxStackSize(IItemAdapter itemAdapter, int defaultMaxStackSize, bool allowItemOverride)
         {
@@ -139,8 +139,8 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Безопасно прибавляет вместимость новых слотов (maxPerSlot × slotCount) к totalCapacity,
-        /// не превышая desiredCount и без integer overflow.
+        /// Safely adds capacity of new slots (maxPerSlot x slotCount) to totalCapacity,
+        /// without exceeding desiredCount and without integer overflow.
         /// </summary>
         protected static int AddSlotCapacity(int totalCapacity, int maxPerSlot, int slotCount, int desiredCount)
         {
@@ -149,17 +149,17 @@ namespace DragAndDropSystem.Inventories
 
             int remaining = desiredCount - totalCapacity;
 
-            // Одного слота хватает на всё оставшееся
+            // One slot is enough for everything remaining
             if (maxPerSlot >= remaining)
                 return desiredCount;
 
-            // ceil(remaining / maxPerSlot) — сколько слотов нужно для полного покрытия
+            // ceil(remaining / maxPerSlot): how many slots are needed for full coverage
             int slotsNeeded = remaining / maxPerSlot + (remaining % maxPerSlot != 0 ? 1 : 0);
             if (slotCount >= slotsNeeded)
                 return desiredCount;
 
-            // Гарантия: slotCount < slotsNeeded → maxPerSlot * slotCount < remaining,
-            // поэтому произведение не превышает remaining и overflow невозможен.
+            // Guarantee: slotCount < slotsNeeded -> maxPerSlot * slotCount < remaining,
+            // therefore the product never exceeds remaining and overflow is impossible.
             return totalCapacity + maxPerSlot * slotCount;
         }
 

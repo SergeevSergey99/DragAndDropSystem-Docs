@@ -5,7 +5,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Снимок состояния инвентаря. Хранит содержимое каждого слота и их количество.
+    /// Snapshot of inventory state. Stores the contents of each slot and their counts.
     /// </summary>
     public sealed class InventorySnapshot
     {
@@ -18,7 +18,7 @@ namespace DragAndDropSystem.Inventories
     }
 
     /// <summary>
-    /// Снимок одного слота.
+    /// Snapshot of a single slot.
     /// </summary>
     public struct InventorySlotState
     {
@@ -36,7 +36,7 @@ namespace DragAndDropSystem.Inventories
     }
 
     /// <summary>
-    /// Интерфейс для инвентарей, умеющих делать снапшоты состояния (для отката операций).
+    /// Interface for inventories capable of creating state snapshots (for rollback operations).
     /// </summary>
     public interface IInventorySnapshotProvider
     {

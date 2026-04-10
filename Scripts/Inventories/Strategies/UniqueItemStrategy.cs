@@ -5,8 +5,8 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Стратегия: каждый предмет занимает отдельный слот (не стакается)
-    /// Используется для инвентарей с уникальными предметами
+    /// Strategy: each item occupies its own slot (not stackable)
+    /// Used for inventories with unique items
     /// </summary>
     public class UniqueItemStrategy : InventoryStrategyBase
     {
@@ -45,7 +45,7 @@ namespace DragAndDropSystem.Inventories
             if (stack == null || stack.IsEmpty)
                 return false;
 
-            // Проверяем целевой слот
+            // Check the target slot
             if (targetIndex >= 0 && targetIndex < slots.Count)
             {
                 var targetSlot = slots[targetIndex];
@@ -61,7 +61,7 @@ namespace DragAndDropSystem.Inventories
                 return stack.IsEmpty;
             }
 
-            // Распределяем предметы по пустым слотам (по 1 в каждый)
+            // Distribute items across empty slots (1 per slot)
             for (int i = 0; i < slots.Count && !stack.IsEmpty; i++)
             {
                 var slot = slots[i];
@@ -76,7 +76,7 @@ namespace DragAndDropSystem.Inventories
                     return false;
 
                 slot.SetStack(singleItemStack);
-                // Продолжаем цикл, чтобы распределить оставшиеся предметы
+                // Continue the loop to distribute remaining items
             }
 
             return stack.IsEmpty;
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Inventories
                 return false;
             }
 
-            // Ищем и удаляем первый найденный предмет
+            // Find and remove the first matching item
             int slotIndex = FindSlotWithItem(slots, itemAdapter);
             if (slotIndex >= 0)
             {

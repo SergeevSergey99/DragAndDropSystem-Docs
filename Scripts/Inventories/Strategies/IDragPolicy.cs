@@ -3,7 +3,7 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Отвечает за вычисление количества предметов, захватываемых при drag операции.
+    /// Responsible for calculating how many items are picked up during a drag operation.
     /// </summary>
     public interface IDragPolicy
     {

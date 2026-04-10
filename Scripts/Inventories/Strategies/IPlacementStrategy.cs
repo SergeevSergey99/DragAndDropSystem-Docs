@@ -5,7 +5,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Отвечает за размещение, удаление и slot-level особенности поведения стратегии.
+    /// Responsible for placement, removal, and slot-level behavior specifics of a strategy.
     /// </summary>
     public interface IPlacementStrategy
     {

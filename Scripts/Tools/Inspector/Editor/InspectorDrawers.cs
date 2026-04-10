@@ -2616,8 +2616,8 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
     }
 
     /// <summary>
-    /// Отрисовывает массив или список без возможности изменить его размер:
-    /// скрывает поле Size и кнопки +/−.
+    /// Draws an array or list without allowing its size to be changed:
+    /// hides the Size field and the + / - buttons.
     /// </summary>
     [CustomPropertyDrawer(typeof(FixedArraySizeAttribute))]
     public sealed class FixedArraySizePropertyDrawer : PropertyDrawer
@@ -2627,7 +2627,7 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            // Если это не массив — рисуем как обычно
+            // If this is not an array, draw it as usual
             if (!property.isArray || property.propertyType == SerializedPropertyType.String)
             {
                 EditorGUI.PropertyField(position, property, label, true);
@@ -2638,7 +2638,7 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
             if (!FoldoutStates.TryGetValue(key, out bool expanded))
                 expanded = true;
 
-            // Заголовок-foldout с количеством элементов
+            // Foldout header with the element count
             Rect headerRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             string headerText = $"{label.text}  [{property.arraySize}]  (fixed size)";
             expanded = EditorGUI.Foldout(headerRect, expanded, new GUIContent(headerText, label.tooltip), true);

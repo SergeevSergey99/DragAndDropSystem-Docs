@@ -5,7 +5,7 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu.BuiltInEntries
 {
     /// <summary>
-    /// Встроенный пункт меню: сортировка предметов в инвентаре.
+    /// Built-in menu entry: sorts items in the inventory.
     /// </summary>
     [CreateAssetMenu(fileName = "SortEntry", menuName = "DragAndDrop/ContextMenu/Built-in/Sort", order = 0)]
     public class SortContextMenuEntrySO : ContextMenuEntryDefinitionSO

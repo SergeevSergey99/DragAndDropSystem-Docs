@@ -89,7 +89,7 @@ namespace DragAndDropSystem.Tools.Inspector
         }
 
         /// <summary>
-        /// Поддержка enum и других значимых типов: ShowIf(nameof(field), MyEnum.Value)
+        /// Supports enums and other value types: ShowIf(nameof(field), MyEnum.Value)
         /// </summary>
         public ShowIfAttribute(string conditionMemberName, object expectedValue)
         {
@@ -219,8 +219,8 @@ namespace DragAndDropSystem.Tools.Inspector
     }
 
     /// <summary>
-    /// Запрещает добавлять и удалять элементы массива или списка в инспекторе.
-    /// Размер массива фиксируется — редактировать можно только сами элементы.
+    /// Prevents adding and removing array or list elements in the Inspector.
+    /// Array size is fixed, only element values can be edited.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, Inherited = true)]
     public sealed class FixedArraySizeAttribute : PropertyAttribute
