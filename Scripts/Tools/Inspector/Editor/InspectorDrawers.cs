@@ -1667,6 +1667,7 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
         }
     }
 
+#if !ODIN_INSPECTOR
     [CustomPropertyDrawer(typeof(ManagedReferencePickerAttribute))]
     public sealed class ManagedReferencePickerPropertyDrawer : PropertyDrawer
     {
@@ -2374,6 +2375,7 @@ namespace DragAndDropSystem.Tools.Inspector.Editor
                    && (type.IsArray || (type.IsGenericType && type.GetGenericArguments().Length == 1));
         }
     }
+#endif
 
     [CustomPropertyDrawer(typeof(RulePresetPickerAttribute))]
     public sealed class RulePresetPickerPropertyDrawer : PropertyDrawer
