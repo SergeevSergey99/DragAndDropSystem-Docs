@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -18,9 +18,9 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../en/architecture/data-binding/" hreflang="en">
+          <link rel="alternate" href="../../ru/architecture/data-binding/" hreflang="ru">
         
       
       
@@ -29,7 +29,7 @@
     
     
       
-        <title>Привязка данных (DataBinding) - Drag & Drop Inventory System</title>
+        <title>Data Binding - Drag & Drop Inventory System</title>
       
     
     
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#databinding" class="md-skip">
-          Перейти к содержанию
+        <a href="#data-binding" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,7 +95,7 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+  <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Привязка данных (DataBinding)
+              Data Binding
             
           </span>
         </div>
@@ -156,21 +156,21 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
-              Русский
+            <a href="./" hreflang="en" class="md-select__link">
+              English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/architecture/data-binding/" hreflang="en" class="md-select__link">
-              English
+            <a href="../../ru/architecture/data-binding/" hreflang="ru" class="md-select__link">
+              Русский
             </a>
           </li>
         
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -210,7 +210,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -231,7 +231,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,7 +247,7 @@
           
   
   
-  Главная
+  Home
 
         </a>
       </li>
@@ -267,7 +267,7 @@
           
   
   
-  Примеры
+  Examples
 
         </a>
       </li>
@@ -289,7 +289,7 @@
           
   
   
-  Основные концепции
+  Core Concepts
 
         </a>
       </li>
@@ -309,7 +309,7 @@
           
   
   
-  Продвинутые системы
+  Advanced Systems
 
         </a>
       </li>
@@ -329,7 +329,7 @@
           
   
   
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -349,7 +349,7 @@
           
   
   
-  Еще
+  More
 
         </a>
       </li>
@@ -377,7 +377,7 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
@@ -422,7 +422,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -438,7 +438,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Home
   
 
           </label>
@@ -458,7 +458,7 @@
   <span class="md-ellipsis">
     
   
-    Введение
+    Introduction
   
 
     
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
   
 
     
@@ -539,7 +539,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -555,7 +555,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Examples
   
 
           </label>
@@ -575,7 +575,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -771,7 +771,7 @@
   <span class="md-ellipsis">
     
   
-    Основные концепции
+    Core Concepts
   
 
     
@@ -787,7 +787,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Основные концепции
+    Core Concepts
   
 
           </label>
@@ -816,7 +816,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -834,7 +834,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -846,7 +846,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -855,15 +855,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#simple-mental-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Простая ментальная модель
+        Simple mental model
       
     </span>
   </a>
@@ -871,10 +871,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#three-templates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Три шаблона
+        Three templates
       
     </span>
   </a>
@@ -882,10 +882,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#transfer-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Жизненный цикл переноса
+        Transfer lifecycle
       
     </span>
   </a>
@@ -893,10 +893,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#what-belongs-where" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что где писать
+        What belongs where
       
     </span>
   </a>
@@ -904,10 +904,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#list-binding" class="md-nav__link">
+  <a href="#regular-list-binding-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пример обычного list-binding
+        Regular list binding example
       
     </span>
   </a>
@@ -915,10 +915,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#-" class="md-nav__link">
+  <a href="#transfer-level-business-hook" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пример бизнес-хука уровня переноса
+        Transfer-level business hook
       
     </span>
   </a>
@@ -926,10 +926,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commit" class="md-nav__link">
+  <a href="#async-pre-commit-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Асинхронная проверка перед commit
+        Async pre-commit validation
       
     </span>
   </a>
@@ -937,10 +937,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Конвертация предметов
+        Item conversion
       
     </span>
   </a>
@@ -948,10 +948,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ui" class="md-nav__link">
+  <a href="#reloading-from-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда обновлять UI из данных
+        Reloading from data
       
     </span>
   </a>
@@ -959,10 +959,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#what-you-usually-dont-need-to-know" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что пользователю обычно не нужно знать
+        What you usually don't need to know
       
     </span>
   </a>
@@ -992,7 +992,7 @@
   <span class="md-ellipsis">
     
   
-    Шаблоны DataBinding
+    Binding Templates
   
 
     
@@ -1020,7 +1020,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Transfer Pipeline
   
 
     
@@ -1048,7 +1048,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy Matrix
   
 
     
@@ -1076,7 +1076,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Cookbook: Item Conversion
   
 
     
@@ -1104,7 +1104,7 @@
   <span class="md-ellipsis">
     
   
-    Стратегии размещения
+    Placement Strategies
   
 
     
@@ -1132,7 +1132,7 @@
   <span class="md-ellipsis">
     
   
-    Правила (Rules)
+    Rules
   
 
     
@@ -1160,7 +1160,7 @@
   <span class="md-ellipsis">
     
   
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1213,7 +1213,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Advanced Systems
   
 
     
@@ -1229,7 +1229,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Advanced Systems
   
 
           </label>
@@ -1249,7 +1249,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1277,7 +1277,7 @@
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1305,7 +1305,7 @@
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1333,7 +1333,7 @@
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1361,7 +1361,7 @@
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1389,7 +1389,7 @@
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1417,7 +1417,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Free-Form Layout
   
 
     
@@ -1470,7 +1470,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1486,7 +1486,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1506,7 +1506,7 @@
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Optional Interfaces
   
 
     
@@ -1534,7 +1534,7 @@
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    File Map
   
 
     
@@ -1562,7 +1562,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Event Reference
   
 
     
@@ -1590,7 +1590,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1671,7 +1671,7 @@
   <span class="md-ellipsis">
     
   
-    Еще
+    More
   
 
     
@@ -1687,7 +1687,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Еще
+    More
   
 
           </label>
@@ -1707,7 +1707,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1735,7 +1735,7 @@
   <span class="md-ellipsis">
     
   
-    Планы на будущее
+    Future Plans
   
 
     
@@ -1763,7 +1763,7 @@
   <span class="md-ellipsis">
     
   
-    Витрина проектов
+    Showcase
   
 
     
@@ -1797,7 +1797,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1806,15 +1806,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#simple-mental-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Простая ментальная модель
+        Simple mental model
       
     </span>
   </a>
@@ -1822,10 +1822,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#three-templates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Три шаблона
+        Three templates
       
     </span>
   </a>
@@ -1833,10 +1833,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#transfer-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Жизненный цикл переноса
+        Transfer lifecycle
       
     </span>
   </a>
@@ -1844,10 +1844,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#what-belongs-where" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что где писать
+        What belongs where
       
     </span>
   </a>
@@ -1855,10 +1855,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#list-binding" class="md-nav__link">
+  <a href="#regular-list-binding-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пример обычного list-binding
+        Regular list binding example
       
     </span>
   </a>
@@ -1866,10 +1866,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#-" class="md-nav__link">
+  <a href="#transfer-level-business-hook" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пример бизнес-хука уровня переноса
+        Transfer-level business hook
       
     </span>
   </a>
@@ -1877,10 +1877,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commit" class="md-nav__link">
+  <a href="#async-pre-commit-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Асинхронная проверка перед commit
+        Async pre-commit validation
       
     </span>
   </a>
@@ -1888,10 +1888,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Конвертация предметов
+        Item conversion
       
     </span>
   </a>
@@ -1899,10 +1899,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ui" class="md-nav__link">
+  <a href="#reloading-from-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда обновлять UI из данных
+        Reloading from data
       
     </span>
   </a>
@@ -1910,10 +1910,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#what-you-usually-dont-need-to-know" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что пользователю обычно не нужно знать
+        What you usually don't need to know
       
     </span>
   </a>
@@ -1937,118 +1937,118 @@
 
 
 
-<h1 id="databinding">Привязка данных (DataBinding)</h1>
-<p><code>DataBinding</code> связывает <code>UniversalInventory</code> с вашими данными.</p>
-<p>Это главный слой, который отвечает на вопрос:
-"что в этой системе должно обновлять UI, а что должно обновлять мою игровую модель?"</p>
+<h1 id="data-binding">Data Binding</h1>
+<p><code>DataBinding</code> connects <code>UniversalInventory</code> to your own data.</p>
+<p>This is the layer that answers:
+"what should update UI state, and what should update my game model?"</p>
 <hr />
-<h2 id="_1">Простая ментальная модель</h2>
+<h2 id="simple-mental-model">Simple mental model</h2>
 <pre class="mermaid"><code>flowchart LR
-    Data["Ваши данные"] &lt;--&gt; Binding["DataBinding"]
+    Data["Your data"] &lt;--&gt; Binding["DataBinding"]
     Binding &lt;--&gt; UI["UniversalInventory"]</code></pre>
 <ul>
-<li><code>UniversalInventory</code> управляет слотами, переносом и событиями</li>
-<li><code>DataBinding</code> переводит эти события в изменения ваших данных</li>
-<li>ваши данные остаются в вашей модели, а не внутри UI-инвентаря</li>
+<li><code>UniversalInventory</code> manages slots, transfers and events</li>
+<li><code>DataBinding</code> translates those events into changes to your data</li>
+<li>your data stays in your model, not inside the UI inventory</li>
 </ul>
 <hr />
-<h2 id="_2">Три шаблона</h2>
-<p>Выберите шаблон в зависимости от структуры ваших данных:</p>
+<h2 id="three-templates">Three templates</h2>
+<p>Choose a template based on your data structure:</p>
 <table>
 <thead>
 <tr>
-<th>Шаблон</th>
-<th>Когда использовать</th>
+<th>Template</th>
+<th>Use it for</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>ListInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
-<td>обычные списки предметов, рюкзак, сундук, лут</td>
+<td>backpack, chest, loot, general item lists</td>
 </tr>
 <tr>
 <td><code>SlotIndexedInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
-<td>хотбар, массив слотов с числовым индексом</td>
+<td>hotbar, slot array with numeric indices</td>
 </tr>
 <tr>
 <td><code>MappedSlotInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
-<td>экипировка, quickbar, фиксированные именованные слоты</td>
+<td>equipment, quickbar, named fixed slots</td>
 </tr>
 </tbody>
 </table>
-<p>Подробное описание каждого шаблона, какие методы реализовать и как они работают внутри — на отдельной странице <a href="../binding-templates/">Шаблоны DataBinding</a>.</p>
+<p>For a detailed description of each template, which methods to implement, and how they work internally, see <a href="../binding-templates/">Binding Templates</a>.</p>
 <hr />
-<h2 id="_3">Жизненный цикл переноса</h2>
+<h2 id="transfer-lifecycle">Transfer lifecycle</h2>
 <pre class="mermaid"><code>flowchart TD
-    A["Игрок перетаскивает предмет"] --&gt; B["CanStartDrag\n(можно ли взять?)"]
-    B --&gt;|OK| C["CanDrop\n(механические правила)"]
-    C --&gt;|OK| D["CanCommitTransfer\n(бизнес-проверки)"]
-    D --&gt;|OK| E["Выполнение переноса"]
+    A["Player drags an item"] --&gt; B["CanStartDrag\n(can it be picked up?)"]
+    B --&gt;|OK| C["CanDrop\n(mechanical rules)"]
+    C --&gt;|OK| D["CanCommitTransfer\n(business checks)"]
+    D --&gt;|OK| E["Execute transfer"]
     E --&gt; F["OnTransferSucceeded\n(side effects)"]
     F --&gt; G["OnItemRemoved / OnItemAdded\n→ RemoveFromData / AddToData"]
 
-    B --&gt;|Запрет| X["Отменено"]
-    C --&gt;|Запрет| X
-    D --&gt;|Запрет| X</code></pre>
+    B --&gt;|Rejected| X["Cancelled"]
+    C --&gt;|Rejected| X
+    D --&gt;|Rejected| X</code></pre>
 <hr />
-<h2 id="_4">Что где писать</h2>
+<h2 id="what-belongs-where">What belongs where</h2>
 <table>
 <thead>
 <tr>
-<th>Точка</th>
-<th>Когда вызывается</th>
-<th>Для чего использовать</th>
+<th>Hook</th>
+<th>When it runs</th>
+<th>Use it for</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>CanStartDrag</code></td>
-<td>перед началом drag</td>
-<td>запретить взять предмет из источника</td>
+<td>before drag starts</td>
+<td>block taking an item from source</td>
 </tr>
 <tr>
 <td><code>CanDrop</code></td>
-<td>во время preview и planning</td>
-<td>механические ограничения: тип слота, лок, базовая совместимость</td>
+<td>during preview and planning</td>
+<td>mechanical constraints, slot compatibility</td>
 </tr>
 <tr>
 <td><code>CanCommitTransfer</code></td>
-<td>перед реальным commit</td>
-<td>быстрые локальные pre-commit проверки, деньги, доменный veto</td>
+<td>before real commit</td>
+<td>fast local pre-commit checks, money, domain veto</td>
 </tr>
 <tr>
 <td><code>CanCommitTransferAsync</code></td>
-<td>опционально, после sync pre-commit и до commit</td>
-<td>сервер, файл, база данных, внешний профиль, любые внешние async-проверки</td>
+<td>optionally after sync pre-commit and before commit</td>
+<td>server, file, database, external profile, any external async checks</td>
 </tr>
 <tr>
 <td><code>OnTransferSucceeded</code></td>
-<td>после успешного commit</td>
-<td>списание/начисление валюты, аналитика, доменные side effects</td>
+<td>after successful commit</td>
+<td>currency changes, analytics, domain side effects</td>
 </tr>
 <tr>
 <td><code>AddToData</code> / <code>RemoveFromData</code></td>
-<td>после inventory events</td>
-<td>синхронизация ваших данных с уже подтверждённым результатом</td>
+<td>after inventory events</td>
+<td>syncing your data</td>
 </tr>
 </tbody>
 </table>
-<p>Главное правило:</p>
+<p>The important split is:</p>
 <ul>
-<li><code>CanDrop</code> отвечает за механическую совместимость</li>
-<li><code>CanCommitTransfer</code> и <code>CanCommitTransferAsync</code> вместе отвечают за pre-commit бизнес-проверки</li>
-<li><code>AddToData/RemoveFromData</code> отвечают только за sync</li>
+<li><code>CanDrop</code> is for mechanics</li>
+<li><code>CanCommitTransfer</code> and <code>CanCommitTransferAsync</code> together handle pre-commit business validation</li>
+<li><code>AddToData/RemoveFromData</code> are for sync only</li>
 </ul>
-<p>Если binding реализует обе версии проверки, порядок такой:</p>
+<p>If a binding implements both versions, the order is:</p>
 <ol>
 <li><code>CanCommitTransfer</code></li>
 <li><code>CanCommitTransferAsync</code></li>
-<li>реальный commit</li>
+<li>real commit</li>
 </ol>
-<p>Если синхронная проверка вернула отказ, асинхронная уже не вызывается.</p>
-<p>Подробнее о трёх типах проверок (правила, бизнес-проверки, уведомления) — на странице <a href="../transfer-pipeline/">Конвейер переноса</a>.</p>
+<p>If the sync check fails, the async check is not called.</p>
+<p>For more on the three types of checks (rules, business checks, notifications), see the <a href="../transfer-pipeline/">Transfer Pipeline</a> page.</p>
 <hr />
-<h2 id="list-binding">Пример обычного list-binding</h2>
+<h2 id="regular-list-binding-example">Regular list binding example</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">BackpackBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">;</span>
@@ -2059,10 +2059,10 @@
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
 </code></pre></div>
-<p>Здесь нет бизнес-логики. Только чтение и запись данных. Подробнее о <code>ListInventoryDataBinding</code> и двух других шаблонах — в разделе <a href="../binding-templates/">Шаблоны DataBinding</a>.</p>
+<p>No business logic here. Just data read and write. For details on <code>ListInventoryDataBinding</code> and the other two templates, see <a href="../binding-templates/">Binding Templates</a>.</p>
 <hr />
-<h2 id="-">Пример бизнес-хука уровня переноса</h2>
-<p>Если binding должен участвовать в бизнес-логике операции, реализуйте <code>ITransferDomainHandler</code>:</p>
+<h2 id="transfer-level-business-hook">Transfer-level business hook</h2>
+<p>If a binding needs to participate in the business logic of the operation, implement <code>ITransferDomainHandler</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ShopInventoryBinding</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">ITransferDomainHandler</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">{</span>
@@ -2079,28 +2079,16 @@
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">}</span>
 </code></pre></div>
-<p>Сюда стоит помещать:</p>
-<ul>
-<li>денежные проверки</li>
-<li>серверные проверки перед коммитом</li>
-<li>доменные ограничения уровня всей операции</li>
-</ul>
-<p>Сюда не стоит помещать:</p>
-<ul>
-<li>обычный sync списка</li>
-<li>slot compatibility</li>
-<li>типовые UI-проверки</li>
-</ul>
 <hr />
-<h2 id="commit">Асинхронная проверка перед commit</h2>
-<p>Если перед переносом нужно дождаться внешней проверки, например:</p>
+<h2 id="async-pre-commit-validation">Async pre-commit validation</h2>
+<p>If a transfer must wait for an external check before commit, for example:</p>
 <ul>
-<li>ответа сервера</li>
-<li>чтения файла</li>
-<li>обращения к базе данных</li>
-<li>загрузки сохранения или внешнего профиля</li>
+<li>a server response</li>
+<li>reading a file</li>
+<li>a database query</li>
+<li>loading external profile or save data</li>
 </ul>
-<p>реализуйте для binding ещё и <code>IAsyncTransferDomainHandler</code>.</p>
+<p>implement <code>IAsyncTransferDomainHandler</code> on the binding as well.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ServerBackedInventoryBinding</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span><span class="n">ITransferDomainHandler</span><span class="p">,</span>
@@ -2124,56 +2112,51 @@
 <a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="p">}</span>
 </code></pre></div>
-<p>Как это работает:</p>
+<p>How it works:</p>
 <ul>
-<li><code>CanDrop</code> остаётся быстрым синхронным preview-хуком</li>
-<li><code>CanCommitTransfer</code> выполняет локальные pre-commit проверки</li>
-<li><code>CanCommitTransferAsync</code> не заменяет sync-версию, а дополняет её</li>
-<li>если binding реализует обе версии, сначала вызывается <code>CanCommitTransfer</code>, потом <code>CanCommitTransferAsync</code></li>
-<li><code>CanCommitTransferAsync</code> вызывается один раз перед реальным commit, если binding реализует этот интерфейс</li>
-<li>если async-проверка вернула <code>RuleResult.Failure(...)</code>, перенос отменяется</li>
+<li><code>CanDrop</code> stays a fast synchronous preview hook</li>
+<li><code>CanCommitTransfer</code> handles local pre-commit checks</li>
+<li><code>CanCommitTransferAsync</code> does not replace the sync version, it extends it</li>
+<li>if the binding implements both, <code>CanCommitTransfer</code> runs first and <code>CanCommitTransferAsync</code> runs second</li>
+<li><code>CanCommitTransferAsync</code> runs once before the real commit if the binding implements the interface</li>
+<li>if async validation returns <code>RuleResult.Failure(...)</code>, the transfer is cancelled</li>
 </ul>
-<p>Используйте <code>IAsyncTransferDomainHandler</code>, когда решение нельзя получить мгновенно.
-Если проверка локальная и быстрая, достаточно обычного <code>CanCommitTransfer</code>.</p>
-<p>Подробно о точном порядке вызовов, роли <code>TransferDomainContext</code> и различии между
-<code>ITransferDomainHandler</code> и rules — в разделе <a href="../../reference/optional-interfaces/">Опциональные интерфейсы</a>.</p>
+<p>Use <code>IAsyncTransferDomainHandler</code> when the answer cannot be produced immediately.
+If the check is local and fast, regular <code>CanCommitTransfer</code> is enough.</p>
+<p>For the exact call order, the role of <code>TransferDomainContext</code>, and the difference between
+<code>ITransferDomainHandler</code> and rules, see <a href="../../reference/optional-interfaces/">Optional Interfaces</a>.</p>
 <hr />
-<h2 id="_5">Конвертация предметов</h2>
-<p>Если два инвентаря используют разные представления предмета, binding может предоставить converter:</p>
+<h2 id="item-conversion">Item conversion</h2>
+<p>If two inventories use different item representations, a binding can provide a converter:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IItemAdapterConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyInventoryItemConverter</span><span class="p">();</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 </code></pre></div>
-<p>Это нужно, например, для торговли, где:</p>
-<ul>
-<li>торговец хранит <code>ScriptableObject</code></li>
-<li>игрок хранит runtime-модель</li>
-</ul>
-<p>Подробнее о конвертации — на странице <a href="../transfer-pipeline/">Конвейер переноса</a>.</p>
+<p>For details on how conversion works in the transfer pipeline, see <a href="../transfer-pipeline/">Transfer Pipeline</a>.</p>
 <hr />
-<h2 id="ui">Когда обновлять UI из данных</h2>
-<p>Если данные изменились вне конвейера drag &amp; drop, вызовите:</p>
+<h2 id="reloading-from-data">Reloading from data</h2>
+<p>If your data changes outside the drag &amp; drop pipeline, call:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">ReloadUI</span><span class="p">();</span>
 </code></pre></div>
-<p>Если вы хотите явно подчеркнуть намерение синхронизации:</p>
+<p>Or explicitly:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">ForceSyncToUI</span><span class="p">();</span>
 </code></pre></div>
-<p>Для массовых операций используйте <code>BeginSync()</code>, чтобы не реагировать на промежуточные события.</p>
+<p>For batch operations, use <code>BeginSync()</code> to suppress events and prevent feedback loops.</p>
 <hr />
-<h2 id="_6">Что пользователю обычно не нужно знать</h2>
-<p>В обычном проекте вам не нужно лезть в:</p>
+<h2 id="what-you-usually-dont-need-to-know">What you usually don't need to know</h2>
+<p>In a typical project you don't need to dig into:</p>
 <ul>
-<li>внутренние inventory events ассета</li>
-<li>вспомогательные структуры этапа планирования</li>
-<li>низкоуровневые классы выполнения переноса</li>
+<li>internal inventory events</li>
+<li>planning layer helper structures</li>
+<li>low-level execution layer classes</li>
 </ul>
-<p>Чаще всего достаточно:</p>
+<p>Usually it's enough to:</p>
 <ol>
-<li>выбрать <a href="../binding-templates/">подходящий шаблон</a></li>
-<li>описать adapter</li>
-<li>реализовать sync в <code>AddToData/RemoveFromData</code></li>
-<li>при необходимости добавить <code>CanDrop</code> и <code>CanCommitTransfer</code></li>
+<li>choose the right <a href="../binding-templates/">template</a></li>
+<li>describe your adapter</li>
+<li>implement sync in <code>AddToData/RemoveFromData</code></li>
+<li>optionally add <code>CanDrop</code> and <code>CanCommitTransfer</code></li>
 </ol>
 
 
@@ -2198,7 +2181,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -2230,7 +2213,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

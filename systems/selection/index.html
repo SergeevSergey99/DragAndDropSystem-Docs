@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -18,9 +18,9 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../en/systems/selection/" hreflang="en">
+          <link rel="alternate" href="../../ru/systems/selection/" hreflang="ru">
         
       
       
@@ -29,7 +29,7 @@
     
     
       
-        <title>Выделение - Drag & Drop Inventory System</title>
+        <title>Selection - Drag & Drop Inventory System</title>
       
     
     
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
-          Перейти к содержанию
+        <a href="#selection" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,7 +95,7 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+  <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Выделение
+              Selection
             
           </span>
         </div>
@@ -156,21 +156,21 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
-              Русский
+            <a href="./" hreflang="en" class="md-select__link">
+              English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/systems/selection/" hreflang="en" class="md-select__link">
-              English
+            <a href="../../ru/systems/selection/" hreflang="ru" class="md-select__link">
+              Русский
             </a>
           </li>
         
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -210,7 +210,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -231,7 +231,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,7 +247,7 @@
           
   
   
-  Главная
+  Home
 
         </a>
       </li>
@@ -267,7 +267,7 @@
           
   
   
-  Примеры
+  Examples
 
         </a>
       </li>
@@ -287,7 +287,7 @@
           
   
   
-  Основные концепции
+  Core Concepts
 
         </a>
       </li>
@@ -309,7 +309,7 @@
           
   
   
-  Продвинутые системы
+  Advanced Systems
 
         </a>
       </li>
@@ -329,7 +329,7 @@
           
   
   
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -349,7 +349,7 @@
           
   
   
-  Еще
+  More
 
         </a>
       </li>
@@ -377,7 +377,7 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
@@ -422,7 +422,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -438,7 +438,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Home
   
 
           </label>
@@ -458,7 +458,7 @@
   <span class="md-ellipsis">
     
   
-    Введение
+    Introduction
   
 
     
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
   
 
     
@@ -539,7 +539,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -555,7 +555,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Examples
   
 
           </label>
@@ -575,7 +575,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -768,7 +768,7 @@
   <span class="md-ellipsis">
     
   
-    Основные концепции
+    Core Concepts
   
 
     
@@ -784,7 +784,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Основные концепции
+    Core Concepts
   
 
           </label>
@@ -804,7 +804,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -832,7 +832,7 @@
   <span class="md-ellipsis">
     
   
-    Шаблоны DataBinding
+    Binding Templates
   
 
     
@@ -860,7 +860,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Transfer Pipeline
   
 
     
@@ -888,7 +888,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy Matrix
   
 
     
@@ -916,7 +916,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Cookbook: Item Conversion
   
 
     
@@ -944,7 +944,7 @@
   <span class="md-ellipsis">
     
   
-    Стратегии размещения
+    Placement Strategies
   
 
     
@@ -972,7 +972,7 @@
   <span class="md-ellipsis">
     
   
-    Правила (Rules)
+    Rules
   
 
     
@@ -1000,7 +1000,7 @@
   <span class="md-ellipsis">
     
   
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1056,7 +1056,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Advanced Systems
   
 
     
@@ -1072,7 +1072,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Advanced Systems
   
 
           </label>
@@ -1101,7 +1101,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1119,7 +1119,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1131,7 +1131,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1140,15 +1140,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#selection-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Операции выделения
+        Selection Operations
       
     </span>
   </a>
@@ -1156,10 +1156,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#how-it-looks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как это выглядит
+        How It Looks
       
     </span>
   </a>
@@ -1167,22 +1167,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#group-dragging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Групповое перетаскивание
+        Group Dragging
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Групповое перетаскивание">
+    <nav class="md-nav" aria-label="Group Dragging">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#batch-" class="md-nav__link">
+  <a href="#how-batch-transfer-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как работает batch-перенос
+        How batch transfer works
       
     </span>
   </a>
@@ -1195,10 +1195,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Настройка
+        Setup
       
     </span>
   </a>
@@ -1206,10 +1206,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#class-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Справочник классов
+        Class Reference
       
     </span>
   </a>
@@ -1239,7 +1239,7 @@
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1267,7 +1267,7 @@
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1295,7 +1295,7 @@
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1323,7 +1323,7 @@
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1351,7 +1351,7 @@
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1379,7 +1379,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Free-Form Layout
   
 
     
@@ -1432,7 +1432,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1448,7 +1448,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1468,7 +1468,7 @@
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Optional Interfaces
   
 
     
@@ -1496,7 +1496,7 @@
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    File Map
   
 
     
@@ -1524,7 +1524,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Event Reference
   
 
     
@@ -1552,7 +1552,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1633,7 +1633,7 @@
   <span class="md-ellipsis">
     
   
-    Еще
+    More
   
 
     
@@ -1649,7 +1649,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Еще
+    More
   
 
           </label>
@@ -1669,7 +1669,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1697,7 +1697,7 @@
   <span class="md-ellipsis">
     
   
-    Планы на будущее
+    Future Plans
   
 
     
@@ -1725,7 +1725,7 @@
   <span class="md-ellipsis">
     
   
-    Витрина проектов
+    Showcase
   
 
     
@@ -1759,7 +1759,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1768,15 +1768,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#selection-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Операции выделения
+        Selection Operations
       
     </span>
   </a>
@@ -1784,10 +1784,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#how-it-looks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как это выглядит
+        How It Looks
       
     </span>
   </a>
@@ -1795,22 +1795,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#group-dragging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Групповое перетаскивание
+        Group Dragging
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Групповое перетаскивание">
+    <nav class="md-nav" aria-label="Group Dragging">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#batch-" class="md-nav__link">
+  <a href="#how-batch-transfer-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как работает batch-перенос
+        How batch transfer works
       
     </span>
   </a>
@@ -1823,10 +1823,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Настройка
+        Setup
       
     </span>
   </a>
@@ -1834,10 +1834,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#class-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Справочник классов
+        Class Reference
       
     </span>
   </a>
@@ -1861,159 +1861,159 @@
 
 
 
-<h1 id="_1">Выделение</h1>
-<p>Система выделения позволяет выбирать несколько предметов в инвентаре и выполнять над ними групповые операции --- например, перетащить все выделенные предметы разом.</p>
+<h1 id="selection">Selection</h1>
+<p>The selection system allows selecting multiple items in an inventory and performing group operations on them --- for example, dragging all selected items at once.</p>
 <hr />
-<h2 id="_2">Операции выделения</h2>
+<h2 id="selection-operations">Selection Operations</h2>
 <table>
 <thead>
 <tr>
-<th>Действие</th>
-<th>Что происходит</th>
+<th>Action</th>
+<th>What Happens</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Клик</strong></td>
-<td>Снять предыдущее выделение, выбрать один предмет</td>
+<td><strong>Click</strong></td>
+<td>Clear previous selection, select one item</td>
 </tr>
 <tr>
-<td><strong>Ctrl + Клик</strong></td>
-<td>Переключить: добавить к выделению или убрать из него</td>
+<td><strong>Ctrl + Click</strong></td>
+<td>Toggle: add to selection or remove from it</td>
 </tr>
 <tr>
-<td><strong>Shift + Клик</strong></td>
-<td>Выделить диапазон от последнего выделенного до текущего</td>
+<td><strong>Shift + Click</strong></td>
+<td>Select range from last selected to current</td>
 </tr>
 <tr>
 <td><strong>Ctrl + A</strong></td>
-<td>Выделить все непустые слоты инвентаря</td>
+<td>Select all non-empty inventory slots</td>
 </tr>
 <tr>
 <td><strong>Escape</strong></td>
-<td>Снять всё выделение</td>
+<td>Clear all selection</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="_3">Как это выглядит</h2>
+<h2 id="how-it-looks">How It Looks</h2>
 <pre class="mermaid"><code>flowchart TD
-    A["Клик по слоту"] --&gt; B{"Какой тип\nоперации?"}
-    B --&gt;|Обычный клик| C["Снять всё +\nвыбрать этот"]
-    B --&gt;|Ctrl + Клик| D["Добавить к выделению\nили убрать"]
-    B --&gt;|Shift + Клик| E["Выбрать диапазон\nот последнего\nдо текущего"]
-    B --&gt;|Ctrl + A| F["Выделить все\nнепустые слоты"]
-    B --&gt;|Escape| G["Снять выделение"]
+    A["Click on slot"] --&gt; B{"What type\nof operation?"}
+    B --&gt;|Normal click| C["Clear all +\nselect this one"]
+    B --&gt;|Ctrl + Click| D["Add to selection\nor remove"]
+    B --&gt;|Shift + Click| E["Select range\nfrom last\nto current"]
+    B --&gt;|Ctrl + A| F["Select all\nnon-empty slots"]
+    B --&gt;|Escape| G["Clear selection"]
 </code></pre>
 <hr />
-<h2 id="_4">Групповое перетаскивание</h2>
-<p>Выделенные предметы можно перетащить все разом. Система автоматически создаёт перенос для каждого выделенного слота.</p>
+<h2 id="group-dragging">Group Dragging</h2>
+<p>Selected items can be dragged all at once. The system automatically creates a transfer for each selected slot.</p>
 <pre class="mermaid"><code>flowchart LR
-    A["Выделили\n3 предмета"] --&gt; B["Начали\nперетаскивание"]
-    B --&gt; C["Система переносит\nвсе выделенные"]
-    C --&gt; D["Каждый предмет\nобрабатывается\nотдельно"]
+    A["Selected\n3 items"] --&gt; B["Started\ndragging"]
+    B --&gt; C["System transfers\nall selected"]
+    C --&gt; D["Each item\nis processed\nseparately"]
 </code></pre>
-<p>Если выделение пусто, при перетаскивании берётся только тот слот, за который потянули. Переносы из разных инвентарей можно ограничить через настройку <code>_restrictToSameInventory</code>.</p>
-<h3 id="batch-">Как работает batch-перенос</h3>
-<p>При групповом перетаскивании целевой слот (тот, на который бросили) используется только как подсказка. Система сама находит подходящие слоты для каждого предмета.</p>
-<p>Поведение определяется <code>DropPolicy</code> целевого инвентаря:</p>
+<p>If the selection is empty, only the slot that was grabbed is dragged. Transfers from different inventories can be restricted via the <code>_restrictToSameInventory</code> setting.</p>
+<h3 id="how-batch-transfer-works">How batch transfer works</h3>
+<p>During group dragging, the target slot (where items are dropped) is used only as a hint. The system finds suitable slots for each item automatically.</p>
+<p>Behavior is determined by the target inventory's <code>DropPolicy</code>:</p>
 <table>
 <thead>
 <tr>
-<th>Политика</th>
-<th>Поведение</th>
+<th>Policy</th>
+<th>Behavior</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Atomic</strong> (по умолчанию для batch)</td>
-<td>Все предметы должны влезть. Если хоть один не проходит — вся операция отменяется, ничего не переносится</td>
+<td><strong>Atomic</strong> (default for batch)</td>
+<td>All items must fit. If any item fails — the entire operation is cancelled, nothing is moved</td>
 </tr>
 <tr>
 <td><strong>BestEffort</strong></td>
-<td>Переносится всё что влезло, остальное остаётся в источнике</td>
+<td>Whatever fits is transferred, the rest stays in source</td>
 </tr>
 </tbody>
 </table>
-<p>Swap при batch-переносе не поддерживается — только размещение в свободные или совместимые слоты.</p>
-<p>После успешного batch-переноса выделение автоматически снимается.</p>
+<p>Swap is not supported during batch transfer — only placement into free or compatible slots.</p>
+<p>After a successful batch transfer, the selection is automatically cleared.</p>
 <hr />
-<h2 id="_5">Настройка</h2>
+<h2 id="setup">Setup</h2>
 <ol>
-<li><strong>Добавьте <code>SelectionManager</code></strong> на сцену (синглтон, один на всю сцену).</li>
-<li><strong>Добавьте <code>SlotSelectionView</code></strong> на префаб слота --- он подсвечивает выделенные слоты. Настройте цвета и объект-индикатор в инспекторе.</li>
-<li><strong>Настройте триггеры</strong> --- привяжите операции выделения к вводу:<ul>
-<li>Через привязки указателя в <code>InteractionBindingsProfile</code> (Ctrl+Клик, Shift+Клик --- как <code>SelectionSlotAction</code> с нужной операцией).</li>
-<li>Через <code>InputActionSelectionTrigger</code> для горячих клавиш (Ctrl+A, Escape).</li>
-<li>Через <code>ButtonSelectionTrigger</code> для UI-кнопок ("Выделить всё", "Снять выделение").</li>
+<li><strong>Add <code>SelectionManager</code></strong> to the scene (singleton, one per scene).</li>
+<li><strong>Add <code>SlotSelectionView</code></strong> to the slot prefab --- it highlights selected slots. Configure colors and the indicator object in the inspector.</li>
+<li><strong>Configure triggers</strong> --- bind selection operations to input:<ul>
+<li>Via pointer bindings in <code>InteractionBindingsProfile</code> (Ctrl+Click, Shift+Click --- as <code>SelectionSlotAction</code> with the appropriate operation).</li>
+<li>Via <code>InputActionSelectionTrigger</code> for hotkeys (Ctrl+A, Escape).</li>
+<li>Via <code>ButtonSelectionTrigger</code> for UI buttons ("Select All", "Clear Selection").</li>
 </ul>
 </li>
 </ol>
 <hr />
-<h2 id="_6">Справочник классов</h2>
+<h2 id="class-reference">Class Reference</h2>
 <table>
 <thead>
 <tr>
-<th>Класс</th>
-<th>Роль</th>
+<th>Class</th>
+<th>Role</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>SelectionManager</code></td>
-<td>Синглтон, хранит состояние выделения</td>
+<td>Singleton, stores selection state</td>
 </tr>
 <tr>
 <td><code>SelectionContext</code></td>
-<td>Неизменяемый снимок текущего выделения</td>
+<td>Immutable snapshot of the current selection</td>
 </tr>
 <tr>
 <td><code>SlotSelectionView</code></td>
-<td>Компонент на слоте: подсвечивает при выделении</td>
+<td>Component on a slot: highlights when selected</td>
 </tr>
 <tr>
 <td><code>SelectionOperationBase</code></td>
-<td>Базовый класс операций (наследуйте для кастомных)</td>
+<td>Base class for operations (inherit for custom ones)</td>
 </tr>
 <tr>
 <td><code>ClearAndSelectOperation</code></td>
-<td>Обычный клик: снять всё + выбрать один</td>
+<td>Normal click: clear all + select one</td>
 </tr>
 <tr>
 <td><code>ToggleSlotOperation</code></td>
-<td>Ctrl+Клик: переключить</td>
+<td>Ctrl+Click: toggle</td>
 </tr>
 <tr>
 <td><code>RangeSelectOperation</code></td>
-<td>Shift+Клик: диапазон</td>
+<td>Shift+Click: range</td>
 </tr>
 <tr>
 <td><code>SelectAllOperation</code></td>
-<td>Ctrl+A: все непустые слоты</td>
+<td>Ctrl+A: all non-empty slots</td>
 </tr>
 <tr>
 <td><code>ClearSelectionOperation</code></td>
-<td>Escape: снять выделение</td>
+<td>Escape: clear selection</td>
 </tr>
 <tr>
 <td><code>SelectByConditionOperation</code></td>
-<td>Выбор по предикату (кастомный фильтр)</td>
+<td>Selection by predicate (custom filter)</td>
 </tr>
 <tr>
 <td><code>SelectionSlotAction</code></td>
-<td>Действие для привязки к PointerBinding</td>
+<td>Action for binding to PointerBinding</td>
 </tr>
 <tr>
 <td><code>StartMultiDragAction</code></td>
-<td>Групповое перетаскивание выделенных</td>
+<td>Group dragging of selected items</td>
 </tr>
 <tr>
 <td><code>ButtonSelectionTrigger</code></td>
-<td>Триггер через UI Button</td>
+<td>Trigger via UI Button</td>
 </tr>
 <tr>
 <td><code>InputActionSelectionTrigger</code></td>
-<td>Триггер через Input System Action</td>
+<td>Trigger via Input System Action</td>
 </tr>
 </tbody>
 </table>
@@ -2040,7 +2040,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -2072,7 +2072,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

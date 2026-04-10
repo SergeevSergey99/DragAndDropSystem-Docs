@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -18,9 +18,9 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../en/architecture/transfer-pipeline/" hreflang="en">
+          <link rel="alternate" href="../../ru/architecture/transfer-pipeline/" hreflang="ru">
         
       
       
@@ -29,7 +29,7 @@
     
     
       
-        <title>Конвейер переноса - Drag & Drop Inventory System</title>
+        <title>Transfer Pipeline - Drag & Drop Inventory System</title>
       
     
     
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
-          Перейти к содержанию
+        <a href="#transfer-pipeline" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,7 +95,7 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+  <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Конвейер переноса
+              Transfer Pipeline
             
           </span>
         </div>
@@ -156,21 +156,21 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
-              Русский
+            <a href="./" hreflang="en" class="md-select__link">
+              English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/architecture/transfer-pipeline/" hreflang="en" class="md-select__link">
-              English
+            <a href="../../ru/architecture/transfer-pipeline/" hreflang="ru" class="md-select__link">
+              Русский
             </a>
           </li>
         
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -210,7 +210,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -231,7 +231,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,7 +247,7 @@
           
   
   
-  Главная
+  Home
 
         </a>
       </li>
@@ -267,7 +267,7 @@
           
   
   
-  Примеры
+  Examples
 
         </a>
       </li>
@@ -289,7 +289,7 @@
           
   
   
-  Основные концепции
+  Core Concepts
 
         </a>
       </li>
@@ -309,7 +309,7 @@
           
   
   
-  Продвинутые системы
+  Advanced Systems
 
         </a>
       </li>
@@ -329,7 +329,7 @@
           
   
   
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -349,7 +349,7 @@
           
   
   
-  Еще
+  More
 
         </a>
       </li>
@@ -377,7 +377,7 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
@@ -422,7 +422,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -438,7 +438,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Home
   
 
           </label>
@@ -458,7 +458,7 @@
   <span class="md-ellipsis">
     
   
-    Введение
+    Introduction
   
 
     
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
   
 
     
@@ -539,7 +539,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -555,7 +555,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Examples
   
 
           </label>
@@ -575,7 +575,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -771,7 +771,7 @@
   <span class="md-ellipsis">
     
   
-    Основные концепции
+    Core Concepts
   
 
     
@@ -787,7 +787,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Основные концепции
+    Core Concepts
   
 
           </label>
@@ -807,7 +807,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -835,7 +835,7 @@
   <span class="md-ellipsis">
     
   
-    Шаблоны DataBinding
+    Binding Templates
   
 
     
@@ -872,7 +872,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Transfer Pipeline
   
 
     
@@ -890,7 +890,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Transfer Pipeline
   
 
     
@@ -902,7 +902,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -911,15 +911,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#short-version" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Короткая версия
+        Short version
       
     </span>
   </a>
@@ -927,10 +927,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#what-happens-on-a-normal-drop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что происходит при обычном дропе
+        What happens on a normal drop
       
     </span>
   </a>
@@ -938,10 +938,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#why-planning-exists" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Зачем нужен этап планирования
+        Why planning exists
       
     </span>
   </a>
@@ -949,10 +949,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planning-commit" class="md-nav__link">
+  <a href="#planning-vs-commit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planning и commit — это не одно и то же
+        Planning vs commit
       
     </span>
   </a>
@@ -960,22 +960,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#three-types-of-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Три типа проверок
+        Three types of checks
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Три типа проверок">
+    <nav class="md-nav" aria-label="Three types of checks">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rules" class="md-nav__link">
+  <a href="#rules-is-this-allowed-at-all" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Правила (Rules) — "можно ли вообще?"
+        Rules — "is this allowed at all?"
       
     </span>
   </a>
@@ -983,10 +983,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-cancommittransfer" class="md-nav__link">
+  <a href="#business-checks-cancommittransfer-can-we-do-this-right-now" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Бизнес-проверки (CanCommitTransfer) — "можно ли прямо сейчас?"
+        Business checks (CanCommitTransfer) — "can we do this right now?"
       
     </span>
   </a>
@@ -994,10 +994,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ontransfersucceeded" class="md-nav__link">
+  <a href="#success-notification-ontransfersucceeded-what-to-do-after" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Уведомление об успехе (OnTransferSucceeded) — "что делать после?"
+        Success notification (OnTransferSucceeded) — "what to do after?"
       
     </span>
   </a>
@@ -1005,10 +1005,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#when-to-use-which" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда что использовать
+        When to use which
       
     </span>
   </a>
@@ -1021,10 +1021,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Конвертация предметов
+        Item conversion
       
     </span>
   </a>
@@ -1032,10 +1032,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#detailed-execution-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Подробный порядок выполнения переноса
+        Detailed execution order
       
     </span>
   </a>
@@ -1043,10 +1043,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
+  <a href="#what-happens-on-failure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что происходит при отказе
+        What happens on failure
       
     </span>
   </a>
@@ -1065,10 +1065,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#override-actions" class="md-nav__link">
+  <a href="#temporary-override-through-actions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Временный override через actions
+        Temporary override through actions
       
     </span>
   </a>
@@ -1076,10 +1076,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#drop-policy_1" class="md-nav__link">
+  <a href="#drop-policy-processing-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Порядок обработки Drop Policy
+        Drop Policy Processing Order
       
     </span>
   </a>
@@ -1087,10 +1087,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batch-" class="md-nav__link">
+  <a href="#batch-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch-операции
+        Batch operations
       
     </span>
   </a>
@@ -1098,10 +1098,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#swap" class="md-nav__link">
+  <a href="#swap-is-part-of-the-same-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Swap — это часть того же пайплайна
+        Swap is part of the same pipeline
       
     </span>
   </a>
@@ -1109,10 +1109,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
+  <a href="#what-you-need-to-know-vs-what-you-dont" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что имеет смысл знать, а что нет
+        What you need to know vs what you don't
       
     </span>
   </a>
@@ -1142,7 +1142,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy Matrix
   
 
     
@@ -1170,7 +1170,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Cookbook: Item Conversion
   
 
     
@@ -1198,7 +1198,7 @@
   <span class="md-ellipsis">
     
   
-    Стратегии размещения
+    Placement Strategies
   
 
     
@@ -1226,7 +1226,7 @@
   <span class="md-ellipsis">
     
   
-    Правила (Rules)
+    Rules
   
 
     
@@ -1254,7 +1254,7 @@
   <span class="md-ellipsis">
     
   
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1307,7 +1307,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Advanced Systems
   
 
     
@@ -1323,7 +1323,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Advanced Systems
   
 
           </label>
@@ -1343,7 +1343,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1371,7 +1371,7 @@
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1399,7 +1399,7 @@
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1427,7 +1427,7 @@
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1455,7 +1455,7 @@
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1483,7 +1483,7 @@
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1511,7 +1511,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Free-Form Layout
   
 
     
@@ -1564,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1580,7 +1580,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1600,7 +1600,7 @@
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Optional Interfaces
   
 
     
@@ -1628,7 +1628,7 @@
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    File Map
   
 
     
@@ -1656,7 +1656,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Event Reference
   
 
     
@@ -1684,7 +1684,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1765,7 +1765,7 @@
   <span class="md-ellipsis">
     
   
-    Еще
+    More
   
 
     
@@ -1781,7 +1781,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Еще
+    More
   
 
           </label>
@@ -1801,7 +1801,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1829,7 +1829,7 @@
   <span class="md-ellipsis">
     
   
-    Планы на будущее
+    Future Plans
   
 
     
@@ -1857,7 +1857,7 @@
   <span class="md-ellipsis">
     
   
-    Витрина проектов
+    Showcase
   
 
     
@@ -1891,7 +1891,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1900,15 +1900,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#short-version" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Короткая версия
+        Short version
       
     </span>
   </a>
@@ -1916,10 +1916,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#what-happens-on-a-normal-drop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что происходит при обычном дропе
+        What happens on a normal drop
       
     </span>
   </a>
@@ -1927,10 +1927,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#why-planning-exists" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Зачем нужен этап планирования
+        Why planning exists
       
     </span>
   </a>
@@ -1938,10 +1938,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planning-commit" class="md-nav__link">
+  <a href="#planning-vs-commit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planning и commit — это не одно и то же
+        Planning vs commit
       
     </span>
   </a>
@@ -1949,22 +1949,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#three-types-of-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Три типа проверок
+        Three types of checks
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Три типа проверок">
+    <nav class="md-nav" aria-label="Three types of checks">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rules" class="md-nav__link">
+  <a href="#rules-is-this-allowed-at-all" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Правила (Rules) — "можно ли вообще?"
+        Rules — "is this allowed at all?"
       
     </span>
   </a>
@@ -1972,10 +1972,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-cancommittransfer" class="md-nav__link">
+  <a href="#business-checks-cancommittransfer-can-we-do-this-right-now" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Бизнес-проверки (CanCommitTransfer) — "можно ли прямо сейчас?"
+        Business checks (CanCommitTransfer) — "can we do this right now?"
       
     </span>
   </a>
@@ -1983,10 +1983,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ontransfersucceeded" class="md-nav__link">
+  <a href="#success-notification-ontransfersucceeded-what-to-do-after" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Уведомление об успехе (OnTransferSucceeded) — "что делать после?"
+        Success notification (OnTransferSucceeded) — "what to do after?"
       
     </span>
   </a>
@@ -1994,10 +1994,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#when-to-use-which" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда что использовать
+        When to use which
       
     </span>
   </a>
@@ -2010,10 +2010,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#item-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Конвертация предметов
+        Item conversion
       
     </span>
   </a>
@@ -2021,10 +2021,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#detailed-execution-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Подробный порядок выполнения переноса
+        Detailed execution order
       
     </span>
   </a>
@@ -2032,10 +2032,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
+  <a href="#what-happens-on-failure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что происходит при отказе
+        What happens on failure
       
     </span>
   </a>
@@ -2054,10 +2054,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#override-actions" class="md-nav__link">
+  <a href="#temporary-override-through-actions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Временный override через actions
+        Temporary override through actions
       
     </span>
   </a>
@@ -2065,10 +2065,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#drop-policy_1" class="md-nav__link">
+  <a href="#drop-policy-processing-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Порядок обработки Drop Policy
+        Drop Policy Processing Order
       
     </span>
   </a>
@@ -2076,10 +2076,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#batch-" class="md-nav__link">
+  <a href="#batch-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Batch-операции
+        Batch operations
       
     </span>
   </a>
@@ -2087,10 +2087,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#swap" class="md-nav__link">
+  <a href="#swap-is-part-of-the-same-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Swap — это часть того же пайплайна
+        Swap is part of the same pipeline
       
     </span>
   </a>
@@ -2098,10 +2098,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
+  <a href="#what-you-need-to-know-vs-what-you-dont" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что имеет смысл знать, а что нет
+        What you need to know vs what you don't
       
     </span>
   </a>
@@ -2125,256 +2125,255 @@
 
 
 
-<h1 id="_1">Конвейер переноса</h1>
-<p>Эта страница объясняет перенос с точки зрения пользователя ассета.</p>
-<p>Не "какие helper-классы существуют", а "в каком порядке система принимает решение и где вы можете вмешаться".</p>
-<p>Для прикладных кейсов см. также:</p>
+<h1 id="transfer-pipeline">Transfer Pipeline</h1>
+<p>This page explains transfer from the asset user's perspective.</p>
+<p>The question is not "which helper classes exist?" but "in what order does the system decide, and where can I hook into it?"</p>
+<p>For practical follow-ups, also see:</p>
 <ul>
-<li><a href="../drop-policy-matrix/">Матрица Drop Policy</a></li>
-<li><a href="../item-conversion-cookbook/">Cookbook: конвертация предметов</a></li>
-<li><a href="../../reference/logs-and-debugging/">Логи и отладка</a></li>
+<li><a href="../drop-policy-matrix/">Drop Policy Matrix</a></li>
+<li><a href="../item-conversion-cookbook/">Cookbook: Item Conversion</a></li>
+<li><a href="../../reference/logs-and-debugging/">Logs and Debugging</a></li>
 </ul>
 <hr />
-<h2 id="_2">Короткая версия</h2>
+<h2 id="short-version">Short version</h2>
 <pre class="mermaid"><code>flowchart LR
-    A["Игрок бросает предмет"] --&gt; B["Проверка правил"]
-    B --&gt; C["Планирование без изменений"]
-    C --&gt; D["Выполнение"]
-    D --&gt; E["События и sync"]</code></pre>
+    A["Player drops an item"] --&gt; B["Rule checks"]
+    B --&gt; C["Planning without mutation"]
+    C --&gt; D["Execution"]
+    D --&gt; E["Events and sync"]</code></pre>
 <hr />
-<h2 id="_3">Что происходит при обычном дропе</h2>
+<h2 id="what-happens-on-a-normal-drop">What happens on a normal drop</h2>
 <pre class="mermaid"><code>flowchart TD
-    A["Игрок отпускает предмет\nнад целевым слотом"] --&gt; B["Проверка CanDrop\nи механических правил"]
-    B --&gt;|Не прошло| X1["Предмет возвращается\nв источник"]
-    B --&gt;|Прошло| C["Построить план:\nкуда и сколько класть"]
-    C --&gt; D["Бизнес-проверки:\nCanCommitTransfer"]
-    D --&gt;|Не прошло| X2["Предмет возвращается\nв источник"]
-    D --&gt;|Прошло| E["Выполнить перенос:\nсплит → конвертация → размещение"]
-    E --&gt; F["OnTransferSucceeded\n(бизнес side effects)"]
+    A["Player releases item\nover target slot"] --&gt; B["CanDrop and\nmechanical rule checks"]
+    B --&gt;|Failed| X1["Item returns\nto source"]
+    B --&gt;|Passed| C["Build plan:\nwhere and how much to place"]
+    C --&gt; D["Business checks:\nCanCommitTransfer"]
+    D --&gt;|Failed| X2["Item returns\nto source"]
+    D --&gt;|Passed| E["Execute transfer:\nsplit → conversion → placement"]
+    E --&gt; F["OnTransferSucceeded\n(business side effects)"]
     F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
-<p>Для direct slot drop это означает важное ограничение:</p>
+<p>For direct slot drops this has one important consequence:</p>
 <ul>
-<li>если у операции уже есть конкретный <code>target slot</code> и policy не равен <code>FindAlternative</code>, planner/executor не должны сканировать остальные слоты инвентаря</li>
-<li>inventory-wide поиск по <code>GetAcceptableCount()</code> нужен только для area-drop, deferred placement и сценариев поиска альтернативных слотов</li>
+<li>when the operation already has a concrete <code>target slot</code> and the policy is not <code>FindAlternative</code>, planner/executor must not scan the rest of the inventory</li>
+<li>inventory-wide <code>GetAcceptableCount()</code> is only needed for area-drop, deferred placement, and alternative-slot search</li>
 </ul>
 <hr />
-<h2 id="_4">Зачем нужен этап планирования</h2>
-<p>Перед реальным переносом система сначала считает, что она собирается сделать:</p>
+<h2 id="why-planning-exists">Why planning exists</h2>
+<p>Before any real mutation, the system decides:</p>
 <ul>
-<li>влезает ли предмет целиком</li>
-<li>нужен ли partial transfer</li>
-<li>требуется ли swap</li>
-<li>есть ли подходящий слот</li>
-<li>нужно ли конвертировать предмет для целевого инвентаря</li>
+<li>can the item fit</li>
+<li>is partial transfer needed</li>
+<li>is a swap required</li>
+<li>is there a valid target slot</li>
+<li>does the item need conversion for the target inventory</li>
 </ul>
-<p>Это позволяет:</p>
+<p>This enables:</p>
 <ul>
-<li>не портить состояние при невалидной операции</li>
-<li>поддерживать atomic execution и rollback</li>
-<li>одинаково обрабатывать drag, quick transfer и swap</li>
+<li>no state corruption on invalid operations</li>
+<li>atomic execution with rollback</li>
+<li>uniform handling of drag, quick transfer and swap</li>
 </ul>
 <hr />
-<h2 id="planning-commit">Planning и commit — это не одно и то же</h2>
-<p>Это важное различие:</p>
+<h2 id="planning-vs-commit">Planning vs commit</h2>
 <ul>
-<li>на этапе planning система ещё ничего не меняет</li>
-<li>на этапе commit изменения уже применяются к инвентарям</li>
+<li>planning does not mutate inventory state</li>
+<li>commit applies real changes</li>
 </ul>
-<p>Именно поэтому проверки разделены на несколько типов, каждый со своей ролью.</p>
+<p>That is why checks are split into several types, each with its own role.</p>
 <hr />
-<h2 id="_5">Три типа проверок</h2>
-<p>В пайплайне переноса есть три разных механизма проверки. Они срабатывают в разные моменты и отвечают за разные вещи:</p>
+<h2 id="three-types-of-checks">Three types of checks</h2>
+<p>The transfer pipeline has three distinct check mechanisms. They fire at different moments and serve different purposes:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Игрок отпускает предмет"] --&gt; B["Правила\n(Rules)"]
-    B --&gt;|Запрет| X["Отклонено"]
-    B --&gt;|OK| C["Планирование"]
-    C --&gt; D["Бизнес-проверки\n(CanCommitTransfer)"]
-    D --&gt;|Запрет| X
-    D --&gt;|OK| E["Выполнение переноса"]
-    E --&gt; F["Уведомление об успехе\n(OnTransferSucceeded)"]</code></pre>
-<h3 id="rules">Правила (Rules) — "можно ли вообще?"</h3>
-<p>Правила проверяются <strong>на этапе планирования</strong>, ещё до попытки переноса. Это механические ограничения: подходит ли тип предмета, разрешён ли слот, не заблокирован ли инвентарь.</p>
-<p>Правила работают на трёх уровнях — первый отказ останавливает операцию:</p>
+    A["Player releases item"] --&gt; B["Rules"]
+    B --&gt;|Rejected| X["Denied"]
+    B --&gt;|OK| C["Planning"]
+    C --&gt; D["Business checks\n(CanCommitTransfer)"]
+    D --&gt;|Rejected| X
+    D --&gt;|OK| E["Execute transfer"]
+    E --&gt; F["Success notification\n(OnTransferSucceeded)"]</code></pre>
+<h3 id="rules-is-this-allowed-at-all">Rules — "is this allowed at all?"</h3>
+<p>Rules are checked <strong>during the planning phase</strong>, before any transfer attempt. These are mechanical constraints: does the item type match, is the slot allowed, is the inventory locked.</p>
+<p>Rules work at three levels — the first rejection stops the operation:</p>
 <table>
 <thead>
 <tr>
-<th>Уровень</th>
-<th>Что проверяет</th>
-<th>Пример</th>
+<th>Level</th>
+<th>What it checks</th>
+<th>Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Глобальные</strong></td>
-<td>Всё приложение</td>
-<td>Запрет дропа в тот же слот</td>
+<td><strong>Global</strong></td>
+<td>Entire application</td>
+<td>Prevent drop into same slot</td>
 </tr>
 <tr>
-<td><strong>Инвентарные</strong></td>
-<td>Конкретный инвентарь</td>
-<td>Лимит уникальных предметов</td>
+<td><strong>Inventory</strong></td>
+<td>Specific inventory</td>
+<td>Unique item limit</td>
 </tr>
 <tr>
-<td><strong>Слотовые</strong></td>
-<td>Конкретный слот</td>
-<td>Только оружие в слот оружия</td>
+<td><strong>Slot</strong></td>
+<td>Specific slot</td>
+<td>Only weapons in weapon slot</td>
 </tr>
 </tbody>
 </table>
-<p>DataBinding тоже участвует в правилах: его <code>CanDrop</code> вызывается как часть инвентарных правил при планировании.</p>
-<p>Подробнее о правилах — в разделе <a href="../rules/">Правила (Rules)</a>.</p>
-<h3 id="-cancommittransfer">Бизнес-проверки (CanCommitTransfer) — "можно ли прямо сейчас?"</h3>
-<p>Бизнес-проверки срабатывают <strong>непосредственно перед выполнением</strong>, когда план уже готов. Они нужны для проверок, которые зависят от текущего состояния и могут измениться между планированием и выполнением.</p>
-<p>Порядок:</p>
+<p>DataBinding also participates in rules: its <code>CanDrop</code> is called as part of inventory rules during planning.</p>
+<p>For more on rules, see the <a href="../rules/">Rules</a> section.</p>
+<h3 id="business-checks-cancommittransfer-can-we-do-this-right-now">Business checks (CanCommitTransfer) — "can we do this right now?"</h3>
+<p>Business checks fire <strong>immediately before execution</strong>, when the plan is already built. They are needed for checks that depend on current state and may change between planning and execution.</p>
+<p>Order:</p>
 <ol>
-<li><code>CanCommitTransfer</code> — быстрая синхронная проверка</li>
-<li><code>CanCommitTransferAsync</code> — асинхронная проверка (если binding реализует интерфейс)</li>
+<li><code>CanCommitTransfer</code> — fast synchronous check</li>
+<li><code>CanCommitTransferAsync</code> — asynchronous check (if binding implements the interface)</li>
 <li>commit</li>
 </ol>
-<p>Проверяются DataBinding'и <strong>обоих</strong> инвентарей (источника и цели).</p>
-<p>Примеры использования:</p>
+<p>DataBindings on <strong>both</strong> inventories (source and target) are checked.</p>
+<p>Example use cases:</p>
 <ul>
-<li>хватает ли у игрока денег на покупку</li>
-<li>подтвердил ли сервер операцию</li>
-<li>не изменилось ли состояние между планированием и выполнением</li>
+<li>does the player have enough gold for the purchase</li>
+<li>did the server confirm the operation</li>
+<li>has state changed between planning and execution</li>
 </ul>
-<h3 id="ontransfersucceeded">Уведомление об успехе (OnTransferSucceeded) — "что делать после?"</h3>
-<p><code>OnTransferSucceeded</code> вызывается <strong>после завершения всех entries</strong>, только при успехе. Это не проверка, а callback для side effects.</p>
-<p>Примеры:</p>
+<h3 id="success-notification-ontransfersucceeded-what-to-do-after">Success notification (OnTransferSucceeded) — "what to do after?"</h3>
+<p><code>OnTransferSucceeded</code> fires <strong>after all entries complete</strong>, only on success. This is not a check, but a callback for side effects.</p>
+<p>Examples:</p>
 <ul>
-<li>списать валюту</li>
-<li>обновить достижения</li>
-<li>записать статистику</li>
+<li>deduct currency</li>
+<li>update achievements</li>
+<li>record statistics</li>
 </ul>
-<h3 id="_6">Когда что использовать</h3>
+<h3 id="when-to-use-which">When to use which</h3>
 <table>
 <thead>
 <tr>
-<th>Задача</th>
-<th>Где писать</th>
+<th>Task</th>
+<th>Where to write</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>"Этот тип предмета нельзя класть сюда"</td>
-<td>Правило (CanDrop)</td>
+<td>"This item type can't go here"</td>
+<td>Rule (CanDrop)</td>
 </tr>
 <tr>
-<td>"В слот оружия — только оружие"</td>
-<td>Слотовое правило</td>
+<td>"Only weapons in weapon slot"</td>
+<td>Slot rule</td>
 </tr>
 <tr>
-<td>"Максимум 5 уникальных предметов"</td>
-<td>Инвентарное правило</td>
+<td>"Max 5 unique items"</td>
+<td>Inventory rule</td>
 </tr>
 <tr>
-<td>"Достаточно ли у игрока золота"</td>
+<td>"Does the player have enough gold"</td>
 <td>CanCommitTransfer</td>
 </tr>
 <tr>
-<td>"Подождать ответ от сервера"</td>
+<td>"Wait for server response"</td>
 <td>CanCommitTransferAsync</td>
 </tr>
 <tr>
-<td>"Списать деньги после покупки"</td>
+<td>"Deduct money after purchase"</td>
 <td>OnTransferSucceeded</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="_7">Конвертация предметов</h2>
-<p>Если источник и цель используют разные представления предметов, конвертация происходит в два этапа:</p>
+<h2 id="item-conversion">Item conversion</h2>
+<p>When source and target use different item representations, conversion happens in two stages:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Предмет отделён от\nисходного слота (split)"] --&gt; B["Outgoing-конвертация:\nисточник отдаёт\nв своём формате"]
-    B --&gt; C["Incoming-конвертация:\nцель принимает\nв своём формате"]
-    C --&gt; D["Предмет размещён\nв целевом слоте"]</code></pre>
-<p>Пример: торговец хранит предметы как ScriptableObject, а игрок — как runtime-модели. При покупке:</p>
+    A["Item split from\nsource slot"] --&gt; B["Outgoing conversion:\nsource releases item\nin its format"]
+    B --&gt; C["Incoming conversion:\ntarget accepts item\nin its format"]
+    C --&gt; D["Item placed\nin target slot"]</code></pre>
+<p>Example: a merchant stores items as ScriptableObjects, and the player uses runtime models. On purchase:</p>
 <ol>
-<li>Предмет отделяется от слота торговца</li>
-<li><strong>Outgoing</strong>: торговец выпускает предмет (SO → промежуточный формат)</li>
-<li><strong>Incoming</strong>: инвентарь игрока принимает предмет (промежуточный → runtime-модель)</li>
-<li>Предмет размещается в слоте игрока</li>
+<li>Item is split from the merchant's slot</li>
+<li><strong>Outgoing</strong>: merchant releases the item (SO → intermediate format)</li>
+<li><strong>Incoming</strong>: player inventory accepts the item (intermediate → runtime model)</li>
+<li>Item is placed in the player's slot</li>
 </ol>
-<p>С точки зрения пользователя ассета важно:</p>
+<p>Important for asset users:</p>
 <ul>
-<li>каждый адаптер в стеке конвертируется индивидуально (сохраняется уникальная runtime-информация)</li>
-<li>если хотя бы один адаптер не конвертировался, вся операция откатывается</li>
-<li>целевой инвентарь получает предмет уже в своём формате</li>
+<li>each adapter in the stack is converted individually (unique runtime data is preserved)</li>
+<li>if any adapter fails conversion, the entire operation rolls back</li>
+<li>the target inventory receives the item already in its own format</li>
 </ul>
 <hr />
-<h2 id="_8">Подробный порядок выполнения переноса</h2>
-<p>Для каждого запланированного entry происходит следующее:</p>
+<h2 id="detailed-execution-order">Detailed execution order</h2>
+<p>For each planned entry, the following happens:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Снимок состояния\nисточника и цели"] --&gt; B["Проверить CanCommitTransfer\nна обоих инвентарях"]
-    B --&gt;|Отказ| X["Откат: восстановить\nиз снимка"]
-    B --&gt;|OK| C["Забрать предметы\nиз исходного слота"]
-    C --&gt; D["Outgoing-конвертация\n(каждый адаптер отдельно)"]
-    D --&gt;|Ошибка| X
-    D --&gt;|OK| E["Разместить в целевом\nинвентаре (incoming-конвертация\nвнутри)"]
-    E --&gt;|Не влезло| F["Вернуть остаток\nв источник"]
-    E --&gt;|Влезло| G["Запомнить результат"]
+    A["Capture snapshots\nof source and target"] --&gt; B["Check CanCommitTransfer\non both inventories"]
+    B --&gt;|Rejected| X["Rollback: restore\nfrom snapshot"]
+    B --&gt;|OK| C["Take items from\nsource slot"]
+    C --&gt; D["Outgoing conversion\n(each adapter individually)"]
+    D --&gt;|Error| X
+    D --&gt;|OK| E["Place into target\ninventory (incoming\nconversion inside)"]
+    E --&gt;|Didn't fit| F["Return remainder\nto source"]
+    E --&gt;|Fits| G["Record outcome"]
     F --&gt; G</code></pre>
-<p>После того как <strong>все</strong> entries выполнены:</p>
+<p>After <strong>all</strong> entries are executed:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Все entries\nвыполнены"] --&gt; B["OnTransferSucceeded\nна каждом DataBinding"]
-    B --&gt; C["OnItemRemoved — источник\n(с исходными адаптерами)"]
-    C --&gt; D["OnItemAdded — цель\n(с итоговыми адаптерами)"]
+    A["All entries\ncompleted"] --&gt; B["OnTransferSucceeded\non each DataBinding"]
+    B --&gt; C["OnItemRemoved — source\n(with original adapters)"]
+    C --&gt; D["OnItemAdded — target\n(with final adapters)"]
     D --&gt; E["OnDropCompleted"]</code></pre>
-<p>Важно: события стреляют <strong>после завершения всей операции</strong>, а не по одному на каждый entry. Это предотвращает ложные события при последующем откате в Atomic режиме.</p>
-<p>Дополнение:</p>
+<p>Important: events fire <strong>after the entire operation completes</strong>, not one per entry. This prevents false events when a later rollback occurs in Atomic mode.</p>
+<p>Additional note:</p>
 <ul>
-<li>если execution уже привязан к конкретному <code>targetSlot</code>, executor не должен повторно делать inventory-wide capacity search</li>
-<li>в этой ветке он доверяет уже построенному plan и коммитит placement только в указанный слот</li>
+<li>if execution already targets a concrete <code>targetSlot</code>, executor must not re-run inventory-wide capacity search</li>
+<li>in that branch it should trust the plan and commit placement only into the requested slot</li>
 </ul>
 <hr />
-<h2 id="_9">Что происходит при отказе</h2>
-<p>Если проверка или commit не прошли, поведение зависит от политики:</p>
+<h2 id="what-happens-on-failure">What happens on failure</h2>
+<p>If a check or commit fails, the behavior depends on the policy:</p>
 <table>
 <thead>
 <tr>
-<th>Ситуация</th>
-<th>Что происходит</th>
+<th>Situation</th>
+<th>What happens</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>CanDrop</code> вернул отказ</td>
-<td>перенос не начинается, предмет возвращается в источник</td>
+<td><code>CanDrop</code> returns failure</td>
+<td>transfer does not start, item returns to source</td>
 </tr>
 <tr>
-<td><code>CanCommitTransfer</code> вернул отказ</td>
-<td>перенос отменяется до commit, состояние не менялось</td>
+<td><code>CanCommitTransfer</code> returns failure</td>
+<td>transfer is cancelled before commit, state unchanged</td>
 </tr>
 <tr>
-<td><code>CanCommitTransferAsync</code> вернул отказ</td>
-<td>перенос отменяется до commit, состояние не менялось</td>
+<td><code>CanCommitTransferAsync</code> returns failure</td>
+<td>transfer is cancelled before commit, state unchanged</td>
 </tr>
 <tr>
-<td>Atomic batch: один из предметов не прошёл</td>
-<td>вся операция отменяется, ни один предмет не переносится</td>
+<td>Atomic batch: one item fails</td>
+<td>entire operation is cancelled, no items are moved</td>
 </tr>
 <tr>
-<td>BestEffort batch: один из предметов не прошёл</td>
-<td>остальные предметы переносятся, неудачные остаются в источнике</td>
+<td>BestEffort batch: one item fails</td>
+<td>remaining items are transferred, failed ones stay in source</td>
 </tr>
 </tbody>
 </table>
-<p>Главное: если проверка не прошла, инвентари остаются в исходном состоянии. Этап планирования строит план без мутаций, а commit применяется только после всех проверок.</p>
+<p>The key point: if a check fails, inventories remain in their original state. Planning builds a plan without mutations, and commit only applies after all checks pass.</p>
 <hr />
 <h2 id="drop-policy">Drop Policy</h2>
-<p>Текущая модель состоит из трёх уровней:</p>
+<p>The current model has three layers:</p>
 <ul>
 <li><code>DropRequestPolicy</code></li>
-<li>временный override для конкретной операции</li>
-<li>может задать:<ul>
+<li>temporary per-operation override</li>
+<li>can override:<ul>
 <li><code>BlockedTargetBehavior</code></li>
 <li><code>AlternativePlacementMode</code></li>
 <li><code>AllowPartial</code></li>
 </ul>
 </li>
 <li><code>DropPolicySettings</code></li>
-<li>inventory-level defaults в <code>UniversalInventory</code></li>
-<li>задаёт:<ul>
+<li>inventory-level defaults on <code>UniversalInventory</code></li>
+<li>defines:<ul>
 <li>blocked target behavior</li>
 <li>allow merge on drop</li>
 <li>allow partial</li>
@@ -2383,85 +2382,83 @@
 </ul>
 </li>
 <li><code>ResolvedDropPolicy</code></li>
-<li>итог после resolution</li>
-<li>именно он используется planner-ом</li>
+<li>final non-nullable policy used by the planner</li>
 </ul>
 <p><code>BlockedTargetBehavior</code>:
 - <code>Reject</code>
 - <code>Swap</code>
 - <code>FindAlternative</code></p>
-<h2 id="override-actions">Временный override через actions</h2>
-<p>Временная подмена drop policy делается не через мутацию <code>DragContext</code>, а через action-level request override.</p>
-<p>Пример:
-- обычный <code>CompleteDragAction</code> вызывает <code>CompleteDrag(null)</code>
-- <code>Ctrl</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
-- <code>Shift</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
-- action также может временно переопределить <code>AllowPartial</code> и <code>AlternativePlacementMode</code></p>
-<p>Важно:
-- override действует только на текущую операцию переноса
-- inventory-level <code>DropPolicySettings</code> остаётся неизменным
-- итоговый <code>ResolvedDropPolicy</code> собирается в порядке:
+<h2 id="temporary-override-through-actions">Temporary override through actions</h2>
+<p>Temporary drop policy override is done through action-level request policy, not by mutating <code>DragContext</code>.</p>
+<p>Example:
+- default <code>CompleteDragAction</code> calls <code>CompleteDrag(null)</code>
+- <code>Ctrl</code> variant of <code>CompleteDragAction</code> calls <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
+- <code>Shift</code> variant of <code>CompleteDragAction</code> calls <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
+- actions can also override <code>AllowPartial</code> and <code>AlternativePlacementMode</code> for a single transfer</p>
+<p>Important:
+- the override only applies to the current transfer operation
+- inventory-level <code>DropPolicySettings</code> stay unchanged
+- final <code>ResolvedDropPolicy</code> is assembled in this order:
   1. action request override
   2. drop-target override
   3. inventory defaults</p>
-<h2 id="drop-policy_1">Порядок обработки Drop Policy</h2>
-<p>Для одного drag entry порядок такой:</p>
+<h2 id="drop-policy-processing-order">Drop Policy Processing Order</h2>
+<p>For a single drag entry:</p>
 <ol>
-<li>Резолвится <code>ResolvedDropPolicy</code></li>
-<li>Planner пытается положить предмет в target slot, если он есть</li>
-<li>Если в target вошло всё, entry успешен</li>
-<li>Если вошла только часть:</li>
+<li>Resolve <code>ResolvedDropPolicy</code></li>
+<li>Try placing into the target slot if one exists</li>
+<li>If everything fits, the entry succeeds</li>
+<li>If only part fits:</li>
 <li><code>AllowPartial = false</code> -&gt; fail</li>
 <li><code>AllowPartial = true</code> -&gt; partial success</li>
-<li>остаток ищет другие слоты только если <code>BlockedTargetBehavior = FindAlternative</code></li>
-<li>Если в target не вошло ничего:</li>
+<li>remainder can search for alternatives only when <code>BlockedTargetBehavior = FindAlternative</code></li>
+<li>If nothing fits into the target:</li>
 <li><code>Reject</code> -&gt; fail</li>
-<li><code>Swap</code> -&gt; planner строит swap entry</li>
-<li><code>FindAlternative</code> -&gt; стратегия перечисляет alternative slots</li>
-<li>Для same-inventory <code>FindAlternative</code> не перераскладывает предметы по другим слотам. Если target не подошёл, предмет остаётся на месте</li>
+<li><code>Swap</code> -&gt; planner creates a swap entry</li>
+<li><code>FindAlternative</code> -&gt; placement strategy enumerates alternative slots</li>
+<li>For same-inventory drops, <code>FindAlternative</code> does not reshuffle items across other slots. If the target fails, the item stays in place</li>
 </ol>
-<h2 id="batch-">Batch-операции</h2>
-<p>При групповом переносе (несколько предметов за раз) поведение определяется <code>BatchMode</code> внутри <code>DropPolicy</code>:</p>
+<h2 id="batch-operations">Batch operations</h2>
+<p>When transferring multiple items at once, behavior is determined by <code>BatchMode</code> inside <code>DropPolicy</code>:</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Перенос нескольких\nпредметов"] --&gt; B{"Какая политика?"}
-    B --&gt;|Atomic| C["Все или ничего:\nесли хоть один не влез,\nотменить всё"]
-    B --&gt;|BestEffort| D["Перенести что получилось,\nостальное оставить\nв источнике"]</code></pre>
-<p>По умолчанию batch mode берётся из inventory-level <code>DropPolicySettings</code>, а request override меняет только временное поведение конкретной операции.</p>
+    A["Transferring multiple\nitems"] --&gt; B{"Which policy?"}
+    B --&gt;|Atomic| C["All or nothing:\nif any item fails,\ncancel everything"]
+    B --&gt;|BestEffort| D["Transfer what fits,\nleave the rest\nin source"]</code></pre>
+<p>By default, batch mode comes from the target inventory's <code>DropPolicySettings</code>, while request overrides only affect temporary runtime behavior.</p>
 <hr />
-<h2 id="swap">Swap — это часть того же пайплайна</h2>
-<p>Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если <code>BlockedTargetBehavior = Swap</code>.</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Целевой слот занят"] --&gt; B{"Политика позволяет swap?"}
-    B --&gt;|Нет| C["Отклонить"]
-    B --&gt;|Да| D["Проверить оба направления\nна target-side preview stacks"]
-    D --&gt; E["Снять копии обоих стеков"]
+<h2 id="swap-is-part-of-the-same-pipeline">Swap is part of the same pipeline</h2>
+<pre class="mermaid"><code>flowchart TD
+    A["Target slot is occupied"] --&gt; B{"BlockedTargetBehavior = Swap?"}
+    B --&gt;|No| C["Reject"]
+    B --&gt;|Yes| D["Validate both directions\non target-side preview stacks"]
+    D --&gt; E["Capture copies of both stacks"]
     E --&gt; F["source -&gt; target:\noutgoing -&gt; incoming"]
     E --&gt; G["target -&gt; source:\noutgoing -&gt; incoming"]
-    F --&gt; H["Коммитить уже\nсконвертированные стеки\nв противоположные слоты"]
+    F --&gt; H["Commit converted stacks\ninto opposite slots"]
     G --&gt; H</code></pre>
-<p>Практически это значит:</p>
+<p>In practice this means:</p>
 <ul>
-<li>cross-inventory swap больше не должен быть raw exchange стеков</li>
-<li>оба направления сначала конвертируются в формат противоположного инвентаря</li>
-<li><code>OnItemRemoved</code> публикует стеки <code>before</code>, а <code>OnItemAdded</code> — стеки <code>after</code></li>
-<li>иначе в слоте остаётся чужой adapter-тип и следующая операция начинает падать на <code>CanStartDrag</code>/<code>CanDrop</code></li>
+<li>cross-inventory swap must not be a raw stack exchange</li>
+<li>both directions are converted into the opposite inventory format before commit</li>
+<li><code>OnItemRemoved</code> publishes <code>before</code> stacks, while <code>OnItemAdded</code> publishes <code>after</code> stacks</li>
+<li>otherwise a foreign adapter type remains in the slot and the next operation fails in <code>CanStartDrag</code> / <code>CanDrop</code></li>
 </ul>
 <hr />
-<h2 id="_10">Что имеет смысл знать, а что нет</h2>
-<p>Обычно пользователю ассета нужно понимать:</p>
+<h2 id="what-you-need-to-know-vs-what-you-dont">What you need to know vs what you don't</h2>
+<p>Usually an asset user needs to understand:</p>
 <ul>
-<li>где пишутся rules</li>
-<li>где писать business checks</li>
-<li>когда синхронизируются данные</li>
-<li>почему partial transfer и swap ведут себя предсказуемо</li>
+<li>where to write rules</li>
+<li>where to write business checks</li>
+<li>when data syncs</li>
+<li>why partial transfer and swap behave predictably</li>
 </ul>
-<p>Обычно не нужно понимать заранее:</p>
+<p>Usually not needed upfront:</p>
 <ul>
-<li>внутренние helper-структуры planning layer</li>
-<li>низкоуровневые шаги execution layer</li>
-<li>карту всех внутренних классов конвейера</li>
+<li>internal helper structures in the planning layer</li>
+<li>low-level execution layer steps</li>
+<li>map of all internal pipeline classes</li>
 </ul>
-<p>Если вы меняете сам ассет, а не только используете его, тогда уже смотрите <a href="../../reference/file-map/">Карту файлов</a>.</p>
+<p>If you're modifying the asset itself rather than just using it, see the <a href="../../reference/file-map/">File Map</a>.</p>
 
 
 
@@ -2485,7 +2482,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -2517,7 +2514,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

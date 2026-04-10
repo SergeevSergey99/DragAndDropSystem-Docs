@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -18,9 +18,9 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../en/architecture/item-conversion-cookbook/" hreflang="en">
+          <link rel="alternate" href="../../ru/architecture/item-conversion-cookbook/" hreflang="ru">
         
       
       
@@ -29,7 +29,7 @@
     
     
       
-        <title>Cookbook: конвертация предметов - Drag & Drop Inventory System</title>
+        <title>Cookbook: Item Conversion - Drag & Drop Inventory System</title>
       
     
     
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#cookbook" class="md-skip">
-          Перейти к содержанию
+        <a href="#cookbook-item-conversion" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,7 +95,7 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+  <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Cookbook: конвертация предметов
+              Cookbook: Item Conversion
             
           </span>
         </div>
@@ -156,21 +156,21 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
-              Русский
+            <a href="./" hreflang="en" class="md-select__link">
+              English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/architecture/item-conversion-cookbook/" hreflang="en" class="md-select__link">
-              English
+            <a href="../../ru/architecture/item-conversion-cookbook/" hreflang="ru" class="md-select__link">
+              Русский
             </a>
           </li>
         
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -210,7 +210,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -231,7 +231,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,7 +247,7 @@
           
   
   
-  Главная
+  Home
 
         </a>
       </li>
@@ -267,7 +267,7 @@
           
   
   
-  Примеры
+  Examples
 
         </a>
       </li>
@@ -289,7 +289,7 @@
           
   
   
-  Основные концепции
+  Core Concepts
 
         </a>
       </li>
@@ -309,7 +309,7 @@
           
   
   
-  Продвинутые системы
+  Advanced Systems
 
         </a>
       </li>
@@ -329,7 +329,7 @@
           
   
   
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -349,7 +349,7 @@
           
   
   
-  Еще
+  More
 
         </a>
       </li>
@@ -377,7 +377,7 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
@@ -422,7 +422,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -438,7 +438,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Home
   
 
           </label>
@@ -458,7 +458,7 @@
   <span class="md-ellipsis">
     
   
-    Введение
+    Introduction
   
 
     
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
   
 
     
@@ -539,7 +539,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -555,7 +555,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Examples
   
 
           </label>
@@ -575,7 +575,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -771,7 +771,7 @@
   <span class="md-ellipsis">
     
   
-    Основные концепции
+    Core Concepts
   
 
     
@@ -787,7 +787,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Основные концепции
+    Core Concepts
   
 
           </label>
@@ -807,7 +807,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -835,7 +835,7 @@
   <span class="md-ellipsis">
     
   
-    Шаблоны DataBinding
+    Binding Templates
   
 
     
@@ -863,7 +863,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Transfer Pipeline
   
 
     
@@ -891,7 +891,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy Matrix
   
 
     
@@ -928,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Cookbook: Item Conversion
   
 
     
@@ -946,7 +946,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Cookbook: Item Conversion
   
 
     
@@ -958,7 +958,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -967,15 +967,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#converter" class="md-nav__link">
+  <a href="#when-a-converter-is-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда вообще нужен converter
+        When a converter is needed
       
     </span>
   </a>
@@ -983,10 +983,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#converter_1" class="md-nav__link">
+  <a href="#where-the-converter-lives" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Где живёт converter
+        Where the converter lives
       
     </span>
   </a>
@@ -994,15 +994,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conversion" class="md-nav__link">
+  <a href="#who-calls-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Кто вызывает conversion
+        Who calls conversion
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Кто вызывает conversion">
+    <nav class="md-nav" aria-label="Who calls conversion">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1044,10 +1044,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#correct-mental-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Правильная ментальная модель
+        Correct mental model
       
     </span>
   </a>
@@ -1055,10 +1055,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adapter" class="md-nav__link">
+  <a href="#what-an-adapter-must-preserve" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что должен сохранять adapter
+        What an adapter must preserve
       
     </span>
   </a>
@@ -1066,22 +1066,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#what-not-to-do" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Чего делать нельзя
+        What not to do
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Чего делать нельзя">
+    <nav class="md-nav" aria-label="What not to do">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#adapter-representative" class="md-nav__link">
+  <a href="#do-not-use-one-adapter-as-a-representative-for-the-entire-stack" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Нельзя использовать один adapter как representative для всего стека
+        Do not use one adapter as a representative for the entire stack
       
     </span>
   </a>
@@ -1089,10 +1089,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#raw-stack-exchange-cross-inventory-swap" class="md-nav__link">
+  <a href="#do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Нельзя делать raw stack exchange для cross-inventory swap
+        Do not implement cross-inventory swap as a raw stack exchange
       
     </span>
   </a>
@@ -1100,10 +1100,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#preview-execution-object-reference" class="md-nav__link">
+  <a href="#do-not-rely-on-preview-and-execution-sharing-the-same-object-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Нельзя считать, что preview и execution делят один и тот же object reference
+        Do not rely on preview and execution sharing the same object reference
       
     </span>
   </a>
@@ -1116,10 +1116,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#converter-null" class="md-nav__link">
+  <a href="#when-a-converter-should-return-null" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда converter должен возвращать null
+        When a converter should return null
       
     </span>
   </a>
@@ -1127,22 +1127,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conversion_1" class="md-nav__link">
+  <a href="#how-to-diagnose-conversion-errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как диагностировать ошибки conversion
+        How to diagnose conversion errors
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Как диагностировать ошибки conversion">
+    <nav class="md-nav" aria-label="How to diagnose conversion errors">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#symptom-wrong-item-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Симптом: Неверный тип предмета
+        Symptom: Wrong item type
       
     </span>
   </a>
@@ -1150,10 +1150,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#swap_1" class="md-nav__link">
+  <a href="#symptom-first-swap-works-second-swap-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Симптом: первый swap работает, второй ломается
+        Symptom: first swap works, second swap breaks
       
     </span>
   </a>
@@ -1161,10 +1161,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#preview-commit" class="md-nav__link">
+  <a href="#symptom-preview-passes-commit-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Симптом: preview проходит, а commit нет
+        Symptom: preview passes, commit fails
       
     </span>
   </a>
@@ -1177,10 +1177,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#-converter-" class="md-nav__link">
+  <a href="#mini-checklist-for-new-converters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Мини-чеклист для новых converter-ов
+        Mini checklist for new converters
       
     </span>
   </a>
@@ -1188,10 +1188,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#where-to-continue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Где смотреть дальше
+        Where to continue
       
     </span>
   </a>
@@ -1221,7 +1221,7 @@
   <span class="md-ellipsis">
     
   
-    Стратегии размещения
+    Placement Strategies
   
 
     
@@ -1249,7 +1249,7 @@
   <span class="md-ellipsis">
     
   
-    Правила (Rules)
+    Rules
   
 
     
@@ -1277,7 +1277,7 @@
   <span class="md-ellipsis">
     
   
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1330,7 +1330,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Advanced Systems
   
 
     
@@ -1346,7 +1346,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Advanced Systems
   
 
           </label>
@@ -1366,7 +1366,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1394,7 +1394,7 @@
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1422,7 +1422,7 @@
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1450,7 +1450,7 @@
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1478,7 +1478,7 @@
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1506,7 +1506,7 @@
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1534,7 +1534,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Free-Form Layout
   
 
     
@@ -1587,7 +1587,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1603,7 +1603,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1623,7 +1623,7 @@
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Optional Interfaces
   
 
     
@@ -1651,7 +1651,7 @@
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    File Map
   
 
     
@@ -1679,7 +1679,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Event Reference
   
 
     
@@ -1707,7 +1707,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1788,7 +1788,7 @@
   <span class="md-ellipsis">
     
   
-    Еще
+    More
   
 
     
@@ -1804,7 +1804,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Еще
+    More
   
 
           </label>
@@ -1824,7 +1824,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1852,7 +1852,7 @@
   <span class="md-ellipsis">
     
   
-    Планы на будущее
+    Future Plans
   
 
     
@@ -1880,7 +1880,7 @@
   <span class="md-ellipsis">
     
   
-    Витрина проектов
+    Showcase
   
 
     
@@ -1914,7 +1914,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1923,15 +1923,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#converter" class="md-nav__link">
+  <a href="#when-a-converter-is-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда вообще нужен converter
+        When a converter is needed
       
     </span>
   </a>
@@ -1939,10 +1939,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#converter_1" class="md-nav__link">
+  <a href="#where-the-converter-lives" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Где живёт converter
+        Where the converter lives
       
     </span>
   </a>
@@ -1950,15 +1950,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conversion" class="md-nav__link">
+  <a href="#who-calls-conversion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Кто вызывает conversion
+        Who calls conversion
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Кто вызывает conversion">
+    <nav class="md-nav" aria-label="Who calls conversion">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2000,10 +2000,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#correct-mental-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Правильная ментальная модель
+        Correct mental model
       
     </span>
   </a>
@@ -2011,10 +2011,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adapter" class="md-nav__link">
+  <a href="#what-an-adapter-must-preserve" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что должен сохранять adapter
+        What an adapter must preserve
       
     </span>
   </a>
@@ -2022,22 +2022,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#what-not-to-do" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Чего делать нельзя
+        What not to do
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Чего делать нельзя">
+    <nav class="md-nav" aria-label="What not to do">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#adapter-representative" class="md-nav__link">
+  <a href="#do-not-use-one-adapter-as-a-representative-for-the-entire-stack" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Нельзя использовать один adapter как representative для всего стека
+        Do not use one adapter as a representative for the entire stack
       
     </span>
   </a>
@@ -2045,10 +2045,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#raw-stack-exchange-cross-inventory-swap" class="md-nav__link">
+  <a href="#do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Нельзя делать raw stack exchange для cross-inventory swap
+        Do not implement cross-inventory swap as a raw stack exchange
       
     </span>
   </a>
@@ -2056,10 +2056,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#preview-execution-object-reference" class="md-nav__link">
+  <a href="#do-not-rely-on-preview-and-execution-sharing-the-same-object-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Нельзя считать, что preview и execution делят один и тот же object reference
+        Do not rely on preview and execution sharing the same object reference
       
     </span>
   </a>
@@ -2072,10 +2072,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#converter-null" class="md-nav__link">
+  <a href="#when-a-converter-should-return-null" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда converter должен возвращать null
+        When a converter should return null
       
     </span>
   </a>
@@ -2083,22 +2083,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conversion_1" class="md-nav__link">
+  <a href="#how-to-diagnose-conversion-errors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как диагностировать ошибки conversion
+        How to diagnose conversion errors
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Как диагностировать ошибки conversion">
+    <nav class="md-nav" aria-label="How to diagnose conversion errors">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#symptom-wrong-item-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Симптом: Неверный тип предмета
+        Symptom: Wrong item type
       
     </span>
   </a>
@@ -2106,10 +2106,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#swap_1" class="md-nav__link">
+  <a href="#symptom-first-swap-works-second-swap-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Симптом: первый swap работает, второй ломается
+        Symptom: first swap works, second swap breaks
       
     </span>
   </a>
@@ -2117,10 +2117,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#preview-commit" class="md-nav__link">
+  <a href="#symptom-preview-passes-commit-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Симптом: preview проходит, а commit нет
+        Symptom: preview passes, commit fails
       
     </span>
   </a>
@@ -2133,10 +2133,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#-converter-" class="md-nav__link">
+  <a href="#mini-checklist-for-new-converters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Мини-чеклист для новых converter-ов
+        Mini checklist for new converters
       
     </span>
   </a>
@@ -2144,10 +2144,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#where-to-continue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Где смотреть дальше
+        Where to continue
       
     </span>
   </a>
@@ -2171,149 +2171,149 @@
 
 
 
-<h1 id="cookbook">Cookbook: конвертация предметов</h1>
-<p>Эта страница отвечает на практический вопрос:
-"как правильно настроить conversion между двумя инвентарями, если у них разные adapter-модели?"</p>
-<p>Архитектурный обзор уже есть в <a href="../transfer-pipeline/">Конвейере переноса</a>.
-Здесь собраны рабочие правила и типовые ошибки.</p>
+<h1 id="cookbook-item-conversion">Cookbook: Item Conversion</h1>
+<p>This page answers a practical question:
+"how should I configure conversion between two inventories that use different adapter models?"</p>
+<p>The architectural overview already exists in <a href="../transfer-pipeline/">Transfer Pipeline</a>.
+This page focuses on working rules and common mistakes.</p>
 <hr />
-<h2 id="converter">Когда вообще нужен converter</h2>
-<p>Converter нужен, если два инвентаря используют разные представления одного и того же предмета.</p>
-<p>Типичные примеры:</p>
+<h2 id="when-a-converter-is-needed">When a converter is needed</h2>
+<p>A converter is needed when two inventories use different representations of the same item.</p>
+<p>Typical examples:</p>
 <ul>
-<li>торговец хранит <code>ScriptableObject</code>, игрок — runtime-модель</li>
-<li>UI-инвентарь хранит облегчённые adapters, а доменная система — rich instances</li>
-<li>контейнер внутри предмета использует другой adapter boundary</li>
+<li>a merchant stores <code>ScriptableObject</code>s while the player uses runtime models</li>
+<li>a UI-facing inventory uses lightweight adapters while the domain model uses rich instances</li>
+<li>an inventory boundary inside a container item uses another adapter model</li>
 </ul>
-<p>Если обе стороны уже используют один и тот же adapter-тип, converter обычно не нужен.</p>
+<p>If both sides already use the same adapter type, a converter is usually unnecessary.</p>
 <hr />
-<h2 id="converter_1">Где живёт converter</h2>
-<p>Converter задаётся на стороне inventory binding:</p>
+<h2 id="where-the-converter-lives">Where the converter lives</h2>
+<p>The converter is declared on the inventory binding side:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IItemAdapterConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyItemAdapterConverter</span><span class="p">();</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">}</span>
 </code></pre></div>
-<p>То есть binding говорит:</p>
+<p>So the binding defines:</p>
 <ul>
-<li>как этот инвентарь отдаёт предмет наружу</li>
-<li>как этот инвентарь принимает предмет внутрь</li>
+<li>how this inventory exports an item</li>
+<li>how this inventory imports an item</li>
 </ul>
-<p>По умолчанию используется identity-converter.</p>
+<p>By default, the system uses an identity converter.</p>
 <hr />
-<h2 id="conversion">Кто вызывает conversion</h2>
+<h2 id="who-calls-conversion">Who calls conversion</h2>
 <h3 id="preview-planning">Preview / planning</h3>
-<p>Во время preview и planning conversion orchestrates <code>TransferItemConversionUtility</code>.</p>
-<p>Это нужно, чтобы target rules и binding hooks видели уже target-side adapter, а не source-side adapter.</p>
+<p>During preview and planning, conversion is orchestrated by <code>TransferItemConversionUtility</code>.</p>
+<p>This is required so target rules and binding hooks see a target-side adapter rather than the original source-side adapter.</p>
 <h3 id="normal-execution">Normal execution</h3>
-<p>При обычном переносе цепочка такая:</p>
+<p>For a regular transfer, the chain is:</p>
 <ol>
-<li>предмет забирается из source slot</li>
-<li>выполняется <code>source outgoing</code></li>
-<li>затем <code>target incoming</code></li>
-<li>уже после этого предмет размещается в target inventory</li>
+<li>the item is taken from the source slot</li>
+<li><code>source outgoing</code> runs</li>
+<li>then <code>target incoming</code> runs</li>
+<li>only after that is the item placed into the target inventory</li>
 </ol>
 <h3 id="swap">Swap</h3>
-<p>Swap нельзя воспринимать как одну симметричную операцию.
-Это две независимые цепочки:</p>
+<p>Swap is not one symmetric conversion.
+It is two separate chains:</p>
 <ul>
 <li><code>A -&gt; B</code></li>
 <li><code>B -&gt; A</code></li>
 </ul>
-<p>Обе проходят через свои <code>outgoing -&gt; incoming</code>.</p>
+<p>Each one runs through its own <code>outgoing -&gt; incoming</code>.</p>
 <hr />
-<h2 id="_1">Правильная ментальная модель</h2>
-<p>Не думайте в терминах "инвентарь отдаёт готовый target object".</p>
-<p>Правильнее так:</p>
+<h2 id="correct-mental-model">Correct mental model</h2>
+<p>Do not think in terms of "the source inventory gives the final target object".</p>
+<p>Think instead:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>source adapter
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -&gt; source outgoing
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  -&gt; промежуточное представление
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  -&gt; intermediate representation
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  -&gt; target incoming
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  -&gt; target adapter
 </code></pre></div>
-<p>Промежуточное представление не обязано быть отдельным типом.
-Главное, что boundary source и boundary target независимы.</p>
+<p>The intermediate representation does not need to be a dedicated type.
+What matters is that source and target boundaries stay independent.</p>
 <hr />
-<h2 id="adapter">Что должен сохранять adapter</h2>
-<p>Если у предметов есть instance-state, adapter обязан корректно переносить его через conversion:</p>
+<h2 id="what-an-adapter-must-preserve">What an adapter must preserve</h2>
+<p>If your items have instance state, the adapter must carry it safely through conversion:</p>
 <ul>
-<li>стабильный <code>ItemId</code>, если он участвует в stacking semantics</li>
-<li>runtime-поля конкретного экземпляра</li>
-<li>ссылку на доменную сущность, если предмет уникален</li>
-<li>данные, по которым потом работает <code>CanStartDrag</code>, <code>CanDrop</code>, tooltips и side effects</li>
+<li>a stable <code>ItemId</code>, if stacking semantics depend on it</li>
+<li>runtime fields of the specific instance</li>
+<li>a reference to the domain entity, if the item is unique</li>
+<li>data later used by <code>CanStartDrag</code>, <code>CanDrop</code>, tooltips, and side effects</li>
 </ul>
-<p>Если после переноса у вас "вроде тот же предмет, но потом ломается drag", это почти всегда значит, что target получил не тот adapter-type или не тот instance-state.</p>
+<p>If the item "looks right after transfer but drag breaks later", the usual cause is that the target received the wrong adapter type or the wrong instance state.</p>
 <hr />
-<h2 id="_2">Чего делать нельзя</h2>
-<h3 id="adapter-representative">Нельзя использовать один adapter как representative для всего стека</h3>
-<p>Если внутри стека лежат разные runtime instances, нельзя "размножать" один adapter через <code>Repeat</code>.</p>
-<p>Иначе:</p>
+<h2 id="what-not-to-do">What not to do</h2>
+<h3 id="do-not-use-one-adapter-as-a-representative-for-the-entire-stack">Do not use one adapter as a representative for the entire stack</h3>
+<p>If a stack contains different runtime instances, do not clone one adapter through <code>Repeat</code>.</p>
+<p>That causes:</p>
 <ul>
-<li>теряется instance-state</li>
-<li>preview и execution начинают расходиться</li>
-<li>remove/add hooks получают искажённые данные</li>
+<li>loss of instance state</li>
+<li>preview and execution diverging</li>
+<li>distorted remove/add payloads</li>
 </ul>
-<h3 id="raw-stack-exchange-cross-inventory-swap">Нельзя делать raw stack exchange для cross-inventory swap</h3>
-<p>Если swap просто меняет местами два <code>ItemStack</code>, то:</p>
+<h3 id="do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange">Do not implement cross-inventory swap as a raw stack exchange</h3>
+<p>If swap merely swaps two <code>ItemStack</code> objects:</p>
 <ul>
-<li>в target slot попадает чужой adapter-type</li>
-<li>следующий <code>CanStartDrag</code> или <code>CanDrop</code> начинает падать на типе</li>
+<li>the target slot receives a foreign adapter type</li>
+<li>the next <code>CanStartDrag</code> or <code>CanDrop</code> starts failing on type checks</li>
 </ul>
-<h3 id="preview-execution-object-reference">Нельзя считать, что preview и execution делят один и тот же object reference</h3>
-<p>Preview stack и execution stack могут быть разными объектами.
-Стабильность должна держаться на данных и conversion semantics, а не на reference equality.</p>
+<h3 id="do-not-rely-on-preview-and-execution-sharing-the-same-object-reference">Do not rely on preview and execution sharing the same object reference</h3>
+<p>The preview stack and the execution stack may be different objects.
+Stability must come from data and conversion semantics, not reference equality.</p>
 <hr />
-<h2 id="converter-null">Когда converter должен возвращать <code>null</code></h2>
-<p><code>null</code> означает не "не хочу сейчас", а "этот boundary не может принять/отдать такой предмет".</p>
-<p>Это уместно, если:</p>
+<h2 id="when-a-converter-should-return-null">When a converter should return <code>null</code></h2>
+<p><code>null</code> means not "I do not want to do it right now", but "this boundary cannot export/import this item".</p>
+<p>That is appropriate when:</p>
 <ul>
-<li>предмет вообще не должен пересекать эту границу</li>
-<li>binding не умеет материализовать нужный target adapter</li>
-<li>потеря данных была бы недопустима</li>
+<li>the item must never cross this boundary</li>
+<li>the binding cannot materialize the required target adapter</li>
+<li>data loss would be unacceptable</li>
 </ul>
-<p>Если операция просто временно запрещена бизнес-логикой, это не задача converter.
-Тогда используйте:</p>
+<p>If the operation is only temporarily forbidden by business logic, that is not the converter's job.
+Use:</p>
 <ul>
 <li>rules</li>
 <li><code>CanCommitTransfer</code></li>
 <li><code>CanCommitTransferAsync</code></li>
 </ul>
 <hr />
-<h2 id="conversion_1">Как диагностировать ошибки conversion</h2>
-<h3 id="_3">Симптом: <code>Неверный тип предмета</code></h3>
-<p>Обычно значит:</p>
+<h2 id="how-to-diagnose-conversion-errors">How to diagnose conversion errors</h2>
+<h3 id="symptom-wrong-item-type">Symptom: <code>Wrong item type</code></h3>
+<p>Usually means:</p>
 <ul>
-<li>target binding получил source adapter-type</li>
-<li>swap был выполнен как raw exchange</li>
-<li>preview конвертировался, а execution — нет</li>
+<li>the target binding received the source adapter type</li>
+<li>swap was committed as a raw exchange</li>
+<li>preview converted correctly, but execution did not</li>
 </ul>
-<h3 id="swap_1">Симптом: первый swap работает, второй ломается</h3>
-<p>Обычно значит:</p>
+<h3 id="symptom-first-swap-works-second-swap-breaks">Symptom: first swap works, second swap breaks</h3>
+<p>Usually means:</p>
 <ul>
-<li>commit прошёл с неправильным adapter-type внутри slot</li>
-<li>после первого swap слот физически хранит объект чужого инвентаря</li>
+<li>commit succeeded with the wrong adapter type stored in the slot</li>
+<li>after the first swap, the slot physically contains an object from the other inventory boundary</li>
 </ul>
-<h3 id="preview-commit">Симптом: preview проходит, а commit нет</h3>
-<p>Обычно значит:</p>
+<h3 id="symptom-preview-passes-commit-fails">Symptom: preview passes, commit fails</h3>
+<p>Usually means:</p>
 <ul>
-<li>preview stack был собран корректно</li>
-<li>а execution-путь использует другой conversion route</li>
-</ul>
-<hr />
-<h2 id="-converter-">Мини-чеклист для новых converter-ов</h2>
-<ul>
-<li>binding действительно переопределяет <code>CreateItemConverter()</code></li>
-<li>outgoing и incoming симметричны настолько, насколько этого требует доменная модель</li>
-<li>каждый adapter в стеке конвертируется индивидуально</li>
-<li>target после commit хранит adapter своего собственного inventory</li>
-<li>swap работает как две отдельные conversion-цепочки</li>
+<li>the preview stack was assembled correctly</li>
+<li>but execution used a different conversion route</li>
 </ul>
 <hr />
-<h2 id="_4">Где смотреть дальше</h2>
+<h2 id="mini-checklist-for-new-converters">Mini checklist for new converters</h2>
 <ul>
-<li><a href="../transfer-pipeline/">Конвейер переноса</a> — полная фаза planning/execution</li>
-<li><a href="../../examples/demo4-trading/">Demo4 Trading</a> — рабочий пример conversion между merchant/player/equipment</li>
-<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — симптомы и типовые причины</li>
+<li>the binding really overrides <code>CreateItemConverter()</code></li>
+<li>outgoing and incoming are as symmetric as your domain model requires</li>
+<li>each adapter in a stack is converted individually</li>
+<li>the target stores its own inventory-specific adapter type after commit</li>
+<li>swap runs as two independent conversion chains</li>
+</ul>
+<hr />
+<h2 id="where-to-continue">Where to continue</h2>
+<ul>
+<li><a href="../transfer-pipeline/">Transfer Pipeline</a> — full planning/execution order</li>
+<li><a href="../../examples/demo4-trading/">Demo4 Trading</a> — working example of merchant/player/equipment conversion</li>
+<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — symptoms and common causes</li>
 </ul>
 
 
@@ -2338,7 +2338,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -2370,7 +2370,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

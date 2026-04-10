@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -18,9 +18,9 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../en/reference/logs-and-debugging/" hreflang="en">
+          <link rel="alternate" href="../../ru/reference/logs-and-debugging/" hreflang="ru">
         
       
       
@@ -29,7 +29,7 @@
     
     
       
-        <title>Логи и отладка - Drag & Drop Inventory System</title>
+        <title>Logs and Debugging - Drag & Drop Inventory System</title>
       
     
     
@@ -82,8 +82,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
-          Перейти к содержанию
+        <a href="#logs-and-debugging" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,7 +95,7 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+  <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Логи и отладка
+              Logs and Debugging
             
           </span>
         </div>
@@ -156,21 +156,21 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
-              Русский
+            <a href="./" hreflang="en" class="md-select__link">
+              English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/reference/logs-and-debugging/" hreflang="en" class="md-select__link">
-              English
+            <a href="../../ru/reference/logs-and-debugging/" hreflang="ru" class="md-select__link">
+              Русский
             </a>
           </li>
         
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -210,7 +210,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -231,7 +231,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,7 +247,7 @@
           
   
   
-  Главная
+  Home
 
         </a>
       </li>
@@ -267,7 +267,7 @@
           
   
   
-  Примеры
+  Examples
 
         </a>
       </li>
@@ -287,7 +287,7 @@
           
   
   
-  Основные концепции
+  Core Concepts
 
         </a>
       </li>
@@ -307,7 +307,7 @@
           
   
   
-  Продвинутые системы
+  Advanced Systems
 
         </a>
       </li>
@@ -329,7 +329,7 @@
           
   
   
-  Справочник
+  Reference
 
         </a>
       </li>
@@ -349,7 +349,7 @@
           
   
   
-  Еще
+  More
 
         </a>
       </li>
@@ -377,7 +377,7 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
@@ -422,7 +422,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Home
   
 
     
@@ -438,7 +438,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Home
   
 
           </label>
@@ -458,7 +458,7 @@
   <span class="md-ellipsis">
     
   
-    Введение
+    Introduction
   
 
     
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
   
 
     
@@ -539,7 +539,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -555,7 +555,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Examples
   
 
           </label>
@@ -575,7 +575,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Examples
   
 
     
@@ -768,7 +768,7 @@
   <span class="md-ellipsis">
     
   
-    Основные концепции
+    Core Concepts
   
 
     
@@ -784,7 +784,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Основные концепции
+    Core Concepts
   
 
           </label>
@@ -804,7 +804,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -832,7 +832,7 @@
   <span class="md-ellipsis">
     
   
-    Шаблоны DataBinding
+    Binding Templates
   
 
     
@@ -860,7 +860,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Transfer Pipeline
   
 
     
@@ -888,7 +888,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy Matrix
   
 
     
@@ -916,7 +916,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Cookbook: Item Conversion
   
 
     
@@ -944,7 +944,7 @@
   <span class="md-ellipsis">
     
   
-    Стратегии размещения
+    Placement Strategies
   
 
     
@@ -972,7 +972,7 @@
   <span class="md-ellipsis">
     
   
-    Правила (Rules)
+    Rules
   
 
     
@@ -1000,7 +1000,7 @@
   <span class="md-ellipsis">
     
   
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1053,7 +1053,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Advanced Systems
   
 
     
@@ -1069,7 +1069,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Advanced Systems
   
 
           </label>
@@ -1089,7 +1089,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selection
   
 
     
@@ -1117,7 +1117,7 @@
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1145,7 +1145,7 @@
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1173,7 +1173,7 @@
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1201,7 +1201,7 @@
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1229,7 +1229,7 @@
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1257,7 +1257,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Free-Form Layout
   
 
     
@@ -1313,7 +1313,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Reference
   
 
     
@@ -1329,7 +1329,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Reference
   
 
           </label>
@@ -1349,7 +1349,7 @@
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Optional Interfaces
   
 
     
@@ -1377,7 +1377,7 @@
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    File Map
   
 
     
@@ -1405,7 +1405,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Event Reference
   
 
     
@@ -1442,7 +1442,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1460,7 +1460,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs and Debugging
   
 
     
@@ -1472,7 +1472,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1481,15 +1481,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#short-log-map" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Короткая карта логов
+        Short log map
       
     </span>
   </a>
@@ -1497,15 +1497,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#how-to-read-common-logs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как читать типовые логи
+        How to read common logs
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Как читать типовые логи">
+    <nav class="md-nav" aria-label="How to read common logs">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1558,15 +1558,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#fast-diagnosis-by-phase" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Быстрая диагностика по фазам
+        Fast diagnosis by phase
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Быстрая диагностика по фазам">
+    <nav class="md-nav" aria-label="Fast diagnosis by phase">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1630,22 +1630,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#practical-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Практические паттерны
+        Practical patterns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Практические паттерны">
+    <nav class="md-nav" aria-label="Practical patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#preview-commit" class="md-nav__link">
+  <a href="#preview-passed-commit-failed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preview прошёл, commit упал
+        Preview passed, commit failed
       
     </span>
   </a>
@@ -1653,10 +1653,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#warning-" class="md-nav__link">
+  <a href="#warnings-appear-for-other-slots" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Сыпятся warning-и по другим слотам
+        Warnings appear for other slots
       
     </span>
   </a>
@@ -1664,10 +1664,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#swap" class="md-nav__link">
+  <a href="#first-swap-succeeds-second-swap-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Первый swap успешен, второй ломается
+        First swap succeeds, second swap fails
       
     </span>
   </a>
@@ -1680,10 +1680,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#read-this-together-with" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что смотреть вместе с этой страницей
+        Read this together with
       
     </span>
   </a>
@@ -1766,7 +1766,7 @@
   <span class="md-ellipsis">
     
   
-    Еще
+    More
   
 
     
@@ -1782,7 +1782,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Еще
+    More
   
 
           </label>
@@ -1802,7 +1802,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1830,7 +1830,7 @@
   <span class="md-ellipsis">
     
   
-    Планы на будущее
+    Future Plans
   
 
     
@@ -1858,7 +1858,7 @@
   <span class="md-ellipsis">
     
   
-    Витрина проектов
+    Showcase
   
 
     
@@ -1892,7 +1892,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1901,15 +1901,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#short-log-map" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Короткая карта логов
+        Short log map
       
     </span>
   </a>
@@ -1917,15 +1917,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#how-to-read-common-logs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как читать типовые логи
+        How to read common logs
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Как читать типовые логи">
+    <nav class="md-nav" aria-label="How to read common logs">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1978,15 +1978,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#fast-diagnosis-by-phase" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Быстрая диагностика по фазам
+        Fast diagnosis by phase
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Быстрая диагностика по фазам">
+    <nav class="md-nav" aria-label="Fast diagnosis by phase">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2050,22 +2050,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#practical-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Практические паттерны
+        Practical patterns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Практические паттерны">
+    <nav class="md-nav" aria-label="Practical patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#preview-commit" class="md-nav__link">
+  <a href="#preview-passed-commit-failed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preview прошёл, commit упал
+        Preview passed, commit failed
       
     </span>
   </a>
@@ -2073,10 +2073,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#warning-" class="md-nav__link">
+  <a href="#warnings-appear-for-other-slots" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Сыпятся warning-и по другим слотам
+        Warnings appear for other slots
       
     </span>
   </a>
@@ -2084,10 +2084,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#swap" class="md-nav__link">
+  <a href="#first-swap-succeeds-second-swap-fails" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Первый swap успешен, второй ломается
+        First swap succeeds, second swap fails
       
     </span>
   </a>
@@ -2100,10 +2100,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#read-this-together-with" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что смотреть вместе с этой страницей
+        Read this together with
       
     </span>
   </a>
@@ -2127,192 +2127,192 @@
 
 
 
-<h1 id="_1">Логи и отладка</h1>
-<p>Эта страница помогает быстро понять, в какой фазе конвейера произошёл отказ.</p>
-<p>Главная идея:</p>
+<h1 id="logs-and-debugging">Logs and Debugging</h1>
+<p>This page helps you quickly identify which phase of the pipeline failed.</p>
+<p>Core idea:</p>
 <ul>
-<li><code>planner</code> отвечает за выбор допустимого плана</li>
-<li><code>executor</code> отвечает за commit, conversion и rollback</li>
-<li><code>rules</code> отвечают за механические ограничения</li>
-<li><code>domain hooks</code> отвечают за бизнес-veto перед commit</li>
+<li><code>planner</code> chooses a valid plan</li>
+<li><code>executor</code> handles commit, conversion, and rollback</li>
+<li><code>rules</code> handle mechanical constraints</li>
+<li><code>domain hooks</code> handle business veto right before commit</li>
 </ul>
 <hr />
-<h2 id="_2">Короткая карта логов</h2>
+<h2 id="short-log-map">Short log map</h2>
 <table>
 <thead>
 <tr>
-<th>Где появился лог</th>
-<th>Что это обычно значит</th>
+<th>Where the log appears</th>
+<th>What it usually means</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>RuleResult</code></td>
-<td>отказ конкретной rule-проверки</td>
+<td>one specific rule check was rejected</td>
 </tr>
 <tr>
 <td><code>TransferPlanner</code></td>
-<td>проблема planning или выбора target</td>
+<td>planning or target-selection problem</td>
 </tr>
 <tr>
 <td><code>InventoryDropProcessor</code></td>
-<td>planner не смог построить валидный план</td>
+<td>planner failed to build a valid plan</td>
 </tr>
 <tr>
 <td><code>TransferPlanExecutor</code></td>
-<td>проблема commit, conversion, swap или rollback</td>
+<td>commit, conversion, swap, or rollback problem</td>
 </tr>
 <tr>
 <td><code>GetAcceptableCount</code></td>
-<td>inventory-wide search по слотам</td>
+<td>inventory-wide slot search</td>
 </tr>
 <tr>
 <td><code>CanCommitTransfer</code> / domain validation</td>
-<td>бизнес-логика запретила commit</td>
+<td>business logic vetoed the commit</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="_3">Как читать типовые логи</h2>
+<h2 id="how-to-read-common-logs">How to read common logs</h2>
 <h3 id="ruleresult-validation-failed"><code>[RuleResult] Validation failed: ...</code></h3>
-<p>Это лог отказа одной конкретной rule-ветки.</p>
-<p>Важно:</p>
+<p>This is the rejection of one concrete rule branch.</p>
+<p>Important:</p>
 <ul>
-<li>сам по себе он ещё не гарантирует баг</li>
-<li>иногда это нормальный отказ пробного candidate slot</li>
-<li>смотреть надо на стек вызовов: кто именно запустил эту проверку</li>
+<li>by itself it does not always mean a bug</li>
+<li>sometimes it is a normal rejection of a trial candidate slot</li>
+<li>the call stack matters: look at who initiated the check</li>
 </ul>
-<p>Если лог идёт из:</p>
+<p>If the log comes from:</p>
 <ul>
-<li><code>MappedSlotInventoryDataBinding.CanDrop()</code> -&gt; обычно проблема типа adapter или slot compatibility</li>
-<li><code>CanStartDrag()</code> -&gt; в source slot лежит не тот adapter-type или drag запрещён логикой binding</li>
+<li><code>MappedSlotInventoryDataBinding.CanDrop()</code> -&gt; usually adapter type or slot compatibility</li>
+<li><code>CanStartDrag()</code> -&gt; wrong adapter type in the source slot or source-side drag veto</li>
 </ul>
 <h3 id="inventorydropprocessor-plan-failed"><code>[InventoryDropProcessor] plan failed: ...</code></h3>
-<p>Planner не построил валидный план.
-До execution дело не дошло.</p>
-<p>Чаще всего причины:</p>
+<p>The planner failed to produce a valid plan.
+Execution has not started yet.</p>
+<p>Common causes:</p>
 <ul>
-<li>target slot не подходит</li>
-<li>policy не позволяет fallback</li>
-<li>нет допустимого candidate slot</li>
+<li>target slot is invalid</li>
+<li>policy does not allow a fallback</li>
+<li>there is no valid candidate slot</li>
 </ul>
 <h3 id="transferplanexecutor"><code>[TransferPlanExecutor] ...</code></h3>
-<p>Это уже execution-stage.
-Значит planning прошёл, но проблема возникла при:</p>
+<p>This is execution-stage logging.
+Planning already succeeded, and the problem happened during:</p>
 <ul>
 <li>domain validation</li>
 <li>split/remove</li>
 <li>outgoing/incoming conversion</li>
-<li>placement в target inventory</li>
+<li>placement into the target inventory</li>
 <li>swap commit</li>
 <li>rollback</li>
 </ul>
 <h3 id="inventoryname-getacceptablecount"><code>[InventoryName] GetAcceptableCount: ...</code></h3>
-<p>Это inventory-wide acceptance search.</p>
-<p>Если ты ожидал direct slot drop, а видишь этот лог, почти всегда стоит проверить:</p>
+<p>This is inventory-wide acceptance search.</p>
+<p>If you expected a direct slot drop and still see this log, usually check:</p>
 <ul>
-<li>действительно ли был concrete <code>targetSlot</code></li>
-<li>не ушла ли операция в <code>FindAlternative</code></li>
-<li>не срабатывает ли area-drop path</li>
+<li>whether a concrete <code>targetSlot</code> actually existed</li>
+<li>whether the operation fell into <code>FindAlternative</code></li>
+<li>whether this was an area-drop path</li>
 </ul>
 <hr />
-<h2 id="_4">Быстрая диагностика по фазам</h2>
+<h2 id="fast-diagnosis-by-phase">Fast diagnosis by phase</h2>
 <h3 id="1-drag-start">1. Drag start</h3>
-<p>Смотреть:</p>
+<p>Look at:</p>
 <ul>
 <li><code>OnDragAttempting</code></li>
 <li><code>ValidateStartDrag</code></li>
 <li>binding <code>CanStartDrag</code></li>
 </ul>
-<p>Типовые причины:</p>
+<p>Typical causes:</p>
 <ul>
-<li>source slot пуст</li>
-<li>slot содержит не тот adapter-type</li>
-<li>source binding запрещает drag</li>
+<li>source slot is empty</li>
+<li>slot contains the wrong adapter type</li>
+<li>source binding forbids dragging</li>
 </ul>
 <h3 id="2-preview-planning">2. Preview / planning</h3>
-<p>Смотреть:</p>
+<p>Look at:</p>
 <ul>
 <li><code>TransferPlanner</code></li>
 <li><code>ValidateDrop</code></li>
 <li><code>InventoryAcceptanceRequest</code></li>
 <li><code>GetAcceptableCount</code></li>
 </ul>
-<p>Типовые причины:</p>
+<p>Typical causes:</p>
 <ul>
-<li>target-side conversion не сработал</li>
-<li>slot rules отклоняют target adapter</li>
-<li>planner ищет candidates шире, чем ты ожидал</li>
+<li>target-side conversion failed</li>
+<li>slot rules reject the target adapter</li>
+<li>planner searches candidates more broadly than expected</li>
 </ul>
 <h3 id="3-domain-validation">3. Domain validation</h3>
-<p>Смотреть:</p>
+<p>Look at:</p>
 <ul>
 <li><code>CanCommitTransfer</code></li>
 <li><code>CanCommitTransferAsync</code></li>
 <li><code>ValidateDomainHandlers</code></li>
 </ul>
-<p>Типовые причины:</p>
+<p>Typical causes:</p>
 <ul>
-<li>деньги</li>
-<li>права доступа</li>
-<li>серверный veto</li>
-<li>внешняя синхронная/асинхронная проверка</li>
+<li>money</li>
+<li>access rights</li>
+<li>server veto</li>
+<li>external synchronous/asynchronous validation</li>
 </ul>
 <h3 id="4-execution">4. Execution</h3>
-<p>Смотреть:</p>
+<p>Look at:</p>
 <ul>
 <li><code>TransferPlanExecutor</code></li>
 <li>conversion utility</li>
 <li><code>TryAddToSlot</code> / <code>TryAddStack</code></li>
 </ul>
-<p>Типовые причины:</p>
+<p>Typical causes:</p>
 <ul>
 <li>conversion failed during commit</li>
-<li>placement не удался</li>
-<li>rollback вернул исходное состояние</li>
+<li>placement failed</li>
+<li>rollback restored the previous state</li>
 </ul>
 <h3 id="5-swap">5. Swap</h3>
-<p>Смотреть:</p>
+<p>Look at:</p>
 <ul>
 <li><code>RequiresSwap</code></li>
 <li><code>ValidateSwapRules</code></li>
 <li><code>OnSwapAttempting</code></li>
 <li><code>OnSwapCompleted</code></li>
 </ul>
-<p>Типовые причины:</p>
+<p>Typical causes:</p>
 <ul>
-<li>один из направлений swap не проходит rules</li>
-<li>swap сделан как raw exchange, а не conversion-aware commit</li>
-<li>после первого swap в slot остался чужой adapter-type</li>
+<li>one swap direction does not pass rules</li>
+<li>swap was implemented as a raw exchange instead of a conversion-aware commit</li>
+<li>after the first swap, a slot still contains a foreign adapter type</li>
 </ul>
 <hr />
-<h2 id="_5">Практические паттерны</h2>
-<h3 id="preview-commit">Preview прошёл, commit упал</h3>
-<p>Значит проблема не в rules, а в execution или domain hooks.</p>
-<p>Ищи в:</p>
+<h2 id="practical-patterns">Practical patterns</h2>
+<h3 id="preview-passed-commit-failed">Preview passed, commit failed</h3>
+<p>That usually means the issue is not in rules, but in execution or domain hooks.</p>
+<p>Check:</p>
 <ul>
 <li><code>CanCommitTransfer</code></li>
 <li><code>CanCommitTransferAsync</code></li>
 <li>executor conversion</li>
 <li>placement / rollback</li>
 </ul>
-<h3 id="warning-">Сыпятся warning-и по другим слотам</h3>
-<p>Значит где-то пошёл inventory-wide search.</p>
-<p>Ищи в:</p>
+<h3 id="warnings-appear-for-other-slots">Warnings appear for other slots</h3>
+<p>That usually means some path triggered inventory-wide search.</p>
+<p>Check:</p>
 <ul>
 <li><code>GetAcceptableCount</code></li>
 <li><code>FindAlternative</code></li>
 <li>area-drop</li>
-<li>неправильный route для direct slot drop</li>
+<li>incorrect routing for a direct slot drop</li>
 </ul>
-<h3 id="swap">Первый swap успешен, второй ломается</h3>
-<p>Почти всегда это означает, что после первого swap slot хранит не свой adapter-type.</p>
+<h3 id="first-swap-succeeds-second-swap-fails">First swap succeeds, second swap fails</h3>
+<p>This almost always means the slot stores the wrong adapter type after the first swap.</p>
 <hr />
-<h2 id="_6">Что смотреть вместе с этой страницей</h2>
+<h2 id="read-this-together-with">Read this together with</h2>
 <ul>
-<li><a href="../troubleshooting/">Troubleshooting</a> — симптом -&gt; причина -&gt; куда смотреть</li>
-<li><a href="../../architecture/transfer-pipeline/">Конвейер переноса</a> — порядок фаз</li>
-<li><a href="../../architecture/item-conversion-cookbook/">Cookbook: конвертация предметов</a> — если проблема в adapter boundary</li>
+<li><a href="../troubleshooting/">Troubleshooting</a> — symptom -&gt; cause -&gt; where to look</li>
+<li><a href="../../architecture/transfer-pipeline/">Transfer Pipeline</a> — phase order</li>
+<li><a href="../../architecture/item-conversion-cookbook/">Cookbook: Item Conversion</a> — adapter-boundary problems</li>
 </ul>
 
 
@@ -2337,7 +2337,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Back to top
 </button>
         
       </main>
@@ -2369,7 +2369,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
