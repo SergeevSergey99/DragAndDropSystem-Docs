@@ -301,7 +301,7 @@ By default, batch mode comes from the target inventory's `DropPolicySettings`, w
 ## Swap is part of the same pipeline
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Target slot is occupied"] --> B{"BlockedTargetBehavior = Swap?"}
     B -->|No| C["Reject"]
     B -->|Yes| D["Validate both directions\non target-side preview stacks"]
