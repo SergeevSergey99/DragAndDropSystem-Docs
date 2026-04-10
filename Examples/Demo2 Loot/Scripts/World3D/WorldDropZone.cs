@@ -5,8 +5,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// UI-зона для дропа предметов в 3D мир.
-    /// Спавнит префаб в указанной точке, удаление из источника — автоматически (DropAreaBase).
+    /// UI zone for dropping items into the 3D world.
+    /// Spawns a prefab at the specified point; removal from source is handled automatically (DropAreaBase).
     /// </summary>
     public class WorldDropZone : DropAreaBase
     {

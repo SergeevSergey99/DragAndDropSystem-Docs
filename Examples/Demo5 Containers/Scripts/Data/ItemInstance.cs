@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Runtime-экземпляр предмета. Для контейнеров хранит содержимое.
+    /// Runtime item instance. For containers it stores nested contents.
     /// </summary>
     [Serializable]
     public class ItemInstance : IContainerizeItemInstance

@@ -1,9 +1,9 @@
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Маркер-интерфейс для инвентарей торговцев.
-    /// Позволяет определить роль инвентаря в торговой операции
-    /// без привязки к конкретному классу DataBinding.
+    /// Marker interface for merchant inventories.
+    /// Allows identifying the role of an inventory in a trading operation
+    /// without tying code to a specific DataBinding class.
     /// </summary>
     public interface IMerchantInventory
     {

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Базовый тип предмета.
+    /// Base item type.
     /// </summary>
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/BaseItemSO")]
     public class BaseItemSO : ScriptableObject

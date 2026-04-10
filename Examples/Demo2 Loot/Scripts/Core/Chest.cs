@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Сундук - контейнер с предметами.
-    /// НЕ знает о UI, только хранит данные и вызывает события.
+    /// Chest: a container with items.
+    /// Does NOT know about the UI; it only stores data and raises events.
     /// </summary>
     public class Chest : MonoBehaviour, IInteractable
     {
@@ -28,7 +28,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void Awake()
         {
-            // Проверяем пустой ли сундук
+            // Check whether the chest is empty
             CheckIfEmpty();
         }
 
@@ -36,10 +36,10 @@ namespace DragAndDropSystem.Examples.Loot
         
         public void Interact(PlayerInteraction player)
         {
-            // Переключаем состояние
+            // Toggle state
             _isOpen = !_isOpen;
 
-            // Вызываем события (UI подпишется и покажет/скроет окно)
+            // Raise events (the UI will subscribe and show/hide the window)
             if (_isOpen)
             {
                 OnChestOpened?.Invoke(this);
@@ -90,7 +90,7 @@ namespace DragAndDropSystem.Examples.Loot
         {
             bool wasEmpty = _items.Count == 0;
 
-            // Если только что опустел
+            // If it just became empty
             if (IsEmpty && !wasEmpty)
             {
                 OnChestEmptied?.Invoke(this);

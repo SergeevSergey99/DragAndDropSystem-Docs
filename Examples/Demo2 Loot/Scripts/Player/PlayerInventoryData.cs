@@ -7,9 +7,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Компонент для хранения данных инвентаря игрока.
-    /// Использует фиксированное количество слотов с null для пустых.
-    /// Не содержит UI логики, только данные и события.
+    /// Component for storing player inventory data.
+    /// Uses a fixed number of slots with null for empty entries.
+    /// Contains no UI logic, only data and events.
     /// </summary>
     public class PlayerInventoryData : MonoBehaviour
     {
@@ -25,7 +25,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         // Properties
         /// <summary>
-        /// Список слотов (null = пустой слот). Длина всегда равна SlotCount.
+        /// List of slots (null = empty slot). Length always equals SlotCount.
         /// </summary>
         public IReadOnlyList<ItemExampleWith3DSO> Slots => _slots;
         public int SlotCount => _slotCount;
@@ -44,7 +44,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Гарантирует что список слотов имеет правильный размер
+        /// Ensures the slot list has the correct size
         /// </summary>
         private void EnsureSlotCount()
         {
@@ -55,7 +55,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Добавить предмет в конкретный слот
+        /// Add an item to a specific slot
         /// </summary>
         public bool SetItem(int slotIndex, ItemExampleWith3DSO item)
         {
@@ -77,7 +77,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Получить предмет из слота
+        /// Get an item from a slot
         /// </summary>
         public ItemExampleWith3DSO GetItem(int slotIndex)
         {
@@ -88,7 +88,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Очистить слот
+        /// Clear a slot
         /// </summary>
         public bool ClearSlot(int slotIndex)
         {
@@ -96,7 +96,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Найти первый пустой слот
+        /// Find the first empty slot
         /// </summary>
         public int FindEmptySlot()
         {
@@ -109,7 +109,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Добавить предмет в первый свободный слот
+        /// Add an item to the first free slot
         /// </summary>
         public bool AddItem(ItemExampleWith3DSO item)
         {
@@ -130,7 +130,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Убрать предмет из инвентаря (ищет по ссылке)
+        /// Remove an item from the inventory (searches by reference)
         /// </summary>
         public bool RemoveItem(ItemExampleWith3DSO item)
         {

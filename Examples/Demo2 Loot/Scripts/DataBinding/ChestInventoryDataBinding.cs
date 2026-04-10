@@ -6,17 +6,17 @@ using Plugins.DragAndDropSystem.Examples;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// DataBinding для инвентаря сундука.
-    /// Связывает Chest (данные) ↔ UniversalInventory (UI).
-    /// Привязывается динамически через BindToChest().
+    /// DataBinding for the chest inventory.
+    /// Connects Chest (data) with UniversalInventory (UI).
+    /// Bound dynamically through BindToChest().
     /// </summary>
     public class ChestInventoryDataBinding : ListInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>
     {
         private Chest _chest;
 
         /// <summary>
-        /// Привязать этот биндинг к конкретному сундуку.
-        /// Вызывается из LootUIController когда открывается сундук.
+        /// Bind this data binding to a specific chest.
+        /// Called from LootUIController when a chest is opened.
         /// </summary>
         public void BindToChest(Chest chest)
         {

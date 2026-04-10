@@ -4,7 +4,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Minecraft
 {
     /// <summary>
-    /// Адаптер для MinecraftItemSO.
+    /// Adapter for MinecraftItemSO.
     /// </summary>
     public class MinecraftItemAdapterAdapter : IItemAdapter
     {

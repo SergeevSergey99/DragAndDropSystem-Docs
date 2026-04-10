@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Plugins.DragAndDropSystem.Examples
 {
     /// <summary>
-    /// Пример предмета с поддержкой 3D представления
-    /// Расширяет ItemExampleSO добавляя поле для 3D префаба
-    /// Для работы с системой используйте ItemAdapterSoWith3DAdapter
+    /// Example item with support for a 3D representation
+    /// Extends ItemExampleSO by adding a field for a 3D prefab
+    /// Use ItemAdapterSoWith3DAdapter to work with the system
     /// </summary>
     [CreateAssetMenu(fileName = "ItemExampleWith3DSO", menuName = "DragAndDrop/Examples/ItemExampleWith3DSO", order = 2)]
     public class ItemExampleWith3DSO : ScriptableObject
@@ -22,7 +22,7 @@ namespace Plugins.DragAndDropSystem.Examples
         [SerializeField, Tooltip("Prefab to spawn in the 3D world when dropped")]
         private ItemController _worldPrefab;
 
-        // Публичное свойство для доступа из адаптера
+        // Public property for adapter access
         public ItemController WorldPrefab => _worldPrefab;
     }
 }

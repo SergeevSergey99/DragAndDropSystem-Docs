@@ -8,9 +8,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// DataBinding для инвентаря игрока.
-    /// Связывает PlayerInventoryData (данные) ↔ UniversalInventory (UI).
-    /// Сохраняет позиции предметов в слотах.
+    /// DataBinding for the player inventory.
+    /// Connects PlayerInventoryData (data) with UniversalInventory (UI).
+    /// Preserves item positions in slots.
     /// </summary>
     public class PlayerInventoryDataBinding : SlotIndexedInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>
     {
@@ -30,19 +30,19 @@ namespace DragAndDropSystem.Examples.Loot
         protected override void AddToSlotData(int index, ItemAdapterSoWith3DAdapter adapter, int count) => _playerData.SetItem(index, adapter.item);
         protected override void RemoveFromSlotData(int index, ItemAdapterSoWith3DAdapter adapter, int count) => _playerData.ClearSlot(index);
         
-        // Дополнительно запрещаем класть в слот в любом режиме инвентаря
+        // Additionally forbid placing into an occupied slot in any inventory mode
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            // Получаем индекс слота, на который пытаются сбросить предмет
+            // Get the slot index the item is being dropped onto
             int targetIndex = context.TargetBaseSlot.Index;
 
-            // Проверяем, занят ли этот слот
+            // Check whether this slot is occupied
             if (_playerData.GetItem(targetIndex) != null)
             {
                 return RuleResult.Failure("This slot is already occupied!");
             }
 
-            // Если слот свободен, разрешаем сброс
+            // If the slot is free, allow the drop
             return RuleResult.Success();
         }
     }

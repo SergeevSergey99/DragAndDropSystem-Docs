@@ -9,10 +9,10 @@ using UnityEngine;
 namespace Plugins.DragAndDropSystem.Examples.General
 {
     /// <summary>
-    /// Универсальный DataBinding для ItemExampleSO и ItemExampleWith3DSO
-    /// Автоматически определяет нужный адаптер
+    /// Universal DataBinding for ItemExampleSO and ItemExampleWith3DSO
+    /// Automatically determines the correct adapter
     ///
-    /// ПРИМЕР: Демонстрирует использование правил инвентаря и переопределение методов проверки переноса
+    /// EXAMPLE: Demonstrates inventory rule usage and overriding transfer validation methods
     /// </summary>
     public class ItemsSOInventoryDataBinding : ListInventoryDataBinding<ItemExampleSO, ItemAdapterSoAdapter>
     {
@@ -35,39 +35,39 @@ namespace Plugins.DragAndDropSystem.Examples.General
         protected override void RemoveFromData(ItemAdapterSoAdapter adapter) => items.Remove(adapter.item);
 
         /// <summary>
-        /// ПРИМЕР: Переопределение проверки начала перетаскивания
-        /// Здесь можно добавить кастомную логику, например:
-        /// - Запретить перетаскивание определенных предметов
-        /// - Проверить условия игры (заблокирован ли инвентарь, достаточно ли прав у игрока и т.д.)
+        /// EXAMPLE: Override of drag-start validation
+        /// Custom logic can be added here, for example:
+        /// - Forbid dragging specific items
+        /// - Check game conditions (whether the inventory is locked, whether the player has permission, etc.)
         /// </summary>
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
-            // Пример: запрещаем перетаскивание из этого инвентаря
+            // Example: forbid dragging from this inventory
             if (_preventDragFromInventory)
             {
                 return RuleResult.Failure("Dragging from this inventory is disabled (example)");
             }
 
-            // Вызываем базовую реализацию (по умолчанию разрешает)
+            // Call the base implementation (allowed by default)
             return base.CanStartDrag(context, entry);
         }
 
         /// <summary>
-        /// ПРИМЕР: Переопределение проверки сброса предмета
-        /// Здесь можно добавить кастомную логику, например:
-        /// - Проверить максимальный вес инвентаря
-        /// - Проверить уровень игрока
-        /// - Запретить сброс предметов определенного типа
+        /// EXAMPLE: Override of drop validation
+        /// Custom logic can be added here, for example:
+        /// - Check the maximum inventory weight
+        /// - Check player level
+        /// - Forbid dropping certain item types
         /// </summary>
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            // Пример: запрещаем сброс предметов в этот инвентарь
+            // Example: forbid dropping items into this inventory
             if (_preventDropToInventory)
             {
                 return RuleResult.Failure("Dropping items into this inventory is disabled (example)");
             }
 
-            // Вызываем базовую реализацию (по умолчанию разрешает)
+            // Call the base implementation (allowed by default)
             return base.CanDrop(context, entry);
         }
     }

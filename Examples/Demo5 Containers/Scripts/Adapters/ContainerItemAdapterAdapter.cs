@@ -5,8 +5,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Адаптер ItemInstance → IItemAdapter.
-    /// Контейнеры не стакаются (MaxStackSize = 1).
+    /// Adapter mapping ItemInstance to IItemAdapter.
+    /// Containers are not stackable (MaxStackSize = 1).
     /// </summary>
     public class ContainerItemAdapterAdapter : IItemAdapter, IDescribable
     {

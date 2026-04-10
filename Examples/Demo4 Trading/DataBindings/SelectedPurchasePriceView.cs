@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Показывает суммарную стоимость выделенных предметов для покупки.
-    /// Учитывает только слоты из инвентарей продавцов (MerchantInventoryDataBinding).
+    /// Shows the total purchase price of selected items.
+    /// Only counts slots from seller inventories (MerchantInventoryDataBinding).
     /// </summary>
     public class SelectedPurchasePriceView : MonoBehaviour
     {

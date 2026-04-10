@@ -25,13 +25,13 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         public CraftingRecipeSO CurrentRecipe => _currentRecipe;
 
-        /// <summary> Сколько раз можно выполнить текущий рецепт с имеющимися ингредиентами. </summary>
+        /// <summary>How many times the current recipe can be crafted with the available ingredients.</summary>
         public int CraftMultiplier => _craftMultiplier;
 
-        /// <summary> Изменился результат крафта (появился/исчез/сменился рецепт). </summary>
+        /// <summary>Craft result changed (appeared/disappeared/recipe changed).</summary>
         public event Action OnCraftResultChanged;
 
-        /// <summary> Изменились данные стола крафта (потреблены ингредиенты). </summary>
+        /// <summary>Crafting table data changed (ingredients were consumed).</summary>
         public event Action OnCraftTableChanged;
         
         public bool CanAddHotbarItem(MinecraftItemSO item, int count, int index) =>
@@ -135,8 +135,8 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         /// <summary>
-        /// Проверить рецепты и обновить текущий результат крафта.
-        /// Вызывать после каждого изменения стола крафта.
+        /// Check recipes and update the current crafting result.
+        /// Call after every crafting table change.
         /// </summary>
         public void RefreshCraftResult()
         {
@@ -171,8 +171,8 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         /// <summary>
-        /// Потребить ингредиенты для указанного числа крафтов в соответствии с CurrentRecipe.
-        /// craftsToConsume — сколько раз выполнить рецепт.
+        /// Consume ingredients for the specified number of crafts according to CurrentRecipe.
+        /// craftsToConsume is how many times to execute the recipe.
         /// </summary>
         public void ConsumeCraftIngredients(int craftsToConsume)
         {

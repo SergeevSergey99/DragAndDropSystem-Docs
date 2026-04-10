@@ -7,7 +7,7 @@ namespace DragAndDropSystem.Examples.Trading
 {
 
     /// <summary>
-    /// Стек торговых предметов (предмет + количество)
+    /// Stack of tradable items (item + amount)
     /// </summary>
     [Serializable]
     public class TradableItemModel

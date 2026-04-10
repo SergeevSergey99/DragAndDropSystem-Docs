@@ -5,16 +5,16 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Компонент для предметов, выброшенных в 3D мир
-    /// Хранит ссылку на оригинальный IItemAdapter
-    /// Опционально может быть подобран обратно в инвентарь
+    /// Component for items dropped into the 3D world
+    /// Stores a reference to the original IItemAdapter
+    /// Can optionally be picked up back into the inventory
     /// </summary>
     public class WorldItem : MonoBehaviour
     {
         public ItemExampleWith3DSO Item { get; private set; }
 
         /// <summary>
-        /// Инициализировать предмет с данными
+        /// Initialize the item with data
         /// </summary>
         public void Initialize(ItemExampleWith3DSO item)
         {

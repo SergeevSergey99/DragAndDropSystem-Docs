@@ -1,15 +1,15 @@
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Интерфейс для всех объектов с которыми можно взаимодействовать
+    /// Interface for all objects that can be interacted with
     /// </summary>
     public interface IInteractable
     {
         bool CanInteract(PlayerInteraction player);
         /// <summary>
-        /// Выполнить взаимодействие
+        /// Perform interaction
         /// </summary>
-        /// <param name="player">Игрок, который взаимодействует</param>
+        /// <param name="player">Player performing the interaction</param>
         void Interact(PlayerInteraction player);
     }
 }

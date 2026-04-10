@@ -3,7 +3,7 @@
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Предмет-контейнер: наследует базовый тип + ёмкость, фильтр, глубина вложенности.
+    /// Container item: extends the base item type with capacity, filter, and nesting depth.
     /// </summary>
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/ContainerItemSO")]
     public class ContainerItemSO : BaseItemSO

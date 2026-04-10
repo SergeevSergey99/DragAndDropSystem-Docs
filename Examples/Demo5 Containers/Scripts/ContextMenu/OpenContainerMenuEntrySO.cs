@@ -5,7 +5,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Пункт контекстного меню "Открыть" для предметов-контейнеров.
+    /// "Open" context menu entry for container items.
     /// </summary>
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Containers/Open Container Menu Entry")]
     public class OpenContainerMenuEntrySO : ContextMenuEntryDefinitionSO

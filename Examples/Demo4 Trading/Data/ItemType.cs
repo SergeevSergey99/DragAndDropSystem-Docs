@@ -1,7 +1,7 @@
 namespace DragAndDropSystem.Examples.Trading.Data
 {
     /// <summary>
-    /// Типы предметов для системы торговли и экипировки
+    /// Item types for the trading and equipment system
     /// </summary>
     public enum ItemType
     {

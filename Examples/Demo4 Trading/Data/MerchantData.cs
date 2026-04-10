@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace DragAndDropSystem.Examples.Trading.Data
 {
     /// <summary>
-    /// Данные торговца
+    /// Merchant data
     /// </summary>
     [Serializable]
     public class MerchantData
@@ -20,7 +20,7 @@ namespace DragAndDropSystem.Examples.Trading.Data
         
         public IReadOnlyList<TradableItemSO> Inventory => _inventory.AsReadOnly();
 
-        // События для синхронизации с UI
+        // Events for UI synchronization
         public event Action OnMoneyChanged;
         public event Action OnInventoryChanged;
 

@@ -5,18 +5,18 @@ using DragAndDropSystem.Rules;
 namespace DragAndDropSystem.Examples.Minecraft
 {
     /// <summary>
-    /// DataBinding для слота результата крафта.
-    /// Показывает результат подходящего рецепта.
-    /// При вытаскивании предмета — потребляет ингредиенты со стола крафта.
+    /// DataBinding for the crafting result slot.
+    /// Displays the result of the matching recipe.
+    /// When the item is taken out, consumes ingredients from the crafting table.
     ///
-    /// Потребление отложено до OnDropCompletedFrom: при batch-трансфере (разбивка по нескольким
-    /// target слотам) каждая аллокация может быть не кратна ResultCount,
-    /// но их сумма — кратна (планировщик это гарантирует через DragAmountStep).
+    /// Consumption is deferred until OnDropCompletedFrom: during batch transfer (split across multiple
+    /// target slots), each allocation may be non-multiple of ResultCount,
+    /// but their sum is guaranteed to be a multiple (the planner ensures this via DragAmountStep).
     ///
-    /// Настройка в сцене:
-    /// - UniversalInventory с 1 слотом
-    /// - НЕ добавлять InventoryDropArea (запрет на входящие дропы)
-    /// - Назначить этот компонент
+    /// Scene setup:
+    /// - UniversalInventory with 1 slot
+    /// - DO NOT add InventoryDropArea (incoming drops are forbidden)
+    /// - Assign this component
     /// </summary>
     public class CraftResultDataBinding : InventoryDataBindingBase
     {
@@ -53,7 +53,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            // Слот результата — только на вытаскивание, входящие дропы игнорируем
+            // Result slot is output-only, ignore incoming drops
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)

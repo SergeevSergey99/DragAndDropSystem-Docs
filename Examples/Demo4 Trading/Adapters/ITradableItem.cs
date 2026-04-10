@@ -3,9 +3,9 @@ using DragAndDropSystem.Examples.Trading.Data;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Общий интерфейс для торговых предметов.
-    /// Реализуется обоими адаптерами (TradableSoAdapter и TradableItemAdapterModelAdapter),
-    /// позволяя работать с ценами и типом предмета без привязки к конкретному адаптеру.
+    /// Common interface for tradable items.
+    /// Implemented by both adapters (TradableSoAdapter and TradableItemAdapterModelAdapter),
+    /// allowing code to work with price and item type without depending on a specific adapter.
     /// </summary>
     public interface ITradableItem
     {

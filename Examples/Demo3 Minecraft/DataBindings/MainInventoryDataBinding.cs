@@ -5,9 +5,9 @@ namespace DragAndDropSystem.Examples.Minecraft
 {
     public class MainInventoryDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapterAdapter>
     {
-        // Определяем создание адаптера из данных предмета
+        // Define adapter creation from item data
         protected override MinecraftItemAdapterAdapter CreateAdapter(MinecraftItemSO item) => new(item);
-        // Получаем данные для отрисовки в слотах UI
+        // Get data for rendering in UI slots
         protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
         {
             for (int i = 0; i < CraftingManager.AutoCreateInstance.InventoryItems.Count; i++)
@@ -18,13 +18,13 @@ namespace DragAndDropSystem.Examples.Minecraft
             }
         }
 
-        // Добавляем предмет перетащенный в слот в данные CraftingManager
+        // Add the item dragged into the slot to CraftingManager data
         protected override void AddToSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
         {
             CraftingManager.AutoCreateInstance.TryAddInventoryItem(adapterAdapter.ItemSO, count, index);
         }
 
-        // Удаляем предмет вытащенный из слота из данных
+        // Remove the item dragged out of the slot from data
         protected override void RemoveFromSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
         {
             CraftingManager.AutoCreateInstance.TryRemoveInventoryItem(adapterAdapter.ItemSO, count, index);
@@ -32,7 +32,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         protected override void Awake()
         {
-            // Указываем максимальное число предметов в слоте
+            // Specify the maximum item count in the slot
             _inventory.SetMaxStackSize(CraftingManager.MaxItemsPerSlot);
             base.Awake();
         }

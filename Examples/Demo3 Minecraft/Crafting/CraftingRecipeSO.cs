@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Minecraft
 {
     /// <summary>
-    /// Рецепт крафта. Поддерживает shaped (с учётом позиции, со смещением) и shapeless (порядок не важен).
-    /// Паттерн 3x3: индекс = row * 3 + col. null = пустая ячейка.
+    /// Crafting recipe. Supports shaped (position-aware, with offset) and shapeless (order does not matter) modes.
+    /// 3x3 pattern: index = row * 3 + col. null = empty cell.
     /// </summary>
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/Crafting Recipe")]
     public class CraftingRecipeSO : ScriptableObject
@@ -25,8 +25,8 @@ namespace DragAndDropSystem.Examples.Minecraft
         public int ResultCount => _resultCount;
 
         /// <summary>
-        /// Проверить, совпадает ли содержимое сетки с рецептом.
-        /// gridItemIds — массив из 9 ItemId (null = пустой слот).
+        /// Check whether the grid contents match the recipe.
+        /// gridItemIds is an array of 9 ItemIds (null = empty slot).
         /// </summary>
         public bool Matches(MinecraftItemSO[] gridItemIds)
         {
@@ -35,7 +35,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
             return _shapeless ? MatchesShapeless(gridItemIds) : MatchesShaped(gridItemIds);
         }
-        #region Shaped matching (с учётом смещения)
+        #region Shaped matching (with offset)
 
         private bool MatchesShaped(MinecraftItemSO[] gridItemIds)
         {
@@ -60,7 +60,7 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         /// <summary>
-        /// Убрать пустые строки/столбцы с краёв и вернуть минимальный прямоугольник.
+        /// Trim empty edge rows/columns and return the minimal rectangle.
         /// </summary>
         private static void Normalize(MinecraftItemSO[] grid3x3, out MinecraftItemSO[] items, out int rows, out int cols)
         {
@@ -95,7 +95,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         #endregion
 
-        #region Shapeless matching (порядок не важен)
+        #region Shapeless matching (order does not matter)
 
         private bool MatchesShapeless(MinecraftItemSO[] gridItems)
         {
@@ -123,8 +123,8 @@ namespace DragAndDropSystem.Examples.Minecraft
         #endregion
 
         /// <summary>
-        /// Сколько раз можно скрафтить этот рецепт с текущими ингредиентами.
-        /// Вызывать после Matches() == true.
+        /// How many times this recipe can be crafted with the current ingredients.
+        /// Call after Matches() == true.
         /// </summary>
         public int ComputeMaxCrafts(MinecraftItemSO[] gridItems, int[] gridCounts)
         {
@@ -165,7 +165,7 @@ namespace DragAndDropSystem.Examples.Minecraft
 
         private int ComputeMaxCraftsShapeless(MinecraftItemSO[] gridItems, int[] gridCounts)
         {
-            // Собираем требования паттерна: сколько ячеек на каждый тип предмета
+            // Collect pattern requirements: how many cells are needed for each item type
             var patternReq = new Dictionary<MinecraftItemSO, int>();
             var patternItems = GetPatternItems();
             for (int i = 0; i < 9; i++)
@@ -176,7 +176,7 @@ namespace DragAndDropSystem.Examples.Minecraft
                 patternReq[patternItems[i]]++;
             }
 
-            // Собираем доступное в гриде: суммарное количество каждого типа
+            // Collect what is available in the grid: total quantity for each item type
             var gridAvail = new Dictionary<MinecraftItemSO, int>();
             for (int i = 0; i < 9; i++)
             {
@@ -198,8 +198,8 @@ namespace DragAndDropSystem.Examples.Minecraft
         }
 
         /// <summary>
-        /// Возвращает массив [9]: сколько единиц потреблять из каждого слота за ОДИН крафт.
-        /// Вызывать только когда Matches(gridItems) == true.
+        /// Returns an array [9]: how many units to consume from each slot for ONE craft.
+        /// Call only when Matches(gridItems) == true.
         /// </summary>
         public int[] GetConsumeAmountsPerCraft(MinecraftItemSO[] gridItems)
         {

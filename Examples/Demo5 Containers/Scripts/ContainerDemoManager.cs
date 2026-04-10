@@ -6,7 +6,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Containers
 {
     /// <summary>
-    /// Хранит данные инвентаря игрока и создаёт стартовые предметы.
+    /// Stores player inventory data and creates starting items.
     /// </summary>
     public class ContainerDemoManager : MonoSingleton<ContainerDemoManager>
     {

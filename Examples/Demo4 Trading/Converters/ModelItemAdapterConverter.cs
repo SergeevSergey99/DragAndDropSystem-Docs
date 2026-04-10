@@ -5,7 +5,7 @@ using Plugins.DragAndDropSystem.Examples.Trading.Data;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Приводит торговые предметы к model-адаптеру игрока.
+    /// Converts tradable items to the player's model adapter.
     /// </summary>
     public sealed class ModelItemAdapterConverter : IItemAdapterConverter
     {

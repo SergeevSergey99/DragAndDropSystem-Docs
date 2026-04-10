@@ -12,9 +12,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// DataBinding для инвентаря торговца в системе торговли.
-    /// Использует ListInventoryDataBinding для автоматической синхронизации списка предметов.
-    /// Conversion вынесен в отдельный inventory-side converter.
+    /// DataBinding for a merchant inventory in the trading system.
+    /// Uses ListInventoryDataBinding for automatic synchronization of the item list.
+    /// Conversion is delegated to a separate inventory-side converter.
     /// </summary>
     public class MerchantInventoryDataBinding : ListInventoryDataBinding<TradableItemSO, TradableSoAdapter>,
         IMerchantInventory,
@@ -41,12 +41,12 @@ namespace DragAndDropSystem.Examples.Trading
 
         protected override IItemAdapterConverter CreateItemConverter() => new MerchantItemAdapterConverter();
 
-        // --- ListInventoryDataBinding примитивы ---
+        // --- ListInventoryDataBinding primitives ---
 
         protected override IReadOnlyList<TradableItemSO> GetItems() => MerchantData?.Inventory;
         protected override TradableSoAdapter CreateAdapter(TradableItemSO item) => new(item);
 
-        // --- Правила ---
+        // --- Rules ---
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry) => RuleResult.Success();
         protected override RuleResult CanDrop(DragContext context, DragEntry entry) => TradingHelper.ValidateMerchantDrop(entry);
 

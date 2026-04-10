@@ -6,8 +6,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.General
 {
     /// <summary>
-    /// Адаптер для ItemSO, чтобы работать с новой системой
-    /// Позволяет использовать существующие ScriptableObjects без изменений
+    /// Adapter for ItemSO to work with the new system
+    /// Allows existing ScriptableObjects to be used without modification
     /// </summary>
     public class ItemAdapterSoAdapter : IItemAdapter
     {

@@ -4,8 +4,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Система взаимодействия игрока с объектами в мире.
-    /// НЕ знает о UI, только определяет с чем можно взаимодействовать и вызывает события.
+    /// System for player interaction with world objects.
+    /// Does NOT know about the UI; it only determines what can be interacted with and raises events.
     /// </summary>
     [RequireComponent(typeof(PlayerController))]
     public class PlayerInteraction : MonoBehaviour
@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Examples.Loot
         private float _interactionRadius = 2f;
 
         [SerializeField, Tooltip("Interactable objects layer")]
-        private LayerMask _interactableLayer = -1; // По умолчанию все слои
+        private LayerMask _interactableLayer = -1; // All layers by default
 
         [SerializeField, Tooltip("Interaction key")]
         private KeyCode _interactKey = KeyCode.E;
@@ -25,21 +25,21 @@ namespace DragAndDropSystem.Examples.Loot
 
         // State
         private IInteractable _currentInteractable;
-        private Collider2D[] _overlapResults = new Collider2D[10]; // Буфер для результатов поиска
+        private Collider2D[] _overlapResults = new Collider2D[10]; // Buffer for overlap results
         ContactFilter2D _contactFilter;
-        // Events (UI подписывается на эти события)
+        // Events (the UI subscribes to them)
         /// <summary>
-        /// Игрок вошел в зону взаимодействия с объектом
+        /// Player entered an object's interaction zone
         /// </summary>
         public event Action<IInteractable> OnInteractableEntered;
 
         /// <summary>
-        /// Игрок вышел из зоны взаимодействия
+        /// Player left the interaction zone
         /// </summary>
         public event Action<IInteractable> OnInteractableExited;
 
         /// <summary>
-        /// Игрок взаимодействовал с объектом
+        /// Player interacted with an object
         /// </summary>
         public event Action<IInteractable> OnInteracted;
 
@@ -56,22 +56,22 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void Update()
         {
-            // Ищем интерактивные объекты поблизости
+            // Search for interactable objects nearby
             FindNearestInteractable();
 
-            // Обрабатываем ввод
+            // Process input
             HandleInteractionInput();
         }
 
         private void FindNearestInteractable()
         {
-            // Если управление заблокировано (например, открыто UI), не ищем
+            // If input is locked (for example, UI is open), do not search
             if (_playerController != null && _playerController.InputLocked)
             {
                 return;
             }
 
-            // Ищем коллайдеры в радиусе
+            // Search for colliders in range
             int count = Physics2D.OverlapCircle(
                 transform.position,
                 _interactionRadius,
@@ -82,7 +82,7 @@ namespace DragAndDropSystem.Examples.Loot
             IInteractable nearest = null;
             float nearestDistance = float.MaxValue;
 
-            // Находим ближайший интерактивный объект
+            // Find the nearest interactable object
             for (int i = 0; i < count; i++)
             {
                 var collider = _overlapResults[i];
@@ -102,29 +102,29 @@ namespace DragAndDropSystem.Examples.Loot
                 }
             }
 
-            // Обновляем текущий объект для взаимодействия
+            // Update the current interaction object
             UpdateCurrentInteractable(nearest);
         }
 
         private void UpdateCurrentInteractable(IInteractable newInteractable)
         {
-            // Если объект не изменился, ничего не делаем
+            // If the object did not change, do nothing
             if (_currentInteractable == newInteractable)
                 return;
             
             if (newInteractable != null && !newInteractable.CanInteract(this)) return;
             
-            // Если был старый объект, вызываем событие выхода
+            // If there was a previous object, raise the exit event
             if (_currentInteractable != null)
             {
                 OnInteractableExited?.Invoke(_currentInteractable);
             }
 
-            // Устанавливаем новый объект
+            // Set the new object
             _currentInteractable = newInteractable;
             Debug.Log($"Current interactable updated to: {_currentInteractable}");
 
-            // Если есть новый объект, вызываем событие входа
+            // If there is a new object, raise the enter event
             if (_currentInteractable != null)
             {
                 
@@ -134,28 +134,28 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void HandleInteractionInput()
         {
-            // Если нет объекта для взаимодействия, выходим
+            // If there is no object to interact with, exit
             if (_currentInteractable == null)
                 return;
 
-            // Если нажата клавиша взаимодействия
+            // If the interaction key is pressed
             if (Input.GetKeyDown(_interactKey))
             {
-                // Вызываем взаимодействие на объекте
+                // Perform interaction on the object
                 _currentInteractable.Interact(this);
 
-                // Вызываем событие (UI подпишется и покажет/скроет окно)
+                // Raise the event (the UI will subscribe and show/hide the window)
                 OnInteracted?.Invoke(_currentInteractable);
             }
         }
 
         private void OnDrawGizmosSelected()
         {
-            // Показываем радиус взаимодействия
+            // Draw interaction radius
             Gizmos.color = _currentInteractable != null ? Color.green : Color.yellow;
             Gizmos.DrawWireSphere(transform.position, _interactionRadius);
 
-            // Если есть текущий объект, рисуем линию к нему
+            // If there is a current object, draw a line to it
             if (_currentInteractable != null)
             {
                 var interactableObj = _currentInteractable as MonoBehaviour;

@@ -4,7 +4,7 @@ using DragAndDropSystem.Inventories;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Приводит входящие торговые предметы к SO-адаптеру торговца.
+    /// Converts incoming tradable items to the merchant's SO adapter.
     /// </summary>
     public sealed class MerchantItemAdapterConverter : IItemAdapterConverter
     {

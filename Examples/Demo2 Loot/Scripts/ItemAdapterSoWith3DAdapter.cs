@@ -7,8 +7,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples
 {
     /// <summary>
-    /// Адаптер для ItemExampleWith3DSO
-    /// Позволяет работать с ScriptableObject в системе инвентаря + поддержка 3D
+    /// Adapter for ItemExampleWith3DSO
+    /// Allows ScriptableObject-based items to work in the inventory system with 3D support
     /// </summary>
     public class ItemAdapterSoWith3DAdapter : IItemAdapter, IFilterable
     {
@@ -19,12 +19,12 @@ namespace DragAndDropSystem.Examples
             this.item = item;
         }
 
-        // IItemAdapter реализация
+        // IItemAdapter implementation
         public string ItemId => item.GetInstanceID().ToString();
         public Sprite Icon => item.Icon;
         public string DisplayName => item.ItemName;
 
-        // IWorld3DAdapter реализация
+        // IWorld3DAdapter implementation
         public GameObject WorldPrefab => item.WorldPrefab.gameObject;
         
         // IFilterable

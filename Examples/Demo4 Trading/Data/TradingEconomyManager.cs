@@ -9,10 +9,10 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Централизованный менеджер экономики для системы торговли
-    /// Управляет деньгами и товарами игрока и торговцев
+    /// Centralized economy manager for the trading system
+    /// Manages money and goods for the player and merchants
     ///
-    /// ПРИМЕР: Демонстрирует централизованную модель данных с транзакциями между разными субъектами
+    /// EXAMPLE: Demonstrates a centralized data model with transactions between different actors
     /// </summary>
     public class TradingEconomyManager : MonoSingleton<TradingEconomyManager>
     {
@@ -26,7 +26,7 @@ namespace DragAndDropSystem.Examples.Trading
         public PlayerData PlayerData => _playerData;
 
         /// <summary>
-        /// Получить данные торговца по ID
+        /// Get merchant data by ID
         /// </summary>
         public MerchantData GetMerchant(string merchantId)
         {
@@ -41,12 +41,12 @@ namespace DragAndDropSystem.Examples.Trading
         }
 
         /// <summary>
-        /// Проверить, достаточно ли у игрока денег для покупки
+        /// Check whether the player has enough money to buy
         /// </summary>
         public bool CanPlayerAfford(int price) => _playerData.Money >= price;
 
         /// <summary>
-        /// Игрок покупает предмет у торговца
+        /// Player buys an item from a merchant
         /// </summary>
         public bool TryBuyFromMerchant(string merchantId, TradableItemSO item, int count)
         {
@@ -56,21 +56,21 @@ namespace DragAndDropSystem.Examples.Trading
 
             int totalPrice = item.BuyPrice * count;
 
-            // Проверяем достаточно ли денег у игрока
+            // Check whether the player has enough money
             if (!CanPlayerAfford(totalPrice))
             {
                 Debug.LogWarning($"[TradingEconomyManager] Player cannot afford {item.DisplayName} x{count} (need {totalPrice}g, has {_playerData.Money}g)");
                 return false;
             }
 
-            // Проверяем есть ли товар у торговца
+            // Check whether the merchant has the item
             if (merchant.GetItemCount(item) < count)
             {
                 Debug.LogWarning($"[TradingEconomyManager] Merchant doesn't have enough {item.DisplayName} (need {count}, has {merchant.GetItemCount(item)})");
                 return false;
             }
 
-            // Выполняем транзакцию
+            // Execute the transaction
             _playerData.TrySpendMoney(totalPrice);
             merchant.AddMoney(totalPrice);
             merchant.TryRemoveItem(item);

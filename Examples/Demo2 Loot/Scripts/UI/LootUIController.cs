@@ -4,9 +4,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Контроллер UI лута - медиатор между игровым миром и UI.
-    /// ЕДИНСТВЕННЫЙ компонент который знает о UI и управляет им.
-    /// Реагирует на события от PlayerInteraction и Chest, управляет показом/скрытием UI.
+    /// Loot UI controller, acting as a mediator between the game world and UI.
+    /// The ONLY component that knows about the UI and manages it.
+    /// Reacts to PlayerInteraction and Chest events and controls UI show/hide behavior.
     /// </summary>
     public class LootUIController : MonoBehaviour
     {
@@ -42,7 +42,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void Awake()
         {
-            // Убеждаемся что панель лута изначально выключена
+            // Ensure the loot panel starts disabled
             if (_lootPanel != null)
             {
                 _lootPanel.transform.localPosition = Vector3.zero;
@@ -61,7 +61,7 @@ namespace DragAndDropSystem.Examples.Loot
                 _inventoryPanel.SetActive(false);
             }
             
-            // Автоматически находим компоненты если они не назначены
+            // Automatically find components if they are not assigned
             if (_playerInteraction == null)
             {
                 _playerInteraction = Object.FindFirstObjectByType<PlayerInteraction>();
@@ -75,7 +75,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void OnEnable()
         {
-            // Подписываемся на события игрока
+            // Subscribe to player events
             if (_playerInteraction != null)
             {
                 _playerInteraction.OnInteracted += OnPlayerInteracted;
@@ -93,7 +93,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void OnDisable()
         {
-            // Отписываемся от событий
+            // Unsubscribe from events
             if (_playerInteraction != null)
             {
                 _playerInteraction.OnInteracted -= OnPlayerInteracted;
@@ -106,7 +106,7 @@ namespace DragAndDropSystem.Examples.Loot
                 }
             }
 
-            // Отвязываемся от сундука если был открыт
+            // Unbind from the chest if one was open
             if (_currentChest != null)
             {
                 UnsubscribeFromChestEvents(_currentChest);
@@ -120,7 +120,7 @@ namespace DragAndDropSystem.Examples.Loot
                 ToggleInventoryUI();
             }
 
-            // Обрабатываем клавишу закрытия
+            // Handle the close key
             if ((_isLootUIOpen || _isInventoryUIOpen) && Input.GetKeyDown(_closeKey))
             {
                 if (_isLootUIOpen)
@@ -131,21 +131,21 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Обработчик взаимодействия игрока с объектом
+        /// Handler for player interaction with an object
         /// </summary>
         private void OnPlayerInteracted(IInteractable interactable)
         {
             Debug.Log($"[LootUIController] Player interacted");
-            // Проверяем что взаимодействие было с сундуком
+            // Check that the interaction was with a chest
             if (interactable is Chest chest)
             {
-                // Если сундук открылся - показываем UI
+                // If the chest opened, show the UI
                 if (chest.IsOpen)
                 {
                     OpenLootUI(chest);
                     HideInteractableButtonPanel(interactable);
                 }
-                // Если сундук закрылся - скрываем UI
+                // If the chest closed, hide the UI
                 else
                 {
                     CloseLootUI();
@@ -154,11 +154,11 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Обработчик выхода из зоны взаимодействия
+        /// Handler for leaving the interaction zone
         /// </summary>
         private void OnInteractableExited(IInteractable interactable)
         {
-            // Если UI открыт и игрок отошел от сундука - закрываем
+            // If the UI is open and the player moved away from the chest, close it
             if (_isLootUIOpen && _autoCloseOnDistanceExit)
             {
                 Debug.Log("[LootUIController] Player left interaction zone, closing loot UI");
@@ -167,7 +167,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Открыть UI лута для конкретного сундука
+        /// Open the loot UI for a specific chest
         /// </summary>
         private void OpenLootUI(Chest chest)
         {
@@ -183,13 +183,13 @@ namespace DragAndDropSystem.Examples.Loot
             _isLootUIOpen = true;
             _isInventoryUIOpen = false;
 
-            // Подписываемся на события сундука
+            // Subscribe to chest events
             SubscribeToChestEvents(chest);
 
-            // Привязываем данные сундука к UI
+            // Bind chest data to the UI
             _chestBinding?.BindToChest(chest);
 
-            // Показываем панель
+            // Show the panel
             _lootPanel?.SetActive(true);
             _inventoryPanel?.SetActive(false);
             _interactableButtonPanel?.SetActive(false);
@@ -197,7 +197,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Закрыть UI лута
+        /// Close the loot UI
         /// </summary>
         [Button("Close Loot UI"), DisableInEditorMode]
         public void CloseLootUI()
@@ -207,23 +207,23 @@ namespace DragAndDropSystem.Examples.Loot
 
             Debug.Log("[LootUIController] Closing loot UI");
 
-            // Закрываем сундук если он был открыт
+            // Close the chest if it was open
             if (_currentChest != null && _currentChest.IsOpen)
             {
-                // Используем Interact чтобы корректно закрыть сундук
+                // Use Interact to close the chest correctly
                 _currentChest.Interact(_playerInteraction);
             }
 
-            // Отписываемся от событий сундука
+            // Unsubscribe from chest events
             if (_currentChest != null)
             {
                 UnsubscribeFromChestEvents(_currentChest);
             }
 
-            // Отвязываем данные
+            // Unbind data
             _chestBinding?.BindToChest(null);
 
-            // Скрываем панель
+            // Hide the panel
             _lootPanel?.SetActive(false);
 
             _currentChest = null;
@@ -232,7 +232,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Подписаться на события сундука
+        /// Subscribe to chest events
         /// </summary>
         private void SubscribeToChestEvents(Chest chest)
         {
@@ -243,7 +243,7 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Отписаться от событий сундука
+        /// Unsubscribe from chest events
         /// </summary>
         private void UnsubscribeFromChestEvents(Chest chest)
         {
@@ -254,12 +254,12 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Обработчик закрытия сундука извне (не через кнопку Close)
+        /// Handler for external chest closing (not via the Close button)
         /// </summary>
         private void OnChestClosedExternally(Chest chest)
         {
             Debug.Log("[LootUIController] Chest was closed externally");
-            // Закрываем UI без повторного вызова Interact на сундуке
+            // Close the UI without calling Interact on the chest again
 
             if (_currentChest != null)
             {

@@ -10,9 +10,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// DataBinding для инвентаря игрока в системе торговли.
-    /// Использует ListInventoryDataBinding для автоматической синхронизации списка предметов.
-    /// Conversion вынесен в отдельный inventory-side converter.
+    /// DataBinding for the player inventory in the trading system.
+    /// Uses ListInventoryDataBinding for automatic synchronization of the item list.
+    /// Conversion is delegated to a separate inventory-side converter.
     /// </summary>
     public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
@@ -30,7 +30,7 @@ namespace DragAndDropSystem.Examples.Trading
 
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
 
-        // --- ListInventoryDataBinding примитивы ---
+        // --- ListInventoryDataBinding primitives ---
 
         protected override IReadOnlyList<TradableItemModel> GetItems() => PlayerData?.Inventory;
         protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);

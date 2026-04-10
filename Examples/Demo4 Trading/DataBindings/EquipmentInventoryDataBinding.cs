@@ -13,9 +13,9 @@ using UnityEngine.Serialization;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// DataBinding для инвентаря экипировки игрока.
-    /// Использует MappedSlotInventoryDataBinding для декларативной привязки слотов к данным.
-    /// Conversion вынесен в отдельный inventory-side converter.
+    /// DataBinding for the player's equipment inventory.
+    /// Uses MappedSlotInventoryDataBinding for declarative slot-to-data binding.
+    /// Conversion is delegated to a separate inventory-side converter.
     /// </summary>
     public class EquipmentInventoryDataBinding : MappedSlotInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
@@ -42,7 +42,7 @@ namespace DragAndDropSystem.Examples.Trading
         protected override TradableItemAdapterModelAdapter CreateAdapter(TradableItemModel item) => new(item);
         protected override IItemAdapterConverter CreateItemConverter() => new ModelItemAdapterConverter();
 
-        // --- MappedSlotInventoryDataBinding примитивы ---
+        // --- MappedSlotInventoryDataBinding primitives ---
 
         protected override Dictionary<BaseSlot, SlotBinding<TradableItemModel, TradableItemAdapterModelAdapter>> CreateBindingMap() => new()
         {

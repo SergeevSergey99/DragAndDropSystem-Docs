@@ -8,7 +8,7 @@ namespace Plugins.DragAndDropSystem.Examples.Trading.Data
 {
     
     /// <summary>
-    /// Данные экономики игрока
+    /// Player economy data
     /// </summary>
     [Serializable]
     public class PlayerData

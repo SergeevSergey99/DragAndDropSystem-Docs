@@ -7,14 +7,14 @@ using Plugins.DragAndDropSystem.Examples.Trading.Data;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// Статические хелперы для торговых операций.
-    /// Используются в DataBinding'ах игрока и экипировки для проверки и обработки покупки/продажи.
+    /// Static helpers for trading operations.
+    /// Used by player and equipment DataBindings to validate and process buy/sell actions.
     /// </summary>
     public static class TradingHelper
     {
         /// <summary>
-        /// Механическая проверка drop в инвентарь торговца.
-        /// Бизнес-валидация денег выполняется через domain hooks.
+        /// Mechanical validation for dropping into a merchant inventory.
+        /// Money/business validation is handled through domain hooks.
         /// </summary>
         public static RuleResult ValidateMerchantDrop(DragEntry entry)
         {

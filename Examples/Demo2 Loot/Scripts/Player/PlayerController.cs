@@ -4,8 +4,8 @@ using UnityEngine.Serialization;
 namespace DragAndDropSystem.Examples.Loot
 {
     /// <summary>
-    /// Контроллер игрока для 2D Top-Down вида с ортографической камерой
-    /// Управление: WASD - движение в 8 направлениях, Shift - бег
+    /// Player controller for a 2D top-down view with an orthographic camera
+    /// Controls: WASD for 8-direction movement, Shift for running
     /// </summary>
     public class PlayerController : MonoBehaviour
     {
@@ -38,7 +38,7 @@ namespace DragAndDropSystem.Examples.Loot
         private Vector2 _currentVelocity;
         private float _currentAngle;
 
-        // Input lock (когда открыто UI)
+        // Input lock (when the UI is open)
         private bool _inputLocked = false;
 
         public bool InputLocked
@@ -51,20 +51,20 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void Awake()
         {
-            // Находим камеру если не назначена
+            // Find the camera if it is not assigned
             if (_playerCamera == null)
             {
                 _playerCamera = Camera.main;
             }
 
-            // Проверяем что камера ортографическая
+            // Ensure the camera is orthographic
             if (_playerCamera != null && !_playerCamera.orthographic)
             {
                 Debug.LogWarning("[PlayerController] Camera is not orthographic! Switching to orthographic mode.");
                 _playerCamera.orthographic = true;
             }
 
-            // Курсор виден для top-down
+            // Cursor is visible in top-down mode
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -73,11 +73,11 @@ namespace DragAndDropSystem.Examples.Loot
         {
             if (!_inputLocked)
             {
-                // Получаем ввод
+                // Read input
                 HandleInput();
             }
 
-            // Обновляем позицию камеры
+            // Update the camera position
             if (_cameraFollowsPlayer)
             {
                 UpdateCameraPosition();
@@ -86,7 +86,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void HandleInput()
         {
-            // Получаем ввод WASD (8 направлений)
+            // Read WASD input (8 directions)
             float horizontal = Input.GetAxisRaw("Horizontal"); // A/D
             float vertical = Input.GetAxisRaw("Vertical");     // W/S
 
@@ -97,14 +97,14 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void MovePlayer()
         {
-            // Определяем скорость (бег или ходьба)
+            // Determine speed (running or walking)
             bool isRunning = Input.GetKey(KeyCode.LeftShift);
             float currentSpeed = isRunning ? _runSpeed : _walkSpeed;
 
-            // Целевая скорость
+            // Target speed
             Vector2 targetVelocity = _movement * currentSpeed;
             
-            // Плавное движение
+            // Smooth movement
             var smothedVelocity = Vector2.Lerp(_currentVelocity, targetVelocity, _movementSmoothing);
             transform.Translate(smothedVelocity * Time.deltaTime, Space.World);
             _currentVelocity = smothedVelocity;
@@ -116,10 +116,10 @@ namespace DragAndDropSystem.Examples.Loot
             if (_playerCamera == null)
                 return;
 
-            // Целевая позиция камеры
+            // Target camera position
             Vector3 targetPosition = transform.position + _cameraOffset;
 
-            // Плавное следование
+            // Smooth follow
             _playerCamera.transform.position = Vector3.SmoothDamp(
                 _playerCamera.transform.position,
                 targetPosition,
@@ -129,24 +129,24 @@ namespace DragAndDropSystem.Examples.Loot
         }
 
         /// <summary>
-        /// Блокировать/разблокировать ввод (например, когда открыто UI)
+        /// Lock/unlock input (for example, when the UI is open)
         /// </summary>
         public void SetInputLocked(bool locked)
         {
             _inputLocked = locked;
 
-            // Курсор всегда видим в top-down
+            // Cursor is always visible in top-down mode
             Cursor.visible = true;
         }
 
         /// <summary>
-        /// Установить позицию игрока
+        /// Set player position
         /// </summary>
         public void SetPosition(Vector2 position)
         {
             transform.position = new Vector3(position.x, position.y, transform.position.z);
 
-            // Обновляем позицию камеры мгновенно
+            // Update camera position immediately
             if (_cameraFollowsPlayer && _playerCamera != null)
             {
                 _playerCamera.transform.position = transform.position + _cameraOffset;
@@ -155,7 +155,7 @@ namespace DragAndDropSystem.Examples.Loot
 
         private void OnDrawGizmosSelected()
         {
-            // Отображаем вектор движения
+            // Draw movement vector
             if (_movement.magnitude > 0.01f)
             {
                 Gizmos.color = Color.green;
@@ -163,7 +163,7 @@ namespace DragAndDropSystem.Examples.Loot
                 Gizmos.DrawRay(transform.position, moveDir * 2f);
             }
 
-            // Отображаем позицию камеры
+            // Draw camera position
             if (_cameraFollowsPlayer && _playerCamera != null)
             {
                 Gizmos.color = Color.yellow;
@@ -174,7 +174,7 @@ namespace DragAndDropSystem.Examples.Loot
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            // Автоматически находим камеру
+            // Automatically find the camera
             if (_playerCamera == null)
             {
                 _playerCamera = Camera.main;

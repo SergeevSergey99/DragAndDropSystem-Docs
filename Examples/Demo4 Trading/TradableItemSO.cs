@@ -5,8 +5,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Examples.Trading
 {
     /// <summary>
-    /// ScriptableObject для торгового предмета с ценами покупки/продажи
-    /// Используется в примере системы торговли с торговцами
+    /// ScriptableObject for a tradable item with buy/sell prices
+    /// Used in the trading system example with merchants
     /// </summary>
     [CreateAssetMenu(fileName = "TradableItem", menuName = "DragAndDrop/Examples/Trading/TradableItemSO", order = 200)]
     public class TradableItemSO : ScriptableObject
@@ -38,10 +38,10 @@ namespace DragAndDropSystem.Examples.Trading
 
         private void OnValidate()
         {
-            // Проверяем что цена продажи не больше цены покупки
+            // Check that sell price is not higher than buy price
             if (_sellPrice > _buyPrice)
             {
-                Debug.LogWarning($"[{name}] Цена продажи ({_sellPrice}) больше цены покупки ({_buyPrice})! Это может быть нелогично.");
+                Debug.LogWarning($"[{name}] Sell price ({_sellPrice}) is higher than buy price ({_buyPrice})! This may be illogical.");
             }
         }
     }
