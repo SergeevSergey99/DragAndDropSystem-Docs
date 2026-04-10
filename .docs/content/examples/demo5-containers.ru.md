@@ -40,7 +40,7 @@ Bindings и UI:
 Главная схема:
 
 ```mermaid
-flowchart LR
+flowchart TD
     PlayerData["ContainerDemoManager.Items"] <--> PlayerBinding["PlayerContainerInventoryDataBinding"]
     PlayerBinding <--> PlayerUI["Player Inventory UI"]
     PlayerUI --> Menu["Context Menu / Open Container"]
