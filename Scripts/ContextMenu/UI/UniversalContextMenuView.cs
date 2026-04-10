@@ -63,8 +63,8 @@ namespace DragAndDropSystem.ContextMenu.UI
                 slotInputAdapter.navigation = newNavigation;
             }
 
-            // Навигация между entryViews: вверх/вниз — соседние записи (с wrap-around),
-            // влево/вправо — исходный слот
+            // Navigation between entryViews: up/down moves through neighboring entries (with wrap-around),
+            // left/right returns to the source slot
             for (int i = 0; i < entries.Count; i++)
             {
                 var selectable = entryViews[i].Selectable;

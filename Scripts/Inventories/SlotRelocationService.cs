@@ -6,13 +6,13 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Пытается переупаковать предметы в инвентаре, чтобы освободить подходящий слот
-    /// для нового предмета. Stateless — все зависимости передаются через параметры.
+    /// Attempts to repack items in an inventory to free a suitable slot
+    /// for a new item. Stateless: all dependencies are passed through parameters.
     /// </summary>
     public static class SlotRelocationService
     {
         /// <summary>
-        /// Попытаться переместить occupant из подходящего слота, затем повторить размещение.
+        /// Try moving the occupant out of a suitable slot, then attempt placement again.
         /// </summary>
         public static bool TryRelocateAndRetry(
             List<BaseSlot> slots,

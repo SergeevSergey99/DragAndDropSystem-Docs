@@ -6,8 +6,8 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Пример кастомного визуала с анимацией и эффектами
-    /// Показывает как можно переопределить стандартный визуал
+    /// Example of a custom visual with animation and effects
+    /// Demonstrates how the default visual can be overridden
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class FancyDragVisual : MonoBehaviour, IDragVisual
@@ -98,17 +98,17 @@ namespace DragAndDropSystem.UI
 
             _basePosition = position;
 
-            // Анимация покачивания
+            // Sway animation
             float bobOffset = Mathf.Sin(_bobTimer * _bobSpeed) * _bobAmount;
             _rectTransform.position = _basePosition + Vector3.up * bobOffset;
 
-            // Вращение
+            // Rotation
             if (_iconImage != null)
             {
                 _iconImage.transform.rotation = Quaternion.Euler(0, 0, Mathf.Sin(_bobTimer) * _rotationSpeed);
             }
 
-            // Пульсация свечения
+            // Glow pulse
             if (_glowEffect != null)
             {
                 float glowAlpha = 0.3f + Mathf.Sin(_bobTimer * 3f) * 0.2f;

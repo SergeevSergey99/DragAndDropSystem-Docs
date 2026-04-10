@@ -9,12 +9,12 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Базовый класс для зон дропа (area/zone).
-    /// Поддерживает два паттерна:
-    /// 1. Простое потребление — переопределить CanAcceptEntry + ProcessEntry,
-    ///    удаление из источника выполняется автоматически.
-    /// 2. Делегирование — переопределить GetDropProcessor() для возврата
-    ///    своего IDropProcessor (напр. InventoryDropProcessor).
+    /// Base class for drop areas/zones.
+    /// Supports two patterns:
+    /// 1. Simple consumption: override CanAcceptEntry + ProcessEntry,
+    ///    source removal is handled automatically.
+    /// 2. Delegation: override GetDropProcessor() to return
+    ///    your own IDropProcessor (for example, InventoryDropProcessor).
     /// </summary>
     public abstract class DropAreaBase : Selectable, IDropTarget, IDropProcessor
     {
@@ -29,9 +29,9 @@ namespace DragAndDropSystem.Core
         // ══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Попытаться активировать эту зону как текущую цель дропа.
-        /// Вызывается из OnPointerEnter.
-        /// По умолчанию: проверяет CanAcceptEntry на первом entry и вызывает PushDropTarget.
+        /// Try to activate this zone as the current drop target.
+        /// Called from OnPointerEnter.
+        /// By default, checks CanAcceptEntry on the first entry and calls PushDropTarget.
         /// </summary>
         internal virtual bool TryActivateAsFocusedTarget()
         {
@@ -48,34 +48,34 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Может ли зона принять данный drag entry?
-        /// Вызывается из CanAcceptDrop (на каждом entry) и TryActivateAsFocusedTarget (на первом).
+        /// Can this zone accept the given drag entry?
+        /// Called from CanAcceptDrop (for each entry) and TryActivateAsFocusedTarget (for the first one).
         /// </summary>
         protected virtual bool CanAcceptEntry(DragEntry entry) => true;
 
         /// <summary>
-        /// Обработать предметы из entry. Вернуть true если потребление успешно.
-        /// Удаление из источника выполняется автоматически базовым классом.
+        /// Process items from the entry. Return true if consumption succeeds.
+        /// Source removal is handled automatically by the base class.
         /// </summary>
-        /// <param name="stack">Свежая копия стака из source slot</param>
-        /// <param name="entry">Исходный drag entry</param>
+        /// <param name="stack">Fresh copy of the stack from the source slot</param>
+        /// <param name="entry">Original drag entry</param>
         protected virtual bool ProcessEntry(ItemStack stack, DragEntry entry) => false;
 
         /// <summary>
-        /// Вызывается при изменении состояния подсветки.
+        /// Called when highlight state changes.
         /// </summary>
         protected virtual void OnHighlightChanged(bool highlighted, bool canAccept) { }
 
         /// <summary>
-        /// Вызывается при деактивации цели (pointer exit, потеря фокуса).
-        /// Для сброса внутреннего состояния подкласса.
+        /// Called when the target is deactivated (pointer exit, focus loss).
+        /// Used to reset subclass internal state.
         /// </summary>
         protected virtual void OnTargetDeactivated() { }
 
         /// <summary>
-        /// Удалять ли предметы из источника после успешного ProcessEntry.
-        /// По умолчанию: true (стандартное потребление).
-        /// Переопределить в false для зон копирования/предпросмотра.
+        /// Whether to remove items from the source after ProcessEntry succeeds.
+        /// Default: true (standard consumption).
+        /// Override to false for copy/preview zones.
         /// </summary>
         protected virtual bool RemoveFromSource => true;
 
@@ -158,7 +158,7 @@ namespace DragAndDropSystem.Core
         }
 
         // ══════════════════════════════════════════════════════════
-        //  IDropProcessor (default: шаблонные методы + авто source removal)
+        //  IDropProcessor (default: template methods + automatic source removal)
         // ══════════════════════════════════════════════════════════
 
         public virtual bool CanAcceptDrop(DragContext context)

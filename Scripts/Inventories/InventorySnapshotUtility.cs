@@ -4,7 +4,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Вспомогательные методы для работы со снапшотами инвентарей и слотов.
+    /// Helper methods for working with inventory and slot snapshots.
     /// </summary>
     public static class InventorySnapshotUtility
     {

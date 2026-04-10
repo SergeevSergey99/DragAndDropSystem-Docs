@@ -8,8 +8,8 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Синглтон-менеджер контекстного меню.
-    /// Добавьте на сцену и назначьте <see cref="ContextMenuViewBase"/>.
+    /// Singleton context menu manager.
+    /// Add it to the scene and assign <see cref="ContextMenuViewBase"/>.
     /// </summary>
     [DisallowMultipleComponent]
     public class ContextMenuManager : MonoSingleton<ContextMenuManager>
@@ -27,10 +27,10 @@ namespace DragAndDropSystem.ContextMenu
         
         ContextMenuContext _lastContext;
             
-        /// <summary>Вызывается после открытия меню.</summary>
+        /// <summary>Called after the menu is opened.</summary>
         public event Action OnOpened;
 
-        /// <summary>Вызывается после закрытия меню.</summary>
+        /// <summary>Called after the menu is closed.</summary>
         public event Action OnClosed;
 
         public void RegisterViewBinder(InventoryContextMenuViewBinder binder)
@@ -51,8 +51,8 @@ namespace DragAndDropSystem.ContextMenu
         }
 
         /// <summary>
-        /// Показать контекстное меню: фильтрует записи через <see cref="IContextMenuEntry.CanShow"/>
-        /// и передаёт видимые пункты во view.
+        /// Show the context menu: filters entries through <see cref="IContextMenuEntry.CanShow"/>
+        /// and passes visible entries to the view.
         /// </summary>
         public void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx)
         {

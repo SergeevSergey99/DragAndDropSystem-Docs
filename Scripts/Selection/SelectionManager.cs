@@ -8,36 +8,36 @@ using UnityEngine;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Синглтон, управляющий состоянием выделения слотов.
-    /// Внутри работает с мутабельными структурами, наружу отдаёт только неизменяемый SelectionContext.
+    /// Singleton that manages slot selection state.
+    /// Internally uses mutable structures and exposes only immutable SelectionContext outside.
     /// </summary>
     [DisallowMultipleComponent]
     public class SelectionManager : MonoSingleton<SelectionManager>
     {
-        // Внутреннее мутабельное состояние
+        // Internal mutable state
         private readonly HashSet<BaseSlot> _selected = new HashSet<BaseSlot>();
         private readonly Dictionary<IInventory, List<BaseSlot>> _byInventory = new Dictionary<IInventory, List<BaseSlot>>();
 
-        // Последний выделенный слот — нужен для диапазонного выделения (Shift+Click)
+        // Last selected slot, used for range selection (Shift+Click)
         private BaseSlot _lastSelectedBaseSlot;
 
         /// <summary>
-        /// Текущий неизменяемый снимок выделения.
-        /// Пересоздаётся при каждом изменении.
+        /// Current immutable snapshot of selection.
+        /// Recreated on every change.
         /// </summary>
         public SelectionContext CurrentContext { get; private set; } = SelectionContext.Empty;
 
         /// <summary>
-        /// Вызывается при любом изменении выделения
+        /// Called whenever selection changes
         /// </summary>
         public static event Action<SelectionContext> OnSelectionChanged;
 
-        // ===== Публичное API =====
+        // ===== Public API =====
 
         public bool IsSelected(BaseSlot baseSlot) => baseSlot != null && _selected.Contains(baseSlot);
 
         /// <summary>
-        /// Добавить слот к выделению
+        /// Add a slot to selection
         /// </summary>
         public void Select(BaseSlot baseSlot)
         {
@@ -48,7 +48,7 @@ namespace DragAndDropSystem.Selection
         }
 
         /// <summary>
-        /// Убрать слот из выделения
+        /// Remove a slot from selection
         /// </summary>
         public void Deselect(BaseSlot baseSlot)
         {
@@ -58,7 +58,7 @@ namespace DragAndDropSystem.Selection
         }
 
         /// <summary>
-        /// Переключить состояние выделения слота
+        /// Toggle slot selection state
         /// </summary>
         public void Toggle(BaseSlot baseSlot)
         {
@@ -68,8 +68,8 @@ namespace DragAndDropSystem.Selection
         }
 
         /// <summary>
-        /// Выделить диапазон слотов от последнего выделенного до указанного (в одном инвентаре).
-        /// Если нет последнего выделенного или он из другого инвентаря — просто выделяет указанный слот.
+        /// Select a range of slots from the last selected one to the specified slot (within one inventory).
+        /// If there is no last selected slot or it belongs to another inventory, only the specified slot is selected.
         /// </summary>
         public void SelectRange(BaseSlot toBaseSlot)
         {
@@ -99,7 +99,7 @@ namespace DragAndDropSystem.Selection
         }
 
         /// <summary>
-        /// Выделить все слоты инвентаря
+        /// Select all slots in the inventory
         /// </summary>
         public void SelectAll(IInventory inventory)
         {
@@ -115,7 +115,7 @@ namespace DragAndDropSystem.Selection
         }
 
         /// <summary>
-        /// Снять все выделения
+        /// Clear all selection
         /// </summary>
         public void Clear()
         {
@@ -126,7 +126,7 @@ namespace DragAndDropSystem.Selection
             RebuildContext();
         }
 
-        // ===== Приватные методы =====
+        // ===== Private methods =====
 
         private void AddInternal(BaseSlot baseSlot)
         {
@@ -152,7 +152,7 @@ namespace DragAndDropSystem.Selection
 
         private void RebuildContext()
         {
-            // Строим плоский список из _byInventory чтобы сохранить порядок по инвентарям
+            // Build a flat list from _byInventory to preserve ordering by inventory
             var allSlots = new List<BaseSlot>(_selected.Count);
             foreach (var slots in _byInventory.Values)
                 allSlots.AddRange(slots);

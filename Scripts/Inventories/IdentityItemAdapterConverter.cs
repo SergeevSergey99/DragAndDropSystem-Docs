@@ -3,7 +3,7 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Конвертер по умолчанию: пропускает предметы без изменений.
+    /// Default converter: passes items through unchanged.
     /// </summary>
     public sealed class IdentityItemAdapterConverter : IItemAdapterConverter
     {

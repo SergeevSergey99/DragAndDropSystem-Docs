@@ -3,8 +3,8 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Выделяет диапазон слотов от последнего выделенного до contextSlot (Shift+Click).
-    /// Если последнего выделенного нет или он из другого инвентаря — выделяет только contextSlot.
+    /// Selects a range of slots from the last selected one to contextSlot (Shift+Click).
+    /// If there is no last selected slot or it belongs to another inventory, only contextSlot is selected.
     /// </summary>
     [System.Serializable]
     public class RangeSelectOperation : SelectionOperationBase

@@ -11,10 +11,10 @@ using UnityEngine;
 namespace DragAndDropSystem.DataBinding
 {
     /// <summary>
-    /// Базовый класс для связи UniversalInventory (UI) с внешними данными (например, GameManager)
-    /// Использует паттерн Adapter для двусторонней синхронизации:
-    /// - UI изменения → внешние данные (через OnItemAddedToUI / OnItemRemovedFromUI)
-    /// - Внешние данные → UI (через SyncToUI)
+    /// Base class that connects UniversalInventory (UI) with external data (for example, GameManager)
+    /// Uses the Adapter pattern for two-way synchronization:
+    /// - UI changes -> external data (through OnItemAddedToUI / OnItemRemovedFromUI)
+    /// - External data -> UI (through SyncToUI)
     /// </summary>
     public abstract class InventoryDataBindingBase : MonoBehaviour
     {
@@ -32,15 +32,15 @@ namespace DragAndDropSystem.DataBinding
         private int _syncDepth = 0;
 
         /// <summary>
-        /// Находимся ли мы в режиме синхронизации (Data → UI).
-        /// Когда true, события OnItemAddedToUI/OnItemRemovedFromUI не вызываются.
+        /// Whether we are currently in synchronization mode (Data -> UI).
+        /// When true, OnItemAddedToUI/OnItemRemovedFromUI events are not invoked.
         /// </summary>
         protected bool IsSyncing => _syncDepth > 0;
 
         /// <summary>
-        /// Начать scope синхронизации. Используйте с using:
+        /// Begin a synchronization scope. Use with using:
         /// using (BeginSync()) { ... }
-        /// Exception-safe и поддерживает вложенность.
+        /// Exception-safe and supports nesting.
         /// </summary>
         protected SyncScope BeginSync() => new SyncScope(this);
 
@@ -62,13 +62,13 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void Awake()
         {
-            // Инициализируем инвентарь
+            // Initialize the inventory
             _inventory.Initialize(this);
         }
 
         /*private void OnValidate()
         {
-            // Сортируем правила при изменении в Inspector
+            // Sort rules when values change in the Inspector
             _ruleValidator?.OnValidate();
         }*/
 
@@ -96,7 +96,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Обработчик события попытки swap (inventory-scoped — фильтрация не нужна)
+        /// Swap-attempt event handler (inventory-scoped, no filtering needed)
         /// </summary>
         private void HandleSwapAttempting(InventorySwapContext context)
         {
@@ -112,7 +112,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Обработчик события успешного swap (inventory-scoped — фильтрация не нужна)
+        /// Successful swap event handler (inventory-scoped, no filtering needed)
         /// </summary>
         private void HandleSwapCompleted(InventorySwapContext context)
         {
@@ -143,7 +143,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Вызывается напрямую из UniversalInventory при добавлении предмета.
+        /// Called directly by UniversalInventory when an item is added.
         /// </summary>
         internal void HandleItemAdded(InventoryItemEventContext context)
         {
@@ -154,7 +154,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Вызывается напрямую из UniversalInventory при удалении предмета.
+        /// Called directly by UniversalInventory when an item is removed.
         /// </summary>
         internal void HandleItemRemoved(InventoryItemEventContext context)
         {
@@ -167,33 +167,33 @@ namespace DragAndDropSystem.DataBinding
         #region Abstract Methods
 
         /// <summary>
-        /// Вызывается когда в UI добавили предмет
-        /// Здесь нужно обновить внешние данные (добавить в список GameManager)
+        /// Called when an item is added in the UI
+        /// Update external data here (for example, add it to a GameManager list)
         /// </summary>
-        /// <param name="context">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
+        /// <param name="context">Event arguments containing item, amount, and transfer context (SourceInventory, TargetInventory)</param>
         protected abstract void OnItemAddedToUI(InventoryItemEventContext context);
 
         /// <summary>
-        /// Вызывается когда из UI убрали предмет
-        /// Здесь нужно обновить внешние данные (убрать из списка GameManager)
+        /// Called when an item is removed in the UI
+        /// Update external data here (for example, remove it from a GameManager list)
         /// </summary>
-        /// <param name="context">Аргументы события с информацией о предмете, количестве и контексте переноса (SourceInventory, TargetInventory)</param>
+        /// <param name="context">Event arguments containing item, amount, and transfer context (SourceInventory, TargetInventory)</param>
         protected abstract void OnItemRemovedFromUI(InventoryItemEventContext context);
 
         /// <summary>
-        /// Вызывается после завершения drop-операции, если этот инвентарь был источником.
-        /// Полезно для отложенной обработки (напр. потребление ингредиентов крафта).
+        /// Called after a drop operation completes if this inventory was the source.
+        /// Useful for deferred handling (for example, consuming crafting ingredients).
         /// </summary>
         protected virtual void OnDropCompletedFrom(DragContext context) { }
 
         /// <summary>
-        /// Вызывается после завершения drop-операции, если этот инвентарь был целью.
+        /// Called after a drop operation completes if this inventory was the target.
         /// </summary>
         protected virtual void OnDropCompletedTo(DragContext context) { }
 
         /// <summary>
-        /// Синхронизировать UI с внешними данными.
-        /// Очищает UI и вызывает OnReloadUI() внутри sync scope.
+        /// Synchronize the UI with external data.
+        /// Clears the UI and calls OnReloadUI() inside a sync scope.
         /// </summary>
         public void ReloadUI()
         {
@@ -207,9 +207,9 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Заполнить UI данными из внешнего источника.
-        /// Вызывается внутри sync scope — события подавлены, UI уже очищен.
-        /// Используйте AddToUIQuiet() для добавления предметов.
+        /// Populate the UI using data from the external source.
+        /// Called inside a sync scope, so events are suppressed and the UI is already cleared.
+        /// Use AddToUIQuiet() to add items.
         /// </summary>
         protected abstract void OnReloadUI();
 
@@ -218,7 +218,7 @@ namespace DragAndDropSystem.DataBinding
         #region Helper Methods
 
         /// <summary>
-        /// Очистить UI инвентарь
+        /// Clear the UI inventory
         /// </summary>
         protected void ClearUI()
         {
@@ -230,8 +230,8 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Добавить предметы в UI без триггера событий.
-        /// Каждый элемент списка должен быть отдельным экземпляром адаптера.
+        /// Add items to the UI without triggering events.
+        /// Each list element must be a separate adapter instance.
         /// </summary>
         protected void AddToUIQuiet(IEnumerable<IItemAdapter> adapters, int targetSlotIndex = -1)
         {
@@ -253,7 +253,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Добавить несколько предметов в UI через фабрику, создающую уникальный адаптер на каждый элемент стека.
+        /// Add multiple items to the UI through a factory that creates a unique adapter for each stack element.
         /// </summary>
         protected void AddToUIQuiet(Func<IItemAdapter> createAdapter, int count, int targetSlotIndex = -1)
         {
@@ -297,7 +297,7 @@ namespace DragAndDropSystem.DataBinding
         public UniversalInventory Inventory => _inventory;
 
         /// <summary>
-        /// Принудительно синхронизировать UI (можно вызвать из внешнего кода)
+        /// Force UI synchronization (can be called from external code)
         /// </summary>
         [Button("Force Sync To UI")]
         public void ForceSyncToUI()
@@ -306,7 +306,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Проверяет условия старта драга DataBinding
+        /// Check DataBinding drag-start conditions
         /// </summary>
         internal RuleResult ValidateStartDragRules(DragContext context, DragEntry entry)
         {
@@ -324,7 +324,7 @@ namespace DragAndDropSystem.DataBinding
             => ExecuteOccupiedSlotDrop(entry, occupiedBaseSlot);
 
         /// <summary>
-        /// Проверяет условия дропа DataBinding
+        /// Check DataBinding drop conditions
         /// </summary>
         internal RuleResult ValidateDropRules(DragContext context, DragEntry entry)
         {
@@ -343,79 +343,79 @@ namespace DragAndDropSystem.DataBinding
         public IItemAdapterConverter ItemConverter => _itemConverter ??= CreateItemConverter();
         
         /// <summary>
-        /// Создать converter для преобразования предметов при входе/выходе из инвентаря.
-        /// Верните null если конвертация не нужна.
+        /// Create a converter used to transform items when entering/leaving the inventory.
+        /// Return null if conversion is not needed.
         /// </summary>
         protected virtual IItemAdapterConverter CreateItemConverter() => IdentityItemAdapterConverter.Instance;
 
         /// <summary>
-        /// Проверить, можно ли начать перетаскивание из этого инвентаря
-        /// Переопределите этот метод для добавления кастомной логики проверки
+        /// Check whether dragging can start from this inventory
+        /// Override this method to add custom validation logic
         /// </summary>
-        /// <param name="context">Контекст перетаскивания</param>
-        /// <returns>Результат валидации</returns>
+        /// <param name="context">Drag context</param>
+        /// <returns>Validation result</returns>
         protected virtual RuleResult CanStartDrag(DragContext context, DragEntry entry)
         {
-            // По умолчанию разрешаем
+            // Allowed by default
             return RuleResult.Success();
         }
 
         /// <summary>
-        /// Проверить, можно ли бросить предмет в этот инвентарь
-        /// Переопределите этот метод для добавления кастомной логики проверки
+        /// Check whether an item can be dropped into this inventory
+        /// Override this method to add custom validation logic
         /// </summary>
-        /// <param name="context">Контекст перетаскивания</param>
-        /// <param name="entry">Конкретный элемент перетаскивания</param>
-        /// <returns>Результат валидации</returns>
+        /// <param name="context">Drag context</param>
+        /// <param name="entry">Specific drag entry</param>
+        /// <returns>Validation result</returns>
         protected virtual RuleResult CanDrop(DragContext context, DragEntry entry)
         {
-            // По умолчанию разрешаем
+            // Allowed by default
             return RuleResult.Success();
         }
 
         /// <summary>
-        /// Проверить, можно ли выполнить swap (обмен предметов)
-        /// Переопределите этот метод для добавления кастомной логики проверки swap
+        /// Check whether a swap can be performed
+        /// Override this method to add custom swap validation logic
         ///
-        /// ПРИМЕЧАНИЕ: Базовая валидация (CanStartDrag и CanDrop для обоих направлений)
-        /// уже выполнена в DragAndDropManager.ValidateSwap()
-        /// Этот метод предназначен для дополнительной логики специфичной для вашего DataBinding
+        /// NOTE: Base validation (CanStartDrag and CanDrop for both directions)
+        /// has already been performed in DragAndDropManager.ValidateSwap()
+        /// This method is intended for additional logic specific to your DataBinding
         /// </summary>
-        /// <param name="args">Аргументы события swap с информацией об обоих стаках и слотах</param>
-        /// <returns>Результат валидации. Если вернуть Failure - swap будет отменен</returns>
+        /// <param name="args">Swap event arguments containing both stacks and slots</param>
+        /// <returns>Validation result. Returning Failure cancels the swap</returns>
         protected virtual RuleResult CanSwap(InventorySwapContext args)
         {
-            // По умолчанию разрешаем (базовая валидация уже выполнена)
+            // Allowed by default (base validation has already been performed)
             return RuleResult.Success();
         }
 
         /// <summary>
-        /// Вызывается после успешного завершения swap
-        /// Переопределите для добавления кастомной логики обработки обмена
+        /// Called after a swap completes successfully
+        /// Override to add custom swap handling logic
         ///
-        /// Например:
-        /// - Обновление внешних данных (если swap произошел между разными DataBinding)
-        /// - Логирование обмена
-        /// - Специальная обработка экипировки (если swap с инвентаря на слот экипировки)
+        /// For example:
+        /// - Updating external data (if the swap happened between different DataBindings)
+        /// - Logging the swap
+        /// - Special equipment handling (if a swap occurred between inventory and an equipment slot)
         /// </summary>
-        /// <param name="args">Аргументы события swap с информацией об обоих стаках и слотах</param>
+        /// <param name="args">Swap event arguments containing both stacks and slots</param>
         protected virtual void OnSwapCompleted(InventorySwapContext args)
         {
-            // По умолчанию ничего не делаем
-            // События OnItemAdded/OnItemRemoved уже сгенерированы для обоих инвентарей
+            // Do nothing by default
+            // OnItemAdded/OnItemRemoved events have already been emitted for both inventories
         }
 
         /// <summary>
-        /// Вызывается планировщиком когда предмет бросают на занятый слот, ДО проверки swap/findAlternative.
-        /// Верните true если этот DataBinding может обработать такой дроп (например, добавить предмет внутрь контейнера).
-        /// Если false — pipeline продолжит стандартную логику (swap, findAlternative, reject).
+        /// Called by the planner when an item is dropped onto an occupied slot, BEFORE swap/findAlternative checks.
+        /// Return true if this DataBinding can handle such a drop (for example, putting an item inside a container).
+        /// If false, the pipeline continues with the default logic (swap, findAlternative, reject).
         /// </summary>
         protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
 
         /// <summary>
-        /// Выполняет дроп на занятый слот. Вызывается executor-ом если CanHandleOccupiedSlotDrop вернул true.
-        /// Реализация должна обработать перенос полностью: добавить предмет в целевое место,
-        /// очистить source слот и обновить данные.
+        /// Executes a drop onto an occupied slot. Called by the executor if CanHandleOccupiedSlotDrop returned true.
+        /// The implementation must handle the transfer fully: add the item to the target place,
+        /// clear the source slot, and update the data.
         /// </summary>
         protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
 

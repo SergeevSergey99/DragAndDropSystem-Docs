@@ -3,8 +3,8 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Сбрасывает выделение и выделяет только contextSlot (обычный клик без модификаторов).
-    /// Если кликнутый слот уже является единственным выделенным — снимает выделение с него.
+    /// Clears selection and selects only contextSlot (regular click without modifiers).
+    /// If the clicked slot is already the only selected one, it deselects it.
     /// </summary>
     [System.Serializable]
     public class ClearAndSelectOperation : SelectionOperationBase
@@ -19,7 +19,7 @@ namespace DragAndDropSystem.Selection
                 return;
             }
 
-            // Если этот слот уже единственный выделенный — снимаем
+            // If this slot is already the only selected one, deselect it
             bool isOnlySelected = manager.CurrentContext.TotalSlotsCount == 1
                                   && manager.IsSelected(contextBaseSlot);
             if (isOnlySelected)

@@ -6,8 +6,8 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Стандартная визуализация перетаскиваемого предмета
-    /// Просто иконка следующая за курсором
+    /// Default dragged-item visualization
+    /// A simple icon that follows the cursor
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class DefaultDragVisual : MonoBehaviour, IDragVisual

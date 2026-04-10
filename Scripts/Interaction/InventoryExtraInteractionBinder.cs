@@ -22,8 +22,8 @@ namespace DragAndDropSystem.Interaction
 
         private readonly List<PointerBinding> _resolvedPointerBindings = new();
         private readonly List<InputActionBinding> _resolvedInputActionBindings = new();
-        // Только локальные + profile биндинги (без global profile).
-        // Используется для подписок на InputAction — глобальные подписки делает InputEventRouter.
+        // Local + profile bindings only (without the global profile).
+        // Used for InputAction subscriptions; global subscriptions are handled by InputEventRouter.
         private readonly List<InputActionBinding> _localInputActionBindings = new();
 
         private bool _runtimeDirty = true;
@@ -40,8 +40,8 @@ namespace DragAndDropSystem.Interaction
         }
 
         /// <summary>
-        /// Полный список InputAction биндингов (local + profile + global).
-        /// Используется для резолва при обработке событий.
+        /// Full list of InputAction bindings (local + profile + global).
+        /// Used for binding resolution during event handling.
         /// </summary>
         public IReadOnlyList<InputActionBinding> InputActionBindingsResolved
         {
@@ -53,8 +53,8 @@ namespace DragAndDropSystem.Interaction
         }
 
         /// <summary>
-        /// Только собственные InputAction биндинги (local + profile, без global).
-        /// Используется для подписок — глобальные InputAction подписывает InputEventRouter.
+        /// Only local InputAction bindings (local + profile, without global).
+        /// Used for subscriptions; global InputActions are subscribed by InputEventRouter.
         /// </summary>
         public IReadOnlyList<InputActionBinding> LocalInputActionBindings
         {
@@ -111,8 +111,8 @@ namespace DragAndDropSystem.Interaction
                 if (globalProfile != null)
                 {
                     AppendValidBindings(globalProfile.PointerBindingsRuntime, _resolvedPointerBindings);
-                    // Глобальные InputAction добавляем только в resolved (для резолва),
-                    // но НЕ в local (подписки на них делает InputEventRouter глобально).
+                    // Global InputActions are added only to resolved (for lookup),
+                    // but NOT to local (their subscriptions are handled globally by InputEventRouter).
                     AppendValidBindings(globalProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
                 }
             }

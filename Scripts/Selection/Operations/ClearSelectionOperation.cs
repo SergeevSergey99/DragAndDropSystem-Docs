@@ -3,7 +3,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Снимает всё выделение
+    /// Clears all selection
     /// </summary>
     [System.Serializable]
     public class ClearSelectionOperation : SelectionOperationBase

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Расширенный интерфейс для предметов с детальной информацией
+    /// Extended interface for items with detailed information
     /// </summary>
     public interface IDescribable
     {

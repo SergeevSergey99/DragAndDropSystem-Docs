@@ -9,9 +9,9 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Область дропа, привязанная к инвентарю.
-    /// Позволяет дропать предметы в любое место инвентаря, а не только в конкретный слот.
-    /// Делегирует обработку дропа в InventoryDropProcessor (planner/executor pipeline).
+    /// Inventory-bound drop area.
+    /// Allows dropping items anywhere inside the inventory, not just onto a specific slot.
+    /// Delegates drop handling to InventoryDropProcessor (planner/executor pipeline).
     /// </summary>
     public class InventoryDropArea : DropAreaBase
     {

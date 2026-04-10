@@ -5,23 +5,23 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Неизменяемый снимок текущего состояния выделения.
-    /// Создаётся SelectionManager при каждом изменении выделения.
-    /// Публичные свойства доступны только для чтения — изменить состояние можно только через SelectionManager.
+    /// Immutable snapshot of the current selection state.
+    /// Created by SelectionManager every time selection changes.
+    /// Public properties are read-only; state can only be changed through SelectionManager.
     /// </summary>
     public sealed class SelectionContext
     {
-        // Приватный HashSet для O(1) поиска — не доступен снаружи
+        // Private HashSet for O(1) lookups; not exposed externally
         private readonly HashSet<BaseSlot> _selectedSet;
 
         /// <summary>
-        /// Выделенные слоты, сгруппированные по инвентарям.
-        /// Позволяет применять разную логику к слотам из разных инвентарей (например, разные наценки у торговцев).
+        /// Selected slots grouped by inventory.
+        /// Allows applying different logic to slots from different inventories (for example, different merchant markups).
         /// </summary>
         public IReadOnlyDictionary<IInventory, IReadOnlyList<BaseSlot>> ByInventory { get; }
 
         /// <summary>
-        /// Все выделенные слоты — плоский список для простых действий, которым не важен инвентарь.
+        /// All selected slots as a flat list for simple actions where inventory grouping does not matter.
         /// </summary>
         public IReadOnlyList<BaseSlot> AllSlots { get; }
 
@@ -30,12 +30,12 @@ namespace DragAndDropSystem.Selection
         public int InventoryCount  => ByInventory.Count;
 
         /// <summary>
-        /// O(1) проверка — выделен ли данный слот. Используется в SlotSelectionView.
+        /// O(1) check whether a given slot is selected. Used by SlotSelectionView.
         /// </summary>
         public bool Contains(BaseSlot baseSlot) => baseSlot != null && _selectedSet.Contains(baseSlot);
 
         /// <summary>
-        /// Пустой контекст — нет выделения. Используется как начальное состояние.
+        /// Empty context with no selection. Used as the initial state.
         /// </summary>
         public static readonly SelectionContext Empty = new SelectionContext(
             new Dictionary<IInventory, List<BaseSlot>>(),
@@ -44,7 +44,7 @@ namespace DragAndDropSystem.Selection
         );
 
         /// <summary>
-        /// Конструктор internal — только SelectionManager может создавать контекст.
+        /// Internal constructor: only SelectionManager can create a context.
         /// </summary>
         internal SelectionContext(
             Dictionary<IInventory, List<BaseSlot>> byInventory,

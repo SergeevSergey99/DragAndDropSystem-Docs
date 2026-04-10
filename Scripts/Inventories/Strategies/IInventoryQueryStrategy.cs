@@ -5,7 +5,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Отвечает за read-only запросы к содержимому инвентаря.
+    /// Responsible for read-only queries against inventory contents.
     /// </summary>
     public interface IInventoryQueryStrategy
     {

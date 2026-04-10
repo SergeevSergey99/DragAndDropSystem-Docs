@@ -3,8 +3,8 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Добавляет один слот к выделению без снятия других (без модификатора).
-    /// Если нужно сначала сбросить выделение — используйте ClearAndSelectOperation.
+    /// Adds one slot to selection without clearing others (no modifier).
+    /// If selection should be cleared first, use ClearAndSelectOperation.
     /// </summary>
     [System.Serializable]
     public class SelectSlotOperation : SelectionOperationBase

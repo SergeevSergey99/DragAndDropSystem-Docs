@@ -7,22 +7,22 @@ namespace DragAndDropSystem.ContextMenu
 {
     public struct ContextMenuContext
     {
-        /// <summary>Инвентарь, на котором вызвано меню.</summary>
+        /// <summary>Inventory on which the menu was opened.</summary>
         public Inventories.UniversalInventory Inventory;
 
-        /// <summary>Слот, на котором кликнули (может быть null).</summary>
+        /// <summary>Slot that was clicked (can be null).</summary>
         public BaseSlot BaseSlot;
 
-        /// <summary>Предмет в слоте. null если слот пустой.</summary>
+        /// <summary>Item in the slot. null if the slot is empty.</summary>
         public IItemAdapter ItemAdapter;
 
-        /// <summary>Количество предметов в стаке.</summary>
+        /// <summary>Number of items in the stack.</summary>
         public int ItemCount;
 
-        /// <summary>Экранная позиция клика.</summary>
+        /// <summary>Screen position of the click.</summary>
         public Vector2 ScreenPosition;
 
-        /// <summary>Источник ввода (мышь / геймпад / и т.д.).</summary>
+        /// <summary>Input source (mouse / gamepad / etc.).</summary>
         public FocusSource InputSource;
     }
 }

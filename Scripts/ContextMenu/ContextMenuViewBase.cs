@@ -4,15 +4,15 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Базовый класс для UI контекстного меню.
-    /// Реализуйте в своём проекте (UGUI, UI Toolkit, и т.д.).
+    /// Base class for context menu UI.
+    /// Implement it in your project (UGUI, UI Toolkit, etc.).
     /// </summary>
     public abstract class ContextMenuViewBase : MonoBehaviour
     {
-        /// <summary>Показать меню с заданными пунктами.</summary>
+        /// <summary>Show the menu with the specified entries.</summary>
         public abstract void Show(IReadOnlyList<IContextMenuEntry> entries, ContextMenuContext ctx);
 
-        /// <summary>Скрыть меню.</summary>
+        /// <summary>Hide the menu.</summary>
         public abstract void Hide();
     }
 }

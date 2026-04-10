@@ -6,12 +6,12 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Базовый интерфейс для инвентаря
+    /// Base inventory interface
     /// </summary>
     public interface IInventory
     {
         /// <summary>
-        /// Все слоты инвентаря
+        /// All inventory slots
         /// </summary>
         IReadOnlyList<BaseSlot> Slots { get; }
 
@@ -22,37 +22,37 @@ namespace DragAndDropSystem.Inventories
 
         public InventoryDataBindingBase DataBinding { get; }
         /// <summary>
-        /// Получить слот по индексу
+        /// Get a slot by index
         /// </summary>
         BaseSlot GetSlot(int index);
 
         /// <summary>
-        /// Попытаться добавить стак
+        /// Try to add a stack
         /// </summary>
         bool TryAddStack(ItemStack stack, int targetSlotIndex = -1);
 
         /// <summary>
-        /// Проверить, есть ли предмет в инвентаре
+        /// Check whether the inventory contains an item
         /// </summary>
         bool Contains(IItemAdapter itemAdapter);
 
         /// <summary>
-        /// Обновить визуализацию всех слотов
+        /// Update visuals for all slots
         /// </summary>
         void UpdateAllVisuals();
 
         /// <summary>
-        /// Получить количество предметов для перетаскивания из слота
+        /// Get the number of items to drag from a slot
         /// </summary>
         int GetDragAmount(BaseSlot baseSlot, DragAmount? overrideAmount = null, int? overrideCustom = null);
 
         /// <summary>
-        /// Попытаться добавить предмет в конкретный слот с учетом настроек инвентаря
+        /// Try to add an item to a specific slot using the inventory settings
         /// </summary>
-        /// <param name="stack">Стак предметов для добавления</param>
-        /// <param name="targetBaseSlot">Целевой слот</param>
-        /// <param name="sourceInventory">Инвентарь-источник (для событий)</param>
-        /// <param name="sourceSlotIndex">Индекс исходного слота (для событий)</param>
+        /// <param name="stack">Item stack to add</param>
+        /// <param name="targetBaseSlot">Target slot</param>
+        /// <param name="sourceInventory">Source inventory (for events)</param>
+        /// <param name="sourceSlotIndex">Source slot index (for events)</param>
         bool TryAddToSlot(
             ItemStack stack,
             BaseSlot targetBaseSlot,
@@ -61,8 +61,8 @@ namespace DragAndDropSystem.Inventories
             SlotOperationContext operationContext = null);
 
         /// <summary>
-        /// Получить количество предметов, которое инвентарь может принять
-        /// в контексте конкретной drag/drop операции.
+        /// Get the number of items the inventory can accept
+        /// in the context of a specific drag/drop operation.
         /// </summary>
         int GetAcceptableCount(InventoryAcceptanceRequest request);
     }

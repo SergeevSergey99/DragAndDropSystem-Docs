@@ -5,7 +5,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Rules
 {
     /// <summary>
-    /// Единая точка применения правил для planner/executor/handlers.
+    /// Single rule evaluation entry point for planner/executor/handlers.
     /// </summary>
     public class RuleEvaluationService
     {

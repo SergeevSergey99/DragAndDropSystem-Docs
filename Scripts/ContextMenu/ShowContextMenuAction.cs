@@ -9,9 +9,9 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Открывает контекстное меню для слота.
-    /// Пункты меню берутся из <see cref="ContextMenuBinder"/> на GO инвентаря.
-    /// Требует <see cref="ContextMenuManager"/> на сцене.
+    /// Opens the context menu for a slot.
+    /// Menu entries are taken from <see cref="ContextMenuBinder"/> on the inventory GameObject.
+    /// Requires <see cref="ContextMenuManager"/> in the scene.
     /// </summary>
     [Serializable]
     public sealed class ShowContextMenuAction : AssetSafeSlotInteractionAction

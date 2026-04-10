@@ -8,11 +8,11 @@ using UnityEngine;
 namespace DragAndDropSystem.Slots
 {
     /// <summary>
-    /// Базовый класс для слотов. Наследуется от MonoBehaviour, чтобы можно было ссылаться в инспекторе.
+    /// Base class for slots. Inherits from MonoBehaviour so it can be referenced in the Inspector.
     /// </summary>
     public abstract class BaseSlot : MonoBehaviour
     {
-        [field: InfoBox("Правила фильтрации для этого конкретного слота. Оставьте пустым для слота без ограничений.")]
+        [field: InfoBox("Filtering rules for this specific slot. Leave empty for a slot without restrictions.")]
         [field: SerializeField, HideLabel, FoldoutGroup("Slot Rules", expanded: false)]
         public SlotRuleValidator SlotRuleValidator { get; protected set; } = new();
         
@@ -23,13 +23,13 @@ namespace DragAndDropSystem.Slots
         public IInventory Inventory { get; protected set; }
 
         /// <summary>
-        /// Можно ли взаимодействовать со слотом (drag/drop).
-        /// Используется FilterSortController для временного отключения слотов.
+        /// Whether the slot can be interacted with (drag/drop).
+        /// Used by FilterSortController to temporarily disable slots.
         /// </summary>
         public virtual bool IsInteractable { get; protected set; } = true;
 
         /// <summary>
-        /// Событие изменения состояния интерактивности
+        /// Event raised when the interactable state changes
         /// </summary>
         public event Action<bool> OnInteractableChanged;
 
@@ -51,18 +51,18 @@ namespace DragAndDropSystem.Slots
             UpdateVisuals();
         }
         
-        /// <summary>Флаг подсветки (hover / drop-preview). Сохраняется между UpdateVisuals.</summary>
+        /// <summary>Highlight flag (hover / drop-preview). Preserved across UpdateVisuals.</summary>
         protected bool _isHighlighted;
 
         /// <summary>
-        /// Флаг видимости иконки. Выставляется анимационными системами через
-        /// <see cref="SetIconVisibility"/> и учитывается при следующем UpdateVisuals.
+        /// Icon visibility flag. Set by animation systems through
+        /// <see cref="SetIconVisibility"/> and applied on the next UpdateVisuals.
         /// </summary>
         protected bool _iconVisible = true;
         
         /// <summary>
-        /// Единая точка входа для полного обновления визуала.
-        /// Вызывается после любого изменения данных слота.
+        /// Single entry point for a full visual refresh.
+        /// Called after any slot data change.
         /// </summary>
         public virtual void UpdateVisuals()
         {
@@ -74,22 +74,22 @@ namespace DragAndDropSystem.Slots
             OnVisualsUpdated();
         }
         
-        /// <summary>Рендер непустого слота: иконка + счётчик.</summary>
+        /// <summary>Render a non-empty slot: icon + counter.</summary>
         protected virtual void RenderFilled(){}
         
-        /// <summary>Рендер пустого слота: убираем иконку и счётчик.</summary>
+        /// <summary>Render an empty slot: hide icon and counter.</summary>
         protected virtual void RenderEmpty(){}
         
         /// <summary>
-        /// Хук для дочерних классов: вызывается в конце каждого UpdateVisuals.
-        /// Используйте для рендера дополнительных элементов (рамки, эффекты и т.п.)
-        /// без необходимости вызывать base.UpdateVisuals().
+        /// Hook for derived classes: called at the end of each UpdateVisuals.
+        /// Use it to render additional elements (frames, effects, etc.)
+        /// without needing to call base.UpdateVisuals().
         /// </summary>
         protected virtual void OnVisualsUpdated() { }
         
         /// <summary>
-        /// Установить состояние интерактивности слота.
-        /// Вызывается FilterSortController для фильтрации/сортировки.
+        /// Set the slot interactable state.
+        /// Called by FilterSortController for filtering/sorting.
         /// </summary>
         public virtual void SetInteractable(bool interactable)
         {
@@ -102,15 +102,15 @@ namespace DragAndDropSystem.Slots
         }
 
         /// <summary>
-        /// Обновить визуальное состояние в зависимости от интерактивности.
-        /// Переопределите в наследниках для кастомного поведения.
+        /// Update visual state based on interactability.
+        /// Override in derived classes for custom behavior.
         /// </summary>
         protected virtual void UpdateInteractableVisuals() {}
 
         /// <summary>
-        /// Временно скрыть/показать иконку (для анимаций авто-переноса).
-        /// Сохраняет флаг и делает полный UpdateVisuals, чтобы остальные
-        /// визуальные состояния не сбросились.
+        /// Temporarily hide/show the icon (for auto-transfer animations).
+        /// Preserves the flag and performs a full UpdateVisuals so other
+        /// visual states are not reset.
         /// </summary>
         public virtual void SetIconVisibility(bool visible)
         {
@@ -119,14 +119,14 @@ namespace DragAndDropSystem.Slots
         }
 
         /// <summary>
-        /// Включить/выключить подсветку слота (hover, drop-preview и т.п.).
-        /// Состояние сохраняется — следующий UpdateVisuals его не сбросит.
+        /// Enable/disable slot highlight (hover, drop-preview, etc.).
+        /// The state is preserved and will not be reset by the next UpdateVisuals.
         /// </summary>
         public virtual void Highlight(bool highlight) {}
         
         protected void OnValidate()
         {
-            // Сортируем правила при изменении в Inspector
+            // Sort rules when values change in the Inspector
             SlotRuleValidator?.OnValidate();
         }
     }

@@ -7,16 +7,16 @@ using UnityEngine;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Действие сортировки предметов в инвентаре
+    /// Inventory item sorting action
     /// </summary>
     [Serializable]
     public class SortInventoryAction : InventoryActionBase
     {
         public enum SortType
         {
-            ByName,         // По имени предмета
-            ByItemId,       // По ID предмета
-            ByStackSize,    // По размеру стака (больше -> меньше)
+            ByName,         // By item name
+            ByItemId,       // By item ID
+            ByStackSize,    // By stack size (larger -> smaller)
         }
 
         [SerializeField, Tooltip("Sort type")]
@@ -44,7 +44,7 @@ namespace DragAndDropSystem.Inventories
             if (!base.CanExecute(inventory, activeBaseSlot))
                 return false;
 
-            // Проверяем, есть ли хотя бы один непустой слот
+            // Check whether there is at least one non-empty slot
             for (int i = 0; i < inventory.SlotCount; i++)
             {
                 var slot = inventory.GetSlot(i);
@@ -128,7 +128,7 @@ namespace DragAndDropSystem.Inventories
                 case SortType.ByStackSize:
                     stacks.Sort((a, b) =>
                     {
-                        int result = b.Count.CompareTo(a.Count); // Больше -> меньше
+                        int result = b.Count.CompareTo(a.Count); // Larger -> smaller
                         return reverse ? -result : result;
                     });
                     break;

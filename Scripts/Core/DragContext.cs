@@ -5,7 +5,7 @@ using DragAndDropSystem.Inventories;
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Один элемент операции перетаскивания (источник + стак)
+    /// One entry in a drag operation (source + stack)
     /// </summary>
     public readonly struct DragEntry
     {
@@ -22,8 +22,8 @@ namespace DragAndDropSystem.Core
     }
 
     /// <summary>
-    /// Контекст операции перетаскивания
-    /// Поддерживает как одиночный, так и множественный drag (batch)
+    /// Drag operation context
+    /// Supports both single and multi-entry drag (batch)
     /// </summary>
     public class DragContext
     {
@@ -31,13 +31,13 @@ namespace DragAndDropSystem.Core
         public bool IsBatchDrag => Entries.Count > 1;
 
         /// <summary>
-        /// Целевой слот операции.
+        /// Target slot of the operation.
         /// <para>
-        /// <b>null</b> — цель не задана (авто-перенос, дроп на область инвентаря, вызов из кода).<br/>
-        /// <b>Single drag:</b> точный финальный слот — slot-правила применяются напрямую.<br/>
-        /// <b>Batch drag:</b> UI-хинт (слот под курсором). Финальный слот каждого entry неизвестен
-        /// до реального переноса — определяется execution pipeline (`TransferPlanExecutor`).
-        /// Правила должны использовать <see cref="IsBatchDrag"/> чтобы игнорировать TargetSlot при batch-валидации.
+        /// <b>null</b> means the target is not specified (auto-transfer, drop onto an inventory area, code-driven call).<br/>
+        /// <b>Single drag:</b> exact final slot, slot rules are applied directly.<br/>
+        /// <b>Batch drag:</b> UI hint (slot under the cursor). The final slot for each entry is unknown
+        /// until the actual transfer and is determined by the execution pipeline (`TransferPlanExecutor`).
+        /// Rules should use <see cref="IsBatchDrag"/> to ignore TargetSlot during batch validation.
         /// </para>
         /// </summary>
         public BaseSlot TargetBaseSlot { get; set; }
@@ -61,14 +61,14 @@ namespace DragAndDropSystem.Core
         public bool HasTargetInventory => TargetInventory != null;
 
         /// <summary>
-        /// Конструктор для одиночного entry (основной сценарий)
+        /// Constructor for a single entry (main scenario)
         /// </summary>
         public DragContext(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory)
         {
             Entries = new[] { new DragEntry(stack, sourceBaseSlot, sourceInventory) };
         }
         /// <summary>
-        /// Конструктор для одиночного entry с целью (например, вызов из кода с заранее известной целью)
+        /// Constructor for a single entry with a target (for example, a code call with a pre-known target)
         /// </summary>
         public DragContext(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory, BaseSlot targetBaseSlot, IInventory targetInventory)
         {
@@ -77,7 +77,7 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Конструктор для множественных entries (batch drag)
+        /// Constructor for multiple entries (batch drag)
         /// </summary>
         public DragContext(IReadOnlyList<DragEntry> entries)
         {
@@ -92,8 +92,8 @@ namespace DragAndDropSystem.Core
         }
 
         /// <summary>
-        /// Создаёт копию контекста с заданной целью для валидации правил.
-        /// Оригинальный контекст не изменяется.
+        /// Creates a copy of the context with a specified target for rule validation.
+        /// The original context is not modified.
         /// </summary>
         public DragContext WithTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
             => new DragContext(Entries, targetBaseSlot, targetInventory);

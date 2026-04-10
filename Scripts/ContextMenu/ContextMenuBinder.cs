@@ -5,8 +5,8 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Привязывает пресеты контекстного меню к конкретному инвентарю.
-    /// Добавьте на тот же GameObject что и <see cref="UniversalInventory"/>.
+    /// Binds context menu presets to a specific inventory.
+    /// Add it to the same GameObject as <see cref="UniversalInventory"/>.
     /// </summary>
     [DisallowMultipleComponent]
     public class ContextMenuBinder : MonoBehaviour
@@ -37,8 +37,8 @@ namespace DragAndDropSystem.ContextMenu
         }
 
         /// <summary>
-        /// Вернуть записи пресета для данного состояния слота.
-        /// Возвращает новый список — безопасно хранить ссылку.
+        /// Return preset entries for the current slot state.
+        /// Returns a new list, so storing the reference is safe.
         /// </summary>
         public List<IContextMenuEntry> GetEntries(bool slotIsEmpty)
         {

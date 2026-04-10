@@ -5,8 +5,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Базовый класс для выделения слотов по условию.
-    /// Наследуйтесь и переопределите Matches() для любой логики фильтрации:
+    /// Base class for selecting slots by condition.
+    /// Derive from it and override Matches() for any filtering logic:
     ///
     ///   [Serializable]
     ///   public class SelectByRarityOperation : SelectByConditionOperation
@@ -14,7 +14,7 @@ namespace DragAndDropSystem.Selection
     ///       [SerializeField] private int _minRarity;
     ///
     ///       protected override bool Matches(ISlot slot) =>
-    ///           slot.Stack._PrimaryAdapter is IFilterable f и f.Rarity >= _minRarity;
+    ///           slot.Stack._PrimaryAdapter is IFilterable f && f.Rarity >= _minRarity;
     ///   }
     /// </summary>
     [System.Serializable]
@@ -25,7 +25,7 @@ namespace DragAndDropSystem.Selection
         private bool _clearFirst = true;
 
         /// <summary>
-        /// Возвращает true если слот должен быть выделен
+        /// Returns true if the slot should be selected
         /// </summary>
         protected abstract bool Matches(BaseSlot baseSlot);
 

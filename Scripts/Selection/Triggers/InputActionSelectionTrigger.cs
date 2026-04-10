@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Триггер выделения через Input System Action.
-    /// Пример: Ctrl+A → SelectAllOperation, Escape → ClearSelectionOperation.
+    /// Selection trigger driven by an Input System Action.
+    /// Example: Ctrl+A -> SelectAllOperation, Escape -> ClearSelectionOperation.
     /// </summary>
     public class InputActionSelectionTrigger : SelectionTriggerBase
     {

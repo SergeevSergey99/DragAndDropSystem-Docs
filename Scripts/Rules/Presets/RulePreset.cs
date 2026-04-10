@@ -5,7 +5,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Rules
 {
     /// <summary>
-    /// Базовый контейнер правил, который можно переиспользовать как ScriptableObject пресет
+    /// Base rule container that can be reused as a ScriptableObject preset
     /// </summary>
     public abstract class RulePreset<TRule> : ScriptableObject where TRule : IDragRule
     {
@@ -15,7 +15,7 @@ namespace DragAndDropSystem.Rules
         private List<TRule> _inlineRules = new();
 
         /// <summary>
-        /// Список правил, сконфигурированных внутри пресета
+        /// List of rules configured inside the preset
         /// </summary>
         public IReadOnlyList<TRule> GetRules() => _inlineRules;
     }

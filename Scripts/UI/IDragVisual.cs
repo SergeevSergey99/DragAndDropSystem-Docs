@@ -5,27 +5,27 @@ using UnityEngine;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Интерфейс для визуализации перетаскиваемого предмета
+    /// Interface for drag item visualization
     /// </summary>
     public interface IDragVisual
     {
         /// <summary>
-        /// Показать визуал с указанными entries
+        /// Show the visual using the specified entries
         /// </summary>
         void Show(IReadOnlyList<DragEntry> entries);
 
         /// <summary>
-        /// Скрыть визуал
+        /// Hide the visual
         /// </summary>
         void Hide();
 
         /// <summary>
-        /// Обновить позицию визуала
+        /// Update the visual position
         /// </summary>
         void UpdatePosition(Vector3 position);
 
         /// <summary>
-        /// Проверка: визуал активен?
+        /// Check whether the visual is active
         /// </summary>
         bool IsVisible { get; }
     }

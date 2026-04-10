@@ -219,7 +219,7 @@ namespace DragAndDropSystem.DataBinding
         }
 
         /// <summary>
-        /// Отфильтровать адаптеры нужного типа из стека.
+        /// Filter adapters of the required type from the stack.
         /// </summary>
         private List<TAdapter> FilterAdapters(ItemStack stack)
         {

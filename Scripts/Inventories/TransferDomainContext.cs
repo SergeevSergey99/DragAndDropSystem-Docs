@@ -5,8 +5,8 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Контекст доменной операции для одного planned transfer allocation.
-    /// Создается до commit и затем переиспользуется после успешного завершения переноса.
+    /// Domain-operation context for a single planned transfer allocation.
+    /// Created before commit and then reused after the transfer completes successfully.
     /// </summary>
     public sealed class TransferDomainContext
     {

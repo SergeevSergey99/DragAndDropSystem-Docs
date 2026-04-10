@@ -7,9 +7,9 @@ using UnityEngine.EventSystems;
 namespace DragAndDropSystem.Interaction
 {
     /// <summary>
-    /// Привязать к Down фазе. Начинает подсчёт удержания на слоте.
-    /// Работает в паре с StartHoldDragAction (BeginDrag фаза).
-    /// Настройки берутся из HoldDragSettings SO, указанного в InputEventRouter.
+    /// Bind to the Down phase. Starts hold counting on the slot.
+    /// Works together with StartHoldDragAction (BeginDrag phase).
+    /// Settings are taken from the HoldDragSettings SO assigned in InputEventRouter.
     /// </summary>
     [Serializable]
     public sealed class StartHoldCountAction : AssetSafeSlotInteractionAction
@@ -35,9 +35,9 @@ namespace DragAndDropSystem.Interaction
     }
 
     /// <summary>
-    /// Привязать к BeginDrag ��азе. Стартует драг с количеством, накопленным за время удер��ания.
-    /// Работает в паре с StartHoldCountAction (Down фаза).
-    /// Настройки берутся из HoldDragSettings SO, указанного в InputEventRouter.
+    /// Bind to the BeginDrag phase. Starts drag with the amount accumulated during hold.
+    /// Works together with StartHoldCountAction (Down phase).
+    /// Settings are taken from the HoldDragSettings SO assigned in InputEventRouter.
     /// </summary>
     [Serializable]
     public sealed class StartHoldDragAction : AssetSafeSlotInteractionAction

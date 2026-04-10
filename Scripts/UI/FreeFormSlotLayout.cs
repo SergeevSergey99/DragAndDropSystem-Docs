@@ -6,21 +6,21 @@ using UnityEngine;
 namespace DragAndDropSystem.UI
 {
     /// <summary>
-    /// Пример layout-компонента для инвентарей со свободным размещением слотов.
-    /// Слоты позиционируются в точке дропа, а не по сетке/LayoutGroup.
+    /// Example layout component for inventories with freely placed slots.
+    /// Slots are positioned at the drop point instead of using a grid/LayoutGroup.
     ///
-    /// <b>Использование:</b>
+    /// <b>Usage:</b>
     /// <list type="number">
-    /// <item>Повесить на тот же GameObject, что и UniversalInventory (или указать явно).</item>
+    /// <item>Add it to the same GameObject as UniversalInventory (or assign explicitly).</item>
     /// <item>Slot Management = Dynamic, Max Free Slots = 0.</item>
-    /// <item>НЕ ставить LayoutGroup на контейнер слотов (_slotContainer).</item>
-    /// <item>Рядом должен быть InventoryDropArea (стандартный, без изменений).</item>
+    /// <item>Do NOT put a LayoutGroup on the slot container (_slotContainer).</item>
+    /// <item>An InventoryDropArea should be present nearby (standard one, unchanged).</item>
     /// </list>
     ///
-    /// <b>Persistence (расширение):</b>
-    /// Для сохранения позиций слотов можно хранить нормализованные координаты
-    /// (anchoredPosition / containerSize) в модели данных (например, в IItemAdapter или отдельной карте).
-    /// При ReloadUI вызвать <see cref="ArrangeAllSlots"/> или восстановить позиции вручную:
+    /// <b>Persistence (extension):</b>
+    /// To persist slot positions, normalized coordinates can be stored
+    /// (anchoredPosition / containerSize) in the data model (for example, in IItemAdapter or a separate map).
+    /// On ReloadUI, call <see cref="ArrangeAllSlots"/> or restore positions manually:
     /// <code>
     /// foreach (var slot in inventory.Slots)
     /// {
@@ -34,18 +34,18 @@ namespace DragAndDropSystem.UI
     public class FreeFormSlotLayout : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField, Tooltip("Инвентарь. Если не задан — берётся с этого же GameObject.")]
+        [SerializeField, Tooltip("Inventory. If not assigned, taken from the same GameObject.")]
         private UniversalInventory _inventory;
 
-        [SerializeField, Tooltip("UI-камера. Null для Screen Space - Overlay Canvas.")]
+        [SerializeField, Tooltip("UI camera. Null for Screen Space - Overlay Canvas.")]
         private Camera _uiCamera;
 
-        [Header("Auto Layout (для ReloadUI / инициализации)")]
-        [SerializeField, Tooltip("Минимальный отступ между слотами при автоматическом размещении.")]
+        [Header("Auto Layout (for ReloadUI / initialization)")]
+        [SerializeField, Tooltip("Minimum spacing between slots during automatic placement.")]
         private float _slotSpacing = 8f;
 
         [Header("Bounds")]
-        [SerializeField, Tooltip("Область, ограничивающая позиции слотов. Null — используется RectTransform контейнера слотов.")]
+        [SerializeField, Tooltip("Area restricting slot positions. Null uses the slot container RectTransform.")]
         private RectTransform _boundsOverride;
 
         // ══════════════════════════════════════════════════════════
@@ -133,12 +133,12 @@ namespace DragAndDropSystem.UI
         }
 
         // ══════════════════════════════════════════════════════════
-        //  Auto layout (ReloadUI / инициализация)
+        //  Auto layout (ReloadUI / initialization)
         // ══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Расположить все текущие слоты инвентаря в сетке без перекрытий.
-        /// Вызывать после ReloadUI или при начальной загрузке.
+        /// Arrange all current inventory slots in a non-overlapping grid.
+        /// Call after ReloadUI or during initial load.
         /// </summary>
         public void ArrangeAllSlots()
         {
@@ -156,7 +156,7 @@ namespace DragAndDropSystem.UI
 
             int columns = Mathf.Max(1, Mathf.FloorToInt(bounds.width / cellW));
 
-            // Отступ от верхнего левого угла
+            // Offset from the top-left corner
             float startX = -bounds.width * 0.5f + slotSize.x * 0.5f;
             float startY = bounds.height * 0.5f - slotSize.y * 0.5f;
 
@@ -206,7 +206,7 @@ namespace DragAndDropSystem.UI
             var slotSize = slotRect.rect.size;
             var pivot = slotRect.pivot;
 
-            // Рассчитываем допустимый диапазон так, чтобы слот целиком оставался внутри bounds
+            // Calculate the valid range so the slot remains fully inside bounds
             float halfW = bounds.width * 0.5f;
             float halfH = bounds.height * 0.5f;
             float minX = -halfW + slotSize.x * pivot.x;
@@ -223,9 +223,9 @@ namespace DragAndDropSystem.UI
         //  Overlap avoidance (extension point)
         // ══════════════════════════════════════════════════════════
 
-        // TODO: Для реализации anti-overlap можно после позиционирования слота
-        // проверить пересечение с существующими слотами (Rect.Overlaps) и сдвинуть
-        // к ближайшей свободной позиции. Пример:
+        // TODO: To implement anti-overlap, after positioning a slot
+        // check intersection with existing slots (Rect.Overlaps) and shift it
+        // to the nearest free position. Example:
         //
         // private Vector2 ResolveOverlap(Vector2 desiredPos, RectTransform slotRect)
         // {
@@ -239,7 +239,7 @@ namespace DragAndDropSystem.UI
         //             existingRT.rect.size);
         //         if (candidateRect.Overlaps(existingRect))
         //         {
-        //             // Сдвинуть candidateRect в сторону от existingRect
+        //             // Shift candidateRect away from existingRect
         //         }
         //     }
         //     return desiredPos;
@@ -250,8 +250,8 @@ namespace DragAndDropSystem.UI
         // ══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Установить позицию слота в локальных координатах контейнера.
-        /// Удобно для ручного восстановления позиций из persistence.
+        /// Set slot position in the container's local coordinates.
+        /// Useful for manual position restoration from persistence.
         /// </summary>
         public void SetSlotPosition(BaseSlot baseSlot, Vector2 localPosition)
         {
@@ -263,8 +263,8 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Получить нормализованную позицию слота (0..1, 0..1) относительно контейнера.
-        /// Полезно для persistence — сохранение позиции независимо от размера контейнера.
+        /// Get the slot's normalized position (0..1, 0..1) relative to the container.
+        /// Useful for persistence, preserving position independently of container size.
         /// </summary>
         public Vector2 GetNormalizedPosition(BaseSlot baseSlot)
         {
@@ -280,7 +280,7 @@ namespace DragAndDropSystem.UI
         }
 
         /// <summary>
-        /// Конвертировать нормализованную позицию (0..1) обратно в локальные координаты.
+        /// Convert a normalized position (0..1) back into local coordinates.
         /// </summary>
         public Vector2 NormalizedToLocal(Vector2 normalized)
         {

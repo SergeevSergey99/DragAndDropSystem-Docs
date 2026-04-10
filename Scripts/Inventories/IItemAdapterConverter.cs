@@ -3,7 +3,7 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Конвертирует предметы при выходе из инвентаря и при входе в него.
+    /// Converts items when they leave an inventory and when they enter it.
     /// </summary>
     public interface IItemAdapterConverter
     {

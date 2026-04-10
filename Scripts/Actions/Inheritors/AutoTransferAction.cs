@@ -10,7 +10,7 @@ using UnityEngine;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Действие автоматического переноса предмета из активного слота в целевые инвентари
+    /// Action that automatically transfers an item from the active slot into target inventories
     /// </summary>
     [Serializable]
     public class AutoTransferAction : InventoryActionBase

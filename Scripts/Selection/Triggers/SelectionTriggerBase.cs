@@ -5,9 +5,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Базовый класс для триггеров выделения.
-    /// Отвечает за ТО, КОГДА выполняется операция.
-    /// Конкретная логика что делать — в SelectionOperationBase.
+    /// Base class for selection triggers.
+    /// Responsible for WHEN the operation is executed.
+    /// The concrete selection logic lives in SelectionOperationBase.
     /// </summary>
     public abstract class SelectionTriggerBase : MonoBehaviour
     {
@@ -17,9 +17,9 @@ namespace DragAndDropSystem.Selection
         [SerializeField] protected bool _logWarnings;
 
         /// <summary>
-        /// Выполнить операцию. Вызывается конкретными триггерами.
+        /// Execute the operation. Called by specific triggers.
         /// </summary>
-        /// <param name="contextBaseSlot">Слот, инициировавший операцию (null для кнопок/хоткеев)</param>
+        /// <param name="contextBaseSlot">Slot that initiated the operation (null for buttons/hotkeys)</param>
         protected void TryExecute(BaseSlot contextBaseSlot = null)
         {
             var manager = SelectionManager.AutoCreateInstance;

@@ -3,8 +3,8 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Базовый сценовый пункт контекстного меню.
-    /// Используется для scene-bound логики, которую нельзя хранить в asset entry.
+    /// Base scene-bound context menu entry.
+    /// Used for scene-bound logic that cannot be stored in an asset entry.
     /// </summary>
     public abstract class ContextMenuSceneEntryBase : MonoBehaviour, IContextMenuEntry
     {
@@ -19,7 +19,7 @@ namespace DragAndDropSystem.ContextMenu
 
         public abstract bool CanShow(ContextMenuContext ctx);
 
-        /// <summary>Активен ли пункт. Переопределяйте для disabled-состояния.</summary>
+        /// <summary>Whether the entry is active. Override for disabled state.</summary>
         public virtual bool IsEnabled(ContextMenuContext ctx) => true;
 
         public abstract void Execute(ContextMenuContext ctx);

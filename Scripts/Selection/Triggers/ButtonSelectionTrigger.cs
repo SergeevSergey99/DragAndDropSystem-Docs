@@ -4,8 +4,8 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Триггер выделения через UI Button.
-    /// Пример: кнопка "Выделить всё оружие", "Снять выделение", "Выбрать редкие предметы".
+    /// Selection trigger driven by a UI Button.
+    /// Example: buttons like "Select all weapons", "Clear selection", or "Select rare items".
     /// </summary>
     [RequireComponent(typeof(Button))]
     public class ButtonSelectionTrigger : SelectionTriggerBase

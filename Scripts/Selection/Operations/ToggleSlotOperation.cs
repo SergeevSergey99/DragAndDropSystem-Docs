@@ -3,7 +3,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Переключает выделение одного слота (Ctrl+Click)
+    /// Toggles selection of a single slot (Ctrl+Click)
     /// </summary>
     [System.Serializable]
     public class ToggleSlotOperation : SelectionOperationBase

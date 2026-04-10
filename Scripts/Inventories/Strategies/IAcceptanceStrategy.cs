@@ -5,7 +5,7 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Отвечает за preview-проверку, может ли инвентарь принять предметы в контексте операции.
+    /// Responsible for preview validation of whether the inventory can accept items in the current operation context.
     /// </summary>
     public interface IAcceptanceStrategy
     {

@@ -3,7 +3,7 @@ using DragAndDropSystem.Core;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Результат операции обмена слотов. Содержит копии стаков до и после обмена.
+    /// Result of a slot swap operation. Contains copies of stacks before and after the swap.
     /// </summary>
     public readonly struct SwapOperationResult
     {

@@ -3,8 +3,8 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Базовый SO для одного пункта контекстного меню.
-    /// Субклассируйте в своём проекте чтобы добавить игровую логику.
+    /// Base ScriptableObject for a single context menu entry.
+    /// Subclass it in your project to add gameplay logic.
     /// </summary>
     public abstract class ContextMenuEntryDefinitionSO : ScriptableObject, IContextMenuEntry
     {
@@ -12,22 +12,22 @@ namespace DragAndDropSystem.ContextMenu
         [SerializeField] private Sprite _icon;
         [SerializeField] private int    _order = 0;
 
-        /// <summary>Порядок сортировки в меню (меньше = выше).</summary>
+        /// <summary>Sort order in the menu (lower = higher).</summary>
         public int Order => _order;
 
-        /// <summary>Текст пункта. Переопределяйте для динамических лейблов.</summary>
+        /// <summary>Entry text. Override for dynamic labels.</summary>
         public virtual string GetLabel(ContextMenuContext ctx) => _label;
 
-        /// <summary>Иконка пункта. Переопределяйте для динамических иконок.</summary>
+        /// <summary>Entry icon. Override for dynamic icons.</summary>
         public virtual Sprite GetIcon(ContextMenuContext ctx) => _icon;
 
-        /// <summary>Показывать ли этот пункт для данного контекста.</summary>
+        /// <summary>Whether to show this entry for the current context.</summary>
         public abstract bool CanShow(ContextMenuContext ctx);
 
-        /// <summary>Активен ли пункт. Переопределяйте для disabled-состояния.</summary>
+        /// <summary>Whether the entry is active. Override for disabled state.</summary>
         public virtual bool IsEnabled(ContextMenuContext ctx) => true;
 
-        /// <summary>Выполнить действие.</summary>
+        /// <summary>Execute the action.</summary>
         public abstract void Execute(ContextMenuContext ctx);
     }
 }

@@ -7,11 +7,11 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Компонент-вьюха: подписывается на SelectionManager и меняет UI слота
-    /// в зависимости от того, выделен ли этот слот.
+    /// View component: subscribes to SelectionManager and updates slot UI
+    /// depending on whether this slot is selected.
     ///
-    /// Не знает ничего о том как произошло выделение — только реагирует на факт.
-    /// Добавьте на тот же GameObject что и UniversalSlot.
+    /// It does not know how the selection happened and only reacts to the state.
+    /// Add it to the same GameObject as UniversalSlot.
     /// </summary>
     public class SlotSelectionView : MonoBehaviour
     {
@@ -24,12 +24,12 @@ namespace DragAndDropSystem.Selection
         [SerializeField] private Color      _defaultColor  = Color.white;
 
         /// <summary>
-        /// Текущее состояние выделения этого слота
+        /// Current selection state of this slot
         /// </summary>
         public bool IsSelected { get; private set; }
 
         /// <summary>
-        /// Вызывается при смене состояния: true = выделен, false = снято
+        /// Called when the state changes: true = selected, false = deselected
         /// </summary>
         public event Action<bool> OnSelectionStateChanged;
 
@@ -42,7 +42,7 @@ namespace DragAndDropSystem.Selection
         private void OnEnable()
         {
             SelectionManager.OnSelectionChanged += Refresh;
-            // Синхронизируемся сразу — компонент мог включиться пока выделение уже было активно
+            // Sync immediately because the component may have been enabled while selection was already active
             if (SelectionManager.IsInstanceExist)
                 Refresh(SelectionManager.AutoCreateInstance.CurrentContext);
         }

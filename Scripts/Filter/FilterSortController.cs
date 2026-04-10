@@ -9,8 +9,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Filter
 {
     /// <summary>
-    /// Контроллер фильтрации и сортировки инвентаря.
-    /// Управляет видимостью и порядком слотов, не изменяя данные инвентаря.
+    /// Inventory filtering and sorting controller.
+    /// Manages slot visibility and order without modifying inventory data.
     /// </summary>
     public class FilterSortController : MonoBehaviour
     {
@@ -54,24 +54,24 @@ namespace DragAndDropSystem.Filter
         public SortPreset ActiveSortPreset => _activeSortPreset;
 
         /// <summary>
-        /// Событие изменения фильтра/сортировки
+        /// Event raised when filtering or sorting changes
         /// </summary>
         public event Action OnFilterChanged;
 
         public enum FilterDisplayMode
         {
             /// <summary>
-            /// Скрывать отфильтрованные слоты (SetActive(false))
+            /// Hide filtered slots (SetActive(false))
             /// </summary>
             Hide,
 
             /// <summary>
-            /// Затемнять отфильтрованные слоты, но оставлять видимыми
+            /// Dim filtered slots but keep them visible
             /// </summary>
             Dim,
 
             /// <summary>
-            /// Перемещать отфильтрованные слоты в конец
+            /// Move filtered slots to the end
             /// </summary>
             MoveToEnd
         }
@@ -114,12 +114,12 @@ namespace DragAndDropSystem.Filter
 
         private void OnInventoryChanged(InventoryItemEventContext context)
         {
-            // Переприменяем фильтр при изменении инвентаря
+            // Reapply the filter when the inventory changes
             ApplyFilterAndSort();
         }
 
         /// <summary>
-        /// Установить фильтр по предикату
+        /// Set a filter using a predicate
         /// </summary>
         public void SetFilter(Predicate<IItemAdapter> filter)
         {
@@ -130,7 +130,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Применить фильтр из пресета и запомнить его как активный источник фильтра.
+        /// Apply a filter from a preset and remember it as the active filter source.
         /// </summary>
         public void ApplyFilterPreset(FilterPreset preset)
         {
@@ -199,7 +199,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Установить фильтр по категории (для IFilterable предметов)
+        /// Set a category filter (for IFilterable items)
         /// </summary>
         public void SetCategoryFilter(string category)
         {
@@ -220,7 +220,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Установить фильтр по редкости (для IFilterable предметов)
+        /// Set a rarity filter (for IFilterable items)
         /// </summary>
         public void SetRarityFilter(int minRarity, int maxRarity = int.MaxValue)
         {
@@ -235,7 +235,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Установить текстовый фильтр по имени
+        /// Set a text filter by name
         /// </summary>
         public void SetNameFilter(string searchText)
         {
@@ -251,7 +251,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Очистить фильтр
+        /// Clear the filter
         /// </summary>
         public void ClearFilter()
         {
@@ -262,7 +262,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Установить режим сортировки
+        /// Set the sort mode
         /// </summary>
         public void SetSortMode(SortMode mode, bool ascending = true)
         {
@@ -274,7 +274,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Применить сортировку из пресета и запомнить его как активный источник сортировки.
+        /// Apply sorting from a preset and remember it as the active sort source.
         /// </summary>
         public void ApplySortPreset(SortPreset preset, bool ascending)
         {
@@ -296,7 +296,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Установить кастомную сортировку
+        /// Set custom sorting
         /// </summary>
         public void SetCustomSort(Comparison<BaseSlot> comparison)
         {
@@ -306,7 +306,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Очистить сортировку (вернуть оригинальный порядок)
+        /// Clear sorting (restore the original order)
         /// </summary>
         public void ClearSort()
         {
@@ -317,7 +317,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Очистить все фильтры и сортировку
+        /// Clear all filtering and sorting
         /// </summary>
         public void ClearAll()
         {
@@ -331,7 +331,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Применить текущий фильтр и сортировку
+        /// Apply the current filter and sorting
         /// </summary>
         [Button("Apply Filter & Sort")]
         public void ApplyFilterAndSort()
@@ -343,7 +343,7 @@ namespace DragAndDropSystem.Filter
             _filteredSlots.Clear();
             _visibleSlotCount = 0;
 
-            // Фаза 1: Определить видимость каждого слота
+            // Phase 1: Determine visibility for each slot
             foreach (var slot in slots)
             {
                 bool passesFilter = EvaluateSlot(slot);
@@ -355,13 +355,13 @@ namespace DragAndDropSystem.Filter
                 }
             }
 
-            // Фаза 2: Сортировка видимых слотов
+            // Phase 2: Sort visible slots
             if (_currentSort != null && _filteredSlots.Count > 1)
             {
                 _filteredSlots.Sort(_currentSort);
             }
 
-            // Фаза 3: Применить визуальные изменения
+            // Phase 3: Apply visual changes
             ApplyVisualChanges(slots);
 
             OnFilterChanged?.Invoke();
@@ -369,19 +369,19 @@ namespace DragAndDropSystem.Filter
 
         private bool EvaluateSlot(BaseSlot baseSlot)
         {
-            // Пустые слоты
+            // Empty slots
             if (baseSlot.IsEmpty)
             {
                 return !_hideEmptySlots && !_isFilterActive;
             }
 
-            // Если фильтр не активен - все предметы видимы
+            // If the filter is not active, all items are visible
             if (_currentFilter == null)
             {
                 return true;
             }
 
-            // Применяем фильтр к предмету
+            // Apply the filter to the item
             return _currentFilter(baseSlot.Stack.PrimaryAdapter);
         }
 
@@ -409,7 +409,7 @@ namespace DragAndDropSystem.Filter
         {
             int siblingIndex = 0;
 
-            // Сначала показываем и упорядочиваем видимые слоты
+            // First show and order visible slots
             foreach (var slot in _filteredSlots)
             {
                 slot.Transform.gameObject.SetActive(true);
@@ -417,7 +417,7 @@ namespace DragAndDropSystem.Filter
                 slot.Transform.SetSiblingIndex(siblingIndex++);
             }
 
-            // Скрываем остальные
+            // Hide the rest
             foreach (var slot in allSlots)
             {
                 if (!visibleSlots.Contains(slot))
@@ -432,7 +432,7 @@ namespace DragAndDropSystem.Filter
         {
             int siblingIndex = 0;
 
-            // Сначала видимые слоты
+            // Visible slots first
             foreach (var slot in _filteredSlots)
             {
                 slot.Transform.gameObject.SetActive(true);
@@ -440,7 +440,7 @@ namespace DragAndDropSystem.Filter
                 slot.Transform.SetSiblingIndex(siblingIndex++);
             }
 
-            // Затем невидимые (затемненные) в оригинальном порядке
+            // Then invisible (dimmed) ones in original order
             foreach (var slot in allSlots)
             {
                 if (!visibleSlots.Contains(slot))
@@ -456,7 +456,7 @@ namespace DragAndDropSystem.Filter
         {
             int siblingIndex = 0;
 
-            // Видимые слоты в начале (отсортированные)
+            // Visible slots at the beginning (sorted)
             foreach (var slot in _filteredSlots)
             {
                 slot.Transform.gameObject.SetActive(true);
@@ -464,7 +464,7 @@ namespace DragAndDropSystem.Filter
                 slot.Transform.SetSiblingIndex(siblingIndex++);
             }
 
-            // Невидимые в конце
+            // Invisible ones at the end
             foreach (var slot in allSlots)
             {
                 if (!visibleSlots.Contains(slot))
@@ -570,7 +570,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Получить список видимых (прошедших фильтр) слотов
+        /// Get the list of visible (filter-passing) slots
         /// </summary>
         public IReadOnlyList<BaseSlot> GetVisibleSlots()
         {
@@ -578,7 +578,7 @@ namespace DragAndDropSystem.Filter
         }
 
         /// <summary>
-        /// Проверить, виден ли слот (проходит фильтр)
+        /// Check whether a slot is visible (passes the filter)
         /// </summary>
         public bool IsSlotVisible(BaseSlot baseSlot)
         {

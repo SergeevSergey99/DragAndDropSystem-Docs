@@ -5,9 +5,9 @@ using UnityEngine;
 namespace DragAndDropSystem.Interaction
 {
     /// <summary>
-    /// Отображает количество предметов при удержании слота (hold preview).
-    /// Подписывается на InputEventRouter.OnHoldPreviewChanged/OnHoldPreviewEnded.
-    /// Размещайте на Canvas-объекте с TMP_Text внутри.
+    /// Displays item amount while holding a slot (hold preview).
+    /// Subscribes to InputEventRouter.OnHoldPreviewChanged/OnHoldPreviewEnded.
+    /// Place it on a Canvas object with TMP_Text inside.
     /// </summary>
     public class HoldDragPreviewDisplay : MonoBehaviour
     {

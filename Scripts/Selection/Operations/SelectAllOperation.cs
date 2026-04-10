@@ -5,8 +5,8 @@ using UnityEngine;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Выделяет все слоты в инвентаре (Ctrl+A).
-    /// Если _inventory не задан — использует инвентарь contextSlot.
+    /// Selects all slots in the inventory (Ctrl+A).
+    /// If _inventory is not assigned, uses the contextSlot inventory.
     /// </summary>
     [System.Serializable]
     public class SelectAllOperation : SelectionOperationBase

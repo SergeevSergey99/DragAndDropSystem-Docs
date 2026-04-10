@@ -3,23 +3,23 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Контекст операции добавления в слот.
-    /// Позволяет получить фактический слот, куда был помещен предмет.
+    /// Context for an add-to-slot operation.
+    /// Allows retrieving the actual slot where the item was placed.
     /// </summary>
     public class SlotOperationContext
     {
         /// <summary>
-        /// Фактический слот, куда был положен предмет (учитывая автослияние и переупаковку).
+        /// Actual slot where the item ended up (including auto-merge and repacking).
         /// </summary>
         public BaseSlot ResolvedBaseSlot { get; private set; }
 
         /// <summary>
-        /// Был ли слот пустым до операции (полезно для визуалов и анимаций).
+        /// Whether the slot was empty before the operation (useful for visuals and animations).
         /// </summary>
         public bool TargetWasEmptyBefore { get; private set; }
 
         /// <summary>
-        /// Количество предметов, которое реально оказалось в слоте.
+        /// Number of items that actually ended up in the slot.
         /// </summary>
         public int AddedCount { get; private set; }
 

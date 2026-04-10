@@ -4,8 +4,8 @@ using DragAndDropSystem.Slots;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Preview-операция проверки, сколько предметов target inventory может принять
-    /// в контексте конкретного drag entry.
+    /// Preview request used to check how many items the target inventory can accept
+    /// in the context of a specific drag entry.
     /// </summary>
     public sealed class InventoryAcceptanceRequest
     {

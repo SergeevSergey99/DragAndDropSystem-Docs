@@ -4,8 +4,8 @@ using UnityEngine;
 namespace DragAndDropSystem.ContextMenu
 {
     /// <summary>
-    /// Пресет контекстного меню — переиспользуемый список пунктов.
-    /// Создаётся в Assets и назначается на <see cref="ContextMenuBinder"/>.
+    /// Context menu preset: a reusable list of entries.
+    /// Created in Assets and assigned to <see cref="ContextMenuBinder"/>.
     /// </summary>
     [CreateAssetMenu(fileName = "ContextMenuPreset", menuName = "DragAndDrop/ContextMenu/Preset", order = 100)]
     public class ContextMenuPreset : ScriptableObject

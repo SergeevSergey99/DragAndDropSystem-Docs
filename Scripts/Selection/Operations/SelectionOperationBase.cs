@@ -4,10 +4,10 @@ using UnityEngine;
 namespace DragAndDropSystem.Selection
 {
     /// <summary>
-    /// Базовый класс для операций выделения.
-    /// Используется через [SerializeReference] — не требует MonoBehaviour или ScriptableObject.
+    /// Base class for selection operations.
+    /// Used through [SerializeReference] and does not require MonoBehaviour or ScriptableObject.
     ///
-    /// Создайте наследника чтобы реализовать любую логику выделения:
+    /// Create a derived class to implement any selection logic:
     ///   public class SelectByRarityOperation : SelectByConditionOperation { ... }
     /// </summary>
     [System.Serializable]
@@ -16,14 +16,14 @@ namespace DragAndDropSystem.Selection
         public virtual string DisplayName => GetType().Name.Replace("Operation", "");
 
         /// <summary>
-        /// Выполнить операцию выделения.
+        /// Execute the selection operation.
         /// </summary>
-        /// <param name="manager">Менеджер выделения</param>
-        /// <param name="contextBaseSlot">Слот, инициировавший операцию (может быть null для кнопок/хоткеев)</param>
+        /// <param name="manager">Selection manager</param>
+        /// <param name="contextBaseSlot">Slot that initiated the operation (can be null for buttons/hotkeys)</param>
         public abstract void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null);
 
         /// <summary>
-        /// Можно ли выполнить операцию прямо сейчас
+        /// Whether the operation can be executed right now
         /// </summary>
         public virtual bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
             => manager != null;

@@ -14,8 +14,8 @@ using UnityEngine.Serialization;
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Универсальный инвентарь, работающий через композицию
-    /// Не требует наследования - настраивается через стратегии и правила
+    /// Universal inventory built around composition
+    /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
     public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider, IDropPolicyProvider
     {
@@ -33,7 +33,7 @@ namespace DragAndDropSystem.Inventories
         private int _initialSlotCount = 10;
 
         [FoldoutGroup("Strategy", expanded: true)]
-        [InfoBox("PrimaryAdapter Behavior: как предметы размещаются | Slot Management: управление количеством слотов", InfoMessageType.Info)]
+        [InfoBox("PrimaryAdapter Behavior: how items are placed | Slot Management: controls the number of slots", InfoMessageType.Info)]
         [SerializeField, LabelText("PrimaryAdapter Behavior")]
         private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
 
@@ -161,29 +161,29 @@ namespace DragAndDropSystem.Inventories
             => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedBaseSlot);
 
         /// <summary>
-        /// Событие создания нового слота (после Instantiate + Initialize).
-        /// Используется FreeFormSlotLayout для позиционирования динамически создаваемых слотов.
+        /// Event raised when a new slot is created (after Instantiate + Initialize).
+        /// Used by FreeFormSlotLayout to position dynamically created slots.
         /// </summary>
         public event Action<BaseSlot> OnSlotCreated;
 
         /// <summary>
-        /// Событие добавления предмета в этот инвентарь
+        /// Event raised when an item is added to this inventory
         /// </summary>
         public event Action<InventoryItemEventContext> OnItemAdded;
 
         /// <summary>
-        /// Событие удаления предмета из этого инвентаря
+        /// Event raised when an item is removed from this inventory
         /// </summary>
         public event Action<InventoryItemEventContext> OnItemRemoved;
 
         /// <summary>
-        /// Событие попытки обмена предметов, затрагивающего этот инвентарь.
-        /// Подписчик может отменить swap через context.Cancel = true.
+        /// Event raised when an item swap affecting this inventory is attempted.
+        /// A subscriber can cancel the swap via context.Cancel = true.
         /// </summary>
         public event Action<InventorySwapContext> OnSwapAttempting;
 
         /// <summary>
-        /// Событие успешного обмена предметов, затрагивающего этот инвентарь.
+        /// Event raised when an item swap affecting this inventory completes successfully.
         /// </summary>
         public event Action<InventorySwapContext> OnSwapCompleted;
 
@@ -206,11 +206,11 @@ namespace DragAndDropSystem.Inventories
         }
 
         /// <summary>
-        /// Удалить предметы из слота этого инвентаря с эмиссией событий.
-        /// Используется внешними drop processor'ами (WorldDropZone и т.п.),
-        /// которые не проходят через TransferPlanExecutor.
+        /// Remove items from a slot in this inventory and emit events.
+        /// Used by external drop processors (WorldDropZone and similar)
+        /// that do not go through TransferPlanExecutor.
         /// </summary>
-        /// <returns>Стак удалённых предметов, или пустой стак если ничего не удалено</returns>
+        /// <returns>Number of removed items, or 0 if nothing was removed</returns>
         internal int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
         {
             if (sourceBaseSlot?.Stack == null || sourceBaseSlot.Stack.IsEmpty || stackToRemove == null || stackToRemove.IsEmpty)
@@ -240,20 +240,20 @@ namespace DragAndDropSystem.Inventories
 
         public enum ItemBehaviorType
         {
-            Unique,            // Каждый предмет в отдельном слоте (не стакается)
-            Stackable,         // Предметы стакаются и автоматически мержатся
-            SeparableStacks    // HoMM style: можно иметь несколько стаков одного предмета, мерж только при дропе
+            Unique,            // Each item occupies its own slot (not stackable)
+            Stackable,         // Items stack and merge automatically
+            SeparableStacks    // HoMM style: multiple stacks of the same item are allowed, merge only on drop
         }
 
         public enum SlotManagementType
         {
-            Fixed,       // Фиксированное количество слотов
-            Dynamic      // Динамическое добавление слотов
+            Fixed,       // Fixed number of slots
+            Dynamic      // Dynamic slot creation
         }
 
         private void Awake()
         {
-            // Проверяем что не было ленивой инициализации
+            // Ensure lazy initialization has not already happened
             if (_strategy == null)
             {
                 InitializeSlots();

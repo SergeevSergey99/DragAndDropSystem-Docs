@@ -3,23 +3,23 @@ using UnityEngine;
 namespace DragAndDropSystem.Core
 {
     /// <summary>
-    /// Базовый интерфейс для любого предмета в инвентаре
-    /// Минимальный набор свойств для работы системы
+    /// Base interface for any inventory item
+    /// Minimal set of properties required by the system
     /// </summary>
     public interface IItemAdapter
     {
         /// <summary>
-        /// Уникальный идентификатор предмета
+        /// Unique item identifier
         /// </summary>
         string ItemId { get; }
 
         /// <summary>
-        /// Item icon для отображения
+        /// Item icon used for display
         /// </summary>
         Sprite Icon { get; }
 
         /// <summary>
-        /// Отображаемое имя предмета
+        /// Display name of the item
         /// </summary>
         string DisplayName { get; }
     }
