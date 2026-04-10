@@ -17,7 +17,8 @@ flowchart LR
         D["Approach\nthe object"] --> E["Interact"]
         E --> F["Item goes\nto inventory"]
     end
-
+    
+    Dropping ~~~ Picking_Up
 ```
 
 ---
@@ -69,7 +70,7 @@ To pick items back up into the inventory, implement your own interaction logic: 
 ## Full Cycle
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Drop["Dropping"]
         A["Player drags an item in the UI"] --> B["Drops it onto WorldDropZone"]
         B --> C["WorldDropZone checks the adapter\nand the WorldPrefab"]
@@ -81,6 +82,7 @@ flowchart TD
         F["Player approaches and interacts"] --> G["Item is added back to inventory"]
         G --> H["3D object is removed from the scene"]
     end
+    Drop ~~~ Pickup
 ```
 
 ---

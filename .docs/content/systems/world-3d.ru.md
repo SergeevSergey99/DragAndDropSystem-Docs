@@ -18,6 +18,7 @@ flowchart LR
         E --> F["Предмет\nв инвентаре"]
     end
 
+    Выбрасывание ~~~ Подбор
 ```
 
 ---
@@ -69,7 +70,7 @@ public class ItemAdapterSoWith3DAdapter : IItemAdapter, IFilterable
 ## Полный цикл
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Drop["Выбрасывание"]
         A["Игрок перетаскивает предмет в UI"] --> B["Бросает на WorldDropZone"]
         B --> C["WorldDropZone проверяет адаптер\nи наличие WorldPrefab"]
@@ -81,6 +82,8 @@ flowchart TD
         F["Игрок подходит и взаимодействует"] --> G["Предмет добавляется в инвентарь"]
         G --> H["3D-объект удаляется из сцены"]
     end
+    
+    Drop ~~~ Pickup
 ```
 
 ---
