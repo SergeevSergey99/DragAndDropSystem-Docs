@@ -1,6 +1,6 @@
-# Free-Form Layout
+# Example: Free-Form Layout
 
-The `FreeFormSlotLayout` component is an example layout system for inventories where slots are not bound to a grid. Items appear exactly where the player drops them. Slots are created dynamically and positioned at the drop coordinates.
+`FreeFormSlotLayout` is an example component that demonstrates how to build a free-form inventory layout on top of the core drag-and-drop pipeline. Items appear where the player drops them, slots are created dynamically, and overlapping drops are shifted to the nearest free position.
 
 ---
 
@@ -33,7 +33,7 @@ Key idea: coordinates are **not passed** through the transfer pipeline (policy /
 
 | Component | Purpose |
 |-----------|---------|
-| **FreeFormSlotLayout** | Positions dynamically created slots: at the drop point during drag, in a grid during initialization |
+| **FreeFormSlotLayout** | Example component: positions dynamically created slots at the drop point during drag, resolves overlap, and arranges them in a grid during initialization |
 | **InventoryDropArea** | Standard drop area --- no modifications needed |
 | **UniversalInventory** | Inventory with `Dynamic` slots. Provides the `OnSlotCreated` event and access to `SlotContainer` |
 
@@ -107,15 +107,15 @@ Normalized coordinates are independent of container size --- positions scale cor
 
 ---
 
-## Extension: Overlap Avoidance
+## Overlap Avoidance
 
-In the current implementation, slots may overlap when dropped at the same point. To address this, extend `FreeFormSlotLayout` by adding a `Rect.Overlaps` check after positioning and shifting to the nearest free position.
+The example now includes built-in overlap resolution. If the drop point is already occupied, `FreeFormSlotLayout` searches neighboring positions in expanding rings and picks the nearest free slot position inside bounds.
 
 ---
 
 ## Building Your Own Layout
 
-`FreeFormSlotLayout` is an example, not the only option. Here are the extension points through which any layout logic can be built:
+`FreeFormSlotLayout` is intentionally presented as an example, not as a required built-in layout mode. Here are the extension points through which any layout logic can be built:
 
 ### Available Hooks
 
@@ -190,7 +190,7 @@ public class MyCustomLayout : MonoBehaviour
 
 | Class | Role |
 |-------|------|
-| `FreeFormSlotLayout` | Positions slots at drop point or in grid during initialization |
+| `FreeFormSlotLayout` | Example component for free-form slot placement with overlap resolution |
 | `UniversalInventory.OnSlotCreated` | Slot creation event --- the main hook for layout systems |
 | `UniversalInventory.SlotContainer` | Access to the Transform container for coordinate conversion |
 | `InventoryDropArea` | Standard drop area, works without modifications |

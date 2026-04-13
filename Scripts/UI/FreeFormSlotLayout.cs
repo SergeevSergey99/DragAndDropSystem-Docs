@@ -31,6 +31,7 @@ namespace DragAndDropSystem.UI
     /// </code>
     /// </summary>
     [RequireComponent(typeof(UniversalInventory))]
+    [AddComponentMenu("DragAndDrop/Examples/Free Form Slot Layout")]
     public class FreeFormSlotLayout : MonoBehaviour
     {
         [Header("References")]
@@ -128,7 +129,7 @@ namespace DragAndDropSystem.UI
                     _containerRect, screenPos, _uiCamera, out var localPos))
                 return;
 
-            localPos = ClampToBounds(localPos, slotRect);
+            localPos = ResolveOverlap(ClampToBounds(localPos, slotRect), slotRect);
             slotRect.anchoredPosition = localPos;
         }
 
@@ -220,30 +221,84 @@ namespace DragAndDropSystem.UI
         }
 
         // ══════════════════════════════════════════════════════════
-        //  Overlap avoidance (extension point)
+        //  Overlap avoidance
         // ══════════════════════════════════════════════════════════
 
-        // TODO: To implement anti-overlap, after positioning a slot
-        // check intersection with existing slots (Rect.Overlaps) and shift it
-        // to the nearest free position. Example:
-        //
-        // private Vector2 ResolveOverlap(Vector2 desiredPos, RectTransform slotRect)
-        // {
-        //     var candidateRect = new Rect(desiredPos - slotRect.rect.size * 0.5f, slotRect.rect.size);
-        //     foreach (var existing in _inventory.Slots)
-        //     {
-        //         if (existing.Transform == slotRect.transform) continue;
-        //         var existingRT = existing.Transform as RectTransform;
-        //         var existingRect = new Rect(
-        //             existingRT.anchoredPosition - existingRT.rect.size * 0.5f,
-        //             existingRT.rect.size);
-        //         if (candidateRect.Overlaps(existingRect))
-        //         {
-        //             // Shift candidateRect away from existingRect
-        //         }
-        //     }
-        //     return desiredPos;
-        // }
+        private Vector2 ResolveOverlap(Vector2 desiredPos, RectTransform slotRect)
+        {
+            if (_inventory == null)
+                return desiredPos;
+
+            if (!IntersectsAnySlot(desiredPos, slotRect))
+                return desiredPos;
+
+            var slotSize = slotRect.rect.size;
+            float stepX = Mathf.Max(1f, slotSize.x + _slotSpacing);
+            float stepY = Mathf.Max(1f, slotSize.y + _slotSpacing);
+
+            int maxRadius = Mathf.Max(8, _inventory.Slots.Count + 2);
+            Vector2 bestPosition = desiredPos;
+            float bestDistance = float.PositiveInfinity;
+
+            for (int radius = 1; radius <= maxRadius; radius++)
+            {
+                bool foundFreePosition = false;
+
+                for (int y = -radius; y <= radius; y++)
+                {
+                    for (int x = -radius; x <= radius; x++)
+                    {
+                        if (Mathf.Abs(x) != radius && Mathf.Abs(y) != radius)
+                            continue;
+
+                        var offset = new Vector2(x * stepX, y * stepY);
+                        var candidate = ClampToBounds(desiredPos + offset, slotRect);
+
+                        if (IntersectsAnySlot(candidate, slotRect))
+                            continue;
+
+                        float distance = (candidate - desiredPos).sqrMagnitude;
+                        if (distance < bestDistance)
+                        {
+                            bestDistance = distance;
+                            bestPosition = candidate;
+                            foundFreePosition = true;
+                        }
+                    }
+                }
+
+                if (foundFreePosition)
+                    return bestPosition;
+            }
+
+            return bestPosition;
+        }
+
+        private bool IntersectsAnySlot(Vector2 candidatePos, RectTransform slotRect)
+        {
+            var candidateRect = GetAnchoredRect(candidatePos, slotRect);
+
+            var slots = _inventory.Slots;
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var existingRect = slots[i]?.Transform as RectTransform;
+                if (existingRect == null || ReferenceEquals(existingRect, slotRect))
+                    continue;
+
+                if (candidateRect.Overlaps(GetAnchoredRect(existingRect.anchoredPosition, existingRect)))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static Rect GetAnchoredRect(Vector2 anchoredPosition, RectTransform rectTransform)
+        {
+            var size = rectTransform.rect.size;
+            var pivot = rectTransform.pivot;
+            var min = anchoredPosition - Vector2.Scale(size, pivot);
+            return new Rect(min, size);
+        }
 
         // ══════════════════════════════════════════════════════════
         //  Helpers
@@ -259,7 +314,7 @@ namespace DragAndDropSystem.UI
             if (slotRect == null)
                 return;
 
-            slotRect.anchoredPosition = ClampToBounds(localPosition, slotRect);
+            slotRect.anchoredPosition = ResolveOverlap(ClampToBounds(localPosition, slotRect), slotRect);
         }
 
         /// <summary>
