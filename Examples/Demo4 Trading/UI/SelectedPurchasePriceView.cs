@@ -1,7 +1,7 @@
 using DragAndDropSystem.Selection;
 using DragAndDropSystem.Slots;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.Examples.Trading
 {
@@ -12,7 +12,10 @@ namespace DragAndDropSystem.Examples.Trading
     public class SelectedPurchasePriceView : MonoBehaviour
     {
         [Header("UI")]
-        [SerializeField] private TextMeshProUGUI _totalPriceText;
+        [SerializeField]
+        // Replace to TMP Support
+        // private TMPro.TMP_Text _totalPriceText;
+        private Text _totalPriceText;
 
         [Header("Text Format")]
         [SerializeField] private string _prefix = "Buy Total: ";

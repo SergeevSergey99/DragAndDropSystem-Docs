@@ -5,9 +5,8 @@ using DragAndDropSystem.Examples.Trading.Data;
 using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
-using Plugins.DragAndDropSystem.Examples.Trading.Data;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.Examples.Trading
 {
@@ -25,10 +24,14 @@ namespace DragAndDropSystem.Examples.Trading
         private string _merchantId;
 
         [FoldoutGroup("UI References")] [SerializeField, Tooltip("Text for displaying the merchant's name")]
-        private TextMeshProUGUI _merchantNameText;
+        // Replace to TMP Support
+        // private TMPro.TMP_Text _merchantNameText;
+        private Text _merchantNameText;
 
         [FoldoutGroup("UI References")] [SerializeField, Tooltip("Text for displaying the merchant's money")]
-        private TextMeshProUGUI _moneyText;
+        // Replace to TMP Support
+        // private TMPro.TMP_Text _moneyText;
+        private Text _moneyText;
 
         [FoldoutGroup("Settings")] [SerializeField, Tooltip("Prefix for displaying money (e.g. 'Gold: ')")]
         private string _moneyPrefix = "Gold: ";

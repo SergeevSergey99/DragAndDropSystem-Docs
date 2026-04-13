@@ -16,18 +16,6 @@ namespace DragAndDropSystem.Examples.Trading
     /// </summary>
     public class PlayerInventoryDataBinding : ListInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>, ITransferDomainHandler
     {
-        [FoldoutGroup("UI References")]
-        [SerializeField, Tooltip("Text for displaying the player's money")]
-        private TextMeshProUGUI _moneyText;
-
-        [FoldoutGroup("Settings")]
-        [SerializeField, Tooltip("Prefix for displaying money")]
-        private string _moneyPrefix = "Gold: ";
-
-        [FoldoutGroup("Settings")]
-        [SerializeField, Tooltip("Suffix for displaying money")]
-        private string _moneySuffix = "g";
-
         private PlayerData PlayerData => TradingEconomyManager.AutoCreateInstance.PlayerData;
 
         // --- ListInventoryDataBinding primitives ---
@@ -42,34 +30,5 @@ namespace DragAndDropSystem.Examples.Trading
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
         public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyPlayerTransferEffects(context, PlayerData);
-
-        // --- Lifecycle ---
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-            if (PlayerData != null)
-                PlayerData.OnMoneyChanged += UpdateMoneyUI;
-            UpdateMoneyUI();
-        }
-
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-            if (TradingEconomyManager.IsInstanceExist && PlayerData != null)
-                PlayerData.OnMoneyChanged -= UpdateMoneyUI;
-        }
-
-        protected override void OnReloadUI()
-        {
-            base.OnReloadUI();
-            UpdateMoneyUI();
-        }
-
-        private void UpdateMoneyUI()
-        {
-            if (_moneyText != null && PlayerData != null)
-                _moneyText.text = $"{_moneyPrefix}{PlayerData.Money}{_moneySuffix}";
-        }
     }
 }
