@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DragAndDropSystem.Tools;
+using UnityEngine;
 
 namespace CodeUtils
 {
@@ -34,12 +35,12 @@ namespace CodeUtils
 
         protected virtual void Init()
         {
-            Debug.LogWarning($"<color=green>Initing {typeof(T).Name}</color>");
+            Extensions.DragAndDropLog($"<color=green>Initing {typeof(T).Name}</color>");
         }
 
         protected virtual void DeInit()
         {
-            Debug.LogWarning($"<color=red>DeIniting {typeof(T).Name}</color>");
+            Extensions.DragAndDropLog($"<color=red>DeIniting {typeof(T).Name}</color>");
         }
 
         public virtual void Awake()
