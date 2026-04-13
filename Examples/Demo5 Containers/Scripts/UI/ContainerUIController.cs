@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using DragAndDropSystem.Examples.Containers;
-using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.Examples.Containers.UI
 {
@@ -11,7 +8,11 @@ namespace DragAndDropSystem.Examples.Containers.UI
     {
         [FormerlySerializedAs("_openedContainerBinding")] [SerializeField] private ContainerInventoryDataBinding containerBinding;
         [SerializeField] private GameObject _containerPanel;
-        [SerializeField] private TMP_Text _titleText;
+        
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TMP_Text _titleText;
+        [SerializeField] private Text _titleText;
+        
         [SerializeField] private string _emptyTitle = "Open Container";
 
         private ContainerItemInstance _currentContainer;
