@@ -7,7 +7,7 @@ namespace DragAndDropSystem.Interaction
     /// <summary>
     /// Displays item amount while holding a slot (hold preview).
     /// Subscribes to InputEventRouter.OnHoldPreviewChanged/OnHoldPreviewEnded.
-    /// Place it on a Canvas object with TMP_Text inside.
+    /// Place it on a Canvas object with Text inside.
     /// </summary>
     public class HoldDragPreviewDisplay : MonoBehaviour
     {

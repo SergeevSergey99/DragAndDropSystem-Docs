@@ -44,6 +44,10 @@ flowchart TD
 `IDescribable` здесь является именно optional расширением adapter'а для UI.
 Core inventory не зависит от него. Подробнее — в разделе [Опциональные интерфейсы](../reference/optional-interfaces.md).
 
+По умолчанию пакет теперь использует обычные `UnityEngine.UI.Text`, а не TMP. Это упрощает базовую установку и убирает жёсткую зависимость от TextMeshPro.
+
+Если нужен TMP, UI-слой специально оставлен легко заменяемым: ищите по коду маркер `Replace to TMP Support` и меняйте соответствующие поля `Text` на `TMP_Text` / `TextMeshProUGUI` в своей версии проекта.
+
 ---
 
 ## Кастомный тултип
@@ -51,10 +55,12 @@ Core inventory не зависит от него. Подробнее — в ра
 Создайте свой класс, унаследовавшись от `BaseTooltipView`:
 
 ```csharp
+using UnityEngine.UI;
+
 public class RPGTooltipView : BaseTooltipView
 {
-    [SerializeField] private TextMeshProUGUI _nameText;
-    [SerializeField] private TextMeshProUGUI _statsText;
+    [SerializeField] private Text _nameText;
+    [SerializeField] private Text _statsText;
     [SerializeField] private Image _rarityBorder;
 
     public override void SetContent(IItemAdapter item)
@@ -69,6 +75,8 @@ public class RPGTooltipView : BaseTooltipView
     }
 }
 ```
+
+При необходимости этот пример так же легко перевести на TMP, ориентируясь на маркеры `Replace to TMP Support` во встроенных UI-компонентах.
 
 Назначьте свой префаб в `TooltipManager` вместо стандартного.
 

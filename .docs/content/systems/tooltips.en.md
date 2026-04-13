@@ -44,6 +44,10 @@ The built-in `DefaultTooltipView` shows:
 `IDescribable` here is an optional adapter extension for UI.
 The core inventory does not depend on it. See [Optional Interfaces](../reference/optional-interfaces.md) for details.
 
+By default, the package now uses regular `UnityEngine.UI.Text` components instead of TMP. This keeps the core setup simpler and avoids a hard dependency on TextMeshPro.
+
+If you prefer TMP, the UI classes are intentionally easy to swap: search the codebase for `Replace to TMP Support` and replace the corresponding `Text` fields with `TMP_Text` / `TextMeshProUGUI` in your project-specific fork.
+
 ---
 
 ## Custom Tooltip
@@ -51,10 +55,12 @@ The core inventory does not depend on it. See [Optional Interfaces](../reference
 Create your own class by inheriting from `BaseTooltipView`:
 
 ```csharp
+using UnityEngine.UI;
+
 public class RPGTooltipView : BaseTooltipView
 {
-    [SerializeField] private TextMeshProUGUI _nameText;
-    [SerializeField] private TextMeshProUGUI _statsText;
+    [SerializeField] private Text _nameText;
+    [SerializeField] private Text _statsText;
     [SerializeField] private Image _rarityBorder;
 
     public override void SetContent(IItemAdapter item)
@@ -69,6 +75,8 @@ public class RPGTooltipView : BaseTooltipView
     }
 }
 ```
+
+If needed, this example can be switched to TMP in exactly the same places by following the `Replace to TMP Support` markers in the built-in UI views.
 
 Assign your prefab in `TooltipManager` instead of the default one.
 
