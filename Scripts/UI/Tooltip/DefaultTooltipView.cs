@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Tools.Inspector;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,11 +16,15 @@ namespace DragAndDropSystem.UI
     public class DefaultTooltipView : BaseTooltipView
     {
         [Header("UI Elements")]
-        [SerializeField, Tooltip("Item name text")]
-        private TextMeshProUGUI _itemNameText;
+        [SerializeField, Tooltip("Item name text")] 
+        // Replace to TMP Support
+        // private TMPro.TMP_Text _itemNameText;
+        private Text _itemNameText;
 
         [SerializeField, Tooltip("Item description text")]
-        private TextMeshProUGUI _itemDescriptionText;
+        // Replace to TMP Support
+        // private TMPro.TMP_Text _itemDescriptionText;
+        private Text _itemDescriptionText;
 
         [SerializeField, Tooltip("Item icon")]
         private Image _itemIcon;
