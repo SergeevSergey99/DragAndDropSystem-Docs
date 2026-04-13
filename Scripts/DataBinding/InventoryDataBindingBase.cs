@@ -63,7 +63,7 @@ namespace DragAndDropSystem.DataBinding
         protected virtual void Awake()
         {
             // Initialize the inventory
-            _inventory.Initialize(this);
+            Inventory.Initialize(this);
         }
 
         /*private void OnValidate()
@@ -74,10 +74,10 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void OnEnable()
         {
-            if (_inventory != null)
+            if (Inventory != null)
             {
-                _inventory.OnSwapAttempting += HandleSwapAttempting;
-                _inventory.OnSwapCompleted += HandleSwapCompleted;
+                Inventory.OnSwapAttempting += HandleSwapAttempting;
+                Inventory.OnSwapCompleted += HandleSwapCompleted;
             }
 
             DragAndDropManager.OnDropCompleted += HandleDropCompleted;
@@ -86,10 +86,10 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void OnDisable()
         {
-            if (_inventory != null)
+            if (Inventory != null)
             {
-                _inventory.OnSwapAttempting -= HandleSwapAttempting;
-                _inventory.OnSwapCompleted -= HandleSwapCompleted;
+                Inventory.OnSwapAttempting -= HandleSwapAttempting;
+                Inventory.OnSwapCompleted -= HandleSwapCompleted;
             }
 
             DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
@@ -125,11 +125,11 @@ namespace DragAndDropSystem.DataBinding
                 return;
 
             bool isSource = false;
-            bool isTarget = ReferenceEquals(context.TargetInventory, _inventory);
+            bool isTarget = ReferenceEquals(context.TargetInventory, Inventory);
 
             for (int i = 0; i < context.Entries.Count; i++)
             {
-                if (ReferenceEquals(context.Entries[i].SourceInventory, _inventory))
+                if (ReferenceEquals(context.Entries[i].SourceInventory, Inventory))
                 {
                     isSource = true;
                     break;
@@ -197,11 +197,11 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         public void ReloadUI()
         {
-            if (!Application.isPlaying || _inventory == null) return;
+            if (!Application.isPlaying || Inventory == null) return;
 
             using (BeginSync())
             {
-                _inventory.ClearAll();
+                Inventory.ClearAll();
                 OnReloadUI();
             }
         }
@@ -222,10 +222,10 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected void ClearUI()
         {
-            if (_inventory != null)
+            if (Inventory != null)
             {
                 using (BeginSync())
-                    _inventory.ClearAll();
+                    Inventory.ClearAll();
             }
         }
 
@@ -235,7 +235,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected void AddToUIQuiet(IEnumerable<IItemAdapter> adapters, int targetSlotIndex = -1)
         {
-            if (_inventory == null || adapters == null)
+            if (Inventory == null || adapters == null)
                 return;
 
             if (!ItemStack.TryCreate(adapters, out var stack))
@@ -243,11 +243,11 @@ namespace DragAndDropSystem.DataBinding
 
             if (targetSlotIndex < 0)
             {
-                _inventory.TryAddStackQuiet(stack, -1);
+                Inventory.TryAddStackQuiet(stack, -1);
                 return;
             }
 
-            var slot = _inventory.GetSlot(targetSlotIndex);
+            var slot = Inventory.GetSlot(targetSlotIndex);
             if (slot != null)
                 slot.SetStack(stack);
         }
@@ -257,7 +257,7 @@ namespace DragAndDropSystem.DataBinding
         /// </summary>
         protected void AddToUIQuiet(Func<IItemAdapter> createAdapter, int count, int targetSlotIndex = -1)
         {
-            if (_inventory == null || createAdapter == null || count <= 0)
+            if (Inventory == null || createAdapter == null || count <= 0)
                 return;
 
             var adapters = new List<IItemAdapter>(count);
@@ -294,7 +294,17 @@ namespace DragAndDropSystem.DataBinding
 
         #region Public API
 
-        public UniversalInventory Inventory => _inventory;
+        public UniversalInventory Inventory
+        {
+            get
+            {
+                if (_inventory == null)
+                {
+                    throw new NullReferenceException("Inventory reference is null. Please assign it in the Inspector.");
+                }
+                return _inventory;
+            }
+        }
 
         /// <summary>
         /// Force UI synchronization (can be called from external code)
