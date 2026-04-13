@@ -1,5 +1,4 @@
-﻿using System;
-using DragAndDropSystem.Interaction;
+﻿using DragAndDropSystem.Interaction;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -8,7 +7,9 @@ namespace DragAndDropSystem.ContextMenu.UI
 {
     public class ContextMenuEntryView : MonoBehaviour
     {
-        [SerializeField] private TMPro.TextMeshProUGUI label;
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TextMeshProUGUI label;
+        [SerializeField] private Text label;
         [SerializeField] private Button _button;
         
         public Selectable Selectable => _button;

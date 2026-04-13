@@ -12,6 +12,8 @@ namespace DragAndDropSystem.Slots
     {
         [Header("Visual Components")]
         [SerializeField] protected Image _iconImage;
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TMP_Text _countText;
         [SerializeField] private Text _countText;
         [SerializeField] private GameObject _countContainer;
 

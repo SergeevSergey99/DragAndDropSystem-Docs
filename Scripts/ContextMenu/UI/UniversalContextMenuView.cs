@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Interaction;
+using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +9,9 @@ namespace DragAndDropSystem.ContextMenu.UI
 {
     public class UniversalContextMenuView : ContextMenuViewBase
     {
-        [SerializeField] private TMPro.TextMeshProUGUI label;
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TextMeshProUGUI label;
+        [SerializeField] private Text label;
         [SerializeField] private Transform entriesContainer;
         [SerializeField] private ContextMenuEntryView entryViewPrefab;
         
@@ -102,10 +105,10 @@ namespace DragAndDropSystem.ContextMenu.UI
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
 
-            Camera targetCamera = GetCanvasCamera(rt);
+            Camera targetCamera = Extensions.GetCanvasCamera(rt);
             Vector2 fallbackScreenPos = ctx.ScreenPosition;
 
-            if (!TryGetSlotBoundsInParent(ctx.BaseSlot?.transform as RectTransform, parentRT, targetCamera, out var slotCenterLocal, out float halfSlotWidthLocal, out var slotCenterScreenPos))
+            if (!Extensions.TryGetSlotBoundsInParent(ctx.BaseSlot?.transform as RectTransform, parentRT, targetCamera, out var slotCenterLocal, out float halfSlotWidthLocal, out var slotCenterScreenPos))
             {
                 slotCenterScreenPos = fallbackScreenPos;
                 if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRT, fallbackScreenPos, targetCamera, out slotCenterLocal))
@@ -114,7 +117,7 @@ namespace DragAndDropSystem.ContextMenu.UI
                 halfSlotWidthLocal = 0f;
             }
 
-            GetRectBoundsInParent(rt, parentRT, targetCamera, targetCamera, out var menuMinLocal, out var menuMaxLocal);
+            Extensions.GetRectBoundsInParent(rt, parentRT, targetCamera, targetCamera, out var menuMinLocal, out var menuMaxLocal);
             float menuWidthLocal = menuMaxLocal.x - menuMinLocal.x;
             float menuHeightLocal = menuMaxLocal.y - menuMinLocal.y;
             float halfMenuWidthLocal = menuWidthLocal * 0.5f;
@@ -127,61 +130,6 @@ namespace DragAndDropSystem.ContextMenu.UI
             rt.anchoredPosition = new Vector2(
                 menuCenterLocal.x + (rt.pivot.x - 0.5f) * menuWidthLocal,
                 menuCenterLocal.y + (rt.pivot.y - 0.5f) * menuHeightLocal);
-        }
-
-        private static bool TryGetSlotBoundsInParent(RectTransform slotRect, RectTransform parentRT, Camera targetCamera, out Vector2 centerLocal, out float halfWidthLocal, out Vector2 centerScreenPos)
-        {
-            centerLocal = default;
-            halfWidthLocal = 0f;
-            centerScreenPos = default;
-
-            if (slotRect == null)
-                return false;
-
-            Camera sourceCamera = GetCanvasCamera(slotRect);
-            GetRectBoundsInParent(slotRect, parentRT, sourceCamera, targetCamera, out var minLocal, out var maxLocal);
-
-            centerLocal = (minLocal + maxLocal) * 0.5f;
-            halfWidthLocal = (maxLocal.x - minLocal.x) * 0.5f;
-
-            var worldCenter = slotRect.TransformPoint(slotRect.rect.center);
-            centerScreenPos = RectTransformUtility.WorldToScreenPoint(sourceCamera, worldCenter);
-            return true;
-        }
-
-        private static void GetRectBoundsInParent(RectTransform rect, RectTransform parentRT, Camera sourceCamera, Camera targetCamera, out Vector2 minLocal, out Vector2 maxLocal)
-        {
-            var worldCorners = new Vector3[4];
-            rect.GetWorldCorners(worldCorners);
-
-            minLocal = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
-            maxLocal = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
-
-            for (int i = 0; i < worldCorners.Length; i++)
-            {
-                Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(sourceCamera, worldCorners[i]);
-                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRT, screenPoint, targetCamera, out var localPoint))
-                    continue;
-
-                minLocal = Vector2.Min(minLocal, localPoint);
-                maxLocal = Vector2.Max(maxLocal, localPoint);
-            }
-
-            if (float.IsInfinity(minLocal.x) || float.IsInfinity(maxLocal.x))
-            {
-                minLocal = Vector2.zero;
-                maxLocal = new Vector2(rect.rect.width, rect.rect.height);
-            }
-        }
-
-        private static Camera GetCanvasCamera(Component component)
-        {
-            var canvas = component != null ? component.GetComponentInParent<Canvas>() : null;
-            if (canvas == null)
-                return null;
-
-            var rootCanvas = canvas.rootCanvas != null ? canvas.rootCanvas : canvas;
-            return rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
         }
     }
 }
