@@ -20,7 +20,7 @@ Each demo page explains:
 3. **How the main scenario works**
 4. **Which files to inspect**
 
-The goal is to help you understand the architectural shape quickly, not just reproduce a scene.
+The goal is to help you understand the architectural shape of scene quickly.
 
 ---
 
@@ -53,7 +53,6 @@ Use it for:
 
 Shows:
 
-- a mediator between world layer and UI
 - changing the chest's data binding data source
 - world drop / pickup integration
 - item filters
