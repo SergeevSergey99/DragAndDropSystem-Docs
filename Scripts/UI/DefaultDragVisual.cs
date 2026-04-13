@@ -15,7 +15,10 @@ namespace DragAndDropSystem.UI
         [Header("Components")]
         [SerializeField] private Image _iconImage;
         [SerializeField] private GameObject _countParent;
-        [SerializeField] private TMPro.TMP_Text _countText;
+        
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TMP_Text _countText;
+        [SerializeField] private Text _countText;
 
         [Header("Settings")]
         [SerializeField] private bool _showCount = true;
