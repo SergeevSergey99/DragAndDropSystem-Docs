@@ -35,12 +35,12 @@ namespace CodeUtils
 
         protected virtual void Init()
         {
-            Extensions.DragAndDropLog($"<color=green>Initing {typeof(T).Name}</color>");
+            Extensions.DragAndDropLog($"<color=green>Initializing {typeof(T).Name}</color>");
         }
 
         protected virtual void DeInit()
         {
-            Extensions.DragAndDropLog($"<color=red>DeIniting {typeof(T).Name}</color>");
+            Extensions.DragAndDropLog($"<color=red>Deinitializing {typeof(T).Name}</color>");
         }
 
         public virtual void Awake()
