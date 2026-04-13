@@ -1,6 +1,6 @@
 using System;
-using System.Collections;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Tools;
 using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,10 +41,6 @@ namespace DragAndDropSystem.UI
         [SerializeField, Tooltip("Fade-out speed"), ShowIf(nameof(_useFadeAnimation))]
         private float _fadeOutTime = 1f;
 
-        // State
-        private Coroutine _fadeCoroutine;
-        private IItemAdapter _currentItemAdapter;
-
         // Properties
         public bool IsVisible => gameObject.activeSelf;
 
@@ -82,22 +78,37 @@ namespace DragAndDropSystem.UI
             // Fade-in animation
             if (_useFadeAnimation && _canvasGroup != null)
             {
-                if (_fadeCoroutine != null)
-                    StopCoroutine(_fadeCoroutine);
-                _fadeCoroutine = StartCoroutine(FadeIn(OnCompleted));
+                MiniTweenRunner.AutoCreateInstance.AnimateCanvasGroupAlpha(
+                    _canvasGroup,
+                    _canvasGroup.alpha,
+                    1f,
+                    _fadeInTime,
+                    onComplete: OnCompleted);
+            }
+            else
+            {
+                if (_canvasGroup != null)
+                    _canvasGroup.alpha = 1f;
+
+                OnCompleted?.Invoke();
             }
         }
 
         public override void Hide(Action OnCompleted = null)
         {
-            _currentItemAdapter = null;
-
             // Fade-out animation
             if (_useFadeAnimation && _canvasGroup != null && gameObject.activeSelf)
             {
-                if (_fadeCoroutine != null)
-                    StopCoroutine(_fadeCoroutine);
-                _fadeCoroutine = StartCoroutine(FadeOut(OnCompleted));
+                MiniTweenRunner.AutoCreateInstance.AnimateCanvasGroupAlpha(
+                    _canvasGroup,
+                    _canvasGroup.alpha,
+                    0f,
+                    _fadeOutTime,
+                    onComplete: () =>
+                    {
+                        gameObject.SetActive(false);
+                        OnCompleted?.Invoke();
+                    });
             }
             else
             {
@@ -115,7 +126,6 @@ namespace DragAndDropSystem.UI
         public override void SetContent(IItemAdapter itemAdapter)
         {
             if (itemAdapter == null) return;
-            _currentItemAdapter = itemAdapter;
             
             // Icon
             SetItemIcon(itemAdapter);
@@ -183,52 +193,6 @@ namespace DragAndDropSystem.UI
                 return describableItem.Description;
             }
             return string.Empty;
-        }
-
-        #endregion
-
-        #region Animation
-
-        private IEnumerator FadeIn(Action OnCompleted = null)
-        {
-            if (_canvasGroup == null)
-                yield break;
-            
-            if (_fadeInTime > Time.unscaledDeltaTime)
-            {
-                float fadeInSpeed = 1f / Mathf.Max(Time.unscaledDeltaTime, _fadeInTime);
-                while (_canvasGroup.alpha < 1f)
-                {
-                    yield return null;
-                    _canvasGroup.alpha += Time.unscaledDeltaTime * fadeInSpeed;
-                }
-            }
-
-            _canvasGroup.alpha = 1f;
-            OnCompleted?.Invoke();
-        }
-
-        private IEnumerator FadeOut(Action OnCompleted = null)
-        {
-            if (_canvasGroup == null)
-            {
-                gameObject.SetActive(false);
-                yield break;
-            }
-            if (_fadeOutTime > Time.unscaledDeltaTime)
-            {
-                float fadeOutSpeed = 1f / Mathf.Max(Time.unscaledDeltaTime, _fadeOutTime);
-
-                while (_canvasGroup.alpha > 0f)
-                {
-                    _canvasGroup.alpha -= Time.unscaledDeltaTime * fadeOutSpeed;
-                    yield return null;
-                }
-            }
-
-            _canvasGroup.alpha = 0f;
-            gameObject.SetActive(false);
-            OnCompleted?.Invoke();
         }
 
         #endregion

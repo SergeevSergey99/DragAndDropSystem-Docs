@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using CodeUtils;
 using UnityEngine;
 
@@ -22,7 +23,15 @@ namespace DragAndDropSystem.Tools
     [DisallowMultipleComponent]
     public sealed class MiniTweenRunner : MonoSingleton<MiniTweenRunner>
     {
-        public Coroutine AnimatePosition(
+        private sealed class ActiveTween
+        {
+            public Coroutine Coroutine;
+            public Action OnInterrupted;
+        }
+
+        private readonly Dictionary<UnityEngine.Object, ActiveTween> _activeTweens = new Dictionary<UnityEngine.Object, ActiveTween>();
+
+        public void AnimatePosition(
             RectTransform target,
             Vector3 startPosition,
             Vector3 endPosition,
@@ -36,10 +45,10 @@ namespace DragAndDropSystem.Tools
             if (target == null)
             {
                 onInterrupted?.Invoke();
-                return null;
+                return;
             }
 
-            return StartCoroutine(AnimatePositionCoroutine(
+            StartManagedTween(target, AnimatePositionCoroutine(
                 target,
                 startPosition,
                 endPosition,
@@ -48,7 +57,71 @@ namespace DragAndDropSystem.Tools
                 applyPosition,
                 onComplete,
                 onInterrupted,
-                customPath));
+                customPath), onInterrupted);
+        }
+
+        public void AnimateCanvasGroupAlpha(
+            CanvasGroup target,
+            float startAlpha,
+            float endAlpha,
+            float duration,
+            MiniTweenEase ease = MiniTweenEase.Linear,
+            Action<float, float> applyAlpha = null,
+            Action onComplete = null,
+            Action onInterrupted = null)
+        {
+            if (target == null)
+            {
+                onInterrupted?.Invoke();
+                return;
+            }
+
+            StartManagedTween(target, AnimateCanvasGroupAlphaCoroutine(
+                target,
+                startAlpha,
+                endAlpha,
+                duration,
+                ease,
+                applyAlpha,
+                onComplete,
+                onInterrupted), onInterrupted);
+        }
+
+        public void StopAnimation(UnityEngine.Object target)
+        {
+            if (target == null)
+                return;
+
+            if (_activeTweens.TryGetValue(target, out var activeTween))
+            {
+                _activeTweens.Remove(target);
+
+                if (activeTween.Coroutine != null)
+                    StopCoroutine(activeTween.Coroutine);
+
+                activeTween.OnInterrupted?.Invoke();
+            }
+        }
+
+        private void StartManagedTween(UnityEngine.Object target, IEnumerator routine, Action onInterrupted)
+        {
+            StopAnimation(target);
+
+            var activeTween = new ActiveTween
+            {
+                OnInterrupted = onInterrupted
+            };
+
+            activeTween.Coroutine = StartCoroutine(RunManagedTween(target, activeTween, routine));
+            _activeTweens[target] = activeTween;
+        }
+
+        private IEnumerator RunManagedTween(UnityEngine.Object target, ActiveTween activeTween, IEnumerator routine)
+        {
+            yield return routine;
+
+            if (target != null && _activeTweens.TryGetValue(target, out var currentTween) && ReferenceEquals(currentTween, activeTween))
+                _activeTweens.Remove(target);
         }
 
         private IEnumerator AnimatePositionCoroutine(
@@ -99,6 +172,63 @@ namespace DragAndDropSystem.Tools
             }
 
             applyPosition(1f, customPath != null ? customPath(1f) : endPosition);
+            onComplete?.Invoke();
+        }
+
+        private IEnumerator AnimateCanvasGroupAlphaCoroutine(
+            CanvasGroup target,
+            float startAlpha,
+            float endAlpha,
+            float duration,
+            MiniTweenEase ease,
+            Action<float, float> applyAlpha,
+            Action onComplete,
+            Action onInterrupted)
+        {
+            if (applyAlpha == null)
+                applyAlpha = (_, alpha) => target.alpha = alpha;
+
+            if (target == null)
+            {
+                onInterrupted?.Invoke();
+                yield break;
+            }
+
+            applyAlpha(0f, startAlpha);
+
+            if (duration <= 0f)
+            {
+                applyAlpha(1f, endAlpha);
+                onComplete?.Invoke();
+                yield break;
+            }
+
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                if (target == null)
+                {
+                    onInterrupted?.Invoke();
+                    yield break;
+                }
+
+                elapsed += Time.unscaledDeltaTime;
+                float normalizedTime = Mathf.Clamp01(elapsed / duration);
+                float easedTime = EvaluateEase(ease, normalizedTime);
+                float alpha = Mathf.LerpUnclamped(startAlpha, endAlpha, easedTime);
+
+                applyAlpha(easedTime, alpha);
+                yield return null;
+            }
+
+            if (target == null)
+            {
+                onInterrupted?.Invoke();
+                yield break;
+            }
+
+            applyAlpha(1f, endAlpha);
             onComplete?.Invoke();
         }
 
