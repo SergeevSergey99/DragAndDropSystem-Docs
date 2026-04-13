@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Tools.Inspector;
 using DragAndDropSystem.Inventories;
 using DragAndDropSystem.Rules;
 using Plugins.DragAndDropSystem.Examples.Trading.Data;
-using TMPro;
-using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Trading
 {

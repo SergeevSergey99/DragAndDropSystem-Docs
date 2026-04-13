@@ -14,7 +14,9 @@ namespace DragAndDropSystem.UI
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
-        [SerializeField] private TMPro.TMP_Text _countText;
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TMP_Text _countText;
+        [SerializeField] private Text _countText;
         [SerializeField] private Image _glowEffect;
 
         [Header("Animation")]

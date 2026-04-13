@@ -1,6 +1,6 @@
 using DragAndDropSystem.Slots;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DragAndDropSystem.Interaction
 {
@@ -11,7 +11,9 @@ namespace DragAndDropSystem.Interaction
     /// </summary>
     public class HoldDragPreviewDisplay : MonoBehaviour
     {
-        [SerializeField] private TMP_Text _countText;
+        // Replace to TMP Support
+        // [SerializeField] private TMPro.TMP_Text _countText;
+        [SerializeField] private Text _countText;
         [SerializeField] private GameObject _container;
         [SerializeField] private Vector2 _offset = new Vector2(0, 40f);
 

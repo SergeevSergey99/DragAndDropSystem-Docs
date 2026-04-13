@@ -3,7 +3,6 @@
   "rootNamespace": "DragAndDropSystem.Examples",
   "references": [
     "DragAndDropSystem.Runtime",
-    "Unity.TextMeshPro",
     "Unity.ugui"
   ],
   "includePlatforms": [],
