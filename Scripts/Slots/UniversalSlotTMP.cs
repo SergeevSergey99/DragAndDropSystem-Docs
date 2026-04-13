@@ -4,15 +4,17 @@ using UnityEngine.UI;
 namespace DragAndDropSystem.Slots
 {
     /// <summary>
-    /// Universal slot with a visual layer based on Image + Text.
+    /// Universal slot TMP with a visual layer based on Image + TMP_Text.
+    /// Remove Comments if you are using Text Mesh Pro in your project
     /// Extend it by overriding virtual render methods
     /// and the <see cref="OnVisualsUpdated"/> hook.
     /// </summary>
-    public class UniversalSlot : BaseSlot
+    /*
+    public class UniversalSlotTMP : BaseSlot
     {
         [Header("Visual Components")]
         [SerializeField] protected Image _iconImage;
-        [SerializeField] private Text _countText;
+        [SerializeField] private TMPro.TMP_Text _countText;
         [SerializeField] private GameObject _countContainer;
 
         [Header("Settings")]
@@ -93,4 +95,5 @@ namespace DragAndDropSystem.Slots
             return IsEmpty ? _emptyColor : _normalColor;
         }
     }
+    */
 }
