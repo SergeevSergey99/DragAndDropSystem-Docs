@@ -22,10 +22,12 @@ namespace DragAndDropSystem.Interaction
         [field: SerializeField]
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
+#if DNDS_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
         [Header("Navigation Focus")]
         [SerializeField, Tooltip("Automatically keep focus on a slot for gamepad/keyboard navigation")]
         private bool _autoMaintainFocus = true;
-
+#endif
+        
         [Header("Pointer Gestures")]
         [SerializeField, Min(0.01f)] private float _longClickThresholdSeconds = 0.35f;
         [SerializeField, Min(0f)] private float _clickMoveTolerancePixels = 8f;
