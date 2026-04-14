@@ -123,11 +123,11 @@ public class UseItemMenuEntrySO : ContextMenuEntryDefinitionSO
 {
     // Показывать только для расходуемых предметов
     public override bool CanShow(ContextMenuContext ctx)
-        => ctx.Item is IConsumable;
+        => ctx.ItemStack?.PrimaryAdapter is IConsumable;
 
     // Динамический лейбл: "Использовать (x3)"
     public override string GetLabel(ContextMenuContext ctx)
-        => $"Использовать (x{ctx.ItemCount})";
+        => $"Использовать (x{ctx.ItemStack?.Count ?? 0})";
 
     public override void Execute(ContextMenuContext ctx)
         => GameManager.Instance.UseItem(ctx.Inventory, ctx.Slot);
@@ -139,9 +139,8 @@ public class UseItemMenuEntrySO : ContextMenuEntryDefinitionSO
 | Поле | Тип | Описание |
 |---|---|---|
 | `Inventory` | `UniversalInventory` | Инвентарь, на котором открыто меню |
-| `Slot` | `ISlot` | Слот под курсором (может быть null) |
-| `Item` | `IInventoryItem` | Предмет в слоте (null если пусто) |
-| `ItemCount` | `int` | Количество в стаке |
+| `BaseSlot` | `BaseSlot` | Слот под курсором (может быть null) |
+| `ItemStack` | `ItemStack` | Стак предмета в слоте (null если пусто) |
 | `ScreenPosition` | `Vector2` | Экранная позиция клика |
 | `InputSource` | `FocusSource` | Mouse / Gamepad / VirtualCursor |
 
