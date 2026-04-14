@@ -7,7 +7,7 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
     {
         public override bool CanShow(ContextMenuContext ctx)
         {
-            if (ctx.Inventory == null || ctx.BaseSlot == null || ctx.ItemAdapter == null)
+            if (ctx.Inventory == null || ctx.BaseSlot == null || ctx.ItemStack == null || ctx.ItemStack.IsEmpty)
                 return false;
             return true;
         }

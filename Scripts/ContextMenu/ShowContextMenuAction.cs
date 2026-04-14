@@ -72,8 +72,7 @@ namespace DragAndDropSystem.ContextMenu
             {
                 Inventory      = inventory,
                 BaseSlot           = slot,
-                ItemAdapter           = slot?.Stack?.PrimaryAdapter,
-                ItemCount      = slot?.Stack?.Count ?? 0,
+                ItemStack      = slot?.Stack,
                 ScreenPosition = eventData?.position ?? Vector2.zero,
                 InputSource    = InputEventRouter.AutoCreateInstance.ResolveActiveFocusSource(inventory),
             };

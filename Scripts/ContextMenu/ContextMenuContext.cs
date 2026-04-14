@@ -13,11 +13,8 @@ namespace DragAndDropSystem.ContextMenu
         /// <summary>Slot that was clicked (can be null).</summary>
         public BaseSlot BaseSlot;
 
-        /// <summary>Item in the slot. null if the slot is empty.</summary>
-        public IItemAdapter ItemAdapter;
-
-        /// <summary>Number of items in the stack.</summary>
-        public int ItemCount;
+        /// <summary>Item stack in the slot. null if the slot is empty.</summary>
+        public ItemStack ItemStack;
 
         /// <summary>Screen position of the click.</summary>
         public Vector2 ScreenPosition;
