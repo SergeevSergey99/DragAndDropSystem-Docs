@@ -105,7 +105,7 @@ namespace DragAndDropSystem.Interaction
             _pointerUpHandledThisFrame.Clear();
             CleanupStaleInventories();
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
             if (_autoMaintainFocus)
                 MaintainNavigationFocus();
 #endif
