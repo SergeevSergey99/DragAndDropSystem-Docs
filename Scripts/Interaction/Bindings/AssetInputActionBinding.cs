@@ -1,3 +1,4 @@
+#if DNDS_INPUT_SYSTEM
 using System;
 using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
@@ -29,3 +30,4 @@ namespace DragAndDropSystem.Interaction
             => new InputActionBinding(_label, _actionReference, _triggerPhase, _action);
     }
 }
+#endif

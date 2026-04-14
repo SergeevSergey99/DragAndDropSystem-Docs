@@ -27,4 +27,11 @@
         Any = 4
     }
 
+    public enum KeyTriggerPhase
+    {
+        Down = 0,
+        Up = 1,
+        Hold = 2
+    }
+
 }

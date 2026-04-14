@@ -8,9 +8,11 @@ using DragAndDropSystem.Tools;
 using DragAndDropSystem.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
+#if DNDS_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.UI;
+#endif
 
 namespace DragAndDropSystem.Interaction
 {
@@ -32,10 +34,12 @@ namespace DragAndDropSystem.Interaction
         private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
         // Dictionary storing runtime state for each inventory (hovered slot, focus source, pressed buttons, etc.)
         private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
+#if DNDS_INPUT_SYSTEM
         // Dictionary storing InputAction subscriptions per inventory so they can be unsubscribed when needed
         private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
         // InputAction subscriptions from the default profile (global, routed into _activeInventory)
         private readonly List<InputActionSubscription> _defaultProfileSubscriptions = new();
+#endif
         // The last inventory the user explicitly interacted with. Used only for inventory-scoped quick actions.
         private UniversalInventory _activeInventory;
 
@@ -74,18 +78,23 @@ namespace DragAndDropSystem.Interaction
         protected override void Init()
         {
             base.Init();
+#if DNDS_INPUT_SYSTEM
             RebindDefaultProfileInputActions();
+#endif
         }
 
         protected override void DeInit()
         {
+#if DNDS_INPUT_SYSTEM
             UnbindDefaultProfileInputActions();
+#endif
             base.DeInit();
         }
 
         private void Update()
         {
             ProcessGlobalPointerUpsWhileDragging();
+            PollKeyBindings();
             TickHoldPreview();
         }
         private void LateUpdate()
@@ -96,8 +105,10 @@ namespace DragAndDropSystem.Interaction
             _pointerUpHandledThisFrame.Clear();
             CleanupStaleInventories();
 
+#if DNDS_INPUT_SYSTEM
             if (_autoMaintainFocus)
                 MaintainNavigationFocus();
+#endif
         }
 
         public void RegisterExtraBinder(InventoryExtraInteractionBinder extraBinder)
@@ -108,7 +119,9 @@ namespace DragAndDropSystem.Interaction
             var inventory = extraBinder.Inventory;
             _overridesByInventory[inventory] = extraBinder;
 
+#if DNDS_INPUT_SYSTEM
             RebindExtraInputActions(inventory, extraBinder);
+#endif
         }
 
         public void UnregisterExtraBinder(InventoryExtraInteractionBinder extraBinder)
@@ -120,9 +133,12 @@ namespace DragAndDropSystem.Interaction
             if (_overridesByInventory.TryGetValue(inventory, out var existing) && existing == extraBinder)
                 _overridesByInventory.Remove(inventory);
 
+#if DNDS_INPUT_SYSTEM
             UnbindExtraInputActions(inventory);
+#endif
         }
 
+#if DNDS_INPUT_SYSTEM
         public bool TryRouteInventoryAction(
             UniversalInventory inventory,
             InventoryActionBase action,
@@ -148,6 +164,7 @@ namespace DragAndDropSystem.Interaction
 
             return true;
         }
+#endif
 
         public FocusSource ResolveActiveFocusSource(UniversalInventory inventory)
         {
@@ -164,6 +181,7 @@ namespace DragAndDropSystem.Interaction
         public bool TryGetCurrentNavigationAnchor(out GameObject selectedObject)
         {
             selectedObject = null;
+#if DNDS_INPUT_SYSTEM
             if (!InputModalityTracker.IsNavigationModeActive)
                 return false;
 
@@ -173,6 +191,9 @@ namespace DragAndDropSystem.Interaction
 
             selectedObject = es.currentSelectedGameObject;
             return true;
+#else
+            return false;
+#endif
         }
 
         public BaseSlot ResolveFocusedSlot(UniversalInventory inventory)
@@ -242,12 +263,14 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
+#if DNDS_INPUT_SYSTEM
             if (InputModalityTracker.IsNavigationModeActive)
             {
                 var es = EventSystem.current;
                 if (es != null && es.currentSelectedGameObject != null)
                     es.SetSelectedGameObject(null);
             }
+#endif
 
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
@@ -441,6 +464,36 @@ namespace DragAndDropSystem.Interaction
             return false;
         }
 
+        private void PollKeyBindings()
+        {
+            var inventory = _activeInventory;
+            var bindings = ResolveKeyBindings(inventory);
+
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid() || !binding.IsTriggered())
+                    continue;
+
+                SlotInputAdapter adapter = null;
+                if (inventory != null)
+                {
+                    var state = GetOrCreateState(inventory);
+                    adapter = state.FocusedAdapter
+                              ?? ResolveAdapterFromSlot(state.FocusedBaseSlot)
+                              ?? state.HoveredAdapter
+                              ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
+                }
+
+                if (binding.Action.CanExecute(inventory, adapter, null))
+                {
+                    _ = binding.Action.Execute(inventory, adapter, null);
+                    return;
+                }
+            }
+        }
+
+#if DNDS_INPUT_SYSTEM
         private void HandleExtraInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
         {
             if (inventory == null)
@@ -627,6 +680,7 @@ namespace DragAndDropSystem.Interaction
 
             _actionSubscriptionsByInventory.Remove(inventory);
         }
+#endif
 
         private IReadOnlyList<PointerBinding> ResolvePointerBindings(UniversalInventory inventory)
         {
@@ -640,6 +694,19 @@ namespace DragAndDropSystem.Interaction
                 : Array.Empty<PointerBinding>();
         }
 
+        private IReadOnlyList<KeyBinding> ResolveKeyBindings(UniversalInventory inventory)
+        {
+            if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
+            {
+                return overrideBinder.KeyBindingsResolved;
+            }
+
+            return DefaultBindingsProfile != null
+                ? DefaultBindingsProfile.KeyBindingsRuntime
+                : Array.Empty<KeyBinding>();
+        }
+
+#if DNDS_INPUT_SYSTEM
         private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(UniversalInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
@@ -651,6 +718,7 @@ namespace DragAndDropSystem.Interaction
                 ? DefaultBindingsProfile.InputActionBindingsRuntime
                 : Array.Empty<InputActionBinding>();
         }
+#endif
 
         public float GetPressedTime(UniversalInventory inventory)
         {
@@ -755,7 +823,11 @@ namespace DragAndDropSystem.Interaction
 
         private void CleanupStaleInventories()
         {
-            if (_runtimeStateByInventory.Count == 0 && _overridesByInventory.Count == 0 && _actionSubscriptionsByInventory.Count == 0)
+            if (_runtimeStateByInventory.Count == 0 && _overridesByInventory.Count == 0
+#if DNDS_INPUT_SYSTEM
+                && _actionSubscriptionsByInventory.Count == 0
+#endif
+               )
                 return;
 
             _staleInventories.Clear();
@@ -772,11 +844,13 @@ namespace DragAndDropSystem.Interaction
                     _staleInventories.Add(kv.Key);
             }
 
+#if DNDS_INPUT_SYSTEM
             foreach (var kv in _actionSubscriptionsByInventory)
             {
                 if (kv.Key == null && !_staleInventories.Contains(kv.Key))
                     _staleInventories.Add(kv.Key);
             }
+#endif
 
             for (int i = 0; i < _staleInventories.Count; i++)
             {
@@ -786,7 +860,9 @@ namespace DragAndDropSystem.Interaction
 
                 _runtimeStateByInventory.Remove(stale);
                 _overridesByInventory.Remove(stale);
+#if DNDS_INPUT_SYSTEM
                 _actionSubscriptionsByInventory.Remove(stale);
+#endif
 
                 if (ReferenceEquals(_activeInventory, stale))
                     _activeInventory = null;
@@ -896,6 +972,7 @@ namespace DragAndDropSystem.Interaction
 
         private static bool WasPointerButtonReleasedThisFrame(PointerEventData.InputButton button)
         {
+#if DNDS_INPUT_SYSTEM
             var mouse = Mouse.current;
             if (mouse == null)
                 return false;
@@ -911,6 +988,19 @@ namespace DragAndDropSystem.Interaction
                 default:
                     return false;
             }
+#else
+            switch (button)
+            {
+                case PointerEventData.InputButton.Left:
+                    return Input.GetMouseButtonUp(0);
+                case PointerEventData.InputButton.Right:
+                    return Input.GetMouseButtonUp(1);
+                case PointerEventData.InputButton.Middle:
+                    return Input.GetMouseButtonUp(2);
+                default:
+                    return false;
+            }
+#endif
         }
 
         private void ProcessUnhandledGlobalPointerEvents()
@@ -919,6 +1009,7 @@ namespace DragAndDropSystem.Interaction
             if (DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 
+#if DNDS_INPUT_SYSTEM
             var mouse = Mouse.current;
             if (mouse == null)
                 return;
@@ -928,8 +1019,16 @@ namespace DragAndDropSystem.Interaction
             ProcessUnhandledGlobalRelease(mouse.leftButton, PointerEventData.InputButton.Left);
             ProcessUnhandledGlobalRelease(mouse.rightButton, PointerEventData.InputButton.Right);
             ProcessUnhandledGlobalRelease(mouse.middleButton, PointerEventData.InputButton.Middle);
+#else
+            TrackGlobalPressStateLegacy();
+
+            ProcessUnhandledGlobalReleaseLegacy(0, PointerEventData.InputButton.Left);
+            ProcessUnhandledGlobalReleaseLegacy(1, PointerEventData.InputButton.Right);
+            ProcessUnhandledGlobalReleaseLegacy(2, PointerEventData.InputButton.Middle);
+#endif
         }
 
+#if DNDS_INPUT_SYSTEM
         private void TrackGlobalPressState(Mouse mouse)
         {
             if (mouse.leftButton.wasPressedThisFrame)
@@ -948,7 +1047,7 @@ namespace DragAndDropSystem.Interaction
                 _globalPressPosition[2] = mouse.position.ReadValue();
             }
         }
-        
+
         private void ProcessUnhandledGlobalRelease(ButtonControl button, PointerEventData.InputButton inputButton)
         {
             if (!button.wasReleasedThisFrame)
@@ -987,7 +1086,68 @@ namespace DragAndDropSystem.Interaction
                 ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
             }
         }
+#else
+        private void TrackGlobalPressStateLegacy()
+        {
+            Vector2 mousePos = Input.mousePosition;
+            if (Input.GetMouseButtonDown(0))
+            {
+                _globalPressTime[0] = Time.unscaledTime;
+                _globalPressPosition[0] = mousePos;
+            }
+            if (Input.GetMouseButtonDown(1))
+            {
+                _globalPressTime[1] = Time.unscaledTime;
+                _globalPressPosition[1] = mousePos;
+            }
+            if (Input.GetMouseButtonDown(2))
+            {
+                _globalPressTime[2] = Time.unscaledTime;
+                _globalPressPosition[2] = mousePos;
+            }
+        }
 
+        private void ProcessUnhandledGlobalReleaseLegacy(int mouseButton, PointerEventData.InputButton inputButton)
+        {
+            if (!Input.GetMouseButtonUp(mouseButton))
+                return;
+
+            if (_pointerUpHandledThisFrame.Contains(inputButton))
+                return;
+
+            var es = EventSystem.current;
+            if (es == null)
+                return;
+
+            Vector2 mousePos = Input.mousePosition;
+            var eventData = new PointerEventData(es) { button = inputButton, position = mousePos };
+            _pointerUpHandledThisFrame.Add(inputButton);
+
+            int idx = (int)inputButton;
+            float pressDuration = Mathf.Max(0f, Time.unscaledTime - _globalPressTime[idx]);
+            float sqrDist = (mousePos - _globalPressPosition[idx]).sqrMagnitude;
+            float sqrTolerance = _clickMoveTolerancePixels * _clickMoveTolerancePixels;
+
+            if (sqrDist <= sqrTolerance)
+            {
+                var clickPhase = pressDuration >= _longClickThresholdSeconds
+                    ? PointerTriggerPhase.ClickLong
+                    : PointerTriggerPhase.ClickShort;
+
+                bool handled = ExecutePointerBindings(null, null, eventData, clickPhase, dragOnly: false);
+                if (!handled && clickPhase != PointerTriggerPhase.Click)
+                    handled = ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Click, dragOnly: false);
+                if (!handled)
+                    ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
+            }
+            else
+            {
+                ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
+            }
+        }
+#endif
+
+#if DNDS_INPUT_SYSTEM
         private void MaintainNavigationFocus()
         {
             if (!InputModalityTracker.IsNavigationModeActive)
@@ -1005,7 +1165,9 @@ namespace DragAndDropSystem.Interaction
             if (target != null)
                 es.SetSelectedGameObject(target.gameObject);
         }
+#endif
 
+#if DNDS_INPUT_SYSTEM
         private Selectable FindBestFocusTarget()
         {
             if (_activeInventory != null && _activeInventory.isActiveAndEnabled)
@@ -1046,7 +1208,9 @@ namespace DragAndDropSystem.Interaction
 
             return null;
         }
+#endif
 
+#if DNDS_INPUT_SYSTEM
         private readonly struct InputActionSubscription
         {
             public InputActionSubscription(InputAction action, Action<InputAction.CallbackContext> handler, TriggerPhaseEnum phase)
@@ -1060,6 +1224,7 @@ namespace DragAndDropSystem.Interaction
             public Action<InputAction.CallbackContext> Handler { get; }
             public TriggerPhaseEnum Phase { get; }
         }
+#endif
 
         private sealed class RuntimeState
         {

@@ -2,7 +2,6 @@
 using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 
 namespace DragAndDropSystem.Interaction
 {
@@ -48,25 +47,7 @@ namespace DragAndDropSystem.Interaction
             if (!PhaseMatches(eventPhase))
                 return false;
 
-            bool ctrl = IsCtrlPressed();
-            bool shift = IsShiftPressed();
-            bool alt = IsAltPressed();
-
-            switch (_modifier)
-            {
-                case ModifierKey.Any:
-                    return true;
-                case ModifierKey.None:
-                    return !ctrl && !shift && !alt;
-                case ModifierKey.Ctrl:
-                    return ctrl && !shift && !alt;
-                case ModifierKey.Shift:
-                    return shift && !ctrl && !alt;
-                case ModifierKey.Alt:
-                    return alt && !ctrl && !shift;
-                default:
-                    return false;
-            }
+            return ModifierKeyHelper.MatchesModifier(_modifier);
         }
 
         private bool PhaseMatches(PointerTriggerPhase eventPhase)
@@ -75,27 +56,6 @@ namespace DragAndDropSystem.Interaction
                 return eventPhase != PointerTriggerPhase.BeginDrag;
 
             return _triggerPhase == eventPhase;
-        }
-
-        private static bool IsCtrlPressed()
-        {
-            var keyboard = Keyboard.current;
-            return keyboard != null
-                   && (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed);
-        }
-
-        private static bool IsShiftPressed()
-        {
-            var keyboard = Keyboard.current;
-            return keyboard != null
-                   && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
-        }
-
-        private static bool IsAltPressed()
-        {
-            var keyboard = Keyboard.current;
-            return keyboard != null
-                   && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed);
         }
     }
 }

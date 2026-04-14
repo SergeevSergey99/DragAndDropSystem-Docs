@@ -12,6 +12,12 @@
   "precompiledReferences": [],
   "autoReferenced": true,
   "defineConstraints": [],
-  "versionDefines": [],
+  "versionDefines": [
+    {
+      "name": "com.unity.inputsystem",
+      "expression": "",
+      "define": "DNDS_INPUT_SYSTEM"
+    }
+  ],
   "noEngineReferences": false
 }

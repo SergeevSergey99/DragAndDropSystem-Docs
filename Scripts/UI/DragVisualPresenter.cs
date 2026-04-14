@@ -272,10 +272,14 @@ namespace DragAndDropSystem.UI
 
         private Vector2 GetMouseScreenPosition()
         {
+#if DNDS_INPUT_SYSTEM
             var mouse = UnityEngine.InputSystem.Mouse.current;
             return mouse != null
                 ? mouse.position.ReadValue()
                 : Vector2.zero;
+#else
+            return Input.mousePosition;
+#endif
         }
 
         private sealed class VisualInstance

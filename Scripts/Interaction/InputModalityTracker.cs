@@ -1,3 +1,4 @@
+#if DNDS_INPUT_SYSTEM
 using System;
 using CodeUtils;
 using UnityEngine;
@@ -90,3 +91,4 @@ namespace DragAndDropSystem.Interaction
         }
     }
 }
+#endif

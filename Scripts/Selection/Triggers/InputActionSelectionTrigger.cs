@@ -1,3 +1,4 @@
+#if DNDS_INPUT_SYSTEM
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -42,3 +43,4 @@ namespace DragAndDropSystem.Selection
         public enum TriggerPhase { Started, Performed, Canceled }
     }
 }
+#endif

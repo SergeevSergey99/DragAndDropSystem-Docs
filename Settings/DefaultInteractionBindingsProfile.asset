@@ -37,6 +37,7 @@ MonoBehaviour:
     _triggerPhase: 3
     _action:
       rid: 6676588977941643265
+  _keyBindings: []
   _inputActionBindings: []
   references:
     version: 2
