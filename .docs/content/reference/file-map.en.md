@@ -1,59 +1,396 @@
 # File Map
 
-This page is for users who already understand the system and want to jump to the right extension point in code.
+This page is a full code map for the package.
 
-The first section lists files most asset users actually need.
-Internal helper files are grouped separately.
+It is intentionally longer than the other docs pages: the goal here is not to teach the system, but to help you quickly locate the exact runtime, editor, or example type you need.
 
----
-
-## Start here
-
-| File | Use it for |
-|---|---|
-| `Scripts/Inventories/UniversalInventory.cs` | configuring and understanding the inventory component |
-| `Scripts/DataBinding/InventoryDataBindingBase.cs` | base binding lifecycle |
-| `Scripts/DataBinding/ListInventoryDataBinding.cs` | list-based inventories |
-| `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | fixed named slots |
-| `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | custom placement behavior |
-| `Scripts/Rules/IDragRule.cs` | `IDragRule` interface and the `DragRuleBase` base class |
-| `Scripts/Inventories/ITransferDomainHandler.cs` | pre-commit and post-success hooks |
-| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | async pre-commit validation for servers, files, and external sources |
-| `Scripts/Interaction/InputEventRouter.cs` | custom input bindings |
+The tables below list every script file and describe the main class, interface, enum, or helper types declared inside it.
 
 ---
 
-## If you are extending the transfer pipeline
+## How to use this page
 
-| File | Role |
-|---|---|
-| `Scripts/Inventories/TransferPlanner.cs` | planning without mutating state |
-| `Scripts/Inventories/TransferPlanExecutor.cs` | commit, rollback, deferred events |
-| `Scripts/Inventories/InventoryDropProcessor.cs` | UI entry point into the pipeline |
-| `Scripts/Inventories/TransferItemConversionUtility.cs` | target-side conversion helpers |
+- Start with the subsystem that matches your task.
+- Open the file listed in the first column.
+- Use the `Types` column to confirm that you are in the right place.
+- Treat example scripts as reference integrations, not mandatory architecture.
 
 ---
 
-## If you are working with the examples
+## Core Entry Points
 
-| File | Role |
-|---|---|
-| `Examples/Demo4 Trading/DataBindings/*.cs` | trading bindings |
-| `Examples/Demo4 Trading/Converters/*.cs` | trading item converters |
-| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | trading checks and side effects |
-| `Examples/Demo2 Loot/Scripts/*.cs` | world loot example |
+| File | Types | Role |
+|---|---|---|
+| `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Global scene manager for active drags. Tracks drag lifecycle, current context, and high-level orchestration. |
+| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Main inventory component. Owns slots, strategy configuration, rule collections, and inventory-level transfer behavior. |
+| `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Abstract slot base used by inventories and planning/execution code. |
+| `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Default concrete slot implementation used by the package. |
+| `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Base class that connects `UniversalInventory` to your game data source. |
 
 ---
 
-## Internal implementation details
+## Core Models And Contracts
 
-These files are usually unnecessary unless you are modifying the asset itself:
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Core/IItemAdapter.cs` | `IItemAdapter` | Minimal item representation stored in slots and transferred through the UI pipeline. |
+| `Scripts/Core/IDescribable.cs` | `IDescribable` | Optional interface for adapters that provide extended description data for UI such as tooltips. |
+| `Scripts/Core/IFilterable.cs` | `IFilterable`, `ISortable` | Optional interfaces for filter and sort systems. |
+| `Scripts/Core/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Optional per-item stack size override. |
+| `Scripts/Core/ItemStack.cs` | `ItemStack` | Runtime stack model used by slots, planning, swapping, and execution. |
+| `Scripts/Core/DragContext.cs` | `DragContext` | Per-drag context containing source entries, target info, and flags for the current operation. |
+| `Scripts/Core/ActionResult.cs` | `ActionResult` | Generic result object for action-style APIs. |
+| `Scripts/Core/DropResult.cs` | `DropResult` | Result object returned by drop processing. |
+| `Scripts/Core/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Event payload types used when transfer and swap notifications are dispatched. |
+| `Scripts/Slots/SlotHoverEventArgs.cs` | `SlotHoverEventArgs` | Hover event data for slot UI and related systems. |
 
-| File | Role |
+---
+
+## Drop And Policy System
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Core/IDropTarget.cs` | `IDropTarget` | Contract for anything that can receive dragged items. |
+| `Scripts/Core/IDropProcessor.cs` | `IDropProcessor` | Contract for objects that can process a drop attempt. |
+| `Scripts/Core/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Specialized processor interface used by request-driven drop handling. |
+| `Scripts/Core/DropAreaBase.cs` | `DropAreaBase` | Base class for non-slot drop targets such as inventory areas or world drop zones. |
+| `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Standard inventory area drop target built on top of `DropAreaBase`. |
+| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `DropPolicySettings`, `DropRequestPolicySettings`, `DragRequestPolicySettings` | Policy enums and settings objects that control planning behavior, batch semantics, alternative placement, and amount selection. |
+| `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Interface for objects that expose drop policy settings. |
+| `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Request model used when checking whether an inventory can accept an incoming item/stack. |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing entry point that translates drop attempts into planning and execution calls. |
+
+---
+
+## Data Binding Layer
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/DataBinding/ListInventoryDataBinding.cs` | `ListInventoryDataBinding<TData, TAdapter>` | Binding base for list-backed inventories. |
+| `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | `MappedSlotInventoryDataBinding<TData, TAdapter>` | Binding base for named or fixed semantic slots such as equipment layouts. |
+| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Binding base for slot-indexed data such as hotbars, crafting grids, and fixed arrays. |
+| `Scripts/DataBinding/GameManagerExample.cs` | `GameManagerExample`, `ItemData` | Example-only sample showing how an external manager can act as the data source for a binding. |
+
+---
+
+## Inventory Pipeline
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Inventories/IInventory.cs` | `IInventory` | Base inventory contract consumed by planners, validators, and services. |
+| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Sync pre-commit and post-success business hook interface. |
+| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Async validation hook interface for server/file/network-like commit checks. |
+| `Scripts/Inventories/IItemAdapterConverter.cs` | `IItemAdapterConverter` | Converts item adapters when crossing inventory boundaries with different item models. |
+| `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Pass-through converter used when no model conversion is needed. |
+| `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum describing the type of transfer flow being executed. |
+| `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Context object passed into domain handlers. |
+| `Scripts/Inventories/InventoryTransferService.cs` | runtime transfer request/result models | Shared transfer service models used across the pipeline. |
+| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Snapshot model and provider interface used for stable inventory inspection and operations such as sorting or previewing. |
+| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Helper methods for building and reading snapshots. |
+| `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Service that performs quick-transfer style moves between inventories. |
+| `Scripts/Inventories/SlotOperationContext.cs` | `SlotOperationContext` | Low-level context object shared by placement and execution helpers. |
+| `Scripts/Inventories/SwapOperationResult.cs` | `SwapOperationResult` | Result model for swap planning/execution helpers. |
+| `Scripts/Inventories/EntryPlanningOperation.cs` | planning operation types | Internal planning helper for one drag entry. |
+| `Scripts/Inventories/TargetPlacementOperation.cs` | placement operation types | Internal helper that models target-side placement decisions. |
+| `Scripts/Inventories/SlotRelocationService.cs` | `SlotRelocationService` | Fallback helper that tries to free or reorganize slots when a direct placement path is blocked. |
+| `Scripts/Inventories/VirtualSlotState.cs` | `VirtualSlotState` | Internal virtual slot representation used while planning without mutating live UI state. |
+| `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Internal utility that applies target/source adapter conversion consistently across planning and execution. |
+| `Scripts/Inventories/TransferPlanExecutor.cs` | `TransferExecutionSummary`, `TransferExecutionOptions`, `TransferPlanExecutor` | Executes transfer plans, applies mutations, runs commit hooks, handles rollback, and dispatches deferred events. |
+| `Scripts/Inventories/TransferPlanner.cs` | `TransferPlanFailureCode`, `PlanFailure`, `PlannedSwapData`, `PlannedEntryTransfer`, `TransferPlan`, `TransferPlanner` | Builds a transfer plan without mutating inventories. Central file for preview logic, placement search, swap decisions, and failure reporting. |
+
+---
+
+## Inventory Strategies
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Inventories/Strategies/IPlacementStrategy.cs` | `IPlacementStrategy` | Placement-specific strategy contract. |
+| `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs` | `IAcceptanceStrategy` | Acceptance/capacity evaluation strategy contract. |
+| `Scripts/Inventories/Strategies/IDragPolicy.cs` | `IDragPolicy` | Strategy contract for drag amount and drag policy related decisions. |
+| `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs` | `IInventoryQueryStrategy` | Read/query-oriented strategy contract used by higher-level inventory code. |
+| `Scripts/Inventories/Strategies/IInventoryStrategy.cs` | `IInventoryStrategy` | Combined strategy interface implemented by concrete inventory behaviors. |
+| `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Base class for inventory placement/acceptance strategy implementations. |
+| `Scripts/Inventories/Strategies/UniqueItemStrategy.cs` | `UniqueItemStrategy` | Strategy where each slot holds one independent item stack/unit. |
+| `Scripts/Inventories/Strategies/StackableItemStrategy.cs` | `StackableItemStrategy` | Strategy focused on regular stack merging behavior. |
+| `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs` | `SeparableStacksStrategy` | Strategy for stacks that support splitting and granular partial moves. |
+| `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs` | `DynamicSlotDecorator` | Decorator that adds dynamic slot creation/management behavior around another strategy. |
+| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Serialized strategy configuration used by `UniversalInventory`. |
+
+---
+
+## Rule System
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Rules/IDragRule.cs` | `RuleResult`, `IDragRule`, `IGlobalRule`, `IInventoryRule`, `ISlotRule`, `DragRuleBase` | Core rule contracts and result type used for drag start and drop validation. |
+| `Scripts/Rules/RuleEvaluationService.cs` | `RuleEvaluationService` | High-level service that runs the relevant rule validators for a drag entry. |
+| `Scripts/Rules/RuleValidator.cs` | `RuleValidator<TRule>`, `GlobalRuleValidator`, `InventoryRuleValidator`, `SlotRuleValidator` | Rule collection and execution helpers for specific rule scopes. |
+| `Scripts/Rules/CompositeRule.cs` | `CompositeRule<TRule>`, `CompositeGlobalRule`, `CompositeInventoryRule`, `CompositeSlotRule`, `CompositeRuleMode` | Composite rules that combine multiple child rules using `AND` or `OR` semantics. |
+| `Scripts/Rules/BuiltInRules.cs` | `SameSlotRule`, `SameInventoryRule`, `ItemIdFilterRule`, `UniqueItemLimitRule`, `SlotLockRule`, `CustomRule` | Built-in rule implementations for common drag/drop restrictions. |
+| `Scripts/Rules/RuleNameFilter.cs` | `RuleNameFilter`, `NameFilterType` | Rule that filters by rule name/pattern and can be reused for selective allow/deny behavior. |
+| `Scripts/Rules/Presets/RulePreset.cs` | `RulePreset<TRule>` | Generic ScriptableObject preset container for reusable rule sets. |
+| `Scripts/Rules/Presets/GlobalRulePreset.cs` | `GlobalRulePreset` | Preset asset for global rules. |
+| `Scripts/Rules/Presets/InventoryRulePreset.cs` | `InventoryRulePreset` | Preset asset for inventory-scoped rules. |
+| `Scripts/Rules/Presets/SlotRulePreset.cs` | `SlotRulePreset` | Preset asset for slot-scoped rules. |
+
+---
+
+## Interaction And Input
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Interaction/InteractionBindingsProfile.cs` | `InteractionBindingsProfile` | ScriptableObject profile that stores input bindings for drag, click, hold, context, and selection actions. |
+| `Scripts/Interaction/InputEventRouter.cs` | `InputEventRouter`, `RuntimeState` | Central runtime router that resolves bindings and translates input into slot/inventory actions. |
+| `Scripts/Interaction/SlotInputAdapter.cs` | `SlotInputAdapter` | UI-facing adapter attached to slot visuals so they participate in navigation, pointer, and routed input. |
+| `Scripts/Interaction/FocusSource.cs` | `FocusSource` | Enum that tracks where current slot focus came from. |
+| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Tracks whether the player is currently using pointer or navigation/gamepad style input. |
+| `Scripts/Interaction/InventoryExtraInteractionBinder.cs` | `InventoryExtraInteractionBinder` | Helper that binds inventory-level extra actions and integration points beyond basic slot input. |
+| `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject for configuring hold-to-drag timings and thresholds. |
+| `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Visual feedback component for hold-drag preparation state. |
+| `Scripts/Interaction/HoldDragActions.cs` | `StartHoldCountAction`, `StartHoldDragAction` | Slot interaction actions related to hold counting and hold-triggered drag start. |
+| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `DragSlotAction`, `CompleteDragAction`, `CancelDragAction`, `InventorySlotAction` | Core action types invoked by the input router for slot and inventory interaction flows. |
+
+---
+
+## Input Binding Models
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Interaction/Bindings/PointerBinding.cs` | `PointerBinding` | Runtime pointer binding definition. |
+| `Scripts/Interaction/Bindings/KeyBinding.cs` | `KeyBinding` | Runtime legacy key binding definition. |
+| `Scripts/Interaction/Bindings/InputActionBinding.cs` | `InputActionBinding` | Runtime Input System binding definition. |
+| `Scripts/Interaction/Bindings/AssetPointerBinding.cs` | `AssetPointerBinding` | Serialized pointer binding asset/profile entry. |
+| `Scripts/Interaction/Bindings/AssetKeyBinding.cs` | `AssetKeyBinding` | Serialized legacy key binding asset/profile entry. |
+| `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Serialized Input System binding asset/profile entry. |
+| `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper for modifier-key checks used by binding evaluation. |
+
+---
+
+## Actions
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Actions/InventoryActionBase.cs` | `InventoryActionBase` | Base class for inventory-wide actions that can be triggered by bindings. |
+| `Scripts/Actions/Enums.cs` | `PointerTriggerPhase`, `TriggerPhaseEnum`, `ModifierKey`, `KeyTriggerPhase` | Shared enums for binding/action trigger configuration. |
+| `Scripts/Actions/Inheritors/AutoTransferAction.cs` | `AutoTransferAction` | Inventory action that invokes quick transfer behavior. |
+| `Scripts/Actions/Inheritors/SortInventoryAction.cs` | `SortInventoryAction`, `SortType`, `ItemStackData` | Inventory action that sorts items using built-in sort modes. |
+
+---
+
+## Selection System
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Selection/SelectionContext.cs` | `SelectionContext` | Runtime container for current slot selection state and helper data. |
+| `Scripts/Selection/SelectionManager.cs` | `SelectionManager` | Global selection coordinator used by multi-select and multi-drag flows. |
+| `Scripts/Selection/SlotSelectionView.cs` | `SlotSelectionView` | Visual component that renders selection state on a slot. |
+| `Scripts/Selection/SelectionSlotAction.cs` | `SelectionSlotAction` | Slot action that integrates selection behavior into the input pipeline. |
+| `Scripts/Selection/StartMultiDragAction.cs` | `StartMultiDragAction` | Slot action that starts a drag from the current selection. |
+| `Scripts/Selection/Operations/SelectionOperationBase.cs` | `SelectionOperationBase` | Base class for reusable selection commands. |
+| `Scripts/Selection/Operations/ClearSelectionOperation.cs` | `ClearSelectionOperation` | Clears the current selection. |
+| `Scripts/Selection/Operations/ClearAndSelectOperation.cs` | `ClearAndSelectOperation` | Clears previous selection and selects a new slot/set. |
+| `Scripts/Selection/Operations/SelectSlotOperation.cs` | `SelectSlotOperation` | Selects a specific slot. |
+| `Scripts/Selection/Operations/ToggleSlotOperation.cs` | `ToggleSlotOperation` | Toggles selection state for one slot. |
+| `Scripts/Selection/Operations/RangeSelectOperation.cs` | `RangeSelectOperation` | Selects a range of slots. |
+| `Scripts/Selection/Operations/SelectAllOperation.cs` | `SelectAllOperation` | Selects all available/eligible slots. |
+| `Scripts/Selection/Operations/SelectByConditionOperation.cs` | `SelectByConditionOperation` | Base class for condition-based bulk selection. |
+| `Scripts/Selection/Triggers/SelectionTriggerBase.cs` | `SelectionTriggerBase` | Base class for trigger components that invoke selection operations. |
+| `Scripts/Selection/Triggers/ButtonSelectionTrigger.cs` | `ButtonSelectionTrigger` | UI button trigger for a selection operation. |
+| `Scripts/Selection/Triggers/InputActionSelectionTrigger.cs` | `InputActionSelectionTrigger`, `TriggerPhase` | Input System trigger for selection operations. |
+
+---
+
+## Tooltip System
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/UI/Tooltip/BaseTooltipView.cs` | `BaseTooltipView` | Base class for tooltip rendering implementations. |
+| `Scripts/UI/Tooltip/DefaultTooltipView.cs` | `DefaultTooltipView` | Ready-to-use tooltip view implementation. |
+| `Scripts/UI/Tooltip/TooltipManager.cs` | `TooltipManager`, `TooltipAnchor` | Global tooltip controller that positions, opens, and hides tooltip views. |
+
+---
+
+## Drag Visuals And Layout
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/UI/IDragVisual.cs` | `IDragVisual` | Interface for drag visual implementations. |
+| `Scripts/UI/DefaultDragVisual.cs` | `DefaultDragVisual` | Basic drag visual presenter. |
+| `Scripts/UI/FancyDragVisual.cs` | `FancyDragVisual` | More stylized drag visual with richer presentation/animation behavior. |
+| `Scripts/UI/DragVisualPresenter.cs` | `DragVisualPresenter`, `VisualInstance` | Global presenter that spawns and updates the active drag visual. |
+| `Scripts/UI/InventoryDragVisualBinder.cs` | `InventoryDragVisualBinder` | Binds an inventory or scene setup to a chosen drag visual configuration. |
+| `Scripts/UI/FreeFormSlotLayout.cs` | `FreeFormSlotLayout` | Layout helper for inventories whose slots are positioned manually or semi-manually rather than in a regular grid. |
+
+---
+
+## Auto Transfer Animation
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Core/AutoTransferAnimationStrategy.cs` | `AutoTransferAnimationStrategy` | Base class for quick-transfer animation strategies. |
+| `Scripts/Core/TweenAutoTransferAnimation.cs` | `TweenAutoTransferAnimation` | Tween-based animation strategy for auto-transfer effects. |
+| `Scripts/Core/AutoTransferContext.cs` | `InventoryList` | Auto-transfer related helper model used by quick-transfer animation/selection flows. |
+
+---
+
+## Context Menu System
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/ContextMenu/IContextMenuEntry.cs` | `IContextMenuEntry` | Contract for anything that can appear as a context menu entry. |
+| `Scripts/ContextMenu/ContextMenuContext.cs` | context menu context types | Payload object describing the slot/inventory/item for which a menu is being built. |
+| `Scripts/ContextMenu/ContextMenuEntryDefinitionSO.cs` | `ContextMenuEntryDefinitionSO` | ScriptableObject base for reusable menu entry definitions. |
+| `Scripts/ContextMenu/ContextMenuSceneEntryBase.cs` | `ContextMenuSceneEntryBase` | Scene object base class for context entries that need runtime scene references. |
+| `Scripts/ContextMenu/ContextMenuPreset.cs` | `ContextMenuPreset` | Asset that groups multiple menu entries into a reusable preset. |
+| `Scripts/ContextMenu/ContextMenuManager.cs` | `ContextMenuManager` | Global manager that builds and opens context menus. |
+| `Scripts/ContextMenu/ContextMenuBinder.cs` | `ContextMenuBinder` | Binds menu presets/entries to an inventory or scene object. |
+| `Scripts/ContextMenu/InventoryContextMenuViewBinder.cs` | `InventoryContextMenuViewBinder` | Connects inventories to a concrete context menu view implementation. |
+| `Scripts/ContextMenu/ShowContextMenuAction.cs` | `ShowContextMenuAction` | Slot action that requests a menu for the current slot/context. |
+| `Scripts/ContextMenu/UI/ContextMenuViewBase.cs` | `ContextMenuViewBase` | Base class for context menu UI implementations. |
+| `Scripts/ContextMenu/UI/UniversalContextMenuView.cs` | `UniversalContextMenuView` | Default context menu UI implementation shipped with the package. |
+| `Scripts/ContextMenu/UI/ContextMenuEntryView.cs` | `ContextMenuEntryView` | UI element for one menu entry row/button. |
+| `Scripts/ContextMenu/BuiltInEntries/SortContextMenuEntrySO.cs` | `SortContextMenuEntrySO` | Built-in menu entry that triggers inventory sorting. |
+| `Scripts/ContextMenu/BuiltInEntries/DebugContextMenuEntrySO.cs` | `DebugContextMenuEntrySO` | Built-in diagnostic/debug menu entry. |
+
+---
+
+## Filter And Sort UI
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Filter/FilterPreset.cs` | `FilterPreset`, `FilterType` | ScriptableObject describing a reusable filter rule for UI. |
+| `Scripts/Filter/SortPreset.cs` | `SortPreset`, `SortMode` | ScriptableObject describing a reusable sort mode for UI. |
+| `Scripts/Filter/FilterButton.cs` | `FilterButton` | UI button that applies a filter preset. |
+| `Scripts/Filter/SortButton.cs` | `SortButton` | UI button that applies a sort preset. |
+| `Scripts/Filter/FilterSortController.cs` | `FilterSortController`, `FilterDisplayMode`, `SortMode` | Coordinates filter/sort presets, buttons, and display state for an inventory UI. |
+
+---
+
+## Utilities
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Tools/MonoSingleton.cs` | `MonoSingleton<T>` | Generic MonoBehaviour singleton base used by scene-global managers. |
+| `Scripts/Tools/Extensions.cs` | `Extensions` | Shared extension methods used throughout runtime code. |
+| `Scripts/Tools/MiniTweenRunner.cs` | `MiniTweenEase`, `MiniTweenRunner`, `ActiveTween` | Lightweight tween runner used for simple runtime animations. |
+
+---
+
+## Inspector Attributes And Editor Tooling
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Tools/Inspector/InspectorAttributes.cs` | `InfoMessageType`, `TitleAlignments`, `FoldoutGroupAttribute`, `InfoBoxAttribute`, `RequiredAttribute`, `ShowIfAttribute`, `HideLabelAttribute`, `ButtonAttribute`, `DisableInEditorModeAttribute`, `EnumToggleButtonsAttribute`, `LabelTextAttribute`, `ReadOnlyAttribute`, `ShowInInspectorAttribute`, `ListDrawerSettingsAttribute`, `TitleAttribute`, `InlinePropertyAttribute`, `PreviewFieldAttribute`, `TitleGroupAttribute`, `OnValueChangedAttribute`, `ManagedReferencePickerAttribute`, `RulePresetPickerAttribute`, `FixedArraySizeAttribute` | Custom inspector attributes used across the package to improve authoring UX. |
+| `Scripts/Tools/Inspector/Editor/InspectorDrawers.cs` | `InspectorReflectionUtility`, `FoldoutGroupStateCache`, `InspectorPreviewUtility`, `FoldoutGroupStyles`, `GroupedInspectorEditorBase`, `GroupedMonoBehaviourEditor`, `GroupedScriptableObjectEditor`, `ShowIfPropertyDrawer`, `RequiredPropertyDrawer`, `EnumToggleButtonsPropertyDrawer`, `ReadOnlyPropertyDrawer`, `HideLabelPropertyDrawer`, `LabelTextPropertyDrawer`, `InfoBoxDecoratorDrawer`, `TitleDecoratorDrawer`, `TitleGroupDecoratorDrawer`, `PreviewFieldPropertyDrawer`, `ManagedReferencePickerPropertyDrawer`, `RulePresetPickerPropertyDrawer`, `FixedArraySizePropertyDrawer` | Editor-only implementation for the custom inspector system and property drawers. |
+| `Scripts/Tools/Inspector/Editor/InspectorOdinBridge.cs` | `DragAndDropOdinAttributeProcessor` | Odin bridge so the package inspector attributes coexist cleanly with Odin Inspector. |
+
+---
+
+## Example: Demo1 Inventories
+
+| File | Types | Role |
+|---|---|---|
+| `Examples/Demo1 Inventories/ItemExampleSO.cs` | `ItemExampleSO` | Simple ScriptableObject item data used by the introductory inventory demo. |
+| `Examples/Demo1 Inventories/Adapters/ItemAdapterSoAdapter.cs` | `ItemAdapterSoAdapter` | Adapter that exposes `ItemExampleSO` to the inventory system. |
+| `Examples/Demo1 Inventories/DataBindings/ItemsSOInventoryDataBinding.cs` | `ItemsSOInventoryDataBinding` | List-based binding connecting demo item lists to the UI inventory. |
+| `Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs` | `ItemTypeExampleFilterRule` | Demo-specific rule showing how to restrict drops by item category/type. |
+
+---
+
+## Example: Demo2 Loot
+
+| File | Types | Role |
+|---|---|---|
+| `Examples/Demo2 Loot/Scripts/Core/IInteractable.cs` | `IInteractable` | Simple interaction contract for world objects in the loot demo. |
+| `Examples/Demo2 Loot/Scripts/Core/Chest.cs` | `Chest` | Interactable chest that owns loot data and UI-opening behavior. |
+| `Examples/Demo2 Loot/Scripts/Core/ItemController.cs` | `ItemController` | World item/chest-side interaction component. |
+| `Examples/Demo2 Loot/Scripts/ItemExampleWith3DSO.cs` | `ItemExampleWith3DSO` | ScriptableObject item data for the loot/world example. |
+| `Examples/Demo2 Loot/Scripts/ItemAdapterSoWith3DAdapter.cs` | `ItemAdapterSoWith3DAdapter` | Adapter for loot demo items, including filter data. |
+| `Examples/Demo2 Loot/Scripts/DataBinding/ChestInventoryDataBinding.cs` | `ChestInventoryDataBinding` | Binding for chest inventory contents. |
+| `Examples/Demo2 Loot/Scripts/DataBinding/PlayerInventoryDataBinding.cs` | `PlayerInventoryDataBinding` | Binding for the player's inventory in the loot demo. |
+| `Examples/Demo2 Loot/Scripts/Player/PlayerController.cs` | `PlayerController` | Simple player movement/controller for the scene. |
+| `Examples/Demo2 Loot/Scripts/Player/PlayerInteraction.cs` | `PlayerInteraction` | Performs interact raycasts/checks and opens/uses world objects. |
+| `Examples/Demo2 Loot/Scripts/Player/PlayerInventoryData.cs` | `PlayerInventoryData` | Player-side backing data container for the demo inventory. |
+| `Examples/Demo2 Loot/Scripts/UI/LootUIController.cs` | `LootUIController` | Opens/closes and refreshes the loot UI. |
+| `Examples/Demo2 Loot/Scripts/World3D/WorldItem.cs` | `WorldItem` | 3D world pickup representation. |
+| `Examples/Demo2 Loot/Scripts/World3D/WorldDropZone.cs` | `WorldDropZone` | World-space drop target for dropping items out of the UI back into the scene. |
+
+---
+
+## Example: Demo3 Minecraft
+
+| File | Types | Role |
+|---|---|---|
+| `Examples/Demo3 Minecraft/Data/MinecraftItemSO.cs` | `MinecraftItemSO` | ScriptableObject item definition used by the crafting demo. |
+| `Examples/Demo3 Minecraft/Data/RuntimeItem.cs` | `RuntimeItem` | Runtime item wrapper/model used by the demo where needed. |
+| `Examples/Demo3 Minecraft/Adapters/MinecraftItemAdapterAdapter.cs` | `MinecraftItemAdapterAdapter` | Adapter exposing crafting demo items to the inventory UI. |
+| `Examples/Demo3 Minecraft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Serialized recipe grid/pattern definition. |
+| `Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | ScriptableObject recipe asset. |
+| `Examples/Demo3 Minecraft/Crafting/CraftingManager.cs` | `CraftingManager` | Demo domain controller that evaluates recipes and owns craft result state. |
+| `Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs` | `MainInventoryDataBinding` | Binding for the main player inventory. |
+| `Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs` | `HotbarDataBinding` | Binding for the hotbar. |
+| `Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs` | `CraftTableDataBinding` | Binding for the crafting grid input slots. |
+| `Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs` | `CraftResultDataBinding` | Read-oriented binding for the crafting output slot. |
+| `Examples/Demo3 Minecraft/Editor/CraftingRecipePatternPropertyDrawer.cs` | `CraftingRecipePatternPropertyDrawer` | Custom editor drawer for recipe pattern authoring. |
+
+---
+
+## Example: Demo4 Trading
+
+| File | Types | Role |
+|---|---|---|
+| `Examples/Demo4 Trading/Data/ItemType.cs` | `ItemType` | Demo enum describing trading/equipment item categories. |
+| `Examples/Demo4 Trading/TradableItemSO.cs` | `TradableItemSO` | ScriptableObject merchant item definition. |
+| `Examples/Demo4 Trading/Data/TradableItemModel.cs` | `TradableItemModel` | Runtime tradable item model used on the player side. |
+| `Examples/Demo4 Trading/Data/PlayerData.cs` | `PlayerData` | Player-side money/inventory data model. |
+| `Examples/Demo4 Trading/Data/MerchantData.cs` | `MerchantData` | Merchant-side inventory/pricing data model. |
+| `Examples/Demo4 Trading/Data/TradingEconomyManager.cs` | `TradingEconomyManager`, `Merchant` | Demo manager that stores economy state and merchant/player trading data. |
+| `Examples/Demo4 Trading/Adapters/ITradableItem.cs` | `ITradableItem` | Shared interface for anything with trading-specific metadata. |
+| `Examples/Demo4 Trading/Adapters/TradableSoAdapter.cs` | `TradableSoAdapter` | Adapter for merchant-side ScriptableObject items. |
+| `Examples/Demo4 Trading/Adapters/TradableItemAdapterModelAdapter.cs` | `TradableItemAdapterModelAdapter` | Adapter for player/runtime tradable item models. |
+| `Examples/Demo4 Trading/Converters/MerchantItemAdapterConverter.cs` | `MerchantItemAdapterConverter` | Converts incoming items into the merchant-side adapter/data model. |
+| `Examples/Demo4 Trading/Converters/ModelItemAdapterConverter.cs` | `ModelItemAdapterConverter` | Converts incoming items into the player/runtime adapter/data model. |
+| `Examples/Demo4 Trading/DataBindings/IMerchantInventory.cs` | `IMerchantInventory` | Marker interface for merchant inventory bindings/components. |
+| `Examples/Demo4 Trading/DataBindings/TradingHelper.cs` | `TradingHelper` | Trading utility methods for price checks, affordability, and side effects. |
+| `Examples/Demo4 Trading/DataBindings/PlayerInventoryDataBinding.cs` | `PlayerInventoryDataBinding` | Player inventory binding with transfer-domain hooks for trading rules. |
+| `Examples/Demo4 Trading/DataBindings/MerchantInventoryDataBinding.cs` | `MerchantInventoryDataBinding` | Merchant inventory binding with conversion and trade-specific behavior. |
+| `Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs` | `EquipmentInventoryDataBinding` | Equipment-slot binding for the trading/equipment scene. |
+| `Examples/Demo4 Trading/UI/PlayerGoldView.cs` | `PlayerGoldView` | UI view showing current player gold. |
+| `Examples/Demo4 Trading/UI/SelectedPurchasePriceView.cs` | `SelectedPurchasePriceView` | UI view showing the price of the currently selected item. |
+
+---
+
+## Example: Demo5 Containers
+
+| File | Types | Role |
+|---|---|---|
+| `Examples/Demo5 Containers/Scripts/Data/BaseItemSO.cs` | `BaseItemSO` | Base ScriptableObject item definition for the container demo. |
+| `Examples/Demo5 Containers/Scripts/Data/ContainerItemSO.cs` | `ContainerItemSO` | Item definition for items that contain another inventory. |
+| `Examples/Demo5 Containers/Scripts/Data/IContainerizeItemInstance.cs` | `IContainerizeItemInstance` | Interface for runtime item instances that may expose container behavior. |
+| `Examples/Demo5 Containers/Scripts/Data/ItemInstance.cs` | `ItemInstance` | Normal runtime item instance implementation. |
+| `Examples/Demo5 Containers/Scripts/Data/ContainerItemInstance.cs` | `ContainerItemInstance` | Runtime item instance that owns nested inventory data. |
+| `Examples/Demo5 Containers/Scripts/Adapters/ContainerItemAdapterAdapter.cs` | `ContainerItemAdapterAdapter` | Adapter exposing container demo runtime items to the UI system. |
+| `Examples/Demo5 Containers/Scripts/Bindings/PlayerContainerInventoryDataBinding.cs` | `PlayerContainerInventoryDataBinding` | Binding for the player's top-level inventory in the container demo. |
+| `Examples/Demo5 Containers/Scripts/Bindings/ContainerInventoryDataBinding.cs` | `ContainerInventoryDataBinding` | Binding for the currently opened nested container inventory. |
+| `Examples/Demo5 Containers/Scripts/ContainerDemoManager.cs` | `ContainerDemoManager` | Scene manager that owns active container state and demo coordination. |
+| `Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs` | `ContainerUIController` | Controls opening, switching, and presenting nested container UI. |
+| `Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | `OpenContainerMenuEntrySO` | Context menu entry that opens a container item. |
+| `Examples/Demo5 Containers/Scripts/Events.cs` | `Events` | Shared event names/helpers used inside the container demo. |
+
+---
+
+## What to open first for common tasks
+
+| If you need to... | Open these files first |
 |---|---|
-| `Scripts/Inventories/InventoryTransferService.cs` | `InventoryTransferRequest` / `InventoryTransferResult` models |
-| `Scripts/Inventories/EntryPlanningOperation.cs` | planning operation object |
-| `Scripts/Inventories/TargetPlacementOperation.cs` | placement operation object |
-| `Scripts/Inventories/SlotRelocationService.cs` | relocation-based fallback that tries to free a suitable slot |
-| `Scripts/Inventories/VirtualSlotState.cs` | virtual slot state for planning |
-| `Scripts/Inventories/SlotOperationContext.cs` | low-level slot operation context |
+| Bind your own list-based inventory data | `InventoryDataBindingBase.cs`, `ListInventoryDataBinding.cs`, one demo binding from Demo1 or Demo4 |
+| Build fixed equipment slots | `MappedSlotInventoryDataBinding.cs`, `EquipmentInventoryDataBinding.cs` |
+| Understand drag/drop planning | `TransferPlanner.cs`, `TransferPlanExecutor.cs`, `InventoryDropProcessor.cs` |
+| Add custom drag rules | `IDragRule.cs`, `BuiltInRules.cs`, `CompositeRule.cs` |
+| Support quick transfer | `AutoTransferService.cs`, `AutoTransferAction.cs`, `AutoTransferAnimationStrategy.cs` |
+| Add custom input bindings | `InteractionBindingsProfile.cs`, `InputEventRouter.cs`, `SlotInteractionActions.cs` |
+| Add context menu actions | `IContextMenuEntry.cs`, `ContextMenuEntryDefinitionSO.cs`, `ContextMenuManager.cs` |
+| Add tooltip content | `IDescribable.cs`, `TooltipManager.cs`, `DefaultTooltipView.cs` |
+| Understand world drop integration | `DropAreaBase.cs`, `InventoryDropArea.cs`, `WorldDropZone.cs` |
+| Implement item conversion across inventories | `IItemAdapterConverter.cs`, `TransferItemConversionUtility.cs`, Demo4 converters |
+
