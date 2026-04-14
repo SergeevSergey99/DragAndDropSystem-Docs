@@ -50,6 +50,14 @@ Usually this is a small adapter and one `DataBinding`. The more complex your dat
 
 For some common cases, template `DataBinding` classes are already provided, which makes most setups easier.
 
+## Dependencies
+
+- Required package: `Unity.ugui`
+- Optional package: `com.unity.inputsystem`
+
+The core asset compiles and works without `com.unity.inputsystem`.
+New Input System is only required for features built around `InputAction` and input-modality tracking.
+
 
 ## Basic Model
 

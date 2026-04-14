@@ -10,6 +10,14 @@
 - `ItemSOAdapter` как представление для системы инвентаря
 - `SimpleBinding` как мост между UI и вашим списком данных
 
+## Зависимости
+
+- Обязательный пакет: `Unity.ugui`
+- Опциональный пакет: `com.unity.inputsystem`
+
+Для этого quick start новый Input System **не требуется**. Базовый drag and drop через указатель работает без него.
+Если вам нужны `InputAction` bindings, навигационная модальность от геймпада или `InputActionSelectionTrigger`, установите `com.unity.inputsystem`.
+
 ## Шаг 1. Подготовьте сцену
 
 1. Создайте `Canvas` на котором будут располагаться инвентрари, если его ещё нет.
@@ -144,6 +152,7 @@ flowchart LR
 - на сцене нет `DragAndDropManager` или их несколько
 - на сцене нет `EventSystem`
 - binding привязан не к тому `UniversalInventory`
+- у `InventoryDataBinding` не назначена ссылка на inventory
 - данные меняются вне pipeline, но `ReloadUI()` не вызывается. Добавьте в вашем DataBinding вызов ReloadUI по событию изменения данных
 
 ## Что дальше

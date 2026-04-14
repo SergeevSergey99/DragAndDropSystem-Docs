@@ -10,6 +10,14 @@ Even in the basic scenario, you usually need to write a small amount of integrat
 - `ItemSOAdapter` as the representation for the inventory system
 - `SimpleBinding` as the bridge between the UI and your data list
 
+## Requirements
+
+- Required package: `Unity.ugui`
+- Optional package: `com.unity.inputsystem`
+
+This quick start does **not** require the new Input System. Basic pointer-driven drag and drop works without it.
+If you want `InputAction` bindings, gamepad-oriented navigation modality, or `InputActionSelectionTrigger`, install `com.unity.inputsystem`.
+
 ## Step 1. Prepare the scene
 
 1. Create a `Canvas` where the inventories will be placed, if you do not have one yet.
@@ -143,6 +151,7 @@ flowchart LR
 - there is no `DragAndDropManager` in the scene, or there are multiple managers
 - there is no `EventSystem` in the scene
 - the binding points to the wrong `UniversalInventory`
+- `InventoryDataBinding` has no assigned inventory reference
 - data changes outside the pipeline, but `ReloadUI()` is never called. Add a ReloadUI call to your DataBinding on data change event.
 
 ## What Next

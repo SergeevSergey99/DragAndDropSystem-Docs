@@ -44,6 +44,30 @@ Because of that separation, the asset can work with:
 - `Settings/`: presets and default assets
 - `Examples/`: demo scenes and integration samples
 
+## Dependencies
+
+- Required: `Unity.ugui`
+- Optional: `com.unity.inputsystem`
+
+## Without Input System
+
+The core package is designed to compile and work without the new Input System package.
+
+Available without `com.unity.inputsystem`:
+
+- pointer-based drag and drop
+- stacking, swapping, split/merge, and transfer pipeline
+- context menu
+- tooltip system
+- selection through pointer interactions
+- legacy `KeyCode` bindings
+
+Requires `com.unity.inputsystem`:
+
+- `InputAction` bindings
+- `InputActionSelectionTrigger`
+- navigation modality tracking based on `Gamepad` / `Keyboard.current`
+
 ## Notes
 
 - This asset is intentionally flexible, so integrating your own data types usually requires a small adapter and one binding.
