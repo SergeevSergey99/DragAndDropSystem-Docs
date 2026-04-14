@@ -22,6 +22,8 @@
         
           <link rel="alternate" href="../../ru/systems/free-form-layout/" hreflang="ru">
         
+          <link rel="alternate" href="../../es/systems/free-form-layout/" hreflang="es">
+        
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -29,7 +31,7 @@
     
     
       
-        <title>Free-Form Layout - Drag & Drop Inventory System</title>
+        <title>Example: Free-Form Layout - Drag & Drop Inventory System</title>
       
     
     
@@ -82,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#free-form-layout" class="md-skip">
+        <a href="#example-free-form-layout" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Free-Form Layout
+              Example: Free-Form Layout
             
           </span>
         </div>
@@ -171,6 +173,12 @@
           <li class="md-select__item">
             <a href="../../ru/systems/free-form-layout/" hreflang="ru" class="md-select__link">
               Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../es/systems/free-form-layout/" hreflang="es" class="md-select__link">
+              Español
             </a>
           </li>
         
@@ -1269,7 +1277,7 @@
   <span class="md-ellipsis">
     
   
-    Free-Form Layout
+    Example: Free-Form Layout
   
 
     
@@ -1287,7 +1295,7 @@
   <span class="md-ellipsis">
     
   
-    Free-Form Layout
+    Example: Free-Form Layout
   
 
     
@@ -1418,10 +1426,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extension-overlap-avoidance" class="md-nav__link">
+  <a href="#overlap-avoidance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extension: Overlap Avoidance
+        Overlap Avoidance
       
     </span>
   </a>
@@ -2011,10 +2019,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extension-overlap-avoidance" class="md-nav__link">
+  <a href="#overlap-avoidance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extension: Overlap Avoidance
+        Overlap Avoidance
       
     </span>
   </a>
@@ -2099,8 +2107,8 @@
 
 
 
-<h1 id="free-form-layout">Free-Form Layout</h1>
-<p>The <code>FreeFormSlotLayout</code> component is an example layout system for inventories where slots are not bound to a grid. Items appear exactly where the player drops them. Slots are created dynamically and positioned at the drop coordinates.</p>
+<h1 id="example-free-form-layout">Example: Free-Form Layout</h1>
+<p><code>FreeFormSlotLayout</code> is an example component that demonstrates how to build a free-form inventory layout on top of the core drag-and-drop pipeline. Items appear where the player drops them, slots are created dynamically, and overlapping drops are shifted to the nearest free position.</p>
 <hr />
 <h2 id="how-it-works">How It Works</h2>
 <pre class="mermaid"><code>flowchart LR
@@ -2133,7 +2141,7 @@
 <tbody>
 <tr>
 <td><strong>FreeFormSlotLayout</strong></td>
-<td>Positions dynamically created slots: at the drop point during drag, in a grid during initialization</td>
+<td>Example component: positions dynamically created slots at the drop point during drag, resolves overlap, and arranges them in a grid during initialization</td>
 </tr>
 <tr>
 <td><strong>InventoryDropArea</strong></td>
@@ -2195,11 +2203,11 @@
 </code></pre></div>
 <p>Normalized coordinates are independent of container size --- positions scale correctly across resolutions.</p>
 <hr />
-<h2 id="extension-overlap-avoidance">Extension: Overlap Avoidance</h2>
-<p>In the current implementation, slots may overlap when dropped at the same point. To address this, extend <code>FreeFormSlotLayout</code> by adding a <code>Rect.Overlaps</code> check after positioning and shifting to the nearest free position.</p>
+<h2 id="overlap-avoidance">Overlap Avoidance</h2>
+<p>The example now includes built-in overlap resolution. If the drop point is already occupied, <code>FreeFormSlotLayout</code> searches neighboring positions in expanding rings and picks the nearest free slot position inside bounds.</p>
 <hr />
 <h2 id="building-your-own-layout">Building Your Own Layout</h2>
-<p><code>FreeFormSlotLayout</code> is an example, not the only option. Here are the extension points through which any layout logic can be built:</p>
+<p><code>FreeFormSlotLayout</code> is intentionally presented as an example, not as a required built-in layout mode. Here are the extension points through which any layout logic can be built:</p>
 <h3 id="available-hooks">Available Hooks</h3>
 <table>
 <thead>
@@ -2326,7 +2334,7 @@
 <tbody>
 <tr>
 <td><code>FreeFormSlotLayout</code></td>
-<td>Positions slots at drop point or in grid during initialization</td>
+<td>Example component for free-form slot placement with overlap resolution</td>
 </tr>
 <tr>
 <td><code>UniversalInventory.OnSlotCreated</code></td>

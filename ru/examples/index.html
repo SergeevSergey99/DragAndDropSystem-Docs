@@ -22,6 +22,8 @@
         
           <link rel="alternate" href="./" hreflang="ru">
         
+          <link rel="alternate" href="../../es/examples/" hreflang="es">
+        
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -171,6 +173,12 @@
           <li class="md-select__item">
             <a href="./" hreflang="ru" class="md-select__link">
               Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../es/examples/" hreflang="es" class="md-select__link">
+              Español
             </a>
           </li>
         
@@ -1423,7 +1431,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Пример: свободное размещение
   
 
     
@@ -1983,7 +1991,7 @@
 <ul>
 <li>как конкретный demo устроен по слоям</li>
 <li>где в нём находятся данные, адаптеры, биндинги и UI</li>
-<li>как проходит основной flow внутри сцены</li>
+<li>как проходит основной процесс внутри сцены</li>
 <li>какие файлы смотреть, если вы хотите вынести паттерн в свой проект</li>
 </ul>
 <hr />
@@ -1995,14 +2003,14 @@
 <li><strong>Как работает основной сценарий</strong></li>
 <li><strong>Какие файлы смотреть</strong></li>
 </ol>
-<p>Идея не в том, чтобы просто повторить сцену, а в том, чтобы быстро понять её архитектурную форму.</p>
+<p>Идея раздела в том, чтобы быстро понять архитектуру сцены.</p>
 <hr />
 <h2 id="_3">Какие демо входят в пакет</h2>
 <h3 id="demo1-inventories"><a href="demo1-inventories/">Demo1 Inventories</a></h3>
 <p>Когда использовать:</p>
 <ul>
 <li>нужен самый простой пример списка предметов</li>
-<li>хотите посмотреть <code>ListInventoryDataBinding</code> без лишней доменной логики</li>
+<li>хотите посмотреть <code>ListInventoryDataBinding</code> без лишней логики</li>
 <li>нужен пример локальных <code>CanStartDrag</code> и <code>CanDrop</code></li>
 </ul>
 <p>Что показывает:</p>
@@ -2012,7 +2020,7 @@
 <li>области дропа</li>
 <li>базовые правила инвентаря</li>
 </ul>
-<p><code>Examples/Demo1 Inventaries/*</code></p>
+<p><code>Examples/Demo1 Inventories/*</code></p>
 <h3 id="demo2-loot"><a href="demo2-loot/">Demo2 Loot</a></h3>
 <p>Когда использовать:</p>
 <ul>
@@ -2022,7 +2030,6 @@
 </ul>
 <p>Что показывает:</p>
 <ul>
-<li>mediator между world layer и UI</li>
 <li>смена источника данных data binding-а сундука</li>
 <li>интеграцию с world drop / pickup</li>
 <li>фильтры предметов</li>

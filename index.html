@@ -20,6 +20,8 @@
         
           <link rel="alternate" href="/ru/" hreflang="ru">
         
+          <link rel="alternate" href="/es/" hreflang="es">
+        
       
       
       <link rel="icon" href="assets/images/favicon.png">
@@ -169,6 +171,12 @@
           <li class="md-select__item">
             <a href="/ru/" hreflang="ru" class="md-select__link">
               Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/es/" hreflang="es" class="md-select__link">
+              Español
             </a>
           </li>
         
@@ -516,6 +524,17 @@
     <span class="md-ellipsis">
       
         What This Asset Is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
       
     </span>
   </a>
@@ -1349,7 +1368,7 @@
   <span class="md-ellipsis">
     
   
-    Free-Form Layout
+    Example: Free-Form Layout
   
 
     
@@ -1782,6 +1801,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#basic-model" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1875,6 +1905,13 @@ It solves tasks such as:</p>
 <p>For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.</p>
 <p>Usually this is a small adapter and one <code>DataBinding</code>. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, planning, and event flow are already handled by the asset.</p>
 <p>For some common cases, template <code>DataBinding</code> classes are already provided, which makes most setups easier.</p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li>Required package: <code>Unity.ugui</code></li>
+<li>Optional package: <code>com.unity.inputsystem</code></li>
+</ul>
+<p>The core asset compiles and works without <code>com.unity.inputsystem</code>.
+New Input System is only required for features built around <code>InputAction</code> and input-modality tracking.</p>
 <h2 id="basic-model">Basic Model</h2>
 <div class="showcase-media">
     <img src="../../assets/showcase/basic-diagram.png" alt="Basic Diagram">

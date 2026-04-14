@@ -22,6 +22,8 @@
         
           <link rel="alternate" href="../../ru/getting-started/quick-start/" hreflang="ru">
         
+          <link rel="alternate" href="../../es/getting-started/quick-start/" hreflang="es">
+        
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -171,6 +173,12 @@
           <li class="md-select__item">
             <a href="../../ru/getting-started/quick-start/" hreflang="ru" class="md-select__link">
               Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../es/getting-started/quick-start/" hreflang="es" class="md-select__link">
+              Español
             </a>
           </li>
         
@@ -540,6 +548,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#step-1-prepare-the-scene" class="md-nav__link">
@@ -1395,7 +1414,7 @@
   <span class="md-ellipsis">
     
   
-    Free-Form Layout
+    Example: Free-Form Layout
   
 
     
@@ -1817,6 +1836,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#step-1-prepare-the-scene" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1930,6 +1960,13 @@
 <li><code>ItemSOAdapter</code> as the representation for the inventory system</li>
 <li><code>SimpleBinding</code> as the bridge between the UI and your data list</li>
 </ul>
+<h2 id="requirements">Requirements</h2>
+<ul>
+<li>Required package: <code>Unity.ugui</code></li>
+<li>Optional package: <code>com.unity.inputsystem</code></li>
+</ul>
+<p>This quick start does <strong>not</strong> require the new Input System. Basic pointer-driven drag and drop works without it.
+If you want <code>InputAction</code> bindings, gamepad-oriented navigation modality, or <code>InputActionSelectionTrigger</code>, install <code>com.unity.inputsystem</code>.</p>
 <h2 id="step-1-prepare-the-scene">Step 1. Prepare the scene</h2>
 <ol>
 <li>Create a <code>Canvas</code> where the inventories will be placed, if you do not have one yet.</li>
@@ -2073,6 +2110,7 @@ Each one will have its own <code>_items</code> list.</p>
 <li>there is no <code>DragAndDropManager</code> in the scene, or there are multiple managers</li>
 <li>there is no <code>EventSystem</code> in the scene</li>
 <li>the binding points to the wrong <code>UniversalInventory</code></li>
+<li><code>InventoryDataBinding</code> has no assigned inventory reference</li>
 <li>data changes outside the pipeline, but <code>ReloadUI()</code> is never called. Add a ReloadUI call to your DataBinding on data change event.</li>
 </ul>
 <h2 id="what-next">What Next</h2>

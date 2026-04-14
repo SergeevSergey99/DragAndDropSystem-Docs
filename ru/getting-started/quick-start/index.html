@@ -22,6 +22,8 @@
         
           <link rel="alternate" href="./" hreflang="ru">
         
+          <link rel="alternate" href="../../../es/getting-started/quick-start/" hreflang="es">
+        
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -171,6 +173,12 @@
           <li class="md-select__item">
             <a href="./" hreflang="ru" class="md-select__link">
               Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../es/getting-started/quick-start/" hreflang="es" class="md-select__link">
+              Español
             </a>
           </li>
         
@@ -542,6 +550,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Зависимости
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -597,7 +616,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит под капотом
@@ -608,7 +627,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         Частые ошибки в первом проекте
@@ -619,7 +638,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что дальше
@@ -1395,7 +1414,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Пример: свободное размещение
   
 
     
@@ -1817,6 +1836,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Зависимости
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1872,7 +1902,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит под капотом
@@ -1883,7 +1913,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         Частые ошибки в первом проекте
@@ -1894,7 +1924,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что дальше
@@ -1930,6 +1960,13 @@
 <li><code>ItemSOAdapter</code> как представление для системы инвентаря</li>
 <li><code>SimpleBinding</code> как мост между UI и вашим списком данных</li>
 </ul>
+<h2 id="_2">Зависимости</h2>
+<ul>
+<li>Обязательный пакет: <code>Unity.ugui</code></li>
+<li>Опциональный пакет: <code>com.unity.inputsystem</code></li>
+</ul>
+<p>Для этого quick start новый Input System <strong>не требуется</strong>. Базовый drag and drop через указатель работает без него.
+Если вам нужны <code>InputAction</code> bindings, навигационная модальность от геймпада или <code>InputActionSelectionTrigger</code>, установите <code>com.unity.inputsystem</code>.</p>
 <h2 id="1">Шаг 1. Подготовьте сцену</h2>
 <ol>
 <li>Создайте <code>Canvas</code> на котором будут располагаться инвентрари, если его ещё нет.</li>
@@ -2062,20 +2099,21 @@
 <li>списки данных обновится автоматически при переносе</li>
 </ul>
 <hr />
-<h2 id="_2">Что происходит под капотом</h2>
+<h2 id="_3">Что происходит под капотом</h2>
 <pre class="mermaid"><code>flowchart LR
     A["Игрок тащит предмет"] --&gt; B["&lt;b&gt;UniversalInventory&lt;/b&gt; обрабатывает перенос"]
     B --&gt; C["В &lt;b&gt;DataBinding&lt;/b&gt; вызываются методы"]
     C --&gt; D["Ваш List&lt;ItemSO&gt; обновляется"]</code></pre>
-<h2 id="_3">Частые ошибки в первом проекте</h2>
+<h2 id="_4">Частые ошибки в первом проекте</h2>
 <ul>
 <li><code>ItemId</code> не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно</li>
 <li>на сцене нет <code>DragAndDropManager</code> или их несколько</li>
 <li>на сцене нет <code>EventSystem</code></li>
 <li>binding привязан не к тому <code>UniversalInventory</code></li>
+<li>у <code>InventoryDataBinding</code> не назначена ссылка на inventory</li>
 <li>данные меняются вне pipeline, но <code>ReloadUI()</code> не вызывается. Добавьте в вашем DataBinding вызов ReloadUI по событию изменения данных</li>
 </ul>
-<h2 id="_4">Что дальше</h2>
+<h2 id="_5">Что дальше</h2>
 <ul>
 <li><a href="../../examples/">Примеры</a> — если хотите выбрать из всех 5 демо</li>
 <li><a href="../../architecture/data-binding/">Привязка данных</a> — если нужно понять lifecycle и точки расширения</li>

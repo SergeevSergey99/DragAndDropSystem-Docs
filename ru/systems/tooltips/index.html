@@ -22,6 +22,8 @@
         
           <link rel="alternate" href="./" hreflang="ru">
         
+          <link rel="alternate" href="../../../es/systems/tooltips/" hreflang="es">
+        
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -171,6 +173,12 @@
           <li class="md-select__item">
             <a href="./" hreflang="ru" class="md-select__link">
               Русский
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../es/systems/tooltips/" hreflang="es" class="md-select__link">
+              Español
             </a>
           </li>
         
@@ -1373,7 +1381,7 @@
   <span class="md-ellipsis">
     
   
-    Свободное размещение
+    Пример: свободное размещение
   
 
     
@@ -1913,27 +1921,32 @@
 </ul>
 <p><code>IDescribable</code> здесь является именно optional расширением adapter'а для UI.
 Core inventory не зависит от него. Подробнее — в разделе <a href="../../reference/optional-interfaces/">Опциональные интерфейсы</a>.</p>
+<p>По умолчанию пакет теперь использует обычные <code>UnityEngine.UI.Text</code>, а не TMP. Это упрощает базовую установку и убирает жёсткую зависимость от TextMeshPro.</p>
+<p>Если нужен TMP, UI-слой специально оставлен легко заменяемым: ищите по коду маркер <code>Replace to TMP Support</code> и меняйте соответствующие поля <code>Text</code> на <code>TMP_Text</code> / <code>TextMeshProUGUI</code> в своей версии проекта.</p>
 <hr />
 <h2 id="_5">Кастомный тултип</h2>
 <p>Создайте свой класс, унаследовавшись от <code>BaseTooltipView</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">RPGTooltipView</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">BaseTooltipView</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">TextMeshProUGUI</span><span class="w"> </span><span class="n">_nameText</span><span class="p">;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">TextMeshProUGUI</span><span class="w"> </span><span class="n">_statsText</span><span class="p">;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Image</span><span class="w"> </span><span class="n">_rarityBorder</span><span class="p">;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">SetContent</span><span class="p">(</span><span class="n">IItemAdapter</span><span class="w"> </span><span class="n">item</span><span class="p">)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">        </span><span class="n">_nameText</span><span class="p">.</span><span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">DisplayName</span><span class="p">;</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">IDescribable</span><span class="w"> </span><span class="n">describable</span><span class="p">)</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">            </span><span class="n">_statsText</span><span class="p">.</span><span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">describable</span><span class="p">.</span><span class="n">Description</span><span class="p">;</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">IFilterable</span><span class="w"> </span><span class="n">filterable</span><span class="p">)</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">            </span><span class="n">_rarityBorder</span><span class="p">.</span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetRarityColor</span><span class="p">(</span><span class="n">filterable</span><span class="p">.</span><span class="n">Rarity</span><span class="p">);</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine.UI</span><span class="p">;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">RPGTooltipView</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">BaseTooltipView</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Text</span><span class="w"> </span><span class="n">_nameText</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Text</span><span class="w"> </span><span class="n">_statsText</span><span class="p">;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Image</span><span class="w"> </span><span class="n">_rarityBorder</span><span class="p">;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">SetContent</span><span class="p">(</span><span class="n">IItemAdapter</span><span class="w"> </span><span class="n">item</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="n">_nameText</span><span class="p">.</span><span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">item</span><span class="p">.</span><span class="n">DisplayName</span><span class="p">;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">IDescribable</span><span class="w"> </span><span class="n">describable</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">            </span><span class="n">_statsText</span><span class="p">.</span><span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">describable</span><span class="p">.</span><span class="n">Description</span><span class="p">;</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">IFilterable</span><span class="w"> </span><span class="n">filterable</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">            </span><span class="n">_rarityBorder</span><span class="p">.</span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetRarityColor</span><span class="p">(</span><span class="n">filterable</span><span class="p">.</span><span class="n">Rarity</span><span class="p">);</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="p">}</span>
 </code></pre></div>
+<p>При необходимости этот пример так же легко перевести на TMP, ориентируясь на маркеры <code>Replace to TMP Support</code> во встроенных UI-компонентах.</p>
 <p>Назначьте свой префаб в <code>TooltipManager</code> вместо стандартного.</p>
 <hr />
 <h2 id="_6">Позиционирование</h2>
