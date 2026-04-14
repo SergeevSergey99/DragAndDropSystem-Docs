@@ -9,11 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d204b8f04a6faf9409d7888c4fcf50bb, type: 3}
+  m_Script: {fileID: 11500000, guid: 4eb7e18563fe21940bdfb483e7c9abd2, type: 3}
   m_Name: Weapon FilterPreset
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Filter.FilterPreset
-  _filterType: 1
-  _category: Weapon
-  _minRarity: 0
-  _maxRarity: 100
-  _searchText: 
+  _filter:
+    rid: 8490480804800233682
+  references:
+    version: 2
+    RefIds:
+    - rid: 8490480804800233682
+      type: {class: CategoryFilter, ns: DragAndDropSystem.Filter.Filters, asm: DragAndDropSystem.Runtime}
+      data:
+        <Category>k__BackingField: Weapon
