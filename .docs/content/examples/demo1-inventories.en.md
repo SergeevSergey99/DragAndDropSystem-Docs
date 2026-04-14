@@ -9,7 +9,7 @@
     </iframe>
 </div>
 
-`Examples/Demo1 Inventaries/InventariesDemo.unity`
+`Examples/Demo1 Inventories/InventoriesDemo.unity`
 
 This is the most basic sample in the asset. It shows an inventory without separate game logic, economy, or world integration.
 

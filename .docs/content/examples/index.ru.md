@@ -41,7 +41,7 @@
 - области дропа
 - базовые правила инвентаря
 
-`Examples/Demo1 Inventaries/*`
+`Examples/Demo1 Inventories/*`
 
 ### [Demo2 Loot](demo2-loot.md)
 

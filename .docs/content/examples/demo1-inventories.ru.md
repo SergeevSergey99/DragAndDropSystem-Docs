@@ -9,7 +9,7 @@
     </iframe>
 </div>
 
-`Examples/Demo1 Inventaries/InventariesDemo.unity`
+`Examples/Demo1 Inventories/InventoriesDemo.unity`
 
 Это самый базовый пример ассета. Он показывает inventory без отдельной игровой логики, экономики или world-интеграции.
 
