@@ -1,22 +1,69 @@
 # Demo1 Inventories
 
-Este ejemplo muestra la integracion mas simple del asset.
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/Zvuu9EGfkPI"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
 
-## Que demuestra
+`Examples/Demo1 Inventories/InventoriesDemo.unity`
 
-- `ListInventoryDataBinding`
-- inventarios basados en listas
-- adapters simples sobre `ScriptableObject`
-- reglas y restricciones basicas
+Esta es la muestra más básica del asset. Muestra un inventario sin lógica de juego separada, economía o integración con el mundo.
 
-## Archivos utiles
+## Qué muestra la demo
 
-- `Examples/Demo1 Inventories/ItemExampleSO.cs`
-- `Examples/Demo1 Inventories/Adapters/ItemAdapterSoAdapter.cs`
-- `Examples/Demo1 Inventories/DataBindings/ItemsSOInventoryDataBinding.cs`
-- `Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs`
+- una simple `List<ItemExampleSO>`
+- `ListInventoryDataBinding<ItemExampleSO, ItemAdapterSoAdapter>`
+- cargar una lista en `UniversalInventory`
+- sincronizar los cambios de la UI de vuelta a los datos
+- overrides locales de `CanStartDrag` y `CanDrop`
 
-## Cuando usar este ejemplo
+## Cómo está estructurada
 
-Empieza por este demo si quieres un backpack o chest sencillo y aun no necesitas trading, crafting o nested containers.
+Piezas principales:
+
+- `ItemExampleSO.cs` — datos del item
+- `Adapters/ItemAdapterSoAdapter.cs` — adapter de la capa UI
+- `DataBindings/ItemsSOInventoryDataBinding.cs` — binding entre la lista de datos y el inventario
+- `SO/Rules/*` — preset de reglas de ejemplo
+
+Arquitectónicamente, esta es la cadena más corta del proyecto:
+
+```mermaid
+flowchart LR
+    Data["List<ItemExampleSO>"] <--> Binding["ItemsSOInventoryDataBinding"] <--> UI["UniversalInventory"]
+```
+
+Aquí no existe un servicio de dominio separado. El binding lee la lista, crea adapters y sincroniza los cambios de vuelta a la misma lista.
+
+## Cómo funciona
+
+1. `GetItems()` devuelve la lista `items`.
+2. `ReloadUI()` construye stacks de UI mediante `CreateAdapter(...)`.
+3. El drag and drop pasa por el pipeline estándar.
+4. Tras una transferencia exitosa, el binding recibe callbacks de add/remove.
+5. `AddToData(...)` y `RemoveFromData(...)` actualizan la lista de origen.
+
+La demo también muestra dónde encajan mejor las restricciones locales sencillas:
+
+- `CanStartDrag(...)` — bloquear el drag desde un inventario concreto
+- `CanDrop(...)` — bloquear el drop en un inventario concreto
+
+## Archivos para inspeccionar
+
+| Archivo | Rol |
+|---|---|
+| `DataBindings/ItemsSOInventoryDataBinding.cs` | binding principal del ejemplo |
+| `Adapters/ItemAdapterSoAdapter.cs` | adapter para `ItemExampleSO` |
+| `ItemExampleSO.cs` | modelo de datos del item |
+| `Scripts/DataBinding/ListInventoryDataBinding.cs` | clase base para bindings basados en listas |
+
+## Cuándo usar esto como punto de partida
+
+- necesitas un primer inventario sin un modelo de dominio complejo
+- quieres entender el lifecycle de `ListInventoryDataBinding`
+- quieres un lugar rápido donde probar reglas o configuración visual
 
