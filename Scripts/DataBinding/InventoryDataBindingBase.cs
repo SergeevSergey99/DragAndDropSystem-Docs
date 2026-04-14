@@ -62,8 +62,13 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void Awake()
         {
-            // Initialize the inventory
-            Inventory.Initialize(this);
+            if (_inventory == null)
+            {
+                Debug.LogError($"[{GetType().Name}] Inventory reference is null. Please assign it in the Inspector.", this);
+                return;
+            }
+
+            _inventory.Initialize(this);
         }
 
         /*private void OnValidate()
@@ -74,10 +79,13 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void OnEnable()
         {
-            if (Inventory != null)
+            if (_inventory == null)
+                return;
+
+            if (_inventory != null)
             {
-                Inventory.OnSwapAttempting += HandleSwapAttempting;
-                Inventory.OnSwapCompleted += HandleSwapCompleted;
+                _inventory.OnSwapAttempting += HandleSwapAttempting;
+                _inventory.OnSwapCompleted += HandleSwapCompleted;
             }
 
             DragAndDropManager.OnDropCompleted += HandleDropCompleted;
@@ -86,10 +94,10 @@ namespace DragAndDropSystem.DataBinding
 
         protected virtual void OnDisable()
         {
-            if (Inventory != null)
+            if (_inventory != null)
             {
-                Inventory.OnSwapAttempting -= HandleSwapAttempting;
-                Inventory.OnSwapCompleted -= HandleSwapCompleted;
+                _inventory.OnSwapAttempting -= HandleSwapAttempting;
+                _inventory.OnSwapCompleted -= HandleSwapCompleted;
             }
 
             DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
@@ -294,17 +302,7 @@ namespace DragAndDropSystem.DataBinding
 
         #region Public API
 
-        public UniversalInventory Inventory
-        {
-            get
-            {
-                if (_inventory == null)
-                {
-                    throw new NullReferenceException("Inventory reference is null. Please assign it in the Inspector.");
-                }
-                return _inventory;
-            }
-        }
+        public UniversalInventory Inventory => _inventory;
 
         /// <summary>
         /// Force UI synchronization (can be called from external code)
