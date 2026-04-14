@@ -1,6 +1,6 @@
 # Soporte adicional
 
-El asset tambien contempla compatibilidad con Odin Inspector para evitar conflictos con el editor personalizado del paquete.
+El asset también soporta Odin Inspector para evitar conflictos entre los custom attributes del paquete y su Editor.
 
-Si necesitas compatibilidad con otro asset o framework, puedes escribir por los canales de contacto indicados en la documentacion.
+Si necesitas compatibilidad con otro asset, ponte en contacto usando la información de contacto proporcionada.
 
