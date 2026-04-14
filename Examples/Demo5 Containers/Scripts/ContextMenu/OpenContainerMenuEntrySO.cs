@@ -1,5 +1,4 @@
 using DragAndDropSystem.ContextMenu;
-using DragAndDropSystem.Examples.Containers.UI;
 using UnityEngine;
 
 namespace DragAndDropSystem.Examples.Containers

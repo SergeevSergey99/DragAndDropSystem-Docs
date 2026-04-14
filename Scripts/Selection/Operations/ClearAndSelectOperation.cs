@@ -31,8 +31,5 @@ namespace DragAndDropSystem.Selection
             manager.Clear();
             manager.Select(contextBaseSlot);
         }
-
-        public override bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
-            => base.CanExecute(manager, contextBaseSlot);
     }
 }

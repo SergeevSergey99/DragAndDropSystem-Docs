@@ -1,7 +1,6 @@
 using System;
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
-using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace DragAndDropSystem.Interaction

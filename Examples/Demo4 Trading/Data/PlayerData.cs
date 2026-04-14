@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Plugins.DragAndDropSystem.Examples.Trading.Data
 {
-    
     /// <summary>
     /// Player economy data
     /// </summary>

@@ -1,6 +1,4 @@
-using System;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Examples.Loot;
 using Plugins.DragAndDropSystem.Examples;
 using UnityEngine;
 

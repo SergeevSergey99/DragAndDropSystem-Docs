@@ -24,6 +24,5 @@ namespace DragAndDropSystem.Examples.Containers
 
         public bool RemovePlayerItem(IContainerizeItemInstance item)
             => item != null && _items.Remove(item);
-
     }
 }

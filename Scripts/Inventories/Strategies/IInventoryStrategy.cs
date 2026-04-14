@@ -1,10 +1,5 @@
-﻿using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
-
-namespace DragAndDropSystem.Inventories
+﻿namespace DragAndDropSystem.Inventories
 {
-
     /// <summary>
     /// Strategy for managing inventory slots
     /// </summary>
@@ -16,5 +11,4 @@ namespace DragAndDropSystem.Inventories
         /// </summary>
         void SetMaxStackSize(int maxStackSize, bool allowItemOverride);
     }
-
 }

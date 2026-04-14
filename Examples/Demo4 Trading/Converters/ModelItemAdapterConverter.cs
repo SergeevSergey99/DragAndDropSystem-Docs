@@ -1,6 +1,5 @@
 using DragAndDropSystem.Core;
 using DragAndDropSystem.Inventories;
-using Plugins.DragAndDropSystem.Examples.Trading.Data;
 
 namespace DragAndDropSystem.Examples.Trading
 {

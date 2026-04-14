@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using DragAndDropSystem.Core;
 using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Rules;
 
 namespace DragAndDropSystem.Examples.Minecraft
 {

@@ -200,5 +200,4 @@ namespace DragAndDropSystem.Rules
             return _canDropFunc?.Invoke(context, entry) ?? RuleResult.Success();
         }
     }
-
 }

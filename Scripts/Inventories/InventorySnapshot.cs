@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
 
 namespace DragAndDropSystem.Inventories
 {

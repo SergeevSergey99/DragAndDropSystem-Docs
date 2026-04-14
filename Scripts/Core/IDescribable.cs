@@ -10,5 +10,4 @@ namespace DragAndDropSystem.Core
     {
         string Description { get; }
     }
-
 }
