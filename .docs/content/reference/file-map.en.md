@@ -173,7 +173,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Actions/InventoryActionBase.cs` | `InventoryActionBase` | Base class for inventory-wide actions that can be triggered by bindings. |
 | `Scripts/Actions/Enums.cs` | `PointerTriggerPhase`, `TriggerPhaseEnum`, `ModifierKey`, `KeyTriggerPhase` | Shared enums for binding/action trigger configuration. |
 | `Scripts/Actions/Inheritors/AutoTransferAction.cs` | `AutoTransferAction` | Inventory action that invokes quick transfer behavior. |
-| `Scripts/Actions/Inheritors/SortInventoryAction.cs` | `SortInventoryAction`, `SortType`, `ItemStackData` | Inventory action that sorts items using built-in sort modes. |
+| `Scripts/Actions/Inheritors/SortInventoryAction.cs` | `SortInventoryAction` | Inventory action that physically sorts items using an `ISlotSorter`. |
 
 ---
 
@@ -258,11 +258,16 @@ The tables below list every script file and describe the main class, interface, 
 
 | File | Types | Role |
 |---|---|---|
-| `Scripts/Filter/FilterPreset.cs` | `FilterPreset`, `FilterType` | ScriptableObject describing a reusable filter rule for UI. |
-| `Scripts/Filter/SortPreset.cs` | `SortPreset`, `SortMode` | ScriptableObject describing a reusable sort mode for UI. |
-| `Scripts/Filter/FilterButton.cs` | `FilterButton` | UI button that applies a filter preset. |
-| `Scripts/Filter/SortButton.cs` | `SortButton` | UI button that applies a sort preset. |
-| `Scripts/Filter/FilterSortController.cs` | `FilterSortController`, `FilterDisplayMode`, `SortMode` | Coordinates filter/sort presets, buttons, and display state for an inventory UI. |
+| `Scripts/Filter/ISlotFilter.cs` | `ISlotFilter`, `ISlotSorter`, `FilterPredicate`, `SortComparison` | Core interfaces and delegates for filtering and sorting. |
+| `Scripts/Filter/FilterContext.cs` | `FilterContext` | Context struct passed to filters and sorters (Slot, Inventory, AllSlots, SlotIndex). |
+| `Scripts/Filter/FilterDisplayMode.cs` | `FilterDisplayMode` | Enum: Hide, Dim, MoveToEnd. |
+| `Scripts/Filter/FilterSortController.cs` | `FilterSortController` | Orchestrator: applies `ISlotFilter` / `ISlotSorter` to an inventory UI. |
+| `Scripts/Filter/FilterSortPreset.cs` | `FilterSortPreset` | ScriptableObject combining filter + sorter + display mode. |
+| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | Universal stateless UI button for filter/sort presets. |
+| `Scripts/Filter/SlotFilterSO.cs` | `SlotFilterSO` | ScriptableObject wrapper for shareable `ISlotFilter` assets. |
+| `Scripts/Filter/SlotSorterSO.cs` | `SlotSorterSO` | ScriptableObject wrapper for shareable `ISlotSorter` assets. |
+| `Scripts/Filter/Filters/*.cs` | `CategoryFilter`, `RarityRangeFilter`, `NameSearchFilter`, `CompositeFilter` | Built-in `[Serializable]` filter implementations. |
+| `Scripts/Filter/Sorters/*.cs` | `NameSorter`, `CategorySorter`, `RaritySorter`, `SortValueSorter`, `StackCountSorter`, `CompositeSorter` | Built-in `[Serializable]` sorter implementations. |
 
 ---
 

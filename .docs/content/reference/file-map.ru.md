@@ -173,7 +173,7 @@
 | `Scripts/Actions/InventoryActionBase.cs` | `InventoryActionBase` | Базовый класс inventory-wide действий, которые можно вызывать через bindings. |
 | `Scripts/Actions/Enums.cs` | `PointerTriggerPhase`, `TriggerPhaseEnum`, `ModifierKey`, `KeyTriggerPhase` | Общие enum'ы для конфигурации bindings и actions. |
 | `Scripts/Actions/Inheritors/AutoTransferAction.cs` | `AutoTransferAction` | Inventory action, вызывающий quick transfer поведение. |
-| `Scripts/Actions/Inheritors/SortInventoryAction.cs` | `SortInventoryAction`, `SortType`, `ItemStackData` | Inventory action для сортировки предметов встроенными режимами. |
+| `Scripts/Actions/Inheritors/SortInventoryAction.cs` | `SortInventoryAction` | Inventory action для физической сортировки предметов через `ISlotSorter`. |
 
 ---
 
@@ -258,11 +258,16 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Filter/FilterPreset.cs` | `FilterPreset`, `FilterType` | ScriptableObject, описывающий переиспользуемый UI-фильтр. |
-| `Scripts/Filter/SortPreset.cs` | `SortPreset`, `SortMode` | ScriptableObject, описывающий переиспользуемый режим сортировки. |
-| `Scripts/Filter/FilterButton.cs` | `FilterButton` | UI-кнопка, применяющая filter preset. |
-| `Scripts/Filter/SortButton.cs` | `SortButton` | UI-кнопка, применяющая sort preset. |
-| `Scripts/Filter/FilterSortController.cs` | `FilterSortController`, `FilterDisplayMode`, `SortMode` | Координирует presets, кнопки и состояние отображения для filter/sort UI инвентаря. |
+| `Scripts/Filter/ISlotFilter.cs` | `ISlotFilter`, `ISlotSorter`, `FilterPredicate`, `SortComparison` | Базовые интерфейсы и делегаты для фильтрации и сортировки. |
+| `Scripts/Filter/FilterContext.cs` | `FilterContext` | Контекст, передаваемый в фильтры и сортировщики (Slot, Inventory, AllSlots, SlotIndex). |
+| `Scripts/Filter/FilterDisplayMode.cs` | `FilterDisplayMode` | Enum: Hide, Dim, MoveToEnd. |
+| `Scripts/Filter/FilterSortController.cs` | `FilterSortController` | Оркестратор: применяет `ISlotFilter` / `ISlotSorter` к UI инвентаря. |
+| `Scripts/Filter/FilterSortPreset.cs` | `FilterSortPreset` | ScriptableObject, объединяющий фильтр + сортировщик + режим отображения. |
+| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | Универсальная stateless UI-кнопка для пресетов фильтра/сортировки. |
+| `Scripts/Filter/SlotFilterSO.cs` | `SlotFilterSO` | SO-обёртка для переиспользуемых ассетов `ISlotFilter`. |
+| `Scripts/Filter/SlotSorterSO.cs` | `SlotSorterSO` | SO-обёртка для переиспользуемых ассетов `ISlotSorter`. |
+| `Scripts/Filter/Filters/*.cs` | `CategoryFilter`, `RarityRangeFilter`, `NameSearchFilter`, `CompositeFilter` | Встроенные `[Serializable]` реализации фильтров. |
+| `Scripts/Filter/Sorters/*.cs` | `NameSorter`, `CategorySorter`, `RaritySorter`, `SortValueSorter`, `StackCountSorter`, `CompositeSorter` | Встроенные `[Serializable]` реализации сортировщиков. |
 
 ---
 

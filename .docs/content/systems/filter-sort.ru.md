@@ -30,69 +30,77 @@ flowchart LR
 
 ---
 
-## Типы фильтров
+## Встроенные фильтры
+
+Все фильтры --- `[Serializable]` классы, реализующие `ISlotFilter`. Встраиваются через `[SerializeReference]` в любой MonoBehaviour или ScriptableObject:
 
 | Фильтр | Описание | Требование к предмету |
 |--------|----------|----------------------|
-| **По категории** | Показать только предметы заданной категории (Weapon, Armor...) | `IFilterable` |
-| **По редкости** | Показать предметы в диапазоне редкости (min--max) | `IFilterable` |
-| **По имени** | Текстовый поиск по имени предмета | --- |
-| **Кастомный** | Произвольный предикат `Predicate<IItemAdapter>` | --- |
+| `CategoryFilter` | Показать только предметы заданной категории | `IFilterable` |
+| `RarityRangeFilter` | Показать предметы в диапазоне редкости (min--max) | `IFilterable` |
+| `NameSearchFilter` | Поиск подстроки по имени предмета | --- |
+| `CompositeFilter` | Комбинирует несколько фильтров с логикой AND/OR | --- |
 
 ---
 
-## Режимы сортировки
+## Встроенные сортировщики
 
-| Режим | Сортирует по | Требование к предмету |
-|-------|-------------|----------------------|
-| **По имени** (ByName) | `DisplayName` | --- |
-| **По категории** (ByCategory) | `IFilterable.Category` | `IFilterable` |
-| **По редкости** (ByRarity) | `IFilterable.Rarity` | `IFilterable` |
-| **По значению** (BySortValue) | `ISortable.SortValue` | `ISortable` |
-| **Кастомный** (Custom) | Произвольный `Comparison<BaseSlot>` | --- |
+Все сортировщики --- `[Serializable]` классы, реализующие `ISlotSorter`:
 
-Все режимы поддерживают сортировку по возрастанию и убыванию.
+| Сортировщик | Сортирует по | Требование к предмету |
+|-------------|-------------|----------------------|
+| `NameSorter` | `DisplayName` | --- |
+| `CategorySorter` | `IFilterable.Category` | `IFilterable` |
+| `RaritySorter` | `IFilterable.Rarity` | `IFilterable` |
+| `SortValueSorter` | `ISortable.SortValue` | `ISortable` |
+| `StackCountSorter` | Количество в стаке | --- |
+| `CompositeSorter` | Цепочка сортировщиков (первый ненулевой результат побеждает) | --- |
+
+Все сортировщики поддерживают направление (asc/desc) через контроллер.
 
 ---
 
 ## Настройка через Inspector
 
 1. **Добавьте `FilterSortController`** на GameObject инвентаря.
-2. **Создайте пресеты** через меню:
-    - *Create > DragAndDrop > Filter > Filter Preset* --- для фильтра.
-    - *Create > DragAndDrop > Filter > Sort Preset* --- для сортировки.
-3. **Добавьте кнопки** с компонентами `FilterButton` и `SortButton`. Назначьте пресеты и контроллер.
+2. **Создайте пресет** через *Create > DragAndDrop > Filter > Filter Sort Preset*. Выберите фильтр и/или сортировщик через `[SerializeReference]` пикер.
+3. **Добавьте кнопки** с компонентом `FilterSortButton`. Назначьте пресет и контроллер.
 
 ---
 
-## Пример через код
+## Примеры через код
 
 ```csharp
 var controller = inventory.GetComponent<FilterSortController>();
 
-// Фильтр: показать только оружие
-controller.SetCategoryFilter("Weapon");
+// Использование [Serializable] экземпляра фильтра
+var filter = new CategoryFilter { Category = "Weapon" };
+controller.SetFilter(filter);
 
-// Сортировка: по редкости, от редких к обычным
-controller.SetSortMode(FilterSortController.SortMode.ByRarity, ascending: false);
+// Сортировка [Serializable] сортировщиком
+controller.SetSorter(new RaritySorter(), ascending: false);
 
 // Сбросить всё
 controller.ClearAll();
 
-// Кастомный фильтр
-controller.SetFilter(item => item is IFilterable f && f.Rarity >= 3);
+// Лямбда-фильтр (захватывает живые значения)
+controller.SetFilter((in FilterContext ctx) =>
+{
+    if (ctx.Slot.Stack?.PrimaryAdapter is not IFilterable f) return false;
+    return f.Rarity >= minRaritySlider.value;
+});
+
+// После изменения полей активного фильтра в рантайме:
+((CategoryFilter)controller.ActiveFilter).Category = "Armor";
+controller.Refresh();
 ```
 
 ---
 
-## Пресеты
+## Пресеты и кнопки
 
-Пресеты позволяют настроить фильтры и сортировку в Inspector и переключать их кнопками:
-
-- **FilterPreset** --- хранит тип фильтра и параметры (категория, диапазон редкости, текст поиска).
-- **SortPreset** --- хранит режим сортировки и направление.
-- **FilterButton** --- при клике применяет/сбрасывает пресет фильтра. Поддерживает toggle-режим.
-- **SortButton** --- при клике применяет/сбрасывает пресет сортировки. Может переключать направление.
+- **FilterSortPreset** --- единый ScriptableObject, объединяющий фильтр + сортировщик + режим отображения + направление. Настраивается полностью через `[SerializeReference]` пикеры в Inspector.
+- **FilterSortButton** --- универсальная UI-кнопка. По клику применяет/сбрасывает пресет. Поддерживает toggle-режим и переключение направления. Stateless: читает всё визуальное состояние из контроллера.
 
 ---
 
@@ -100,10 +108,13 @@ controller.SetFilter(item => item is IFilterable f && f.Rarity >= 3);
 
 | Класс | Роль |
 |-------|------|
+| `ISlotFilter` | Базовый интерфейс фильтра (`Evaluate(in FilterContext)`) |
+| `ISlotSorter` | Базовый интерфейс сортировщика (`Compare(in FilterContext, in FilterContext)`) |
+| `FilterContext` | Контекст: Slot, Inventory, AllSlots, SlotIndex |
 | `FilterSortController` | Контроллер: применяет фильтр и сортировку к инвентарю |
-| `FilterPreset` | ScriptableObject-пресет фильтра |
-| `SortPreset` | ScriptableObject-пресет сортировки |
-| `FilterButton` | Компонент кнопки фильтра |
-| `SortButton` | Компонент кнопки сортировки |
+| `FilterSortPreset` | ScriptableObject: комбинированный пресет фильтра + сортировки |
+| `FilterSortButton` | Универсальная кнопка фильтра/сортировки |
+| `SlotFilterSO` | SO-обёртка для переиспользуемых ассетов фильтров |
+| `SlotSorterSO` | SO-обёртка для переиспользуемых ассетов сортировщиков |
 | `IFilterable` | Интерфейс предмета: Category, Subcategory, Rarity |
 | `ISortable` | Интерфейс предмета: SortValue, SortName |

@@ -30,69 +30,77 @@ When an item does not pass the filter, it can be handled in one of three ways:
 
 ---
 
-## Filter Types
+## Built-in Filters
+
+All filters are `[Serializable]` classes implementing `ISlotFilter`. They can be embedded via `[SerializeReference]` in any MonoBehaviour or ScriptableObject:
 
 | Filter | Description | Item Requirement |
 |--------|-------------|------------------|
-| **By category** | Show only items of a given category (Weapon, Armor...) | `IFilterable` |
-| **By rarity** | Show items within a rarity range (min--max) | `IFilterable` |
-| **By name** | Text search by item name | --- |
-| **Custom** | Arbitrary predicate `Predicate<IItemAdapter>` | --- |
+| `CategoryFilter` | Show only items of a given category | `IFilterable` |
+| `RarityRangeFilter` | Show items within a rarity range (min--max) | `IFilterable` |
+| `NameSearchFilter` | Substring search by item name | --- |
+| `CompositeFilter` | Combines multiple filters with AND/OR logic | --- |
 
 ---
 
-## Sort Modes
+## Built-in Sorters
 
-| Mode | Sorts by | Item Requirement |
-|------|----------|------------------|
-| **ByName** | `DisplayName` | --- |
-| **ByCategory** | `IFilterable.Category` | `IFilterable` |
-| **ByRarity** | `IFilterable.Rarity` | `IFilterable` |
-| **BySortValue** | `ISortable.SortValue` | `ISortable` |
-| **Custom** | Arbitrary `Comparison<BaseSlot>` | --- |
+All sorters are `[Serializable]` classes implementing `ISlotSorter`:
 
-All modes support ascending and descending sorting.
+| Sorter | Sorts by | Item Requirement |
+|--------|----------|------------------|
+| `NameSorter` | `DisplayName` | --- |
+| `CategorySorter` | `IFilterable.Category` | `IFilterable` |
+| `RaritySorter` | `IFilterable.Rarity` | `IFilterable` |
+| `SortValueSorter` | `ISortable.SortValue` | `ISortable` |
+| `StackCountSorter` | Stack count | --- |
+| `CompositeSorter` | Chain of sorters (first non-zero result wins) | --- |
+
+All sorters support ascending and descending direction via the controller.
 
 ---
 
 ## Setup via Inspector
 
 1. **Add `FilterSortController`** to the inventory GameObject.
-2. **Create presets** via the menu:
-    - *Create > DragAndDrop > Filter > Filter Preset* --- for filtering.
-    - *Create > DragAndDrop > Filter > Sort Preset* --- for sorting.
-3. **Add buttons** with `FilterButton` and `SortButton` components. Assign presets and the controller.
+2. **Create a preset** via *Create > DragAndDrop > Filter > Filter Sort Preset*. Choose a filter and/or sorter via the `[SerializeReference]` picker.
+3. **Add buttons** with the `FilterSortButton` component. Assign the preset and the controller.
 
 ---
 
-## Code Example
+## Code Examples
 
 ```csharp
 var controller = inventory.GetComponent<FilterSortController>();
 
-// Filter: show only weapons
-controller.SetCategoryFilter("Weapon");
+// Use a [Serializable] filter instance
+var filter = new CategoryFilter { Category = "Weapon" };
+controller.SetFilter(filter);
 
-// Sort: by rarity, from rare to common
-controller.SetSortMode(FilterSortController.SortMode.ByRarity, ascending: false);
+// Sort with a [Serializable] sorter
+controller.SetSorter(new RaritySorter(), ascending: false);
 
 // Reset all
 controller.ClearAll();
 
-// Custom filter
-controller.SetFilter(item => item is IFilterable f && f.Rarity >= 3);
+// Lambda filter (captures live values)
+controller.SetFilter((in FilterContext ctx) =>
+{
+    if (ctx.Slot.Stack?.PrimaryAdapter is not IFilterable f) return false;
+    return f.Rarity >= minRaritySlider.value;
+});
+
+// After changing fields on the active filter at runtime:
+((CategoryFilter)controller.ActiveFilter).Category = "Armor";
+controller.Refresh();
 ```
 
 ---
 
-## Presets
+## Presets and Buttons
 
-Presets allow configuring filters and sorting in the Inspector and switching them with buttons:
-
-- **FilterPreset** --- stores the filter type and parameters (category, rarity range, search text).
-- **SortPreset** --- stores the sort mode and direction.
-- **FilterButton** --- on click, applies/resets the filter preset. Supports toggle mode.
-- **SortButton** --- on click, applies/resets the sort preset. Can toggle direction.
+- **FilterSortPreset** --- a single ScriptableObject combining filter + sorter + display mode + direction. Configured entirely via `[SerializeReference]` pickers in the Inspector.
+- **FilterSortButton** --- universal UI button. On click applies/resets a preset. Supports toggle mode and direction toggle. Stateless: reads all visual state from the controller.
 
 ---
 
@@ -100,10 +108,13 @@ Presets allow configuring filters and sorting in the Inspector and switching the
 
 | Class | Role |
 |-------|------|
+| `ISlotFilter` | Core filter interface (`Evaluate(in FilterContext)`) |
+| `ISlotSorter` | Core sorter interface (`Compare(in FilterContext, in FilterContext)`) |
+| `FilterContext` | Context struct: Slot, Inventory, AllSlots, SlotIndex |
 | `FilterSortController` | Controller: applies filter and sorting to an inventory |
-| `FilterPreset` | ScriptableObject filter preset |
-| `SortPreset` | ScriptableObject sort preset |
-| `FilterButton` | Filter button component |
-| `SortButton` | Sort button component |
+| `FilterSortPreset` | ScriptableObject: combined filter + sort preset |
+| `FilterSortButton` | Universal filter/sort button component |
+| `SlotFilterSO` | ScriptableObject wrapper for shareable filter assets |
+| `SlotSorterSO` | ScriptableObject wrapper for shareable sorter assets |
 | `IFilterable` | Item interface: Category, Subcategory, Rarity |
 | `ISortable` | Item interface: SortValue, SortName |
