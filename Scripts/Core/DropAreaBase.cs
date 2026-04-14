@@ -260,7 +260,7 @@ namespace DragAndDropSystem.Core
             DragAndDropManager.OnDropCompleted += HandleDragStateChanged;
             DragAndDropManager.OnDragEnded += HandleDragEnded;
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             InputModalityTracker.OnNavigationModeChanged += HandleNavigationModeChanged;
 #endif
         }
@@ -272,14 +272,14 @@ namespace DragAndDropSystem.Core
             DragAndDropManager.OnDropCompleted -= HandleDragStateChanged;
             DragAndDropManager.OnDragEnded -= HandleDragEnded;
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             InputModalityTracker.OnNavigationModeChanged -= HandleNavigationModeChanged;
 #endif
         }
 
         private void HandleDragStateChanged(DragContext _) => RefreshInteractionState();
         private void HandleDragEnded() => RefreshInteractionState();
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private void HandleNavigationModeChanged(bool _) => RefreshInteractionState();
 #endif
 

@@ -1,4 +1,4 @@
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
 using System;
 using CodeUtils;
 using UnityEngine;

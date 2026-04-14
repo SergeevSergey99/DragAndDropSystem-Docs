@@ -181,7 +181,7 @@ namespace DragAndDropSystem.Interaction
         public bool TryGetCurrentNavigationAnchor(out GameObject selectedObject)
         {
             selectedObject = null;
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             if (!InputModalityTracker.IsNavigationModeActive)
                 return false;
 
@@ -263,7 +263,7 @@ namespace DragAndDropSystem.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             if (InputModalityTracker.IsNavigationModeActive)
             {
                 var es = EventSystem.current;
@@ -972,7 +972,7 @@ namespace DragAndDropSystem.Interaction
 
         private static bool WasPointerButtonReleasedThisFrame(PointerEventData.InputButton button)
         {
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var mouse = Mouse.current;
             if (mouse == null)
                 return false;
@@ -1009,7 +1009,7 @@ namespace DragAndDropSystem.Interaction
             if (DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var mouse = Mouse.current;
             if (mouse == null)
                 return;
@@ -1028,7 +1028,7 @@ namespace DragAndDropSystem.Interaction
 #endif
         }
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private void TrackGlobalPressState(Mouse mouse)
         {
             if (mouse.leftButton.wasPressedThisFrame)
@@ -1147,7 +1147,7 @@ namespace DragAndDropSystem.Interaction
         }
 #endif
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private void MaintainNavigationFocus()
         {
             if (!InputModalityTracker.IsNavigationModeActive)
@@ -1167,7 +1167,7 @@ namespace DragAndDropSystem.Interaction
         }
 #endif
 
-#if DNDS_INPUT_SYSTEM
+#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private Selectable FindBestFocusTarget()
         {
             if (_activeInventory != null && _activeInventory.isActiveAndEnabled)
