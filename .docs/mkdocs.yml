@@ -53,6 +53,16 @@ plugins:
             Advanced Systems: Продвинутые системы
             Reference: Справочник
             More: Еще
+        - locale: es
+          name: Español
+          build: true
+          nav_translations:
+            Home: Inicio
+            Examples: Ejemplos
+            Core Concepts: Conceptos clave
+            Advanced Systems: Sistemas avanzados
+            Reference: Referencia
+            More: Más
 
 nav:
   - Home:
