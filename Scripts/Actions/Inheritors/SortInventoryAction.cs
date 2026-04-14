@@ -1,40 +1,34 @@
 using System;
 using System.Collections.Generic;
 using DragAndDropSystem.Core;
+using DragAndDropSystem.Filter;
 using DragAndDropSystem.Slots;
+using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 
 namespace DragAndDropSystem.Inventories
 {
     /// <summary>
-    /// Inventory item sorting action
+    /// Inventory sorting action. Physically rearranges items in slots.
+    /// Uses <see cref="ISlotSorter"/> for sort logic.
     /// </summary>
     [Serializable]
     public class SortInventoryAction : InventoryActionBase
     {
-        public enum SortType
-        {
-            ByName,         // By item name
-            ByItemId,       // By item ID
-            ByStackSize,    // By stack size (larger -> smaller)
-        }
+        [SerializeReference, ManagedReferencePicker, Tooltip("Sort strategy")]
+        private ISlotSorter _sorter;
 
-        [SerializeField, Tooltip("Sort type")]
-        private SortType _sortType = SortType.ByName;
-
-        [SerializeField, Tooltip("Sort in reverse order")]
-        private bool _reverse = false;
+        [SerializeField, Tooltip("Sort in ascending order")]
+        private bool _ascending = true;
 
         public override string DisplayName => "Sort Inventory";
 
         public override ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot)
         {
             if (inventory == null)
-            {
                 return ActionResult.Failed("Inventory is null");
-            }
 
-            return TrySortInventory(inventory, _sortType, _reverse)
+            return TrySortInventory(inventory, _sorter, _ascending)
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("No items to sort");
         }
@@ -44,103 +38,69 @@ namespace DragAndDropSystem.Inventories
             if (!base.CanExecute(inventory, activeBaseSlot))
                 return false;
 
-            // Check whether there is at least one non-empty slot
             for (int i = 0; i < inventory.SlotCount; i++)
             {
                 var slot = inventory.GetSlot(i);
                 if (slot != null && !slot.IsEmpty)
-                {
                     return true;
-                }
             }
 
             return false;
         }
 
-        public static bool TrySortInventory(UniversalInventory inventory, SortType sortType, bool reverse)
+        /// <summary>
+        /// Sort the inventory using an <see cref="ISlotSorter"/>.
+        /// </summary>
+        public static bool TrySortInventory(UniversalInventory inventory, ISlotSorter sorter, bool ascending)
         {
-            if (inventory == null)
+            if (inventory == null || sorter == null)
                 return false;
 
-            var stacks = new List<ItemStackData>();
-            for (int i = 0; i < inventory.SlotCount; i++)
+            var slots = inventory.Slots;
+            var nonEmptyIndices = new List<int>();
+
+            for (int i = 0; i < slots.Count; i++)
             {
-                var slot = inventory.GetSlot(i);
+                var slot = slots[i];
                 if (slot != null && !slot.IsEmpty)
-                {
-                    stacks.Add(new ItemStackData
-                    {
-                        ItemAdapter = slot.Stack.PrimaryAdapter,
-                        Adapters = slot.Stack.Adapters,
-                        Count = slot.Stack.Count,
-                        OriginalSlotIndex = i
-                    });
-                }
+                    nonEmptyIndices.Add(i);
             }
 
-            if (stacks.Count == 0)
+            if (nonEmptyIndices.Count == 0)
                 return false;
 
-            SortStacks(stacks, sortType, reverse);
+            int direction = ascending ? 1 : -1;
 
-            for (int i = 0; i < inventory.SlotCount; i++)
+            nonEmptyIndices.Sort((idxA, idxB) =>
             {
-                var slot = inventory.GetSlot(i);
-                if (slot != null && !slot.IsEmpty)
-                    slot.Clear();
+                var ctxA = new FilterContext(slots[idxA], inventory, slots, idxA);
+                var ctxB = new FilterContext(slots[idxB], inventory, slots, idxB);
+                return sorter.Compare(in ctxA, in ctxB) * direction;
+            });
+
+            // Collect stacks in sorted order
+            var sortedStacks = new List<ItemStack>(nonEmptyIndices.Count);
+            foreach (int idx in nonEmptyIndices)
+            {
+                var slot = slots[idx];
+                var copy = slot.Stack.CreateCopy();
+                sortedStacks.Add(copy);
             }
 
-            for (int i = 0; i < stacks.Count && i < inventory.SlotCount; i++)
+            // Clear all non-empty slots
+            foreach (int idx in nonEmptyIndices)
+                slots[idx].Clear();
+
+            // Place stacks back in order
+            for (int i = 0; i < nonEmptyIndices.Count && i < sortedStacks.Count; i++)
             {
-                var slot = inventory.GetSlot(i);
+                var slot = inventory.GetSlot(nonEmptyIndices[i]);
                 if (slot != null)
-                {
-                    var stackData = stacks[i];
-                    if (ItemStack.TryCreate(stackData.Adapters, out var sortedStack))
-                        slot.SetStack(sortedStack);
-                }
+                    slot.SetStack(sortedStacks[i]);
             }
 
             inventory.UpdateAllVisuals();
             return true;
-        }
-
-        private static void SortStacks(List<ItemStackData> stacks, SortType sortType, bool reverse)
-        {
-            switch (sortType)
-            {
-                case SortType.ByName:
-                    stacks.Sort((a, b) =>
-                    {
-                        int result = string.Compare(a.ItemAdapter.DisplayName, b.ItemAdapter.DisplayName, StringComparison.Ordinal);
-                        return reverse ? -result : result;
-                    });
-                    break;
-
-                case SortType.ByItemId:
-                    stacks.Sort((a, b) =>
-                    {
-                        int result = string.Compare(a.ItemAdapter.ItemId, b.ItemAdapter.ItemId, StringComparison.Ordinal);
-                        return reverse ? -result : result;
-                    });
-                    break;
-
-                case SortType.ByStackSize:
-                    stacks.Sort((a, b) =>
-                    {
-                        int result = b.Count.CompareTo(a.Count); // Larger -> smaller
-                        return reverse ? -result : result;
-                    });
-                    break;
-            }
-        }
-
-        private class ItemStackData
-        {
-            public IItemAdapter ItemAdapter;
-            public IReadOnlyList<IItemAdapter> Adapters;
-            public int Count;
-            public int OriginalSlotIndex;
         }
     }
 }

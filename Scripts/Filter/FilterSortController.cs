@@ -11,6 +11,7 @@ namespace DragAndDropSystem.Filter
     /// <summary>
     /// Inventory filtering and sorting controller.
     /// Manages slot visibility and order without modifying inventory data.
+    /// Works with any <see cref="ISlotFilter"/> and <see cref="ISlotSorter"/> implementations.
     /// </summary>
     public class FilterSortController : MonoBehaviour
     {
@@ -18,16 +19,13 @@ namespace DragAndDropSystem.Filter
         private UniversalInventory _inventory;
 
         [Header("Filter Settings")]
-        [SerializeField, Tooltip("Hide filtered slots (SetActive) or only dim them")]
+        [SerializeField, Tooltip("How filtered-out slots are displayed")]
         private FilterDisplayMode _filterDisplayMode = FilterDisplayMode.Dim;
 
         [SerializeField, Tooltip("Hide empty slots during filtering")]
-        private bool _hideEmptySlots = false;
+        private bool _hideEmptySlots;
 
         [Header("Sort Settings")]
-        [SerializeField, Tooltip("Current sort mode")]
-        private SortMode _sortMode = SortMode.None;
-
         [SerializeField, Tooltip("Sort direction")]
         private bool _sortAscending = true;
 
@@ -38,60 +36,28 @@ namespace DragAndDropSystem.Filter
         [ShowInInspector, ReadOnly]
         private bool _isFilterActive;
 
-        private Predicate<IItemAdapter> _currentFilter;
-        private Comparison<BaseSlot> _currentSort;
-        private List<BaseSlot> _filteredSlots = new List<BaseSlot>();
-        private FilterPreset _activeFilterPreset;
-        private SortPreset _activeSortPreset;
+        private ISlotFilter _activeFilter;
+        private ISlotSorter _activeSorter;
+        private readonly List<BaseSlot> _filteredSlots = new List<BaseSlot>();
+        private readonly Dictionary<BaseSlot, int> _slotIndexCache = new Dictionary<BaseSlot, int>();
+        private FilterSortPreset _activePreset;
 
         public UniversalInventory Inventory => _inventory;
         public bool IsFilterActive => _isFilterActive;
         public int VisibleSlotCount => _visibleSlotCount;
         public FilterDisplayMode DisplayMode => _filterDisplayMode;
-        public SortMode CurrentSortMode => _sortMode;
         public bool SortAscending => _sortAscending;
-        public FilterPreset ActiveFilterPreset => _activeFilterPreset;
-        public SortPreset ActiveSortPreset => _activeSortPreset;
+        public ISlotFilter ActiveFilter => _activeFilter;
+        public ISlotSorter ActiveSorter => _activeSorter;
+        public FilterSortPreset ActivePreset => _activePreset;
 
-        /// <summary>
-        /// Event raised when filtering or sorting changes
-        /// </summary>
         public event Action OnFilterChanged;
-
-        public enum FilterDisplayMode
-        {
-            /// <summary>
-            /// Hide filtered slots (SetActive(false))
-            /// </summary>
-            Hide,
-
-            /// <summary>
-            /// Dim filtered slots but keep them visible
-            /// </summary>
-            Dim,
-
-            /// <summary>
-            /// Move filtered slots to the end
-            /// </summary>
-            MoveToEnd
-        }
-
-        public enum SortMode
-        {
-            None,
-            ByName,
-            ByCategory,
-            ByRarity,
-            BySortValue,
-            Custom
-        }
+        public event Action OnSortChanged;
 
         private void Awake()
         {
             if (_inventory == null)
-            {
                 _inventory = GetComponent<UniversalInventory>();
-            }
         }
 
         private void OnEnable()
@@ -111,244 +77,155 @@ namespace DragAndDropSystem.Filter
                 _inventory.OnItemRemoved -= OnInventoryChanged;
             }
         }
-
+        
         private void OnInventoryChanged(InventoryItemEventContext context)
         {
-            // Reapply the filter when the inventory changes
             ApplyFilterAndSort();
         }
 
-        /// <summary>
-        /// Set a filter using a predicate
-        /// </summary>
-        public void SetFilter(Predicate<IItemAdapter> filter)
+        // ── Filter API ──────────────────────────────────────────────
+
+        /// <summary>Set a filter from any <see cref="ISlotFilter"/> implementation.</summary>
+        public void SetFilter(ISlotFilter filter)
         {
-            _activeFilterPreset = null;
-            _currentFilter = filter;
+            _activePreset = null;
+            _activeFilter = filter;
             _isFilterActive = filter != null;
             ApplyFilterAndSort();
+            OnFilterChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Apply a filter from a preset and remember it as the active filter source.
-        /// </summary>
-        public void ApplyFilterPreset(FilterPreset preset)
+        /// <summary>Set a filter from a lambda / delegate.</summary>
+        public void SetFilter(FilterPredicate predicate)
         {
-            _activeFilterPreset = preset;
-
-            if (preset == null || preset.Type == FilterPreset.FilterType.None)
-            {
-                _currentFilter = null;
-                _isFilterActive = false;
-                ApplyFilterAndSort();
-                return;
-            }
-
-            switch (preset.Type)
-            {
-                case FilterPreset.FilterType.Category:
-                    if (string.IsNullOrEmpty(preset.Category))
-                    {
-                        _currentFilter = null;
-                        _isFilterActive = false;
-                    }
-                    else
-                    {
-                        _currentFilter = item =>
-                        {
-                            if (item is IFilterable filterable)
-                                return string.Equals(filterable.Category, preset.Category, StringComparison.OrdinalIgnoreCase);
-                            return false;
-                        };
-                        _isFilterActive = true;
-                    }
-                    break;
-
-                case FilterPreset.FilterType.Rarity:
-                    _currentFilter = item =>
-                    {
-                        if (item is IFilterable filterable)
-                            return filterable.Rarity >= preset.MinRarity && filterable.Rarity <= preset.MaxRarity;
-                        return false;
-                    };
-                    _isFilterActive = true;
-                    break;
-
-                case FilterPreset.FilterType.Name:
-                    if (string.IsNullOrEmpty(preset.SearchText))
-                    {
-                        _currentFilter = null;
-                        _isFilterActive = false;
-                    }
-                    else
-                    {
-                        _currentFilter = item =>
-                            item.DisplayName != null &&
-                            item.DisplayName.IndexOf(preset.SearchText, StringComparison.OrdinalIgnoreCase) >= 0;
-                        _isFilterActive = true;
-                    }
-                    break;
-
-                default:
-                    _currentFilter = null;
-                    _isFilterActive = false;
-                    break;
-            }
-
-            ApplyFilterAndSort();
+            SetFilter(predicate != null ? new DelegateFilter(predicate) : null);
         }
 
-        /// <summary>
-        /// Set a category filter (for IFilterable items)
-        /// </summary>
-        public void SetCategoryFilter(string category)
-        {
-            if (string.IsNullOrEmpty(category))
-            {
-                ClearFilter();
-                return;
-            }
-
-            SetFilter(item =>
-            {
-                if (item is IFilterable filterable)
-                {
-                    return string.Equals(filterable.Category, category, StringComparison.OrdinalIgnoreCase);
-                }
-                return false;
-            });
-        }
-
-        /// <summary>
-        /// Set a rarity filter (for IFilterable items)
-        /// </summary>
-        public void SetRarityFilter(int minRarity, int maxRarity = int.MaxValue)
-        {
-            SetFilter(item =>
-            {
-                if (item is IFilterable filterable)
-                {
-                    return filterable.Rarity >= minRarity && filterable.Rarity <= maxRarity;
-                }
-                return false;
-            });
-        }
-
-        /// <summary>
-        /// Set a text filter by name
-        /// </summary>
-        public void SetNameFilter(string searchText)
-        {
-            if (string.IsNullOrEmpty(searchText))
-            {
-                ClearFilter();
-                return;
-            }
-
-            SetFilter(item =>
-                item.DisplayName != null &&
-                item.DisplayName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-
-        /// <summary>
-        /// Clear the filter
-        /// </summary>
+        /// <summary>Clear the active filter.</summary>
         public void ClearFilter()
         {
-            _activeFilterPreset = null;
-            _currentFilter = null;
+            _activePreset = null;
+            _activeFilter = null;
             _isFilterActive = false;
             ApplyFilterAndSort();
+            OnFilterChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Set the sort mode
-        /// </summary>
-        public void SetSortMode(SortMode mode, bool ascending = true)
+        // ── Sort API ────────────────────────────────────────────────
+
+        /// <summary>Set a sorter from any <see cref="ISlotSorter"/> implementation.</summary>
+        public void SetSorter(ISlotSorter sorter, bool ascending = true)
         {
-            _activeSortPreset = null;
-            _sortMode = mode;
+            _activePreset = null;
+            _activeSorter = sorter;
             _sortAscending = ascending;
-            _currentSort = CreateSortComparison(mode, ascending);
             ApplyFilterAndSort();
+            OnSortChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Apply sorting from a preset and remember it as the active sort source.
-        /// </summary>
-        public void ApplySortPreset(SortPreset preset, bool ascending)
+        /// <summary>Set a sorter from a lambda / delegate.</summary>
+        public void SetSorter(SortComparison comparison, bool ascending = true)
         {
-            _activeSortPreset = preset;
+            SetSorter(comparison != null ? new DelegateSorter(comparison) : null, ascending);
+        }
 
-            if (preset == null || preset.Mode == SortPreset.SortMode.None)
+        /// <summary>Clear the active sorter.</summary>
+        public void ClearSorter()
+        {
+            _activePreset = null;
+            _activeSorter = null;
+            ApplyFilterAndSort();
+            OnSortChanged?.Invoke();
+        }
+
+        // ── Preset API ─────────────────────────────────────────────
+
+        /// <summary>Apply a combined filter+sort preset.</summary>
+        public void ApplyPreset(FilterSortPreset preset)
+        {
+            _activePreset = preset;
+
+            if (preset == null)
             {
-                _sortMode = SortMode.None;
-                _sortAscending = ascending;
-                _currentSort = null;
-                ApplyFilterAndSort();
-                return;
+                _activeFilter = null;
+                _activeSorter = null;
+                _isFilterActive = false;
+                _filterDisplayMode = FilterDisplayMode.Dim;
+            }
+            else
+            {
+                _activeFilter = preset.Filter;
+                _activeSorter = preset.Sorter;
+                _isFilterActive = preset.Filter != null;
+                _sortAscending = preset.Ascending;
+                _filterDisplayMode = preset.DisplayMode;
             }
 
-            _sortMode = ConvertPresetSortMode(preset.Mode);
-            _sortAscending = ascending;
-            _currentSort = CreateSortComparison(_sortMode, ascending);
             ApplyFilterAndSort();
+            OnFilterChanged?.Invoke();
+            OnSortChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Set custom sorting
-        /// </summary>
-        public void SetCustomSort(Comparison<BaseSlot> comparison)
-        {
-            _sortMode = SortMode.Custom;
-            _currentSort = comparison;
-            ApplyFilterAndSort();
-        }
+        // ── Combined API ────────────────────────────────────────────
 
-        /// <summary>
-        /// Clear sorting (restore the original order)
-        /// </summary>
-        public void ClearSort()
-        {
-            _activeSortPreset = null;
-            _sortMode = SortMode.None;
-            _currentSort = null;
-            ApplyFilterAndSort();
-        }
-
-        /// <summary>
-        /// Clear all filtering and sorting
-        /// </summary>
+        /// <summary>Clear all filtering and sorting, restore original state.</summary>
         public void ClearAll()
         {
-            _activeFilterPreset = null;
-            _activeSortPreset = null;
-            _currentFilter = null;
+            _activePreset = null;
+            _activeFilter = null;
+            _activeSorter = null;
             _isFilterActive = false;
-            _sortMode = SortMode.None;
-            _currentSort = null;
             ApplyFilterAndSort();
+            OnFilterChanged?.Invoke();
+            OnSortChanged?.Invoke();
         }
 
         /// <summary>
-        /// Apply the current filter and sorting
+        /// Re-evaluate current filter and sort.
+        /// Call after changing runtime fields on the active filter/sorter instances.
         /// </summary>
+        [Button("Refresh")]
+        public void Refresh()
+        {
+            ApplyFilterAndSort();
+        }
+
+        /// <summary>Set display mode for filtered-out slots.</summary>
+        public void SetDisplayMode(FilterDisplayMode mode)
+        {
+            _filterDisplayMode = mode;
+            ApplyFilterAndSort();
+        }
+
+        // ── Query API ───────────────────────────────────────────────
+
+        /// <summary>Get the list of visible (filter-passing) slots.</summary>
+        public IReadOnlyList<BaseSlot> GetVisibleSlots() => _filteredSlots;
+
+        /// <summary>Check whether a slot is visible (passes the filter).</summary>
+        public bool IsSlotVisible(BaseSlot baseSlot) => _filteredSlots.Contains(baseSlot);
+
+        // ── Core Pipeline ───────────────────────────────────────────
+
         [Button("Apply Filter & Sort")]
-        public void ApplyFilterAndSort()
+        private void ApplyFilterAndSort()
         {
             if (_inventory == null)
                 return;
 
             var slots = _inventory.Slots;
             _filteredSlots.Clear();
+            _slotIndexCache.Clear();
             _visibleSlotCount = 0;
 
-            // Phase 1: Determine visibility for each slot
-            foreach (var slot in slots)
+            // Phase 1: Evaluate filter and cache indices
+            for (int i = 0; i < slots.Count; i++)
             {
-                bool passesFilter = EvaluateSlot(slot);
+                var slot = slots[i];
+                _slotIndexCache[slot] = i;
+                var ctx = new FilterContext(slot, _inventory, slots, i);
 
-                if (passesFilter)
+                if (EvaluateSlot(slot, in ctx))
                 {
                     _filteredSlots.Add(slot);
                     _visibleSlotCount++;
@@ -356,33 +233,30 @@ namespace DragAndDropSystem.Filter
             }
 
             // Phase 2: Sort visible slots
-            if (_currentSort != null && _filteredSlots.Count > 1)
+            if (_activeSorter != null && _filteredSlots.Count > 1)
             {
-                _filteredSlots.Sort(_currentSort);
+                int direction = _sortAscending ? 1 : -1;
+                _filteredSlots.Sort((a, b) =>
+                {
+                    var ctxA = new FilterContext(a, _inventory, slots, _slotIndexCache[a]);
+                    var ctxB = new FilterContext(b, _inventory, slots, _slotIndexCache[b]);
+                    return _activeSorter.Compare(in ctxA, in ctxB) * direction;
+                });
             }
 
             // Phase 3: Apply visual changes
             ApplyVisualChanges(slots);
-
-            OnFilterChanged?.Invoke();
         }
 
-        private bool EvaluateSlot(BaseSlot baseSlot)
+        private bool EvaluateSlot(BaseSlot baseSlot, in FilterContext ctx)
         {
-            // Empty slots
             if (baseSlot.IsEmpty)
-            {
                 return !_hideEmptySlots && !_isFilterActive;
-            }
 
-            // If the filter is not active, all items are visible
-            if (_currentFilter == null)
-            {
+            if (_activeFilter == null)
                 return true;
-            }
 
-            // Apply the filter to the item
-            return _currentFilter(baseSlot.Stack.PrimaryAdapter);
+            return _activeFilter.Evaluate(in ctx);
         }
 
         private void ApplyVisualChanges(IReadOnlyList<BaseSlot> allSlots)
@@ -394,11 +268,9 @@ namespace DragAndDropSystem.Filter
                 case FilterDisplayMode.Hide:
                     ApplyHideMode(allSlots, filteredSet);
                     break;
-
                 case FilterDisplayMode.Dim:
                     ApplyDimMode(allSlots, filteredSet);
                     break;
-
                 case FilterDisplayMode.MoveToEnd:
                     ApplyMoveToEndMode(allSlots, filteredSet);
                     break;
@@ -409,7 +281,6 @@ namespace DragAndDropSystem.Filter
         {
             int siblingIndex = 0;
 
-            // First show and order visible slots
             foreach (var slot in _filteredSlots)
             {
                 slot.Transform.gameObject.SetActive(true);
@@ -417,7 +288,6 @@ namespace DragAndDropSystem.Filter
                 slot.Transform.SetSiblingIndex(siblingIndex++);
             }
 
-            // Hide the rest
             foreach (var slot in allSlots)
             {
                 if (!visibleSlots.Contains(slot))
@@ -432,7 +302,6 @@ namespace DragAndDropSystem.Filter
         {
             int siblingIndex = 0;
 
-            // Visible slots first
             foreach (var slot in _filteredSlots)
             {
                 slot.Transform.gameObject.SetActive(true);
@@ -440,7 +309,6 @@ namespace DragAndDropSystem.Filter
                 slot.Transform.SetSiblingIndex(siblingIndex++);
             }
 
-            // Then invisible (dimmed) ones in original order
             foreach (var slot in allSlots)
             {
                 if (!visibleSlots.Contains(slot))
@@ -456,7 +324,6 @@ namespace DragAndDropSystem.Filter
         {
             int siblingIndex = 0;
 
-            // Visible slots at the beginning (sorted)
             foreach (var slot in _filteredSlots)
             {
                 slot.Transform.gameObject.SetActive(true);
@@ -464,7 +331,6 @@ namespace DragAndDropSystem.Filter
                 slot.Transform.SetSiblingIndex(siblingIndex++);
             }
 
-            // Invisible ones at the end
             foreach (var slot in allSlots)
             {
                 if (!visibleSlots.Contains(slot))
@@ -476,128 +342,7 @@ namespace DragAndDropSystem.Filter
             }
         }
 
-        private Comparison<BaseSlot> CreateSortComparison(SortMode mode, bool ascending)
-        {
-            int direction = ascending ? 1 : -1;
-
-            switch (mode)
-            {
-                case SortMode.ByName:
-                    return (a, b) =>
-                    {
-                        var nameA = a.IsEmpty ? "" : a.Stack.DisplayName ?? "";
-                        var nameB = b.IsEmpty ? "" : b.Stack.DisplayName ?? "";
-                        return string.Compare(nameA, nameB, StringComparison.OrdinalIgnoreCase) * direction;
-                    };
-
-                case SortMode.ByCategory:
-                    return (a, b) =>
-                    {
-                        var catA = GetCategory(a);
-                        var catB = GetCategory(b);
-                        return string.Compare(catA, catB, StringComparison.OrdinalIgnoreCase) * direction;
-                    };
-
-                case SortMode.ByRarity:
-                    return (a, b) =>
-                    {
-                        var rarityA = GetRarity(a);
-                        var rarityB = GetRarity(b);
-                        return rarityA.CompareTo(rarityB) * direction;
-                    };
-
-                case SortMode.BySortValue:
-                    return (a, b) =>
-                    {
-                        var valueA = GetSortValue(a);
-                        var valueB = GetSortValue(b);
-                        return valueA.CompareTo(valueB) * direction;
-                    };
-
-                default:
-                    return null;
-            }
-        }
-
-        private static SortMode ConvertPresetSortMode(SortPreset.SortMode mode)
-        {
-            switch (mode)
-            {
-                case SortPreset.SortMode.ByName:
-                    return SortMode.ByName;
-                case SortPreset.SortMode.ByCategory:
-                    return SortMode.ByCategory;
-                case SortPreset.SortMode.ByRarity:
-                    return SortMode.ByRarity;
-                case SortPreset.SortMode.BySortValue:
-                    return SortMode.BySortValue;
-                default:
-                    return SortMode.None;
-            }
-        }
-
-        private string GetCategory(BaseSlot baseSlot)
-        {
-            if (baseSlot.IsEmpty)
-                return "";
-
-            if (baseSlot.Stack.PrimaryAdapter is IFilterable filterable)
-                return filterable.Category ?? "";
-
-            return "";
-        }
-
-        private int GetRarity(BaseSlot baseSlot)
-        {
-            if (baseSlot.IsEmpty)
-                return -1;
-
-            if (baseSlot.Stack.PrimaryAdapter is IFilterable filterable)
-                return filterable.Rarity;
-
-            return 0;
-        }
-
-        private int GetSortValue(BaseSlot baseSlot)
-        {
-            if (baseSlot.IsEmpty)
-                return int.MinValue;
-
-            if (baseSlot.Stack.PrimaryAdapter is ISortable sortable)
-                return sortable.SortValue;
-
-            return 0;
-        }
-
-        /// <summary>
-        /// Get the list of visible (filter-passing) slots
-        /// </summary>
-        public IReadOnlyList<BaseSlot> GetVisibleSlots()
-        {
-            return _filteredSlots.AsReadOnly();
-        }
-
-        /// <summary>
-        /// Check whether a slot is visible (passes the filter)
-        /// </summary>
-        public bool IsSlotVisible(BaseSlot baseSlot)
-        {
-            return _filteredSlots.Contains(baseSlot);
-        }
-
 #if UNITY_EDITOR
-        [Button("Test: Filter Weapons"), FoldoutGroup("Debug Actions")]
-        private void TestFilterWeapons()
-        {
-            SetCategoryFilter("Weapon");
-        }
-
-        [Button("Test: Sort by Name"), FoldoutGroup("Debug Actions")]
-        private void TestSortByName()
-        {
-            SetSortMode(SortMode.ByName);
-        }
-
         [Button("Test: Clear All"), FoldoutGroup("Debug Actions")]
         private void TestClearAll()
         {
