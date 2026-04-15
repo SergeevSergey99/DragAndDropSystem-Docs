@@ -15,5 +15,5 @@ MonoBehaviour:
   _label: Sort by name rev
   _icon: {fileID: 0}
   _order: 0
-  _sortType: 0
-  _reverse: 1
+  _sorter: {fileID: 11400000, guid: 1cdc9ee424f562c478aa214eb6af2dcc, type: 2}
+  _ascending: 0

@@ -11,7 +11,7 @@ namespace DragAndDropSystem.ContextMenu.BuiltInEntries
     [CreateAssetMenu(fileName = "SortEntry", menuName = "DragAndDrop/ContextMenu/Built-in/Sort", order = 0)]
     public class SortContextMenuEntrySO : ContextMenuEntryDefinitionSO
     {
-        [SerializeReference, ManagedReferencePicker] private ISlotSorter _sorter;
+        [SerializeField] private SlotSorterSO _sorter;
         [SerializeField] private bool _ascending = true;
 
         public override bool CanShow(ContextMenuContext ctx)
