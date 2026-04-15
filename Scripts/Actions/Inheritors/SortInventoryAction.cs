@@ -91,10 +91,10 @@ namespace DragAndDropSystem.Inventories
             foreach (int idx in nonEmptyIndices)
                 slots[idx].Clear();
 
-            // Place stacks back in order
-            for (int i = 0; i < nonEmptyIndices.Count && i < sortedStacks.Count; i++)
+            // Place sorted stacks starting from slot 0 (compact to front)
+            for (int i = 0; i < sortedStacks.Count && i < slots.Count; i++)
             {
-                var slot = inventory.GetSlot(nonEmptyIndices[i]);
+                var slot = inventory.GetSlot(i);
                 if (slot != null)
                     slot.SetStack(sortedStacks[i]);
             }
