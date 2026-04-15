@@ -86,6 +86,7 @@ namespace DragAndDropSystem.UI
                 return;
 
             DragAndDropManager.OnDragStarted += HandleDragStarted;
+            DragAndDropManager.OnDragStackChanged += HandleDragStackChanged;
             DragAndDropManager.OnDragCancelled += HandleDragFinished;
             DragAndDropManager.OnDropCompleted += HandleDragFinished;
             _subscribed = true;
@@ -97,6 +98,7 @@ namespace DragAndDropSystem.UI
                 return;
 
             DragAndDropManager.OnDragStarted -= HandleDragStarted;
+            DragAndDropManager.OnDragStackChanged -= HandleDragStackChanged;
             DragAndDropManager.OnDragCancelled -= HandleDragFinished;
             DragAndDropManager.OnDropCompleted -= HandleDragFinished;
             _subscribed = false;
@@ -125,6 +127,22 @@ namespace DragAndDropSystem.UI
             }
 
             UpdateActiveVisualPositions(GetDragAnchorScreenPosition());
+        }
+
+        private void HandleDragStackChanged(DragContext context)
+        {
+            if (context?.Entries == null)
+                return;
+
+            for (int i = 0; i < _activeVisuals.Count; i++)
+            {
+                var visual = _activeVisuals[i];
+                if (visual.Instance == null || visual.Index >= context.Entries.Count)
+                    continue;
+
+                var entryPayload = new List<DragEntry>(1) { context.Entries[visual.Index] };
+                visual.Instance.View.Show(entryPayload);
+            }
         }
 
         private void HandleDragFinished(DragContext _)

@@ -70,6 +70,7 @@ namespace DragAndDropSystem
         public static event Action<DragContext> OnDropAttempting;
         public static event Action<DragContext> OnDropCompleted;
         public static event Action<DragContext> OnDragCancelled;
+        public static event Action<DragContext> OnDragStackChanged;
         public static event Action OnDragEnded;
 
         // Auto-transfer events
@@ -393,6 +394,68 @@ namespace DragAndDropSystem
             {
                 EndDrag();
                 _isCompletingDrag = false;
+                _isProcessingTransfer = false;
+            }
+        }
+
+        /// <summary>
+        /// Drop a portion of the dragged stack without ending the drag.
+        /// The remaining items stay in the active drag context.
+        /// When the stack has &lt;= splitCount items left, delegates to CompleteDrag.
+        /// </summary>
+        public bool SplitDrop(DropRequestPolicy? requested = null, int splitCount = 1)
+        {
+            if (!IsDragging || _isCompletingDrag || _isProcessingTransfer)
+                return false;
+            if (_currentProcessor == null || _currentContext.IsBatchDrag)
+                return false;
+
+            var entry = _currentContext.Entries[0];
+            if (entry.Stack.IsEmpty)
+                return false;
+
+            if (entry.Stack.Count <= splitCount)
+            {
+                CompleteDrag(requested);
+                return true;
+            }
+
+            _isProcessingTransfer = true;
+            try
+            {
+                var splitStack = entry.Stack.Split(splitCount);
+                if (splitStack.IsEmpty)
+                    return false;
+
+                var splitEntry = new DragEntry(splitStack, entry.SourceBaseSlot, entry.SourceInventory);
+                var splitContext = new DragContext(new[] { splitEntry });
+
+                bool success = false;
+                if (_currentProcessor is IDropRequestProcessor reqProcessor)
+                {
+                    if (reqProcessor.CanAcceptDrop(splitContext, requested))
+                    {
+                        var result = reqProcessor.ProcessDrop(splitContext, requested);
+                        success = result.Success;
+                    }
+                }
+                else if (_currentProcessor.CanAcceptDrop(splitContext))
+                {
+                    var result = _currentProcessor.ProcessDrop(splitContext);
+                    success = result.Success;
+                }
+
+                if (!success)
+                {
+                    entry.Stack.TryAddToStack(splitStack);
+                    return false;
+                }
+
+                OnDragStackChanged?.Invoke(_currentContext);
+                return true;
+            }
+            finally
+            {
                 _isProcessingTransfer = false;
             }
         }

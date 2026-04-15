@@ -86,6 +86,29 @@ namespace DragAndDropSystem.Interaction
     }
 
     [Serializable]
+    public sealed class SplitDropAction : AssetSafeSlotInteractionAction
+    {
+        [SerializeField, Min(1), Tooltip("Number of items to split off and drop.")]
+        private int _splitCount = 1;
+        [SerializeField] private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
+
+        public override bool IsDragBinding() => true;
+
+        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+            => DragAndDropManager.AutoCreateInstance.IsDragging;
+
+        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        {
+            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
+                return ActionResult.Failed("Drag is not active");
+
+            return DragAndDropManager.AutoCreateInstance.SplitDrop(_dropPolicyOverride.TryBuild(), _splitCount)
+                ? ActionResult.Succeeded()
+                : ActionResult.Failed("Split drop failed");
+        }
+    }
+
+    [Serializable]
     public sealed class CancelDragAction : AssetSafeSlotInteractionAction
     {
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
