@@ -263,7 +263,9 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Filter/FilterDisplayMode.cs` | `FilterDisplayMode` | Enum: Hide, Dim, MoveToEnd. |
 | `Scripts/Filter/FilterSortController.cs` | `FilterSortController` | Orchestrator: applies `ISlotFilter` / `ISlotSorter` to an inventory UI. |
 | `Scripts/Filter/FilterSortPreset.cs` | `FilterSortPreset` | ScriptableObject combining filter + sorter + display mode. |
-| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | Universal stateless UI button for filter/sort presets. |
+| `Scripts/Filter/FilterButton.cs` | `FilterButton` | UI button that applies a `SlotFilterSO`. |
+| `Scripts/Filter/SortButton.cs` | `SortButton` | UI button that applies a `SlotSorterSO`. |
+| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | UI button that applies a combined `FilterSortPreset`. |
 | `Scripts/Filter/SlotFilterSO.cs` | `SlotFilterSO` | ScriptableObject wrapper for shareable `ISlotFilter` assets. |
 | `Scripts/Filter/SlotSorterSO.cs` | `SlotSorterSO` | ScriptableObject wrapper for shareable `ISlotSorter` assets. |
 | `Scripts/Filter/Filters/*.cs` | `CategoryFilter`, `RarityRangeFilter`, `NameSearchFilter`, `CompositeFilter` | Built-in `[Serializable]` filter implementations. |

@@ -63,8 +63,14 @@ flowchart LR
 ## Настройка через Inspector
 
 1. **Добавьте `FilterSortController`** на GameObject инвентаря.
-2. **Создайте пресет** через *Create > DragAndDrop > Filter > Filter Sort Preset*. Выберите фильтр и/или сортировщик через `[SerializeReference]` пикер.
-3. **Добавьте кнопки** с компонентом `FilterSortButton`. Назначьте пресет и контроллер.
+2. **Создайте ассеты фильтров/сортировщиков**:
+    - *Create > DragAndDrop > Filter > Slot Filter* --- ассет фильтра (`SlotFilterSO`). Тип фильтра выбирается через `[SerializeReference]` пикер.
+    - *Create > DragAndDrop > Filter > Slot Sorter* --- ассет сортировщика (`SlotSorterSO`).
+    - *Create > DragAndDrop > Filter > Filter Sort Preset* --- комбинированный пресет (`FilterSortPreset`) с фильтром + сортировщиком + режимом отображения.
+3. **Добавьте кнопки**:
+    - `FilterButton` --- применяет `SlotFilterSO` по клику.
+    - `SortButton` --- применяет `SlotSorterSO` по клику. Поддерживает переключение направления.
+    - `FilterSortButton` --- применяет комбинированный `FilterSortPreset` по клику.
 
 ---
 
@@ -97,10 +103,14 @@ controller.Refresh();
 
 ---
 
-## Пресеты и кнопки
+## Ассеты и кнопки
 
-- **FilterSortPreset** --- единый ScriptableObject, объединяющий фильтр + сортировщик + режим отображения + направление. Настраивается полностью через `[SerializeReference]` пикеры в Inspector.
-- **FilterSortButton** --- универсальная UI-кнопка. По клику применяет/сбрасывает пресет. Поддерживает toggle-режим и переключение направления. Stateless: читает всё визуальное состояние из контроллера.
+- **SlotFilterSO** --- ScriptableObject-обёртка для `ISlotFilter`. Используется `FilterButton`.
+- **SlotSorterSO** --- ScriptableObject-обёртка для `ISlotSorter`. Используется `SortButton`.
+- **FilterSortPreset** --- ScriptableObject, объединяющий фильтр + сортировщик + режим отображения + направление. Используется `FilterSortButton`.
+- **FilterButton** --- UI-кнопка, применяющая/сбрасывающая `SlotFilterSO`. Поддерживает toggle-режим.
+- **SortButton** --- UI-кнопка, применяющая/сбрасывающая `SlotSorterSO`. Поддерживает toggle-режим и переключение направления.
+- **FilterSortButton** --- UI-кнопка, применяющая/сбрасывающая комбинированный `FilterSortPreset`. Поддерживает toggle-режим и переключение направления.
 
 ---
 
@@ -112,9 +122,11 @@ controller.Refresh();
 | `ISlotSorter` | Базовый интерфейс сортировщика (`Compare(in FilterContext, in FilterContext)`) |
 | `FilterContext` | Контекст: Slot, Inventory, AllSlots, SlotIndex |
 | `FilterSortController` | Контроллер: применяет фильтр и сортировку к инвентарю |
-| `FilterSortPreset` | ScriptableObject: комбинированный пресет фильтра + сортировки |
-| `FilterSortButton` | Универсальная кнопка фильтра/сортировки |
 | `SlotFilterSO` | SO-обёртка для переиспользуемых ассетов фильтров |
 | `SlotSorterSO` | SO-обёртка для переиспользуемых ассетов сортировщиков |
+| `FilterSortPreset` | ScriptableObject: комбинированный пресет фильтра + сортировки |
+| `FilterButton` | UI-кнопка для одного фильтра |
+| `SortButton` | UI-кнопка для одного сортировщика |
+| `FilterSortButton` | UI-кнопка для комбинированного пресета |
 | `IFilterable` | Интерфейс предмета: Category, Subcategory, Rarity |
 | `ISortable` | Интерфейс предмета: SortValue, SortName |

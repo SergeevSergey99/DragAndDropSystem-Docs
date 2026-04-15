@@ -263,7 +263,9 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Filter/FilterDisplayMode.cs` | `FilterDisplayMode` | Enum: Hide, Dim, MoveToEnd. |
 | `Scripts/Filter/FilterSortController.cs` | `FilterSortController` | Orquestador: aplica `ISlotFilter` / `ISlotSorter` a una UI de inventario. |
 | `Scripts/Filter/FilterSortPreset.cs` | `FilterSortPreset` | ScriptableObject que combina filtro + sorter + modo de visualización. |
-| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | Botón universal stateless de UI para presets de filtro/sort. |
+| `Scripts/Filter/FilterButton.cs` | `FilterButton` | Botón de UI que aplica un `SlotFilterSO`. |
+| `Scripts/Filter/SortButton.cs` | `SortButton` | Botón de UI que aplica un `SlotSorterSO`. |
+| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | Botón de UI que aplica un `FilterSortPreset` combinado. |
 | `Scripts/Filter/SlotFilterSO.cs` | `SlotFilterSO` | SO wrapper para assets compartibles de `ISlotFilter`. |
 | `Scripts/Filter/SlotSorterSO.cs` | `SlotSorterSO` | SO wrapper para assets compartibles de `ISlotSorter`. |
 | `Scripts/Filter/Filters/*.cs` | `CategoryFilter`, `RarityRangeFilter`, `NameSearchFilter`, `CompositeFilter` | Implementaciones `[Serializable]` integradas de filtros. |

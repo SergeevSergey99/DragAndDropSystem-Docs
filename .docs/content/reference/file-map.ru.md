@@ -263,7 +263,9 @@
 | `Scripts/Filter/FilterDisplayMode.cs` | `FilterDisplayMode` | Enum: Hide, Dim, MoveToEnd. |
 | `Scripts/Filter/FilterSortController.cs` | `FilterSortController` | Оркестратор: применяет `ISlotFilter` / `ISlotSorter` к UI инвентаря. |
 | `Scripts/Filter/FilterSortPreset.cs` | `FilterSortPreset` | ScriptableObject, объединяющий фильтр + сортировщик + режим отображения. |
-| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | Универсальная stateless UI-кнопка для пресетов фильтра/сортировки. |
+| `Scripts/Filter/FilterButton.cs` | `FilterButton` | UI-кнопка, применяющая `SlotFilterSO`. |
+| `Scripts/Filter/SortButton.cs` | `SortButton` | UI-кнопка, применяющая `SlotSorterSO`. |
+| `Scripts/Filter/FilterSortButton.cs` | `FilterSortButton` | UI-кнопка, применяющая комбинированный `FilterSortPreset`. |
 | `Scripts/Filter/SlotFilterSO.cs` | `SlotFilterSO` | SO-обёртка для переиспользуемых ассетов `ISlotFilter`. |
 | `Scripts/Filter/SlotSorterSO.cs` | `SlotSorterSO` | SO-обёртка для переиспользуемых ассетов `ISlotSorter`. |
 | `Scripts/Filter/Filters/*.cs` | `CategoryFilter`, `RarityRangeFilter`, `NameSearchFilter`, `CompositeFilter` | Встроенные `[Serializable]` реализации фильтров. |

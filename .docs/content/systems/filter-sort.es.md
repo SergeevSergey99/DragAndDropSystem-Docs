@@ -63,8 +63,14 @@ Todos los sorters soportan orden ascendente y descendente mediante el controller
 ## Configuración desde el Inspector
 
 1. **Añade `FilterSortController`** al GameObject del inventario.
-2. **Crea un preset** desde *Create > DragAndDrop > Filter > Filter Sort Preset*. Elige un filtro y/o sorter mediante el picker de `[SerializeReference]`.
-3. **Añade botones** con el componente `FilterSortButton`. Asigna el preset y el controller.
+2. **Crea assets de filtro/sorter**:
+    - *Create > DragAndDrop > Filter > Slot Filter* --- asset de filtro (`SlotFilterSO`). Elige el tipo de filtro mediante el picker de `[SerializeReference]`.
+    - *Create > DragAndDrop > Filter > Slot Sorter* --- asset de sorter (`SlotSorterSO`).
+    - *Create > DragAndDrop > Filter > Filter Sort Preset* --- preset combinado (`FilterSortPreset`) con filtro + sorter + modo de visualización.
+3. **Añade botones**:
+    - `FilterButton` --- aplica un `SlotFilterSO` al hacer clic.
+    - `SortButton` --- aplica un `SlotSorterSO` al hacer clic. Soporta alternancia de dirección.
+    - `FilterSortButton` --- aplica un `FilterSortPreset` combinado al hacer clic.
 
 ---
 
@@ -97,10 +103,14 @@ controller.Refresh();
 
 ---
 
-## Presets y botones
+## Assets y botones
 
-- **FilterSortPreset** --- un único ScriptableObject que combina filtro + sorter + modo de visualización + dirección. Se configura completamente mediante pickers de `[SerializeReference]` en el Inspector.
-- **FilterSortButton** --- botón universal de UI. Al hacer clic aplica/restablece un preset. Soporta toggle mode y alternancia de dirección. Stateless: lee todo el estado visual del controller.
+- **SlotFilterSO** --- ScriptableObject que envuelve un `ISlotFilter`. Usado por `FilterButton`.
+- **SlotSorterSO** --- ScriptableObject que envuelve un `ISlotSorter`. Usado por `SortButton`.
+- **FilterSortPreset** --- ScriptableObject que combina filtro + sorter + modo de visualización + dirección. Usado por `FilterSortButton`.
+- **FilterButton** --- botón de UI que aplica/restablece un `SlotFilterSO`. Soporta toggle mode.
+- **SortButton** --- botón de UI que aplica/restablece un `SlotSorterSO`. Soporta toggle mode y alternancia de dirección.
+- **FilterSortButton** --- botón de UI que aplica/restablece un `FilterSortPreset` combinado. Soporta toggle mode y alternancia de dirección.
 
 ---
 
@@ -112,9 +122,11 @@ controller.Refresh();
 | `ISlotSorter` | Interface base de sorter (`Compare(in FilterContext, in FilterContext)`) |
 | `FilterContext` | Struct de contexto: Slot, Inventory, AllSlots, SlotIndex |
 | `FilterSortController` | Controller: aplica filtro y ordenación a un inventario |
-| `FilterSortPreset` | ScriptableObject: preset combinado de filtro + sort |
-| `FilterSortButton` | Componente de botón universal de filtro/sort |
 | `SlotFilterSO` | SO wrapper para assets de filtro compartibles |
 | `SlotSorterSO` | SO wrapper para assets de sorter compartibles |
+| `FilterSortPreset` | ScriptableObject: preset combinado de filtro + sort |
+| `FilterButton` | Botón de UI para un solo filtro |
+| `SortButton` | Botón de UI para un solo sorter |
+| `FilterSortButton` | Botón de UI para un preset combinado |
 | `IFilterable` | Interface de item: Category, Subcategory, Rarity |
 | `ISortable` | Interface de item: SortValue, SortName |
