@@ -1774,7 +1774,6 @@ MonoBehaviour:
   _inventory: {fileID: 486925683}
   _filterDisplayMode: 1
   _hideEmptySlots: 0
-  _sortMode: 0
   _sortAscending: 1
 --- !u!1001 &506112269
 PrefabInstance:
@@ -2913,7 +2912,6 @@ MonoBehaviour:
   _inventory: {fileID: 961149622}
   _filterDisplayMode: 1
   _hideEmptySlots: 0
-  _sortMode: 0
   _sortAscending: 1
 --- !u!114 &961149622
 MonoBehaviour:
