@@ -59,7 +59,7 @@ public class ItemSO : ScriptableObject
 To display such a type in slots, you need to create an adapter for it that implements `IItemAdapter`, for example:
 
 ```csharp
-using DragAndDropSystem.Core;
+using UniversalDragAndDrop.Core;
 using UnityEngine;
 
 public class ItemSOAdapter : IItemAdapter
@@ -88,8 +88,8 @@ Meaning of the required fields:
 ## Step 4. Add a simple binding
 
 ```csharp
-using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
 using System.Collections.Generic;
 using UnityEngine;
 

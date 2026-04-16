@@ -2,7 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(cat:*)",
-      "Bash(\"/mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/.claude/skills/dragdrop-system/SKILL.md\")",
+      "Bash(\"/mnt/e/UnityProjects/GuildMaster/Assets/Plugins/UniversalDragAndDrop/.claude/skills/dragdrop-system/SKILL.md\")",
       "Skill(dragdrop-system)",
       "Skill(dragdrop-architecture)",
       "Bash(mkdir:*)",
@@ -11,17 +11,19 @@
       "Bash(.venv/bin/pip install:*)",
       "Bash(source .venv/bin/activate)",
       "Bash(pip install:*)",
-      "Bash(\"/mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/docs/systems/filter-sort.en.md\":*)",
+      "Bash(\"/mnt/e/UnityProjects/GuildMaster/Assets/Plugins/UniversalDragAndDrop/docs/systems/filter-sort.en.md\":*)",
       "Bash(wc:*)",
       "Bash(for f:*)",
       "Bash(do echo:*)",
-      "Read(//mnt/e/UnityProjects/GuildMaster/Assets/Plugins/DragAndDropSystem/docs/**)",
+      "Read(//mnt/e/UnityProjects/GuildMaster/Assets/Plugins/UniversalDragAndDrop/docs/**)",
       "Bash(done)",
-      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build 2>&1\")",
-      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\DragAndDropSystem && .venv\\\\Scripts\\\\mkdocs build -f .docs\\\\mkdocs.yml 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\UniversalDragAndDrop && .venv\\\\Scripts\\\\mkdocs build 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d E:\\\\UnityProjects\\\\GuildMaster\\\\Assets\\\\Plugins\\\\UniversalDragAndDrop && .venv\\\\Scripts\\\\mkdocs build -f .docs\\\\mkdocs.yml 2>&1\")",
       "Bash(grep -E \"\\\\.cs$\")",
       "Bash(ls:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git diff:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []

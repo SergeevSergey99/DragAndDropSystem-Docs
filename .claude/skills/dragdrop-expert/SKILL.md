@@ -1,6 +1,6 @@
 ---
 name: dragdrop-expert
-description: Expert guidance for reviewing and extending DragAndDropSystem with policy/planner/executor architecture.
+description: Expert guidance for reviewing and extending UniversalDragAndDrop with policy/planner/executor architecture.
 ---
 # DragAndDrop Expert Guide
 

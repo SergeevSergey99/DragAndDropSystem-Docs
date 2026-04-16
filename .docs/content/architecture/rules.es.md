@@ -55,8 +55,8 @@ Cada rule devuelve un `RuleResult`: éxito o denegación con un motivo. Las rule
 ## Crear tu propia rule
 
 ```csharp
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
 
 // Rule: items of a certain level
 [Serializable]

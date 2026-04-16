@@ -1,6 +1,6 @@
 ---
 name: dragdrop-architecture
-description: Architecture reference for DragAndDropSystem with policy-driven planner/executor transfer pipeline.
+description: Architecture reference for UniversalDragAndDrop with policy-driven planner/executor transfer pipeline.
 ---
 # DragDrop Architecture
 

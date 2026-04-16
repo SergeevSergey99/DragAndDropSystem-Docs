@@ -182,9 +182,9 @@ Complete guide for extending the system and optimization strategies.
 ### Code Style
 
 **Namespace Convention**:
-- `DragAndDropSystem` - Root namespace
-- `DragAndDropSystem.Core` - Core classes
-- `DragAndDropSystem.Rules` - Rule system
+- `UniversalDragAndDrop` - Root namespace
+- `UniversalDragAndDrop.Core` - Core classes
+- `UniversalDragAndDrop.Rules` - Rule system
 - etc.
 
 **XML Documentation**:

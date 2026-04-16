@@ -55,8 +55,8 @@ flowchart TD
 ## Создание своего правила
 
 ```csharp
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
 
 // Правило: предметы определённого уровня
 [Serializable]

@@ -124,8 +124,8 @@ public class LegendaryItemAdapter : ItemSOAdapter, ITooltipProvider
 ### Шаг 1: Создать класс наследник
 
 ```csharp
-using DragAndDropSystem.Core;
-using DragAndDropSystem.UI;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -383,5 +383,5 @@ TooltipManager автоматически пулит tooltip:
 
 ---
 
-**Автор**: DragAndDropSystem
+**Автор**: UniversalDragAndDrop
 **Версия**: 2.0 (ITooltipView refactoring)

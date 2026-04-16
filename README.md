@@ -76,4 +76,4 @@ Requires `com.unity.inputsystem`:
 
 ## Full Documentation
 
-Full documentation can be found at https://sergeevsergey99.github.io/DragAndDropSystem-Docs/
+Full documentation can be found at https://sergeevsergey99.github.io/UniversalDragAndDrop-Docs/

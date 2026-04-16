@@ -77,10 +77,10 @@ How it works:
 ## Basic template
 
 ```csharp
-using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
 
 public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAdapter>
 {
