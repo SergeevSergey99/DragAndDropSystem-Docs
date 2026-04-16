@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17a1a438d577b354090d3fde8fdec7e2, type: 3}
-  m_Name: DefaultInteractionBindingsProfile
+  m_Name: DefaultInteractionBindingsProfile 1
   m_EditorClassIdentifier: 
   _pointerBindings:
   - _label: LMB Drag
@@ -25,6 +25,18 @@ MonoBehaviour:
     _triggerPhase: 2
     _action:
       rid: 6676588777423765576
+  - _label: LMB Ctrl Toggle
+    _button: 0
+    _modifier: 1
+    _triggerPhase: 4
+    _action:
+      rid: 6676588890579796071
+  - _label: RMB Context
+    _button: 1
+    _modifier: 0
+    _triggerPhase: 3
+    _action:
+      rid: 6676588977941643265
   _keyBindings: []
   _inputActionBindings: []
   references:
@@ -37,6 +49,11 @@ MonoBehaviour:
           _overrideAmount: 0
           _amount: 0
           _customAmount: 1
+    - rid: 6676588890579796071
+      type: {class: SelectionSlotAction, ns: DragAndDropSystem.Selection, asm: DragAndDropSystem.Runtime}
+      data:
+        _operation:
+          rid: 6676588977941643341
     - rid: 6676588890579796076
       type: {class: StartMultiDragAction, ns: DragAndDropSystem.Selection, asm: DragAndDropSystem.Runtime}
       data:
@@ -47,3 +64,9 @@ MonoBehaviour:
           _overrideAmount: 0
           _amount: 0
           _customAmount: 1
+    - rid: 6676588977941643265
+      type: {class: ShowContextMenuAction, ns: DragAndDropSystem.ContextMenu, asm: DragAndDropSystem.Runtime}
+      data: 
+    - rid: 6676588977941643341
+      type: {class: ToggleSlotOperation, ns: DragAndDropSystem.Selection, asm: DragAndDropSystem.Runtime}
+      data: 

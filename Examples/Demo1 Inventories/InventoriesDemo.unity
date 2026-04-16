@@ -4614,6 +4614,7 @@ MonoBehaviour:
   _useGlobalBindingsProfile: 1
   _bindingsProfile: {fileID: 0}
   _pointerBindings: []
+  _keyBindings: []
   _inputActionBindings: []
   references:
     version: 2
@@ -5479,6 +5480,7 @@ MonoBehaviour:
     _triggerPhase: 0
     _action:
       rid: 6676589188124770375
+  _keyBindings: []
   _inputActionBindings: []
   references:
     version: 2
@@ -6585,6 +6587,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DragCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2723276657636712345, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      propertyPath: <DefaultBindingsProfile>k__BackingField
+      value: 
+      objectReference: {fileID: 11400000, guid: 05f5fe19b987bac44a7fcd418d26c467, type: 2}
     - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
       propertyPath: m_Camera
       value: 
@@ -6630,6 +6636,7 @@ MonoBehaviour:
     _triggerPhase: 0
     _action:
       rid: 6676589188124770376
+  _keyBindings: []
   _inputActionBindings: []
   references:
     version: 2
