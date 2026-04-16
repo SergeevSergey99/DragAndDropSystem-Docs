@@ -14,6 +14,7 @@ namespace DragAndDropSystem.ContextMenu
     {
         [SerializeField] private UniversalInventory _inventory;
 
+        [SerializeField] private bool _useGlobalPresets = true;
         [SerializeField, Tooltip("Menu entries for a non-empty slot.")]
         private ContextMenuPreset _preset;
 
@@ -53,6 +54,18 @@ namespace DragAndDropSystem.ContextMenu
             var preset = context.BaseSlot.IsEmpty 
                 ? _emptySlotPreset 
                 : _preset;
+            
+            if (_useGlobalPresets)
+            {
+                var globalPreset = context.BaseSlot.IsEmpty
+                    ? ContextMenuManager.AutoCreateInstance.DefaultEmptySlotPreset
+                    : ContextMenuManager.AutoCreateInstance.DefaultPreset;
+
+                if (globalPreset != null && globalPreset.Entries != null)
+                {
+                    result.AddRange(globalPreset.Entries.Where(entry => entry != null));
+                }
+            }
             
             if (preset != null && preset.Entries != null)
             {
