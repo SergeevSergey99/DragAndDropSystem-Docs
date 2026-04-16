@@ -4,7 +4,7 @@ using CodeUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     public sealed class InputModalityTracker : MonoBehaviour
     {

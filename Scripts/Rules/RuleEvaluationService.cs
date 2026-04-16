@@ -1,8 +1,8 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.Rules
+namespace UniversalDragAndDrop.Rules
 {
     /// <summary>
     /// Single rule evaluation entry point for planner/executor/handlers.

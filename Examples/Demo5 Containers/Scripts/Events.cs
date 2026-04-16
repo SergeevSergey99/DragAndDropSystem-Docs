@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     public static class Events
     {

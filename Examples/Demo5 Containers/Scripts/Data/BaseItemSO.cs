@@ -1,7 +1,7 @@
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     /// <summary>
     /// Base item type.

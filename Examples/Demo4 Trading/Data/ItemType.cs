@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Examples.Trading.Data
+namespace UniversalDragAndDrop.Examples.Trading.Data
 {
     /// <summary>
     /// Item types for the trading and equipment system

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 376413b5555d4e86b9d1802cb8e29e40, type: 3}
   m_Name: ChestExampleSO
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::Plugins.DragAndDropSystem.Examples.ItemExampleSO
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
   <ItemName>k__BackingField: Chest
   <Icon>k__BackingField: {fileID: 7925215352844321845, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
   <itemType>k__BackingField: Other

@@ -11,13 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4eb7e18563fe21940bdfb483e7c9abd2, type: 3}
   m_Name: Potions FilterPreset
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Filter.FilterPreset
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Filter.FilterPreset
   _filter:
     rid: 8490480804800233683
   references:
     version: 2
     RefIds:
     - rid: 8490480804800233683
-      type: {class: CategoryFilter, ns: DragAndDropSystem.Filter.Filters, asm: DragAndDropSystem.Runtime}
+      type: {class: CategoryFilter, ns: UniversalDragAndDrop.Filter.Filters, asm: UniversalDragAndDrop.Runtime}
       data:
         <Category>k__BackingField: Consumable

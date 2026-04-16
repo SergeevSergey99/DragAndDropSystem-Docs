@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Trading.Data
+namespace UniversalDragAndDrop.Examples.Trading.Data
 {
     /// <summary>
     /// Merchant data

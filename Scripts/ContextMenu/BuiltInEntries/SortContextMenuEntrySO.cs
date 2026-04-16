@@ -1,9 +1,9 @@
-using DragAndDropSystem.Filter;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Tools.Inspector;
+using UniversalDragAndDrop.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Filter;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.ContextMenu.BuiltInEntries
+namespace UniversalDragAndDrop.ContextMenu.BuiltInEntries
 {
     /// <summary>
     /// Built-in menu entry: sorts items in the inventory using an <see cref="ISlotSorter"/>.

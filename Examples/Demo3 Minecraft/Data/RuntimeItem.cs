@@ -1,4 +1,4 @@
-﻿namespace DragAndDropSystem.Examples.Minecraft
+﻿namespace UniversalDragAndDrop.Examples.Minecraft
 {
     [System.Serializable]
     public class RuntimeItem

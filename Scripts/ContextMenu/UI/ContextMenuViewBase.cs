@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DragAndDropSystem.ContextMenu
+namespace UniversalDragAndDrop.ContextMenu
 {
     /// <summary>
     /// Base class for context menu UI.

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Rules;
-using Plugins.DragAndDropSystem.Examples;
+using UniversalDragAndDrop.Examples;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
+using UniversalDragAndDrop.Rules;
 
-namespace DragAndDropSystem.Examples.Loot
+namespace UniversalDragAndDrop.Examples.Loot
 {
     /// <summary>
     /// DataBinding for the player inventory.

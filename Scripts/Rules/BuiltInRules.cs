@@ -1,9 +1,9 @@
-using DragAndDropSystem.Core;
 using System;
 using System.Linq;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Rules
+namespace UniversalDragAndDrop.Rules
 {
     /// <summary>
     /// Prevents dropping an item into the same slot it was taken from

@@ -133,7 +133,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 98d2cfef48a586a49a7ef17067493c8f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.World3D.WorldItem
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.World3D.WorldItem
 --- !u!114 &649211847301960709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2bc04a25be3445b8bab0ac71061df9c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Demo3Loot.ItemController
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Demo3Loot.ItemController
   <WorldItem>k__BackingField: {fileID: -4326452153134456547}
   <spriteRenderer>k__BackingField: {fileID: 7295344675706690283}
 --- !u!58 &751680170067173974

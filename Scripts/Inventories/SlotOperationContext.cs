@@ -1,6 +1,6 @@
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Context for an add-to-slot operation.

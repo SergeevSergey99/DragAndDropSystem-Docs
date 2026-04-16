@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DragAndDropSystem.ContextMenu
+namespace UniversalDragAndDrop.ContextMenu
 {
     /// <summary>
     /// Runtime contract for a context menu entry.

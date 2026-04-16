@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Responsible for preview validation of whether the inventory can accept items in the current operation context.

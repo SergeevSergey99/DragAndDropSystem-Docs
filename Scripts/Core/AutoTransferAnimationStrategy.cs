@@ -1,8 +1,8 @@
 using System;
-using DragAndDropSystem.Slots;
 using UnityEngine;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Base class for auto-transfer animation strategies

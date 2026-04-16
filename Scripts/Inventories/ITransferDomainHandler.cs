@@ -1,6 +1,6 @@
-using DragAndDropSystem.Rules;
+using UniversalDragAndDrop.Rules;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Optional hook for domain logic around an already planned transfer.

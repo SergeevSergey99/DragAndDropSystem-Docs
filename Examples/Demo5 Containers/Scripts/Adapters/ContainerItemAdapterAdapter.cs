@@ -1,8 +1,8 @@
-using DragAndDropSystem.Core;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     /// <summary>
     /// Adapter mapping ItemInstance to IItemAdapter.

@@ -1,7 +1,7 @@
-using DragAndDropSystem.Inventories;
 using UnityEngine;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.ContextMenu
+namespace UniversalDragAndDrop.ContextMenu
 {
     [DisallowMultipleComponent]
     public class InventoryContextMenuViewBinder : MonoBehaviour

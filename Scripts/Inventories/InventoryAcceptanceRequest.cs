@@ -1,7 +1,7 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Preview request used to check how many items the target inventory can accept

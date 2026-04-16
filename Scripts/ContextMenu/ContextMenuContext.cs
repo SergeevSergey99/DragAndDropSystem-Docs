@@ -1,9 +1,9 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Interaction;
-using DragAndDropSystem.Slots;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Interaction;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.ContextMenu
+namespace UniversalDragAndDrop.ContextMenu
 {
     public struct ContextMenuContext
     {

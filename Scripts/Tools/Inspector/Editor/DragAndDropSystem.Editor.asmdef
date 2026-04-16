@@ -1,8 +1,8 @@
 {
-  "name": "DragAndDropSystem.Editor",
-  "rootNamespace": "DragAndDropSystem",
+  "name": "UniversalDragAndDrop.Editor",
+  "rootNamespace": "UniversalDragAndDrop",
   "references": [
-    "DragAndDropSystem.Runtime"
+    "UniversalDragAndDrop.Runtime"
   ],
   "includePlatforms": [
     "Editor"

@@ -1,8 +1,8 @@
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// Base class for selection triggers.

@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Examples.Trading
+namespace UniversalDragAndDrop.Examples.Trading
 {
     /// <summary>
     /// Marker interface for merchant inventories.

@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Builds and executes auto-transfer operations through the same planner/executor

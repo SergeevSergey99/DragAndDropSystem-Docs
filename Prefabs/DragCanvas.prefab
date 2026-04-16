@@ -97,7 +97,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cdc4b4ecd324e7646995f3eee715be51, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.DragAndDropManager
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.DragAndDropManager
   _enableQuickClickAutoTransfer: 1
   _quickClickTimeThreshold: 0.2
   _quickClickDistanceThreshold: 5
@@ -107,7 +107,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676589295782854726
-      type: {class: TweenAutoTransferAnimation, ns: DragAndDropSystem.Core, asm: DragAndDropSystem.Runtime}
+      type: {class: TweenAutoTransferAnimation, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data:
         _duration: 0.3
         _ease: 5
@@ -124,7 +124,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 18fedea49b02460997b8efda292d44cf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Interaction.InputEventRouter
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Interaction.InputEventRouter
   <DefaultBindingsProfile>k__BackingField: {fileID: 11400000, guid: 4f9345350f0328246b2aba8386a06f49, type: 2}
   _autoMaintainFocus: 1
   _longClickThresholdSeconds: 0.35

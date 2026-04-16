@@ -1,12 +1,12 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Drop processor for inventory-based targets (slots and inventory areas).

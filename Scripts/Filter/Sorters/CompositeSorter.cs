@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Filter.Sorters
+namespace UniversalDragAndDrop.Filter.Sorters
 {
     /// <summary>
     /// Chains multiple <see cref="ISlotSorter"/>: uses the first non-zero result.

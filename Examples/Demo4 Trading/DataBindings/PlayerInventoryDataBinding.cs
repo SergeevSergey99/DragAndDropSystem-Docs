@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Rules;
-using Plugins.DragAndDropSystem.Examples.Trading.Data;
+using UniversalDragAndDrop.Examples.Trading.Data;
+using UniversalDragAndDrop.DataBinding;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
 
-namespace DragAndDropSystem.Examples.Trading
+namespace UniversalDragAndDrop.Examples.Trading
 {
     /// <summary>
     /// DataBinding for the player inventory in the trading system.

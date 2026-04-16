@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Filter
+namespace UniversalDragAndDrop.Filter
 {
     public enum FilterDisplayMode
     {

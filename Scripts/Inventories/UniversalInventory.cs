@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Universal inventory built around composition

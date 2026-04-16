@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Snapshot of inventory state. Stores the contents of each slot and their counts.

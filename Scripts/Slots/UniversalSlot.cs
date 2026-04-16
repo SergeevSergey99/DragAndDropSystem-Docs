@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace DragAndDropSystem.Slots
+namespace UniversalDragAndDrop.Slots
 {
     /// <summary>
     /// Universal slot with a visual layer based on Image + Text.

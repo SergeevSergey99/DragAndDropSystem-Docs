@@ -1,7 +1,7 @@
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Examples.Loot
+namespace UniversalDragAndDrop.Examples.Loot
 {
     /// <summary>
     /// Loot UI controller, acting as a mediator between the game world and UI.

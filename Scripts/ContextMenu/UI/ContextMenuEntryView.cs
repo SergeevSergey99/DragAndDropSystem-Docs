@@ -1,9 +1,9 @@
-﻿using DragAndDropSystem.Interaction;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Interaction;
 
-namespace DragAndDropSystem.ContextMenu.UI
+namespace UniversalDragAndDrop.ContextMenu.UI
 {
     public class ContextMenuEntryView : MonoBehaviour
     {

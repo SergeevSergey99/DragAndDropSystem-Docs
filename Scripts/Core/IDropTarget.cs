@@ -1,6 +1,6 @@
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Interface for objects that can be drop targets.

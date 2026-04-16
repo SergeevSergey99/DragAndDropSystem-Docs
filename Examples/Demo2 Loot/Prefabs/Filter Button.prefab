@@ -134,7 +134,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dac4925c974aace4ba5e9033495b148f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Filter.FilterButton
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Filter.FilterButton
   _controller: {fileID: 0}
   _filterPreset: {fileID: 11400000, guid: c0c74b0fd92bd614b98fe0a5c9294706, type: 2}
   _toggleMode: 1

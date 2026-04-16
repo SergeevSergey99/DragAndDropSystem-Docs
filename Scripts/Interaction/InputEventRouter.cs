@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
 using CodeUtils;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Selection;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
-using DragAndDropSystem.UI;
+using UniversalDragAndDrop.Selection;
+using UniversalDragAndDrop.Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.UI;
 #if DNDS_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 #endif
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     [DisallowMultipleComponent]
     public class InputEventRouter : MonoSingleton<InputEventRouter>

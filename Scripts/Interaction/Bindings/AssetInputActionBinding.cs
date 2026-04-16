@@ -1,10 +1,10 @@
 #if DNDS_INPUT_SYSTEM
 using System;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     [Serializable]
     public class AssetInputActionBinding

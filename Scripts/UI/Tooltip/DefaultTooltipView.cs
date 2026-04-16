@@ -1,11 +1,11 @@
 using System;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Tools;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Tools;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.UI
+namespace UniversalDragAndDrop.UI
 {
     /// <summary>
     /// Default item tooltip visualization.

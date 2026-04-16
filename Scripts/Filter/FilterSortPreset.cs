@@ -1,7 +1,7 @@
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Filter
+namespace UniversalDragAndDrop.Filter
 {
     /// <summary>
     /// Combined filter + sort preset as a single ScriptableObject asset.

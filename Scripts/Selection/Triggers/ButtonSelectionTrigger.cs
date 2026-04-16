@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// Selection trigger driven by a UI Button.

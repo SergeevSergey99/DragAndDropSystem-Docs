@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DragAndDropSystem.ContextMenu
+namespace UniversalDragAndDrop.ContextMenu
 {
     /// <summary>
     /// Base scene-bound context menu entry.

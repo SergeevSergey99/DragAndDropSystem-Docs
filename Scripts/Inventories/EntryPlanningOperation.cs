@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     internal readonly struct EntryPlanningOperation
     {

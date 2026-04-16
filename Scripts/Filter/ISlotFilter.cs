@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Filter
+namespace UniversalDragAndDrop.Filter
 {
     /// <summary>
     /// Core filter contract. Determines whether a slot should be visible.

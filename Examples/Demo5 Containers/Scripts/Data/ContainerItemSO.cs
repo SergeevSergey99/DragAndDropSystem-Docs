@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     /// <summary>
     /// Container item: extends the base item type with capacity, filter, and nesting depth.

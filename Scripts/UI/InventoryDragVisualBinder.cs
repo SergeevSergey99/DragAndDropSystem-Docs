@@ -1,7 +1,7 @@
-using DragAndDropSystem.Inventories;
 using UnityEngine;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.UI
+namespace UniversalDragAndDrop.UI
 {
     [DisallowMultipleComponent]
     public class InventoryDragVisualBinder : MonoBehaviour

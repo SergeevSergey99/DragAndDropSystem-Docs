@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     [CreateAssetMenu(fileName = "InteractionBindingsProfile", menuName = "DragAndDrop/Interaction/Bindings Profile")]
     public sealed class InteractionBindingsProfile : ScriptableObject

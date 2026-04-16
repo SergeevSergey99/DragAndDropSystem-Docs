@@ -1,6 +1,6 @@
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// Adds one slot to selection without clearing others (no modifier).

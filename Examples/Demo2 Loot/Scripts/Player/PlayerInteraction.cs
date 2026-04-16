@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Loot
+namespace UniversalDragAndDrop.Examples.Loot
 {
     /// <summary>
     /// System for player interaction with world objects.

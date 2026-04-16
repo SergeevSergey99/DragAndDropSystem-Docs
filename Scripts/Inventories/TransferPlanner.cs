@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     public enum TransferPlanFailureCode
     {

@@ -1,8 +1,8 @@
 using System;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Inventory event arguments (item add/remove)

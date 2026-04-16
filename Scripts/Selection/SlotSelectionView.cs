@@ -1,10 +1,10 @@
 using System;
-using DragAndDropSystem.Slots;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// View component: subscribes to SelectionManager and updates slot UI

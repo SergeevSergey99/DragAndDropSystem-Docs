@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Sirenix.OdinInspector.Editor;
 
-namespace DragAndDropSystem.Tools.Inspector.Editor
+namespace UniversalDragAndDrop.Tools.Inspector.Editor
 {
     internal sealed class DragAndDropOdinAttributeProcessor : OdinAttributeProcessor
     {

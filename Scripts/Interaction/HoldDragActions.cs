@@ -1,9 +1,9 @@
 using System;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
 using UnityEngine.EventSystems;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     /// <summary>
     /// Bind to the Down phase. Starts hold counting on the slot.

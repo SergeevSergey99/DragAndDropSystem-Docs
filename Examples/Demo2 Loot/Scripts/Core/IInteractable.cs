@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Examples.Loot
+namespace UniversalDragAndDrop.Examples.Loot
 {
     /// <summary>
     /// Interface for all objects that can be interacted with

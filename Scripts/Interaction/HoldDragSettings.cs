@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     [CreateAssetMenu(fileName = "HoldDragSettings", menuName = "DragAndDrop/Interaction/Hold Drag Settings")]
     public class HoldDragSettings : ScriptableObject

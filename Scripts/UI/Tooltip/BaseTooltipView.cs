@@ -1,8 +1,8 @@
 using System;
-using DragAndDropSystem.Core;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.UI
+namespace UniversalDragAndDrop.UI
 {
     /// <summary>
     /// Base abstraction for item tooltip visualization.

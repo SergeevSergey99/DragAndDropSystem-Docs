@@ -2,19 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CodeUtils;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Selection;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.UI;
 using System.Threading;
 using System.Threading.Tasks;
-using DragAndDropSystem.Tools;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Selection;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
+using UniversalDragAndDrop.Tools.Inspector;
+using UniversalDragAndDrop.UI;
 
-namespace DragAndDropSystem
+namespace UniversalDragAndDrop
 {
     /// <summary>
     /// Next-generation drag-and-drop manager

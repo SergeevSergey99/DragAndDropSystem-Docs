@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     public enum TransferKind
     {

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     public class PlayerContainerInventoryDataBinding : ListInventoryDataBinding<IContainerizeItemInstance, ContainerItemAdapterAdapter>
     {

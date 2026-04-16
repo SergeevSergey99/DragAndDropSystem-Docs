@@ -1,12 +1,12 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Interaction;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Interaction;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
 
-namespace DragAndDropSystem.UI
+namespace UniversalDragAndDrop.UI
 {
     /// <summary>
     /// Inventory-bound drop area.

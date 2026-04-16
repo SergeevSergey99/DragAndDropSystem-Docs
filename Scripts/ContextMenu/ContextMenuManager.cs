@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CodeUtils;
-using DragAndDropSystem.Inventories;
 using UnityEngine;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.ContextMenu
+namespace UniversalDragAndDrop.ContextMenu
 {
     /// <summary>
     /// Singleton context menu manager.

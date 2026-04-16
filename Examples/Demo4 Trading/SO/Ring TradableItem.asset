@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d67b65887402ee247ac17bd9ed41fc07, type: 3}
   m_Name: Ring TradableItem
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::DragAndDropSystem.Examples.Trading.TradableItemSO
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.TradableItemSO
   _displayName: Magic Ring
   _icon: {fileID: 6399511744023341758, guid: 616f88a219705034e999fd5bcf6b915e, type: 3}
   _itemType: 2

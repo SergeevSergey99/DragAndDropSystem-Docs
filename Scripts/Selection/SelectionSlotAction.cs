@@ -1,11 +1,11 @@
 using System;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Interaction;
-using DragAndDropSystem.Inventories;
 using UnityEngine.EventSystems;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Interaction;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     [Serializable]
     public sealed class SelectionSlotAction : AssetSafeSlotInteractionAction

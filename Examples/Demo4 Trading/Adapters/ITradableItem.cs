@@ -1,6 +1,6 @@
-using DragAndDropSystem.Examples.Trading.Data;
+using UniversalDragAndDrop.Examples.Trading.Data;
 
-namespace DragAndDropSystem.Examples.Trading
+namespace UniversalDragAndDrop.Examples.Trading
 {
     /// <summary>
     /// Common interface for tradable items.

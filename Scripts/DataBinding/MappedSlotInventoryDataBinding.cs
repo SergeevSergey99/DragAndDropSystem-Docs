@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.DataBinding
+namespace UniversalDragAndDrop.DataBinding
 {
     /// <summary>
     /// Slot-to-data binding with support for both single items and stacks.

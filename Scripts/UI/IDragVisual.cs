@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.UI
+namespace UniversalDragAndDrop.UI
 {
     /// <summary>
     /// Interface for drag item visualization

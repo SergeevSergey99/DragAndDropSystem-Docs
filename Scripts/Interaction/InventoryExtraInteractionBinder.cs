@@ -1,10 +1,8 @@
-using DragAndDropSystem.Inventories;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     [DisallowMultipleComponent]
     public class InventoryExtraInteractionBinder : MonoBehaviour

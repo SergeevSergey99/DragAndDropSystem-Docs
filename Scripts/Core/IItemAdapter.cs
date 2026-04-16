@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Base interface for any inventory item

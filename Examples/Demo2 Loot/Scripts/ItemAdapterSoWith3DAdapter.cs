@@ -1,8 +1,8 @@
-using DragAndDropSystem.Core;
-using Plugins.DragAndDropSystem.Examples;
+using UniversalDragAndDrop.Examples;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Examples
+namespace UniversalDragAndDrop.Examples
 {
     /// <summary>
     /// Adapter for ItemExampleWith3DSO

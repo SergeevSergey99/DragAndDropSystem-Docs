@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// Immutable snapshot of the current selection state.

@@ -1,8 +1,8 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.Slots
+namespace UniversalDragAndDrop.Slots
 {
     /// <summary>
     /// Arguments for a slot hover event.

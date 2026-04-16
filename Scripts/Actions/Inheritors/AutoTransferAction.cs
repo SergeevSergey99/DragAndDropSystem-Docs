@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Interaction;
-using DragAndDropSystem.Selection;
-using DragAndDropSystem.Slots;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Interaction;
+using UniversalDragAndDrop.Selection;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Action that automatically transfers an item from the active slot into target inventories

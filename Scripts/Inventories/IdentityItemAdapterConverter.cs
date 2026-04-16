@@ -1,6 +1,6 @@
-using DragAndDropSystem.Core;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Default converter: passes items through unchanged.

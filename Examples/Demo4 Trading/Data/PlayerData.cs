@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Examples.Trading;
+using UniversalDragAndDrop.Tools.Inspector;
+using UniversalDragAndDrop.Examples.Trading;
 using UnityEngine;
 
-namespace Plugins.DragAndDropSystem.Examples.Trading.Data
+namespace UniversalDragAndDrop.Examples.Trading.Data
 {
     /// <summary>
     /// Player economy data

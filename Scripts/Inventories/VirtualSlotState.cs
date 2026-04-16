@@ -1,7 +1,7 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     internal sealed class VirtualSlotState
     {

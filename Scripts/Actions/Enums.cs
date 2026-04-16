@@ -1,4 +1,4 @@
-﻿namespace DragAndDropSystem
+﻿namespace UniversalDragAndDrop
 {
     public enum PointerTriggerPhase
     {

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 376413b5555d4e86b9d1802cb8e29e40, type: 3}
   m_Name: BowExampleSO
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::Plugins.DragAndDropSystem.Examples.ItemExampleSO
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
   <ItemName>k__BackingField: Bow
   <Icon>k__BackingField: {fileID: -6585132106533301062, guid: d58a3acac6a993f45b29761320b2bbf1, type: 3}
   <itemType>k__BackingField: Weapon

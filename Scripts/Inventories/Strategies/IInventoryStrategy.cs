@@ -1,4 +1,4 @@
-﻿namespace DragAndDropSystem.Inventories
+﻿namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Strategy for managing inventory slots

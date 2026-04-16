@@ -1,10 +1,10 @@
 using System.Collections;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Interaction;
-using DragAndDropSystem.Slots;
 using UnityEngine;
+using UniversalDragAndDrop.Interaction;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.UI
+namespace UniversalDragAndDrop.UI
 {
     /// <summary>
     /// Tooltip manager used to display item information when hovering slots.

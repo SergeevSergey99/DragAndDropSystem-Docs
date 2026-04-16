@@ -1,7 +1,7 @@
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Result of a drop operation performed by IDropHandler.

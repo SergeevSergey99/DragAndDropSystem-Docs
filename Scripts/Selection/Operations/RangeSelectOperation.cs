@@ -1,6 +1,6 @@
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// Selects a range of slots from the last selected one to contextSlot (Shift+Click).

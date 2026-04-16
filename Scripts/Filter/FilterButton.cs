@@ -1,8 +1,8 @@
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Filter
+namespace UniversalDragAndDrop.Filter
 {
     /// <summary>
     /// Filter button. Applies a <see cref="SlotFilterSO"/> on click.

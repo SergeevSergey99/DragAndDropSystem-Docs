@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Inventories;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// One entry in a drag operation (source + stack)

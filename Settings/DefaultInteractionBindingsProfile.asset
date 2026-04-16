@@ -31,14 +31,14 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676588777423765576
-      type: {class: DragSlotAction, ns: DragAndDropSystem.Interaction, asm: DragAndDropSystem.Runtime}
+      type: {class: DragSlotAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 0
           _amount: 0
           _customAmount: 1
     - rid: 6676588890579796076
-      type: {class: StartMultiDragAction, ns: DragAndDropSystem.Selection, asm: DragAndDropSystem.Runtime}
+      type: {class: StartMultiDragAction, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
       data:
         _completeOnPointerUp: 1
         _fallbackToActiveSlotIfSelectionEmpty: 1

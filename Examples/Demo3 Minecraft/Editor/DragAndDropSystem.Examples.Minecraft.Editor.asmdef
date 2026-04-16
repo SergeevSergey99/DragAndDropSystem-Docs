@@ -1,9 +1,9 @@
 {
-  "name": "DragAndDropSystem.Examples.Minecraft.Editor",
-  "rootNamespace": "DragAndDropSystem.Examples.Minecraft",
+  "name": "UniversalDragAndDrop.Examples.Minecraft.Editor",
+  "rootNamespace": "UniversalDragAndDrop.Examples.Minecraft",
   "references": [
-    "DragAndDropSystem.Editor",
-    "DragAndDropSystem.Examples"
+    "UniversalDragAndDrop.Editor",
+    "UniversalDragAndDrop.Examples"
   ],
   "includePlatforms": [
     "Editor"

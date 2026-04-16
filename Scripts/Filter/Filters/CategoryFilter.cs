@@ -1,8 +1,8 @@
 using System;
-using DragAndDropSystem.Core;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Filter.Filters
+namespace UniversalDragAndDrop.Filter.Filters
 {
     /// <summary>
     /// Filters slots by <see cref="IFilterable.Category"/>.

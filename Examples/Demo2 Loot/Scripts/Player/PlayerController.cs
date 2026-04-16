@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Loot
+namespace UniversalDragAndDrop.Examples.Loot
 {
     /// <summary>
     /// Player controller for a 2D top-down view with an orthographic camera

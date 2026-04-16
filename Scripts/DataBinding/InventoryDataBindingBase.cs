@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Rules;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.DataBinding
+namespace UniversalDragAndDrop.DataBinding
 {
     /// <summary>
     /// Base class that connects UniversalInventory (UI) with external data (for example, GameManager)

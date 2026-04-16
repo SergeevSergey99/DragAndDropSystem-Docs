@@ -1,8 +1,8 @@
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
 using UnityEngine;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Selection
+namespace UniversalDragAndDrop.Selection
 {
     /// <summary>
     /// Selects all slots in the inventory (Ctrl+A).

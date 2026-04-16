@@ -1,7 +1,7 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.Examples.Trading
+namespace UniversalDragAndDrop.Examples.Trading
 {
     /// <summary>
     /// Converts tradable items to the player's model adapter.

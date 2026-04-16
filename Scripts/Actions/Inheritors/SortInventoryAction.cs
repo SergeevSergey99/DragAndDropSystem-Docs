@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Filter;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Filter;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Inventory sorting action. Physically rearranges items in slots.

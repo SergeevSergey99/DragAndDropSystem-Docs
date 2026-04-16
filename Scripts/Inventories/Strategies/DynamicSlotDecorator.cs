@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Decorator for dynamic slot creation

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Rules
+namespace UniversalDragAndDrop.Rules
 {
     /// <summary>
     /// Generic validator that checks all rules of a given type
@@ -31,7 +31,7 @@ namespace DragAndDropSystem.Rules
             ShowPaging = false,
             ShowFoldout = true,
             ShowIndexLabels = true
-            //, ListElementLabelName = "@$property.ValueEntry.WeakSmartValue is DragAndDropSystem.Rules.IDragRule rule && !string.IsNullOrEmpty(rule.RuleName) ? rule.RuleName : \"Null Rule\""
+            //, ListElementLabelName = "@$property.ValueEntry.WeakSmartValue is UniversalDragAndDrop.Rules.IDragRule rule && !string.IsNullOrEmpty(rule.RuleName) ? rule.RuleName : \"Null Rule\""
         )]
         [Tooltip("Local inline rules specific to the current owner")]
         private List<TRule> _inlineRules = new List<TRule>();

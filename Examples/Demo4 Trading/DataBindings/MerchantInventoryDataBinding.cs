@@ -1,14 +1,14 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.DataBinding;
-using DragAndDropSystem.Examples.Trading.Data;
-using DragAndDropSystem.Tools.Inspector;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Rules;
 using UnityEngine;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
+using UniversalDragAndDrop.Examples.Trading.Data;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Examples.Trading
+namespace UniversalDragAndDrop.Examples.Trading
 {
     /// <summary>
     /// DataBinding for a merchant inventory in the trading system.

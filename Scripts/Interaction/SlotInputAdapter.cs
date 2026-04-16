@@ -1,15 +1,15 @@
 using System;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     /// <summary>
     /// Thin slot adapter: forwards raw events to InputEventRouter.

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace DragAndDropSystem.Filter.Filters
+namespace UniversalDragAndDrop.Filter.Filters
 {
     /// <summary>
     /// Filters slots by substring match in <see cref="Core.IItemAdapter.DisplayName"/>.

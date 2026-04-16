@@ -1,7 +1,7 @@
-using DragAndDropSystem.UI;
+using UniversalDragAndDrop.UI;
 using UnityEngine;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Extended interface for items with detailed information

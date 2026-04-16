@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using CodeUtils;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     /// <summary>
     /// Stores player inventory data and creates starting items.

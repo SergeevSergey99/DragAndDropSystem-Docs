@@ -1,4 +1,4 @@
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Interface for items that support filtering.

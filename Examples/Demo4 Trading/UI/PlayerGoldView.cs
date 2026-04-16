@@ -1,9 +1,9 @@
 ﻿using System;
-using Plugins.DragAndDropSystem.Examples.Trading.Data;
+using UniversalDragAndDrop.Examples.Trading.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace DragAndDropSystem.Examples.Trading.UI
+namespace UniversalDragAndDrop.Examples.Trading.UI
 {
     public class PlayerGoldView : MonoBehaviour
     {

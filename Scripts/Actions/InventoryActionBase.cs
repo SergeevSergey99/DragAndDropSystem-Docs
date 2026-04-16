@@ -1,9 +1,9 @@
 using System;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Slots;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Slots;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Base class for inventory actions that can be bound to keys through the Input System

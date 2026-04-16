@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using DragAndDropSystem.Tools.Inspector;
 using UnityEngine;
+using UniversalDragAndDrop.Tools.Inspector;
 
-namespace DragAndDropSystem.Examples.Minecraft
+namespace UniversalDragAndDrop.Examples.Minecraft
 {
     /// <summary>
     /// Crafting recipe. Supports shaped (position-aware, with offset) and shapeless (order does not matter) modes.

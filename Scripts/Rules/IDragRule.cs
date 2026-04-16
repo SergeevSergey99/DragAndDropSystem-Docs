@@ -1,7 +1,7 @@
-using DragAndDropSystem.Core;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Rules
+namespace UniversalDragAndDrop.Rules
 {
     /// <summary>
     /// Rule validation result

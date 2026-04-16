@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Plugins.DragAndDropSystem.Examples;
+using UniversalDragAndDrop.Examples;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Loot
+namespace UniversalDragAndDrop.Examples.Loot
 {
     /// <summary>
     /// Component for storing player inventory data.

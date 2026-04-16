@@ -1,11 +1,11 @@
 using System;
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Slots;
+using UniversalDragAndDrop.Slots;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
 
-namespace DragAndDropSystem.Interaction
+namespace UniversalDragAndDrop.Interaction
 {
     [Serializable]
     public abstract class SlotInteractionAction

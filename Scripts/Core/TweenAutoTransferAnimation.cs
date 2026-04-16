@@ -1,10 +1,10 @@
 using System;
-using DragAndDropSystem.Slots;
-using DragAndDropSystem.Tools;
-using DragAndDropSystem.UI;
 using UnityEngine;
+using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
+using UniversalDragAndDrop.UI;
 
-namespace DragAndDropSystem.Core
+namespace UniversalDragAndDrop.Core
 {
     /// <summary>
     /// Auto-transfer animation built on the lightweight tween runner

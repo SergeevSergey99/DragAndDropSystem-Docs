@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DragAndDropSystem.Core;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Inventories
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Centralizes preview and execution-time adapter conversion for cross-inventory transfers.

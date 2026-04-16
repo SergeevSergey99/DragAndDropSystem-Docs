@@ -1,7 +1,7 @@
-using DragAndDropSystem.ContextMenu;
 using UnityEngine;
+using UniversalDragAndDrop.ContextMenu;
 
-namespace DragAndDropSystem.Examples.Containers
+namespace UniversalDragAndDrop.Examples.Containers
 {
     /// <summary>
     /// "Open" context menu entry for container items.

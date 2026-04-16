@@ -1,10 +1,10 @@
-using DragAndDropSystem.Core;
-using DragAndDropSystem.Examples.Trading.Data;
-using DragAndDropSystem.Inventories;
-using DragAndDropSystem.Rules;
-using Plugins.DragAndDropSystem.Examples.Trading.Data;
+using UniversalDragAndDrop.Examples.Trading.Data;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Examples.Trading.Data;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
 
-namespace DragAndDropSystem.Examples.Trading
+namespace UniversalDragAndDrop.Examples.Trading
 {
     /// <summary>
     /// Static helpers for trading operations.

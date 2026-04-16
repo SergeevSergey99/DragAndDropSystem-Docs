@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace DragAndDropSystem.Examples.Minecraft
+namespace UniversalDragAndDrop.Examples.Minecraft
 {
     [Serializable]
     public class CraftingRecipePattern : ISerializationCallbackReceiver

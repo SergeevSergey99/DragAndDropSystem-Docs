@@ -1,7 +1,7 @@
-﻿using DragAndDropSystem.Tools.Inspector;
+﻿using UniversalDragAndDrop.Tools.Inspector;
 using UnityEngine;
 
-namespace Plugins.DragAndDropSystem.Examples.General
+namespace UniversalDragAndDrop.Examples.General
 {
     [CreateAssetMenu(fileName = "ItemExampleSO", menuName = "DragAndDrop/Examples/ItemExampleSO", order = 1)]
     public class ItemExampleSO : ScriptableObject

@@ -1,8 +1,8 @@
 using System.Linq;
-using DragAndDropSystem.Core;
 using UnityEngine;
+using UniversalDragAndDrop.Core;
 
-namespace DragAndDropSystem.Rules
+namespace UniversalDragAndDrop.Rules
 {
     public class RuleNameFilter : DragRuleBase, IInventoryRule, ISlotRule
     {

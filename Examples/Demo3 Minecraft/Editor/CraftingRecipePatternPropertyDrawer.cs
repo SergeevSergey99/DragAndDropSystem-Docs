@@ -1,9 +1,9 @@
-﻿using DragAndDropSystem.Examples.Minecraft;
-using DragAndDropSystem.Tools.Inspector.Editor;
+﻿using UniversalDragAndDrop.Examples.Minecraft;
+using UniversalDragAndDrop.Tools.Inspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.DragAndDropSystem.Examples.Demo3_Minecraft.Editor
+namespace UniversalDragAndDrop.Examples.Demo3_Minecraft.Editor
 {
     
     [CustomPropertyDrawer(typeof(CraftingRecipePattern))]
