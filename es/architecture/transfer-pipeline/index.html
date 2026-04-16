@@ -2409,6 +2409,7 @@
 - la variante con <code>Ctrl</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
 - la variante con <code>Shift</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
 - las acciones también pueden sobrescribir <code>AllowPartial</code> y <code>AlternativePlacementMode</code> para una sola transferencia</p>
+<p>Una variante separada es <code>SplitDropAction</code>: llama a <code>SplitDrop(policy, count)</code> en lugar de <code>CompleteDrag</code>. Esto permite soltar parte del stack (p. ej., 1 item) sin terminar el drag. La transferencia pasa por el mismo pipeline (planner → executor → eventos). Ver <a href="../../systems/interaction/#split-drop">Input and Interaction</a> para más detalles.</p>
 <p>Importante:
 - el override solo se aplica a la operación de transferencia actual
 - <code>DropPolicySettings</code> a nivel de inventario no cambian

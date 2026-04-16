@@ -1259,10 +1259,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#filter-types" class="md-nav__link">
+  <a href="#built-in-filters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Filter Types
+        Built-in Filters
       
     </span>
   </a>
@@ -1270,10 +1270,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sort-modes" class="md-nav__link">
+  <a href="#built-in-sorters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sort Modes
+        Built-in Sorters
       
     </span>
   </a>
@@ -1292,10 +1292,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-example" class="md-nav__link">
+  <a href="#code-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code Example
+        Code Examples
       
     </span>
   </a>
@@ -1303,10 +1303,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#presets" class="md-nav__link">
+  <a href="#assets-and-buttons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Presets
+        Assets and Buttons
       
     </span>
   </a>
@@ -1847,10 +1847,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#filter-types" class="md-nav__link">
+  <a href="#built-in-filters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Filter Types
+        Built-in Filters
       
     </span>
   </a>
@@ -1858,10 +1858,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sort-modes" class="md-nav__link">
+  <a href="#built-in-sorters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sort Modes
+        Built-in Sorters
       
     </span>
   </a>
@@ -1880,10 +1880,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#code-example" class="md-nav__link">
+  <a href="#code-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Code Example
+        Code Examples
       
     </span>
   </a>
@@ -1891,10 +1891,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#presets" class="md-nav__link">
+  <a href="#assets-and-buttons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Presets
+        Assets and Buttons
       
     </span>
   </a>
@@ -1967,7 +1967,8 @@
 </tbody>
 </table>
 <hr />
-<h2 id="filter-types">Filter Types</h2>
+<h2 id="built-in-filters">Built-in Filters</h2>
+<p>All filters are <code>[Serializable]</code> classes implementing <code>ISlotFilter</code>. They can be embedded via <code>[SerializeReference]</code> in any MonoBehaviour or ScriptableObject:</p>
 <table>
 <thead>
 <tr>
@@ -1978,101 +1979,123 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>By category</strong></td>
-<td>Show only items of a given category (Weapon, Armor...)</td>
+<td><code>CategoryFilter</code></td>
+<td>Show only items of a given category</td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>By rarity</strong></td>
+<td><code>RarityRangeFilter</code></td>
 <td>Show items within a rarity range (min--max)</td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>By name</strong></td>
-<td>Text search by item name</td>
+<td><code>NameSearchFilter</code></td>
+<td>Substring search by item name</td>
 <td>---</td>
 </tr>
 <tr>
-<td><strong>Custom</strong></td>
-<td>Arbitrary predicate <code>Predicate&lt;IItemAdapter&gt;</code></td>
+<td><code>CompositeFilter</code></td>
+<td>Combines multiple filters with AND/OR logic</td>
 <td>---</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="sort-modes">Sort Modes</h2>
+<h2 id="built-in-sorters">Built-in Sorters</h2>
+<p>All sorters are <code>[Serializable]</code> classes implementing <code>ISlotSorter</code>:</p>
 <table>
 <thead>
 <tr>
-<th>Mode</th>
+<th>Sorter</th>
 <th>Sorts by</th>
 <th>Item Requirement</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>ByName</strong></td>
+<td><code>NameSorter</code></td>
 <td><code>DisplayName</code></td>
 <td>---</td>
 </tr>
 <tr>
-<td><strong>ByCategory</strong></td>
+<td><code>CategorySorter</code></td>
 <td><code>IFilterable.Category</code></td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>ByRarity</strong></td>
+<td><code>RaritySorter</code></td>
 <td><code>IFilterable.Rarity</code></td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>BySortValue</strong></td>
+<td><code>SortValueSorter</code></td>
 <td><code>ISortable.SortValue</code></td>
 <td><code>ISortable</code></td>
 </tr>
 <tr>
-<td><strong>Custom</strong></td>
-<td>Arbitrary <code>Comparison&lt;BaseSlot&gt;</code></td>
+<td><code>StackCountSorter</code></td>
+<td>Stack count</td>
+<td>---</td>
+</tr>
+<tr>
+<td><code>CompositeSorter</code></td>
+<td>Chain of sorters (first non-zero result wins)</td>
 <td>---</td>
 </tr>
 </tbody>
 </table>
-<p>All modes support ascending and descending sorting.</p>
+<p>All sorters support ascending and descending direction via the controller.</p>
 <hr />
 <h2 id="setup-via-inspector">Setup via Inspector</h2>
 <ol>
 <li><strong>Add <code>FilterSortController</code></strong> to the inventory GameObject.</li>
-<li><strong>Create presets</strong> via the menu:<ul>
-<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Filter Preset</em> --- for filtering.</li>
-<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Sort Preset</em> --- for sorting.</li>
+<li><strong>Create filter/sorter assets</strong>:<ul>
+<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Slot Filter</em> --- filter asset (<code>SlotFilterSO</code>). Choose the filter type via the <code>[SerializeReference]</code> picker.</li>
+<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Slot Sorter</em> --- sorter asset (<code>SlotSorterSO</code>).</li>
+<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Filter Sort Preset</em> --- combined preset (<code>FilterSortPreset</code>) with filter + sorter + display mode.</li>
 </ul>
 </li>
-<li><strong>Add buttons</strong> with <code>FilterButton</code> and <code>SortButton</code> components. Assign presets and the controller.</li>
+<li><strong>Add buttons</strong>:<ul>
+<li><code>FilterButton</code> --- applies a <code>SlotFilterSO</code> on click.</li>
+<li><code>SortButton</code> --- applies a <code>SlotSorterSO</code> on click. Supports direction toggle.</li>
+<li><code>FilterSortButton</code> --- applies a combined <code>FilterSortPreset</code> on click.</li>
+</ul>
+</li>
 </ol>
 <hr />
-<h2 id="code-example">Code Example</h2>
+<h2 id="code-examples">Code Examples</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">controller</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inventory</span><span class="p">.</span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">FilterSortController</span><span class="o">&gt;</span><span class="p">();</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">// Filter: show only weapons</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetCategoryFilter</span><span class="p">(</span><span class="s">&quot;Weapon&quot;</span><span class="p">);</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">// Sort: by rarity, from rare to common</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetSortMode</span><span class="p">(</span><span class="n">FilterSortController</span><span class="p">.</span><span class="n">SortMode</span><span class="p">.</span><span class="n">ByRarity</span><span class="p">,</span><span class="w"> </span><span class="k">ascending</span><span class="p">:</span><span class="w"> </span><span class="k">false</span><span class="p">);</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">// Reset all</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">controller</span><span class="p">.</span><span class="n">ClearAll</span><span class="p">();</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1">// Custom filter</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetFilter</span><span class="p">(</span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">IFilterable</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">Rarity</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">// Use a [Serializable] filter instance</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kt">var</span><span class="w"> </span><span class="n">filter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CategoryFilter</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Weapon&quot;</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetFilter</span><span class="p">(</span><span class="n">filter</span><span class="p">);</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">// Sort with a [Serializable] sorter</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetSorter</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RaritySorter</span><span class="p">(),</span><span class="w"> </span><span class="k">ascending</span><span class="p">:</span><span class="w"> </span><span class="k">false</span><span class="p">);</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1">// Reset all</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">controller</span><span class="p">.</span><span class="n">ClearAll</span><span class="p">();</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1">// Lambda filter (captures live values)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetFilter</span><span class="p">((</span><span class="k">in</span><span class="w"> </span><span class="n">FilterContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">{</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">Slot</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">PrimaryAdapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">IFilterable</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">false</span><span class="p">;</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">Rarity</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">minRaritySlider</span><span class="p">.</span><span class="k">value</span><span class="p">;</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">});</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="c1">// After changing fields on the active filter at runtime:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">((</span><span class="n">CategoryFilter</span><span class="p">)</span><span class="n">controller</span><span class="p">.</span><span class="n">ActiveFilter</span><span class="p">).</span><span class="n">Category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Armor&quot;</span><span class="p">;</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">controller</span><span class="p">.</span><span class="n">Refresh</span><span class="p">();</span>
 </code></pre></div>
 <hr />
-<h2 id="presets">Presets</h2>
-<p>Presets allow configuring filters and sorting in the Inspector and switching them with buttons:</p>
+<h2 id="assets-and-buttons">Assets and Buttons</h2>
 <ul>
-<li><strong>FilterPreset</strong> --- stores the filter type and parameters (category, rarity range, search text).</li>
-<li><strong>SortPreset</strong> --- stores the sort mode and direction.</li>
-<li><strong>FilterButton</strong> --- on click, applies/resets the filter preset. Supports toggle mode.</li>
-<li><strong>SortButton</strong> --- on click, applies/resets the sort preset. Can toggle direction.</li>
+<li><strong>SlotFilterSO</strong> --- ScriptableObject wrapping an <code>ISlotFilter</code>. Used by <code>FilterButton</code>.</li>
+<li><strong>SlotSorterSO</strong> --- ScriptableObject wrapping an <code>ISlotSorter</code>. Used by <code>SortButton</code>.</li>
+<li><strong>FilterSortPreset</strong> --- ScriptableObject combining filter + sorter + display mode + direction. Used by <code>FilterSortButton</code>.</li>
+<li><strong>FilterButton</strong> --- UI button that applies/resets a <code>SlotFilterSO</code>. Supports toggle mode.</li>
+<li><strong>SortButton</strong> --- UI button that applies/resets a <code>SlotSorterSO</code>. Supports toggle mode and direction toggle.</li>
+<li><strong>FilterSortButton</strong> --- UI button that applies/resets a combined <code>FilterSortPreset</code>. Supports toggle mode and direction toggle.</li>
 </ul>
 <hr />
 <h2 id="class-reference">Class Reference</h2>
@@ -2085,24 +2108,44 @@
 </thead>
 <tbody>
 <tr>
+<td><code>ISlotFilter</code></td>
+<td>Core filter interface (<code>Evaluate(in FilterContext)</code>)</td>
+</tr>
+<tr>
+<td><code>ISlotSorter</code></td>
+<td>Core sorter interface (<code>Compare(in FilterContext, in FilterContext)</code>)</td>
+</tr>
+<tr>
+<td><code>FilterContext</code></td>
+<td>Context struct: Slot, Inventory, AllSlots, SlotIndex</td>
+</tr>
+<tr>
 <td><code>FilterSortController</code></td>
 <td>Controller: applies filter and sorting to an inventory</td>
 </tr>
 <tr>
-<td><code>FilterPreset</code></td>
-<td>ScriptableObject filter preset</td>
+<td><code>SlotFilterSO</code></td>
+<td>ScriptableObject wrapper for shareable filter assets</td>
 </tr>
 <tr>
-<td><code>SortPreset</code></td>
-<td>ScriptableObject sort preset</td>
+<td><code>SlotSorterSO</code></td>
+<td>ScriptableObject wrapper for shareable sorter assets</td>
+</tr>
+<tr>
+<td><code>FilterSortPreset</code></td>
+<td>ScriptableObject: combined filter + sort preset</td>
 </tr>
 <tr>
 <td><code>FilterButton</code></td>
-<td>Filter button component</td>
+<td>UI button for a single filter</td>
 </tr>
 <tr>
 <td><code>SortButton</code></td>
-<td>Sort button component</td>
+<td>UI button for a single sorter</td>
+</tr>
+<tr>
+<td><code>FilterSortButton</code></td>
+<td>UI button for a combined preset</td>
 </tr>
 <tr>
 <td><code>IFilterable</code></td>

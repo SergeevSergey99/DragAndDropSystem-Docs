@@ -1348,6 +1348,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#split-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split Drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Split Drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-del-binding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuración del binding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#como-funciona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo funciona
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#referencia-de-clases" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1914,6 +1953,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#split-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split Drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Split Drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuracion-del-binding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuración del binding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#como-funciona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo funciona
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#referencia-de-clases" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2080,6 +2158,64 @@
 <p>Cada inventario puede tener sus propios bindings mediante el componente <code>InventoryExtraInteractionBinder</code>. Esto es útil cuando un comerciante y un jugador tienen comportamientos de clic distintos.</p>
 <p>Si un inventario no tiene <code>InventoryExtraInteractionBinder</code>, se usa el <code>InteractionBindingsProfile</code> por defecto de <code>InputEventRouter</code>.</p>
 <hr />
+<h2 id="split-drop">Split Drop</h2>
+<p>Al arrastrar un stack, puedes soltar una parte de los items en un slot sin terminar el drag. Los items restantes permanecen "en mano" y el contador visual se actualiza automáticamente.</p>
+<p>Para esto se usa la acción integrada <code>SplitDropAction</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Descripción</th>
+<th style="text-align: center;">Por defecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_splitCount</code></td>
+<td>Cuántos items separar por acción</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td><code>_dropPolicyOverride</code></td>
+<td>Override de drop policy para esta operación</td>
+<td style="text-align: center;">---</td>
+</tr>
+</tbody>
+</table>
+<h3 id="configuracion-del-binding">Configuración del binding</h3>
+<p>Agrega un <code>PointerBinding</code> a <code>InteractionBindingsProfile</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Botón</th>
+<th>Modificador</th>
+<th>Fase</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LMB</td>
+<td>Shift</td>
+<td>Down</td>
+<td><code>SplitDropAction</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Orden de bindings</p>
+<p>El binding <code>Shift + LMB</code> debe estar <strong>encima</strong> del binding LMB por defecto (Start/Complete drag) para que el modificador se evalúe primero.</p>
+</div>
+<h3 id="como-funciona">Cómo funciona</h3>
+<ol>
+<li>El jugador toma un stack de 10 items (drag normal).</li>
+<li>Mantiene Shift y hace clic en un slot vacío.</li>
+<li>1 item se transfiere a través del pipeline estándar (planner → executor → eventos).</li>
+<li>El drag continúa con 9 items, el visual se actualiza.</li>
+<li>Cuando queda 1 solo item, Shift+Click ejecuta un <code>CompleteDrag</code> normal.</li>
+</ol>
+<p>Si el slot destino está ocupado y no puede aceptar el item, la operación se revierte — el stack permanece sin cambios.</p>
+<hr />
 <h2 id="referencia-de-clases">Referencia de clases</h2>
 <table>
 <thead>
@@ -2116,6 +2252,10 @@
 <tr>
 <td><code>InventoryExtraInteractionBinder</code></td>
 <td>Override de bindings para un inventario concreto</td>
+</tr>
+<tr>
+<td><code>SplitDropAction</code></td>
+<td>Acción: soltar parte del stack sin terminar el drag</td>
 </tr>
 <tr>
 <td><code>SlotInteractionAction</code></td>

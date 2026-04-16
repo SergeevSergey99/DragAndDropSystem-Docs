@@ -2433,6 +2433,7 @@
 - <code>Ctrl</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
 - <code>Shift</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
 - action также может временно переопределить <code>AllowPartial</code> и <code>AlternativePlacementMode</code></p>
+<p>Отдельный вариант — <code>SplitDropAction</code>: вызывает <code>SplitDrop(policy, count)</code> вместо <code>CompleteDrag</code>. Это позволяет сбросить часть стека (например, 1 предмет), не прекращая перетаскивание. Перенос проходит через тот же конвейер (planner → executor → события). Подробнее — в разделе <a href="../../systems/interaction/#частичный-сброс-split-drop">Ввод и взаимодействие</a>.</p>
 <p>Важно:
 - override действует только на текущую операцию переноса
 - inventory-level <code>DropPolicySettings</code> остаётся неизменным

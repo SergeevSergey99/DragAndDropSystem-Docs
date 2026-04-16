@@ -1262,7 +1262,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Типы фильтров
+        Встроенные фильтры
       
     </span>
   </a>
@@ -1273,7 +1273,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Режимы сортировки
+        Встроенные сортировщики
       
     </span>
   </a>
@@ -1295,7 +1295,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пример через код
+        Примеры через код
       
     </span>
   </a>
@@ -1306,7 +1306,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пресеты
+        Ассеты и кнопки
       
     </span>
   </a>
@@ -1850,7 +1850,7 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Типы фильтров
+        Встроенные фильтры
       
     </span>
   </a>
@@ -1861,7 +1861,7 @@
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Режимы сортировки
+        Встроенные сортировщики
       
     </span>
   </a>
@@ -1883,7 +1883,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пример через код
+        Примеры через код
       
     </span>
   </a>
@@ -1894,7 +1894,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Пресеты
+        Ассеты и кнопки
       
     </span>
   </a>
@@ -1967,7 +1967,8 @@
 </tbody>
 </table>
 <hr />
-<h2 id="_4">Типы фильтров</h2>
+<h2 id="_4">Встроенные фильтры</h2>
+<p>Все фильтры --- <code>[Serializable]</code> классы, реализующие <code>ISlotFilter</code>. Встраиваются через <code>[SerializeReference]</code> в любой MonoBehaviour или ScriptableObject:</p>
 <table>
 <thead>
 <tr>
@@ -1978,101 +1979,123 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>По категории</strong></td>
-<td>Показать только предметы заданной категории (Weapon, Armor...)</td>
+<td><code>CategoryFilter</code></td>
+<td>Показать только предметы заданной категории</td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>По редкости</strong></td>
+<td><code>RarityRangeFilter</code></td>
 <td>Показать предметы в диапазоне редкости (min--max)</td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>По имени</strong></td>
-<td>Текстовый поиск по имени предмета</td>
+<td><code>NameSearchFilter</code></td>
+<td>Поиск подстроки по имени предмета</td>
 <td>---</td>
 </tr>
 <tr>
-<td><strong>Кастомный</strong></td>
-<td>Произвольный предикат <code>Predicate&lt;IItemAdapter&gt;</code></td>
+<td><code>CompositeFilter</code></td>
+<td>Комбинирует несколько фильтров с логикой AND/OR</td>
 <td>---</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="_5">Режимы сортировки</h2>
+<h2 id="_5">Встроенные сортировщики</h2>
+<p>Все сортировщики --- <code>[Serializable]</code> классы, реализующие <code>ISlotSorter</code>:</p>
 <table>
 <thead>
 <tr>
-<th>Режим</th>
+<th>Сортировщик</th>
 <th>Сортирует по</th>
 <th>Требование к предмету</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>По имени</strong> (ByName)</td>
+<td><code>NameSorter</code></td>
 <td><code>DisplayName</code></td>
 <td>---</td>
 </tr>
 <tr>
-<td><strong>По категории</strong> (ByCategory)</td>
+<td><code>CategorySorter</code></td>
 <td><code>IFilterable.Category</code></td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>По редкости</strong> (ByRarity)</td>
+<td><code>RaritySorter</code></td>
 <td><code>IFilterable.Rarity</code></td>
 <td><code>IFilterable</code></td>
 </tr>
 <tr>
-<td><strong>По значению</strong> (BySortValue)</td>
+<td><code>SortValueSorter</code></td>
 <td><code>ISortable.SortValue</code></td>
 <td><code>ISortable</code></td>
 </tr>
 <tr>
-<td><strong>Кастомный</strong> (Custom)</td>
-<td>Произвольный <code>Comparison&lt;BaseSlot&gt;</code></td>
+<td><code>StackCountSorter</code></td>
+<td>Количество в стаке</td>
+<td>---</td>
+</tr>
+<tr>
+<td><code>CompositeSorter</code></td>
+<td>Цепочка сортировщиков (первый ненулевой результат побеждает)</td>
 <td>---</td>
 </tr>
 </tbody>
 </table>
-<p>Все режимы поддерживают сортировку по возрастанию и убыванию.</p>
+<p>Все сортировщики поддерживают направление (asc/desc) через контроллер.</p>
 <hr />
 <h2 id="inspector">Настройка через Inspector</h2>
 <ol>
 <li><strong>Добавьте <code>FilterSortController</code></strong> на GameObject инвентаря.</li>
-<li><strong>Создайте пресеты</strong> через меню:<ul>
-<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Filter Preset</em> --- для фильтра.</li>
-<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Sort Preset</em> --- для сортировки.</li>
+<li><strong>Создайте ассеты фильтров/сортировщиков</strong>:<ul>
+<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Slot Filter</em> --- ассет фильтра (<code>SlotFilterSO</code>). Тип фильтра выбирается через <code>[SerializeReference]</code> пикер.</li>
+<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Slot Sorter</em> --- ассет сортировщика (<code>SlotSorterSO</code>).</li>
+<li><em>Create &gt; DragAndDrop &gt; Filter &gt; Filter Sort Preset</em> --- комбинированный пресет (<code>FilterSortPreset</code>) с фильтром + сортировщиком + режимом отображения.</li>
 </ul>
 </li>
-<li><strong>Добавьте кнопки</strong> с компонентами <code>FilterButton</code> и <code>SortButton</code>. Назначьте пресеты и контроллер.</li>
+<li><strong>Добавьте кнопки</strong>:<ul>
+<li><code>FilterButton</code> --- применяет <code>SlotFilterSO</code> по клику.</li>
+<li><code>SortButton</code> --- применяет <code>SlotSorterSO</code> по клику. Поддерживает переключение направления.</li>
+<li><code>FilterSortButton</code> --- применяет комбинированный <code>FilterSortPreset</code> по клику.</li>
+</ul>
+</li>
 </ol>
 <hr />
-<h2 id="_6">Пример через код</h2>
+<h2 id="_6">Примеры через код</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">controller</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inventory</span><span class="p">.</span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">FilterSortController</span><span class="o">&gt;</span><span class="p">();</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">// Фильтр: показать только оружие</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetCategoryFilter</span><span class="p">(</span><span class="s">&quot;Weapon&quot;</span><span class="p">);</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">// Сортировка: по редкости, от редких к обычным</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetSortMode</span><span class="p">(</span><span class="n">FilterSortController</span><span class="p">.</span><span class="n">SortMode</span><span class="p">.</span><span class="n">ByRarity</span><span class="p">,</span><span class="w"> </span><span class="k">ascending</span><span class="p">:</span><span class="w"> </span><span class="k">false</span><span class="p">);</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">// Сбросить всё</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">controller</span><span class="p">.</span><span class="n">ClearAll</span><span class="p">();</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1">// Кастомный фильтр</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetFilter</span><span class="p">(</span><span class="n">item</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">item</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">IFilterable</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">Rarity</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">// Использование [Serializable] экземпляра фильтра</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kt">var</span><span class="w"> </span><span class="n">filter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CategoryFilter</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Weapon&quot;</span><span class="w"> </span><span class="p">};</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetFilter</span><span class="p">(</span><span class="n">filter</span><span class="p">);</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">// Сортировка [Serializable] сортировщиком</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetSorter</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">RaritySorter</span><span class="p">(),</span><span class="w"> </span><span class="k">ascending</span><span class="p">:</span><span class="w"> </span><span class="k">false</span><span class="p">);</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1">// Сбросить всё</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">controller</span><span class="p">.</span><span class="n">ClearAll</span><span class="p">();</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1">// Лямбда-фильтр (захватывает живые значения)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">controller</span><span class="p">.</span><span class="n">SetFilter</span><span class="p">((</span><span class="k">in</span><span class="w"> </span><span class="n">FilterContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">{</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">Slot</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">PrimaryAdapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">IFilterable</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">false</span><span class="p">;</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">Rarity</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">minRaritySlider</span><span class="p">.</span><span class="k">value</span><span class="p">;</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">});</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="c1">// После изменения полей активного фильтра в рантайме:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">((</span><span class="n">CategoryFilter</span><span class="p">)</span><span class="n">controller</span><span class="p">.</span><span class="n">ActiveFilter</span><span class="p">).</span><span class="n">Category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Armor&quot;</span><span class="p">;</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">controller</span><span class="p">.</span><span class="n">Refresh</span><span class="p">();</span>
 </code></pre></div>
 <hr />
-<h2 id="_7">Пресеты</h2>
-<p>Пресеты позволяют настроить фильтры и сортировку в Inspector и переключать их кнопками:</p>
+<h2 id="_7">Ассеты и кнопки</h2>
 <ul>
-<li><strong>FilterPreset</strong> --- хранит тип фильтра и параметры (категория, диапазон редкости, текст поиска).</li>
-<li><strong>SortPreset</strong> --- хранит режим сортировки и направление.</li>
-<li><strong>FilterButton</strong> --- при клике применяет/сбрасывает пресет фильтра. Поддерживает toggle-режим.</li>
-<li><strong>SortButton</strong> --- при клике применяет/сбрасывает пресет сортировки. Может переключать направление.</li>
+<li><strong>SlotFilterSO</strong> --- ScriptableObject-обёртка для <code>ISlotFilter</code>. Используется <code>FilterButton</code>.</li>
+<li><strong>SlotSorterSO</strong> --- ScriptableObject-обёртка для <code>ISlotSorter</code>. Используется <code>SortButton</code>.</li>
+<li><strong>FilterSortPreset</strong> --- ScriptableObject, объединяющий фильтр + сортировщик + режим отображения + направление. Используется <code>FilterSortButton</code>.</li>
+<li><strong>FilterButton</strong> --- UI-кнопка, применяющая/сбрасывающая <code>SlotFilterSO</code>. Поддерживает toggle-режим.</li>
+<li><strong>SortButton</strong> --- UI-кнопка, применяющая/сбрасывающая <code>SlotSorterSO</code>. Поддерживает toggle-режим и переключение направления.</li>
+<li><strong>FilterSortButton</strong> --- UI-кнопка, применяющая/сбрасывающая комбинированный <code>FilterSortPreset</code>. Поддерживает toggle-режим и переключение направления.</li>
 </ul>
 <hr />
 <h2 id="_8">Справочник классов</h2>
@@ -2085,24 +2108,44 @@
 </thead>
 <tbody>
 <tr>
+<td><code>ISlotFilter</code></td>
+<td>Базовый интерфейс фильтра (<code>Evaluate(in FilterContext)</code>)</td>
+</tr>
+<tr>
+<td><code>ISlotSorter</code></td>
+<td>Базовый интерфейс сортировщика (<code>Compare(in FilterContext, in FilterContext)</code>)</td>
+</tr>
+<tr>
+<td><code>FilterContext</code></td>
+<td>Контекст: Slot, Inventory, AllSlots, SlotIndex</td>
+</tr>
+<tr>
 <td><code>FilterSortController</code></td>
 <td>Контроллер: применяет фильтр и сортировку к инвентарю</td>
 </tr>
 <tr>
-<td><code>FilterPreset</code></td>
-<td>ScriptableObject-пресет фильтра</td>
+<td><code>SlotFilterSO</code></td>
+<td>SO-обёртка для переиспользуемых ассетов фильтров</td>
 </tr>
 <tr>
-<td><code>SortPreset</code></td>
-<td>ScriptableObject-пресет сортировки</td>
+<td><code>SlotSorterSO</code></td>
+<td>SO-обёртка для переиспользуемых ассетов сортировщиков</td>
+</tr>
+<tr>
+<td><code>FilterSortPreset</code></td>
+<td>ScriptableObject: комбинированный пресет фильтра + сортировки</td>
 </tr>
 <tr>
 <td><code>FilterButton</code></td>
-<td>Компонент кнопки фильтра</td>
+<td>UI-кнопка для одного фильтра</td>
 </tr>
 <tr>
 <td><code>SortButton</code></td>
-<td>Компонент кнопки сортировки</td>
+<td>UI-кнопка для одного сортировщика</td>
+</tr>
+<tr>
+<td><code>FilterSortButton</code></td>
+<td>UI-кнопка для комбинированного пресета</td>
 </tr>
 <tr>
 <td><code>IFilterable</code></td>

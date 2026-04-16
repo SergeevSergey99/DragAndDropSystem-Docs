@@ -2890,8 +2890,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Actions/Inheritors/SortInventoryAction.cs</code></td>
-<td><code>SortInventoryAction</code>, <code>SortType</code>, <code>ItemStackData</code></td>
-<td>Inventory action that sorts items using built-in sort modes.</td>
+<td><code>SortInventoryAction</code></td>
+<td>Inventory action that physically sorts items using an <code>ISlotSorter</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -3182,29 +3182,64 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Filter/FilterPreset.cs</code></td>
-<td><code>FilterPreset</code>, <code>FilterType</code></td>
-<td>ScriptableObject describing a reusable filter rule for UI.</td>
+<td><code>Scripts/Filter/ISlotFilter.cs</code></td>
+<td><code>ISlotFilter</code>, <code>ISlotSorter</code>, <code>FilterPredicate</code>, <code>SortComparison</code></td>
+<td>Core interfaces and delegates for filtering and sorting.</td>
 </tr>
 <tr>
-<td><code>Scripts/Filter/SortPreset.cs</code></td>
-<td><code>SortPreset</code>, <code>SortMode</code></td>
-<td>ScriptableObject describing a reusable sort mode for UI.</td>
+<td><code>Scripts/Filter/FilterContext.cs</code></td>
+<td><code>FilterContext</code></td>
+<td>Context struct passed to filters and sorters (Slot, Inventory, AllSlots, SlotIndex).</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/FilterDisplayMode.cs</code></td>
+<td><code>FilterDisplayMode</code></td>
+<td>Enum: Hide, Dim, MoveToEnd.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/FilterSortController.cs</code></td>
+<td><code>FilterSortController</code></td>
+<td>Orchestrator: applies <code>ISlotFilter</code> / <code>ISlotSorter</code> to an inventory UI.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/FilterSortPreset.cs</code></td>
+<td><code>FilterSortPreset</code></td>
+<td>ScriptableObject combining filter + sorter + display mode.</td>
 </tr>
 <tr>
 <td><code>Scripts/Filter/FilterButton.cs</code></td>
 <td><code>FilterButton</code></td>
-<td>UI button that applies a filter preset.</td>
+<td>UI button that applies a <code>SlotFilterSO</code>.</td>
 </tr>
 <tr>
 <td><code>Scripts/Filter/SortButton.cs</code></td>
 <td><code>SortButton</code></td>
-<td>UI button that applies a sort preset.</td>
+<td>UI button that applies a <code>SlotSorterSO</code>.</td>
 </tr>
 <tr>
-<td><code>Scripts/Filter/FilterSortController.cs</code></td>
-<td><code>FilterSortController</code>, <code>FilterDisplayMode</code>, <code>SortMode</code></td>
-<td>Coordinates filter/sort presets, buttons, and display state for an inventory UI.</td>
+<td><code>Scripts/Filter/FilterSortButton.cs</code></td>
+<td><code>FilterSortButton</code></td>
+<td>UI button that applies a combined <code>FilterSortPreset</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/SlotFilterSO.cs</code></td>
+<td><code>SlotFilterSO</code></td>
+<td>ScriptableObject wrapper for shareable <code>ISlotFilter</code> assets.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/SlotSorterSO.cs</code></td>
+<td><code>SlotSorterSO</code></td>
+<td>ScriptableObject wrapper for shareable <code>ISlotSorter</code> assets.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Filters/*.cs</code></td>
+<td><code>CategoryFilter</code>, <code>RarityRangeFilter</code>, <code>NameSearchFilter</code>, <code>CompositeFilter</code></td>
+<td>Built-in <code>[Serializable]</code> filter implementations.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/*.cs</code></td>
+<td><code>NameSorter</code>, <code>CategorySorter</code>, <code>RaritySorter</code>, <code>SortValueSorter</code>, <code>StackCountSorter</code>, <code>CompositeSorter</code></td>
+<td>Built-in <code>[Serializable]</code> sorter implementations.</td>
 </tr>
 </tbody>
 </table>

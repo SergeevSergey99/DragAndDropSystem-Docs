@@ -1348,6 +1348,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#split-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split Drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Split Drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binding-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binding Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#class-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1914,6 +1953,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#split-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split Drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Split Drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binding-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Binding Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#class-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2080,6 +2158,64 @@
 <p>Each inventory can have its own bindings via the <code>InventoryExtraInteractionBinder</code> component. This is useful when a merchant and a player have different click behavior.</p>
 <p>If an inventory does not have an <code>InventoryExtraInteractionBinder</code>, the default <code>InteractionBindingsProfile</code> from <code>InputEventRouter</code> is used.</p>
 <hr />
+<h2 id="split-drop">Split Drop</h2>
+<p>While dragging a stack, you can drop a portion of the items into a slot without ending the drag. The remaining items stay "in hand" and the visual counter updates automatically.</p>
+<p>This uses the built-in <code>SplitDropAction</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+<th style="text-align: center;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_splitCount</code></td>
+<td>How many items to split off per action</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td><code>_dropPolicyOverride</code></td>
+<td>Drop policy override for this operation</td>
+<td style="text-align: center;">---</td>
+</tr>
+</tbody>
+</table>
+<h3 id="binding-setup">Binding Setup</h3>
+<p>Add a <code>PointerBinding</code> to <code>InteractionBindingsProfile</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Modifier</th>
+<th>Phase</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LMB</td>
+<td>Shift</td>
+<td>Down</td>
+<td><code>SplitDropAction</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Binding Order</p>
+<p>The <code>Shift + LMB</code> binding must be placed <strong>above</strong> the default LMB binding (Start/Complete drag) so the modifier matches first.</p>
+</div>
+<h3 id="how-it-works">How It Works</h3>
+<ol>
+<li>Player picks up a stack of 10 items (normal drag).</li>
+<li>Holds Shift and clicks an empty slot.</li>
+<li>1 item is transferred through the standard pipeline (planner → executor → events).</li>
+<li>Dragging continues with 9 items, visual updates.</li>
+<li>When only 1 item remains, Shift+Click performs a regular <code>CompleteDrag</code>.</li>
+</ol>
+<p>If the target slot is occupied and cannot accept the item, the operation rolls back — the stack remains unchanged.</p>
+<hr />
 <h2 id="class-reference">Class Reference</h2>
 <table>
 <thead>
@@ -2116,6 +2252,10 @@
 <tr>
 <td><code>InventoryExtraInteractionBinder</code></td>
 <td>Binding override for a specific inventory</td>
+</tr>
+<tr>
+<td><code>SplitDropAction</code></td>
+<td>Action: drop part of a stack without ending drag</td>
 </tr>
 <tr>
 <td><code>SlotInteractionAction</code></td>

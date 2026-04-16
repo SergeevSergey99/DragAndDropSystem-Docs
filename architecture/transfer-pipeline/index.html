@@ -2431,6 +2431,7 @@
 - <code>Ctrl</code> variant of <code>CompleteDragAction</code> calls <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
 - <code>Shift</code> variant of <code>CompleteDragAction</code> calls <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
 - actions can also override <code>AllowPartial</code> and <code>AlternativePlacementMode</code> for a single transfer</p>
+<p>A separate variant is <code>SplitDropAction</code>: it calls <code>SplitDrop(policy, count)</code> instead of <code>CompleteDrag</code>. This allows dropping part of the stack (e.g. 1 item) without ending the drag. The transfer goes through the same pipeline (planner → executor → events). See <a href="../../systems/interaction/#split-drop">Input and Interaction</a> for details.</p>
 <p>Important:
 - the override only applies to the current transfer operation
 - inventory-level <code>DropPolicySettings</code> stay unchanged

@@ -1348,7 +1348,46 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#split-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Частичный сброс (Split Drop)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Частичный сброс (Split Drop)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Настройка привязки
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Как работает
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Справочник классов
@@ -1914,7 +1953,46 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#split-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Частичный сброс (Split Drop)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Частичный сброс (Split Drop)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Настройка привязки
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Как работает
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Справочник классов
@@ -2080,7 +2158,65 @@
 <p>Каждый инвентарь может иметь свои привязки через компонент <code>InventoryExtraInteractionBinder</code>. Это полезно, когда у торговца и у игрока разное поведение по клику.</p>
 <p>Если на инвентаре нет <code>InventoryExtraInteractionBinder</code>, используется дефолтный <code>InteractionBindingsProfile</code> из <code>InputEventRouter</code>.</p>
 <hr />
-<h2 id="_7">Справочник классов</h2>
+<h2 id="split-drop">Частичный сброс (Split Drop)</h2>
+<p>При перетаскивании стека можно сбросить часть предметов в слот, не прекращая перетаскивание. Остаток остаётся "в руке", визуал и счётчик обновляются автоматически.</p>
+<p>Для этого используется встроенное действие <code>SplitDropAction</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>Описание</th>
+<th style="text-align: center;">По умолчанию</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_splitCount</code></td>
+<td>Сколько предметов отщеплять за раз</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td><code>_dropPolicyOverride</code></td>
+<td>Переопределение drop policy для этой операции</td>
+<td style="text-align: center;">---</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_7">Настройка привязки</h3>
+<p>Добавьте <code>PointerBinding</code> в <code>InteractionBindingsProfile</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Кнопка</th>
+<th>Модификатор</th>
+<th>Фаза</th>
+<th>Действие</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ЛКМ</td>
+<td>Shift</td>
+<td>Down</td>
+<td><code>SplitDropAction</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Порядок привязок</p>
+<p>Привязка <code>Shift + ЛКМ</code> должна стоять <strong>выше</strong> обычной привязки ЛКМ (Start/Complete drag), чтобы модификатор матчился первым.</p>
+</div>
+<h3 id="_8">Как работает</h3>
+<ol>
+<li>Игрок берёт стек из 10 предметов (обычный drag).</li>
+<li>Зажимает Shift и кликает по пустому слоту.</li>
+<li>1 предмет переносится через стандартный конвейер (planner → executor → события).</li>
+<li>Перетаскивание продолжается с 9 предметами, визуал обновляется.</li>
+<li>Когда в стеке остаётся 1 предмет, Shift+Click выполняет обычный <code>CompleteDrag</code>.</li>
+</ol>
+<p>Если целевой слот занят и не может принять предмет, операция откатывается — стек остаётся без изменений.</p>
+<hr />
+<h2 id="_9">Справочник классов</h2>
 <table>
 <thead>
 <tr>
@@ -2116,6 +2252,10 @@
 <tr>
 <td><code>InventoryExtraInteractionBinder</code></td>
 <td>Переопределение привязок для конкретного инвентаря</td>
+</tr>
+<tr>
+<td><code>SplitDropAction</code></td>
+<td>Действие: сбросить часть стека, не прекращая drag</td>
 </tr>
 <tr>
 <td><code>SlotInteractionAction</code></td>
