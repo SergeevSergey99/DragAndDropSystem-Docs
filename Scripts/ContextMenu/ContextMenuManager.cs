@@ -17,13 +17,17 @@ namespace DragAndDropSystem.ContextMenu
         [SerializeField] private ContextMenuViewBase _defaultViewPrefab;
         [SerializeField] private Transform _viewContainer;
         [SerializeField] private ContextMenuPreset _defaultPreset;
+        [SerializeField] private ContextMenuPreset _defaultEmptySlotPreset;
 
-        private readonly Dictionary<ContextMenuViewBase, ContextMenuViewBase> _viewCache = new Dictionary<ContextMenuViewBase, ContextMenuViewBase>();
-        private readonly Dictionary<UniversalInventory, InventoryContextMenuViewBinder> _viewBindersByInventory = new Dictionary<UniversalInventory, InventoryContextMenuViewBinder>();
+        private readonly Dictionary<ContextMenuViewBase, ContextMenuViewBase> _viewCache = new();
+        private readonly Dictionary<UniversalInventory, InventoryContextMenuViewBinder> _viewBindersByInventory = new();
+        private readonly Dictionary<UniversalInventory, ContextMenuBinder> _contextBindersByInventory = new();
+        
         private ContextMenuViewBase _activeView;
 
         public bool IsOpen { get; private set; }
         public ContextMenuPreset DefaultPreset => _defaultPreset;
+        public ContextMenuPreset DefaultEmptySlotPreset => _defaultEmptySlotPreset;
         
         ContextMenuContext _lastContext;
             
@@ -48,6 +52,35 @@ namespace DragAndDropSystem.ContextMenu
 
             if (_viewBindersByInventory.TryGetValue(binder.Inventory, out var existing) && existing == binder)
                 _viewBindersByInventory.Remove(binder.Inventory);
+        }
+        
+        public void RegisterBinder(ContextMenuBinder binder)
+        {
+            if (binder == null || binder.Inventory == null)
+                return;
+
+            _contextBindersByInventory[binder.Inventory] = binder;
+        }
+
+        public void UnregisterBinder(ContextMenuBinder binder)
+        {
+            if (binder == null || binder.Inventory == null)
+                return;
+
+            if (_contextBindersByInventory.TryGetValue(binder.Inventory, out var existing) && existing == binder)
+                _contextBindersByInventory.Remove(binder.Inventory);
+        }
+        
+        public List<IContextMenuEntry> GetEntries(ContextMenuContext context)
+        {
+            var binder = _contextBindersByInventory[context.Inventory];
+            if (binder == null)
+            {
+                if  (context.BaseSlot.IsEmpty)
+                    return _defaultEmptySlotPreset != null ? new List<IContextMenuEntry>(_defaultEmptySlotPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
+                return _defaultPreset != null ? new List<IContextMenuEntry>(_defaultPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
+            }
+            return binder.GetEntries(context);
         }
 
         /// <summary>

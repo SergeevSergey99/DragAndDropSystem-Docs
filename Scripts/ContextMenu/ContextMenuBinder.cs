@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DragAndDropSystem.Inventories;
 using UnityEngine;
 
@@ -22,49 +23,47 @@ namespace DragAndDropSystem.ContextMenu
         [SerializeField, Tooltip("Scene menu entries for a non-empty slot.")]
         private List<ContextMenuSceneEntryBase> _sceneEntries = new();
 
-        [SerializeField, Tooltip("Override scene entries for an empty slot. If disabled, regular scene entries are used.")]
-        private bool _overrideEmptySlotSceneEntries = false;
-
         [SerializeField, Tooltip("Scene menu entries for an empty slot. Works only if Override Empty Slot Scene Entries is enabled.")]
         private List<ContextMenuSceneEntryBase> _emptySlotSceneEntries = new();
 
         public UniversalInventory Inventory => _inventory;
 
-        private void Awake()
+        private void OnEnable()
         {
             if (_inventory == null)
                 _inventory = GetComponent<UniversalInventory>();
+            
+            ContextMenuManager.Instance.RegisterBinder(this);
+        }
+        
+        private void OnDisable()
+        {
+            if (ContextMenuManager.IsInstanceExist)
+                ContextMenuManager.Instance.UnregisterBinder(this);
         }
 
         /// <summary>
         /// Return preset entries for the current slot state.
         /// Returns a new list, so storing the reference is safe.
         /// </summary>
-        public List<IContextMenuEntry> GetEntries(bool slotIsEmpty)
+        public List<IContextMenuEntry> GetEntries(ContextMenuContext context)
         {
             var result = new List<IContextMenuEntry>();
 
-            var preset = (slotIsEmpty && _emptySlotPreset != null) ? _emptySlotPreset : _preset;
+            var preset = context.BaseSlot.IsEmpty 
+                ? _emptySlotPreset 
+                : _preset;
+            
             if (preset != null && preset.Entries != null)
             {
-                for (int i = 0; i < preset.Entries.Count; i++)
-                {
-                    var entry = preset.Entries[i];
-                    if (entry != null)
-                        result.Add(entry);
-                }
+                result.AddRange(preset.Entries.Where(entry => entry != null));
             }
 
-            var sceneEntries = (slotIsEmpty && _overrideEmptySlotSceneEntries)
+            var sceneEntries = context.BaseSlot.IsEmpty
                 ? _emptySlotSceneEntries
                 : _sceneEntries;
 
-            for (int i = 0; i < sceneEntries.Count; i++)
-            {
-                var entry = sceneEntries[i];
-                if (entry != null)
-                    result.Add(entry);
-            }
+            result.AddRange(sceneEntries.Where(entry => entry != null));
 
             return result;
         }

@@ -12,12 +12,6 @@ namespace DragAndDropSystem.ContextMenu
         public UniversalInventory Inventory => _inventory;
         public ContextMenuViewBase ViewPrefab => _viewPrefab;
 
-        private void Awake()
-        {
-            if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
-        }
-
         private void OnEnable()
         {
             if (_inventory == null)
@@ -29,7 +23,7 @@ namespace DragAndDropSystem.ContextMenu
         private void OnDisable()
         {
             if (ContextMenuManager.IsInstanceExist)
-                ContextMenuManager.AutoCreateInstance.UnregisterViewBinder(this);
+                ContextMenuManager.Instance.UnregisterViewBinder(this);
         }
     }
 }

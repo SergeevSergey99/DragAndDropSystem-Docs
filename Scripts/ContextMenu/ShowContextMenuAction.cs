@@ -38,35 +38,8 @@ namespace DragAndDropSystem.ContextMenu
                 ContextMenuManager.AutoCreateInstance.Hide();
                 return ActionResult.Failed("Inventory is null");
             }
-
-            var binder = inventory.GetComponent<ContextMenuBinder>();
             
             var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
-            
-            List<IContextMenuEntry> entries = new();
-            if (binder == null)
-            {
-                if (ContextMenuManager.IsInstanceExist && ContextMenuManager.AutoCreateInstance.DefaultPreset != null)
-                {
-                    entries.AddRange(ContextMenuManager.AutoCreateInstance.DefaultPreset.Entries);
-                }
-                else
-                {
-                    ContextMenuManager.AutoCreateInstance.Hide();
-                    return ActionResult.Failed("No ContextMenuBinder on inventory");
-                }
-            }
-            else
-            {
-                var isEmpty = slot == null || slot.IsEmpty;
-                entries = binder.GetEntries(isEmpty);
-            }
-
-            if (entries.Count == 0)
-            {
-                ContextMenuManager.AutoCreateInstance.Hide();
-                return ActionResult.Failed("No context menu entries configured");
-            }
 
             var ctx = new ContextMenuContext
             {
@@ -76,6 +49,14 @@ namespace DragAndDropSystem.ContextMenu
                 ScreenPosition = eventData?.position ?? Vector2.zero,
                 InputSource    = InputEventRouter.AutoCreateInstance.ResolveActiveFocusSource(inventory),
             };
+            
+            List<IContextMenuEntry> entries = ContextMenuManager.AutoCreateInstance.GetEntries(ctx);
+
+            if (entries.Count == 0)
+            {
+                ContextMenuManager.AutoCreateInstance.Hide();
+                return ActionResult.Failed("No context menu entries configured");
+            }
 
             ContextMenuManager.AutoCreateInstance.Show(entries, ctx);
             return ActionResult.Succeeded();
