@@ -258,6 +258,8 @@ Ejemplo:
 - la variante con `Shift` de `CompleteDragAction` llama a `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
 - las acciones también pueden sobrescribir `AllowPartial` y `AlternativePlacementMode` para una sola transferencia
 
+Una variante separada es `SplitDropAction`: llama a `SplitDrop(policy, count)` en lugar de `CompleteDrag`. Esto permite soltar parte del stack (p. ej., 1 item) sin terminar el drag. La transferencia pasa por el mismo pipeline (planner → executor → eventos). Ver [Input and Interaction](../systems/interaction.md#split-drop) para más detalles.
+
 Importante:
 - el override solo se aplica a la operación de transferencia actual
 - `DropPolicySettings` a nivel de inventario no cambian

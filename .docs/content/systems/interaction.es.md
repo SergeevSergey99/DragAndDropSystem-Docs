@@ -89,6 +89,40 @@ Si un inventario no tiene `InventoryExtraInteractionBinder`, se usa el `Interact
 
 ---
 
+## Split Drop
+
+Al arrastrar un stack, puedes soltar una parte de los items en un slot sin terminar el drag. Los items restantes permanecen "en mano" y el contador visual se actualiza automáticamente.
+
+Para esto se usa la acción integrada `SplitDropAction`:
+
+| Parámetro | Descripción | Por defecto |
+|-----------|-------------|:-----------:|
+| `_splitCount` | Cuántos items separar por acción | 1 |
+| `_dropPolicyOverride` | Override de drop policy para esta operación | --- |
+
+### Configuración del binding
+
+Agrega un `PointerBinding` a `InteractionBindingsProfile`:
+
+| Botón | Modificador | Fase | Acción |
+|-------|-------------|------|--------|
+| LMB | Shift | Down | `SplitDropAction` |
+
+!!! tip "Orden de bindings"
+    El binding `Shift + LMB` debe estar **encima** del binding LMB por defecto (Start/Complete drag) para que el modificador se evalúe primero.
+
+### Cómo funciona
+
+1. El jugador toma un stack de 10 items (drag normal).
+2. Mantiene Shift y hace clic en un slot vacío.
+3. 1 item se transfiere a través del pipeline estándar (planner → executor → eventos).
+4. El drag continúa con 9 items, el visual se actualiza.
+5. Cuando queda 1 solo item, Shift+Click ejecuta un `CompleteDrag` normal.
+
+Si el slot destino está ocupado y no puede aceptar el item, la operación se revierte — el stack permanece sin cambios.
+
+---
+
 ## Referencia de clases
 
 | Clase | Rol |
@@ -100,5 +134,6 @@ Si un inventario no tiene `InventoryExtraInteractionBinder`, se usa el `Interact
 | `PointerBinding` | Binding: botón + modificador + fase + acción |
 | `InputActionBinding` | Binding de Input System Action a una acción |
 | `InventoryExtraInteractionBinder` | Override de bindings para un inventario concreto |
+| `SplitDropAction` | Acción: soltar parte del stack sin terminar el drag |
 | `SlotInteractionAction` | Clase base de las acciones (hereda de ella para crear las tuyas) |
 

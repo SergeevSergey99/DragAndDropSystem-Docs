@@ -89,6 +89,40 @@ If an inventory does not have an `InventoryExtraInteractionBinder`, the default 
 
 ---
 
+## Split Drop
+
+While dragging a stack, you can drop a portion of the items into a slot without ending the drag. The remaining items stay "in hand" and the visual counter updates automatically.
+
+This uses the built-in `SplitDropAction`:
+
+| Parameter | Description | Default |
+|-----------|-------------|:-------:|
+| `_splitCount` | How many items to split off per action | 1 |
+| `_dropPolicyOverride` | Drop policy override for this operation | --- |
+
+### Binding Setup
+
+Add a `PointerBinding` to `InteractionBindingsProfile`:
+
+| Button | Modifier | Phase | Action |
+|--------|----------|-------|--------|
+| LMB | Shift | Down | `SplitDropAction` |
+
+!!! tip "Binding Order"
+    The `Shift + LMB` binding must be placed **above** the default LMB binding (Start/Complete drag) so the modifier matches first.
+
+### How It Works
+
+1. Player picks up a stack of 10 items (normal drag).
+2. Holds Shift and clicks an empty slot.
+3. 1 item is transferred through the standard pipeline (planner → executor → events).
+4. Dragging continues with 9 items, visual updates.
+5. When only 1 item remains, Shift+Click performs a regular `CompleteDrag`.
+
+If the target slot is occupied and cannot accept the item, the operation rolls back — the stack remains unchanged.
+
+---
+
 ## Class Reference
 
 | Class | Role |
@@ -100,4 +134,5 @@ If an inventory does not have an `InventoryExtraInteractionBinder`, the default 
 | `PointerBinding` | Binding: button + modifier + phase + action |
 | `InputActionBinding` | Input System Action binding to an action |
 | `InventoryExtraInteractionBinder` | Binding override for a specific inventory |
+| `SplitDropAction` | Action: drop part of a stack without ending drag |
 | `SlotInteractionAction` | Base class for actions (inherit for custom ones) |

@@ -58,6 +58,7 @@ flowchart TD
 | `OnDropAttempting` | Antes de ejecutar el drop | El target ya está determinado |
 | `OnDropCompleted` | Drop ejecutado con éxito | Información del resultado |
 | `OnDragCancelled` | Drag cancelado o fallido | Motivo de cancelación |
+| `OnDragStackChanged` | El stack en el drag context cambió (split drop) | Usar para actualizar UI |
 | `OnDragEnded` | El ciclo de drag ha terminado | Siempre se dispara al final |
 
 ### Auto-transfer

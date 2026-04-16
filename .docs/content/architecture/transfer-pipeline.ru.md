@@ -261,6 +261,8 @@ flowchart TD
 - `Shift`-вариант `CompleteDragAction` вызывает `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
 - action также может временно переопределить `AllowPartial` и `AlternativePlacementMode`
 
+Отдельный вариант — `SplitDropAction`: вызывает `SplitDrop(policy, count)` вместо `CompleteDrag`. Это позволяет сбросить часть стека (например, 1 предмет), не прекращая перетаскивание. Перенос проходит через тот же конвейер (planner → executor → события). Подробнее — в разделе [Ввод и взаимодействие](../systems/interaction.md#частичный-сброс-split-drop).
+
 Важно:
 - override действует только на текущую операцию переноса
 - inventory-level `DropPolicySettings` остаётся неизменным
