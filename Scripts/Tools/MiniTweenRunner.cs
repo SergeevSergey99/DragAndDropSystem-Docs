@@ -66,7 +66,6 @@ namespace UniversalDragAndDrop.Tools
             float endAlpha,
             float duration,
             MiniTweenEase ease = MiniTweenEase.Linear,
-            Action<float, float> applyAlpha = null,
             Action onComplete = null,
             Action onInterrupted = null)
         {
@@ -82,7 +81,6 @@ namespace UniversalDragAndDrop.Tools
                 endAlpha,
                 duration,
                 ease,
-                applyAlpha,
                 onComplete,
                 onInterrupted), onInterrupted);
         }
@@ -181,24 +179,20 @@ namespace UniversalDragAndDrop.Tools
             float endAlpha,
             float duration,
             MiniTweenEase ease,
-            Action<float, float> applyAlpha,
             Action onComplete,
             Action onInterrupted)
         {
-            if (applyAlpha == null)
-                applyAlpha = (_, alpha) => target.alpha = alpha;
-
             if (target == null)
             {
                 onInterrupted?.Invoke();
                 yield break;
             }
 
-            applyAlpha(0f, startAlpha);
+            target.alpha = startAlpha;
 
             if (duration <= 0f)
             {
-                applyAlpha(1f, endAlpha);
+                target.alpha = endAlpha;
                 onComplete?.Invoke();
                 yield break;
             }
@@ -218,7 +212,7 @@ namespace UniversalDragAndDrop.Tools
                 float easedTime = EvaluateEase(ease, normalizedTime);
                 float alpha = Mathf.LerpUnclamped(startAlpha, endAlpha, easedTime);
 
-                applyAlpha(easedTime, alpha);
+                target.alpha = alpha;
                 yield return null;
             }
 
@@ -228,7 +222,7 @@ namespace UniversalDragAndDrop.Tools
                 yield break;
             }
 
-            applyAlpha(1f, endAlpha);
+            target.alpha = endAlpha;
             onComplete?.Invoke();
         }
 
@@ -251,6 +245,15 @@ namespace UniversalDragAndDrop.Tools
                 default:
                     return t;
             }
+        }
+    }
+
+    public static class MiniTween
+    {
+        public static void FadeTo(this CanvasGroup canvasGroup, float toAlpha, float duration, Action OnCompleted = null)
+        {
+            MiniTweenRunner.AutoCreateInstance.AnimateCanvasGroupAlpha(
+                canvasGroup, canvasGroup.alpha, toAlpha, duration, onComplete: OnCompleted);
         }
     }
 }

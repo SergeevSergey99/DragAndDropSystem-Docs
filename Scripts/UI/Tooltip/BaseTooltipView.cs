@@ -18,8 +18,14 @@ namespace UniversalDragAndDrop.UI
         /// <param name="itemAdapter">Item to display</param>
         public virtual void Show(IItemAdapter itemAdapter, Action OnCompleted = null)
         {
-            gameObject.SetActive(true);
-            OnCompleted?.Invoke();
+            if (itemAdapter == null)
+            {
+                Hide(OnCompleted);
+                return;
+            }
+
+            SetContent(itemAdapter);
+            ShowView(OnCompleted);
         }
 
         /// <summary>
@@ -27,8 +33,7 @@ namespace UniversalDragAndDrop.UI
         /// </summary>
         public virtual void Hide(Action OnCompleted = null)
         {
-            gameObject.SetActive(false);
-            OnCompleted?.Invoke();
+            HideView(OnCompleted);
         }
 
         /// <summary>
@@ -41,11 +46,23 @@ namespace UniversalDragAndDrop.UI
         /// Update tooltip content (if the item changed while the tooltip is still visible)
         /// </summary>
         /// <param name="itemAdapter">Updated item</param>
-        public abstract void SetContent(IItemAdapter itemAdapter);
+        protected abstract void SetContent(IItemAdapter itemAdapter);
 
         /// <summary>
         /// Get tooltip size
         /// </summary>
         public virtual Vector2 GetSize() => rectTransform.rect.size;
+
+        protected virtual void ShowView(Action OnCompleted)
+        {
+            gameObject.SetActive(true);
+            OnCompleted?.Invoke();
+        }
+
+        protected virtual void HideView(Action OnCompleted)
+        {
+            gameObject.SetActive(false);
+            OnCompleted?.Invoke();
+        }
     }
 }

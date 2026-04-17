@@ -29,61 +29,33 @@ namespace UniversalDragAndDrop.UI
         [SerializeField, Tooltip("Item icon")]
         private Image _itemIcon;
 
-        [Header("Animation")]
-        [SerializeField, Tooltip("Use fade-in/out animation")]
-        private bool _useFadeAnimation = true;
-        [SerializeField, Tooltip("CanvasGroup for animation"), ShowIf(nameof(_useFadeAnimation))]
+        [SerializeField, Tooltip("CanvasGroup for animation")]
         private CanvasGroup _canvasGroup;
 
-        [SerializeField, Tooltip("Fade-in speed"), ShowIf(nameof(_useFadeAnimation))]
+        [SerializeField, Tooltip("Fade-in speed")]
         private float _fadeInTime = 1f;
 
-        [SerializeField, Tooltip("Fade-out speed"), ShowIf(nameof(_useFadeAnimation))]
+        [SerializeField, Tooltip("Fade-out speed")]
         private float _fadeOutTime = 1f;
 
-        // Properties
-        public bool IsVisible => gameObject.activeSelf;
-
-        private void Awake()
+        protected void Awake()
         {
-            // Add CanvasGroup if animation is enabled
-            if (_useFadeAnimation)
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
             {
-                _canvasGroup = GetComponent<CanvasGroup>();
-                if (_canvasGroup == null)
-                {
-                    _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-                }
-                _canvasGroup.alpha = 0f;
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
-
-            // Hide initially
-            gameObject.SetActive(false);
+            _canvasGroup.alpha = 0f;
         }
 
-        public override void Show(IItemAdapter itemAdapter, Action OnCompleted = null)
+        protected override void ShowView(Action OnCompleted)
         {
-            if (itemAdapter == null)
-            {
-                Hide();
-                return;
-            }
-
-            // Fill content
-            SetContent(itemAdapter);
-
-            // Show
             gameObject.SetActive(true);
 
             // Fade-in animation
-            if (_useFadeAnimation && _canvasGroup != null)
+            if (_canvasGroup != null)
             {
-                MiniTweenRunner.AutoCreateInstance.AnimateCanvasGroupAlpha(
-                    _canvasGroup,
-                    _canvasGroup.alpha,
-                    1f,
-                    _fadeInTime,
-                    onComplete: OnCompleted);
+                _canvasGroup.FadeTo(1f, _fadeInTime, OnCompleted);
             }
             else
             {
@@ -94,18 +66,12 @@ namespace UniversalDragAndDrop.UI
             }
         }
 
-        public override void Hide(Action OnCompleted = null)
+        protected override void HideView(Action OnCompleted)
         {
             // Fade-out animation
-            if (_useFadeAnimation && _canvasGroup != null && gameObject.activeSelf)
+            if (_canvasGroup != null && gameObject.activeSelf)
             {
-                MiniTweenRunner.AutoCreateInstance.AnimateCanvasGroupAlpha(
-                    _canvasGroup,
-                    _canvasGroup.alpha,
-                    0f,
-                    _fadeOutTime,
-                    onComplete: () =>
-                    {
+                _canvasGroup.FadeTo(0f, _fadeOutTime, () => {
                         gameObject.SetActive(false);
                         OnCompleted?.Invoke();
                     });
@@ -118,83 +84,28 @@ namespace UniversalDragAndDrop.UI
             }
         }
 
-        #region Content Population
-
         /// <summary>
         /// Fill tooltip content
         /// </summary>
-        public override void SetContent(IItemAdapter itemAdapter)
+        protected override void SetContent(IItemAdapter itemAdapter)
         {
-            if (itemAdapter == null) return;
-            
-            // Icon
-            SetItemIcon(itemAdapter);
-            // Name
-            SetItemName(itemAdapter);
-            // Description
-            SetItemDescription(itemAdapter);
-        }
-
-        /// <summary>
-        /// Set the item name
-        /// </summary>
-        private void SetItemName(IItemAdapter itemAdapter)
-        {
-            _itemNameText.text = itemAdapter?.DisplayName;
-        }
-
-        /// <summary>
-        /// Set the item description
-        /// </summary>
-        private void SetItemDescription(IItemAdapter itemAdapter)
-        {
-            if (_itemDescriptionText == null)
-                return;
-
-            string description = GetDescriptionText(itemAdapter);
-
-            if (!string.IsNullOrEmpty(description))
-            {
-                _itemDescriptionText.text = description;
-                _itemDescriptionText.gameObject.SetActive(true);
-            }
-            else
-            {
-                _itemDescriptionText.gameObject.SetActive(false);
-            }
-        }
-
-        /// <summary>
-        /// Set the item icon
-        /// </summary>
-        private void SetItemIcon(IItemAdapter itemAdapter)
-        {
-            if (_itemIcon == null)
-                return;
-
-            if (itemAdapter.Icon != null)
-            {
+            if (_itemIcon != null)
                 _itemIcon.sprite = itemAdapter.Icon;
-                _itemIcon.gameObject.SetActive(true);
-            }
-            else
+            
+            if (_itemNameText != null)
+                _itemNameText.text = itemAdapter.DisplayName;
+            
+            if (_itemDescriptionText != null)
             {
-                _itemIcon.gameObject.SetActive(false);
+                if (itemAdapter is IDescribable describableItem)
+                {
+                    _itemDescriptionText.text = describableItem.Description;
+                }
+                else
+                {
+                    _itemDescriptionText.text = string.Empty;
+                }
             }
         }
-        
-        /// <summary>
-        /// Get description text depending on the item format
-        /// </summary>
-        private string GetDescriptionText(IItemAdapter itemAdapter)
-        {
-            if (itemAdapter is IDescribable describableItem)
-            {
-                return describableItem.Description;
-            }
-            return string.Empty;
-        }
-
-        #endregion
     }
 }
