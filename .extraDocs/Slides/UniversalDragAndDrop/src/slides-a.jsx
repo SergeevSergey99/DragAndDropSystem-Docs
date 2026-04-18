@@ -8,7 +8,7 @@ function Slide1() {
 
   // Two stylized inventories, with a drag animation between them.
   const leftGrid = [
-    {icon: T[keys[0]]}, {icon: T[keys[1]]}, null, {icon: T[keys[2]], count:5},
+    {icon: T[keys[0]]}, {icon: T[keys[1]]}, {icon: T[keys[2]], count:5}, null,
     {icon: T[keys[3]]}, null, {icon: T[keys[4]], count:3}, null,
     null, {icon: T[keys[5]]}, {icon: T[keys[6]]}, null,
   ];
@@ -46,17 +46,17 @@ function Slide1() {
       <div style={{position:'absolute', right:-40, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
         <div style={{position:'relative', transform:'rotate(-6deg)', transformOrigin:'center'}}>
           <Panel title="Backpack" style={{marginRight:40, marginBottom:200}}>
-            <Grid cols={4} rows={3} cells={leftGrid} size={92} dragFrom={3}/>
+            <Grid cols={4} rows={3} cells={leftGrid} size={92} dragFrom={2}/>
           </Panel>
           <div style={{position:'absolute', right:-90, bottom:-20, transform:'rotate(10deg)'}}>
             <Panel title="Chest" accent="var(--accent-2)">
-              <Grid cols={4} rows={3} cells={rightGrid} size={92} dragOver={5}/>
+              <Grid cols={4} rows={3} cells={rightGrid} size={92} dragOver={3}/>
             </Panel>
           </div>
 
           {/* Ghost drag item mid-flight */}
           <div style={{
-            position:'absolute', right:-20, top:220,
+            position:'absolute', right:30, top:190,
             width:92, height:92, borderRadius:10,
             background:'var(--slot-hi)',
             border:'1.5px solid var(--accent)',
@@ -71,8 +71,26 @@ function Slide1() {
           </div>
 
           {/* Dotted trail */}
-          <svg style={{position:'absolute', right:-200, top:140, pointerEvents:'none'}} width="460" height="360" viewBox="0 0 460 360">
-            <path d="M60 40 C 180 40, 220 260, 380 300"
+          {/*Как это работает:
+
+              Кривая задается атрибутом d у path:
+              M60 40 C 180 40, 220 260, 380 300
+              Это кубическая Безье-кривая:
+              M60 40 — стартовая точка.
+              C ... — две контрольные точки и конечная точка, которые формируют изгиб.
+              Пунктир задается strokeDasharray="2 8":
+              2 — длина штриха.
+              8 — длина промежутка.
+              Поэтому линия выглядит как редкие точки/короткие штрихи.
+              Круглые концы у штрихов задает strokeLinecap="round", из-за чего пунктир выглядит мягче и более как дорожка следа.
+
+              Цвет и прозрачность:
+
+              stroke="var(--accent)"
+              opacity="0.55
+           */}
+          <svg style={{position:'absolute', right:-200, top:100, pointerEvents:'none'}} width="460" height="360" viewBox="0 0 460 360">
+            <path d="M50 20 C 180 40, 220 260, 285 260"
               fill="none" stroke="var(--accent)" strokeWidth="2"
               strokeDasharray="2 8" strokeLinecap="round" opacity="0.55"/>
           </svg>
