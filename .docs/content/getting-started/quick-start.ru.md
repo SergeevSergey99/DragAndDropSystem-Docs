@@ -16,7 +16,7 @@
 - Опциональный пакет: `com.unity.inputsystem`
 
 Для этого quick start новый Input System **не требуется**. Базовый drag and drop через указатель работает без него.
-Если вам нужны `InputAction` bindings, навигационная модальность от геймпада или `InputActionSelectionTrigger`, установите `com.unity.inputsystem`.
+Если вам нужны `InputAction` bindings или `InputActionSelectionTrigger`, установите `com.unity.inputsystem`.
 
 ## Шаг 1. Подготовьте сцену
 
@@ -24,6 +24,7 @@
 2. Добавьте на сцену `DragAndDropManager`. Можно перетащить на сцену префаб из `Prefabs/DragCanvas.prefab`.
 > На сцене нужен один `DragAndDropManager`. Он управляет всеми операциями переноса и контролирует объект переносимого объекта.
 3. Убедитесь, что на сцене есть `EventSystem`.
+   Если проект использует legacy input, на `EventSystem` должен быть `StandaloneInputModule`.
 
 
 ---
@@ -151,6 +152,7 @@ flowchart LR
 - `ItemId` не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно
 - на сцене нет `DragAndDropManager` или их несколько
 - на сцене нет `EventSystem`
+- проект использует legacy input, но на `EventSystem` нет `StandaloneInputModule`
 - binding привязан не к тому `UniversalInventory`
 - у `InventoryDataBinding` не назначена ссылка на inventory
 - данные меняются вне pipeline, но `ReloadUI()` не вызывается. Добавьте в вашем DataBinding вызов ReloadUI по событию изменения данных

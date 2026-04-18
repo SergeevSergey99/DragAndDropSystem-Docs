@@ -16,7 +16,7 @@ Even in the basic scenario, you usually need to write a small amount of integrat
 - Optional package: `com.unity.inputsystem`
 
 This quick start does **not** require the new Input System. Basic pointer-driven drag and drop works without it.
-If you want `InputAction` bindings, gamepad-oriented navigation modality, or `InputActionSelectionTrigger`, install `com.unity.inputsystem`.
+If you want `InputAction` bindings or `InputActionSelectionTrigger`, install `com.unity.inputsystem`.
 
 ## Step 1. Prepare the scene
 
@@ -24,6 +24,7 @@ If you want `InputAction` bindings, gamepad-oriented navigation modality, or `In
 2. Add `DragAndDropManager` to the scene. You can drag the prefab from `Prefabs/DragCanvas.prefab` into the scene.
 > The scene needs one `DragAndDropManager`. It manages all transfer operations and controls the dragged object.
 3. Make sure there is an `EventSystem` in the scene.
+   If you are using legacy input, the `EventSystem` should use `StandaloneInputModule`.
 
 
 ---
@@ -150,6 +151,7 @@ flowchart LR
 - `ItemId` does not match your stacking semantics, so items merge or fail to merge unexpectedly
 - there is no `DragAndDropManager` in the scene, or there are multiple managers
 - there is no `EventSystem` in the scene
+- the scene uses legacy input but `EventSystem` has no `StandaloneInputModule`
 - the binding points to the wrong `UniversalInventory`
 - `InventoryDataBinding` has no assigned inventory reference
 - data changes outside the pipeline, but `ReloadUI()` is never called. Add a ReloadUI call to your DataBinding on data change event.

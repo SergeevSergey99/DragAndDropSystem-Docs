@@ -143,7 +143,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Interaction/InputEventRouter.cs` | `InputEventRouter`, `RuntimeState` | Central runtime router that resolves bindings and translates input into slot/inventory actions. |
 | `Scripts/Interaction/SlotInputAdapter.cs` | `SlotInputAdapter` | UI-facing adapter attached to slot visuals so they participate in navigation, pointer, and routed input. |
 | `Scripts/Interaction/FocusSource.cs` | `FocusSource` | Enum that tracks where current slot focus came from. |
-| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Tracks whether the player is currently using pointer or navigation/gamepad style input. |
+| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Tracks whether the player is currently using pointer or navigation-style input in both legacy and Input System projects. |
 | `Scripts/Interaction/InventoryExtraInteractionBinder.cs` | `InventoryExtraInteractionBinder` | Helper that binds inventory-level extra actions and integration points beyond basic slot input. |
 | `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject for configuring hold-to-drag timings and thresholds. |
 | `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Visual feedback component for hold-drag preparation state. |

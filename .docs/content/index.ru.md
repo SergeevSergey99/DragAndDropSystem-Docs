@@ -57,7 +57,8 @@
 - Опциональный пакет: `com.unity.inputsystem`
 
 Базовая часть ассета компилируется и работает без `com.unity.inputsystem`.
-Новый Input System нужен только для функций, построенных вокруг `InputAction` и отслеживания input-модальности.
+Новый Input System нужен только для функций, построенных вокруг `InputAction`.
+Отслеживание pointer/navigation-модальности тоже работает в проектах на legacy input.
 
 
 

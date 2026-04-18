@@ -56,7 +56,8 @@ Para algunos casos comunes ya se proporcionan clases plantilla de `DataBinding`,
 - Paquete opcional: `com.unity.inputsystem`
 
 La parte principal del asset compila y funciona sin `com.unity.inputsystem`.
-El nuevo Input System solo es necesario para funciones construidas alrededor de `InputAction` y del seguimiento de modalidad de entrada.
+El nuevo Input System solo es necesario para funciones construidas alrededor de `InputAction`.
+El seguimiento de modalidad pointer/navigation también funciona en proyectos con input legacy.
 
 
 ## Modelo básico

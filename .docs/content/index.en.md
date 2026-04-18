@@ -56,7 +56,8 @@ For some common cases, template `DataBinding` classes are already provided, whic
 - Optional package: `com.unity.inputsystem`
 
 The core asset compiles and works without `com.unity.inputsystem`.
-New Input System is only required for features built around `InputAction` and input-modality tracking.
+New Input System is only required for features built around `InputAction`.
+Pointer and navigation modality tracking also works in legacy-input projects.
 
 
 ## Basic Model

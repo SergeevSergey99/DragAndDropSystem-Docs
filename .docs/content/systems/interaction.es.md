@@ -1,6 +1,6 @@
 # Input and Interaction
 
-El sistema de input separa la detección de entrada (mouse, teclado, gamepad) de las acciones (dragging, selection, context menu). Esto permite cambiar bindings sin reescribir lógica y soportar distintos dispositivos de entrada.
+El sistema de input separa la detección de entrada (mouse, teclado, gamepad y ejes de navegación legacy) de las acciones (dragging, selection, context menu). Esto permite cambiar bindings sin reescribir lógica y soportar distintos dispositivos de entrada.
 
 ---
 
@@ -47,7 +47,7 @@ Los umbrales se configuran en `InputEventRouter`: `_longClickThresholdSeconds` (
 
 ## Binding Profiles
 
-Los bindings se configuran mediante el ScriptableObject `InteractionBindingsProfile`. Contiene dos listas:
+Los bindings se configuran mediante el ScriptableObject `InteractionBindingsProfile`. Contiene pointer bindings, key bindings legacy y Input Action bindings opcionales.
 
 ### Pointer Bindings
 
@@ -64,7 +64,7 @@ Cada binding consiste en: botón de ratón + modificador + fase + acción.
 
 ### Input Action Bindings
 
-Para atajos y gamepad: vincular una Input System Action con una acción de inventario.
+Para atajos opcionales y configuraciones específicas de gamepad: vincular una Input System Action con una acción de inventario.
 
 ---
 
@@ -74,10 +74,10 @@ El sistema determina automáticamente el modo de input actual:
 
 | Modo | Cómo se activa | Comportamiento |
 |------|-----------------|----------|
-| **Mouse** | Cualquier clic de ratón | Focus por hover, pointer events estándar |
-| **Navigation** | Flechas, WASD, gamepad D-pad | Focus vía `EventSystem.selectedGameObject`, navegación entre slots |
+| **Mouse** | Clic del ratón o movimiento del ratón | Focus por hover, pointer events estándar |
+| **Navigation** | Flechas, WASD, Submit/Cancel, Tab, gamepad D-pad | Focus vía `EventSystem.selectedGameObject`, navegación entre slots |
 
-El cambio ocurre automáticamente. Cuando el modo Navigation está activo, `InputEventRouter` mantiene el focus sobre un slot: si el objeto seleccionado deja de estar activo, el sistema busca el slot disponible más cercano.
+El cambio ocurre automáticamente tanto con input legacy como con el nuevo Input System. Cuando el modo Navigation está activo, `InputEventRouter` mantiene el focus sobre un slot: si el objeto seleccionado deja de estar activo, el sistema busca el slot disponible más cercano.
 
 ---
 
@@ -130,7 +130,7 @@ Si el slot destino está ocupado y no puede aceptar el item, la operación se re
 | `InputEventRouter` | Singleton: enruta el input hacia los bindings |
 | `InteractionBindingsProfile` | SO profile con pointer bindings y Input Action bindings |
 | `SlotInputAdapter` | Componente en un slot: reenvía raw events |
-| `InputModalityTracker` | Determina el modo de input actual (Mouse / Navigation) |
+| `InputModalityTracker` | Determina el modo de input actual (Mouse / Navigation) tanto en legacy como en Input System |
 | `PointerBinding` | Binding: botón + modificador + fase + acción |
 | `InputActionBinding` | Binding de Input System Action a una acción |
 | `InventoryExtraInteractionBinder` | Override de bindings para un inventario concreto |

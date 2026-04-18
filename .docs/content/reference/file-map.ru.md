@@ -143,7 +143,7 @@
 | `Scripts/Interaction/InputEventRouter.cs` | `InputEventRouter`, `RuntimeState` | Центральный runtime-router, который сопоставляет bindings и переводит input в slot/inventory actions. |
 | `Scripts/Interaction/SlotInputAdapter.cs` | `SlotInputAdapter` | UI-адаптер на визуале слота, чтобы он участвовал в navigation, pointer и routed input. |
 | `Scripts/Interaction/FocusSource.cs` | `FocusSource` | Enum, показывающий источник текущего focus. |
-| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Отслеживает, использует ли игрок pointer- или navigation/gamepad-style input. |
+| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Отслеживает, использует ли игрок pointer- или navigation-style input в legacy и Input System проектах. |
 | `Scripts/Interaction/InventoryExtraInteractionBinder.cs` | `InventoryExtraInteractionBinder` | Helper для привязки дополнительных inventory-level действий и интеграций поверх базового slot input. |
 | `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject с настройками таймингов и порогов hold-to-drag. |
 | `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Компонент визуальной обратной связи для состояния подготовки hold-drag. |

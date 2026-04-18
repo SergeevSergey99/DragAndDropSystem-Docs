@@ -16,7 +16,7 @@ Incluso en el caso más básico, normalmente tendrás que escribir una pequeña 
 - Paquete opcional: `com.unity.inputsystem`
 
 Este quick start **no** requiere el nuevo Input System. El drag and drop básico con puntero funciona sin él.
-Si quieres `InputAction` bindings, modalidad de navegación orientada a gamepad o `InputActionSelectionTrigger`, instala `com.unity.inputsystem`.
+Si quieres `InputAction` bindings o `InputActionSelectionTrigger`, instala `com.unity.inputsystem`.
 
 ## Paso 1. Preparar la escena
 
@@ -24,6 +24,7 @@ Si quieres `InputAction` bindings, modalidad de navegación orientada a gamepad 
 2. Añade `DragAndDropManager` a la escena. Puedes arrastrar el prefab desde `Prefabs/DragCanvas.prefab` a la escena.
 > La escena necesita un único `DragAndDropManager`. Gestiona todas las operaciones de transferencia y controla el objeto arrastrado.
 3. Asegúrate de que existe un `EventSystem` en la escena.
+   Si usas input legacy, el `EventSystem` debe tener `StandaloneInputModule`.
 
 
 ---
@@ -150,6 +151,7 @@ flowchart LR
 - `ItemId` no coincide con tu semántica de stacking, así que los items se fusionan o dejan de fusionarse inesperadamente
 - no hay `DragAndDropManager` en la escena, o hay varios managers
 - no hay `EventSystem` en la escena
+- la escena usa input legacy pero el `EventSystem` no tiene `StandaloneInputModule`
 - el binding apunta al `UniversalInventory` equivocado
 - `InventoryDataBinding` no tiene asignada la referencia al inventario
 - los datos cambian fuera del pipeline, pero nunca se llama a `ReloadUI()`. Añade una llamada a ReloadUI en tu DataBinding cuando cambien los datos.

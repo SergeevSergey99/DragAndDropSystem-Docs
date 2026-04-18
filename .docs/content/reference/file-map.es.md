@@ -143,7 +143,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Interaction/InputEventRouter.cs` | `InputEventRouter`, `RuntimeState` | Router runtime central que resuelve bindings y traduce input en acciones de slot/inventario. |
 | `Scripts/Interaction/SlotInputAdapter.cs` | `SlotInputAdapter` | Adapter orientado a UI adjunto a los visuals del slot para que participen en navigation, pointer y routed input. |
 | `Scripts/Interaction/FocusSource.cs` | `FocusSource` | Enum que rastrea de dónde proviene el focus actual del slot. |
-| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Rastrea si el jugador está usando input de tipo pointer o navigation/gamepad. |
+| `Scripts/Interaction/InputModalityTracker.cs` | `InputModalityTracker`, `InputModality` | Rastrea si el jugador está usando input de tipo pointer o navigation tanto en proyectos legacy como con Input System. |
 | `Scripts/Interaction/InventoryExtraInteractionBinder.cs` | `InventoryExtraInteractionBinder` | Helper que vincula acciones adicionales a nivel de inventario e integration points más allá del input básico de slot. |
 | `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject para configurar tiempos y umbrales de hold-to-drag. |
 | `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Componente de feedback visual para el estado de preparación de hold-drag. |
