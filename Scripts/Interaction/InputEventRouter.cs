@@ -9,7 +9,7 @@ using UnityEngine.UI;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Slots;
 using UniversalDragAndDrop.UI;
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 #endif
@@ -22,7 +22,7 @@ namespace UniversalDragAndDrop.Interaction
         [field: SerializeField]
         public InteractionBindingsProfile DefaultBindingsProfile { get; private set; }
 
-#if DNDS_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
         [Header("Navigation Focus")]
         [SerializeField, Tooltip("Automatically keep focus on a slot for gamepad/keyboard navigation")]
         private bool _autoMaintainFocus = true;
@@ -32,7 +32,7 @@ namespace UniversalDragAndDrop.Interaction
         [SerializeField, Min(0.01f)] private float _longClickThresholdSeconds = 0.35f;
         [SerializeField, Min(0f)] private float _clickMoveTolerancePixels = 8f;
 
-#if !(DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
+#if !(UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
         private bool _legacyEventSystemValidated;
 #endif
 
@@ -40,7 +40,7 @@ namespace UniversalDragAndDrop.Interaction
         private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
         // Dictionary storing runtime state for each inventory (hovered slot, focus source, pressed buttons, etc.)
         private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         // Dictionary storing InputAction subscriptions per inventory so they can be unsubscribed when needed
         private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
         // InputAction subscriptions from the default profile (global, routed into _activeInventory)
@@ -84,14 +84,14 @@ namespace UniversalDragAndDrop.Interaction
         protected override void Init()
         {
             base.Init();
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             RebindDefaultProfileInputActions();
 #endif
         }
 
         protected override void DeInit()
         {
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             UnbindDefaultProfileInputActions();
 #endif
             base.DeInit();
@@ -99,7 +99,7 @@ namespace UniversalDragAndDrop.Interaction
 
         private void Update()
         {
-#if !(DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
+#if !(UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
             EnsureLegacyEventSystemReady();
 #endif
             ProcessGlobalPointerUpsWhileDragging();
@@ -114,7 +114,7 @@ namespace UniversalDragAndDrop.Interaction
             _pointerUpHandledThisFrame.Clear();
             CleanupStaleInventories();
 
-#if DNDS_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
             if (_autoMaintainFocus)
                 MaintainNavigationFocus();
 #endif
@@ -128,7 +128,7 @@ namespace UniversalDragAndDrop.Interaction
             var inventory = extraBinder.Inventory;
             _overridesByInventory[inventory] = extraBinder;
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             RebindExtraInputActions(inventory, extraBinder);
 #endif
         }
@@ -142,12 +142,12 @@ namespace UniversalDragAndDrop.Interaction
             if (_overridesByInventory.TryGetValue(inventory, out var existing) && existing == extraBinder)
                 _overridesByInventory.Remove(inventory);
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             UnbindExtraInputActions(inventory);
 #endif
         }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         public bool TryRouteInventoryAction(
             UniversalInventory inventory,
             InventoryActionBase action,
@@ -496,7 +496,7 @@ namespace UniversalDragAndDrop.Interaction
             }
         }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         private void HandleExtraInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
         {
             if (inventory == null)
@@ -709,7 +709,7 @@ namespace UniversalDragAndDrop.Interaction
                 : Array.Empty<KeyBinding>();
         }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(UniversalInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
@@ -827,7 +827,7 @@ namespace UniversalDragAndDrop.Interaction
         private void CleanupStaleInventories()
         {
             if (_runtimeStateByInventory.Count == 0 && _overridesByInventory.Count == 0
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
                 && _actionSubscriptionsByInventory.Count == 0
 #endif
                )
@@ -847,7 +847,7 @@ namespace UniversalDragAndDrop.Interaction
                     _staleInventories.Add(kv.Key);
             }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             foreach (var kv in _actionSubscriptionsByInventory)
             {
                 if (kv.Key == null && !_staleInventories.Contains(kv.Key))
@@ -863,7 +863,7 @@ namespace UniversalDragAndDrop.Interaction
 
                 _runtimeStateByInventory.Remove(stale);
                 _overridesByInventory.Remove(stale);
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
                 _actionSubscriptionsByInventory.Remove(stale);
 #endif
 
@@ -975,7 +975,7 @@ namespace UniversalDragAndDrop.Interaction
 
         private static bool WasPointerButtonReleasedThisFrame(PointerEventData.InputButton button)
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var mouse = Mouse.current;
             if (mouse == null)
                 return false;
@@ -1006,7 +1006,7 @@ namespace UniversalDragAndDrop.Interaction
 #endif
         }
 
-#if !(DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
+#if !(UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
         private void EnsureLegacyEventSystemReady()
         {
             if (_legacyEventSystemValidated)
@@ -1044,7 +1044,7 @@ namespace UniversalDragAndDrop.Interaction
             if (DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging)
                 return;
 
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var mouse = Mouse.current;
             if (mouse == null)
                 return;
@@ -1063,7 +1063,7 @@ namespace UniversalDragAndDrop.Interaction
 #endif
         }
 
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private void TrackGlobalPressState(Mouse mouse)
         {
             if (mouse.leftButton.wasPressedThisFrame)
@@ -1241,7 +1241,7 @@ namespace UniversalDragAndDrop.Interaction
             return null;
         }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         private readonly struct InputActionSubscription
         {
             public InputActionSubscription(InputAction action, Action<InputAction.CallbackContext> handler, TriggerPhaseEnum phase)

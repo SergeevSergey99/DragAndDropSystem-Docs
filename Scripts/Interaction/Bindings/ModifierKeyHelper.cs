@@ -6,7 +6,7 @@ namespace UniversalDragAndDrop.Interaction
     {
         public static bool IsCtrlPressed()
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
             return keyboard != null
                    && (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed);
@@ -17,7 +17,7 @@ namespace UniversalDragAndDrop.Interaction
 
         public static bool IsShiftPressed()
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
             return keyboard != null
                    && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
@@ -28,7 +28,7 @@ namespace UniversalDragAndDrop.Interaction
 
         public static bool IsAltPressed()
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
             return keyboard != null
                    && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed);

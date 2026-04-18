@@ -1,4 +1,4 @@
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;

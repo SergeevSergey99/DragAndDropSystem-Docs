@@ -16,7 +16,7 @@
     {
       "name": "com.unity.inputsystem",
       "expression": "",
-      "define": "DNDS_INPUT_SYSTEM"
+      "define": "UDND_INPUT_SYSTEM"
     }
   ],
   "noEngineReferences": false

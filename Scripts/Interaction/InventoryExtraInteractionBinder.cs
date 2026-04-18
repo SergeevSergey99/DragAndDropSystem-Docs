@@ -16,13 +16,13 @@ namespace UniversalDragAndDrop.Interaction
         [Header("Local Bindings")]
         [SerializeField] private List<PointerBinding> _pointerBindings = new();
         [SerializeField] private List<KeyBinding> _keyBindings = new();
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         [SerializeField] private List<InputActionBinding> _inputActionBindings = new();
 #endif
 
         private readonly List<PointerBinding> _resolvedPointerBindings = new();
         private readonly List<KeyBinding> _resolvedKeyBindings = new();
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         private readonly List<InputActionBinding> _resolvedInputActionBindings = new();
         // Local + profile bindings only (without the global profile).
         // Used for InputAction subscriptions; global subscriptions are handled by InputEventRouter.
@@ -51,7 +51,7 @@ namespace UniversalDragAndDrop.Interaction
             }
         }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         /// <summary>
         /// Full list of InputAction bindings (local + profile + global).
         /// Used for binding resolution during event handling.
@@ -110,7 +110,7 @@ namespace UniversalDragAndDrop.Interaction
             AppendValidBindings(_pointerBindings, _resolvedPointerBindings);
             AppendValidBindings(_keyBindings, _resolvedKeyBindings);
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             _resolvedInputActionBindings.Clear();
             _localInputActionBindings.Clear();
             AppendValidBindings(_inputActionBindings, _resolvedInputActionBindings);
@@ -121,7 +121,7 @@ namespace UniversalDragAndDrop.Interaction
             {
                 AppendValidBindings(_bindingsProfile.PointerBindingsRuntime, _resolvedPointerBindings);
                 AppendValidBindings(_bindingsProfile.KeyBindingsRuntime, _resolvedKeyBindings);
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
                 AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);
                 AppendValidBindings(_bindingsProfile.InputActionBindingsRuntime, _localInputActionBindings);
 #endif
@@ -134,7 +134,7 @@ namespace UniversalDragAndDrop.Interaction
                 {
                     AppendValidBindings(globalProfile.PointerBindingsRuntime, _resolvedPointerBindings);
                     AppendValidBindings(globalProfile.KeyBindingsRuntime, _resolvedKeyBindings);
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
                     // Global InputActions are added only to resolved (for lookup),
                     // but NOT to local (their subscriptions are handled globally by InputEventRouter).
                     AppendValidBindings(globalProfile.InputActionBindingsRuntime, _resolvedInputActionBindings);

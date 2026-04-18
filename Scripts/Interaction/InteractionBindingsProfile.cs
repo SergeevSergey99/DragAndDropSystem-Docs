@@ -8,20 +8,20 @@ namespace UniversalDragAndDrop.Interaction
     {
         [SerializeField] private List<AssetPointerBinding> _pointerBindings = new();
         [SerializeField] private List<AssetKeyBinding> _keyBindings = new();
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         [SerializeField] private List<AssetInputActionBinding> _inputActionBindings = new();
 #endif
 
         private readonly List<PointerBinding> _runtimePointerBindings = new();
         private readonly List<KeyBinding> _runtimeKeyBindings = new();
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         private readonly List<InputActionBinding> _runtimeInputActionBindings = new();
 #endif
         private bool _runtimeDirty = true;
 
         public IReadOnlyList<AssetPointerBinding> PointerBindings => _pointerBindings;
         public IReadOnlyList<AssetKeyBinding> KeyBindings => _keyBindings;
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         public IReadOnlyList<AssetInputActionBinding> InputActionBindings => _inputActionBindings;
 #endif
 
@@ -43,7 +43,7 @@ namespace UniversalDragAndDrop.Interaction
             }
         }
 
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
         public IReadOnlyList<InputActionBinding> InputActionBindingsRuntime
         {
             get
@@ -75,7 +75,7 @@ namespace UniversalDragAndDrop.Interaction
 
             AppendRuntimeBindings(_pointerBindings, _runtimePointerBindings, b => b.ToRuntimeBinding());
             AppendRuntimeBindings(_keyBindings, _runtimeKeyBindings, b => b.ToRuntimeBinding());
-#if DNDS_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM
             _runtimeInputActionBindings.Clear();
             AppendRuntimeBindings(_inputActionBindings, _runtimeInputActionBindings, b => b.ToRuntimeBinding());
 #endif

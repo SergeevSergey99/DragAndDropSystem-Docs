@@ -290,7 +290,7 @@ namespace UniversalDragAndDrop.UI
 
         private Vector2 GetMouseScreenPosition()
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var mouse = UnityEngine.InputSystem.Mouse.current;
             return mouse != null
                 ? mouse.position.ReadValue()

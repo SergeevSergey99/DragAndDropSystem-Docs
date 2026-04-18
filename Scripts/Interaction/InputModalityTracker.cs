@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -52,7 +52,7 @@ namespace UniversalDragAndDrop.Interaction
 
         private static bool WasMouseInteractionThisFrame()
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var mouse = Mouse.current;
             return mouse != null &&
                    (mouse.leftButton.wasPressedThisFrame ||
@@ -69,7 +69,7 @@ namespace UniversalDragAndDrop.Interaction
 
         private bool WasNavigationInteractionThisFrame()
         {
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
+#if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             var gamepad = Gamepad.current;
             if (gamepad != null)
             {
