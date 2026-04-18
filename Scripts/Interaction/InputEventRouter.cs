@@ -32,6 +32,10 @@ namespace UniversalDragAndDrop.Interaction
         [SerializeField, Min(0.01f)] private float _longClickThresholdSeconds = 0.35f;
         [SerializeField, Min(0f)] private float _clickMoveTolerancePixels = 8f;
 
+#if !(DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
+        private bool _legacyEventSystemValidated;
+#endif
+
         // Dictionary for overriding bindings for a specific inventory (for example, different UIs or operating modes)
         private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
         // Dictionary storing runtime state for each inventory (hovered slot, focus source, pressed buttons, etc.)
@@ -95,6 +99,9 @@ namespace UniversalDragAndDrop.Interaction
 
         private void Update()
         {
+#if !(DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
+            EnsureLegacyEventSystemReady();
+#endif
             ProcessGlobalPointerUpsWhileDragging();
             PollKeyBindings();
             TickHoldPreview();
@@ -1004,6 +1011,38 @@ namespace UniversalDragAndDrop.Interaction
             }
 #endif
         }
+
+#if !(DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM)
+        private void EnsureLegacyEventSystemReady()
+        {
+            if (_legacyEventSystemValidated)
+                return;
+
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null)
+                eventSystem = FindFirstObjectByType<EventSystem>();
+
+            if (eventSystem == null)
+            {
+                var eventSystemObject = new GameObject("EventSystem");
+                eventSystem = eventSystemObject.AddComponent<EventSystem>();
+                eventSystemObject.AddComponent<StandaloneInputModule>();
+                Debug.LogWarning(
+                    "[InputEventRouter] No EventSystem was found. Created EventSystem with StandaloneInputModule for legacy input compatibility.");
+                _legacyEventSystemValidated = true;
+                return;
+            }
+
+            if (eventSystem.GetComponent<BaseInputModule>() == null)
+            {
+                eventSystem.gameObject.AddComponent<StandaloneInputModule>();
+                Debug.LogWarning(
+                    "[InputEventRouter] EventSystem has no active input module. Added StandaloneInputModule because Input System support is disabled.");
+            }
+
+            _legacyEventSystemValidated = true;
+        }
+#endif
 
         private void ProcessUnhandledGlobalPointerEvents()
         {
