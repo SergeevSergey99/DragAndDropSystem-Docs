@@ -74,6 +74,9 @@ Legacy input setup notes:
 - if you are not using the new Input System, the `EventSystem` must have `StandaloneInputModule`
 - demos created in Unity 6 may serialize `InputSystemUIInputModule`; in older or legacy-input projects this can leave the `EventSystem` without a usable input module
 - the runtime now auto-adds `StandaloneInputModule` when it detects legacy input mode and no usable UI input module is present
+- mixed setups are supported: a project may include the new Input System while a specific scene still uses `StandaloneInputModule`
+- in a mixed setup, pointer and UI navigation follow the scene's active `EventSystem` module
+- `InputAction`-driven features still depend on the new Input System being configured for that workflow, so they may not work as expected in scenes intentionally using the legacy UI input path
 
 ## Notes
 

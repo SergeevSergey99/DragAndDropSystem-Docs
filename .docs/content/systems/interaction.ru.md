@@ -65,6 +65,8 @@ flowchart TD
 ### Привязки Input Action
 
 Для опциональных hotkeys и gamepad-специфичных сценариев: привязка Input System Action к действию инвентаря.
+Mixed setup поддерживается, но важно помнить, что `InputAction`-зависимые функции всё равно ожидают, что для этой сцены/flow настроен новый input pipeline.
+Если сцена намеренно остаётся на `StandaloneInputModule`, pointer и navigation там могут работать, а часть `InputAction`-функций — нет.
 
 ---
 

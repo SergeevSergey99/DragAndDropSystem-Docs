@@ -17,6 +17,8 @@ Incluso en el caso más básico, normalmente tendrás que escribir una pequeña 
 
 Este quick start **no** requiere el nuevo Input System. El drag and drop básico con puntero funciona sin él.
 Si quieres `InputAction` bindings o `InputActionSelectionTrigger`, instala `com.unity.inputsystem`.
+Los mixed setups también son válidos: un proyecto puede incluir el nuevo Input System mientras esta escena concreta sigue usando `StandaloneInputModule`.
+En ese caso, las funciones basadas en `InputAction` pueden no comportarse como esperas si esa escena o workflow no están configurados para el nuevo input pipeline.
 
 ## Paso 1. Preparar la escena
 

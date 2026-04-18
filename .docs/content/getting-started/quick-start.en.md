@@ -17,6 +17,8 @@ Even in the basic scenario, you usually need to write a small amount of integrat
 
 This quick start does **not** require the new Input System. Basic pointer-driven drag and drop works without it.
 If you want `InputAction` bindings or `InputActionSelectionTrigger`, install `com.unity.inputsystem`.
+Mixed setups are also valid: a project may include the new Input System while this particular scene still uses `StandaloneInputModule`.
+In that case, `InputAction`-driven features may not work as expected unless that scene/workflow is configured around the new input pipeline.
 
 ## Step 1. Prepare the scene
 

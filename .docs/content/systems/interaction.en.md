@@ -65,6 +65,8 @@ Each binding consists of: mouse button + modifier + phase + action.
 ### Input Action Bindings
 
 For optional hotkeys and gamepad-specific setups: bind an Input System Action to an inventory action.
+Mixed setups are supported, but keep in mind that `InputAction`-driven features still expect the new input pipeline to be configured for that scene/workflow.
+If a scene intentionally stays on `StandaloneInputModule`, pointer and navigation can still work there while some `InputAction` features do not.
 
 ---
 

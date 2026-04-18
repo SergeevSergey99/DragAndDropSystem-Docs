@@ -65,6 +65,8 @@ Cada binding consiste en: botón de ratón + modificador + fase + acción.
 ### Input Action Bindings
 
 Para atajos opcionales y configuraciones específicas de gamepad: vincular una Input System Action con una acción de inventario.
+Los mixed setups están soportados, pero recuerda que las funciones basadas en `InputAction` siguen esperando que esa escena o workflow estén configurados para el nuevo input pipeline.
+Si una escena permanece intencionadamente en `StandaloneInputModule`, pointer y navigation pueden seguir funcionando allí mientras algunas funciones de `InputAction` no lo hacen.
 
 ---
 
