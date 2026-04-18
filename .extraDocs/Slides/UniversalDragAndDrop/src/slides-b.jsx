@@ -4,11 +4,11 @@
 function Slide5() {
   const demos = [
     {
-      n:'01', title:'Inventories', desc:'The shortest chain: List<T> → binding → UI. Perfect starting point.', col:'var(--accent)',
+      n:'01', title:'Inventories', desc:'Basic list‑based inventory binding. Perfect starting point.', col:'var(--accent)',
       preview: <><Grid cols={4} rows={2} size={54} gap={5} cells={[{icon:'🎒'},{icon:'🍎',count:3},null,{icon:'🧪'}, {icon:'⚔️'},null,{icon:'🪙',count:99},null]}/></>
     },
     {
-      n:'02', title:'Loot / Chests', desc:'World‑driven UI. Chests & pickups wire into drag‑and‑drop without coupling.', col:'var(--accent-2)',
+      n:'02', title:'Loot / Chests', desc:'World pickup + chest UI integration without tight coupling.', col:'var(--accent-2)',
       preview: <div style={{display:'flex', gap:12, alignItems:'center'}}>
         <Grid cols={2} rows={2} size={54} gap={5} cells={[{icon:'🗝️'},{icon:'💎'},null,{icon:'📜'}]}/>
         <div style={{color:'var(--muted)', fontSize:22}}>⇄</div>
@@ -16,13 +16,13 @@ function Slide5() {
       </div>
     },
     {
-      n:'03', title:'Minecraft‑like', desc:'Slot‑indexed inventories, hotbar, crafting grid + read‑only result slot.', col:'var(--accent-3)',
+      n:'03', title:'Minecraft‑like', desc:'Slot‑indexed inventory, hotbar, and crafting flow.', col:'var(--accent-3)',
       preview: <div style={{display:'flex', flexDirection:'column', gap:8}}>
         <Grid cols={3} rows={3} size={44} gap={4} cells={[{icon:'🪵'},{icon:'🪵'},null,{icon:'🪵'},{icon:'🪵'},null,null,null,null]}/>
       </div>
     },
     {
-      n:'04', title:'Trading', desc:'Cross‑model converters, gold checks, bidirectional swap. Most feature‑rich demo.', col:'var(--green)',
+      n:'04', title:'Trading', desc:'Cross‑model transfer, pricing rules, and bidirectional exchange.', col:'var(--green)',
       preview: <div style={{display:'flex', gap:12, alignItems:'center'}}>
         <Grid cols={2} rows={2} size={54} gap={5} cells={[{icon:'🪙',count:200},null,null,{icon:'🛡️'}]}/>
         <div style={{color:'var(--muted)', fontSize:22}}>⇄</div>
@@ -30,7 +30,7 @@ function Slide5() {
       </div>
     },
     {
-      n:'05', title:'Containers', desc:'Items that hold nested inventories. Context‑menu open, cycle prevention.', col:'#F5D144',
+      n:'05', title:'Containers', desc:'Nested inventories and container items with safe opening rules.', col:'#F5D144',
       preview: <div style={{display:'flex', gap:12}}>
         <Grid cols={2} rows={2} size={54} gap={5} cells={[{icon:'📦'},{icon:'🎒'},null,{icon:'💼'}]}/>
         <div style={{marginTop:18}}>
@@ -130,8 +130,8 @@ function Slide6() {
       <PageTag n={6}/>
       <HeaderBar
         eyebrow="05 — Subsystems"
-        title="Everything you need. Nothing you don't."
-        sub="Drop any subsystem into your scene independently — they don't assume each other."
+        title="Adopt systems incrementally."
+        sub="Most subsystems can be added independently, without pulling in the full stack."
       />
 
       <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', alignItems:'start', gap:22, flex:1}}>
@@ -262,7 +262,7 @@ function Slide7() {
       <PageTag n={7}/>
       <HeaderBar
         eyebrow="06 — Quick start"
-        title="Two tiny files. Running inventory."
+        title="Two small integration files. First working inventory."
         sub="An adapter describes your item to the UI. A binding syncs events back to your data. That's the whole integration."
       />
 
@@ -307,7 +307,7 @@ function Slide8() {
           Available on the Unity Asset Store
         </div>
         <h1 style={{fontSize:120, fontWeight:800, margin:0, letterSpacing:'-0.035em', lineHeight:0.95, maxWidth:1400, textWrap:'balance'}}>
-          Stop wrestling your inventory into someone else's types.
+          Build your inventory around your data model.
         </h1>
         <div style={{fontSize:28, color:'var(--muted)', margin:'42px 0 0 0', maxWidth:1100, lineHeight:1.4}}>
           <span style={{color:'var(--text)'}}>Universal Drag&Drop</span> adapts to your data model —
@@ -335,7 +335,7 @@ function Slide8() {
             <Arrow size={22} color="var(--ink)"/>
           </div>
           <div style={{fontSize:17, color:'var(--muted)'}}>
-            Unity 2022.3+ · requires <span className="mono" style={{color:'var(--text)'}}>Unity.ugui</span>
+            Unity 2022.3+ · supports additional integration with <span className="mono" style={{color:'var(--text)'}}>Input System</span> and <span className="mono" style={{color:'var(--text)'}}>Odin Inspector</span>
           </div>
         </div>
       </div>

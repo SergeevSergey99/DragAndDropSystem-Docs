@@ -31,8 +31,8 @@ function Slide1() {
           Universal<br/>Drag<span style={{color:'var(--accent)'}}>&</span>Drop
         </h1>
         <div style={{marginTop:36, fontSize:30, color:'var(--muted)', lineHeight:1.35, maxWidth:720}}>
-          Inventory & drag‑and‑drop for <span style={{color:'var(--text)'}}>any</span> data in your project —
-          <span style={{color:'var(--text)'}}> ScriptableObject, runtime models, lists, dicts</span>.
+          Inventory & drag‑and‑drop for
+          <span style={{color:'var(--text)'}}> your existing data model</span>.
         </div>
         <div style={{marginTop:44, display:'flex', gap:10, flexWrap:'wrap'}}>
           <Tag color="var(--accent)">Any data</Tag>
@@ -108,7 +108,7 @@ function Slide2() {
     {icon:'▸', title:'Any data source', text:'ScriptableObject, runtime models, lists, dictionaries, or fixed fields.'},
     {icon:'▸', title:'UI decoupled from model', text:'Scales gradually — from a backpack to trading, nested containers, server validation.'},
     {icon:'▸', title:'Full transfer pipeline', text:'Drag, drop, stack, swap, split, auto‑transfer, multi‑select — all handled.'},
-    {icon:'▸', title:'Rules + business hooks', text:'Mechanical CanDrop, pre‑commit domain checks, async server validation.'},
+    {icon:'▸', title:'Rules + business hooks', text:'Mechanical rules, domain checks before commit, and optional async validation.'},
   ];
 
   return (
@@ -309,11 +309,11 @@ function Slide4() {
       <PageTag n={4}/>
       <HeaderBar
         eyebrow="03 — Your data, your way"
-        title={<>Three bindings cover 99% of inventories.</>}
-        sub={<>Pick the template that matches your data shape. Override 4 methods. Done.</>}
+        title={<>Three binding templates cover most inventory shapes.</>}
+        sub={<>Pick the template that matches your data shape. Usually you only override 4 methods.</>}
       />
 
-      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:28, marginTop:0}}>
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:50, marginTop:-40}}>
         {[
           {
             name:'ListInventoryDataBinding',
