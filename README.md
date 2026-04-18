@@ -68,6 +68,13 @@ Requires `com.unity.inputsystem`:
 - `InputActionSelectionTrigger`
 - navigation modality tracking based on `Gamepad` / `Keyboard.current`
 
+Legacy input setup notes:
+
+- the scene still needs a working `EventSystem`
+- if you are not using the new Input System, the `EventSystem` must have `StandaloneInputModule`
+- demos created in Unity 6 may serialize `InputSystemUIInputModule`; in older or legacy-input projects this can leave the `EventSystem` without a usable input module
+- the runtime now auto-adds `StandaloneInputModule` when it detects legacy input mode and no usable UI input module is present
+
 ## Notes
 
 - This asset is intentionally flexible, so integrating your own data types usually requires a small adapter and one binding.
