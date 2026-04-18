@@ -190,7 +190,6 @@ namespace UniversalDragAndDrop.Interaction
         public bool TryGetCurrentNavigationAnchor(out GameObject selectedObject)
         {
             selectedObject = null;
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             if (!InputModalityTracker.IsNavigationModeActive)
                 return false;
 
@@ -200,9 +199,6 @@ namespace UniversalDragAndDrop.Interaction
 
             selectedObject = es.currentSelectedGameObject;
             return true;
-#else
-            return false;
-#endif
         }
 
         public BaseSlot ResolveFocusedSlot(UniversalInventory inventory)
@@ -272,14 +268,12 @@ namespace UniversalDragAndDrop.Interaction
             if (!TryGetInventory(adapter, out var inventory) || eventData == null)
                 return;
 
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             if (InputModalityTracker.IsNavigationModeActive)
             {
                 var es = EventSystem.current;
                 if (es != null && es.currentSelectedGameObject != null)
                     es.SetSelectedGameObject(null);
             }
-#endif
 
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
@@ -1188,7 +1182,6 @@ namespace UniversalDragAndDrop.Interaction
         }
 #endif
 
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private void MaintainNavigationFocus()
         {
             if (!InputModalityTracker.IsNavigationModeActive)
@@ -1206,9 +1199,7 @@ namespace UniversalDragAndDrop.Interaction
             if (target != null)
                 es.SetSelectedGameObject(target.gameObject);
         }
-#endif
 
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private Selectable FindBestFocusTarget()
         {
             if (_activeInventory != null && _activeInventory.isActiveAndEnabled)
@@ -1249,7 +1240,6 @@ namespace UniversalDragAndDrop.Interaction
 
             return null;
         }
-#endif
 
 #if DNDS_INPUT_SYSTEM
         private readonly struct InputActionSubscription

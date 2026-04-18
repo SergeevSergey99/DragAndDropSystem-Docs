@@ -30,13 +30,11 @@ namespace UniversalDragAndDrop.ContextMenu.UI
             if (ContextMenuManager.IsInstanceExist)
                 ContextMenuManager.AutoCreateInstance.Hide();
 
-#if DNDS_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
             if (InputModalityTracker.CurrentModality == InputModalityTracker.InputModality.Mouse)
             {
                 if (EventSystem.current != null)
                     EventSystem.current.SetSelectedGameObject(null);
             }
-#endif
         }
 
         private void OnDisable()
