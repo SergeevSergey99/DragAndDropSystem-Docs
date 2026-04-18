@@ -33,7 +33,9 @@ function Slide5() {
       n:'05', title:'Containers', desc:'Items that hold nested inventories. Context‑menu open, cycle prevention.', col:'#F5D144',
       preview: <div style={{display:'flex', gap:12}}>
         <Grid cols={2} rows={2} size={54} gap={5} cells={[{icon:'📦'},{icon:'🎒'},null,{icon:'💼'}]}/>
-        <Arrow size={22} color="var(--muted)"/>
+        <div style={{marginTop:18}}>
+          <Arrow size={22} color="var(--muted)"/>
+        </div>
         <Grid cols={2} rows={2} size={54} gap={5} cells={[{icon:'🧪'},{icon:'💎'},{icon:'🗝️'},null]}/>
       </div>
     },
