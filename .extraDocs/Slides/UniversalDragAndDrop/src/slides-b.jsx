@@ -193,8 +193,7 @@ function Slide7() {
     public string DisplayName => Data.ItemName;
 }`;
 
-  const binding = `public class BackpackBinding
-    : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
+  const binding = `public class BackpackBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 {
     [SerializeField] private List<ItemSO> _items;
 
@@ -273,7 +272,7 @@ function Slide7() {
             <Tag color="var(--accent-3)" filled>Step 1</Tag>
             <span style={{fontSize:22, fontWeight:500}}>Describe your item to the slot</span>
           </div>
-          <Code title="Adapters/ItemSOAdapter.cs" highlight={[6,7,8]}>{adapter}</Code>
+          <Code title="Adapters/ItemSOAdapter.cs" highlight={[2,3,4,5,6,7]}>{adapter}</Code>
           <div style={{fontSize:15, color:'var(--muted)', lineHeight:1.5}}>
             <span className="mono" style={{color:'var(--accent)'}}>ItemId</span> drives stacking,
             <span className="mono" style={{color:'var(--accent)'}}> Icon</span> drives the sprite.
@@ -285,7 +284,7 @@ function Slide7() {
             <Tag color="var(--accent-2)" filled>Step 2</Tag>
             <span style={{fontSize:22, fontWeight:500}}>Bind your data with one of the 3 templates</span>
           </div>
-          <Code title="DataBindings/BackpackBinding.cs" highlight={[6,7,8,9]}>{binding}</Code>
+          <Code title="DataBindings/BackpackBinding.cs" highlight={[2,3,4,5,6,7]}>{binding}</Code>
           <div style={{fontSize:15, color:'var(--muted)', lineHeight:1.5}}>
             Drag, drop, stacking, swapping, events — already handled by the base class.
           </div>
