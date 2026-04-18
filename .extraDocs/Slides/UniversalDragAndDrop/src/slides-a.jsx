@@ -164,7 +164,7 @@ function Slide2() {
 // ============ SLIDE 3: ARCHITECTURE DIAGRAM ============
 function Slide3() {
   // Node factory
-  const Node = ({ title, sub, color='var(--accent)', custom=false, style={} }) => (
+  const Node = ({ title, sub, color='var(--accent)', custom=false, showYouWrite=true, style={} }) => (
     <div style={{
       background:'var(--panel)',
       border:`1.5px solid ${custom ? color : 'var(--border)'}`,
@@ -175,7 +175,7 @@ function Slide3() {
       position:'relative',
       ...style,
     }}>
-      {custom && (
+      {custom && showYouWrite && (
         <div style={{position:'absolute', top:-10, right:18}}>
           <Tag color={color} filled>You write</Tag>
         </div>
@@ -211,10 +211,10 @@ function Slide3() {
         </div>
 
         <div style={{position:'absolute', left:670, top:360}}>
-          <Node title="IItemAdapter" sub={'Tiny class. Stores a reference\nto your item data.'} color="var(--accent-3)" custom/>
+          <Node title="IItemAdapter" sub={'Tiny class. Stores a reference\nto your item data.'} color="var(--accent-3)" custom showYouWrite={false}/>
         </div>
         <div style={{position:'absolute', left:650, top:380}}>
-          <Node title="IItemAdapter" sub={'Tiny class. Stores a reference\nto your item data.'} color="var(--accent-3)" custom/>
+          <Node title="IItemAdapter" sub={'Tiny class. Stores a reference\nto your item data.'} color="var(--accent-3)" custom showYouWrite={false}/>
         </div>
         <div style={{position:'absolute', left:630, top:400}}>
           <Node title="IItemAdapter" sub={'Tiny class. Stores a reference\nto your item data.'} color="var(--accent-3)" custom/>
@@ -228,10 +228,10 @@ function Slide3() {
         </div>
 
         <div style={{position:'absolute', right:80, top:360}}>
-          <Node title="Your data item" sub={'SO, runtime classes — untouched.'} color="var(--accent-2)" custom/>
+          <Node title="Your data item" sub={'SO, runtime classes — untouched.'} color="var(--accent-2)" custom showYouWrite={false}/>
         </div>
         <div style={{position:'absolute', right:100, top:380}}>
-          <Node title="Your data item" sub={'SO, runtime classes — untouched.'} color="var(--accent-2)" custom/>
+          <Node title="Your data item" sub={'SO, runtime classes — untouched.'} color="var(--accent-2)" custom showYouWrite={false}/>
         </div>
         <div style={{position:'absolute', right:120, top:400}}>
           <Node title="Your data item" sub={'SO, runtime classes — untouched.'} color="var(--accent-2)" custom/>
