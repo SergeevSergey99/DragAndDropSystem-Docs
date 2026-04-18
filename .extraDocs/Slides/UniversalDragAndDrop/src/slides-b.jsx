@@ -134,19 +134,20 @@ function Slide6() {
         sub="Drop any subsystem into your scene independently — they don't assume each other."
       />
 
-      <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:22, flex:1}}>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', alignItems:'start', gap:22, flex:1}}>
         {groups.map((g,i)=>(
           <div key={i} style={{
             background:'var(--panel)', border:'1px solid var(--border)',
             borderRadius:14, padding:'24px 24px 22px',
             display:'flex', flexDirection:'column',
+            height:'76%',
             boxShadow:'0 14px 30px -10px rgba(0,0,0,0.5)',
           }}>
             <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:18}}>
               <div style={{width:10, height:10, borderRadius:3, background:g.col}}/>
               <div className="mono" style={{fontSize:13, letterSpacing:'0.14em', color:g.col, textTransform:'uppercase', fontWeight:600}}>{g.title}</div>
             </div>
-            <div style={{display:'flex', flexDirection:'column', gap:12, flex:1}}>
+            <div style={{display:'flex', flexDirection:'column', gap:12}}>
               {g.items.map((it,j)=>(
                 <div key={j} style={{
                   display:'flex', alignItems:'flex-start', gap:12,
