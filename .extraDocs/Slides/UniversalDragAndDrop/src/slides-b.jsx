@@ -99,29 +99,33 @@ function Slide5() {
 // ============ SLIDE 6: SUBSYSTEMS ============
 function Slide6() {
   const groups = [
-    { title:'Interaction', col:'var(--accent)', items:[
-      {name:'Drag & drop', hint:'pointer + gamepad'},
-      {name:'Stacking', hint:'configurable step'},
-      {name:'Swapping', hint:'with converters'},
-      {name:'Quick transfer', hint:'shift‑click / auto'},
+    { title:'Core inventory', col:'var(--accent)', items:[
+      {name:'Drag & drop', hint:'core interaction'},
+      {name:'Stacking behavior', hint:'merge and split flows'},
+      {name:'Drop behavior', hint:'swapping, merging, splitting, rejecting or custom'},
+      {name:'Input actions', hint:'easily customizable controls'},
+      {name:'Drop Zones', hint:'world drop, redirect drop, trash, use or etc'},
     ]},
-    { title:'Selection', col:'var(--accent-2)', items:[
-      {name:'Multi‑select', hint:'shift / ctrl / drag'},
-      {name:'Multi‑transfer', hint:'batch move'},
+    { title:'Player UX', col:'var(--accent-2)', items:[
+      {name:'Navigation', hint:'keyboard or controller support'},
+      {name:'Quick transfer', hint:'auto transfer between inventories'},
       {name:'Context menu', hint:'per‑item actions'},
+      {name:'Multi‑select', hint:'shift / ctrl / drag'},
       {name:'Tooltips', hint:'example included'},
     ]},
-    { title:'Rules & flow', col:'var(--accent-3)', items:[
-      {name:'CanDrop rules', hint:'mechanical'},
-      {name:'CanCommitTransfer', hint:'business logic'},
-      {name:'Async validation', hint:'server, DB, file'},
-      {name:'Auto‑transfer', hint:'with predicates'},
+    { title:'Game rules', col:'var(--accent-3)', items:[
+      {name:'CanDrag/Drop rules', hint:'mechanical checks per inventory or slot'},
+      {name:'Rules presets', hint:'SO‑based rules for common cases like equipment slots or crafting grids'},
+      {name:'Limited amount per slot', hint:'enforce max stack size'},
+      {name:'Commit validation', hint:'extra business logic'},
+      {name:'Async checks', hint:'server, DB, file'},
     ]},
-    { title:'Advanced', col:'var(--green)', items:[
-      {name:'Drop zones', hint:'trash, use, sell'},
-      {name:'Type conversions', hint:'SO ↔ runtime'},
-      {name:'Nested inventories', hint:'containers'},
-      {name:'Free‑form layout', hint:'grid or canvas'},
+    { title:'Scale up', col:'var(--green)', items:[
+      {name:'Type conversions', hint:'SO ↔ runtime, model A ↔ model B'},
+      {name:'Free‑form layout', hint:'create your own slot arrangements with the API'},
+      {name:'Filters & sorting', hint:'custom item ordering and visibility rules'},
+      {name:'Event covered', hint:'hooks for all important actions'},
+      {name:'Extension points', hint:'hooks, events, and inheritance for custom features'},
     ]},
   ];
 
@@ -130,8 +134,8 @@ function Slide6() {
       <PageTag n={6}/>
       <HeaderBar
         eyebrow="05 — Subsystems"
-        title="Adopt systems incrementally."
-        sub="Most subsystems can be added independently, without pulling in the full stack."
+        title="Start simple. Scale without rewriting."
+        sub="Begin with a working inventory, then layer in UX, rules, and advanced patterns only where your project needs them."
       />
 
       <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', alignItems:'start', gap:22, flex:1}}>
@@ -140,7 +144,7 @@ function Slide6() {
             background:'var(--panel)', border:'1px solid var(--border)',
             borderRadius:14, padding:'24px 24px 22px',
             display:'flex', flexDirection:'column',
-            height:'76%',
+            height:'80%',
             boxShadow:'0 14px 30px -10px rgba(0,0,0,0.5)',
           }}>
             <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:18}}>
