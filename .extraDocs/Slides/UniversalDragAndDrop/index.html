@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Universal Drag&Drop — Asset Store Slides</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<script src="deck-stage.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+  :root {
+    --ink: #0E0E10;
+    --panel: #17181B;
+    --panel-2: #1F2125;
+    --slot: #232529;
+    --slot-hi: #2A2D33;
+    --border: #2E3036;
+    --border-hi: #3D4048;
+    --text: #E6E7EA;
+    --muted: #8A8E96;
+    --dim: #5A5E66;
+    --accent: #F5A524;       /* Amber (Unity-ish) */
+    --accent-2: #3EC6B1;     /* Teal — data flow */
+    --accent-3: #E05CD9;     /* Magenta — highlights */
+    --danger: #E5484D;
+    --green: #6EE787;
+  }
+  html, body { margin: 0; padding: 0; background: #000; color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  deck-stage > section {
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* Subtle grid backdrop */
+  .bg-grid {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(245,165,36,0.06), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(62,198,177,0.05), transparent 55%),
+      linear-gradient(var(--ink), var(--ink));
+  }
+  .bg-dots {
+    background-color: var(--ink);
+    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+</style>
+
+<!-- Tweakable defaults -->
+<script>
+window.TWEAKS = /*EDITMODE-BEGIN*/{
+  "palette": "indigo",
+  "itemTheme": "mixed"
+}/*EDITMODE-END*/;
+</script>
+</head>
+<body>
+<deck-stage width="1920" height="1080">
+  <section id="slide-1"></section>
+  <section id="slide-2"></section>
+  <section id="slide-3"></section>
+  <section id="slide-4"></section>
+  <section id="slide-5"></section>
+  <section id="slide-6"></section>
+  <section id="slide-7"></section>
+  <section id="slide-8"></section>
+</deck-stage>
+
+<script type="text/babel" src="src/primitives.jsx"></script>
+<script type="text/babel" src="src/items.jsx"></script>
+<script type="text/babel" src="src/slides-a.jsx"></script>
+<script type="text/babel" src="src/slides-b.jsx"></script>
+<script type="text/babel" src="src/tweaks.jsx"></script>
+<script type="text/babel" src="src/mount.jsx"></script>
+</body>
+</html>
