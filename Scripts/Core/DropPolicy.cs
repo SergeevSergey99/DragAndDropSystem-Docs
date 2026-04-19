@@ -41,6 +41,77 @@ namespace UniversalDragAndDrop.Core
         EmptyOnly = 3
     }
 
+    public interface IAlternativePlacementStrategy
+    {
+        AlternativePlacementMode Mode { get; }
+    }
+
+    [Serializable]
+    public sealed class MergeFirstAlternativePlacementStrategy : IAlternativePlacementStrategy
+    {
+        public AlternativePlacementMode Mode => AlternativePlacementMode.MergeFirst;
+    }
+
+    [Serializable]
+    public sealed class EmptyFirstAlternativePlacementStrategy : IAlternativePlacementStrategy
+    {
+        public AlternativePlacementMode Mode => AlternativePlacementMode.EmptyFirst;
+    }
+
+    [Serializable]
+    public sealed class MergeOnlyAlternativePlacementStrategy : IAlternativePlacementStrategy
+    {
+        public AlternativePlacementMode Mode => AlternativePlacementMode.MergeOnly;
+    }
+
+    [Serializable]
+    public sealed class EmptyOnlyAlternativePlacementStrategy : IAlternativePlacementStrategy
+    {
+        public AlternativePlacementMode Mode => AlternativePlacementMode.EmptyOnly;
+    }
+
+    [Serializable]
+    public abstract class BlockedTargetResolverBase
+    {
+        public abstract BlockedTargetBehavior Behavior { get; }
+
+        public virtual AlternativePlacementMode GetAlternativePlacement()
+        {
+            return AlternativePlacementMode.MergeFirst;
+        }
+    }
+
+    [Serializable]
+    public sealed class RejectBlockedTargetResolver : BlockedTargetResolverBase
+    {
+        public override BlockedTargetBehavior Behavior => BlockedTargetBehavior.Reject;
+    }
+
+    [Serializable]
+    public sealed class SwapBlockedTargetResolver : BlockedTargetResolverBase
+    {
+        public override BlockedTargetBehavior Behavior => BlockedTargetBehavior.Swap;
+    }
+
+    [Serializable]
+    public sealed class FindAlternativeBlockedTargetResolver : BlockedTargetResolverBase
+    {
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
+        private IAlternativePlacementStrategy _alternativePlacementStrategy = new MergeFirstAlternativePlacementStrategy();
+
+        public override BlockedTargetBehavior Behavior => BlockedTargetBehavior.FindAlternative;
+
+        public void SetAlternativePlacementStrategy(IAlternativePlacementStrategy strategy)
+        {
+            _alternativePlacementStrategy = strategy;
+        }
+
+        public override AlternativePlacementMode GetAlternativePlacement()
+        {
+            return _alternativePlacementStrategy?.Mode ?? AlternativePlacementMode.MergeFirst;
+        }
+    }
+
     public readonly struct DropRequestPolicy
     {
         public DropRequestPolicy(
@@ -129,28 +200,34 @@ namespace UniversalDragAndDrop.Core
     [Serializable]
     public sealed class DropPolicySettings
     {
-        [SerializeField, Tooltip("What to do if nothing can be placed into the target slot: reject, try swapping, or look for another slot.")]
-        private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
+        private BlockedTargetResolverBase _blockedTargetResolver = new FindAlternativeBlockedTargetResolver();
         [SerializeField, Tooltip("Used by strategies that support merge-on-drop behavior. Each strategy decides how this flag is interpreted.")]
         private bool _allowMergeOnDrop = true;
         [SerializeField, Tooltip("Allow partial transfer if only part of the requested amount fits.")]
         private bool _allowPartial = true;
         [SerializeField, Tooltip("How to process batch transfers: Atomic cancels the whole operation on the first error, BestEffort transfers whatever succeeds.")]
         private BatchMode _batchMode = BatchMode.BestEffort;
-        [SerializeField, Tooltip("Order of alternative slot search for FindAlternative. Used by the placement strategy.")]
+        [SerializeField, HideInInspector]
+        private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
+        [SerializeField, HideInInspector]
         private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
 
         public bool AllowMergeOnDrop => _allowMergeOnDrop;
 
         public ResolvedDropPolicy Resolve(DropRequestPolicy? requested, DragContext context)
         {
+            EnsureResolverInitialized();
+
+            var configuredBlocked = _blockedTargetResolver?.Behavior ?? BlockedTargetBehavior.FindAlternative;
+            var configuredAlternativePlacement = _blockedTargetResolver?.GetAlternativePlacement() ?? AlternativePlacementMode.MergeFirst;
             var blocked = requested.HasValue && requested.Value.BlockedTarget.HasValue
                 ? requested.Value.BlockedTarget.Value
-                : _blockedTarget;
+                : configuredBlocked;
 
             var alternativePlacement = requested.HasValue && requested.Value.AlternativePlacement.HasValue
                 ? requested.Value.AlternativePlacement.Value
-                : _alternativePlacement;
+                : configuredAlternativePlacement;
 
             var allowPartial = requested.HasValue && requested.Value.AllowPartial.HasValue
                 ? requested.Value.AllowPartial.Value
@@ -161,6 +238,51 @@ namespace UniversalDragAndDrop.Core
                 allowPartial,
                 _batchMode,
                 alternativePlacement);
+        }
+
+        private void EnsureResolverInitialized()
+        {
+            if (_blockedTargetResolver != null)
+                return;
+
+            switch (_blockedTarget)
+            {
+                case BlockedTargetBehavior.Reject:
+                    _blockedTargetResolver = new RejectBlockedTargetResolver();
+                    break;
+
+                case BlockedTargetBehavior.Swap:
+                    _blockedTargetResolver = new SwapBlockedTargetResolver();
+                    break;
+
+                case BlockedTargetBehavior.FindAlternative:
+                default:
+                    _blockedTargetResolver = CreateFindAlternativeResolver(_alternativePlacement);
+                    break;
+            }
+        }
+
+        private static BlockedTargetResolverBase CreateFindAlternativeResolver(AlternativePlacementMode mode)
+        {
+            var resolver = new FindAlternativeBlockedTargetResolver();
+            switch (mode)
+            {
+                case AlternativePlacementMode.EmptyFirst:
+                    resolver.SetAlternativePlacementStrategy(new EmptyFirstAlternativePlacementStrategy());
+                    break;
+                case AlternativePlacementMode.MergeOnly:
+                    resolver.SetAlternativePlacementStrategy(new MergeOnlyAlternativePlacementStrategy());
+                    break;
+                case AlternativePlacementMode.EmptyOnly:
+                    resolver.SetAlternativePlacementStrategy(new EmptyOnlyAlternativePlacementStrategy());
+                    break;
+                case AlternativePlacementMode.MergeFirst:
+                default:
+                    resolver.SetAlternativePlacementStrategy(new MergeFirstAlternativePlacementStrategy());
+                    break;
+            }
+
+            return resolver;
         }
     }
 
