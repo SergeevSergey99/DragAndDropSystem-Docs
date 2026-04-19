@@ -55,7 +55,19 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Specialized processor interface used by request-driven drop handling. |
 | `Scripts/Core/DropAreaBase.cs` | `DropAreaBase` | Base class for non-slot drop targets such as inventory areas or world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Standard inventory area drop target built on top of `DropAreaBase`. |
-| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `DropPolicySettings`, `DropRequestPolicySettings`, `DragRequestPolicySettings` | Policy enums and settings objects that control planning behavior, batch semantics, alternative placement, and amount selection. |
+| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Core drop policy enums and resolved/request policy value types used by planning and execution. |
+| `Scripts/Core/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level drop policy defaults, including the blocked-target resolver and batch/partial settings. |
+| `Scripts/Core/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Serializable authoring helper for one-off drop request overrides in actions and triggers. |
+| `Scripts/Core/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Serializable authoring helper for temporary drag-amount overrides when starting a drag. |
+| `Scripts/Core/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Base class for blocked-target behavior authoring in `DropPolicySettings`. |
+| `Scripts/Core/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver that rejects a blocked target immediately. |
+| `Scripts/Core/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver that prefers swap planning on blocked targets. |
+| `Scripts/Core/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver that delegates blocked-target handling to an alternative placement strategy. |
+| `Scripts/Core/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contract for alternative slot search order used by `FindAlternativeBlockedTargetResolver`. |
+| `Scripts/Core/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers merge candidates first. |
+| `Scripts/Core/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers empty slots first. |
+| `Scripts/Core/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Alternative placement strategy that considers only merge candidates. |
+| `Scripts/Core/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Alternative placement strategy that considers only empty slots. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Interface for objects that expose drop policy settings. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Request model used when checking whether an inventory can accept an incoming item/stack. |
 | `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing entry point that translates drop attempts into planning and execution calls. |

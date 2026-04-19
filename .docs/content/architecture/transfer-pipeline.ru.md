@@ -237,19 +237,21 @@ flowchart TD
 - `DropPolicySettings`
   - inventory-level defaults в `UniversalInventory`
   - задаёт:
-    - blocked target behavior
+    - blocked target resolver
     - allow merge on drop
     - allow partial
     - batch mode
-    - alternative placement mode
+    - alternative placement strategy для `FindAlternative`
 - `ResolvedDropPolicy`
   - итог после resolution
   - именно он используется planner-ом
 
-`BlockedTargetBehavior`:
+Встроенные blocked target resolver'ы:
 - `Reject`
 - `Swap`
 - `FindAlternative`
+
+Если выбран `FindAlternative`, внутри него задаётся вложенная `[SerializeReference]` `IAlternativePlacementStrategy`.
 
 ## Временный override через actions
 
@@ -270,6 +272,23 @@ flowchart TD
   1. action request override
   2. drop-target override
   3. inventory defaults
+
+## Кастомные расширения Drop Policy
+
+Чтобы создать своё поведение для blocked target:
+
+1. Создайте класс-наследник `BlockedTargetResolverBase`.
+2. Пометьте его `[Serializable]`.
+3. Переопределите `Behavior`.
+4. Если resolver должен управлять alternative placement, переопределите `GetAlternativePlacement()`.
+5. Класс автоматически появится в managed reference picker у `DropPolicySettings`.
+
+Чтобы создать свою стратегию alternative placement:
+
+1. Создайте класс, реализующий `IAlternativePlacementStrategy`.
+2. Пометьте его `[Serializable]`.
+3. Верните нужный `AlternativePlacementMode` из `Mode`.
+4. Класс автоматически появится внутри `FindAlternativeBlockedTargetResolver`.
 
 ## Порядок обработки Drop Policy
 

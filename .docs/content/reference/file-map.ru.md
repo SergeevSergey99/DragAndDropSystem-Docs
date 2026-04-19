@@ -55,7 +55,19 @@
 | `Scripts/Core/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
 | `Scripts/Core/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Стандартная drop-area инвентаря на основе `DropAreaBase`. |
-| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `DropPolicySettings`, `DropRequestPolicySettings`, `DragRequestPolicySettings` | Enum'ы и settings-объекты, управляющие planning, batch-семантикой, alternative placement и выбором количества предметов. |
+| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Базовые enum'ы и value-type модели drop policy, используемые planning и execution. |
+| `Scripts/Core/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level настройки drop policy, включая blocked-target resolver и параметры batch/partial. |
+| `Scripts/Core/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемый helper для временных drop request override'ов в actions и triggers. |
+| `Scripts/Core/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
+| `Scripts/Core/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Базовый класс для authoring blocked-target поведения в `DropPolicySettings`. |
+| `Scripts/Core/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver, который сразу отклоняет blocked target. |
+| `Scripts/Core/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который предпочитает swap planning при blocked target. |
+| `Scripts/Core/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который делегирует blocked-target обработку стратегии alternative placement. |
+| `Scripts/Core/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Контракт для порядка поиска альтернативных слотов, используемый `FindAlternativeBlockedTargetResolver`. |
+| `Scripts/Core/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет merge-кандидаты. |
+| `Scripts/Core/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет пустые слоты. |
+| `Scripts/Core/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только merge-кандидаты. |
+| `Scripts/Core/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только пустые слоты. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Интерфейс для объектов, которые отдают активные настройки drop policy. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Модель запроса на проверку, может ли инвентарь принять входящий предмет или стек. |
 | `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing точка входа, переводящая drop attempt в planning и execution. |

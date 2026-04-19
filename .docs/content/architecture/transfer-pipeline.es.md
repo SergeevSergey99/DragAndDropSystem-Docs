@@ -235,18 +235,20 @@ El modelo actual tiene tres capas:
 - `DropPolicySettings`
   - valores por defecto a nivel de inventario en `UniversalInventory`
   - define:
-    - comportamiento con target bloqueado
+    - blocked target resolver
     - permitir merge on drop
     - permitir parcial
     - batch mode
-    - alternative placement mode
+    - strategy de colocación alternativa para `FindAlternative`
 - `ResolvedDropPolicy`
   - policy final no anulable que usa el planner
 
-`BlockedTargetBehavior`:
+Resolvers integrados para blocked target:
 - `Reject`
 - `Swap`
 - `FindAlternative`
+
+Cuando se selecciona `FindAlternative`, contiene internamente una `[SerializeReference]` `IAlternativePlacementStrategy`.
 
 ## Override temporal a través de acciones
 
@@ -267,6 +269,23 @@ Importante:
   1. action request override
   2. drop-target override
   3. inventory defaults
+
+## Extensiones personalizadas de Drop Policy
+
+Para crear tu propio comportamiento de blocked target:
+
+1. Crea una clase que herede de `BlockedTargetResolverBase`.
+2. Márquela con `[Serializable]`.
+3. Sobrescribe `Behavior`.
+4. Si tu resolver necesita controlar la colocación alternativa, sobrescribe `GetAlternativePlacement()`.
+5. La clase aparecerá automáticamente en el managed reference picker de `DropPolicySettings`.
+
+Para crear tu propia strategy de colocación alternativa:
+
+1. Crea una clase que implemente `IAlternativePlacementStrategy`.
+2. Márquela con `[Serializable]`.
+3. Devuelve el `AlternativePlacementMode` deseado desde `Mode`.
+4. La clase aparecerá automáticamente dentro de `FindAlternativeBlockedTargetResolver`.
 
 ## Orden de procesamiento de Drop Policy
 

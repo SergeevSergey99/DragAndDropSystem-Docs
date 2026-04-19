@@ -84,6 +84,8 @@ Legacy input setup notes:
 - `UniversalInventory` authors inventory strategy and slot management directly through `[SerializeReference]` pickers.
 - Add a custom inventory behavior by inheriting from `InventoryStrategyBase`.
 - Add a custom slot lifecycle mode by inheriting from `SlotManagementSettingsBase`.
+- Add a custom blocked-target drop behavior by inheriting from `BlockedTargetResolverBase`.
+- Add a custom alternative slot search strategy by implementing `IAlternativePlacementStrategy` inside `FindAlternativeBlockedTargetResolver`.
 - Runtime code is split into asmdefs for cleaner integration.
 - Example scenes are meant to show integration patterns, not the only valid architecture.
 
