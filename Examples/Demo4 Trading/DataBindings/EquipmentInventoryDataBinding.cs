@@ -4,7 +4,6 @@ using UniversalDragAndDrop.Examples.Trading.Data;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Examples.Trading.Data;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Rules;
 using UniversalDragAndDrop.Slots;

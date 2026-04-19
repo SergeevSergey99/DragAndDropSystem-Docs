@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CodeUtils;
 using UniversalDragAndDrop.Examples.Trading.Data;
 using UnityEngine;
-using UniversalDragAndDrop.Examples.Trading.Data;
 using UniversalDragAndDrop.Tools.Inspector;
 
 namespace UniversalDragAndDrop.Examples.Trading

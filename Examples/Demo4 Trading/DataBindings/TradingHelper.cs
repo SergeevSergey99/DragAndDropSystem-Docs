@@ -1,6 +1,5 @@
 using UniversalDragAndDrop.Examples.Trading.Data;
 using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Examples.Trading.Data;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Rules;
 
