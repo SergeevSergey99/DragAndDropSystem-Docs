@@ -38,18 +38,8 @@ namespace UniversalDragAndDrop.Inventories
         private InventoryStrategySettingsBase _inventoryStrategy = new StackableInventoryStrategySettings();
 
         [FoldoutGroup("Strategy")]
-        [SerializeField, LabelText("Slot Management")]
-        private SlotManagementType _slotManagement = SlotManagementType.Fixed;
-
-        [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Maximum number of slots (for Dynamic)")]
-        [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
-        private int _maxDynamicSlots = 100;
-
-        [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Minimum number of free slots (for Dynamic). 0 = create only on TryAddItem, not when moving into slots")]
-        [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
-        private int _maxFreeSlots = 1;
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
+        private SlotManagementSettingsBase _slotManagementSettings = new FixedSlotManagementSettings();
 
         [FoldoutGroup("Rules")]
         [SerializeField, HideLabel]
@@ -83,7 +73,14 @@ namespace UniversalDragAndDrop.Inventories
                 return _inventoryStrategy.GetLegacyBehaviorType();
             }
         }
-        public SlotManagementType SlotManagement => _slotManagement;
+        public SlotManagementType SlotManagement
+        {
+            get
+            {
+                EnsureSlotManagementSettings();
+                return _slotManagementSettings.GetLegacyType();
+            }
+        }
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
         internal bool AllowMergeOnDrop => _dropPolicy != null && _dropPolicy.AllowMergeOnDrop;
@@ -247,9 +244,19 @@ namespace UniversalDragAndDrop.Inventories
         [SerializeField, HideInInspector]
         private bool _allowItemStackOverride;
 
+        [SerializeField, HideInInspector]
+        private SlotManagementType _slotManagement = SlotManagementType.Fixed;
+
+        [SerializeField, HideInInspector]
+        private int _maxDynamicSlots = 100;
+
+        [SerializeField, HideInInspector]
+        private int _maxFreeSlots = 1;
+
         private void Awake()
         {
             EnsureInventoryStrategySettings();
+            EnsureSlotManagementSettings();
 
             // Ensure lazy initialization has not already happened
             if (_strategy == null)
@@ -268,6 +275,7 @@ namespace UniversalDragAndDrop.Inventories
         private void OnValidate()
         {
             EnsureInventoryStrategySettings();
+            EnsureSlotManagementSettings();
 
             // Sort rules when values change in the Inspector
             _ruleValidator?.OnValidate();
@@ -367,10 +375,11 @@ namespace UniversalDragAndDrop.Inventories
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
 
             // Wrap it in a decorator for dynamic slots if needed
-            if (_slotManagement == SlotManagementType.Dynamic)
+            IInventoryStrategy configuredStrategy = _slotManagementSettings.WrapRuntimeStrategy(this, baseStrategy, CreateSlot, () => _slots, EnsureFreeSlots);
+            if (!ReferenceEquals(configuredStrategy, baseStrategy))
             {
-                SetStrategy(new DynamicSlotDecorator(baseStrategy, CreateSlot, _maxDynamicSlots, _maxFreeSlots, () => _slots, EnsureFreeSlots));
-                Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy wrapped in DynamicSlotDecorator (max: {_maxDynamicSlots}, maxFree: {_maxFreeSlots})</color>");
+                SetStrategy(configuredStrategy);
+                Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy wrapped by {_slotManagementSettings.GetType().Name}</color>");
             }
             else
             {
@@ -434,9 +443,8 @@ namespace UniversalDragAndDrop.Inventories
             return new StrategyConfiguration(
                 _inventoryStrategy?.GetType().AssemblyQualifiedName,
                 _inventoryStrategy?.CaptureConfigurationJson(),
-                _slotManagement,
-                _maxDynamicSlots,
-                _maxFreeSlots,
+                _slotManagementSettings?.GetType().AssemblyQualifiedName,
+                _slotManagementSettings?.CaptureConfigurationJson(),
                 _dropPolicy.AllowMergeOnDrop);
         }
 
@@ -895,6 +903,14 @@ namespace UniversalDragAndDrop.Inventories
             _inventoryStrategy = CreateInventoryStrategyFromLegacyFields();
         }
 
+        private void EnsureSlotManagementSettings()
+        {
+            if (_slotManagementSettings != null)
+                return;
+
+            _slotManagementSettings = CreateSlotManagementFromLegacyFields();
+        }
+
         private InventoryStrategySettingsBase CreateInventoryStrategyFromLegacyFields()
         {
             switch (_itemBehavior)
@@ -929,6 +945,23 @@ namespace UniversalDragAndDrop.Inventories
             strategy.SetDragSettings(_dragAmount, _customDragAmount);
         }
 
+        private SlotManagementSettingsBase CreateSlotManagementFromLegacyFields()
+        {
+            switch (_slotManagement)
+            {
+                case SlotManagementType.Dynamic:
+                {
+                    var settings = new DynamicSlotManagementSettings();
+                    settings.SetLegacyValues(_maxDynamicSlots, _maxFreeSlots);
+                    return settings;
+                }
+
+                case SlotManagementType.Fixed:
+                default:
+                    return new FixedSlotManagementSettings();
+            }
+        }
+
         /// <summary>
         /// Check whether the inventory can accept an item (without targeting a specific slot)
         /// Checks inventory rules plus matching slot availability or the ability to create a new slot
@@ -948,8 +981,8 @@ namespace UniversalDragAndDrop.Inventories
 
             EnsureStrategyInitialized();
 
-            bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
-            int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
+            bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
+            int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
             bool canAccept = _acceptanceStrategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
 
             if (canAccept)
@@ -967,8 +1000,8 @@ namespace UniversalDragAndDrop.Inventories
 
             EnsureStrategyInitialized();
 
-            bool canCreateNewSlot = _slotManagement == SlotManagementType.Dynamic && _slots.Count < _maxDynamicSlots;
-            int potentialNewSlots = Mathf.Max(0, _maxDynamicSlots - _slots.Count);
+            bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
+            int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
             int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
             Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: itemAdapter={request.ItemAdapter.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
@@ -979,18 +1012,8 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         public void EnsureFreeSlots()
         {
-            if (_slotManagement != SlotManagementType.Dynamic)
-                return;
-
-            int freeSlots = CountFreeSlots();
-
-            // Create missing slots
-            int slotsToCreate = _maxFreeSlots - freeSlots;
-            for (int i = 0; i < slotsToCreate && _slots.Count < _maxDynamicSlots; i++)
-            {
-                CreateSlot();
-                Extensions.DragAndDropLog($"<color=green>[{name}] EnsureFreeSlots: Created slot {_slots.Count}, free slots now: {freeSlots + i + 1}/{_maxFreeSlots}</color>");
-            }
+            EnsureSlotManagementSettings();
+            _slotManagementSettings.EnsureFreeSlots(this, _initialSlotCount, CountFreeSlots, CreateSlot);
         }
 
         /// <summary>
@@ -999,7 +1022,7 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         public void HandleSlotEmptied(BaseSlot baseSlot)
         {
-            if (_slotManagement != SlotManagementType.Dynamic || baseSlot == null)
+            if (SlotManagement != SlotManagementType.Dynamic || baseSlot == null)
                 return;
 
             if (!ReferenceEquals(baseSlot.Inventory, this))
@@ -1026,7 +1049,7 @@ namespace UniversalDragAndDrop.Inventories
 
         private void TrimExcessFreeSlots(BaseSlot preferredBaseSlot)
         {
-            if (_slotManagement != SlotManagementType.Dynamic)
+            if (SlotManagement != SlotManagementType.Dynamic)
                 return;
 
             bool removedAny = false;
@@ -1055,17 +1078,8 @@ namespace UniversalDragAndDrop.Inventories
 
         private bool CanRemoveAnotherSlot()
         {
-            if (_slotManagement != SlotManagementType.Dynamic)
-                return false;
-
-            if (_slots.Count <= _initialSlotCount)
-                return false;
-
-            int freeSlots = CountFreeSlots();
-            if (freeSlots <= _maxFreeSlots)
-                return false;
-
-            return true;
+            EnsureSlotManagementSettings();
+            return _slotManagementSettings.CanRemoveAnotherSlot(this, _slots.Count, _initialSlotCount, CountFreeSlots());
         }
 
         private BaseSlot FindLastEmptySlot()
