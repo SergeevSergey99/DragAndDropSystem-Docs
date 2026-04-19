@@ -215,7 +215,7 @@ function Slide3() {
       <HeaderBar
         eyebrow="02 — Architecture"
         title="One diagram. Keep it in your head."
-        sub="Five nodes. Two of them are yours, three are ours. That's the whole contract."
+        sub="Most integrations come down to one binding and a tiny item adapter. The rest of the runtime stays built in."
       />
 
       <div style={{flex:1, position:'relative', display:'flex', alignItems:'center', justifyContent:'center'}}>
