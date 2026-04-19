@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dabb9613d143a9a269c7247d3e9fba, type: 3}
   m_Name: Container Item SO 3
   m_EditorClassIdentifier: 
-  <DisplayName>k__BackingField: Backpack
-  <Icon>k__BackingField: {fileID: 4477621967672895297, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
+  <DisplayName>k__BackingField: Satchel
+  <Icon>k__BackingField: {fileID: 21300000, guid: 7ef12e14efeec034c87bc8bb8e117ad7, type: 3}
   <Description>k__BackingField: 
   _capacity: 16

@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5dc45f5674feb6a44a00e2a712051cff, type: 3}
-  m_Name: Hat Item SO
+  m_Name: Juice Item SO
   m_EditorClassIdentifier: 
-  <DisplayName>k__BackingField: Hat
-  <Icon>k__BackingField: {fileID: 1686831873149144, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
+  <DisplayName>k__BackingField: Juice
+  <Icon>k__BackingField: {fileID: 21300000, guid: 988f6cbb0e0c27a4ea85c289b1e74a33, type: 3}
   <Description>k__BackingField: 

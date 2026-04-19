@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5dc45f5674feb6a44a00e2a712051cff, type: 3}
-  m_Name: Fish Item SO
+  m_Name: Key Item SO
   m_EditorClassIdentifier: 
-  <DisplayName>k__BackingField: Fish
-  <Icon>k__BackingField: {fileID: 7816706509936985563, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
+  <DisplayName>k__BackingField: Key
+  <Icon>k__BackingField: {fileID: 21300000, guid: e9c650471e282e14d8b579e81a2c4c5d, type: 3}
   <Description>k__BackingField: 
