@@ -979,7 +979,7 @@ MonoBehaviour:
       type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
       data: 
     - rid: 8490480897462108209
-      type: {class: UniqueInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: UniqueItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
@@ -1616,7 +1616,7 @@ MonoBehaviour:
       type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
       data: 
     - rid: 8490480897462108210
-      type: {class: UniqueInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: UniqueItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
