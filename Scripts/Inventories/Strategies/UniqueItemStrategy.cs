@@ -10,7 +10,7 @@ namespace UniversalDragAndDrop.Inventories
     /// Used for inventories with unique items
     /// </summary>
     [Serializable]
-    public class UniqueItemStrategy : InventoryStrategyBase
+    public class UniqueItemStrategy : InventoryStrategyBase, IUniqueInventoryStrategy
     {
         protected override bool ShowDragAmountSettings => false;
         public override int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount) => 1;

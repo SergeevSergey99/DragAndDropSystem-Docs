@@ -22,7 +22,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | File | Types | Rol |
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Gestor global de escena para arrastres activos. Sigue el lifecycle del drag, el contexto actual y la orquestación de alto nivel. |
-| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Componente principal del inventario. Posee slots, configuración de strategy, colecciones de rules y comportamiento de transferencia a nivel de inventario. |
+| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Componente principal del inventario. Posee slots, campos de strategy directos con `[SerializeReference]`, colecciones de rules y comportamiento de transferencia a nivel de inventario. |
 | `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Base abstracta de slot usada por inventarios y por el código de planning/execution. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Implementación concreta por defecto del slot usada por el paquete. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Clase base que conecta `UniversalInventory` con tu fuente de datos de juego. |
@@ -110,11 +110,16 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs` | `IInventoryQueryStrategy` | Contrato de strategy orientado a lecturas/queries usado por el código de más alto nivel del inventario. |
 | `Scripts/Inventories/Strategies/IInventoryStrategy.cs` | `IInventoryStrategy` | Interface compuesta implementada por los comportamientos concretos del inventario. |
 | `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Clase base para implementaciones de placement/acceptance strategy. |
+| `Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs` | `StackBasedInventoryStrategyBase` | Base compartida orientada a stacks con límite de stack y soporte de override por item. |
+| `Scripts/Inventories/Strategies/StrategyCapabilities.cs` | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Interfaces semánticas opcionales para código personalizado. |
 | `Scripts/Inventories/Strategies/UniqueItemStrategy.cs` | `UniqueItemStrategy` | Strategy en la que cada slot contiene una unidad o stack independiente. |
 | `Scripts/Inventories/Strategies/StackableItemStrategy.cs` | `StackableItemStrategy` | Strategy centrada en el comportamiento normal de fusión de stacks. |
 | `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs` | `SeparableStacksStrategy` | Strategy para stacks que soportan split y movimientos parciales más granulares. |
+| `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Clase base para modos de ciclo de vida de slots seleccionados directamente en `UniversalInventory`. |
+| `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Modo fijo de ciclo de vida de slots. |
+| `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Modo dinámico con mantenimiento de slots libres y hooks de trimming. |
 | `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs` | `DynamicSlotDecorator` | Decorador que añade creación/gestión dinámica de slots alrededor de otra strategy. |
-| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Configuración serializada de strategies usada por `UniversalInventory`. |
+| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Snapshot de runtime usado para refrescar strategy, slot management y merge policy. |
 
 ---
 

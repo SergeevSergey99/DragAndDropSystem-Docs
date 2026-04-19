@@ -22,7 +22,7 @@
 | Файл | Types | Назначение |
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Глобальный менеджер активного drag-and-drop в сцене. Отслеживает lifecycle перетаскивания, текущий context и верхнеуровневую координацию. |
-| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Главный компонент инвентаря. Владеет слотами, конфигурацией стратегий, наборами правил и inventory-level поведением переноса. |
+| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Главный компонент инвентаря. Владеет слотами, прямыми `[SerializeReference]` полями стратегий, наборами правил и inventory-level поведением переноса. |
 | `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Абстрактная базовая сущность слота, которую используют инвентари, planning и execution. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Стандартная конкретная реализация слота, используемая пакетом. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Базовый binding, связывающий `UniversalInventory` с вашим источником игровых данных. |
@@ -110,11 +110,16 @@
 | `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs` | `IInventoryQueryStrategy` | Контракт стратегии для query/read-операций по инвентарю. |
 | `Scripts/Inventories/Strategies/IInventoryStrategy.cs` | `IInventoryStrategy` | Сводный интерфейс, который реализуют конкретные inventory behavior strategy. |
 | `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Базовый класс для placement/acceptance стратегий. |
+| `Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs` | `StackBasedInventoryStrategyBase` | Общая stack-aware база с лимитом стека и поддержкой per-item override. |
+| `Scripts/Inventories/Strategies/StrategyCapabilities.cs` | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Опциональные semantic capability interfaces для кастомного кода. |
 | `Scripts/Inventories/Strategies/UniqueItemStrategy.cs` | `UniqueItemStrategy` | Стратегия, в которой каждый слот хранит отдельный предмет или стек без merge-логики. |
 | `Scripts/Inventories/Strategies/StackableItemStrategy.cs` | `StackableItemStrategy` | Стратегия для обычного merge-поведения stackable предметов. |
 | `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs` | `SeparableStacksStrategy` | Стратегия для стеков, поддерживающих split и частичные переносы. |
+| `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Базовый класс для режимов жизненного цикла слотов, выбираемых прямо в `UniversalInventory`. |
+| `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Fixed-режим жизненного цикла слотов. |
+| `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Dynamic-режим с поддержкой свободных слотов и trimming hooks. |
 | `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs` | `DynamicSlotDecorator` | Декоратор, добавляющий dynamic slot creation/management поверх другой стратегии. |
-| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Сериализуемая конфигурация стратегии, используемая в `UniversalInventory`. |
+| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Runtime snapshot для refresh логики стратегии, slot management и merge policy. |
 
 ---
 

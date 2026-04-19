@@ -39,8 +39,8 @@ En ese caso, las funciones basadas en `InputAction` pueden no comportarse como e
 
     | Campo | Valor |
     |---|---|
-    | `Item Behavior` | `Unique` para empezar de la forma más simple, de modo que cada item esté en un slot separado |
-    | `Slot Management` | `Fixed` para un número fijo de slots |
+    | `Inventory Strategy` | `UniqueItemStrategy` para empezar de la forma más simple, de modo que cada item esté en un slot separado |
+    | `Slot Management` | `FixedSlotManagementSettings` para un número fijo de slots |
     | `Initial Slot Count` | por ejemplo `10`. Se crearán en `Slot Container` al iniciar. Si ya los has creado manualmente allí, puedes almacenarlos en caché pulsando el botón |
     | `Slot Prefab` | `Prefabs/Slot.prefab` |
     | `Slot Container` | contenedor padre de los slots, preferiblemente con `GridLayout` u otro componente que controle el layout de los hijos |
@@ -162,5 +162,6 @@ flowchart LR
 
 - [Examples](../examples/index.md) — si quieres elegir entre las 5 demos
 - [Data Binding](../architecture/data-binding.md) — si necesitas entender el lifecycle y los puntos de extensión
+- [Placement Strategies](../architecture/strategies.md) — si quieres añadir tu propia strategy o modo de slot management
 - [Troubleshooting](../reference/troubleshooting.md) — si la escena básica no funciona a la primera
 

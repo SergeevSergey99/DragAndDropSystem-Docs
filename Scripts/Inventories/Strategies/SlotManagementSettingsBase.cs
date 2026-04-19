@@ -8,6 +8,10 @@ namespace UniversalDragAndDrop.Inventories
     [Serializable]
     public abstract class SlotManagementSettingsBase
     {
+        public virtual void BindInventory(UniversalInventory inventory)
+        {
+        }
+
         public virtual IInventoryStrategy WrapRuntimeStrategy(
             UniversalInventory inventory,
             IInventoryStrategy baseStrategy,
@@ -35,6 +39,18 @@ namespace UniversalDragAndDrop.Inventories
         public virtual bool CanRemoveAnotherSlot(UniversalInventory inventory, int currentSlotCount, int initialSlotCount, int freeSlotCount)
         {
             return false;
+        }
+
+        public virtual void HandleSlotEmptied(
+            UniversalInventory inventory,
+            BaseSlot preferredBaseSlot,
+            int currentSlotCount,
+            int initialSlotCount,
+            Func<int> countFreeSlots,
+            Func<BaseSlot> findLastEmptySlot,
+            Func<BaseSlot, bool> tryRemoveSlot,
+            Action updateAllVisuals)
+        {
         }
 
         internal string CaptureConfigurationJson()

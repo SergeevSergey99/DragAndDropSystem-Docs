@@ -95,8 +95,8 @@ flowchart TD
 
 | Параметр | Значения | Описание |
 |---|---|---|
-| **Item Behavior** | `Unique` / `Stackable` / `SeparableStacks` | Стратегия размещения предметов |
-| **Slot Management** | `Fixed` / `Dynamic` | Фиксированные слоты или динамическое создание |
+| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Стратегия размещения предметов, выбираемая напрямую через `[SerializeReference]` |
+| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Режим жизненного цикла слотов, выбираемый напрямую через `[SerializeReference]` |
 | **Max Slots** | число | Максимум слотов (для Dynamic) |
 | **Max Free Slots** | число | Сколько пустых слотов поддерживать (для Dynamic) |
 | **Drag Amount** | `One` / `Half` / `All` / `Custom` | Сколько предметов перетаскивать из стака |
@@ -108,7 +108,9 @@ flowchart TD
 Чтобы создать собственную стратегию размещения:
 
 1. Создайте класс-наследник `InventoryStrategyBase`.
-2. Переопределите ключевые методы:
+2. Пометьте его `[Serializable]`.
+3. Он автоматически появится в strategy picker у `UniversalInventory`.
+4. Переопределите ключевые методы:
 
 ```csharp
 public class MyCustomStrategy : InventoryStrategyBase
@@ -154,6 +156,15 @@ public class MyCustomStrategy : InventoryStrategyBase
 !!! tip "Проверка правил"
     Используйте метод `PassesRules(slot, item, count)` из базового класса для проверки правил слота перед размещением.
 
+## Свой Slot Management
+
+Чтобы создать собственный режим жизненного цикла слотов:
+
+1. Создайте класс-наследник `SlotManagementSettingsBase`.
+2. Пометьте его `[Serializable]`.
+3. Переопределите нужные hooks, например `WrapRuntimeStrategy`, `EnsureFreeSlots` или `HandleSlotEmptied`.
+4. Он автоматически появится в picker поля `Slot Management` у `UniversalInventory`.
+
 ---
 
 ## Ключевые классы
@@ -161,8 +172,11 @@ public class MyCustomStrategy : InventoryStrategyBase
 | Концепция | Класс | Описание |
 |---|---|---|
 | Базовый класс | `InventoryStrategyBase` | Общие методы для всех стратегий |
+| Общая stack-база | `StackBasedInventoryStrategyBase` | Общая поддержка лимита стека и per-item override для stack-стратегий |
 | Уникальные | `UniqueItemStrategy` | Один предмет = один слот |
 | Стакающиеся | `StackableItemStrategy` | Автоматическое объединение стаков |
 | Разделяемые | `SeparableStacksStrategy` | Независимые стаки с опциональным слиянием |
-| Динамические слоты | `DynamicSlotDecorator` | Декоратор для автосоздания слотов |
+| Capability interfaces | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Опциональные semantic-интерфейсы для кастомного кода |
+| База slot management | `SlotManagementSettingsBase` | Базовый класс для fixed, dynamic и custom режимов жизненного цикла слотов |
+| Динамические слоты | `DynamicSlotManagementSettings`, `DynamicSlotDecorator` | Dynamic-режим и его runtime-декоратор |
 | Интерфейс | `IInventoryStrategy` | Контракт для всех стратегий |

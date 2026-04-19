@@ -95,8 +95,8 @@ Works with any of the three strategies.
 
 | Parameter | Values | Description |
 |---|---|---|
-| **Item Behavior** | `Unique` / `Stackable` / `SeparableStacks` | Item placement strategy |
-| **Slot Management** | `Fixed` / `Dynamic` | Fixed slots or dynamic creation |
+| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Item placement strategy selected directly through `[SerializeReference]` |
+| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Slot lifecycle mode selected directly through `[SerializeReference]` |
 | **Max Slots** | number | Maximum slots (for Dynamic) |
 | **Max Free Slots** | number | How many empty slots to maintain (for Dynamic) |
 | **Drag Amount** | `One` / `Half` / `All` / `Custom` | How many items to drag from a stack |
@@ -108,7 +108,9 @@ Works with any of the three strategies.
 To create your own placement strategy:
 
 1. Create a class inheriting from `InventoryStrategyBase`.
-2. Override the key methods:
+2. Mark it `[Serializable]`.
+3. It appears automatically in the `UniversalInventory` strategy picker.
+4. Override the key methods:
 
 ```csharp
 public class MyCustomStrategy : InventoryStrategyBase
@@ -154,6 +156,15 @@ public class MyCustomStrategy : InventoryStrategyBase
 !!! tip "Rule Validation"
     Use the `PassesRules(slot, item, count)` method from the base class to validate slot rules before placement.
 
+## Custom Slot Management
+
+To create your own slot lifecycle mode:
+
+1. Create a class inheriting from `SlotManagementSettingsBase`.
+2. Mark it `[Serializable]`.
+3. Override the hooks you need, for example `WrapRuntimeStrategy`, `EnsureFreeSlots`, or `HandleSlotEmptied`.
+4. It appears automatically in the `UniversalInventory` slot management picker.
+
 ---
 
 ## Key Classes
@@ -161,8 +172,11 @@ public class MyCustomStrategy : InventoryStrategyBase
 | Concept | Class | Description |
 |---|---|---|
 | Base class | `InventoryStrategyBase` | Common methods for all strategies |
+| Shared stack base | `StackBasedInventoryStrategyBase` | Shared stack size and per-item override support for stack-oriented strategies |
 | Unique | `UniqueItemStrategy` | One item = one slot |
 | Stackable | `StackableItemStrategy` | Automatic stack merging |
 | Separable | `SeparableStacksStrategy` | Independent stacks with optional merging |
-| Dynamic slots | `DynamicSlotDecorator` | Decorator for automatic slot creation |
+| Capabilities | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Optional semantic interfaces for custom code |
+| Slot management base | `SlotManagementSettingsBase` | Base class for fixed, dynamic, and custom slot lifecycle modes |
+| Dynamic slots | `DynamicSlotManagementSettings`, `DynamicSlotDecorator` | Dynamic slot mode and its runtime decorator |
 | Interface | `IInventoryStrategy` | Contract for all strategies |

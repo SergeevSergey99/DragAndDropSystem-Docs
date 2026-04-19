@@ -65,28 +65,6 @@ namespace UniversalDragAndDrop.Inventories
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
         public InventoryRuleValidator RuleValidator => _ruleValidator;
-        public ItemBehaviorType ItemBehavior
-        {
-            get
-            {
-                EnsureInventoryStrategySettings();
-                if (_inventoryStrategy is UniqueItemStrategy)
-                    return ItemBehaviorType.Unique;
-                if (_inventoryStrategy is SeparableStacksStrategy)
-                    return ItemBehaviorType.SeparableStacks;
-                return ItemBehaviorType.Stackable;
-            }
-        }
-        public SlotManagementType SlotManagement
-        {
-            get
-            {
-                EnsureSlotManagementSettings();
-                return _slotManagementSettings is DynamicSlotManagementSettings
-                    ? SlotManagementType.Dynamic
-                    : SlotManagementType.Fixed;
-            }
-        }
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
         internal bool AllowMergeOnDrop => _dropPolicy != null && _dropPolicy.AllowMergeOnDrop;
@@ -352,8 +330,10 @@ namespace UniversalDragAndDrop.Inventories
         private void InitializeStrategy()
         {
             EnsureInventoryStrategySettings();
+            EnsureSlotManagementSettings();
 
             _inventoryStrategy.BindInventory(this);
+            _slotManagementSettings.BindInventory(this);
             IInventoryStrategy baseStrategy = _inventoryStrategy;
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
 
@@ -400,11 +380,7 @@ namespace UniversalDragAndDrop.Inventories
                 DataBinding.ReloadUI();
             }
 
-            // EnsureFreeSlots/Trim must run AFTER ReloadUI,
-            // otherwise slots freed during repacking (for example Unique -> Stackable)
-            // will not be removed.
             EnsureFreeSlots();
-            TrimExcessFreeSlots(null);
             UpdateAllVisuals();
         }
 
@@ -950,7 +926,7 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         public void HandleSlotEmptied(BaseSlot baseSlot)
         {
-            if (SlotManagement != SlotManagementType.Dynamic || baseSlot == null)
+            if (baseSlot == null)
                 return;
 
             if (!ReferenceEquals(baseSlot.Inventory, this))
@@ -972,42 +948,16 @@ namespace UniversalDragAndDrop.Inventories
             if (!baseSlot.IsEmpty)
                 return;
 
-            TrimExcessFreeSlots(baseSlot);
-        }
-
-        private void TrimExcessFreeSlots(BaseSlot preferredBaseSlot)
-        {
-            if (SlotManagement != SlotManagementType.Dynamic)
-                return;
-
-            bool removedAny = false;
-            if (preferredBaseSlot != null && preferredBaseSlot.IsEmpty && CanRemoveAnotherSlot())
-            {
-                removedAny |= TryRemoveSlot(preferredBaseSlot);
-            }
-
-            while (CanRemoveAnotherSlot())
-            {
-                var slotToRemove = FindLastEmptySlot();
-                if (slotToRemove == null)
-                    break;
-
-                if (!TryRemoveSlot(slotToRemove))
-                    break;
-
-                removedAny = true;
-            }
-
-            if (removedAny)
-            {
-                UpdateAllVisuals();
-            }
-        }
-
-        private bool CanRemoveAnotherSlot()
-        {
             EnsureSlotManagementSettings();
-            return _slotManagementSettings.CanRemoveAnotherSlot(this, _slots.Count, _initialSlotCount, CountFreeSlots());
+            _slotManagementSettings.HandleSlotEmptied(
+                this,
+                baseSlot,
+                _slots.Count,
+                _initialSlotCount,
+                CountFreeSlots,
+                FindLastEmptySlot,
+                TryRemoveSlot,
+                UpdateAllVisuals);
         }
 
         private BaseSlot FindLastEmptySlot()

@@ -39,8 +39,8 @@ In that case, `InputAction`-driven features may not work as expected unless that
 
     | Field | Value |
     |---|---|
-    | `Item Behavior` | `Unique` for the simplest start, so each item is in a separate slot |
-    | `Slot Management` | `Fixed` for a fixed number of slots |
+    | `Inventory Strategy` | `UniqueItemStrategy` for the simplest start, so each item is in a separate slot |
+    | `Slot Management` | `FixedSlotManagementSettings` for a fixed number of slots |
     | `Initial Slot Count` | for example `10`. They will be created in `Slot Container` on startup. If you have already created them manually there, you can cache them by pressing the button |
     | `Slot Prefab` | `Prefabs/Slot.prefab` |
     | `Slot Container` | parent for the slots, preferably with `GridLayout` or another component that controls child layout |
@@ -162,4 +162,5 @@ flowchart LR
 
 - [Examples](../examples/index.md) — if you want to choose from all 5 demos
 - [Data Binding](../architecture/data-binding.md) — if you need to understand the lifecycle and extension points
+- [Placement Strategies](../architecture/strategies.md) — if you want to add your own strategy or slot management mode
 - [Troubleshooting](../reference/troubleshooting.md) — if the basic scene does not work on the first try

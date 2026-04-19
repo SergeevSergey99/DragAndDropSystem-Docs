@@ -1,5 +1,4 @@
 using System;
-using System;
 using System.Collections.Generic;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Slots;
@@ -15,7 +14,7 @@ namespace UniversalDragAndDrop.Inventories
     /// when allowItemOverride = true, per-item stack limits via IStackSizeLimitable
     /// </summary>
     [Serializable]
-    public class SeparableStacksStrategy : StackBasedInventoryStrategyBase
+    public class SeparableStacksStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy, ISeparableStacksInventoryStrategy
     {
         private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
 

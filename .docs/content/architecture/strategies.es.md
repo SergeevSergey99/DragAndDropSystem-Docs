@@ -95,8 +95,8 @@ Funciona con cualquiera de las tres strategies.
 
 | Parámetro | Valores | Descripción |
 |---|---|---|
-| **Item Behavior** | `Unique` / `Stackable` / `SeparableStacks` | Strategy de colocación de items |
-| **Slot Management** | `Fixed` / `Dynamic` | Slots fijos o creación dinámica |
+| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Strategy de colocación elegida directamente mediante `[SerializeReference]` |
+| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Modo de ciclo de vida de slots elegido directamente mediante `[SerializeReference]` |
 | **Max Slots** | número | Slots máximos (para Dynamic) |
 | **Max Free Slots** | número | Cuántos slots vacíos mantener (para Dynamic) |
 | **Drag Amount** | `One` / `Half` / `All` / `Custom` | Cuántos items arrastrar desde un stack |
@@ -108,7 +108,9 @@ Funciona con cualquiera de las tres strategies.
 Para crear tu propia placement strategy:
 
 1. Crea una clase que herede de `InventoryStrategyBase`.
-2. Sobrescribe los métodos clave:
+2. Márquela con `[Serializable]`.
+3. Aparecerá automáticamente en el strategy picker de `UniversalInventory`.
+4. Sobrescribe los métodos clave:
 
 ```csharp
 public class MyCustomStrategy : InventoryStrategyBase
@@ -154,6 +156,15 @@ public class MyCustomStrategy : InventoryStrategyBase
 !!! tip "Validación de rules"
     Usa el método `PassesRules(slot, item, count)` de la clase base para validar las slot rules antes de colocar.
 
+## Slot Management personalizado
+
+Para crear tu propio modo de ciclo de vida de slots:
+
+1. Crea una clase que herede de `SlotManagementSettingsBase`.
+2. Márquela con `[Serializable]`.
+3. Sobrescribe los hooks que necesites, por ejemplo `WrapRuntimeStrategy`, `EnsureFreeSlots` o `HandleSlotEmptied`.
+4. Aparecerá automáticamente en el picker de `Slot Management` de `UniversalInventory`.
+
 ---
 
 ## Clases clave
@@ -161,9 +172,12 @@ public class MyCustomStrategy : InventoryStrategyBase
 | Concepto | Clase | Descripción |
 |---|---|---|
 | Clase base | `InventoryStrategyBase` | Métodos comunes para todas las strategies |
+| Base compartida de stacks | `StackBasedInventoryStrategyBase` | Soporte común para límite de stack y override por item en strategies de stack |
 | Unique | `UniqueItemStrategy` | Un item = un slot |
 | Stackable | `StackableItemStrategy` | Fusión automática de stacks |
 | Separable | `SeparableStacksStrategy` | Stacks independientes con fusión opcional |
-| Dynamic slots | `DynamicSlotDecorator` | Decorador para creación automática de slots |
+| Interfaces de capacidad | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Interfaces semánticas opcionales para código personalizado |
+| Base de slot management | `SlotManagementSettingsBase` | Clase base para modos fixed, dynamic y custom del ciclo de vida de slots |
+| Dynamic slots | `DynamicSlotManagementSettings`, `DynamicSlotDecorator` | Modo dinámico y su decorador de runtime |
 | Interface | `IInventoryStrategy` | Contrato para todas las strategies |
 

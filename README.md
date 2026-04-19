@@ -81,6 +81,9 @@ Legacy input setup notes:
 ## Notes
 
 - This asset is intentionally flexible, so integrating your own data types usually requires a small adapter and one binding.
+- `UniversalInventory` authors inventory strategy and slot management directly through `[SerializeReference]` pickers.
+- Add a custom inventory behavior by inheriting from `InventoryStrategyBase`.
+- Add a custom slot lifecycle mode by inheriting from `SlotManagementSettingsBase`.
 - Runtime code is split into asmdefs for cleaner integration.
 - Example scenes are meant to show integration patterns, not the only valid architecture.
 

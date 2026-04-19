@@ -39,8 +39,8 @@ Mixed setup тоже допустим: в проекте может быть у�
 
     | Поле | Значение |
     |---|---|
-    | `Item Behavior` | `Unique` для самого простого старта - каждый предмет в отдельном слоте|
-    | `Slot Management` | `Fixed` - фиксированное количество слотов|
+    | `Inventory Strategy` | `UniqueItemStrategy` для самого простого старта, чтобы каждый предмет был в отдельном слоте |
+    | `Slot Management` | `FixedSlotManagementSettings` для фиксированного количества слотов |
     | `Initial Slot Count` | например `10`. При запуске они создасться в `Slot Container`. Если вы сами их там уже создали, можете их закешировать нажав на кнопку |
     | `Slot Prefab` | `Prefabs/Slot.prefab` |
     | `Slot Container` | родитель для слотов (желательно с `GridLayout` или другим компонентом управляющим расположением дочерних объектов) |
@@ -163,4 +163,5 @@ flowchart LR
 
 - [Примеры](../examples/index.md) — если хотите выбрать из всех 5 демо
 - [Привязка данных](../architecture/data-binding.md) — если нужно понять lifecycle и точки расширения
+- [Стратегии размещения](../architecture/strategies.md) — если хотите добавить свою стратегию или свой режим slot management
 - [Troubleshooting](../reference/troubleshooting.md) — если базовая сцена не завелась с первого раза

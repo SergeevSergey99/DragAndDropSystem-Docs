@@ -54,5 +54,39 @@ namespace UniversalDragAndDrop.Inventories
 
             return freeSlotCount > _minFreeSlots;
         }
+
+        public override void HandleSlotEmptied(
+            UniversalInventory inventory,
+            BaseSlot preferredBaseSlot,
+            int currentSlotCount,
+            int initialSlotCount,
+            Func<int> countFreeSlots,
+            Func<BaseSlot> findLastEmptySlot,
+            Func<BaseSlot, bool> tryRemoveSlot,
+            Action updateAllVisuals)
+        {
+            if (inventory == null || countFreeSlots == null || findLastEmptySlot == null || tryRemoveSlot == null)
+                return;
+
+            bool removedAny = false;
+            if (preferredBaseSlot != null
+                && preferredBaseSlot.IsEmpty
+                && CanRemoveAnotherSlot(inventory, currentSlotCount, initialSlotCount, countFreeSlots()))
+            {
+                removedAny |= tryRemoveSlot(preferredBaseSlot);
+            }
+
+            while (CanRemoveAnotherSlot(inventory, inventory.SlotCount, initialSlotCount, countFreeSlots()))
+            {
+                BaseSlot slotToRemove = findLastEmptySlot();
+                if (slotToRemove == null || !tryRemoveSlot(slotToRemove))
+                    break;
+
+                removedAny = true;
+            }
+
+            if (removedAny)
+                updateAllVisuals?.Invoke();
+        }
     }
 }
