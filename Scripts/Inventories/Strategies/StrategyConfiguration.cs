@@ -5,26 +5,23 @@ namespace UniversalDragAndDrop.Inventories
     internal readonly struct StrategyConfiguration : IEquatable<StrategyConfiguration>
     {
         public StrategyConfiguration(
-            UniversalInventory.ItemBehaviorType itemBehavior,
-            int maxStackSize,
-            bool allowItemStackOverride,
+            string strategyType,
+            string strategyJson,
             UniversalInventory.SlotManagementType slotManagement,
             int maxDynamicSlots,
             int maxFreeSlots,
             bool allowMergeOnDrop)
         {
-            ItemBehavior = itemBehavior;
-            MaxStackSize = maxStackSize;
-            AllowItemStackOverride = allowItemStackOverride;
+            StrategyType = strategyType ?? string.Empty;
+            StrategyJson = strategyJson ?? string.Empty;
             SlotManagement = slotManagement;
             MaxDynamicSlots = maxDynamicSlots;
             MaxFreeSlots = maxFreeSlots;
             AllowMergeOnDrop = allowMergeOnDrop;
         }
 
-        public UniversalInventory.ItemBehaviorType ItemBehavior { get; }
-        public int MaxStackSize { get; }
-        public bool AllowItemStackOverride { get; }
+        public string StrategyType { get; }
+        public string StrategyJson { get; }
         public UniversalInventory.SlotManagementType SlotManagement { get; }
         public int MaxDynamicSlots { get; }
         public int MaxFreeSlots { get; }
@@ -32,9 +29,8 @@ namespace UniversalDragAndDrop.Inventories
 
         public bool Equals(StrategyConfiguration other)
         {
-            return ItemBehavior == other.ItemBehavior
-                && MaxStackSize == other.MaxStackSize
-                && AllowItemStackOverride == other.AllowItemStackOverride
+            return StrategyType == other.StrategyType
+                && StrategyJson == other.StrategyJson
                 && SlotManagement == other.SlotManagement
                 && MaxDynamicSlots == other.MaxDynamicSlots
                 && MaxFreeSlots == other.MaxFreeSlots
@@ -47,9 +43,8 @@ namespace UniversalDragAndDrop.Inventories
         {
             unchecked
             {
-                int hash = (int)ItemBehavior;
-                hash = (hash * 397) ^ MaxStackSize;
-                hash = (hash * 397) ^ AllowItemStackOverride.GetHashCode();
+                int hash = StrategyType.GetHashCode();
+                hash = (hash * 397) ^ StrategyJson.GetHashCode();
                 hash = (hash * 397) ^ (int)SlotManagement;
                 hash = (hash * 397) ^ MaxDynamicSlots;
                 hash = (hash * 397) ^ MaxFreeSlots;

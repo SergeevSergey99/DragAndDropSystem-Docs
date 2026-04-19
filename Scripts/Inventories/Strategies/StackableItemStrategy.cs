@@ -13,14 +13,16 @@ namespace UniversalDragAndDrop.Inventories
     /// </summary>
     public class StackableItemStrategy : InventoryStrategyBase
     {
-        private readonly bool _autoMergeOnDrop;
+        private readonly UniversalInventory _inventory;
 
-        public StackableItemStrategy(bool autoMergeOnDrop = true, int defaultMaxStackSize = 0, bool allowItemOverride = true)
+        public StackableItemStrategy(UniversalInventory inventory, int defaultMaxStackSize = 0, bool allowItemOverride = true)
         {
-            _autoMergeOnDrop = autoMergeOnDrop;
+            _inventory = inventory;
             _defaultMaxStackSize = defaultMaxStackSize;
             _allowItemOverride = allowItemOverride;
         }
+
+        private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
 
         public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
@@ -177,7 +179,7 @@ namespace UniversalDragAndDrop.Inventories
                 return TryMergeIntoSlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
             }
 
-            if (_autoMergeOnDrop)
+            if (AllowMergeOnDrop)
             {
                 foreach (var slot in slots)
                 {

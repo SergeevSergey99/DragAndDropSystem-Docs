@@ -15,14 +15,16 @@ namespace UniversalDragAndDrop.Inventories
     /// </summary>
     public class SeparableStacksStrategy : InventoryStrategyBase
     {
-        private readonly bool _allowMergeOnDrop;
+        private readonly UniversalInventory _inventory;
 
-        public SeparableStacksStrategy(bool allowMergeOnDrop = true, int defaultMaxStackSize = 0, bool allowItemOverride = true)
+        public SeparableStacksStrategy(UniversalInventory inventory, int defaultMaxStackSize = 0, bool allowItemOverride = true)
         {
-            _allowMergeOnDrop = allowMergeOnDrop;
+            _inventory = inventory;
             _defaultMaxStackSize = defaultMaxStackSize;
             _allowItemOverride = allowItemOverride;
         }
+
+        private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
 
         private int GetMaxStackSize(IItemAdapter itemAdapter) =>
             GetMaxStackSize(itemAdapter, _defaultMaxStackSize, _allowItemOverride);
@@ -55,7 +57,7 @@ namespace UniversalDragAndDrop.Inventories
                     }
                 }
                 // If the slot contains the SAME item and merge is allowed, merge with limit handling
-                else if (_allowMergeOnDrop && targetSlot.Stack.CanStack(stack.PrimaryAdapter))
+                else if (AllowMergeOnDrop && targetSlot.Stack.CanStack(stack.PrimaryAdapter))
                 {
                     int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
                     int toAdd = Math.Min(remaining, canFit);
@@ -172,7 +174,7 @@ namespace UniversalDragAndDrop.Inventories
             if (baseSlot.IsEmpty)
                 return true;
 
-            if (!_allowMergeOnDrop || baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
+            if (!AllowMergeOnDrop || baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
                 return false;
 
             // A slot is suitable for merge only if it has free space
@@ -189,7 +191,7 @@ namespace UniversalDragAndDrop.Inventories
 
             if (!targetBaseSlot.IsEmpty)
             {
-                if (!_allowMergeOnDrop || !targetBaseSlot.Stack.CanStack(stack.PrimaryAdapter))
+                if (!AllowMergeOnDrop || !targetBaseSlot.Stack.CanStack(stack.PrimaryAdapter))
                     return false;
 
                 int canFit = Math.Max(0, maxSize - targetBaseSlot.Stack.Count);
@@ -246,7 +248,7 @@ namespace UniversalDragAndDrop.Inventories
                     return true;
                 }
 
-                if (_allowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item))
+                if (AllowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                     if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))
@@ -276,7 +278,7 @@ namespace UniversalDragAndDrop.Inventories
                 {
                     totalCapacity += maxSize;
                 }
-                else if (_allowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item))
+                else if (AllowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                     if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))

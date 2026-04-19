@@ -131,7 +131,7 @@ namespace UniversalDragAndDrop.Core
     {
         [SerializeField, Tooltip("What to do if nothing can be placed into the target slot: reject, try swapping, or look for another slot.")]
         private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
-        [SerializeField, Tooltip("For SeparableStacks only: allow merge when explicitly dropping onto an occupied slot with the same item.")]
+        [SerializeField, Tooltip("Used by strategies that support merge-on-drop behavior. Each strategy decides how this flag is interpreted.")]
         private bool _allowMergeOnDrop = true;
         [SerializeField, Tooltip("Allow partial transfer if only part of the requested amount fits.")]
         private bool _allowPartial = true;

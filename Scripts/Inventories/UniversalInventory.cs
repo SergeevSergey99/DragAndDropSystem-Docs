@@ -33,32 +33,9 @@ namespace UniversalDragAndDrop.Inventories
         private int _initialSlotCount = 10;
 
         [FoldoutGroup("Strategy", expanded: true)]
-        [InfoBox("PrimaryAdapter Behavior: how items are placed | Slot Management: controls the number of slots", InfoMessageType.Info)]
-        [SerializeField, LabelText("PrimaryAdapter Behavior")]
-        private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
-
-        [FoldoutGroup("Strategy")]
-        [SerializeField, LabelText("Drag Amount")]
-        [Tooltip("How many items to take when dragging from a stack")]
-        [ShowIf(nameof(ShowDragAmountSettings))]
-        private DragAmount _dragAmount = DragAmount.All;
-
-        [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Item amount for Custom")]
-        [ShowIf(nameof(ShowCustomDragAmount))]
-        private int _customDragAmount = 1;
-
-        [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Maximum stack size. 0 or less = unlimited.")]
-        [ShowIf(nameof(ShowDragAmountSettings))]
-        private int _maxStackSize = 0;
-
-        [FoldoutGroup("Strategy")]
-        [SerializeField, Tooltip("Allow items to override the stack limit via IStackSizeLimitable. " +
-                                 "If true, the item's MaxStackSize fully replaces _maxStackSize. " +
-                                 "If false, IStackSizeLimitable is ignored and only _maxStackSize is used.")]
-        [ShowIf(nameof(ShowMaxStackOverride))]
-        private bool _allowItemStackOverride = false;
+        [InfoBox("Inventory strategy controls placement, drag defaults, and stack behavior.", InfoMessageType.Info)]
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
+        private InventoryStrategySettingsBase _inventoryStrategy = new StackableInventoryStrategySettings();
 
         [FoldoutGroup("Strategy")]
         [SerializeField, LabelText("Slot Management")]
@@ -73,10 +50,6 @@ namespace UniversalDragAndDrop.Inventories
         [SerializeField, Tooltip("Minimum number of free slots (for Dynamic). 0 = create only on TryAddItem, not when moving into slots")]
         [ShowIf(nameof(_slotManagement), nameof(SlotManagementType.Dynamic))]
         private int _maxFreeSlots = 1;
-
-        private bool ShowDragAmountSettings => _itemBehavior == ItemBehaviorType.Stackable || _itemBehavior == ItemBehaviorType.SeparableStacks;
-        private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmount.Custom;
-        private bool ShowMaxStackOverride => ShowDragAmountSettings && _maxStackSize > 0;
 
         [FoldoutGroup("Rules")]
         [SerializeField, HideLabel]
@@ -102,10 +75,18 @@ namespace UniversalDragAndDrop.Inventories
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
         public InventoryRuleValidator RuleValidator => _ruleValidator;
-        public ItemBehaviorType ItemBehavior => _itemBehavior;
+        public ItemBehaviorType ItemBehavior
+        {
+            get
+            {
+                EnsureInventoryStrategySettings();
+                return _inventoryStrategy.GetLegacyBehaviorType();
+            }
+        }
         public SlotManagementType SlotManagement => _slotManagement;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
+        internal bool AllowMergeOnDrop => _dropPolicy != null && _dropPolicy.AllowMergeOnDrop;
 
         public IInventoryStrategy Strategy
         {
@@ -251,8 +232,25 @@ namespace UniversalDragAndDrop.Inventories
             Dynamic      // Dynamic slot creation
         }
 
+        [SerializeField, HideInInspector]
+        private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
+
+        [SerializeField, HideInInspector]
+        private DragAmount _dragAmount = DragAmount.All;
+
+        [SerializeField, HideInInspector]
+        private int _customDragAmount = 1;
+
+        [SerializeField, HideInInspector]
+        private int _maxStackSize;
+
+        [SerializeField, HideInInspector]
+        private bool _allowItemStackOverride;
+
         private void Awake()
         {
+            EnsureInventoryStrategySettings();
+
             // Ensure lazy initialization has not already happened
             if (_strategy == null)
             {
@@ -269,6 +267,8 @@ namespace UniversalDragAndDrop.Inventories
 
         private void OnValidate()
         {
+            EnsureInventoryStrategySettings();
+
             // Sort rules when values change in the Inspector
             _ruleValidator?.OnValidate();
 
@@ -361,27 +361,10 @@ namespace UniversalDragAndDrop.Inventories
 
         private void InitializeStrategy()
         {
-            // Create the base strategy based on item behavior
-            IInventoryStrategy baseStrategy;
-            switch (_itemBehavior)
-            {
-                case ItemBehaviorType.Unique:
-                    baseStrategy = new UniqueItemStrategy();
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: UniqueItemStrategy</color>");
-                    break;
-                case ItemBehaviorType.Stackable:
-                    baseStrategy = new StackableItemStrategy(_dropPolicy.AllowMergeOnDrop, _maxStackSize, _allowItemStackOverride);
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (maxStack: {_maxStackSize}, itemOverride: {_allowItemStackOverride})</color>");
-                    break;
-                case ItemBehaviorType.SeparableStacks:
-                    baseStrategy = new SeparableStacksStrategy(_dropPolicy.AllowMergeOnDrop, _maxStackSize, _allowItemStackOverride);
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: SeparableStacksStrategy (allowMerge: {_dropPolicy.AllowMergeOnDrop}, maxStack: {_maxStackSize}, itemOverride: {_allowItemStackOverride})</color>");
-                    break;
-                default:
-                    baseStrategy = new StackableItemStrategy(_dropPolicy.AllowMergeOnDrop, _maxStackSize, _allowItemStackOverride);
-                    Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: StackableItemStrategy (default, maxStack: {_maxStackSize}, itemOverride: {_allowItemStackOverride})</color>");
-                    break;
-            }
+            EnsureInventoryStrategySettings();
+
+            IInventoryStrategy baseStrategy = _inventoryStrategy.CreateRuntimeStrategy(this);
+            Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
 
             // Wrap it in a decorator for dynamic slots if needed
             if (_slotManagement == SlotManagementType.Dynamic)
@@ -446,10 +429,11 @@ namespace UniversalDragAndDrop.Inventories
 
         private StrategyConfiguration CaptureStrategyConfiguration()
         {
+            EnsureInventoryStrategySettings();
+
             return new StrategyConfiguration(
-                _itemBehavior,
-                _maxStackSize,
-                _allowItemStackOverride,
+                _inventoryStrategy?.GetType().AssemblyQualifiedName,
+                _inventoryStrategy?.CaptureConfigurationJson(),
                 _slotManagement,
                 _maxDynamicSlots,
                 _maxFreeSlots,
@@ -485,8 +469,8 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         public void SetMaxStackSize(int maxStackSize, bool allowItemOverride = false)
         {
-            _maxStackSize = maxStackSize;
-            _allowItemStackOverride = allowItemOverride;
+            EnsureInventoryStrategySettings();
+            _inventoryStrategy.SetMaxStackSize(maxStackSize, allowItemOverride);
             _strategy?.SetMaxStackSize(maxStackSize, allowItemOverride);
         }
 
@@ -836,9 +820,7 @@ namespace UniversalDragAndDrop.Inventories
                 return 0;
 
             EnsureStrategyInitialized();
-            var amount = overrideAmount ?? _dragAmount;
-            var custom = overrideAmount.HasValue ? (overrideCustom ?? 0) : _customDragAmount;
-            var result = _dragPolicy.ResolveDragAmount(baseSlot.Stack.Count, amount, custom);
+            var result = _inventoryStrategy.ResolveDragAmount(_dragPolicy, baseSlot.Stack.Count, overrideAmount, overrideCustom);
 
             if (_dragAmountStep > 1)
             {
@@ -875,13 +857,8 @@ namespace UniversalDragAndDrop.Inventories
 
         internal int GetMaxStackSizeForItem(IItemAdapter itemAdapter)
         {
-            if (itemAdapter == null)
-                return 0;
-
-            if (_allowItemStackOverride && itemAdapter is IStackSizeLimitable limitable)
-                return Mathf.Max(1, limitable.MaxStackSize);
-
-            return _maxStackSize > 0 ? _maxStackSize : int.MaxValue;
+            EnsureInventoryStrategySettings();
+            return _inventoryStrategy.GetMaxStackSizeForItem(itemAdapter);
         }
 
         public ResolvedDropPolicy ResolveDropPolicy(DropRequestPolicy? requested, DragContext context)
@@ -908,6 +885,48 @@ namespace UniversalDragAndDrop.Inventories
 
             EnsureStrategyInitialized();
             return _placementStrategy.TryAddToSlot(_slots, stack, targetBaseSlot, EnsureFreeSlots, operationContext);
+        }
+
+        private void EnsureInventoryStrategySettings()
+        {
+            if (_inventoryStrategy != null)
+                return;
+
+            _inventoryStrategy = CreateInventoryStrategyFromLegacyFields();
+        }
+
+        private InventoryStrategySettingsBase CreateInventoryStrategyFromLegacyFields()
+        {
+            switch (_itemBehavior)
+            {
+                case ItemBehaviorType.Unique:
+                    return new UniqueInventoryStrategySettings();
+
+                case ItemBehaviorType.SeparableStacks:
+                {
+                    var strategy = new SeparableStacksInventoryStrategySettings();
+                    strategy.SetMaxStackSize(_maxStackSize, _allowItemStackOverride);
+                    CopyLegacyDragSettings(strategy);
+                    return strategy;
+                }
+
+                case ItemBehaviorType.Stackable:
+                default:
+                {
+                    var strategy = new StackableInventoryStrategySettings();
+                    strategy.SetMaxStackSize(_maxStackSize, _allowItemStackOverride);
+                    CopyLegacyDragSettings(strategy);
+                    return strategy;
+                }
+            }
+        }
+
+        private void CopyLegacyDragSettings(InventoryStrategySettingsBase strategy)
+        {
+            if (strategy == null)
+                return;
+
+            strategy.SetDragSettings(_dragAmount, _customDragAmount);
         }
 
         /// <summary>
