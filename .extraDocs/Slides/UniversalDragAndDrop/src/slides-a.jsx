@@ -20,8 +20,7 @@ function Slide1() {
 
   return (
     <SlideFrame className="bg-grid" style={{padding:0, overflow:'hidden'}}>
-      <PageTag n={1}/>
-
+      
       {/* Left big text panel */}
       <div style={{position:'absolute', left:120, top:0, bottom:0, width:900, display:'flex', flexDirection:'column', justifyContent:'center', zIndex:3}}>
         <div className="mono" style={{fontSize:16, letterSpacing:'0.3em', color:'var(--accent)', textTransform:'uppercase', marginBottom:26, fontWeight:600}}>
@@ -43,12 +42,12 @@ function Slide1() {
       </div>
 
       {/* Right: two inventories with drag-line */}
-      <div style={{position:'absolute', right:-40, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
+      <div style={{position:'absolute', right:160, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
         <div style={{position:'relative', transform:'rotate(-6deg)', transformOrigin:'center'}}>
-          <Panel title="Backpack" style={{marginRight:40, marginBottom:200}}>
+          <Panel title="Backpack" style={{marginRight:240, marginBottom:200}}>
             <Grid cols={4} rows={3} cells={leftGrid} size={92} dragFrom={2}/>
           </Panel>
-          <div style={{position:'absolute', right:-90, bottom:-20, transform:'rotate(10deg)'}}>
+          <div style={{position:'absolute', right:110, bottom:-20, transform:'rotate(10deg)'}}>
             <Panel title="Chest" accent="var(--accent-2)">
               <Grid cols={4} rows={3} cells={rightGrid} size={92} dragOver={3}/>
             </Panel>
@@ -56,7 +55,7 @@ function Slide1() {
 
           {/* Ghost drag item mid-flight */}
           <div style={{
-            position:'absolute', right:30, top:190,
+            position:'absolute', right:230, top:190,
             width:92, height:92, borderRadius:10,
             background:'var(--slot-hi)',
             border:'1.5px solid var(--accent)',
@@ -89,7 +88,7 @@ function Slide1() {
               stroke="var(--accent)"
               opacity="0.55
            */}
-          <svg style={{position:'absolute', right:-200, top:100, pointerEvents:'none'}} width="460" height="360" viewBox="0 0 460 360">
+          <svg style={{position:'absolute', right:0, top:100, pointerEvents:'none'}} width="460" height="360" viewBox="0 0 460 360">
             <path d="M50 20 C 180 40, 220 260, 285 260"
               fill="none" stroke="var(--accent)" strokeWidth="2"
               strokeDasharray="2 8" strokeLinecap="round" opacity="0.55"/>
@@ -97,7 +96,6 @@ function Slide1() {
         </div>
       </div>
 
-      <CornerMark>Unity Asset Store • 2026</CornerMark>
     </SlideFrame>
   );
 }
