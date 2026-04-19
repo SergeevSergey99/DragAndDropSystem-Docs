@@ -14,17 +14,6 @@ namespace UniversalDragAndDrop.Inventories
         [SerializeField, Tooltip("Minimum number of free slots. 0 = create only on TryAddItem, not while moving into specific slots.")]
         private int _minFreeSlots = 1;
 
-        public void SetLegacyValues(int maxSlots, int minFreeSlots)
-        {
-            _maxSlots = maxSlots;
-            _minFreeSlots = minFreeSlots;
-        }
-
-        public override UniversalInventory.SlotManagementType GetLegacyType()
-        {
-            return UniversalInventory.SlotManagementType.Dynamic;
-        }
-
         public override IInventoryStrategy WrapRuntimeStrategy(
             UniversalInventory inventory,
             IInventoryStrategy baseStrategy,

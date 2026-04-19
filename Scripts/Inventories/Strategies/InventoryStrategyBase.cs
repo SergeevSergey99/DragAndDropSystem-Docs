@@ -1,25 +1,46 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools.Inspector;
 
 namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Base strategy with shared methods
     /// </summary>
+    [Serializable]
     public abstract class InventoryStrategyBase : IInventoryStrategy
     {
-        protected int _defaultMaxStackSize;
-        protected bool _allowItemOverride;
+        [SerializeField, LabelText("Drag Amount"), Tooltip("How many items to take when dragging from a stack.")]
+        [ShowIf(nameof(ShowDragAmountSettings))]
+        private DragAmount _dragAmount = DragAmount.All;
+
+        [SerializeField, Tooltip("Item amount for Custom drag.")]
+        [ShowIf(nameof(ShowCustomDragAmount))]
+        private int _customDragAmount = 1;
+
+        [NonSerialized] protected UniversalInventory _inventory;
+
+        private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmount.Custom;
+        protected virtual bool ShowDragAmountSettings => true;
+
+        public virtual void BindInventory(UniversalInventory inventory)
+        {
+            _inventory = inventory;
+        }
 
         /// <summary>
         /// Set the stack limit at runtime (for example, from DataBinding).
         /// </summary>
-        public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)
+        public virtual void SetMaxStackSize(int maxStackSize, bool allowItemOverride)
         {
-            _defaultMaxStackSize = maxStackSize;
-            _allowItemOverride = allowItemOverride;
+        }
+
+        public virtual int GetMaxStackSizeForItem(IItemAdapter itemAdapter)
+        {
+            return itemAdapter == null ? 0 : int.MaxValue;
         }
 
         public bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
@@ -56,7 +77,16 @@ namespace UniversalDragAndDrop.Inventories
 
         public virtual int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
         {
-            switch (dragAmount)
+            DragAmount amount = dragAmount;
+            int customAmount = customDragAmount;
+
+            if (amount == DragAmount.All && customAmount == 0)
+            {
+                amount = _dragAmount;
+                customAmount = _customDragAmount;
+            }
+
+            switch (amount)
             {
                 case DragAmount.One:
                     return 1;
@@ -71,7 +101,7 @@ namespace UniversalDragAndDrop.Inventories
                     return stackCount;
 
                 case DragAmount.Custom:
-                    return UnityEngine.Mathf.Min(customDragAmount, stackCount);
+                    return Mathf.Min(customAmount, stackCount);
 
                 default:
                     return stackCount;
@@ -291,6 +321,11 @@ namespace UniversalDragAndDrop.Inventories
 
                 yield return slot;
             }
+        }
+
+        internal string CaptureConfigurationJson()
+        {
+            return JsonUtility.ToJson(this);
         }
     }
 }

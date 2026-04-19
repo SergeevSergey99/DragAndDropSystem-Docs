@@ -8,11 +8,6 @@ namespace UniversalDragAndDrop.Inventories
     [Serializable]
     public abstract class SlotManagementSettingsBase
     {
-        public virtual UniversalInventory.SlotManagementType GetLegacyType()
-        {
-            return UniversalInventory.SlotManagementType.Fixed;
-        }
-
         public virtual IInventoryStrategy WrapRuntimeStrategy(
             UniversalInventory inventory,
             IInventoryStrategy baseStrategy,

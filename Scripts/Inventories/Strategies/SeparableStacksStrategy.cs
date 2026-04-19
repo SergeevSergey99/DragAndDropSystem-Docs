@@ -1,4 +1,5 @@
 using System;
+using System;
 using System.Collections.Generic;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Slots;
@@ -13,21 +14,13 @@ namespace UniversalDragAndDrop.Inventories
     /// Supports the strategy default limit and,
     /// when allowItemOverride = true, per-item stack limits via IStackSizeLimitable
     /// </summary>
-    public class SeparableStacksStrategy : InventoryStrategyBase
+    [Serializable]
+    public class SeparableStacksStrategy : StackBasedInventoryStrategyBase
     {
-        private readonly UniversalInventory _inventory;
-
-        public SeparableStacksStrategy(UniversalInventory inventory, int defaultMaxStackSize = 0, bool allowItemOverride = true)
-        {
-            _inventory = inventory;
-            _defaultMaxStackSize = defaultMaxStackSize;
-            _allowItemOverride = allowItemOverride;
-        }
-
         private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
 
         private int GetMaxStackSize(IItemAdapter itemAdapter) =>
-            GetMaxStackSize(itemAdapter, _defaultMaxStackSize, _allowItemOverride);
+            GetMaxStackSize(itemAdapter, DefaultMaxStackSize, AllowItemStackOverride);
 
         public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {

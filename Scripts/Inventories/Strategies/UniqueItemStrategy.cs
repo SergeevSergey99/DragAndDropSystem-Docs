@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Slots;
 
@@ -8,8 +9,10 @@ namespace UniversalDragAndDrop.Inventories
     /// Strategy: each item occupies its own slot (not stackable)
     /// Used for inventories with unique items
     /// </summary>
+    [Serializable]
     public class UniqueItemStrategy : InventoryStrategyBase
     {
+        protected override bool ShowDragAmountSettings => false;
         public override int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount) => 1;
         public override bool RequiresStrategyPlacement(ItemStack stack) => stack != null && !stack.IsEmpty && stack.Count > 1;
         public override bool UsesPerItemSlotPlanning => true;

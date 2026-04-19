@@ -6,7 +6,7 @@ using UniversalDragAndDrop.Tools.Inspector;
 namespace UniversalDragAndDrop.Inventories
 {
     [Serializable]
-    public abstract class StackBasedInventoryStrategySettingsBase : InventoryStrategySettingsBase
+    public abstract class StackBasedInventoryStrategyBase : InventoryStrategyBase
     {
         [SerializeField, Tooltip("Maximum stack size. 0 or less = unlimited.")]
         private int _maxStackSize;
@@ -36,10 +36,5 @@ namespace UniversalDragAndDrop.Inventories
 
         protected int DefaultMaxStackSize => _maxStackSize;
         protected bool AllowItemStackOverride => _allowItemStackOverride;
-
-        public override UniversalInventory.ItemBehaviorType GetLegacyBehaviorType()
-        {
-            return UniversalInventory.ItemBehaviorType.Stackable;
-        }
     }
 }

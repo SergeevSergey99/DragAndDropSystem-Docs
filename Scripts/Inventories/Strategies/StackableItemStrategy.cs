@@ -1,4 +1,5 @@
 using System;
+using System;
 using System.Collections.Generic;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Slots;
@@ -11,17 +12,9 @@ namespace UniversalDragAndDrop.Inventories
     /// Supports the strategy default limit and,
     /// when allowItemOverride = true, per-item limits via IStackSizeLimitable
     /// </summary>
-    public class StackableItemStrategy : InventoryStrategyBase
+    [Serializable]
+    public class StackableItemStrategy : StackBasedInventoryStrategyBase
     {
-        private readonly UniversalInventory _inventory;
-
-        public StackableItemStrategy(UniversalInventory inventory, int defaultMaxStackSize = 0, bool allowItemOverride = true)
-        {
-            _inventory = inventory;
-            _defaultMaxStackSize = defaultMaxStackSize;
-            _allowItemOverride = allowItemOverride;
-        }
-
         private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
 
         public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
@@ -30,7 +23,7 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             int remaining = stack.Count;
-            int maxSize = GetMaxStackSize(stack.PrimaryAdapter, _defaultMaxStackSize, _allowItemOverride);
+            int maxSize = GetMaxStackSize(stack.PrimaryAdapter, DefaultMaxStackSize, AllowItemStackOverride);
 
             // If a target slot is specified
             if (targetIndex >= 0 && targetIndex < slots.Count)
@@ -164,7 +157,7 @@ namespace UniversalDragAndDrop.Inventories
             if (stack == null || stack.IsEmpty || targetBaseSlot == null)
                 return false;
 
-            int maxSize = GetMaxStackSize(stack.PrimaryAdapter, _defaultMaxStackSize, _allowItemOverride);
+            int maxSize = GetMaxStackSize(stack.PrimaryAdapter, DefaultMaxStackSize, AllowItemStackOverride);
 
             if (!targetBaseSlot.IsEmpty)
             {
@@ -212,7 +205,7 @@ namespace UniversalDragAndDrop.Inventories
             if (baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
                 return false;
 
-            int maxSize = GetMaxStackSize(itemAdapter, _defaultMaxStackSize, _allowItemOverride);
+            int maxSize = GetMaxStackSize(itemAdapter, DefaultMaxStackSize, AllowItemStackOverride);
             return baseSlot.Stack.Count < maxSize;
         }
 
@@ -224,7 +217,7 @@ namespace UniversalDragAndDrop.Inventories
             if (item == null || desiredCount <= 0)
                 return false;
 
-            int maxSize = GetMaxStackSize(item, _defaultMaxStackSize, _allowItemOverride);
+            int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
             foreach (var slot in slots)
             {
@@ -257,7 +250,7 @@ namespace UniversalDragAndDrop.Inventories
             if (item == null || desiredCount <= 0)
                 return 0;
 
-            int maxSize = GetMaxStackSize(item, _defaultMaxStackSize, _allowItemOverride);
+            int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
             int totalCapacity = 0;
 
             foreach (var slot in slots)

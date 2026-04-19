@@ -35,7 +35,7 @@ namespace UniversalDragAndDrop.Inventories
         [FoldoutGroup("Strategy", expanded: true)]
         [InfoBox("Inventory strategy controls placement, drag defaults, and stack behavior.", InfoMessageType.Info)]
         [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
-        private InventoryStrategySettingsBase _inventoryStrategy = new StackableInventoryStrategySettings();
+        private InventoryStrategyBase _inventoryStrategy = new StackableItemStrategy();
 
         [FoldoutGroup("Strategy")]
         [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
@@ -70,7 +70,11 @@ namespace UniversalDragAndDrop.Inventories
             get
             {
                 EnsureInventoryStrategySettings();
-                return _inventoryStrategy.GetLegacyBehaviorType();
+                if (_inventoryStrategy is UniqueItemStrategy)
+                    return ItemBehaviorType.Unique;
+                if (_inventoryStrategy is SeparableStacksStrategy)
+                    return ItemBehaviorType.SeparableStacks;
+                return ItemBehaviorType.Stackable;
             }
         }
         public SlotManagementType SlotManagement
@@ -78,7 +82,9 @@ namespace UniversalDragAndDrop.Inventories
             get
             {
                 EnsureSlotManagementSettings();
-                return _slotManagementSettings.GetLegacyType();
+                return _slotManagementSettings is DynamicSlotManagementSettings
+                    ? SlotManagementType.Dynamic
+                    : SlotManagementType.Fixed;
             }
         }
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
@@ -229,30 +235,6 @@ namespace UniversalDragAndDrop.Inventories
             Dynamic      // Dynamic slot creation
         }
 
-        [SerializeField, HideInInspector]
-        private ItemBehaviorType _itemBehavior = ItemBehaviorType.Stackable;
-
-        [SerializeField, HideInInspector]
-        private DragAmount _dragAmount = DragAmount.All;
-
-        [SerializeField, HideInInspector]
-        private int _customDragAmount = 1;
-
-        [SerializeField, HideInInspector]
-        private int _maxStackSize;
-
-        [SerializeField, HideInInspector]
-        private bool _allowItemStackOverride;
-
-        [SerializeField, HideInInspector]
-        private SlotManagementType _slotManagement = SlotManagementType.Fixed;
-
-        [SerializeField, HideInInspector]
-        private int _maxDynamicSlots = 100;
-
-        [SerializeField, HideInInspector]
-        private int _maxFreeSlots = 1;
-
         private void Awake()
         {
             EnsureInventoryStrategySettings();
@@ -371,7 +353,8 @@ namespace UniversalDragAndDrop.Inventories
         {
             EnsureInventoryStrategySettings();
 
-            IInventoryStrategy baseStrategy = _inventoryStrategy.CreateRuntimeStrategy(this);
+            _inventoryStrategy.BindInventory(this);
+            IInventoryStrategy baseStrategy = _inventoryStrategy;
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
 
             // Wrap it in a decorator for dynamic slots if needed
@@ -828,7 +811,9 @@ namespace UniversalDragAndDrop.Inventories
                 return 0;
 
             EnsureStrategyInitialized();
-            var result = _inventoryStrategy.ResolveDragAmount(_dragPolicy, baseSlot.Stack.Count, overrideAmount, overrideCustom);
+            var amount = overrideAmount ?? DragAmount.All;
+            var custom = overrideAmount.HasValue ? (overrideCustom ?? 0) : 0;
+            var result = _inventoryStrategy.ResolveDragAmount(baseSlot.Stack.Count, amount, custom);
 
             if (_dragAmountStep > 1)
             {
@@ -897,69 +882,12 @@ namespace UniversalDragAndDrop.Inventories
 
         private void EnsureInventoryStrategySettings()
         {
-            if (_inventoryStrategy != null)
-                return;
-
-            _inventoryStrategy = CreateInventoryStrategyFromLegacyFields();
+            _inventoryStrategy ??= new StackableItemStrategy();
         }
 
         private void EnsureSlotManagementSettings()
         {
-            if (_slotManagementSettings != null)
-                return;
-
-            _slotManagementSettings = CreateSlotManagementFromLegacyFields();
-        }
-
-        private InventoryStrategySettingsBase CreateInventoryStrategyFromLegacyFields()
-        {
-            switch (_itemBehavior)
-            {
-                case ItemBehaviorType.Unique:
-                    return new UniqueInventoryStrategySettings();
-
-                case ItemBehaviorType.SeparableStacks:
-                {
-                    var strategy = new SeparableStacksInventoryStrategySettings();
-                    strategy.SetMaxStackSize(_maxStackSize, _allowItemStackOverride);
-                    CopyLegacyDragSettings(strategy);
-                    return strategy;
-                }
-
-                case ItemBehaviorType.Stackable:
-                default:
-                {
-                    var strategy = new StackableInventoryStrategySettings();
-                    strategy.SetMaxStackSize(_maxStackSize, _allowItemStackOverride);
-                    CopyLegacyDragSettings(strategy);
-                    return strategy;
-                }
-            }
-        }
-
-        private void CopyLegacyDragSettings(InventoryStrategySettingsBase strategy)
-        {
-            if (strategy == null)
-                return;
-
-            strategy.SetDragSettings(_dragAmount, _customDragAmount);
-        }
-
-        private SlotManagementSettingsBase CreateSlotManagementFromLegacyFields()
-        {
-            switch (_slotManagement)
-            {
-                case SlotManagementType.Dynamic:
-                {
-                    var settings = new DynamicSlotManagementSettings();
-                    settings.SetLegacyValues(_maxDynamicSlots, _maxFreeSlots);
-                    return settings;
-                }
-
-                case SlotManagementType.Fixed:
-                default:
-                    return new FixedSlotManagementSettings();
-            }
+            _slotManagementSettings ??= new FixedSlotManagementSettings();
         }
 
         /// <summary>
