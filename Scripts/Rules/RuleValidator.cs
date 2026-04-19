@@ -14,7 +14,7 @@ namespace UniversalDragAndDrop.Rules
     [Serializable]
     public class RuleValidator<TRule> where TRule : IDragRule
     {
-        [SerializeField, RulePresetPicker, Title("Preset Lists", TitleAlignment = TitleAlignments.Centered)]
+        [SerializeField, RulePresetPicker]
         [ListDrawerSettings(
             DraggableItems = true,
             ShowPaging = false,
@@ -25,7 +25,7 @@ namespace UniversalDragAndDrop.Rules
         [Tooltip("Rule sets defined via ScriptableObject presets")]
         private List<RulePreset<TRule>> _presets = new List<RulePreset<TRule>>();
 
-        [SerializeReference, ManagedReferencePicker, Title("Inline Rules", TitleAlignment = TitleAlignments.Centered)]
+        [SerializeReference, ManagedReferencePicker]
         [ListDrawerSettings(
             DraggableItems = true,
             ShowPaging = false,

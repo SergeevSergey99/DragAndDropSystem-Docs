@@ -1163,14 +1163,10 @@ MonoBehaviour:
   _slotContainer: {fileID: 786501633}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 0
-  _itemBehavior: 0
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 1
-  _maxDynamicSlots: 8
-  _maxFreeSlots: 0
+  _inventoryStrategy:
+    rid: 8490480897462108171
+  _slotManagementSettings:
+    rid: 8490480897462108172
   _ruleValidator:
     _presets: []
     _inlineRules: []
@@ -1181,9 +1177,27 @@ MonoBehaviour:
     _batchMode: 1
     _alternativePlacement: 0
   _slots: []
+  _itemBehavior: 0
+  _dragAmount: 0
+  _customDragAmount: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
+  _slotManagement: 1
+  _maxDynamicSlots: 8
+  _maxFreeSlots: 0
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 8490480897462108171
+      type: {class: UniqueInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragAmount: 0
+        _customDragAmount: 1
+    - rid: 8490480897462108172
+      type: {class: DynamicSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _maxSlots: 8
+        _minFreeSlots: 0
 --- !u!114 &233341990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1956,14 +1970,10 @@ MonoBehaviour:
   _slotContainer: {fileID: 154099020}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 4
-  _itemBehavior: 0
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _inventoryStrategy:
+    rid: 8490480897462108173
+  _slotManagementSettings:
+    rid: 8490480897462108168
   _ruleValidator:
     _presets:
     - {fileID: 11400000, guid: 4b8a3cf361c213544b136821af5c5a14, type: 2}
@@ -1979,9 +1989,25 @@ MonoBehaviour:
   - {fileID: 52892870}
   - {fileID: 1236110307}
   - {fileID: 400017346}
+  _itemBehavior: 0
+  _dragAmount: 0
+  _customDragAmount: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
+  _slotManagement: 0
+  _maxDynamicSlots: 100
+  _maxFreeSlots: 1
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 8490480897462108168
+      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8490480897462108173
+      type: {class: UniqueInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragAmount: 0
+        _customDragAmount: 1
 --- !u!114 &485691798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3786,14 +3812,10 @@ MonoBehaviour:
   _slotContainer: {fileID: 55861266}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 8
-  _itemBehavior: 2
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _inventoryStrategy:
+    rid: 8490480897462108174
+  _slotManagementSettings:
+    rid: 8490480897462108169
   _ruleValidator:
     _presets: []
     _inlineRules: []
@@ -3812,9 +3834,27 @@ MonoBehaviour:
   - {fileID: 1765199097}
   - {fileID: 1335150835}
   - {fileID: 1085706727}
+  _itemBehavior: 2
+  _dragAmount: 0
+  _customDragAmount: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
+  _slotManagement: 0
+  _maxDynamicSlots: 100
+  _maxFreeSlots: 1
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 8490480897462108169
+      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8490480897462108174
+      type: {class: SeparableStacksInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragAmount: 0
+        _customDragAmount: 1
+        _maxStackSize: 0
+        _allowItemStackOverride: 0
 --- !u!114 &1324997593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3941,14 +3981,10 @@ MonoBehaviour:
   _slotContainer: {fileID: 1062125621}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 5
-  _itemBehavior: 1
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _inventoryStrategy:
+    rid: 8490480897462108162
+  _slotManagementSettings:
+    rid: 8490480897462108167
   _ruleValidator:
     _presets: []
     _inlineRules: []
@@ -3964,9 +4000,27 @@ MonoBehaviour:
   - {fileID: 1196214156}
   - {fileID: 567110062}
   - {fileID: 1804959676}
+  _itemBehavior: 1
+  _dragAmount: 0
+  _customDragAmount: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
+  _slotManagement: 0
+  _maxDynamicSlots: 100
+  _maxFreeSlots: 1
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 8490480897462108162
+      type: {class: StackableInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragAmount: 0
+        _customDragAmount: 1
+        _maxStackSize: 0
+        _allowItemStackOverride: 0
+    - rid: 8490480897462108167
+      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &1358364179
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5368,14 +5422,10 @@ MonoBehaviour:
   _slotContainer: {fileID: 1858480037}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 8
-  _itemBehavior: 0
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _inventoryStrategy:
+    rid: 8490480897462108170
+  _slotManagementSettings:
+    rid: 8490480897462108165
   _ruleValidator:
     _presets: []
     _inlineRules: []
@@ -5394,9 +5444,25 @@ MonoBehaviour:
   - {fileID: 1060758691}
   - {fileID: 357800640}
   - {fileID: 126095700}
+  _itemBehavior: 0
+  _dragAmount: 0
+  _customDragAmount: 1
+  _maxStackSize: 0
+  _allowItemStackOverride: 0
+  _slotManagement: 0
+  _maxDynamicSlots: 100
+  _maxFreeSlots: 1
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 8490480897462108165
+      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8490480897462108170
+      type: {class: UniqueInventoryStrategySettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragAmount: 0
+        _customDragAmount: 1
 --- !u!114 &1818827038
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5599,7 +5665,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
