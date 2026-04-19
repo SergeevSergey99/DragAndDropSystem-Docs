@@ -1018,7 +1018,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5258171400695473501, guid: dcfc6846c9bd4f14cbc05ff54f4775b3, type: 3}
       propertyPath: m_Text
-      value: Potion Filter
+      value: Food Filter
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1698,10 +1698,12 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480914487312388
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 397178222}
@@ -1713,14 +1715,6 @@ MonoBehaviour:
   - {fileID: 1748585859}
   - {fileID: 60573116}
   - {fileID: 1683345363}
-  _itemBehavior: 0
-  _dragAmount: 2
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -1732,6 +1726,14 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8490480914487312388
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480914487312389
+    - rid: 8490480914487312389
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &486925684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2936,10 +2938,12 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480914487312384
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 937319877}
@@ -2951,14 +2955,6 @@ MonoBehaviour:
   - {fileID: 155081000}
   - {fileID: 1486293742}
   - {fileID: 146906801}
-  _itemBehavior: 0
-  _dragAmount: 2
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -2970,6 +2966,14 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8490480914487312384
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480914487312385
+    - rid: 8490480914487312385
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &961149623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5749,7 +5753,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5258171400695473501, guid: dcfc6846c9bd4f14cbc05ff54f4775b3, type: 3}
       propertyPath: m_Text
-      value: Potion Filter
+      value: Food Filter
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5826,24 +5830,18 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480914487312386
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 1855719185}
   - {fileID: 1367063339}
   - {fileID: 506112271}
   - {fileID: 2082895841}
-  _itemBehavior: 1
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -5857,6 +5855,14 @@ MonoBehaviour:
         _customDragAmount: 1
         _maxStackSize: 0
         _allowItemStackOverride: 0
+    - rid: 8490480914487312386
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480914487312387
+    - rid: 8490480914487312387
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &1939663763
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: ChestExampleSO
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
   <ItemName>k__BackingField: Chest
-  <Icon>k__BackingField: {fileID: 7925215352844321845, guid: 7bbb46d25684c64478558d16a6a9e7fd, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: c6c8f100c19befe4b8980a4bb715ce55, type: 3}
   <itemType>k__BackingField: Other

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: KeyExampleSO
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
   <ItemName>k__BackingField: Key
-  <Icon>k__BackingField: {fileID: -5483213116612077006, guid: 616f88a219705034e999fd5bcf6b915e, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: e9c650471e282e14d8b579e81a2c4c5d, type: 3}
   <itemType>k__BackingField: Other

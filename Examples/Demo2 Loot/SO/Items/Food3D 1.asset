@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6c5319bdf811bc4b94bc9e8efe0ae60, type: 3}
-  m_Name: Potion3D 1
+  m_Name: Food3D 1
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Potion Red
   <itemType>k__BackingField: Consumable
-  _worldPrefab: {fileID: 1097463583627720804, guid: 65815ee1d1fc6ca44988e3b75db88ff2, type: 3}
+  _worldPrefab: {fileID: 649211847301960709, guid: 18ac4aedfa63a2d439f67b24e0c3ddc6, type: 3}

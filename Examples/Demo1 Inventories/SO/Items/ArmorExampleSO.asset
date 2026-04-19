@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: ArmorExampleSO
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
   <ItemName>k__BackingField: Armor
-  <Icon>k__BackingField: {fileID: 491277611787755110, guid: d58a3acac6a993f45b29761320b2bbf1, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 0efb92db53c3ce946a3d22b71b9be758, type: 3}
   <itemType>k__BackingField: Armor

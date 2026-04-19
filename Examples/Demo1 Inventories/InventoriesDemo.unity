@@ -1171,20 +1171,14 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480897462108223
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots: []
-  _itemBehavior: 0
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 1
-  _maxDynamicSlots: 8
-  _maxFreeSlots: 0
   references:
     version: 2
     RefIds:
@@ -1198,6 +1192,14 @@ MonoBehaviour:
       data:
         _maxSlots: 8
         _minFreeSlots: 0
+    - rid: 8490480897462108223
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480897462108224
+    - rid: 8490480897462108224
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &233341990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1979,24 +1981,18 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 4b8a3cf361c213544b136821af5c5a14, type: 2}
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480897462108215
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 580939524}
   - {fileID: 52892870}
   - {fileID: 1236110307}
   - {fileID: 400017346}
-  _itemBehavior: 0
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -2008,6 +2004,14 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8490480897462108215
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480897462108216
+    - rid: 8490480897462108216
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &485691798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3820,10 +3824,12 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480897462108219
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 1604339180}
@@ -3834,14 +3840,6 @@ MonoBehaviour:
   - {fileID: 1765199097}
   - {fileID: 1335150835}
   - {fileID: 1085706727}
-  _itemBehavior: 2
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -3855,6 +3853,14 @@ MonoBehaviour:
         _customDragAmount: 1
         _maxStackSize: 0
         _allowItemStackOverride: 0
+    - rid: 8490480897462108219
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480897462108220
+    - rid: 8490480897462108220
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &1324997593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3989,10 +3995,12 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480897462108217
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 318417987}
@@ -4000,14 +4008,6 @@ MonoBehaviour:
   - {fileID: 1196214156}
   - {fileID: 567110062}
   - {fileID: 1804959676}
-  _itemBehavior: 1
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -4020,6 +4020,14 @@ MonoBehaviour:
         _allowItemStackOverride: 0
     - rid: 8490480897462108167
       type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8490480897462108217
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480897462108218
+    - rid: 8490480897462108218
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
 --- !u!114 &1358364179
 MonoBehaviour:
@@ -5430,10 +5438,12 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490480897462108221
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
+    _blockedTarget: 2
     _alternativePlacement: 0
   _slots:
   - {fileID: 234271055}
@@ -5444,14 +5454,6 @@ MonoBehaviour:
   - {fileID: 1060758691}
   - {fileID: 357800640}
   - {fileID: 126095700}
-  _itemBehavior: 0
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -5463,6 +5465,14 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8490480897462108221
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480897462108222
+    - rid: 8490480897462108222
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &1818827038
 MonoBehaviour:
   m_ObjectHideFlags: 0

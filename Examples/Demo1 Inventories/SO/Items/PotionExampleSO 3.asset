@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: PotionExampleSO 3
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
   <ItemName>k__BackingField: Potion
-  <Icon>k__BackingField: {fileID: -2882488309779346908, guid: 616f88a219705034e999fd5bcf6b915e, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 931310fa2ba61554f8462b4c313e9511, type: 3}
   <itemType>k__BackingField: Consumable
