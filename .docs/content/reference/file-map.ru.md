@@ -33,15 +33,15 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Core/IItemAdapter.cs` | `IItemAdapter` | Минимальное представление предмета, которое хранится в слотах и передаётся через UI-конвейер. |
-| `Scripts/Core/IDescribable.cs` | `IDescribable` | Опциональный интерфейс для адаптеров, которые отдают расширенное описание для UI, например tooltip. |
-| `Scripts/Core/IFilterable.cs` | `IFilterable`, `ISortable` | Опциональные интерфейсы для систем фильтрации и сортировки. |
-| `Scripts/Core/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Опциональное переопределение лимита стака на уровне конкретного предмета. |
-| `Scripts/Core/ItemStack.cs` | `ItemStack` | Runtime-модель стака, используемая слотами, planning, swap и execution. |
-| `Scripts/Core/DragContext.cs` | `DragContext` | Контекст одного drag-оператора: source entries, target info и флаги текущей операции. |
-| `Scripts/Core/ActionResult.cs` | `ActionResult` | Универсальный result-объект для action-style API. |
-| `Scripts/Core/DropResult.cs` | `DropResult` | Result-объект, возвращаемый обработчиками drop. |
-| `Scripts/Core/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Payload-типы для событий переноса и swap. |
+| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Минимальное представление предмета, которое хранится в слотах и передаётся через UI-конвейер. |
+| `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Опциональный интерфейс для адаптеров, которые отдают расширенное описание для UI, например tooltip. |
+| `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Опциональные интерфейсы для систем фильтрации и сортировки. |
+| `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Опциональное переопределение лимита стака на уровне конкретного предмета. |
+| `Scripts/Core/Models/ItemStack.cs` | `ItemStack` | Runtime-модель стака, используемая слотами, planning, swap и execution. |
+| `Scripts/Core/Models/DragContext.cs` | `DragContext` | Контекст одного drag-оператора: source entries, target info и флаги текущей операции. |
+| `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Универсальный result-объект для action-style API. |
+| `Scripts/Core/Models/DropResult.cs` | `DropResult` | Result-объект, возвращаемый обработчиками drop. |
+| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Payload-типы для событий переноса и swap. |
 | `Scripts/Slots/SlotHoverEventArgs.cs` | `SlotHoverEventArgs` | Данные hover-события слота для UI и связанных подсистем. |
 
 ---
@@ -50,24 +50,24 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Core/IDropTarget.cs` | `IDropTarget` | Контракт для любого объекта, который может принимать drop. |
-| `Scripts/Core/IDropProcessor.cs` | `IDropProcessor` | Контракт для объектов, умеющих обрабатывать попытку drop. |
-| `Scripts/Core/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
-| `Scripts/Core/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
+| `Scripts/Core/Contracts/IDropTarget.cs` | `IDropTarget` | Контракт для любого объекта, который может принимать drop. |
+| `Scripts/Core/Contracts/IDropProcessor.cs` | `IDropProcessor` | Контракт для объектов, умеющих обрабатывать попытку drop. |
+| `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
+| `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Стандартная drop-area инвентаря на основе `DropAreaBase`. |
-| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Базовые enum'ы и value-type модели drop policy, используемые planning и execution. |
-| `Scripts/Core/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level настройки drop policy, включая blocked-target resolver и параметры batch/partial. |
-| `Scripts/Core/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемый helper для временных drop request override'ов в actions и triggers. |
-| `Scripts/Core/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
-| `Scripts/Core/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Базовый класс для authoring blocked-target поведения в `DropPolicySettings`. |
-| `Scripts/Core/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver, который сразу отклоняет blocked target. |
-| `Scripts/Core/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который предпочитает swap planning при blocked target. |
-| `Scripts/Core/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который делегирует blocked-target обработку стратегии alternative placement. |
-| `Scripts/Core/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Контракт для порядка поиска альтернативных слотов, используемый `FindAlternativeBlockedTargetResolver`. |
-| `Scripts/Core/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет merge-кандидаты. |
-| `Scripts/Core/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет пустые слоты. |
-| `Scripts/Core/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только merge-кандидаты. |
-| `Scripts/Core/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только пустые слоты. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Базовые enum'ы и value-type модели drop policy, используемые planning и execution. |
+| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level настройки drop policy, включая blocked-target resolver и параметры batch/partial. |
+| `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемый helper для временных drop request override'ов в actions и triggers. |
+| `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
+| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Базовый класс для authoring blocked-target поведения в `DropPolicySettings`. |
+| `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver, который сразу отклоняет blocked target. |
+| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который предпочитает swap planning при blocked target. |
+| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который делегирует blocked-target обработку стратегии alternative placement. |
+| `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Контракт для порядка поиска альтернативных слотов, используемый `FindAlternativeBlockedTargetResolver`. |
+| `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет merge-кандидаты. |
+| `Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет пустые слоты. |
+| `Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только merge-кандидаты. |
+| `Scripts/Core/Drop/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только пустые слоты. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Интерфейс для объектов, которые отдают активные настройки drop policy. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Модель запроса на проверку, может ли инвентарь принять входящий предмет или стек. |
 | `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing точка входа, переводящая drop attempt в planning и execution. |
@@ -244,9 +244,9 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Core/AutoTransferAnimationStrategy.cs` | `AutoTransferAnimationStrategy` | Базовый класс стратегий анимации quick transfer. |
-| `Scripts/Core/TweenAutoTransferAnimation.cs` | `TweenAutoTransferAnimation` | Tween-based стратегия анимации для auto-transfer эффекта. |
-| `Scripts/Core/AutoTransferContext.cs` | `InventoryList` | Вспомогательная модель, используемая в quick-transfer анимации и related flows. |
+| `Scripts/Core/AutoTransfer/AutoTransferAnimationStrategy.cs` | `AutoTransferAnimationStrategy` | Базовый класс стратегий анимации quick transfer. |
+| `Scripts/Core/AutoTransfer/TweenAutoTransferAnimation.cs` | `TweenAutoTransferAnimation` | Tween-based стратегия анимации для auto-transfer эффекта. |
+| `Scripts/Core/AutoTransfer/AutoTransferContext.cs` | `InventoryList` | Вспомогательная модель, используемая в quick-transfer анимации и related flows. |
 
 ---
 

@@ -33,15 +33,15 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 | File | Types | Rol |
 |---|---|---|
-| `Scripts/Core/IItemAdapter.cs` | `IItemAdapter` | Representación mínima del item almacenada en los slots y transferida a través del pipeline de UI. |
-| `Scripts/Core/IDescribable.cs` | `IDescribable` | Interface opcional para adapters que aportan datos descriptivos ampliados para UI como tooltips. |
-| `Scripts/Core/IFilterable.cs` | `IFilterable`, `ISortable` | Interfaces opcionales para sistemas de filtrado y ordenación. |
-| `Scripts/Core/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Override opcional del tamaño máximo de stack por item. |
-| `Scripts/Core/ItemStack.cs` | `ItemStack` | Modelo runtime del stack usado por slots, planning, swaps y execution. |
-| `Scripts/Core/DragContext.cs` | `DragContext` | Contexto por arrastre que contiene entries de origen, info del target y flags de la operación actual. |
-| `Scripts/Core/ActionResult.cs` | `ActionResult` | Objeto de resultado genérico para APIs orientadas a acciones. |
-| `Scripts/Core/DropResult.cs` | `DropResult` | Objeto de resultado devuelto por el procesamiento de drop. |
-| `Scripts/Core/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Tipos payload de eventos usados cuando se despachan notificaciones de transferencia y swap. |
+| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Representación mínima del item almacenada en los slots y transferida a través del pipeline de UI. |
+| `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Interface opcional para adapters que aportan datos descriptivos ampliados para UI como tooltips. |
+| `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Interfaces opcionales para sistemas de filtrado y ordenación. |
+| `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Override opcional del tamaño máximo de stack por item. |
+| `Scripts/Core/Models/ItemStack.cs` | `ItemStack` | Modelo runtime del stack usado por slots, planning, swaps y execution. |
+| `Scripts/Core/Models/DragContext.cs` | `DragContext` | Contexto por arrastre que contiene entries de origen, info del target y flags de la operación actual. |
+| `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Objeto de resultado genérico para APIs orientadas a acciones. |
+| `Scripts/Core/Models/DropResult.cs` | `DropResult` | Objeto de resultado devuelto por el procesamiento de drop. |
+| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Tipos payload de eventos usados cuando se despachan notificaciones de transferencia y swap. |
 | `Scripts/Slots/SlotHoverEventArgs.cs` | `SlotHoverEventArgs` | Datos del evento hover para la UI de slots y sistemas relacionados. |
 
 ---
@@ -50,24 +50,24 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 | File | Types | Rol |
 |---|---|---|
-| `Scripts/Core/IDropTarget.cs` | `IDropTarget` | Contrato para cualquier cosa que pueda recibir items arrastrados. |
-| `Scripts/Core/IDropProcessor.cs` | `IDropProcessor` | Contrato para objetos que pueden procesar un intento de drop. |
-| `Scripts/Core/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Interface de processor especializada usada por el drop handling basado en requests. |
-| `Scripts/Core/DropAreaBase.cs` | `DropAreaBase` | Clase base para targets de drop no basados en slot, como áreas de inventario o world drop zones. |
+| `Scripts/Core/Contracts/IDropTarget.cs` | `IDropTarget` | Contrato para cualquier cosa que pueda recibir items arrastrados. |
+| `Scripts/Core/Contracts/IDropProcessor.cs` | `IDropProcessor` | Contrato para objetos que pueden procesar un intento de drop. |
+| `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Interface de processor especializada usada por el drop handling basado en requests. |
+| `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Clase base para targets de drop no basados en slot, como áreas de inventario o world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Target de drop estándar para áreas de inventario construido sobre `DropAreaBase`. |
-| `Scripts/Core/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Enums base y modelos value-type de drop policy usados por planning y execution. |
-| `Scripts/Core/DropPolicySettings.cs` | `DropPolicySettings` | Settings de drop policy a nivel de inventario, incluido el blocked-target resolver y los parámetros de batch/parcial. |
-| `Scripts/Core/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Helper serializable para overrides temporales de drop request en acciones y triggers. |
-| `Scripts/Core/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Helper serializable para overrides temporales de cantidad al iniciar un drag. |
-| `Scripts/Core/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Clase base para authoring del comportamiento ante blocked target en `DropPolicySettings`. |
-| `Scripts/Core/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver que rechaza inmediatamente un blocked target. |
-| `Scripts/Core/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver que prefiere swap planning en blocked targets. |
-| `Scripts/Core/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver que delega el manejo del blocked target a una strategy de colocación alternativa. |
-| `Scripts/Core/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contrato para el orden de búsqueda de slots alternativos usado por `FindAlternativeBlockedTargetResolver`. |
-| `Scripts/Core/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Strategy de colocación alternativa que prefiere primero candidatos de merge. |
-| `Scripts/Core/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Strategy de colocación alternativa que prefiere primero slots vacíos. |
-| `Scripts/Core/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Strategy de colocación alternativa que solo considera candidatos de merge. |
-| `Scripts/Core/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Strategy de colocación alternativa que solo considera slots vacíos. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Enums base y modelos value-type de drop policy usados por planning y execution. |
+| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Settings de drop policy a nivel de inventario, incluido el blocked-target resolver y los parámetros de batch/parcial. |
+| `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Helper serializable para overrides temporales de drop request en acciones y triggers. |
+| `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Helper serializable para overrides temporales de cantidad al iniciar un drag. |
+| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Clase base para authoring del comportamiento ante blocked target en `DropPolicySettings`. |
+| `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver que rechaza inmediatamente un blocked target. |
+| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver que prefiere swap planning en blocked targets. |
+| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver que delega el manejo del blocked target a una strategy de colocación alternativa. |
+| `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contrato para el orden de búsqueda de slots alternativos usado por `FindAlternativeBlockedTargetResolver`. |
+| `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Strategy de colocación alternativa que prefiere primero candidatos de merge. |
+| `Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Strategy de colocación alternativa que prefiere primero slots vacíos. |
+| `Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Strategy de colocación alternativa que solo considera candidatos de merge. |
+| `Scripts/Core/Drop/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Strategy de colocación alternativa que solo considera slots vacíos. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Interface para objetos que exponen settings de drop policy. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Modelo de request usado al comprobar si un inventario puede aceptar un item/stack entrante. |
 | `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | Punto de entrada desde la UI que traduce intentos de drop en llamadas de planning y execution. |
@@ -244,9 +244,9 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 | File | Types | Rol |
 |---|---|---|
-| `Scripts/Core/AutoTransferAnimationStrategy.cs` | `AutoTransferAnimationStrategy` | Clase base para strategies de animación de quick-transfer. |
-| `Scripts/Core/TweenAutoTransferAnimation.cs` | `TweenAutoTransferAnimation` | Strategy de animación basada en tween para efectos de auto-transfer. |
-| `Scripts/Core/AutoTransferContext.cs` | `InventoryList` | Modelo auxiliar relacionado con auto-transfer usado por los flujos de animación/selección de quick-transfer. |
+| `Scripts/Core/AutoTransfer/AutoTransferAnimationStrategy.cs` | `AutoTransferAnimationStrategy` | Clase base para strategies de animación de quick-transfer. |
+| `Scripts/Core/AutoTransfer/TweenAutoTransferAnimation.cs` | `TweenAutoTransferAnimation` | Strategy de animación basada en tween para efectos de auto-transfer. |
+| `Scripts/Core/AutoTransfer/AutoTransferContext.cs` | `InventoryList` | Modelo auxiliar relacionado con auto-transfer usado por los flujos de animación/selección de quick-transfer. |
 
 ---
 
