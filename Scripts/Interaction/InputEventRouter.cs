@@ -482,9 +482,7 @@ namespace UniversalDragAndDrop.Interaction
                 if (inventory != null)
                 {
                     var state = GetOrCreateState(inventory);
-                    adapter = state.FocusedAdapter
-                              ?? ResolveAdapterFromSlot(state.FocusedBaseSlot)
-                              ?? state.HoveredAdapter
+                    adapter = ResolveAdapterFromSlot(state.FocusedBaseSlot)
                               ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
                 }
 
@@ -872,7 +870,7 @@ namespace UniversalDragAndDrop.Interaction
             }
         }
 
-        private static SlotInputAdapter ResolveAdapterFromSlot(BaseSlot baseSlot) => baseSlot.GetComponent<SlotInputAdapter>();
+        private static SlotInputAdapter ResolveAdapterFromSlot(BaseSlot baseSlot) => baseSlot?.GetComponent<SlotInputAdapter>();
 
         private bool TryGetInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
         {
