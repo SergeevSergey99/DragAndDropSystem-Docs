@@ -23,7 +23,18 @@ namespace UniversalDragAndDrop.Inventories
     {
         public InventorySlotState(IReadOnlyList<IItemAdapter> adapters)
         {
-            Adapters = adapters ?? System.Array.Empty<IItemAdapter>();
+            // Snapshot must be independent of subsequent ItemStack mutations (Split/RemoveFromStack
+            // operate on the same backing list that ItemStack.Adapters returns).
+            if (adapters == null || adapters.Count == 0)
+            {
+                Adapters = System.Array.Empty<IItemAdapter>();
+                return;
+            }
+
+            var copy = new IItemAdapter[adapters.Count];
+            for (int i = 0; i < adapters.Count; i++)
+                copy[i] = adapters[i];
+            Adapters = copy;
         }
 
         public IReadOnlyList<IItemAdapter> Adapters;
