@@ -1084,6 +1084,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-drop-policy-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Drop Policy Extensions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#drop-policy-processing-order" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2101,6 +2112,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-drop-policy-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Drop Policy Extensions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#drop-policy-processing-order" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2410,20 +2432,21 @@
 <li><code>DropPolicySettings</code></li>
 <li>inventory-level defaults on <code>UniversalInventory</code></li>
 <li>defines:<ul>
-<li>blocked target behavior</li>
+<li>blocked target resolver</li>
 <li>allow merge on drop</li>
 <li>allow partial</li>
 <li>batch mode</li>
-<li>alternative placement mode</li>
+<li>alternative placement strategy for <code>FindAlternative</code></li>
 </ul>
 </li>
 <li><code>ResolvedDropPolicy</code></li>
 <li>final non-nullable policy used by the planner</li>
 </ul>
-<p><code>BlockedTargetBehavior</code>:
+<p>Built-in blocked target resolvers:
 - <code>Reject</code>
 - <code>Swap</code>
 - <code>FindAlternative</code></p>
+<p>When <code>FindAlternative</code> is selected, it owns a nested <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
 <h2 id="temporary-override-through-actions">Temporary override through actions</h2>
 <p>Temporary drop policy override is done through action-level request policy, not by mutating <code>DragContext</code>.</p>
 <p>Example:
@@ -2439,6 +2462,22 @@
   1. action request override
   2. drop-target override
   3. inventory defaults</p>
+<h2 id="custom-drop-policy-extensions">Custom Drop Policy Extensions</h2>
+<p>To create your own blocked-target behavior:</p>
+<ol>
+<li>Create a class inheriting from <code>BlockedTargetResolverBase</code>.</li>
+<li>Mark it <code>[Serializable]</code>.</li>
+<li>Override <code>Behavior</code>.</li>
+<li>Override <code>GetAlternativePlacement()</code> if your resolver needs to drive alternative placement.</li>
+<li>The class appears automatically in the <code>DropPolicySettings</code> managed reference picker.</li>
+</ol>
+<p>To create your own alternative placement strategy:</p>
+<ol>
+<li>Create a class implementing <code>IAlternativePlacementStrategy</code>.</li>
+<li>Mark it <code>[Serializable]</code>.</li>
+<li>Return the desired <code>AlternativePlacementMode</code> from <code>Mode</code>.</li>
+<li>The class appears automatically inside <code>FindAlternativeBlockedTargetResolver</code>.</li>
+</ol>
 <h2 id="drop-policy-processing-order">Drop Policy Processing Order</h2>
 <p>For a single drag entry:</p>
 <ol>

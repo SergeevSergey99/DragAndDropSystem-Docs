@@ -2020,7 +2020,7 @@
 
 
 <h1 id="_1">Ввод и взаимодействие</h1>
-<p>Система ввода разделяет обнаружение ввода (мышь, клавиатура, геймпад) и действия (перетаскивание, выделение, контекстное меню). Это позволяет менять привязки без переписывания логики и поддерживать разные устройства ввода.</p>
+<p>Система ввода разделяет обнаружение ввода (мышь, клавиатура, геймпад и legacy navigation axes) и действия (перетаскивание, выделение, контекстное меню). Это позволяет менять привязки без переписывания логики и поддерживать разные устройства ввода.</p>
 <hr />
 <h2 id="_2">Как устроен ввод</h2>
 <pre class="mermaid"><code>flowchart LR
@@ -2075,7 +2075,7 @@
 <p>Пороги настраиваются в <code>InputEventRouter</code>: <code>_longClickThresholdSeconds</code> (по умолчанию 0.35 сек) и <code>_clickMoveTolerancePixels</code> (по умолчанию 8 пикселей).</p>
 <hr />
 <h2 id="_4">Профили привязок</h2>
-<p>Привязки настраиваются через ScriptableObject <code>InteractionBindingsProfile</code>. В нём два списка:</p>
+<p>Привязки настраиваются через ScriptableObject <code>InteractionBindingsProfile</code>. В нём есть pointer bindings, legacy key bindings и опциональные Input Action bindings.</p>
 <h3 id="pointer-bindings">Привязки указателя (Pointer Bindings)</h3>
 <p>Каждая привязка состоит из: кнопка мыши + модификатор + фаза + действие.</p>
 <table>
@@ -2127,7 +2127,9 @@
 </tbody>
 </table>
 <h3 id="input-action">Привязки Input Action</h3>
-<p>Для горячих клавиш и геймпада: привязка Input System Action к действию инвентаря.</p>
+<p>Для опциональных hotkeys и gamepad-специфичных сценариев: привязка Input System Action к действию инвентаря.
+Mixed setup поддерживается, но важно помнить, что <code>InputAction</code>-зависимые функции всё равно ожидают, что для этой сцены/flow настроен новый input pipeline.
+Если сцена намеренно остаётся на <code>StandaloneInputModule</code>, pointer и navigation там могут работать, а часть <code>InputAction</code>-функций — нет.</p>
 <hr />
 <h2 id="_5">Режим ввода</h2>
 <p>Система автоматически определяет текущий режим ввода:</p>
@@ -2142,17 +2144,17 @@
 <tbody>
 <tr>
 <td><strong>Mouse</strong></td>
-<td>Любой клик мышью</td>
+<td>Клик мышью или движение мыши</td>
 <td>Фокус через наведение, стандартные события указателя</td>
 </tr>
 <tr>
 <td><strong>Navigation</strong></td>
-<td>Стрелки, WASD, D-pad геймпада</td>
-<td>Фокус через EventSystem.selectedGameObject, навигация между слотами</td>
+<td>Стрелки, WASD, Submit/Cancel, Tab, D-pad геймпада</td>
+<td>Фокус через <code>EventSystem.selectedGameObject</code>, навигация между слотами</td>
 </tr>
 </tbody>
 </table>
-<p>Переключение происходит автоматически. Когда активен режим Navigation, <code>InputEventRouter</code> поддерживает фокус на слоте --- если текущий выделенный объект стал неактивным, система находит ближайший доступный слот.</p>
+<p>Переключение происходит автоматически и в legacy input, и в новом Input System. Когда активен режим Navigation, <code>InputEventRouter</code> поддерживает фокус на слоте --- если текущий выделенный объект стал неактивным, система находит ближайший доступный слот.</p>
 <hr />
 <h2 id="_6">Переопределение привязок для инвентаря</h2>
 <p>Каждый инвентарь может иметь свои привязки через компонент <code>InventoryExtraInteractionBinder</code>. Это полезно, когда у торговца и у игрока разное поведение по клику.</p>
@@ -2239,7 +2241,7 @@
 </tr>
 <tr>
 <td><code>InputModalityTracker</code></td>
-<td>Определяет текущий режим ввода (Mouse / Navigation)</td>
+<td>Определяет текущий режим ввода (Mouse / Navigation) и в legacy, и в Input System конфигурации</td>
 </tr>
 <tr>
 <td><code>PointerBinding</code></td>

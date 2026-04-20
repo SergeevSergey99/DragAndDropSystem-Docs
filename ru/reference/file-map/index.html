@@ -2334,7 +2334,7 @@
 <tr>
 <td><code>Scripts/Inventories/UniversalInventory.cs</code></td>
 <td><code>UniversalInventory</code>, <code>ItemBehaviorType</code>, <code>SlotManagementType</code></td>
-<td>Главный компонент инвентаря. Владеет слотами, конфигурацией стратегий, наборами правил и inventory-level поведением переноса.</td>
+<td>Главный компонент инвентаря. Владеет слотами, прямыми <code>[SerializeReference]</code> полями стратегий, наборами правил и inventory-level поведением переноса.</td>
 </tr>
 <tr>
 <td><code>Scripts/Slots/BaseSlot.cs</code></td>
@@ -2365,47 +2365,47 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Core/IItemAdapter.cs</code></td>
+<td><code>Scripts/Core/Contracts/IItemAdapter.cs</code></td>
 <td><code>IItemAdapter</code></td>
 <td>Минимальное представление предмета, которое хранится в слотах и передаётся через UI-конвейер.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IDescribable.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDescribable.cs</code></td>
 <td><code>IDescribable</code></td>
 <td>Опциональный интерфейс для адаптеров, которые отдают расширенное описание для UI, например tooltip.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IFilterable.cs</code></td>
+<td><code>Scripts/Core/Contracts/IFilterable.cs</code></td>
 <td><code>IFilterable</code>, <code>ISortable</code></td>
 <td>Опциональные интерфейсы для систем фильтрации и сортировки.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IStackSizeLimitable.cs</code></td>
+<td><code>Scripts/Core/Contracts/IStackSizeLimitable.cs</code></td>
 <td><code>IStackSizeLimitable</code></td>
 <td>Опциональное переопределение лимита стака на уровне конкретного предмета.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/ItemStack.cs</code></td>
+<td><code>Scripts/Core/Models/ItemStack.cs</code></td>
 <td><code>ItemStack</code></td>
 <td>Runtime-модель стака, используемая слотами, planning, swap и execution.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DragContext.cs</code></td>
+<td><code>Scripts/Core/Models/DragContext.cs</code></td>
 <td><code>DragContext</code></td>
 <td>Контекст одного drag-оператора: source entries, target info и флаги текущей операции.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/ActionResult.cs</code></td>
+<td><code>Scripts/Core/Models/ActionResult.cs</code></td>
 <td><code>ActionResult</code></td>
 <td>Универсальный result-объект для action-style API.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DropResult.cs</code></td>
+<td><code>Scripts/Core/Models/DropResult.cs</code></td>
 <td><code>DropResult</code></td>
 <td>Result-объект, возвращаемый обработчиками drop.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/InventoryEvents.cs</code></td>
+<td><code>Scripts/Core/Models/InventoryEvents.cs</code></td>
 <td><code>InventoryItemEventContext</code>, <code>InventorySwapContext</code></td>
 <td>Payload-типы для событий переноса и swap.</td>
 </tr>
@@ -2428,22 +2428,22 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Core/IDropTarget.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDropTarget.cs</code></td>
 <td><code>IDropTarget</code></td>
 <td>Контракт для любого объекта, который может принимать drop.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IDropProcessor.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDropProcessor.cs</code></td>
 <td><code>IDropProcessor</code></td>
 <td>Контракт для объектов, умеющих обрабатывать попытку drop.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IDropRequestProcessor.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDropRequestProcessor.cs</code></td>
 <td><code>IDropRequestProcessor</code></td>
 <td>Специализированный интерфейс для request-driven drop processing.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DropAreaBase.cs</code></td>
+<td><code>Scripts/Core/Drop/DropAreaBase.cs</code></td>
 <td><code>DropAreaBase</code></td>
 <td>Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone.</td>
 </tr>
@@ -2453,9 +2453,69 @@
 <td>Стандартная drop-area инвентаря на основе <code>DropAreaBase</code>.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DropPolicy.cs</code></td>
-<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>DropPolicySettings</code>, <code>DropRequestPolicySettings</code>, <code>DragRequestPolicySettings</code></td>
-<td>Enum'ы и settings-объекты, управляющие planning, batch-семантикой, alternative placement и выбором количества предметов.</td>
+<td><code>Scripts/Core/Drop/DropPolicy.cs</code></td>
+<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
+<td>Базовые enum'ы и value-type модели drop policy, используемые planning и execution.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/DropPolicySettings.cs</code></td>
+<td><code>DropPolicySettings</code></td>
+<td>Inventory-level настройки drop policy, включая blocked-target resolver и параметры batch/partial.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/DropRequestPolicySettings.cs</code></td>
+<td><code>DropRequestPolicySettings</code></td>
+<td>Сериализуемый helper для временных drop request override'ов в actions и triggers.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/DragRequestPolicySettings.cs</code></td>
+<td><code>DragRequestPolicySettings</code></td>
+<td>Сериализуемый helper для временного override количества предметов при старте drag.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/BlockedTargetResolverBase.cs</code></td>
+<td><code>BlockedTargetResolverBase</code></td>
+<td>Базовый класс для authoring blocked-target поведения в <code>DropPolicySettings</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/RejectBlockedTargetResolver.cs</code></td>
+<td><code>RejectBlockedTargetResolver</code></td>
+<td>Resolver, который сразу отклоняет blocked target.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/SwapBlockedTargetResolver.cs</code></td>
+<td><code>SwapBlockedTargetResolver</code></td>
+<td>Resolver, который предпочитает swap planning при blocked target.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs</code></td>
+<td><code>FindAlternativeBlockedTargetResolver</code></td>
+<td>Resolver, который делегирует blocked-target обработку стратегии alternative placement.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/IAlternativePlacementStrategy.cs</code></td>
+<td><code>IAlternativePlacementStrategy</code></td>
+<td>Контракт для порядка поиска альтернативных слотов, используемый <code>FindAlternativeBlockedTargetResolver</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs</code></td>
+<td><code>MergeFirstAlternativePlacementStrategy</code></td>
+<td>Стратегия alternative placement, которая сначала ищет merge-кандидаты.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs</code></td>
+<td><code>EmptyFirstAlternativePlacementStrategy</code></td>
+<td>Стратегия alternative placement, которая сначала ищет пустые слоты.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs</code></td>
+<td><code>MergeOnlyAlternativePlacementStrategy</code></td>
+<td>Стратегия alternative placement, которая рассматривает только merge-кандидаты.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/EmptyOnlyAlternativePlacementStrategy.cs</code></td>
+<td><code>EmptyOnlyAlternativePlacementStrategy</code></td>
+<td>Стратегия alternative placement, которая рассматривает только пустые слоты.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/IDropPolicyProvider.cs</code></td>
@@ -2662,6 +2722,16 @@
 <td>Базовый класс для placement/acceptance стратегий.</td>
 </tr>
 <tr>
+<td><code>Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs</code></td>
+<td><code>StackBasedInventoryStrategyBase</code></td>
+<td>Общая stack-aware база с лимитом стека и поддержкой per-item override.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/Strategies/StrategyCapabilities.cs</code></td>
+<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
+<td>Опциональные semantic capability interfaces для кастомного кода.</td>
+</tr>
+<tr>
 <td><code>Scripts/Inventories/Strategies/UniqueItemStrategy.cs</code></td>
 <td><code>UniqueItemStrategy</code></td>
 <td>Стратегия, в которой каждый слот хранит отдельный предмет или стек без merge-логики.</td>
@@ -2677,6 +2747,21 @@
 <td>Стратегия для стеков, поддерживающих split и частичные переносы.</td>
 </tr>
 <tr>
+<td><code>Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs</code></td>
+<td><code>SlotManagementSettingsBase</code></td>
+<td>Базовый класс для режимов жизненного цикла слотов, выбираемых прямо в <code>UniversalInventory</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs</code></td>
+<td><code>FixedSlotManagementSettings</code></td>
+<td>Fixed-режим жизненного цикла слотов.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs</code></td>
+<td><code>DynamicSlotManagementSettings</code></td>
+<td>Dynamic-режим с поддержкой свободных слотов и trimming hooks.</td>
+</tr>
+<tr>
 <td><code>Scripts/Inventories/Strategies/DynamicSlotDecorator.cs</code></td>
 <td><code>DynamicSlotDecorator</code></td>
 <td>Декоратор, добавляющий dynamic slot creation/management поверх другой стратегии.</td>
@@ -2684,7 +2769,7 @@
 <tr>
 <td><code>Scripts/Inventories/Strategies/StrategyConfiguration.cs</code></td>
 <td>strategy configuration types</td>
-<td>Сериализуемая конфигурация стратегии, используемая в <code>UniversalInventory</code>.</td>
+<td>Runtime snapshot для refresh логики стратегии, slot management и merge policy.</td>
 </tr>
 </tbody>
 </table>
@@ -2785,7 +2870,7 @@
 <tr>
 <td><code>Scripts/Interaction/InputModalityTracker.cs</code></td>
 <td><code>InputModalityTracker</code>, <code>InputModality</code></td>
-<td>Отслеживает, использует ли игрок pointer- или navigation/gamepad-style input.</td>
+<td>Отслеживает, использует ли игрок pointer- или navigation-style input в legacy и Input System проектах.</td>
 </tr>
 <tr>
 <td><code>Scripts/Interaction/InventoryExtraInteractionBinder.cs</code></td>
@@ -3071,17 +3156,17 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Core/AutoTransferAnimationStrategy.cs</code></td>
+<td><code>Scripts/Core/AutoTransfer/AutoTransferAnimationStrategy.cs</code></td>
 <td><code>AutoTransferAnimationStrategy</code></td>
 <td>Базовый класс стратегий анимации quick transfer.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/TweenAutoTransferAnimation.cs</code></td>
+<td><code>Scripts/Core/AutoTransfer/TweenAutoTransferAnimation.cs</code></td>
 <td><code>TweenAutoTransferAnimation</code></td>
 <td>Tween-based стратегия анимации для auto-transfer эффекта.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/AutoTransferContext.cs</code></td>
+<td><code>Scripts/Core/AutoTransfer/AutoTransferContext.cs</code></td>
 <td><code>InventoryList</code></td>
 <td>Вспомогательная модель, используемая в quick-transfer анимации и related flows.</td>
 </tr>

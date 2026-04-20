@@ -2020,7 +2020,7 @@
 
 
 <h1 id="input-and-interaction">Input and Interaction</h1>
-<p>El sistema de input separa la detección de entrada (mouse, teclado, gamepad) de las acciones (dragging, selection, context menu). Esto permite cambiar bindings sin reescribir lógica y soportar distintos dispositivos de entrada.</p>
+<p>El sistema de input separa la detección de entrada (mouse, teclado, gamepad y ejes de navegación legacy) de las acciones (dragging, selection, context menu). Esto permite cambiar bindings sin reescribir lógica y soportar distintos dispositivos de entrada.</p>
 <hr />
 <h2 id="como-funciona-el-input">Cómo funciona el input</h2>
 <pre class="mermaid"><code>flowchart LR
@@ -2075,7 +2075,7 @@
 <p>Los umbrales se configuran en <code>InputEventRouter</code>: <code>_longClickThresholdSeconds</code> (por defecto 0.35 s) y <code>_clickMoveTolerancePixels</code> (por defecto 8 píxeles).</p>
 <hr />
 <h2 id="binding-profiles">Binding Profiles</h2>
-<p>Los bindings se configuran mediante el ScriptableObject <code>InteractionBindingsProfile</code>. Contiene dos listas:</p>
+<p>Los bindings se configuran mediante el ScriptableObject <code>InteractionBindingsProfile</code>. Contiene pointer bindings, key bindings legacy y Input Action bindings opcionales.</p>
 <h3 id="pointer-bindings">Pointer Bindings</h3>
 <p>Cada binding consiste en: botón de ratón + modificador + fase + acción.</p>
 <table>
@@ -2127,7 +2127,9 @@
 </tbody>
 </table>
 <h3 id="input-action-bindings">Input Action Bindings</h3>
-<p>Para atajos y gamepad: vincular una Input System Action con una acción de inventario.</p>
+<p>Para atajos opcionales y configuraciones específicas de gamepad: vincular una Input System Action con una acción de inventario.
+Los mixed setups están soportados, pero recuerda que las funciones basadas en <code>InputAction</code> siguen esperando que esa escena o workflow estén configurados para el nuevo input pipeline.
+Si una escena permanece intencionadamente en <code>StandaloneInputModule</code>, pointer y navigation pueden seguir funcionando allí mientras algunas funciones de <code>InputAction</code> no lo hacen.</p>
 <hr />
 <h2 id="modo-de-input">Modo de input</h2>
 <p>El sistema determina automáticamente el modo de input actual:</p>
@@ -2142,17 +2144,17 @@
 <tbody>
 <tr>
 <td><strong>Mouse</strong></td>
-<td>Cualquier clic de ratón</td>
+<td>Clic del ratón o movimiento del ratón</td>
 <td>Focus por hover, pointer events estándar</td>
 </tr>
 <tr>
 <td><strong>Navigation</strong></td>
-<td>Flechas, WASD, gamepad D-pad</td>
+<td>Flechas, WASD, Submit/Cancel, Tab, gamepad D-pad</td>
 <td>Focus vía <code>EventSystem.selectedGameObject</code>, navegación entre slots</td>
 </tr>
 </tbody>
 </table>
-<p>El cambio ocurre automáticamente. Cuando el modo Navigation está activo, <code>InputEventRouter</code> mantiene el focus sobre un slot: si el objeto seleccionado deja de estar activo, el sistema busca el slot disponible más cercano.</p>
+<p>El cambio ocurre automáticamente tanto con input legacy como con el nuevo Input System. Cuando el modo Navigation está activo, <code>InputEventRouter</code> mantiene el focus sobre un slot: si el objeto seleccionado deja de estar activo, el sistema busca el slot disponible más cercano.</p>
 <hr />
 <h2 id="sobrescribir-bindings-por-inventario">Sobrescribir bindings por inventario</h2>
 <p>Cada inventario puede tener sus propios bindings mediante el componente <code>InventoryExtraInteractionBinder</code>. Esto es útil cuando un comerciante y un jugador tienen comportamientos de clic distintos.</p>
@@ -2239,7 +2241,7 @@
 </tr>
 <tr>
 <td><code>InputModalityTracker</code></td>
-<td>Determina el modo de input actual (Mouse / Navigation)</td>
+<td>Determina el modo de input actual (Mouse / Navigation) tanto en legacy como en Input System</td>
 </tr>
 <tr>
 <td><code>PointerBinding</code></td>

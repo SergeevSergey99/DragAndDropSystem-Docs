@@ -1096,6 +1096,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#slot-management-personalizado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Slot Management personalizado
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clases-clave" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1924,6 +1935,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#slot-management-personalizado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Slot Management personalizado
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clases-clave" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2049,14 +2071,14 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Item Behavior</strong></td>
-<td><code>Unique</code> / <code>Stackable</code> / <code>SeparableStacks</code></td>
-<td>Strategy de colocación de items</td>
+<td><strong>Inventory Strategy</strong></td>
+<td><code>UniqueItemStrategy</code> / <code>StackableItemStrategy</code> / <code>SeparableStacksStrategy</code></td>
+<td>Strategy de colocación elegida directamente mediante <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Slot Management</strong></td>
-<td><code>Fixed</code> / <code>Dynamic</code></td>
-<td>Slots fijos o creación dinámica</td>
+<td><code>FixedSlotManagementSettings</code> / <code>DynamicSlotManagementSettings</code></td>
+<td>Modo de ciclo de vida de slots elegido directamente mediante <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Max Slots</strong></td>
@@ -2080,6 +2102,8 @@
 <p>Para crear tu propia placement strategy:</p>
 <ol>
 <li>Crea una clase que herede de <code>InventoryStrategyBase</code>.</li>
+<li>Márquela con <code>[Serializable]</code>.</li>
+<li>Aparecerá automáticamente en el strategy picker de <code>UniversalInventory</code>.</li>
 <li>Sobrescribe los métodos clave:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryStrategyBase</span>
@@ -2125,6 +2149,14 @@
 <p class="admonition-title">Validación de rules</p>
 <p>Usa el método <code>PassesRules(slot, item, count)</code> de la clase base para validar las slot rules antes de colocar.</p>
 </div>
+<h2 id="slot-management-personalizado">Slot Management personalizado</h2>
+<p>Para crear tu propio modo de ciclo de vida de slots:</p>
+<ol>
+<li>Crea una clase que herede de <code>SlotManagementSettingsBase</code>.</li>
+<li>Márquela con <code>[Serializable]</code>.</li>
+<li>Sobrescribe los hooks que necesites, por ejemplo <code>WrapRuntimeStrategy</code>, <code>EnsureFreeSlots</code> o <code>HandleSlotEmptied</code>.</li>
+<li>Aparecerá automáticamente en el picker de <code>Slot Management</code> de <code>UniversalInventory</code>.</li>
+</ol>
 <hr />
 <h2 id="clases-clave">Clases clave</h2>
 <table>
@@ -2142,6 +2174,11 @@
 <td>Métodos comunes para todas las strategies</td>
 </tr>
 <tr>
+<td>Base compartida de stacks</td>
+<td><code>StackBasedInventoryStrategyBase</code></td>
+<td>Soporte común para límite de stack y override por item en strategies de stack</td>
+</tr>
+<tr>
 <td>Unique</td>
 <td><code>UniqueItemStrategy</code></td>
 <td>Un item = un slot</td>
@@ -2157,9 +2194,19 @@
 <td>Stacks independientes con fusión opcional</td>
 </tr>
 <tr>
+<td>Interfaces de capacidad</td>
+<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
+<td>Interfaces semánticas opcionales para código personalizado</td>
+</tr>
+<tr>
+<td>Base de slot management</td>
+<td><code>SlotManagementSettingsBase</code></td>
+<td>Clase base para modos fixed, dynamic y custom del ciclo de vida de slots</td>
+</tr>
+<tr>
 <td>Dynamic slots</td>
-<td><code>DynamicSlotDecorator</code></td>
-<td>Decorador para creación automática de slots</td>
+<td><code>DynamicSlotManagementSettings</code>, <code>DynamicSlotDecorator</code></td>
+<td>Modo dinámico y su decorador de runtime</td>
 </tr>
 <tr>
 <td>Interface</td>

@@ -1096,6 +1096,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-slot-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Slot Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-classes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1924,6 +1935,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-slot-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Slot Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-classes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2049,14 +2071,14 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Item Behavior</strong></td>
-<td><code>Unique</code> / <code>Stackable</code> / <code>SeparableStacks</code></td>
-<td>Item placement strategy</td>
+<td><strong>Inventory Strategy</strong></td>
+<td><code>UniqueItemStrategy</code> / <code>StackableItemStrategy</code> / <code>SeparableStacksStrategy</code></td>
+<td>Item placement strategy selected directly through <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Slot Management</strong></td>
-<td><code>Fixed</code> / <code>Dynamic</code></td>
-<td>Fixed slots or dynamic creation</td>
+<td><code>FixedSlotManagementSettings</code> / <code>DynamicSlotManagementSettings</code></td>
+<td>Slot lifecycle mode selected directly through <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Max Slots</strong></td>
@@ -2080,6 +2102,8 @@
 <p>To create your own placement strategy:</p>
 <ol>
 <li>Create a class inheriting from <code>InventoryStrategyBase</code>.</li>
+<li>Mark it <code>[Serializable]</code>.</li>
+<li>It appears automatically in the <code>UniversalInventory</code> strategy picker.</li>
 <li>Override the key methods:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryStrategyBase</span>
@@ -2125,6 +2149,14 @@
 <p class="admonition-title">Rule Validation</p>
 <p>Use the <code>PassesRules(slot, item, count)</code> method from the base class to validate slot rules before placement.</p>
 </div>
+<h2 id="custom-slot-management">Custom Slot Management</h2>
+<p>To create your own slot lifecycle mode:</p>
+<ol>
+<li>Create a class inheriting from <code>SlotManagementSettingsBase</code>.</li>
+<li>Mark it <code>[Serializable]</code>.</li>
+<li>Override the hooks you need, for example <code>WrapRuntimeStrategy</code>, <code>EnsureFreeSlots</code>, or <code>HandleSlotEmptied</code>.</li>
+<li>It appears automatically in the <code>UniversalInventory</code> slot management picker.</li>
+</ol>
 <hr />
 <h2 id="key-classes">Key Classes</h2>
 <table>
@@ -2142,6 +2174,11 @@
 <td>Common methods for all strategies</td>
 </tr>
 <tr>
+<td>Shared stack base</td>
+<td><code>StackBasedInventoryStrategyBase</code></td>
+<td>Shared stack size and per-item override support for stack-oriented strategies</td>
+</tr>
+<tr>
 <td>Unique</td>
 <td><code>UniqueItemStrategy</code></td>
 <td>One item = one slot</td>
@@ -2157,9 +2194,19 @@
 <td>Independent stacks with optional merging</td>
 </tr>
 <tr>
+<td>Capabilities</td>
+<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
+<td>Optional semantic interfaces for custom code</td>
+</tr>
+<tr>
+<td>Slot management base</td>
+<td><code>SlotManagementSettingsBase</code></td>
+<td>Base class for fixed, dynamic, and custom slot lifecycle modes</td>
+</tr>
+<tr>
 <td>Dynamic slots</td>
-<td><code>DynamicSlotDecorator</code></td>
-<td>Decorator for automatic slot creation</td>
+<td><code>DynamicSlotManagementSettings</code>, <code>DynamicSlotDecorator</code></td>
+<td>Dynamic slot mode and its runtime decorator</td>
 </tr>
 <tr>
 <td>Interface</td>

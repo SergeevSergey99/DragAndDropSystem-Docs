@@ -1096,6 +1096,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#slot-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Свой Slot Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1924,6 +1935,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#slot-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Свой Slot Management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2049,14 +2071,14 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Item Behavior</strong></td>
-<td><code>Unique</code> / <code>Stackable</code> / <code>SeparableStacks</code></td>
-<td>Стратегия размещения предметов</td>
+<td><strong>Inventory Strategy</strong></td>
+<td><code>UniqueItemStrategy</code> / <code>StackableItemStrategy</code> / <code>SeparableStacksStrategy</code></td>
+<td>Стратегия размещения предметов, выбираемая напрямую через <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Slot Management</strong></td>
-<td><code>Fixed</code> / <code>Dynamic</code></td>
-<td>Фиксированные слоты или динамическое создание</td>
+<td><code>FixedSlotManagementSettings</code> / <code>DynamicSlotManagementSettings</code></td>
+<td>Режим жизненного цикла слотов, выбираемый напрямую через <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Max Slots</strong></td>
@@ -2080,6 +2102,8 @@
 <p>Чтобы создать собственную стратегию размещения:</p>
 <ol>
 <li>Создайте класс-наследник <code>InventoryStrategyBase</code>.</li>
+<li>Пометьте его <code>[Serializable]</code>.</li>
+<li>Он автоматически появится в strategy picker у <code>UniversalInventory</code>.</li>
 <li>Переопределите ключевые методы:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryStrategyBase</span>
@@ -2125,6 +2149,14 @@
 <p class="admonition-title">Проверка правил</p>
 <p>Используйте метод <code>PassesRules(slot, item, count)</code> из базового класса для проверки правил слота перед размещением.</p>
 </div>
+<h2 id="slot-management">Свой Slot Management</h2>
+<p>Чтобы создать собственный режим жизненного цикла слотов:</p>
+<ol>
+<li>Создайте класс-наследник <code>SlotManagementSettingsBase</code>.</li>
+<li>Пометьте его <code>[Serializable]</code>.</li>
+<li>Переопределите нужные hooks, например <code>WrapRuntimeStrategy</code>, <code>EnsureFreeSlots</code> или <code>HandleSlotEmptied</code>.</li>
+<li>Он автоматически появится в picker поля <code>Slot Management</code> у <code>UniversalInventory</code>.</li>
+</ol>
 <hr />
 <h2 id="_9">Ключевые классы</h2>
 <table>
@@ -2142,6 +2174,11 @@
 <td>Общие методы для всех стратегий</td>
 </tr>
 <tr>
+<td>Общая stack-база</td>
+<td><code>StackBasedInventoryStrategyBase</code></td>
+<td>Общая поддержка лимита стека и per-item override для stack-стратегий</td>
+</tr>
+<tr>
 <td>Уникальные</td>
 <td><code>UniqueItemStrategy</code></td>
 <td>Один предмет = один слот</td>
@@ -2157,9 +2194,19 @@
 <td>Независимые стаки с опциональным слиянием</td>
 </tr>
 <tr>
+<td>Capability interfaces</td>
+<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
+<td>Опциональные semantic-интерфейсы для кастомного кода</td>
+</tr>
+<tr>
+<td>База slot management</td>
+<td><code>SlotManagementSettingsBase</code></td>
+<td>Базовый класс для fixed, dynamic и custom режимов жизненного цикла слотов</td>
+</tr>
+<tr>
 <td>Динамические слоты</td>
-<td><code>DynamicSlotDecorator</code></td>
-<td>Декоратор для автосоздания слотов</td>
+<td><code>DynamicSlotManagementSettings</code>, <code>DynamicSlotDecorator</code></td>
+<td>Dynamic-режим и его runtime-декоратор</td>
 </tr>
 <tr>
 <td>Интерфейс</td>

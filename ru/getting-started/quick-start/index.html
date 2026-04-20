@@ -1966,7 +1966,9 @@
 <li>Опциональный пакет: <code>com.unity.inputsystem</code></li>
 </ul>
 <p>Для этого quick start новый Input System <strong>не требуется</strong>. Базовый drag and drop через указатель работает без него.
-Если вам нужны <code>InputAction</code> bindings, навигационная модальность от геймпада или <code>InputActionSelectionTrigger</code>, установите <code>com.unity.inputsystem</code>.</p>
+Если вам нужны <code>InputAction</code> bindings или <code>InputActionSelectionTrigger</code>, установите <code>com.unity.inputsystem</code>.
+Mixed setup тоже допустим: в проекте может быть установлен новый Input System, а конкретная сцена всё ещё использовать <code>StandaloneInputModule</code>.
+В таком случае <code>InputAction</code>-зависимые функции могут работать не так, как ожидается, если сама сцена/flow не настроены под новый input pipeline.</p>
 <h2 id="1">Шаг 1. Подготовьте сцену</h2>
 <ol>
 <li>Создайте <code>Canvas</code> на котором будут располагаться инвентрари, если его ещё нет.</li>
@@ -1974,7 +1976,8 @@
 <p>На сцене нужен один <code>DragAndDropManager</code>. Он управляет всеми операциями переноса и контролирует объект переносимого объекта.</p>
 </blockquote>
 </li>
-<li>Убедитесь, что на сцене есть <code>EventSystem</code>.</li>
+<li>Убедитесь, что на сцене есть <code>EventSystem</code>.
+   Если проект использует legacy input, на <code>EventSystem</code> должен быть <code>StandaloneInputModule</code>.</li>
 </ol>
 <hr />
 <h2 id="2">Шаг 2. Создайте два инвентаря</h2>
@@ -1992,12 +1995,12 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Item Behavior</code></td>
-<td><code>Unique</code> для самого простого старта - каждый предмет в отдельном слоте</td>
+<td><code>Inventory Strategy</code></td>
+<td><code>UniqueItemStrategy</code> для самого простого старта, чтобы каждый предмет был в отдельном слоте</td>
 </tr>
 <tr>
 <td><code>Slot Management</code></td>
-<td><code>Fixed</code> - фиксированное количество слотов</td>
+<td><code>FixedSlotManagementSettings</code> для фиксированного количества слотов</td>
 </tr>
 <tr>
 <td><code>Initial Slot Count</code></td>
@@ -2029,7 +2032,7 @@
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </code></pre></div>
 Чтобы такой тип можно было отображать в слотах для него нужно сделать адаптер, который реализует <code>IItemAdapter</code>, например:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemSOAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span>
@@ -2054,8 +2057,8 @@
 </ul>
 <hr />
 <h2 id="4-binding">Шаг 4. Добавьте простой binding</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.DataBinding</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.DataBinding</span><span class="p">;</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">using</span><span class="w"> </span><span class="nn">System.Collections.Generic</span><span class="p">;</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
@@ -2109,6 +2112,7 @@
 <li><code>ItemId</code> не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно</li>
 <li>на сцене нет <code>DragAndDropManager</code> или их несколько</li>
 <li>на сцене нет <code>EventSystem</code></li>
+<li>проект использует legacy input, но на <code>EventSystem</code> нет <code>StandaloneInputModule</code></li>
 <li>binding привязан не к тому <code>UniversalInventory</code></li>
 <li>у <code>InventoryDataBinding</code> не назначена ссылка на inventory</li>
 <li>данные меняются вне pipeline, но <code>ReloadUI()</code> не вызывается. Добавьте в вашем DataBinding вызов ReloadUI по событию изменения данных</li>
@@ -2117,6 +2121,7 @@
 <ul>
 <li><a href="../../examples/">Примеры</a> — если хотите выбрать из всех 5 демо</li>
 <li><a href="../../architecture/data-binding/">Привязка данных</a> — если нужно понять lifecycle и точки расширения</li>
+<li><a href="../../architecture/strategies/">Стратегии размещения</a> — если хотите добавить свою стратегию или свой режим slot management</li>
 <li><a href="../../reference/troubleshooting/">Troubleshooting</a> — если базовая сцена не завелась с первого раза</li>
 </ul>
 

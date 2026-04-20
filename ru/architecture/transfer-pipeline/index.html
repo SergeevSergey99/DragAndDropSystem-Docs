@@ -1087,6 +1087,17 @@
   <a href="#drop-policy_1" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Кастомные расширения Drop Policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drop-policy_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Порядок обработки Drop Policy
       
     </span>
@@ -2104,6 +2115,17 @@
   <a href="#drop-policy_1" class="md-nav__link">
     <span class="md-ellipsis">
       
+        Кастомные расширения Drop Policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drop-policy_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         Порядок обработки Drop Policy
       
     </span>
@@ -2411,21 +2433,22 @@
 <li><code>DropPolicySettings</code></li>
 <li>inventory-level defaults в <code>UniversalInventory</code></li>
 <li>задаёт:<ul>
-<li>blocked target behavior</li>
+<li>blocked target resolver</li>
 <li>allow merge on drop</li>
 <li>allow partial</li>
 <li>batch mode</li>
-<li>alternative placement mode</li>
+<li>alternative placement strategy для <code>FindAlternative</code></li>
 </ul>
 </li>
 <li><code>ResolvedDropPolicy</code></li>
 <li>итог после resolution</li>
 <li>именно он используется planner-ом</li>
 </ul>
-<p><code>BlockedTargetBehavior</code>:
+<p>Встроенные blocked target resolver'ы:
 - <code>Reject</code>
 - <code>Swap</code>
 - <code>FindAlternative</code></p>
+<p>Если выбран <code>FindAlternative</code>, внутри него задаётся вложенная <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
 <h2 id="override-actions">Временный override через actions</h2>
 <p>Временная подмена drop policy делается не через мутацию <code>DragContext</code>, а через action-level request override.</p>
 <p>Пример:
@@ -2441,7 +2464,23 @@
   1. action request override
   2. drop-target override
   3. inventory defaults</p>
-<h2 id="drop-policy_1">Порядок обработки Drop Policy</h2>
+<h2 id="drop-policy_1">Кастомные расширения Drop Policy</h2>
+<p>Чтобы создать своё поведение для blocked target:</p>
+<ol>
+<li>Создайте класс-наследник <code>BlockedTargetResolverBase</code>.</li>
+<li>Пометьте его <code>[Serializable]</code>.</li>
+<li>Переопределите <code>Behavior</code>.</li>
+<li>Если resolver должен управлять alternative placement, переопределите <code>GetAlternativePlacement()</code>.</li>
+<li>Класс автоматически появится в managed reference picker у <code>DropPolicySettings</code>.</li>
+</ol>
+<p>Чтобы создать свою стратегию alternative placement:</p>
+<ol>
+<li>Создайте класс, реализующий <code>IAlternativePlacementStrategy</code>.</li>
+<li>Пометьте его <code>[Serializable]</code>.</li>
+<li>Верните нужный <code>AlternativePlacementMode</code> из <code>Mode</code>.</li>
+<li>Класс автоматически появится внутри <code>FindAlternativeBlockedTargetResolver</code>.</li>
+</ol>
+<h2 id="drop-policy_2">Порядок обработки Drop Policy</h2>
 <p>Для одного drag entry порядок такой:</p>
 <ol>
 <li>Резолвится <code>ResolvedDropPolicy</code></li>

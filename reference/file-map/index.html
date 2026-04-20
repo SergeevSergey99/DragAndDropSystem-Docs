@@ -2334,7 +2334,7 @@
 <tr>
 <td><code>Scripts/Inventories/UniversalInventory.cs</code></td>
 <td><code>UniversalInventory</code>, <code>ItemBehaviorType</code>, <code>SlotManagementType</code></td>
-<td>Main inventory component. Owns slots, strategy configuration, rule collections, and inventory-level transfer behavior.</td>
+<td>Main inventory component. Owns slots, direct <code>[SerializeReference]</code> strategy fields, rule collections, and inventory-level transfer behavior.</td>
 </tr>
 <tr>
 <td><code>Scripts/Slots/BaseSlot.cs</code></td>
@@ -2365,47 +2365,47 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Core/IItemAdapter.cs</code></td>
+<td><code>Scripts/Core/Contracts/IItemAdapter.cs</code></td>
 <td><code>IItemAdapter</code></td>
 <td>Minimal item representation stored in slots and transferred through the UI pipeline.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IDescribable.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDescribable.cs</code></td>
 <td><code>IDescribable</code></td>
 <td>Optional interface for adapters that provide extended description data for UI such as tooltips.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IFilterable.cs</code></td>
+<td><code>Scripts/Core/Contracts/IFilterable.cs</code></td>
 <td><code>IFilterable</code>, <code>ISortable</code></td>
 <td>Optional interfaces for filter and sort systems.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IStackSizeLimitable.cs</code></td>
+<td><code>Scripts/Core/Contracts/IStackSizeLimitable.cs</code></td>
 <td><code>IStackSizeLimitable</code></td>
 <td>Optional per-item stack size override.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/ItemStack.cs</code></td>
+<td><code>Scripts/Core/Models/ItemStack.cs</code></td>
 <td><code>ItemStack</code></td>
 <td>Runtime stack model used by slots, planning, swapping, and execution.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DragContext.cs</code></td>
+<td><code>Scripts/Core/Models/DragContext.cs</code></td>
 <td><code>DragContext</code></td>
 <td>Per-drag context containing source entries, target info, and flags for the current operation.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/ActionResult.cs</code></td>
+<td><code>Scripts/Core/Models/ActionResult.cs</code></td>
 <td><code>ActionResult</code></td>
 <td>Generic result object for action-style APIs.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DropResult.cs</code></td>
+<td><code>Scripts/Core/Models/DropResult.cs</code></td>
 <td><code>DropResult</code></td>
 <td>Result object returned by drop processing.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/InventoryEvents.cs</code></td>
+<td><code>Scripts/Core/Models/InventoryEvents.cs</code></td>
 <td><code>InventoryItemEventContext</code>, <code>InventorySwapContext</code></td>
 <td>Event payload types used when transfer and swap notifications are dispatched.</td>
 </tr>
@@ -2428,22 +2428,22 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Core/IDropTarget.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDropTarget.cs</code></td>
 <td><code>IDropTarget</code></td>
 <td>Contract for anything that can receive dragged items.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IDropProcessor.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDropProcessor.cs</code></td>
 <td><code>IDropProcessor</code></td>
 <td>Contract for objects that can process a drop attempt.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/IDropRequestProcessor.cs</code></td>
+<td><code>Scripts/Core/Contracts/IDropRequestProcessor.cs</code></td>
 <td><code>IDropRequestProcessor</code></td>
 <td>Specialized processor interface used by request-driven drop handling.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DropAreaBase.cs</code></td>
+<td><code>Scripts/Core/Drop/DropAreaBase.cs</code></td>
 <td><code>DropAreaBase</code></td>
 <td>Base class for non-slot drop targets such as inventory areas or world drop zones.</td>
 </tr>
@@ -2453,9 +2453,69 @@
 <td>Standard inventory area drop target built on top of <code>DropAreaBase</code>.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/DropPolicy.cs</code></td>
-<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>DropPolicySettings</code>, <code>DropRequestPolicySettings</code>, <code>DragRequestPolicySettings</code></td>
-<td>Policy enums and settings objects that control planning behavior, batch semantics, alternative placement, and amount selection.</td>
+<td><code>Scripts/Core/Drop/DropPolicy.cs</code></td>
+<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
+<td>Core drop policy enums and resolved/request policy value types used by planning and execution.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/DropPolicySettings.cs</code></td>
+<td><code>DropPolicySettings</code></td>
+<td>Inventory-level drop policy defaults, including the blocked-target resolver and batch/partial settings.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/DropRequestPolicySettings.cs</code></td>
+<td><code>DropRequestPolicySettings</code></td>
+<td>Serializable authoring helper for one-off drop request overrides in actions and triggers.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/DragRequestPolicySettings.cs</code></td>
+<td><code>DragRequestPolicySettings</code></td>
+<td>Serializable authoring helper for temporary drag-amount overrides when starting a drag.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/BlockedTargetResolverBase.cs</code></td>
+<td><code>BlockedTargetResolverBase</code></td>
+<td>Base class for blocked-target behavior authoring in <code>DropPolicySettings</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/RejectBlockedTargetResolver.cs</code></td>
+<td><code>RejectBlockedTargetResolver</code></td>
+<td>Resolver that rejects a blocked target immediately.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/SwapBlockedTargetResolver.cs</code></td>
+<td><code>SwapBlockedTargetResolver</code></td>
+<td>Resolver that prefers swap planning on blocked targets.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs</code></td>
+<td><code>FindAlternativeBlockedTargetResolver</code></td>
+<td>Resolver that delegates blocked-target handling to an alternative placement strategy.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/IAlternativePlacementStrategy.cs</code></td>
+<td><code>IAlternativePlacementStrategy</code></td>
+<td>Contract for alternative slot search order used by <code>FindAlternativeBlockedTargetResolver</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs</code></td>
+<td><code>MergeFirstAlternativePlacementStrategy</code></td>
+<td>Alternative placement strategy that prefers merge candidates first.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs</code></td>
+<td><code>EmptyFirstAlternativePlacementStrategy</code></td>
+<td>Alternative placement strategy that prefers empty slots first.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs</code></td>
+<td><code>MergeOnlyAlternativePlacementStrategy</code></td>
+<td>Alternative placement strategy that considers only merge candidates.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/EmptyOnlyAlternativePlacementStrategy.cs</code></td>
+<td><code>EmptyOnlyAlternativePlacementStrategy</code></td>
+<td>Alternative placement strategy that considers only empty slots.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/IDropPolicyProvider.cs</code></td>
@@ -2662,6 +2722,16 @@
 <td>Base class for inventory placement/acceptance strategy implementations.</td>
 </tr>
 <tr>
+<td><code>Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs</code></td>
+<td><code>StackBasedInventoryStrategyBase</code></td>
+<td>Shared stack-aware base with max stack size and per-item override support.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/Strategies/StrategyCapabilities.cs</code></td>
+<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
+<td>Optional semantic capability interfaces for custom code.</td>
+</tr>
+<tr>
 <td><code>Scripts/Inventories/Strategies/UniqueItemStrategy.cs</code></td>
 <td><code>UniqueItemStrategy</code></td>
 <td>Strategy where each slot holds one independent item stack/unit.</td>
@@ -2677,6 +2747,21 @@
 <td>Strategy for stacks that support splitting and granular partial moves.</td>
 </tr>
 <tr>
+<td><code>Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs</code></td>
+<td><code>SlotManagementSettingsBase</code></td>
+<td>Base class for direct slot lifecycle modes selected in <code>UniversalInventory</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs</code></td>
+<td><code>FixedSlotManagementSettings</code></td>
+<td>Fixed slot lifecycle mode.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs</code></td>
+<td><code>DynamicSlotManagementSettings</code></td>
+<td>Dynamic slot lifecycle mode with free-slot maintenance and trimming hooks.</td>
+</tr>
+<tr>
 <td><code>Scripts/Inventories/Strategies/DynamicSlotDecorator.cs</code></td>
 <td><code>DynamicSlotDecorator</code></td>
 <td>Decorator that adds dynamic slot creation/management behavior around another strategy.</td>
@@ -2684,7 +2769,7 @@
 <tr>
 <td><code>Scripts/Inventories/Strategies/StrategyConfiguration.cs</code></td>
 <td>strategy configuration types</td>
-<td>Serialized strategy configuration used by <code>UniversalInventory</code>.</td>
+<td>Runtime refresh snapshot for strategy, slot management, and merge-policy configuration.</td>
 </tr>
 </tbody>
 </table>
@@ -2785,7 +2870,7 @@
 <tr>
 <td><code>Scripts/Interaction/InputModalityTracker.cs</code></td>
 <td><code>InputModalityTracker</code>, <code>InputModality</code></td>
-<td>Tracks whether the player is currently using pointer or navigation/gamepad style input.</td>
+<td>Tracks whether the player is currently using pointer or navigation-style input in both legacy and Input System projects.</td>
 </tr>
 <tr>
 <td><code>Scripts/Interaction/InventoryExtraInteractionBinder.cs</code></td>
@@ -3071,17 +3156,17 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Core/AutoTransferAnimationStrategy.cs</code></td>
+<td><code>Scripts/Core/AutoTransfer/AutoTransferAnimationStrategy.cs</code></td>
 <td><code>AutoTransferAnimationStrategy</code></td>
 <td>Base class for quick-transfer animation strategies.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/TweenAutoTransferAnimation.cs</code></td>
+<td><code>Scripts/Core/AutoTransfer/TweenAutoTransferAnimation.cs</code></td>
 <td><code>TweenAutoTransferAnimation</code></td>
 <td>Tween-based animation strategy for auto-transfer effects.</td>
 </tr>
 <tr>
-<td><code>Scripts/Core/AutoTransferContext.cs</code></td>
+<td><code>Scripts/Core/AutoTransfer/AutoTransferContext.cs</code></td>
 <td><code>InventoryList</code></td>
 <td>Auto-transfer related helper model used by quick-transfer animation/selection flows.</td>
 </tr>

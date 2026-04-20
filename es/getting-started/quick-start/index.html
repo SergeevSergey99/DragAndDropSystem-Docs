@@ -1966,7 +1966,9 @@
 <li>Paquete opcional: <code>com.unity.inputsystem</code></li>
 </ul>
 <p>Este quick start <strong>no</strong> requiere el nuevo Input System. El drag and drop básico con puntero funciona sin él.
-Si quieres <code>InputAction</code> bindings, modalidad de navegación orientada a gamepad o <code>InputActionSelectionTrigger</code>, instala <code>com.unity.inputsystem</code>.</p>
+Si quieres <code>InputAction</code> bindings o <code>InputActionSelectionTrigger</code>, instala <code>com.unity.inputsystem</code>.
+Los mixed setups también son válidos: un proyecto puede incluir el nuevo Input System mientras esta escena concreta sigue usando <code>StandaloneInputModule</code>.
+En ese caso, las funciones basadas en <code>InputAction</code> pueden no comportarse como esperas si esa escena o workflow no están configurados para el nuevo input pipeline.</p>
 <h2 id="paso-1-preparar-la-escena">Paso 1. Preparar la escena</h2>
 <ol>
 <li>Crea un <code>Canvas</code> donde se colocarán los inventarios, si aún no lo tienes.</li>
@@ -1974,7 +1976,8 @@ Si quieres <code>InputAction</code> bindings, modalidad de navegación orientada
 <p>La escena necesita un único <code>DragAndDropManager</code>. Gestiona todas las operaciones de transferencia y controla el objeto arrastrado.</p>
 </blockquote>
 </li>
-<li>Asegúrate de que existe un <code>EventSystem</code> en la escena.</li>
+<li>Asegúrate de que existe un <code>EventSystem</code> en la escena.
+   Si usas input legacy, el <code>EventSystem</code> debe tener <code>StandaloneInputModule</code>.</li>
 </ol>
 <hr />
 <h2 id="paso-2-crear-dos-inventarios">Paso 2. Crear dos inventarios</h2>
@@ -1992,12 +1995,12 @@ Si quieres <code>InputAction</code> bindings, modalidad de navegación orientada
 </thead>
 <tbody>
 <tr>
-<td><code>Item Behavior</code></td>
-<td><code>Unique</code> para empezar de la forma más simple, de modo que cada item esté en un slot separado</td>
+<td><code>Inventory Strategy</code></td>
+<td><code>UniqueItemStrategy</code> para empezar de la forma más simple, de modo que cada item esté en un slot separado</td>
 </tr>
 <tr>
 <td><code>Slot Management</code></td>
-<td><code>Fixed</code> para un número fijo de slots</td>
+<td><code>FixedSlotManagementSettings</code> para un número fijo de slots</td>
 </tr>
 <tr>
 <td><code>Initial Slot Count</code></td>
@@ -2029,7 +2032,7 @@ Si quieres <code>InputAction</code> bindings, modalidad de navegación orientada
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </code></pre></div>
 Para mostrar este tipo en los slots, necesitas crear un adapter que implemente <code>IItemAdapter</code>, por ejemplo:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemSOAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span>
@@ -2054,8 +2057,8 @@ Para mostrar este tipo en los slots, necesitas crear un adapter que implemente <
 </ul>
 <hr />
 <h2 id="paso-4-anadir-un-binding-simple">Paso 4. Añadir un binding simple</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.Core</span><span class="p">;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">DragAndDropSystem.DataBinding</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.DataBinding</span><span class="p">;</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">using</span><span class="w"> </span><span class="nn">System.Collections.Generic</span><span class="p">;</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
@@ -2109,6 +2112,7 @@ Cada uno tendrá su propia lista <code>_items</code>.</p>
 <li><code>ItemId</code> no coincide con tu semántica de stacking, así que los items se fusionan o dejan de fusionarse inesperadamente</li>
 <li>no hay <code>DragAndDropManager</code> en la escena, o hay varios managers</li>
 <li>no hay <code>EventSystem</code> en la escena</li>
+<li>la escena usa input legacy pero el <code>EventSystem</code> no tiene <code>StandaloneInputModule</code></li>
 <li>el binding apunta al <code>UniversalInventory</code> equivocado</li>
 <li><code>InventoryDataBinding</code> no tiene asignada la referencia al inventario</li>
 <li>los datos cambian fuera del pipeline, pero nunca se llama a <code>ReloadUI()</code>. Añade una llamada a ReloadUI en tu DataBinding cuando cambien los datos.</li>
@@ -2117,6 +2121,7 @@ Cada uno tendrá su propia lista <code>_items</code>.</p>
 <ul>
 <li><a href="../../examples/">Examples</a> — si quieres elegir entre las 5 demos</li>
 <li><a href="../../architecture/data-binding/">Data Binding</a> — si necesitas entender el lifecycle y los puntos de extensión</li>
+<li><a href="../../architecture/strategies/">Placement Strategies</a> — si quieres añadir tu propia strategy o modo de slot management</li>
 <li><a href="../../reference/troubleshooting/">Troubleshooting</a> — si la escena básica no funciona a la primera</li>
 </ul>
 

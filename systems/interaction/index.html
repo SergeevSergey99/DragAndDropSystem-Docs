@@ -2020,7 +2020,7 @@
 
 
 <h1 id="input-and-interaction">Input and Interaction</h1>
-<p>The input system separates input detection (mouse, keyboard, gamepad) from actions (dragging, selection, context menu). This allows changing bindings without rewriting logic and supporting different input devices.</p>
+<p>The input system separates input detection (mouse, keyboard, gamepad, or legacy navigation axes) from actions (dragging, selection, context menu). This allows changing bindings without rewriting logic and supporting different input devices.</p>
 <hr />
 <h2 id="how-input-works">How Input Works</h2>
 <pre class="mermaid"><code>flowchart LR
@@ -2075,7 +2075,7 @@
 <p>Thresholds are configured in <code>InputEventRouter</code>: <code>_longClickThresholdSeconds</code> (default 0.35 sec) and <code>_clickMoveTolerancePixels</code> (default 8 pixels).</p>
 <hr />
 <h2 id="binding-profiles">Binding Profiles</h2>
-<p>Bindings are configured via the ScriptableObject <code>InteractionBindingsProfile</code>. It contains two lists:</p>
+<p>Bindings are configured via the ScriptableObject <code>InteractionBindingsProfile</code>. It contains pointer bindings, legacy key bindings, and optional Input Action bindings.</p>
 <h3 id="pointer-bindings">Pointer Bindings</h3>
 <p>Each binding consists of: mouse button + modifier + phase + action.</p>
 <table>
@@ -2127,7 +2127,9 @@
 </tbody>
 </table>
 <h3 id="input-action-bindings">Input Action Bindings</h3>
-<p>For hotkeys and gamepad: binding an Input System Action to an inventory action.</p>
+<p>For optional hotkeys and gamepad-specific setups: bind an Input System Action to an inventory action.
+Mixed setups are supported, but keep in mind that <code>InputAction</code>-driven features still expect the new input pipeline to be configured for that scene/workflow.
+If a scene intentionally stays on <code>StandaloneInputModule</code>, pointer and navigation can still work there while some <code>InputAction</code> features do not.</p>
 <hr />
 <h2 id="input-mode">Input Mode</h2>
 <p>The system automatically determines the current input mode:</p>
@@ -2142,17 +2144,17 @@
 <tbody>
 <tr>
 <td><strong>Mouse</strong></td>
-<td>Any mouse click</td>
+<td>Mouse click or mouse movement</td>
 <td>Focus via hover, standard pointer events</td>
 </tr>
 <tr>
 <td><strong>Navigation</strong></td>
-<td>Arrows, WASD, gamepad D-pad</td>
-<td>Focus via EventSystem.selectedGameObject, navigation between slots</td>
+<td>Arrows, WASD, Submit/Cancel, Tab, gamepad D-pad</td>
+<td>Focus via <code>EventSystem.selectedGameObject</code>, navigation between slots</td>
 </tr>
 </tbody>
 </table>
-<p>Switching happens automatically. When Navigation mode is active, <code>InputEventRouter</code> maintains focus on a slot --- if the currently selected object becomes inactive, the system finds the nearest available slot.</p>
+<p>Switching happens automatically in both legacy input and the new Input System. When Navigation mode is active, <code>InputEventRouter</code> maintains focus on a slot --- if the currently selected object becomes inactive, the system finds the nearest available slot.</p>
 <hr />
 <h2 id="overriding-bindings-per-inventory">Overriding Bindings Per Inventory</h2>
 <p>Each inventory can have its own bindings via the <code>InventoryExtraInteractionBinder</code> component. This is useful when a merchant and a player have different click behavior.</p>
@@ -2239,7 +2241,7 @@
 </tr>
 <tr>
 <td><code>InputModalityTracker</code></td>
-<td>Determines the current input mode (Mouse / Navigation)</td>
+<td>Determines the current input mode (Mouse / Navigation) for both legacy and Input System setups</td>
 </tr>
 <tr>
 <td><code>PointerBinding</code></td>
