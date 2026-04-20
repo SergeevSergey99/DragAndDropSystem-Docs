@@ -229,8 +229,7 @@ El modelo actual tiene tres capas:
 - `DropRequestPolicy`
   - override temporal por operación
   - puede sobrescribir:
-    - `BlockedTargetBehavior`
-    - `AlternativePlacementMode`
+    - `BlockedTargetResolverBase`
     - `AllowPartial`
 - `DropPolicySettings`
   - valores por defecto a nivel de inventario en `UniversalInventory`
@@ -239,9 +238,9 @@ El modelo actual tiene tres capas:
     - permitir merge on drop
     - permitir parcial
     - batch mode
-    - strategy de colocación alternativa para `FindAlternative`
 - `ResolvedDropPolicy`
   - policy final no anulable que usa el planner
+  - contiene el blocked-target resolver concreto usado por esta transferencia
 
 Resolvers integrados para blocked target:
 - `Reject`
@@ -256,9 +255,10 @@ El override temporal de drop policy se hace mediante la request policy de la acc
 
 Ejemplo:
 - `CompleteDragAction` por defecto llama a `CompleteDrag(null)`
-- la variante con `Ctrl` de `CompleteDragAction` llama a `CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))`
+- la variante con `Ctrl` de `CompleteDragAction` llama a `CompleteDrag(DropRequestPolicy.WithSwap())`
 - la variante con `Shift` de `CompleteDragAction` llama a `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
-- las acciones también pueden sobrescribir `AllowPartial` y `AlternativePlacementMode` para una sola transferencia
+- las acciones también pueden sobrescribir `AllowPartial`
+- si hace falta, también pueden pasar un resolver propio o una placement strategy propia con `DropRequestPolicy.WithResolver(...)` o `DropRequestPolicy.WithFindAlternative(...)`
 
 Una variante separada es `SplitDropAction`: llama a `SplitDrop(policy, count)` en lugar de `CompleteDrag`. Esto permite soltar parte del stack (p. ej., 1 item) sin terminar el drag. La transferencia pasa por el mismo pipeline (planner → executor → eventos). Ver [Input and Interaction](../systems/interaction.md#split-drop) para más detalles.
 
@@ -276,15 +276,15 @@ Para crear tu propio comportamiento de blocked target:
 
 1. Crea una clase que herede de `BlockedTargetResolverBase`.
 2. Márquela con `[Serializable]`.
-3. Sobrescribe `Behavior`.
-4. Si tu resolver necesita controlar la colocación alternativa, sobrescribe `GetAlternativePlacement()`.
+3. Sobrescribe `SupportsSwap` si tu resolver debe habilitar swap planning.
+4. Sobrescribe `AlternativePlacementStrategy` si tu resolver debe buscar slots alternativos.
 5. La clase aparecerá automáticamente en el managed reference picker de `DropPolicySettings`.
 
 Para crear tu propia strategy de colocación alternativa:
 
 1. Crea una clase que implemente `IAlternativePlacementStrategy`.
 2. Márquela con `[Serializable]`.
-3. Devuelve el `AlternativePlacementMode` deseado desde `Mode`.
+3. Implementa `EnumerateAlternativeSlots(...)` y devuelve los slots en el orden exacto que necesites.
 4. La clase aparecerá automáticamente dentro de `FindAlternativeBlockedTargetResolver`.
 
 ## Orden de procesamiento de Drop Policy
@@ -297,12 +297,12 @@ Para una sola drag entry:
 4. Si solo cabe una parte:
    - `AllowPartial = false` -> fallo
    - `AllowPartial = true` -> éxito parcial
-   - el resto puede buscar alternativas solo cuando `BlockedTargetBehavior = FindAlternative`
+   - el resto puede buscar alternativas solo cuando el resolver activo expone `AlternativePlacementStrategy`
 5. Si no cabe nada en el objetivo:
    - `Reject` -> fallo
-   - `Swap` -> el planner crea una swap entry
-   - `FindAlternative` -> la placement strategy enumera slots alternativos
-6. En drops dentro del mismo inventario, `FindAlternative` no reordena items a través de otros slots. Si el target falla, el item permanece en su sitio
+   - resolver con soporte de `Swap` -> el planner crea una swap entry
+   - resolver con alternative placement -> la placement strategy enumera slots alternativos
+6. En drops dentro del mismo inventario, los resolvers con alternative placement no reordenan items a través de otros slots. Si el target falla, el item permanece en su sitio
 
 ## Operaciones por lotes
 
@@ -323,7 +323,7 @@ Por defecto, el batch mode proviene de `DropPolicySettings` del inventario objet
 
 ```mermaid
 flowchart TD
-    A["Target slot is occupied"] --> B{"BlockedTargetBehavior = Swap?"}
+    A["Target slot is occupied"] --> B{"Active resolver supports swap?"}
     B -->|No| C["Reject"]
     B -->|Yes| D["Validate both directions\non target-side preview stacks"]
     D --> E["Capture copies of both stacks"]

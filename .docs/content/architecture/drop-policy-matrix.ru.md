@@ -14,7 +14,7 @@
 
 - есть ли конкретный `target slot`
 - пуст он или занят
-- какой `BlockedTargetBehavior` выбран
+- какой blocked-target resolver выбран
 
 Дополнительно влияют:
 
@@ -96,7 +96,7 @@
 
 Для batch drag важно разделять две вещи:
 
-- `BlockedTargetBehavior`
+- blocked-target resolver
 - `BatchMode`
 
 `BatchMode` отвечает на вопрос "что делать, если один из entries не прошёл":
@@ -117,7 +117,7 @@
 
 - есть конкретный slot
 - слот занят
-- `BlockedTargetBehavior = Swap`
+- активен `SwapBlockedTargetResolver`
 
 Ожидаемое поведение:
 

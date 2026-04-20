@@ -122,40 +122,6 @@ namespace UniversalDragAndDrop.Inventories
             return baseSlot.Stack != null && baseSlot.Stack.CanStack(itemAdapter);
         }
 
-        public virtual IEnumerable<BaseSlot> EnumerateAlternativeSlots(List<BaseSlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, BaseSlot excludeBaseSlot)
-        {
-            if (slots == null || itemAdapter == null)
-                yield break;
-
-            switch (mode)
-            {
-                case AlternativePlacementMode.MergeOnly:
-                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeBaseSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
-                        yield return slot;
-                    yield break;
-
-                case AlternativePlacementMode.EmptyFirst:
-                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeBaseSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
-                        yield return slot;
-                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeBaseSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
-                        yield return slot;
-                    yield break;
-
-                case AlternativePlacementMode.EmptyOnly:
-                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeBaseSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
-                        yield return slot;
-                    yield break;
-
-                case AlternativePlacementMode.MergeFirst:
-                default:
-                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeBaseSlot, requireMergeCandidate: true, requireEmptyCandidate: false))
-                        yield return slot;
-                    foreach (var slot in EnumerateMatchingSlots(slots, itemAdapter, excludeBaseSlot, requireMergeCandidate: false, requireEmptyCandidate: true))
-                        yield return slot;
-                    yield break;
-            }
-        }
-
         /// <summary>
         /// Stack limit for an item.
         /// If allowItemOverride is enabled and the item implements IStackSizeLimitable, the item limit is used.
@@ -296,31 +262,6 @@ namespace UniversalDragAndDrop.Inventories
             operationContext?.RecordResult(baseSlot, slotWasEmpty, toPlace);
             ensureFreeSlots?.Invoke();
             return true;
-        }
-
-        private IEnumerable<BaseSlot> EnumerateMatchingSlots(
-            List<BaseSlot> slots,
-            IItemAdapter itemAdapter,
-            BaseSlot excludeBaseSlot,
-            bool requireMergeCandidate,
-            bool requireEmptyCandidate)
-        {
-            for (int i = 0; i < slots.Count; i++)
-            {
-                var slot = slots[i];
-                if (slot == null || ReferenceEquals(slot, excludeBaseSlot))
-                    continue;
-
-                bool isEmpty = slot.IsEmpty;
-                if (requireEmptyCandidate && !isEmpty)
-                    continue;
-                if (requireMergeCandidate && isEmpty)
-                    continue;
-                if (!CanUseAlternativeSlot(slot, itemAdapter))
-                    continue;
-
-                yield return slot;
-            }
         }
 
         internal string CaptureConfigurationJson()

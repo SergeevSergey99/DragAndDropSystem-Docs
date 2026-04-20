@@ -25,24 +25,6 @@ namespace UniversalDragAndDrop.Inventories
             return baseSlot.IsEmpty;
         }
 
-        public override IEnumerable<BaseSlot> EnumerateAlternativeSlots(List<BaseSlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, BaseSlot excludeBaseSlot)
-        {
-            if (mode == AlternativePlacementMode.MergeOnly)
-                yield break;
-
-            if (slots == null || itemAdapter == null)
-                yield break;
-
-            for (int i = 0; i < slots.Count; i++)
-            {
-                var slot = slots[i];
-                if (slot == null || ReferenceEquals(slot, excludeBaseSlot) || !slot.IsEmpty)
-                    continue;
-
-                yield return slot;
-            }
-        }
-
         public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)

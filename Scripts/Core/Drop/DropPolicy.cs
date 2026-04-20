@@ -2,13 +2,6 @@ using System;
 
 namespace UniversalDragAndDrop.Core
 {
-    public enum BlockedTargetBehavior : byte
-    {
-        Reject = 0,
-        Swap = 1,
-        FindAlternative = 2
-    }
-
     public enum DragAmount : byte
     {
         All = 0,
@@ -31,48 +24,41 @@ namespace UniversalDragAndDrop.Core
         BestEffort = 1
     }
 
-    public enum AlternativePlacementMode : byte
-    {
-        MergeFirst = 0,
-        EmptyFirst = 1,
-        MergeOnly = 2,
-        EmptyOnly = 3
-    }
-
     public readonly struct DropRequestPolicy
     {
         public DropRequestPolicy(
-            BlockedTargetBehavior? blockedTarget,
-            AlternativePlacementMode? alternativePlacement = null,
+            BlockedTargetResolverBase blockedTargetResolver,
             bool? allowPartial = null)
         {
-            BlockedTarget = blockedTarget;
-            AlternativePlacement = alternativePlacement;
+            BlockedTargetResolver = blockedTargetResolver;
             AllowPartial = allowPartial;
         }
 
-        public BlockedTargetBehavior? BlockedTarget { get; }
-        public AlternativePlacementMode? AlternativePlacement { get; }
+        public BlockedTargetResolverBase BlockedTargetResolver { get; }
         public bool? AllowPartial { get; }
 
-        public static DropRequestPolicy WithBlocked(BlockedTargetBehavior behavior)
+        public static DropRequestPolicy WithResolver(BlockedTargetResolverBase resolver)
         {
-            return new DropRequestPolicy(behavior);
+            return new DropRequestPolicy(resolver);
         }
 
         public static DropRequestPolicy WithSwap()
         {
-            return new DropRequestPolicy(BlockedTargetBehavior.Swap);
+            return new DropRequestPolicy(new SwapBlockedTargetResolver());
         }
 
-        public static DropRequestPolicy WithFindAlternative(AlternativePlacementMode? placement = null)
+        public static DropRequestPolicy WithFindAlternative(IAlternativePlacementStrategy placementStrategy = null)
         {
-            return new DropRequestPolicy(BlockedTargetBehavior.FindAlternative, placement);
+            var resolver = new FindAlternativeBlockedTargetResolver();
+            if (placementStrategy != null)
+                resolver.SetAlternativePlacementStrategy(placementStrategy);
+
+            return new DropRequestPolicy(resolver);
         }
 
         public static DropRequestPolicy WithPartial(bool allowPartial)
         {
-            return new DropRequestPolicy(null, null, allowPartial);
+            return new DropRequestPolicy(null, allowPartial);
         }
 
         public static DropRequestPolicy? Merge(DropRequestPolicy? basePolicy, DropRequestPolicy? overridingPolicy)
@@ -86,8 +72,7 @@ namespace UniversalDragAndDrop.Core
             var baseValue = basePolicy.Value;
             var overridingValue = overridingPolicy.Value;
             return new DropRequestPolicy(
-                overridingValue.BlockedTarget ?? baseValue.BlockedTarget,
-                overridingValue.AlternativePlacement ?? baseValue.AlternativePlacement,
+                overridingValue.BlockedTargetResolver ?? baseValue.BlockedTargetResolver,
                 overridingValue.AllowPartial ?? baseValue.AllowPartial);
         }
     }
@@ -107,20 +92,17 @@ namespace UniversalDragAndDrop.Core
     public readonly struct ResolvedDropPolicy
     {
         public ResolvedDropPolicy(
-            BlockedTargetBehavior blockedTarget,
+            BlockedTargetResolverBase blockedTargetResolver,
             bool allowPartial,
-            BatchMode batchMode,
-            AlternativePlacementMode alternativePlacement)
+            BatchMode batchMode)
         {
-            BlockedTarget = blockedTarget;
+            BlockedTargetResolver = blockedTargetResolver;
             AllowPartial = allowPartial;
             BatchMode = batchMode;
-            AlternativePlacement = alternativePlacement;
         }
 
-        public BlockedTargetBehavior BlockedTarget { get; }
+        public BlockedTargetResolverBase BlockedTargetResolver { get; }
         public bool AllowPartial { get; }
         public BatchMode BatchMode { get; }
-        public AlternativePlacementMode AlternativePlacement { get; }
     }
 }

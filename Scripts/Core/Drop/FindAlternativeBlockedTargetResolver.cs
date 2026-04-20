@@ -10,16 +10,12 @@ namespace UniversalDragAndDrop.Core
         [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel]
         private IAlternativePlacementStrategy _alternativePlacementStrategy = new MergeFirstAlternativePlacementStrategy();
 
-        public override BlockedTargetBehavior Behavior => BlockedTargetBehavior.FindAlternative;
+        public override IAlternativePlacementStrategy AlternativePlacementStrategy =>
+            _alternativePlacementStrategy ?? (_alternativePlacementStrategy = new MergeFirstAlternativePlacementStrategy());
 
         public void SetAlternativePlacementStrategy(IAlternativePlacementStrategy strategy)
         {
-            _alternativePlacementStrategy = strategy;
-        }
-
-        public override AlternativePlacementMode GetAlternativePlacement()
-        {
-            return _alternativePlacementStrategy?.Mode ?? AlternativePlacementMode.MergeFirst;
+            _alternativePlacementStrategy = strategy ?? new MergeFirstAlternativePlacementStrategy();
         }
     }
 }

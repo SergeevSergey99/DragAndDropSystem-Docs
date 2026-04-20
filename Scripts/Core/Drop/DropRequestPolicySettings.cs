@@ -7,13 +7,9 @@ namespace UniversalDragAndDrop.Core
     [Serializable]
     public sealed class DropRequestPolicySettings
     {
-        [SerializeField] private bool _overrideBlockedTarget;
-        [SerializeField, ShowIf(nameof(_overrideBlockedTarget))]
-        private BlockedTargetBehavior _blockedTarget = BlockedTargetBehavior.FindAlternative;
-
-        [SerializeField] private bool _overrideAlternativePlacement;
-        [SerializeField, ShowIf(nameof(_overrideAlternativePlacement))]
-        private AlternativePlacementMode _alternativePlacement = AlternativePlacementMode.MergeFirst;
+        [SerializeField] private bool _overrideBlockedTargetResolver;
+        [SerializeReference, ShowIf(nameof(_overrideBlockedTargetResolver)), ManagedReferencePicker, InlineProperty, HideLabel]
+        private BlockedTargetResolverBase _blockedTargetResolver = new FindAlternativeBlockedTargetResolver();
 
         [SerializeField] private bool _overrideAllowPartial;
         [SerializeField, ShowIf(nameof(_overrideAllowPartial))]
@@ -21,12 +17,11 @@ namespace UniversalDragAndDrop.Core
 
         public DropRequestPolicy? TryBuild()
         {
-            if (!_overrideBlockedTarget && !_overrideAlternativePlacement && !_overrideAllowPartial)
+            if (!_overrideBlockedTargetResolver && !_overrideAllowPartial)
                 return null;
 
             return new DropRequestPolicy(
-                _overrideBlockedTarget ? _blockedTarget : (BlockedTargetBehavior?)null,
-                _overrideAlternativePlacement ? _alternativePlacement : (AlternativePlacementMode?)null,
+                _overrideBlockedTargetResolver ? _blockedTargetResolver : null,
                 _overrideAllowPartial ? _allowPartial : (bool?)null);
         }
     }

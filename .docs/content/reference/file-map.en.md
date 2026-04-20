@@ -55,7 +55,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Specialized processor interface used by request-driven drop handling. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Base class for non-slot drop targets such as inventory areas or world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Standard inventory area drop target built on top of `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetBehavior`, `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `AlternativePlacementMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Core drop policy enums and resolved/request policy value types used by planning and execution. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Core drop policy value types used by planning and execution. |
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level drop policy defaults, including the blocked-target resolver and batch/partial settings. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Serializable authoring helper for one-off drop request overrides in actions and triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Serializable authoring helper for temporary drag-amount overrides when starting a drag. |
@@ -63,7 +63,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver that rejects a blocked target immediately. |
 | `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver that prefers swap planning on blocked targets. |
 | `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver that delegates blocked-target handling to an alternative placement strategy. |
-| `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contract for alternative slot search order used by `FindAlternativeBlockedTargetResolver`. |
+| `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contract for object-based alternative slot enumeration used by `FindAlternativeBlockedTargetResolver`. |
 | `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers merge candidates first. |
 | `Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers empty slots first. |
 | `Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Alternative placement strategy that considers only merge candidates. |

@@ -42,7 +42,8 @@ Causas típicas:
 
 Dónde mirar:
 
-- `BlockedTargetBehavior`
+- `DropPolicySettings`
+- blocked-target resolver activo
 - `InventoryDropProcessor`
 - `TransferPlanner`
 - logs de `GetAcceptableCount`

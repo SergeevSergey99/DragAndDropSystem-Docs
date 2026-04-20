@@ -4,10 +4,10 @@ Las drop policies controlan como intenta colocarse una transferencia.
 
 ## Parametros importantes
 
-- `BlockedTargetBehavior`
+- blocked-target resolver
 - `DragAmount`
 - `BatchMode`
-- `AlternativePlacementMode`
+- alternative placement strategy
 
 ## Preguntas que responde la policy
 

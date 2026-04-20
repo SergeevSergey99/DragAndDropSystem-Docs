@@ -229,8 +229,7 @@ The current model has three layers:
 - `DropRequestPolicy`
   - temporary per-operation override
   - can override:
-    - `BlockedTargetBehavior`
-    - `AlternativePlacementMode`
+    - `BlockedTargetResolverBase`
     - `AllowPartial`
 - `DropPolicySettings`
   - inventory-level defaults on `UniversalInventory`
@@ -239,9 +238,9 @@ The current model has three layers:
     - allow merge on drop
     - allow partial
     - batch mode
-    - alternative placement strategy for `FindAlternative`
 - `ResolvedDropPolicy`
   - final non-nullable policy used by the planner
+  - contains the concrete blocked-target resolver selected for this transfer
 
 Built-in blocked target resolvers:
 - `Reject`
@@ -256,9 +255,10 @@ Temporary drop policy override is done through action-level request policy, not 
 
 Example:
 - default `CompleteDragAction` calls `CompleteDrag(null)`
-- `Ctrl` variant of `CompleteDragAction` calls `CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))`
+- `Ctrl` variant of `CompleteDragAction` calls `CompleteDrag(DropRequestPolicy.WithSwap())`
 - `Shift` variant of `CompleteDragAction` calls `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
-- actions can also override `AllowPartial` and `AlternativePlacementMode` for a single transfer
+- actions can also override `AllowPartial`
+- if needed, actions can supply a custom resolver object or a custom alternative placement strategy through `DropRequestPolicy.WithResolver(...)` or `DropRequestPolicy.WithFindAlternative(...)`
 
 A separate variant is `SplitDropAction`: it calls `SplitDrop(policy, count)` instead of `CompleteDrag`. This allows dropping part of the stack (e.g. 1 item) without ending the drag. The transfer goes through the same pipeline (planner → executor → events). See [Input and Interaction](../systems/interaction.md#split-drop) for details.
 
@@ -276,15 +276,15 @@ To create your own blocked-target behavior:
 
 1. Create a class inheriting from `BlockedTargetResolverBase`.
 2. Mark it `[Serializable]`.
-3. Override `Behavior`.
-4. Override `GetAlternativePlacement()` if your resolver needs to drive alternative placement.
+3. Override `SupportsSwap` if your resolver should allow swap planning.
+4. Override `AlternativePlacementStrategy` if your resolver should search alternative slots.
 5. The class appears automatically in the `DropPolicySettings` managed reference picker.
 
 To create your own alternative placement strategy:
 
 1. Create a class implementing `IAlternativePlacementStrategy`.
 2. Mark it `[Serializable]`.
-3. Return the desired `AlternativePlacementMode` from `Mode`.
+3. Implement `EnumerateAlternativeSlots(...)` and return slots in the exact order your workflow needs.
 4. The class appears automatically inside `FindAlternativeBlockedTargetResolver`.
 
 ## Drop Policy Processing Order
@@ -297,12 +297,12 @@ For a single drag entry:
 4. If only part fits:
    - `AllowPartial = false` -> fail
    - `AllowPartial = true` -> partial success
-   - remainder can search for alternatives only when `BlockedTargetBehavior = FindAlternative`
+   - remainder can search for alternatives only when the active resolver exposes an `AlternativePlacementStrategy`
 5. If nothing fits into the target:
    - `Reject` -> fail
-   - `Swap` -> planner creates a swap entry
-   - `FindAlternative` -> placement strategy enumerates alternative slots
-6. For same-inventory drops, `FindAlternative` does not reshuffle items across other slots. If the target fails, the item stays in place
+   - `Swap`-capable resolver -> planner creates a swap entry
+   - alternative-search resolver -> placement strategy enumerates alternative slots
+6. For same-inventory drops, alternative-search resolvers do not reshuffle items across other slots. If the target fails, the item stays in place
 
 ## Batch operations
 
@@ -323,7 +323,7 @@ By default, batch mode comes from the target inventory's `DropPolicySettings`, w
 
 ```mermaid
 flowchart TD
-    A["Target slot is occupied"] --> B{"BlockedTargetBehavior = Swap?"}
+    A["Target slot is occupied"] --> B{"Active resolver supports swap?"}
     B -->|No| C["Reject"]
     B -->|Yes| D["Validate both directions\non target-side preview stacks"]
     D --> E["Capture copies of both stacks"]

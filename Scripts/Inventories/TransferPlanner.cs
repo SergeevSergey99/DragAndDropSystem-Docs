@@ -298,7 +298,7 @@ namespace UniversalDragAndDrop.Inventories
 
             if (isFirstEntry &&
                 targetBaseSlotHint != null &&
-                policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+                !SupportsAlternativePlacement(policy))
             {
                 return PlanHintOnlyEntry(
                     context,
@@ -566,13 +566,23 @@ namespace UniversalDragAndDrop.Inventories
             if (!preferHint || targetBaseSlotHint == null)
                 return false;
 
-            if (policy.BlockedTarget != BlockedTargetBehavior.Swap)
+            if (!SupportsSwap(policy))
                 return false;
 
             if (context.IsBatchDrag)
                 return false;
 
             return true;
+        }
+
+        private static bool SupportsSwap(ResolvedDropPolicy policy)
+        {
+            return policy.BlockedTargetResolver != null && policy.BlockedTargetResolver.SupportsSwap;
+        }
+
+        private static bool SupportsAlternativePlacement(ResolvedDropPolicy policy)
+        {
+            return policy.BlockedTargetResolver?.AlternativePlacementStrategy != null;
         }
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForStrategyInventory(EntryPlanningOperation operation)
@@ -602,7 +612,7 @@ namespace UniversalDragAndDrop.Inventories
                 if (remaining <= 0)
                     return allocations;
 
-                if (!anyPlaced && operation.Policy.BlockedTarget == BlockedTargetBehavior.Swap)
+                if (!anyPlaced && SupportsSwap(operation.Policy))
                     return EmptyAllocations;
 
                 if (!canSearchAlternatives)
@@ -742,7 +752,7 @@ namespace UniversalDragAndDrop.Inventories
 
         private static bool CanSearchAlternativeSlots(EntryPlanningOperation operation)
         {
-            if (operation.Policy.BlockedTarget != BlockedTargetBehavior.FindAlternative)
+            if (!SupportsAlternativePlacement(operation.Policy))
                 return false;
 
             return !ReferenceEquals(operation.Entry.SourceInventory, operation.TargetInventory);
@@ -784,11 +794,15 @@ namespace UniversalDragAndDrop.Inventories
             if (placementStrategy == null)
                 yield break;
 
-            IEnumerable<BaseSlot> orderedSlots = placementStrategy.EnumerateAlternativeSlots(
+            var alternativePlacementStrategy = operation.Policy.BlockedTargetResolver?.AlternativePlacementStrategy;
+            if (alternativePlacementStrategy == null)
+                yield break;
+
+            IEnumerable<BaseSlot> orderedSlots = alternativePlacementStrategy.EnumerateAlternativeSlots(
                 GetInventorySlots(operation.TargetInventory),
                 operation.TargetItemAdapter,
-                operation.Policy.AlternativePlacement,
-                excludeBaseSlot);
+                excludeBaseSlot,
+                placementStrategy.CanUseAlternativeSlot);
 
             if (orderedSlots == null)
                 yield break;
@@ -963,11 +977,12 @@ namespace UniversalDragAndDrop.Inventories
                 freed.MarkEmpty();
 
             bool isUnique = IsUniqueInventory(inventory);
+            var placementResolver = new FindAlternativeBlockedTargetResolver();
+            placementResolver.SetAlternativePlacementStrategy(new EmptyFirstAlternativePlacementStrategy());
             var placementPolicy = new ResolvedDropPolicy(
-                BlockedTargetBehavior.FindAlternative,
+                placementResolver,
                 allowPartial: false,
-                BatchMode.BestEffort,
-                AlternativePlacementMode.EmptyFirst);
+                BatchMode.BestEffort);
 
             var operation = new EntryPlanningOperation(
                 dropContext,

@@ -16,6 +16,5 @@ namespace UniversalDragAndDrop.Inventories
         bool RequiresStrategyPlacement(ItemStack stack);
         bool UsesPerItemSlotPlanning { get; }
         bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter);
-        IEnumerable<BaseSlot> EnumerateAlternativeSlots(List<BaseSlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, BaseSlot excludeBaseSlot);
     }
 }

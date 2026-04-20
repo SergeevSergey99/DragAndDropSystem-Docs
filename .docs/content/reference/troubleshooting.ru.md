@@ -42,7 +42,8 @@
 
 Где смотреть:
 
-- `BlockedTargetBehavior`
+- `DropPolicySettings`
+- активный blocked-target resolver
 - `InventoryDropProcessor`
 - `TransferPlanner`
 - логи `GetAcceptableCount`

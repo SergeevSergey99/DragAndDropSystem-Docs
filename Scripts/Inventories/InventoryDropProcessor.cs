@@ -199,7 +199,9 @@ namespace UniversalDragAndDrop.Inventories
             }
 
             var policy = plan.Policy;
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetBaseSlot?.Index.ToString() ?? "AREA"} | Policy=[Blocked={policy.BlockedTarget}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, Alt={policy.AlternativePlacement}]</color>");
+            var blockedResolverName = policy.BlockedTargetResolver?.GetType().Name ?? "None";
+            var alternativePlacementName = policy.BlockedTargetResolver?.AlternativePlacementStrategy?.GetType().Name ?? "None";
+            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetBaseSlot?.Index.ToString() ?? "AREA"} | Policy=[BlockedResolver={blockedResolverName}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, AlternativePlacement={alternativePlacementName}]</color>");
             return true;
         }
 
@@ -244,17 +246,14 @@ namespace UniversalDragAndDrop.Inventories
             if (provider != null)
                 return provider.ResolveDropPolicy(requested, context);
 
-            var blocked = requested.HasValue && requested.Value.BlockedTarget.HasValue
-                ? requested.Value.BlockedTarget.Value
-                : BlockedTargetBehavior.FindAlternative;
-            var alternativePlacement = requested.HasValue && requested.Value.AlternativePlacement.HasValue
-                ? requested.Value.AlternativePlacement.Value
-                : AlternativePlacementMode.MergeFirst;
+            var blockedTargetResolver = requested.HasValue && requested.Value.BlockedTargetResolver != null
+                ? requested.Value.BlockedTargetResolver
+                : new FindAlternativeBlockedTargetResolver();
             var allowPartial = requested.HasValue && requested.Value.AllowPartial.HasValue
                 ? requested.Value.AllowPartial.Value
                 : true;
 
-            return new ResolvedDropPolicy(blocked, allowPartial, BatchMode.BestEffort, alternativePlacement);
+            return new ResolvedDropPolicy(blockedTargetResolver, allowPartial, BatchMode.BestEffort);
         }
     }
 }

@@ -231,8 +231,7 @@ flowchart TD
 - `DropRequestPolicy`
   - временный override для конкретной операции
   - может задать:
-    - `BlockedTargetBehavior`
-    - `AlternativePlacementMode`
+    - `BlockedTargetResolverBase`
     - `AllowPartial`
 - `DropPolicySettings`
   - inventory-level defaults в `UniversalInventory`
@@ -241,10 +240,10 @@ flowchart TD
     - allow merge on drop
     - allow partial
     - batch mode
-    - alternative placement strategy для `FindAlternative`
 - `ResolvedDropPolicy`
   - итог после resolution
   - именно он используется planner-ом
+  - содержит конкретный blocked-target resolver для текущего переноса
 
 Встроенные blocked target resolver'ы:
 - `Reject`
@@ -259,9 +258,10 @@ flowchart TD
 
 Пример:
 - обычный `CompleteDragAction` вызывает `CompleteDrag(null)`
-- `Ctrl`-вариант `CompleteDragAction` вызывает `CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))`
+- `Ctrl`-вариант `CompleteDragAction` вызывает `CompleteDrag(DropRequestPolicy.WithSwap())`
 - `Shift`-вариант `CompleteDragAction` вызывает `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
-- action также может временно переопределить `AllowPartial` и `AlternativePlacementMode`
+- action также может временно переопределить `AllowPartial`
+- при необходимости action может передать свой resolver или свою стратегию alternative placement через `DropRequestPolicy.WithResolver(...)` или `DropRequestPolicy.WithFindAlternative(...)`
 
 Отдельный вариант — `SplitDropAction`: вызывает `SplitDrop(policy, count)` вместо `CompleteDrag`. Это позволяет сбросить часть стека (например, 1 предмет), не прекращая перетаскивание. Перенос проходит через тот же конвейер (planner → executor → события). Подробнее — в разделе [Ввод и взаимодействие](../systems/interaction.md#частичный-сброс-split-drop).
 
@@ -279,15 +279,15 @@ flowchart TD
 
 1. Создайте класс-наследник `BlockedTargetResolverBase`.
 2. Пометьте его `[Serializable]`.
-3. Переопределите `Behavior`.
-4. Если resolver должен управлять alternative placement, переопределите `GetAlternativePlacement()`.
+3. Переопределите `SupportsSwap`, если resolver должен разрешать swap planning.
+4. Переопределите `AlternativePlacementStrategy`, если resolver должен искать альтернативные слоты.
 5. Класс автоматически появится в managed reference picker у `DropPolicySettings`.
 
 Чтобы создать свою стратегию alternative placement:
 
 1. Создайте класс, реализующий `IAlternativePlacementStrategy`.
 2. Пометьте его `[Serializable]`.
-3. Верните нужный `AlternativePlacementMode` из `Mode`.
+3. Реализуйте `EnumerateAlternativeSlots(...)` и возвращайте слоты в нужном вам порядке.
 4. Класс автоматически появится внутри `FindAlternativeBlockedTargetResolver`.
 
 ## Порядок обработки Drop Policy
@@ -300,12 +300,12 @@ flowchart TD
 4. Если вошла только часть:
    - `AllowPartial = false` -> fail
    - `AllowPartial = true` -> partial success
-   - остаток ищет другие слоты только если `BlockedTargetBehavior = FindAlternative`
+   - остаток ищет другие слоты только если активный resolver отдаёт `AlternativePlacementStrategy`
 5. Если в target не вошло ничего:
    - `Reject` -> fail
-   - `Swap` -> planner строит swap entry
-   - `FindAlternative` -> стратегия перечисляет alternative slots
-6. Для same-inventory `FindAlternative` не перераскладывает предметы по другим слотам. Если target не подошёл, предмет остаётся на месте
+   - resolver с поддержкой `Swap` -> planner строит swap entry
+   - resolver с alternative placement -> стратегия перечисляет alternative slots
+6. Для same-inventory резолверы с alternative placement не перераскладывают предметы по другим слотам. Если target не подошёл, предмет остаётся на месте
 
 ## Batch-операции
 
@@ -324,11 +324,11 @@ flowchart TD
 
 ## Swap — это часть того же пайплайна
 
-Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если `BlockedTargetBehavior = Swap`.
+Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если активный resolver поддерживает `Swap`.
 
 ```mermaid
 flowchart TD
-    A["Целевой слот занят"] --> B{"Политика позволяет swap?"}
+    A["Целевой слот занят"] --> B{"Активный resolver поддерживает swap?"}
     B -->|Нет| C["Отклонить"]
     B -->|Да| D["Проверить оба направления\nна target-side preview stacks"]
     D --> E["Снять копии обоих стеков"]

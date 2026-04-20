@@ -14,7 +14,7 @@ There are three main switches:
 
 - whether a concrete `target slot` exists
 - whether that slot is empty or occupied
-- which `BlockedTargetBehavior` is selected
+- which blocked-target resolver is selected
 
 Additional modifiers:
 
@@ -96,7 +96,7 @@ So the `occupied handler` has priority over both swap and alternative placement.
 
 For batch drag, keep these separate:
 
-- `BlockedTargetBehavior`
+- blocked-target resolver
 - `BatchMode`
 
 `BatchMode` answers "what happens if one entry fails":
@@ -117,7 +117,7 @@ Conditions:
 
 - a concrete slot exists
 - that slot is occupied
-- `BlockedTargetBehavior = Swap`
+- `SwapBlockedTargetResolver` is active
 
 Expected behavior:
 

@@ -148,11 +148,6 @@ namespace UniversalDragAndDrop.Inventories
             return _baseStrategy.CanUseAlternativeSlot(baseSlot, itemAdapter);
         }
 
-        public IEnumerable<BaseSlot> EnumerateAlternativeSlots(List<BaseSlot> slots, IItemAdapter itemAdapter, AlternativePlacementMode mode, BaseSlot excludeBaseSlot)
-        {
-            return _baseStrategy.EnumerateAlternativeSlots(slots, itemAdapter, mode, excludeBaseSlot);
-        }
-
         public bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {
             return _baseStrategy.TryAddToSlot(slots, stack, targetBaseSlot, ensureFreeSlots, operationContext);
