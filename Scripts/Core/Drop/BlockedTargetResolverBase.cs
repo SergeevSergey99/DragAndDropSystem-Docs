@@ -5,7 +5,7 @@ namespace UniversalDragAndDrop.Core
     [Serializable]
     public abstract class BlockedTargetResolverBase
     {
-        public virtual bool SupportsSwap => false;
+        public virtual ISwapStrategy SwapStrategy => null;
         public virtual IAlternativePlacementStrategy AlternativePlacementStrategy => null;
     }
 }

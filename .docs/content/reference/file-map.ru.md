@@ -61,7 +61,10 @@
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
 | `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Базовый класс для authoring blocked-target поведения в `DropPolicySettings`. |
 | `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver, который сразу отклоняет blocked target. |
-| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который предпочитает swap planning при blocked target. |
+| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который делегирует swap-обработку blocked target вложенной swap strategy. |
+| `Scripts/Core/Drop/ISwapStrategy.cs` | `ISwapStrategy` | Контракт для object-based перечисления swap-candidates, используемый `SwapBlockedTargetResolver`. |
+| `Scripts/Core/Drop/SwapSearchContext.cs` | `SwapSearchContext` | Контекст, который swap strategy получает для доступа к состоянию drag, target inventory и hinted slot. |
+| `Scripts/Core/Drop/HintedTargetSwapStrategy.cs` | `HintedTargetSwapStrategy` | Дефолтная swap strategy, которая рассматривает только текущий hinted target slot. |
 | `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который делегирует blocked-target обработку стратегии alternative placement. |
 | `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Контракт для object-based перечисления альтернативных слотов, используемый `FindAlternativeBlockedTargetResolver`. |
 | `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет merge-кандидаты. |

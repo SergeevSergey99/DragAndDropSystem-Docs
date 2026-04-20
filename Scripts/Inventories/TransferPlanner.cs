@@ -563,21 +563,12 @@ namespace UniversalDragAndDrop.Inventories
             BaseSlot targetBaseSlotHint,
             bool preferHint)
         {
-            if (!preferHint || targetBaseSlotHint == null)
-                return false;
-
-            if (!SupportsSwap(policy))
-                return false;
-
-            if (context.IsBatchDrag)
-                return false;
-
-            return true;
+            return SupportsSwap(policy);
         }
 
         private static bool SupportsSwap(ResolvedDropPolicy policy)
         {
-            return policy.BlockedTargetResolver != null && policy.BlockedTargetResolver.SupportsSwap;
+            return policy.BlockedTargetResolver?.SwapStrategy != null;
         }
 
         private static bool SupportsAlternativePlacement(ResolvedDropPolicy policy)
@@ -876,12 +867,48 @@ namespace UniversalDragAndDrop.Inventories
             if (!ShouldPlanSwap(context, entry, policy, targetBaseSlotHint, preferHint))
                 return null;
 
+            var swapStrategy = policy.BlockedTargetResolver?.SwapStrategy;
+            if (swapStrategy == null)
+                return null;
+
+            var searchContext = new SwapSearchContext(context, entry, targetInventory, targetBaseSlotHint, preferHint);
+            var swapTargets = swapStrategy.EnumerateSwapTargets(searchContext);
+            if (swapTargets == null)
+                return null;
+
+            foreach (var swapTarget in swapTargets)
+            {
+                var planned = TryPlanSwapAgainstTarget(
+                    context,
+                    entry,
+                    targetInventory,
+                    swapTarget,
+                    globalRules,
+                    requested,
+                    targetItem);
+
+                if (planned != null)
+                    return planned;
+            }
+
+            return null;
+        }
+
+        private PlannedEntryTransfer TryPlanSwapAgainstTarget(
+            DragContext context,
+            DragEntry entry,
+            IInventory targetInventory,
+            BaseSlot swapTargetBaseSlot,
+            GlobalRuleValidator globalRules,
+            int requested,
+            IItemAdapter targetItem)
+        {
             var sourceSlot = entry.SourceBaseSlot;
-            if (sourceSlot == null || targetBaseSlotHint == null)
+            if (sourceSlot == null || swapTargetBaseSlot == null)
                 return null;
-            if (ReferenceEquals(sourceSlot, targetBaseSlotHint))
+            if (ReferenceEquals(sourceSlot, swapTargetBaseSlot))
                 return null;
-            if (targetBaseSlotHint.IsEmpty)
+            if (swapTargetBaseSlot.IsEmpty)
                 return null;
             if (sourceSlot.IsEmpty || sourceSlot.Stack == null || sourceSlot.Stack.IsEmpty)
                 return null;
@@ -893,7 +920,7 @@ namespace UniversalDragAndDrop.Inventories
 
             if (!ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceStackBefore))
                 return null;
-            if (!ItemStack.TryCreate(targetBaseSlotHint.Stack.Adapters, out var targetStackBefore))
+            if (!ItemStack.TryCreate(swapTargetBaseSlot.Stack.Adapters, out var targetStackBefore))
                 return null;
 
             if (!TransferItemConversionUtility.TryCreateConvertedStack(
@@ -904,21 +931,21 @@ namespace UniversalDragAndDrop.Inventories
                 return null;
 
             // Validate reverse direction: can target items go back to source?
-            var reverseContext = new DragContext(targetStackBefore, targetBaseSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
+            var reverseContext = new DragContext(targetStackBefore, swapTargetBaseSlot, targetInventory, sourceSlot, entry.SourceInventory);
             var reverseEntry = reverseContext.Entries[0];
             var reverseStart = _ruleEvaluationService.ValidateEntryStart(reverseContext, reverseEntry, globalRules);
             if (!reverseStart.IsValid)
                 return null;
 
             // Validate reverse drop: converted target items landing in source slot
-            var reverseDropContext = new DragContext(sourceStackAfter, targetBaseSlotHint, targetInventory, sourceSlot, entry.SourceInventory);
+            var reverseDropContext = new DragContext(sourceStackAfter, swapTargetBaseSlot, targetInventory, sourceSlot, entry.SourceInventory);
             var reverseDropEntry = reverseDropContext.Entries[0];
             var reverseDrop = _ruleEvaluationService.ValidateEntryDrop(reverseDropContext, reverseDropEntry, globalRules);
             if (!reverseDrop.IsValid)
                 return null;
 
             // Validate forward drop: converted source items landing in target slot
-            var sourceDropContext = new DragContext(targetStackAfter, sourceSlot, entry.SourceInventory, targetBaseSlotHint, targetInventory);
+            var sourceDropContext = new DragContext(targetStackAfter, sourceSlot, entry.SourceInventory, swapTargetBaseSlot, targetInventory);
             var sourceDropEntry = sourceDropContext.Entries[0];
             var sourceDrop = _ruleEvaluationService.ValidateEntryDrop(sourceDropContext, sourceDropEntry, globalRules);
             if (!sourceDrop.IsValid)
@@ -934,7 +961,7 @@ namespace UniversalDragAndDrop.Inventories
             // Validate forward placement capacity: can source items fit into target inventory?
             // Target slot will be freed by the swap.
             if (!ValidateSwapPlacementFeasibility(
-                    sourceDropContext, sourceDropEntry, targetInventory, targetBaseSlotHint,
+                    sourceDropContext, sourceDropEntry, targetInventory, swapTargetBaseSlot,
                     targetStackAfter, globalRules))
                 return null;
 
@@ -947,7 +974,7 @@ namespace UniversalDragAndDrop.Inventories
                 EmptyAllocations,
                 failureReason: null,
                 requiresSwap: true,
-                swapTargetBaseSlot: targetBaseSlotHint,
+                swapTargetBaseSlot: swapTargetBaseSlot,
                 previewTargetItemAdapter: targetItem,
                 swapData: swapData);
         }

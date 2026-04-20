@@ -247,6 +247,7 @@ Resolvers integrados para blocked target:
 - `Swap`
 - `FindAlternative`
 
+Cuando se selecciona `Swap`, contiene internamente una `[SerializeReference]` `ISwapStrategy`.
 Cuando se selecciona `FindAlternative`, contiene internamente una `[SerializeReference]` `IAlternativePlacementStrategy`.
 
 ## Override temporal a través de acciones
@@ -276,9 +277,16 @@ Para crear tu propio comportamiento de blocked target:
 
 1. Crea una clase que herede de `BlockedTargetResolverBase`.
 2. Márquela con `[Serializable]`.
-3. Sobrescribe `SupportsSwap` si tu resolver debe habilitar swap planning.
+3. Sobrescribe `SwapStrategy` si tu resolver debe buscar swap candidates personalizados.
 4. Sobrescribe `AlternativePlacementStrategy` si tu resolver debe buscar slots alternativos.
 5. La clase aparecerá automáticamente en el managed reference picker de `DropPolicySettings`.
+
+Para crear tu propia swap strategy:
+
+1. Crea una clase que implemente `ISwapStrategy`.
+2. Márquela con `[Serializable]`.
+3. Implementa `EnumerateSwapTargets(...)` y devuelve los swap candidates en el orden exacto que necesites.
+4. La clase aparecerá automáticamente dentro de `SwapBlockedTargetResolver`.
 
 Para crear tu propia strategy de colocación alternativa:
 

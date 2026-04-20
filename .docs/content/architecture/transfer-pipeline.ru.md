@@ -250,6 +250,7 @@ flowchart TD
 - `Swap`
 - `FindAlternative`
 
+Если выбран `Swap`, внутри него задаётся вложенная `[SerializeReference]` `ISwapStrategy`.
 Если выбран `FindAlternative`, внутри него задаётся вложенная `[SerializeReference]` `IAlternativePlacementStrategy`.
 
 ## Временный override через actions
@@ -279,9 +280,16 @@ flowchart TD
 
 1. Создайте класс-наследник `BlockedTargetResolverBase`.
 2. Пометьте его `[Serializable]`.
-3. Переопределите `SupportsSwap`, если resolver должен разрешать swap planning.
+3. Переопределите `SwapStrategy`, если resolver должен искать кастомные swap-candidates.
 4. Переопределите `AlternativePlacementStrategy`, если resolver должен искать альтернативные слоты.
 5. Класс автоматически появится в managed reference picker у `DropPolicySettings`.
+
+Чтобы создать свою swap strategy:
+
+1. Создайте класс, реализующий `ISwapStrategy`.
+2. Пометьте его `[Serializable]`.
+3. Реализуйте `EnumerateSwapTargets(...)` и возвращайте swap-candidates в нужном вам порядке.
+4. Класс автоматически появится внутри `SwapBlockedTargetResolver`.
 
 Чтобы создать свою стратегию alternative placement:
 

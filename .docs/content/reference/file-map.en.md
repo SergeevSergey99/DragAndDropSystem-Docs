@@ -61,7 +61,10 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Serializable authoring helper for temporary drag-amount overrides when starting a drag. |
 | `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Base class for blocked-target behavior authoring in `DropPolicySettings`. |
 | `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver that rejects a blocked target immediately. |
-| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver that prefers swap planning on blocked targets. |
+| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver that delegates blocked-target swap handling to a nested swap strategy. |
+| `Scripts/Core/Drop/ISwapStrategy.cs` | `ISwapStrategy` | Contract for object-based swap target enumeration used by `SwapBlockedTargetResolver`. |
+| `Scripts/Core/Drop/SwapSearchContext.cs` | `SwapSearchContext` | Context passed into swap strategies so they can inspect drag state, target inventory, and the hinted slot. |
+| `Scripts/Core/Drop/HintedTargetSwapStrategy.cs` | `HintedTargetSwapStrategy` | Default swap strategy that only considers the currently hinted target slot. |
 | `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver that delegates blocked-target handling to an alternative placement strategy. |
 | `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contract for object-based alternative slot enumeration used by `FindAlternativeBlockedTargetResolver`. |
 | `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers merge candidates first. |
