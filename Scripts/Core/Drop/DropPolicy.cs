@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace UniversalDragAndDrop.Core
 {
@@ -124,5 +123,4 @@ namespace UniversalDragAndDrop.Core
         public BatchMode BatchMode { get; }
         public AlternativePlacementMode AlternativePlacement { get; }
     }
-
 }
