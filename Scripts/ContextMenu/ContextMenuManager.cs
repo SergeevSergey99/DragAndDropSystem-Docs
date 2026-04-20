@@ -73,14 +73,12 @@ namespace UniversalDragAndDrop.ContextMenu
         
         public List<IContextMenuEntry> GetEntries(ContextMenuContext context)
         {
-            var binder = _contextBindersByInventory[context.Inventory];
-            if (binder == null)
-            {
-                if  (context.BaseSlot.IsEmpty)
-                    return _defaultEmptySlotPreset != null ? new List<IContextMenuEntry>(_defaultEmptySlotPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
-                return _defaultPreset != null ? new List<IContextMenuEntry>(_defaultPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
-            }
-            return binder.GetEntries(context);
+            if(_contextBindersByInventory.TryGetValue(context.Inventory, out var binder))
+                return binder.GetEntries(context);
+                
+            if  (context.BaseSlot.IsEmpty)
+                return _defaultEmptySlotPreset != null ? new List<IContextMenuEntry>(_defaultEmptySlotPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
+            return _defaultPreset != null ? new List<IContextMenuEntry>(_defaultPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
         }
 
         /// <summary>

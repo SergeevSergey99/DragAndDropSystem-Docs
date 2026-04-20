@@ -293,8 +293,8 @@ RectTransform:
   - {fileID: 1085706724}
   m_Father: {fileID: 1324997588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.1, y: 0.1}
-  m_AnchorMax: {x: 0.9, y: 0.9}
+  m_AnchorMin: {x: 0.1, y: 0.05}
+  m_AnchorMax: {x: 0.9, y: 0.85}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -433,8 +433,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1358364176}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.85}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.8}
+  m_AnchorMax: {x: 1, y: 0.98}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -514,7 +514,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -10, y: 0}
+  m_AnchoredPosition: {x: -10, y: -5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &110420131
@@ -550,7 +550,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: MBM - auto transfer
+  m_Text: Space - auto transfer
 --- !u!222 &110420132
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -701,7 +701,7 @@ GameObject:
   - component: {fileID: 147669534}
   - component: {fileID: 147669533}
   m_Layer: 5
-  m_Name: Image
+  m_Name: DropArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -724,7 +724,7 @@ RectTransform:
   m_Father: {fileID: 233341987}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.1, y: 0.1}
-  m_AnchorMax: {x: 0.9, y: 0.9}
+  m_AnchorMax: {x: 0.9, y: 0.85}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -774,12 +774,22 @@ MonoBehaviour:
   _highlightColor: {r: 1, g: 1, b: 0, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 0}
   _dropPolicyOverride:
-    _overrideBlockedTarget: 0
-    _blockedTarget: 2
-    _overrideAlternativePlacement: 0
-    _alternativePlacement: 0
+    _overrideBlockedTargetResolver: 0
+    _blockedTargetResolver:
+      rid: 8490480928290766850
     _overrideAllowPartial: 0
     _allowPartial: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 8490480928290766850
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480928290766851
+    - rid: 8490480928290766851
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &147669534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -800,8 +810,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -809,7 +819,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.5
 --- !u!222 &147669535
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -853,8 +863,8 @@ RectTransform:
   - {fileID: 400017345}
   m_Father: {fileID: 485691796}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.05, y: 0.1}
-  m_AnchorMax: {x: 0.95, y: 0.8}
+  m_AnchorMin: {x: 0.05, y: 0}
+  m_AnchorMax: {x: 0.95, y: 0.7}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1045,11 +1055,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1324997588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.9}
+  m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -10}
+  m_SizeDelta: {x: 0, y: 50}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &199179303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1131,7 +1141,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.10241699, y: 0}
+  m_AnchoredPosition: {x: -0.10229492, y: 0}
   m_SizeDelta: {x: -9.795349, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &233341988
@@ -1178,8 +1188,6 @@ MonoBehaviour:
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _blockedTarget: 2
-    _alternativePlacement: 0
   _slots: []
   references:
     version: 2
@@ -1215,15 +1223,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+  m_Color: {r: 0.5754717, g: 0.5754717, b: 0.5754717, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1231,7 +1239,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.3
 --- !u!222 &233341991
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1659,8 +1667,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 233341987}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.9}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.85}
+  m_AnchorMax: {x: 1, y: 0.98}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1872,7 +1880,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 10, y: -5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &435449466
@@ -1956,7 +1964,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.4}
   m_AnchorMax: {x: 1, y: 0.666}
-  m_AnchoredPosition: {x: 0.10235596, y: 0}
+  m_AnchoredPosition: {x: 0.10241699, y: 0}
   m_SizeDelta: {x: -9.795349, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &485691797
@@ -1988,8 +1996,6 @@ MonoBehaviour:
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _blockedTarget: 2
-    _alternativePlacement: 0
   _slots:
   - {fileID: 580939524}
   - {fileID: 52892870}
@@ -2044,15 +2050,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+  m_Color: {r: 0.5754717, g: 0.5754717, b: 0.5754717, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -2060,7 +2066,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.3
 --- !u!222 &485691800
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3079,7 +3085,7 @@ RectTransform:
   m_Father: {fileID: 1358364176}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.05, y: 0.3}
-  m_AnchorMax: {x: 0.95, y: 0.85}
+  m_AnchorMax: {x: 0.95, y: 0.8}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3695,7 +3701,7 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 485691796}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.8}
+  m_AnchorMin: {x: 0, y: 0.7}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
@@ -3781,7 +3787,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 1, y: 0.4}
-  m_AnchoredPosition: {x: 0.10235596, y: 0}
+  m_AnchoredPosition: {x: 0.10241699, y: 0}
   m_SizeDelta: {x: -9.795349, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1324997591
@@ -3833,8 +3839,6 @@ MonoBehaviour:
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _blockedTarget: 2
-    _alternativePlacement: 0
   _slots:
   - {fileID: 1604339180}
   - {fileID: 818339199}
@@ -3878,15 +3882,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+  m_Color: {r: 0.5754717, g: 0.5754717, b: 0.5754717, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -3894,7 +3898,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.3
 --- !u!222 &1324997594
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3957,7 +3961,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.666}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.10235596, y: 0}
+  m_AnchoredPosition: {x: 0.10241699, y: 0}
   m_SizeDelta: {x: -9.795349, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1358364177
@@ -4004,8 +4008,6 @@ MonoBehaviour:
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _blockedTarget: 2
-    _alternativePlacement: 0
   _slots:
   - {fileID: 318417987}
   - {fileID: 1389521157}
@@ -4046,15 +4048,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+  m_Color: {r: 0.5754717, g: 0.5754717, b: 0.5754717, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4062,7 +4064,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.3
 --- !u!222 &1358364180
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4121,7 +4123,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 10, y: -5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1368821513
@@ -4365,7 +4367,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: MBM - auto transfer
+  m_Text: Space - auto transfer
 --- !u!222 &1396838203
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5378,7 +5380,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -0.10241699, y: 0}
+  m_AnchoredPosition: {x: -0.10229492, y: 0}
   m_SizeDelta: {x: -9.795349, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1818827035
@@ -5394,15 +5396,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+  m_Color: {r: 0.5754717, g: 0.5754717, b: 0.5754717, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -5410,7 +5412,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.3
 --- !u!222 &1818827036
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5443,12 +5445,10 @@ MonoBehaviour:
     _inlineRules: []
   _dropPolicy:
     _blockedTargetResolver:
-      rid: 8490480897462108221
+      rid: 8490480935803813890
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _blockedTarget: 2
-    _alternativePlacement: 0
   _slots:
   - {fileID: 234271055}
   - {fileID: 188802946}
@@ -5469,12 +5469,12 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
-    - rid: 8490480897462108221
+    - rid: 8490480935803813890
       type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data:
         _alternativePlacementStrategy:
-          rid: 8490480897462108222
-    - rid: 8490480897462108222
+          rid: 8490480935803813891
+    - rid: 8490480935803813891
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
 --- !u!114 &1818827038
@@ -5532,18 +5532,18 @@ MonoBehaviour:
   _inventory: {fileID: 1818827037}
   _useGlobalBindingsProfile: 1
   _bindingsProfile: {fileID: 0}
-  _pointerBindings:
+  _pointerBindings: []
+  _keyBindings:
   - _label: Auto Transfer
-    _button: 2
+    _key: 32
     _modifier: 0
     _triggerPhase: 0
     _action:
-      rid: 6676589188124770375
-  _keyBindings: []
+      rid: 8490480936160067588
   references:
     version: 2
     RefIds:
-    - rid: 6676589188124770375
+    - rid: 8490480936160067588
       type: {class: InventorySlotAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
       data:
         _sceneAction: {fileID: 1818827040}
@@ -5771,8 +5771,8 @@ RectTransform:
   - {fileID: 126095701}
   m_Father: {fileID: 1818827034}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.1, y: 0.1}
-  m_AnchorMax: {x: 0.9, y: 0.9}
+  m_AnchorMin: {x: 0.1, y: 0.05}
+  m_AnchorMax: {x: 0.9, y: 0.8}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5892,7 +5892,7 @@ GameObject:
   - component: {fileID: 1911807180}
   - component: {fileID: 1911807182}
   m_Layer: 5
-  m_Name: Image
+  m_Name: DropArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5913,7 +5913,7 @@ RectTransform:
   - {fileID: 2010900654}
   m_Father: {fileID: 1358364176}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.05, y: 0.01}
+  m_AnchorMin: {x: 0.05, y: 0.05}
   m_AnchorMax: {x: 0.95, y: 0.3}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
@@ -5938,8 +5938,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -5947,7 +5947,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 0.5
 --- !u!222 &1911807181
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6002,12 +6002,22 @@ MonoBehaviour:
   _highlightColor: {r: 1, g: 1, b: 0, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 0}
   _dropPolicyOverride:
-    _overrideBlockedTarget: 0
-    _blockedTarget: 2
-    _overrideAlternativePlacement: 0
-    _alternativePlacement: 0
+    _overrideBlockedTargetResolver: 0
+    _blockedTargetResolver:
+      rid: 8490480928290766848
     _overrideAllowPartial: 0
     _allowPartial: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 8490480928290766848
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480928290766849
+    - rid: 8490480928290766849
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!1001 &1923349035
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6506,10 +6516,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1818827034}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.9}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.85}
+  m_AnchorMax: {x: 1, y: 0.98}
+  m_AnchoredPosition: {x: 0, y: 2.5}
+  m_SizeDelta: {x: 0, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2123088563
 MonoBehaviour:
@@ -6684,18 +6694,18 @@ MonoBehaviour:
   _inventory: {fileID: 1358364178}
   _useGlobalBindingsProfile: 1
   _bindingsProfile: {fileID: 0}
-  _pointerBindings:
+  _pointerBindings: []
+  _keyBindings:
   - _label: Auto Transfer
-    _button: 2
+    _key: 32
     _modifier: 0
     _triggerPhase: 0
     _action:
-      rid: 6676589188124770376
-  _keyBindings: []
+      rid: 8490480936160067589
   references:
     version: 2
     RefIds:
-    - rid: 6676589188124770376
+    - rid: 8490480936160067589
       type: {class: InventorySlotAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
       data:
         _sceneAction: {fileID: 1358364181}
