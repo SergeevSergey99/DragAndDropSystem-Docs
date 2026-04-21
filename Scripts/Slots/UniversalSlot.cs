@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Inventories;
 
 namespace UniversalDragAndDrop.Slots
 {
@@ -30,21 +31,26 @@ namespace UniversalDragAndDrop.Slots
         [SerializeField, Tooltip("Optional: CanvasGroup for controlling interactivity")]
         private CanvasGroup _canvasGroup;
 
+        private Sprite _emptySprite;
+
+        public override void Initialize(int index, IInventory inventory)
+        {
+            _emptySprite = _iconImage != null ? _iconImage.sprite : null;
+            base.Initialize(index, inventory);
+        }
+
         protected override void RenderFilled()
         {
             _iconImage.sprite  = Stack.Icon;
             _iconImage.color   = ResolveIconColor();
-            _iconImage.enabled = true;
             RenderCounter();
         }
 
         protected override void RenderEmpty()
         {
-            _iconImage.sprite  = null;
+            _iconImage.sprite  = _emptySprite;
             _iconImage.color   = _emptyColor;
-            _iconImage.enabled = false;
-            if (_countContainer != null)
-                _countContainer.SetActive(false);
+            RenderCounter();
         }
         
         /// <summary>Updates the stack counter. It is shown only when there is more than one item.</summary>

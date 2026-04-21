@@ -601,8 +601,7 @@ namespace UniversalDragAndDrop.Inventories
                         slot.SetStack(restoredStack);
                 }
 
-                slot.UpdateVisuals();
-                slot.Initialize(i, this);
+                slot.SetInventoryIndex(i, this);
             }
         }
 
@@ -989,7 +988,7 @@ namespace UniversalDragAndDrop.Inventories
 
             for (int i = index; i < _slots.Count; i++)
             {
-                _slots[i].Initialize(i, this);
+                _slots[i].SetInventoryIndex(i, this);
             }
 
             if (slotTransform != null)

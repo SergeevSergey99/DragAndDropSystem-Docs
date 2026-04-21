@@ -177,9 +177,26 @@ namespace UniversalDragAndDrop
                 }
             }
 
+            SetDraggedState(_currentContext.Entries, false);
             OnDragStarted?.Invoke(_currentContext);
             Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
+        }
+
+        private static void SetDraggedState(IReadOnlyList<DragEntry> entries, bool isDragging)
+        {
+            if (entries == null)
+                return;
+
+            var processedSlots = new HashSet<BaseSlot>();
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var sourceBaseSlot = entries[i].SourceBaseSlot;
+                if (sourceBaseSlot == null || !processedSlots.Add(sourceBaseSlot))
+                    continue;
+
+                sourceBaseSlot.SetDragged(isDragging);
+            }
         }
 
         /// <summary>
@@ -488,6 +505,8 @@ namespace UniversalDragAndDrop
 
         private void EndDrag()
         {
+            var dragContext = _currentContext;
+
             // Deactivate all targets in the stack
             foreach (var target in _dropTargetStack)
             {
@@ -500,6 +519,7 @@ namespace UniversalDragAndDrop
                 OnDragExitSlot?.Invoke(_currentContext);
             }
 
+            SetDraggedState(dragContext?.Entries, true);
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
@@ -659,7 +679,7 @@ namespace UniversalDragAndDrop
                         continue;
 
                     if (entry.TargetBaseSlot != null)
-                        entry.TargetBaseSlot.SetIconVisibility(false);
+                        entry.TargetBaseSlot.SetDragged(false);
 
                     if (!ItemStack.TryCreate(entry.TargetBaseSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
                         continue;
@@ -678,7 +698,7 @@ namespace UniversalDragAndDrop
                         () =>
                         {
                             if (entry.TargetBaseSlot != null)
-                                entry.TargetBaseSlot.SetIconVisibility(true);
+                                entry.TargetBaseSlot.SetDragged(true);
                             animationCompleted();
                         });
 

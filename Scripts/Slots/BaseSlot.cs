@@ -35,6 +35,11 @@ namespace UniversalDragAndDrop.Slots
 
         public virtual void Initialize(int index, IInventory inventory)
         {
+            SetInventoryIndex(index, inventory);
+        }
+
+        public void SetInventoryIndex(int index, IInventory inventory)
+        {
             Inventory = inventory;
             Index = index;
             UpdateVisuals();
@@ -56,9 +61,9 @@ namespace UniversalDragAndDrop.Slots
 
         /// <summary>
         /// Icon visibility flag. Set by animation systems through
-        /// <see cref="SetIconVisibility"/> and applied on the next UpdateVisuals.
+        /// <see cref="SetDragged"/> and applied on the next UpdateVisuals.
         /// </summary>
-        protected bool _iconVisible = true;
+        protected bool _isDragged = false;
         
         /// <summary>
         /// Single entry point for a full visual refresh.
@@ -66,16 +71,21 @@ namespace UniversalDragAndDrop.Slots
         /// </summary>
         public virtual void UpdateVisuals()
         {
-            if (_iconVisible && !IsEmpty)
-                RenderFilled();
-            else
+            if (IsEmpty)
                 RenderEmpty();
+            if (_isDragged)
+                RenderFilledAndDragged();
+            else
+                RenderFilled();
 
             OnVisualsUpdated();
         }
         
         /// <summary>Render a non-empty slot: icon + counter.</summary>
         protected virtual void RenderFilled(){}
+
+        /// <summary>Render a non-empty slot that is being dragged.</summary>
+        protected virtual void RenderFilledAndDragged() => RenderEmpty();
         
         /// <summary>Render an empty slot: hide icon and counter.</summary>
         protected virtual void RenderEmpty(){}
@@ -112,9 +122,9 @@ namespace UniversalDragAndDrop.Slots
         /// Preserves the flag and performs a full UpdateVisuals so other
         /// visual states are not reset.
         /// </summary>
-        public virtual void SetIconVisibility(bool visible)
+        public virtual void SetDragged(bool visible)
         {
-            _iconVisible = visible;
+            _isDragged = visible;
             UpdateVisuals();
         }
 
