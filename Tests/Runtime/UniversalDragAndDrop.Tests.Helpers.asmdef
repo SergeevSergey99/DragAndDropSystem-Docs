@@ -1,15 +1,12 @@
 {
-    "name": "DragAndDropSystem.Tests.Editor",
+    "name": "UniversalDragAndDrop.Tests.Helpers",
     "rootNamespace": "UniversalDragAndDrop.Tests",
     "references": [
         "UniversalDragAndDrop.Runtime",
-        "UniversalDragAndDrop.Tests.Helpers",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
