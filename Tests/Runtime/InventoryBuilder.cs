@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Slots;
+
+namespace UniversalDragAndDrop.Tests
+{
+    /// <summary>
+    /// Fluent builder that assembles a minimal, fully-initialized UniversalInventory
+    /// for integration tests. Handles the ceremony: GameObject hierarchy, slot container,
+    /// TestSlot prefab, reflection-injection of [SerializeField] privates, and manual Awake.
+    ///
+    /// Usage:
+    ///   var inv = new InventoryBuilder()
+    ///                 .WithStrategy(new UniqueItemStrategy())
+    ///                 .WithFixedSlots(4)
+    ///                 .Build();
+    ///   // ... test ...
+    ///   InventoryBuilder.Destroy(inv); // or destroy root GameObject in [TearDown]
+    /// </summary>
+    public sealed class InventoryBuilder
+    {
+        private InventoryStrategyBase _strategy = new StackableItemStrategy();
+        private int _slotCount = 4;
+        private int? _maxStackSize;
+        private bool _allowItemOverride;
+        private DropPolicySettings _dropPolicy;
+        private string _name = "TestInventory";
+
+        public InventoryBuilder WithStrategy(InventoryStrategyBase strategy)
+        {
+            _strategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
+            return this;
+        }
+
+        public InventoryBuilder WithFixedSlots(int count)
+        {
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            _slotCount = count;
+            return this;
+        }
+
+        /// <summary>
+        /// Only applies to stack-based strategies (Stackable / SeparableStacks).
+        /// 0 = unlimited. Silently ignored for UniqueItemStrategy.
+        /// </summary>
+        public InventoryBuilder WithMaxStackSize(int max, bool allowItemOverride = false)
+        {
+            _maxStackSize = max;
+            _allowItemOverride = allowItemOverride;
+            return this;
+        }
+
+        public InventoryBuilder WithDropPolicy(DropPolicySettings policy)
+        {
+            _dropPolicy = policy;
+            return this;
+        }
+
+        public InventoryBuilder WithName(string name)
+        {
+            _name = name ?? "TestInventory";
+            return this;
+        }
+
+        public UniversalInventory Build()
+        {
+            if (_maxStackSize.HasValue && _strategy is StackBasedInventoryStrategyBase)
+                _strategy.SetMaxStackSize(_maxStackSize.Value, _allowItemOverride);
+
+            var root = new GameObject(_name);
+
+            var containerGo = new GameObject("SlotContainer");
+            containerGo.transform.SetParent(root.transform);
+
+            // Slot prefab lives outside the slot container so CacheSlots does not pick it up.
+            var prefabGo = new GameObject("SlotPrefab");
+            prefabGo.transform.SetParent(root.transform);
+            var prefab = prefabGo.AddComponent<TestSlot>();
+
+            var inventory = root.AddComponent<UniversalInventory>();
+
+            SetField(inventory, "_slotContainer", containerGo.transform);
+            SetField(inventory, "baseSlotPrefab", prefab);
+            SetField(inventory, "_initialSlotCount", _slotCount);
+            SetField(inventory, "_inventoryStrategy", _strategy);
+            SetField(inventory, "_slots", new List<BaseSlot>());
+            SetField(inventory, "_slotManagementSettings", new FixedSlotManagementSettings());
+            if (_dropPolicy != null)
+                SetField(inventory, "_dropPolicy", _dropPolicy);
+
+            // In EditMode, Awake does NOT fire on AddComponent or SetActive because
+            // UniversalInventory is not marked [ExecuteInEditMode]. Invoke it manually
+            // after fields are injected. Awake is idempotent via its internal guard.
+            InvokeAwake(inventory);
+
+            return inventory;
+        }
+
+        /// <summary>
+        /// Destroys the inventory's root GameObject (and all created slots). Safe to call on null.
+        /// </summary>
+        public static void Destroy(UniversalInventory inventory)
+        {
+            if (inventory == null) return;
+            var go = inventory.gameObject;
+            if (go != null)
+                UnityEngine.Object.DestroyImmediate(go);
+        }
+
+        // --- reflection helpers -------------------------------------------------
+
+        private static void SetField(object target, string fieldName, object value)
+        {
+            var type = target.GetType();
+            FieldInfo field = null;
+            while (type != null && field == null)
+            {
+                field = type.GetField(fieldName,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                type = type.BaseType;
+            }
+            if (field == null)
+                throw new InvalidOperationException(
+                    $"InventoryBuilder: field '{fieldName}' not found on {target.GetType().Name}");
+
+            field.SetValue(target, value);
+        }
+
+        private static void InvokeAwake(MonoBehaviour target)
+        {
+            var type = target.GetType();
+            MethodInfo awake = null;
+            while (type != null && awake == null)
+            {
+                awake = type.GetMethod("Awake",
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                type = type.BaseType;
+            }
+            awake?.Invoke(target, null);
+        }
+    }
+}
