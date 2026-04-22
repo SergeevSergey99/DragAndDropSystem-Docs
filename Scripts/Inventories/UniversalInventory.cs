@@ -199,37 +199,15 @@ namespace UniversalDragAndDrop.Inventories
         {
             OnSwapCompleted?.Invoke(context);
         }
-
-        public enum ItemBehaviorType
+        private void Start()
         {
-            Unique,            // Each item occupies its own slot (not stackable)
-            Stackable,         // Items stack and merge automatically
-            SeparableStacks    // HoMM style: multiple stacks of the same item are allowed, merge only on drop
-        }
-
-        public enum SlotManagementType
-        {
-            Fixed,       // Fixed number of slots
-            Dynamic      // Dynamic slot creation
-        }
-
-        private void Awake()
-        {
-            EnsureInventoryStrategySettings();
-            EnsureSlotManagementSettings();
-
-            // Ensure lazy initialization has not already happened
-            if (_strategy == null)
-            {
-                InitializeSlots();
-                InitializeStrategy();
-                EnsureFreeSlots(); // Create initial free slots for Dynamic mode
-            }
+            EnsureStrategyInitialized();
         }
 
         public void Initialize(InventoryDataBindingBase inventoryDataBindingBase)
         {
             DataBinding = inventoryDataBindingBase;
+            EnsureStrategyInitialized();
         }
 
         private void OnValidate()
@@ -634,36 +612,6 @@ namespace UniversalDragAndDrop.Inventories
             UpdateAllVisuals();
         }
 
-        private void ProcessEmptiedSlots(InventorySnapshot beforeSnapshot)
-        {
-            if (beforeSnapshot == null || beforeSnapshot.Slots.Count == 0)
-                return;
-
-            var emptiedSlots = new List<BaseSlot>();
-            int limit = Math.Min(beforeSnapshot.Slots.Count, _slots.Count);
-
-            for (int i = 0; i < limit; i++)
-            {
-                var previous = beforeSnapshot.Slots[i];
-                if (previous.Count <= 0 || previous.ItemAdapter == null)
-                    continue;
-
-                var slot = _slots[i];
-                if (slot != null && slot.IsEmpty)
-                {
-                    emptiedSlots.Add(slot);
-                }
-            }
-
-            if (emptiedSlots.Count == 0)
-                return;
-
-            foreach (var slot in emptiedSlots)
-            {
-                HandleSlotEmptied(slot);
-            }
-        }
-
         public bool Contains(IItemAdapter itemAdapter) => _queryStrategy.Contains(_slots, itemAdapter);
         
         public void UpdateAllVisuals()
@@ -679,6 +627,8 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         public void ClearAll()
         {
+            EnsureStrategyInitialized();
+
             foreach (var slot in _slots)
             {
                 slot.Clear();
