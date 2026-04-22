@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Shield
   <itemType>k__BackingField: Armor
-  _worldPrefab: {fileID: 649211847301960709, guid: 18ac4aedfa63a2d439f67b24e0c3ddc6, type: 3}
+  _worldPrefab: {fileID: 1097463583627720804, guid: e51d548f995e28c43a75b76a7fc8b432, type: 3}

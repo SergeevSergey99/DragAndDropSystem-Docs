@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ItemName>k__BackingField: Sword
   <itemType>k__BackingField: Weapon
-  _worldPrefab: {fileID: 649211847301960709, guid: 18ac4aedfa63a2d439f67b24e0c3ddc6, type: 3}
+  _worldPrefab: {fileID: 1097463583627720804, guid: 4f1681513d5a43c4db3f2e6d9044109a, type: 3}

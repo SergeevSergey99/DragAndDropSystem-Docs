@@ -122,9 +122,9 @@ namespace UniversalDragAndDrop.Slots
         /// Preserves the flag and performs a full UpdateVisuals so other
         /// visual states are not reset.
         /// </summary>
-        public virtual void SetDragged(bool visible)
+        public virtual void SetDragged(bool dragged)
         {
-            _isDragged = visible;
+            _isDragged = dragged;
             UpdateVisuals();
         }
 

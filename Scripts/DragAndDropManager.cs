@@ -177,7 +177,7 @@ namespace UniversalDragAndDrop
                 }
             }
 
-            SetDraggedState(_currentContext.Entries, false);
+            SetDraggedState(_currentContext.Entries, true);
             OnDragStarted?.Invoke(_currentContext);
             Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
@@ -519,7 +519,7 @@ namespace UniversalDragAndDrop
                 OnDragExitSlot?.Invoke(_currentContext);
             }
 
-            SetDraggedState(dragContext?.Entries, true);
+            SetDraggedState(dragContext?.Entries, false);
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
