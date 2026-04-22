@@ -10,6 +10,8 @@ namespace UniversalDragAndDrop.Selection
     {
         public override string DisplayName => "Clear Selection";
 
+        public override bool AllowOutOfSlot() => true;
+
         public override void Execute(SelectionManager manager, BaseSlot contextBaseSlot = null)
             => manager.Clear();
 

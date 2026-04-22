@@ -11,13 +11,8 @@ namespace UniversalDragAndDrop.Selection
     public sealed class SelectionSlotAction : AssetSafeSlotInteractionAction
     {
         [UnityEngine.SerializeReference, ManagedReferencePicker] private SelectionOperationBase _operation;
-
-        public SelectionSlotAction() {}
-
-        public SelectionSlotAction(SelectionOperationBase operation)
-        {
-            _operation = operation;
-        }
+        
+        public override bool AllowOutOfSlot() => _operation.AllowOutOfSlot();
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {

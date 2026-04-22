@@ -61,7 +61,7 @@ namespace UniversalDragAndDrop.Selection
                 }
             }
 
-            if (IsEligible(activeSlot, inventory))
+            if (!result.Contains(activeSlot) && IsEligible(activeSlot, inventory))
                 result.Add(activeSlot);
 
             return result;

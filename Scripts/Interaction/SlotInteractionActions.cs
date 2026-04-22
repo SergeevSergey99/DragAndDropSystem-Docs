@@ -14,6 +14,13 @@ namespace UniversalDragAndDrop.Interaction
         
         public virtual bool IsDragOnlyBinding() => false;
 
+        /// <summary>
+        /// If true, this action may fire from a pointer event that occurred outside any slot
+        /// (adapter == null). Default false: action only fires when a slot is hovered/focused.
+        /// Implementations must tolerate null adapter and (possibly) null inventory.
+        /// </summary>
+        public virtual bool AllowOutOfSlot() => false;
+
         public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null;
 

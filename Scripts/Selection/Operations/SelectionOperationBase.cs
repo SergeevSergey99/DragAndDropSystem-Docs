@@ -15,6 +15,7 @@ namespace UniversalDragAndDrop.Selection
     {
         public virtual string DisplayName => GetType().Name.Replace("Operation", "");
 
+        public virtual bool AllowOutOfSlot() => false;
         /// <summary>
         /// Execute the selection operation.
         /// </summary>

@@ -53,6 +53,8 @@ namespace UniversalDragAndDrop.Interaction
         private readonly HashSet<IntentDedupKey> _handledThisFrame = new();
         // Set tracking which mouse buttons have already been handled during global PointerUp while dragging, so they are not processed multiple times
         private readonly HashSet<PointerEventData.InputButton> _pointerUpHandledThisFrame = new ();
+        // Set tracking which mouse buttons had a slot-scoped PointerDown this frame, so the global-Down dispatch does not double-fire
+        private readonly HashSet<PointerEventData.InputButton> _pointerDownHandledThisFrame = new ();
         // Press time and position used to determine the click phase (Short/Long) for global pointer events
         private readonly float[] _globalPressTime = new float[3];
         private readonly Vector2[] _globalPressPosition = new Vector2[3];
@@ -112,6 +114,7 @@ namespace UniversalDragAndDrop.Interaction
 
             _handledThisFrame.Clear();
             _pointerUpHandledThisFrame.Clear();
+            _pointerDownHandledThisFrame.Clear();
             CleanupStaleInventories();
 
 #if UDND_INPUT_SYSTEM  && ENABLE_INPUT_SYSTEM
@@ -287,6 +290,7 @@ namespace UniversalDragAndDrop.Interaction
 
             // PointerDown should allow regular slot actions (selection, inventory ops)
             // and drag start actions. Drag completion/cancel is processed on PointerUp.
+            _pointerDownHandledThisFrame.Add(eventData.button);
             ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down);
         }
 
@@ -447,7 +451,11 @@ namespace UniversalDragAndDrop.Interaction
                 if (binding == null || !binding.IsValid() || !binding.Matches(eventData, phase))
                     continue;
 
-                if (DragAndDropManager.AutoCreateInstance.IsDragging && !binding.Action.IsDragOnlyBinding())
+                if (!DragAndDropManager.AutoCreateInstance.IsDragging && binding.Action.IsDragOnlyBinding())
+                    continue;
+
+                // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
+                if (adapter == null && !binding.Action.AllowOutOfSlot())
                     continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, eventData))
@@ -1057,21 +1065,31 @@ namespace UniversalDragAndDrop.Interaction
 #if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
         private void TrackGlobalPressState(Mouse mouse)
         {
-            if (mouse.leftButton.wasPressedThisFrame)
-            {
-                _globalPressTime[0] = Time.unscaledTime;
-                _globalPressPosition[0] = mouse.position.ReadValue();
-            }
-            if (mouse.rightButton.wasPressedThisFrame)
-            {
-                _globalPressTime[1] = Time.unscaledTime;
-                _globalPressPosition[1] = mouse.position.ReadValue();
-            }
-            if (mouse.middleButton.wasPressedThisFrame)
-            {
-                _globalPressTime[2] = Time.unscaledTime;
-                _globalPressPosition[2] = mouse.position.ReadValue();
-            }
+            ProcessUnhandledGlobalPress(mouse.leftButton, PointerEventData.InputButton.Left, mouse);
+            ProcessUnhandledGlobalPress(mouse.rightButton, PointerEventData.InputButton.Right, mouse);
+            ProcessUnhandledGlobalPress(mouse.middleButton, PointerEventData.InputButton.Middle, mouse);
+        }
+
+        private void ProcessUnhandledGlobalPress(ButtonControl button, PointerEventData.InputButton inputButton, Mouse mouse)
+        {
+            if (!button.wasPressedThisFrame)
+                return;
+
+            int idx = (int)inputButton;
+            var mousePos = mouse.position.ReadValue();
+            _globalPressTime[idx] = Time.unscaledTime;
+            _globalPressPosition[idx] = mousePos;
+
+            if (_pointerDownHandledThisFrame.Contains(inputButton))
+                return;
+
+            var es = EventSystem.current;
+            if (es == null)
+                return;
+
+            _pointerDownHandledThisFrame.Add(inputButton);
+            var eventData = new PointerEventData(es) { button = inputButton, position = mousePos };
+            ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Down);
         }
 
         private void ProcessUnhandledGlobalRelease(ButtonControl button, PointerEventData.InputButton inputButton)
@@ -1101,36 +1119,45 @@ namespace UniversalDragAndDrop.Interaction
                     ? PointerTriggerPhase.ClickLong
                     : PointerTriggerPhase.ClickShort;
 
-                bool handled = ExecutePointerBindings(null, null, eventData, clickPhase, dragOnly: false);
+                bool handled = ExecutePointerBindings(_activeInventory, null, eventData, clickPhase);
                 if (!handled && clickPhase != PointerTriggerPhase.Click)
-                    handled = ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Click, dragOnly: false);
+                    handled = ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Click);
                 if (!handled)
-                    ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
+                    ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
             }
             else
             {
-                ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
+                ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
             }
         }
 #else
         private void TrackGlobalPressStateLegacy()
         {
+            ProcessUnhandledGlobalPressLegacy(0, PointerEventData.InputButton.Left);
+            ProcessUnhandledGlobalPressLegacy(1, PointerEventData.InputButton.Right);
+            ProcessUnhandledGlobalPressLegacy(2, PointerEventData.InputButton.Middle);
+        }
+
+        private void ProcessUnhandledGlobalPressLegacy(int mouseButton, PointerEventData.InputButton inputButton)
+        {
+            if (!Input.GetMouseButtonDown(mouseButton))
+                return;
+
+            int idx = (int)inputButton;
             Vector2 mousePos = Input.mousePosition;
-            if (Input.GetMouseButtonDown(0))
-            {
-                _globalPressTime[0] = Time.unscaledTime;
-                _globalPressPosition[0] = mousePos;
-            }
-            if (Input.GetMouseButtonDown(1))
-            {
-                _globalPressTime[1] = Time.unscaledTime;
-                _globalPressPosition[1] = mousePos;
-            }
-            if (Input.GetMouseButtonDown(2))
-            {
-                _globalPressTime[2] = Time.unscaledTime;
-                _globalPressPosition[2] = mousePos;
-            }
+            _globalPressTime[idx] = Time.unscaledTime;
+            _globalPressPosition[idx] = mousePos;
+
+            if (_pointerDownHandledThisFrame.Contains(inputButton))
+                return;
+
+            var es = EventSystem.current;
+            if (es == null)
+                return;
+
+            _pointerDownHandledThisFrame.Add(inputButton);
+            var eventData = new PointerEventData(es) { button = inputButton, position = mousePos };
+            ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Down);
         }
 
         private void ProcessUnhandledGlobalReleaseLegacy(int mouseButton, PointerEventData.InputButton inputButton)
@@ -1160,15 +1187,15 @@ namespace UniversalDragAndDrop.Interaction
                     ? PointerTriggerPhase.ClickLong
                     : PointerTriggerPhase.ClickShort;
 
-                bool handled = ExecutePointerBindings(null, null, eventData, clickPhase);
+                bool handled = ExecutePointerBindings(_activeInventory, null, eventData, clickPhase);
                 if (!handled && clickPhase != PointerTriggerPhase.Click)
-                    handled = ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Click);
+                    handled = ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Click);
                 if (!handled)
-                    ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up);
+                    ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
             }
             else
             {
-                ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up);
+                ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
             }
         }
 #endif
