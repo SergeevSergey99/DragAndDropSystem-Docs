@@ -10,6 +10,12 @@ namespace UniversalDragAndDrop.Tools
             Debug.Log($"<color=cyan>[UniversalDragAndDrop]</color> {message}");
 #endif
         }
+        public static void DragAndDropLogWarning(string message)
+        {
+#if UNITY_EDITOR && UNIVERSAL_INVENTORY_LOG
+            Debug.LogWarning($"<color=cyan>[UniversalDragAndDrop]</color> {message}");
+#endif
+        }
 
         public static bool TryGetSlotBoundsInParent(RectTransform slotRect, RectTransform parentRT, Camera targetCamera, out Vector2 centerLocal, out float halfWidthLocal, out Vector2 centerScreenPos)
         {

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Tools;
 
 namespace UniversalDragAndDrop.Rules
 {
@@ -18,7 +19,7 @@ namespace UniversalDragAndDrop.Rules
             
             if (!isValid)
             {
-                Debug.LogWarning($"<color=red>[RuleResult] Validation failed: {failureReason}</color>");
+                Extensions.DragAndDropLogWarning($"<color=red>[RuleResult] Validation failed: {failureReason}</color>");
             }
         }
 
