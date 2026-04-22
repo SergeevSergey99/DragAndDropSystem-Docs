@@ -71,12 +71,9 @@ namespace UniversalDragAndDrop.Slots
         /// </summary>
         public virtual void UpdateVisuals()
         {
-            if (IsEmpty)
-                RenderEmpty();
-            if (_isDragged)
-                RenderFilledAndDragged();
-            else
-                RenderFilled();
+            if (IsEmpty) RenderEmpty();
+            else if (_isDragged) RenderFilledAndDragged();
+            else RenderFilled();
 
             OnVisualsUpdated();
         }
