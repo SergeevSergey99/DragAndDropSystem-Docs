@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Rules;
 using UniversalDragAndDrop.Slots;
