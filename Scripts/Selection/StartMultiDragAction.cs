@@ -12,18 +12,14 @@ namespace UniversalDragAndDrop.Selection
     [Serializable]
     public sealed class StartMultiDragAction : AssetSafeSlotInteractionAction
     {
-        [SerializeField] private bool _completeOnPointerUp = true;
-        [SerializeField] private bool _fallbackToActiveSlotIfSelectionEmpty = true;
         [SerializeField] private bool _restrictToSameInventory = true;
         [SerializeField, Tooltip("Temporary item amount override for the current StartDrag. Applied to each selected source slot.")]
         private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
-
-        public override bool IsDragBinding() => true;
         
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
-                return _completeOnPointerUp;
+                return false;
 
             var sourceSlots = BuildSourceSlots(inventory, adapter);
             return sourceSlots.Count > 0;
@@ -32,13 +28,7 @@ namespace UniversalDragAndDrop.Selection
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
-            {
-                if (!_completeOnPointerUp)
-                    return ActionResult.Failed("Complete on pointer up is disabled");
-
-                DragAndDropManager.AutoCreateInstance.CompleteDrag(null);
-                return ActionResult.Succeeded();
-            }
+                return ActionResult.Failed("Already dragging");
 
             var sourceSlots = BuildSourceSlots(inventory, adapter);
             if (sourceSlots.Count == 0)
@@ -71,7 +61,7 @@ namespace UniversalDragAndDrop.Selection
                 }
             }
 
-            if (result.Count == 0 && _fallbackToActiveSlotIfSelectionEmpty && IsEligible(activeSlot, inventory))
+            if (IsEligible(activeSlot, inventory))
                 result.Add(activeSlot);
 
             return result;

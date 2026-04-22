@@ -679,7 +679,7 @@ namespace UniversalDragAndDrop
                         continue;
 
                     if (entry.TargetBaseSlot != null)
-                        entry.TargetBaseSlot.SetDragged(false);
+                        entry.TargetBaseSlot.SetDragged(true);
 
                     if (!ItemStack.TryCreate(entry.TargetBaseSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
                         continue;
@@ -698,7 +698,7 @@ namespace UniversalDragAndDrop
                         () =>
                         {
                             if (entry.TargetBaseSlot != null)
-                                entry.TargetBaseSlot.SetDragged(true);
+                                entry.TargetBaseSlot.SetDragged(false);
                             animationCompleted();
                         });
 

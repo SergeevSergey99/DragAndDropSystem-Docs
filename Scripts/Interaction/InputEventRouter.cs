@@ -285,12 +285,9 @@ namespace UniversalDragAndDrop.Interaction
             state.PressedTime = Time.unscaledTime;
             state.PressedPosition = eventData.position;
 
-            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
-            {
-                // PointerDown should allow regular slot actions (selection, inventory ops)
-                // and drag start actions. Drag completion/cancel is processed on PointerUp.
-                ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down, dragOnly: false);
-            }
+            // PointerDown should allow regular slot actions (selection, inventory ops)
+            // and drag start actions. Drag completion/cancel is processed on PointerUp.
+            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down);
         }
 
         public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
@@ -313,7 +310,7 @@ namespace UniversalDragAndDrop.Interaction
                 _pointerUpHandledThisFrame.Add(eventData.button);
                 if (isDraggingNow)
                 {
-                    ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up, dragOnly: true);
+                    ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up);
                 }
                 else if (releaseOfPressedButton && state.PressedAdapter != null)
                 {
@@ -324,8 +321,7 @@ namespace UniversalDragAndDrop.Interaction
                             inventory,
                             adapter,
                             eventData,
-                            clickPhase,
-                            dragOnly: false);
+                            clickPhase);
 
                         if (!handledClick && clickPhase != PointerTriggerPhase.Click)
                         {
@@ -333,8 +329,7 @@ namespace UniversalDragAndDrop.Interaction
                                 inventory,
                                 adapter,
                                 eventData,
-                                PointerTriggerPhase.Click,
-                                dragOnly: false);
+                                PointerTriggerPhase.Click);
                         }
                     }
 
@@ -344,8 +339,7 @@ namespace UniversalDragAndDrop.Interaction
                             inventory,
                             adapter,
                             eventData,
-                            PointerTriggerPhase.Up,
-                            dragOnly: false);
+                            PointerTriggerPhase.Up);
                     }
                 }
             }
@@ -364,7 +358,7 @@ namespace UniversalDragAndDrop.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
-            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.BeginDrag, dragOnly: true);
+            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.BeginDrag);
         }
 
         public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source)
@@ -440,31 +434,31 @@ namespace UniversalDragAndDrop.Interaction
             UniversalInventory inventory,
             SlotInputAdapter adapter,
             PointerEventData eventData,
-            PointerTriggerPhase phase,
-            bool dragOnly)
+            PointerTriggerPhase phase)
         {
             if (eventData == null) return false;
 
             var bindings = ResolvePointerBindings(inventory);
 
+            int executedActions = 0;
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsValid() || !binding.Matches(eventData, phase))
                     continue;
 
-                if (dragOnly && !binding.Action.IsDragBinding())
+                if (DragAndDropManager.AutoCreateInstance.IsDragging && !binding.Action.IsDragOnlyBinding())
                     continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, eventData))
                 {
                     _ = binding.Action.Execute(inventory, adapter, eventData);
-                    eventData.Use();
-                    return true;
+                    executedActions++;
                 }
             }
 
-            return false;
+            eventData.Use();
+            return executedActions > 0;
         }
 
         private void PollKeyBindings()
@@ -489,7 +483,6 @@ namespace UniversalDragAndDrop.Interaction
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
                     _ = binding.Action.Execute(inventory, adapter, null);
-                    return;
                 }
             }
         }
@@ -951,7 +944,7 @@ namespace UniversalDragAndDrop.Interaction
             var eventData = new PointerEventData(EventSystem.current) { button = button };
 
             _pointerUpHandledThisFrame.Add(button);
-            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up, dragOnly: true);
+            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up);
         }
 
         private bool TryResolveInventoryForGlobalPointerUp(out UniversalInventory inventory)
@@ -1167,15 +1160,15 @@ namespace UniversalDragAndDrop.Interaction
                     ? PointerTriggerPhase.ClickLong
                     : PointerTriggerPhase.ClickShort;
 
-                bool handled = ExecutePointerBindings(null, null, eventData, clickPhase, dragOnly: false);
+                bool handled = ExecutePointerBindings(null, null, eventData, clickPhase);
                 if (!handled && clickPhase != PointerTriggerPhase.Click)
-                    handled = ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Click, dragOnly: false);
+                    handled = ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Click);
                 if (!handled)
-                    ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
+                    ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up);
             }
             else
             {
-                ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up, dragOnly: false);
+                ExecutePointerBindings(null, null, eventData, PointerTriggerPhase.Up);
             }
         }
 #endif

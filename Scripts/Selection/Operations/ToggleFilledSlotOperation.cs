@@ -6,7 +6,7 @@ namespace UniversalDragAndDrop.Selection
     /// Toggles selection of a single slot (Ctrl+Click)
     /// </summary>
     [System.Serializable]
-    public class ToggleSlotOperation : SelectionOperationBase
+    public class ToggleFilledSlotOperation : SelectionOperationBase
     {
         public override string DisplayName => "Toggle Slot";
 
@@ -17,6 +17,6 @@ namespace UniversalDragAndDrop.Selection
         }
 
         public override bool CanExecute(SelectionManager manager, BaseSlot contextBaseSlot = null)
-            => base.CanExecute(manager, contextBaseSlot) && contextBaseSlot != null;
+            => contextBaseSlot != null && !contextBaseSlot.IsEmpty && base.CanExecute(manager, contextBaseSlot) && contextBaseSlot != null;
     }
 }

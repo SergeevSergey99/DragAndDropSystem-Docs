@@ -41,7 +41,7 @@ namespace UniversalDragAndDrop.Interaction
     [Serializable]
     public sealed class StartHoldDragAction : AssetSafeSlotInteractionAction
     {
-        public override bool IsDragBinding() => true;
+        public override bool IsDragOnlyBinding() => true;
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
