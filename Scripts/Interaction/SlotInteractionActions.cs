@@ -15,11 +15,21 @@ namespace UniversalDragAndDrop.Interaction
         public virtual bool IsDragOnlyBinding() => false;
 
         /// <summary>
-        /// If true, this action may fire from a pointer event that occurred outside any slot
-        /// (adapter == null). Default false: action only fires when a slot is hovered/focused.
+        /// If true, this action may fire when there is no concrete slot in the interaction snapshot.
+        /// This includes pointer events outside a slot, keyboard/input-action execution while a DropArea is focused,
+        /// and inventory-level drag actions that operate through the active drop target.
         /// Implementations must tolerate null adapter and (possibly) null inventory.
         /// </summary>
         public virtual bool AllowOutOfSlot() => false;
+
+        public virtual bool CanExecute(RuntimeInteractionSnapshot snapshot)
+            => CanExecute(snapshot?.Inventory, ResolveAdapter(snapshot?.ResolvedBaseSlot), snapshot?.PointerEventData);
+
+        public virtual ActionResult Execute(RuntimeInteractionSnapshot snapshot)
+            => Execute(snapshot?.Inventory, ResolveAdapter(snapshot?.ResolvedBaseSlot), snapshot?.PointerEventData);
+
+        private static SlotInputAdapter ResolveAdapter(BaseSlot baseSlot)
+            => baseSlot != null ? baseSlot.GetComponent<SlotInputAdapter>() : null;
 
         public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => inventory != null;
@@ -36,6 +46,15 @@ namespace UniversalDragAndDrop.Interaction
     {
         [SerializeField, Tooltip("Temporary item amount override for the current StartDrag. Applied to each selected source slot.")]
         private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
+
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
+        {
+            if (snapshot == null || snapshot.IsDragging)
+                return false;
+
+            var slot = snapshot.ResolvedBaseSlot;
+            return slot != null && !slot.IsEmpty && slot.IsInteractable;
+        }
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
@@ -66,6 +85,10 @@ namespace UniversalDragAndDrop.Interaction
         [SerializeField] private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
         public override bool IsDragOnlyBinding() => true;
+        public override bool AllowOutOfSlot() => true;
+
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
+            => snapshot != null && snapshot.IsDragging;
         
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
@@ -82,6 +105,10 @@ namespace UniversalDragAndDrop.Interaction
         [SerializeField] private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
         public override bool IsDragOnlyBinding() => true;
+        public override bool AllowOutOfSlot() => true;
+
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
+            => snapshot != null && snapshot.IsDragging;
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.AutoCreateInstance.IsDragging;
@@ -100,6 +127,12 @@ namespace UniversalDragAndDrop.Interaction
     [Serializable]
     public sealed class CancelDragAction : AssetSafeSlotInteractionAction
     {
+        public override bool IsDragOnlyBinding() => true;
+        public override bool AllowOutOfSlot() => true;
+
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
+            => snapshot != null && snapshot.IsDragging;
+
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => DragAndDropManager.AutoCreateInstance.IsDragging;
 
@@ -118,6 +151,27 @@ namespace UniversalDragAndDrop.Interaction
     {
         [SerializeField, Tooltip("Scene action component (MonoBehaviour).")]
         private InventoryActionBase _sceneAction;
+
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
+        {
+            if (_sceneAction == null || snapshot?.Inventory == null)
+                return false;
+
+            var slot = snapshot.ResolvedBaseSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
+            return _sceneAction.CanExecute(snapshot.Inventory, slot);
+        }
+
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
+        {
+            if (_sceneAction == null || snapshot?.Inventory == null)
+                return ActionResult.Failed("Inventory action is not configured");
+
+            var slot = snapshot.ResolvedBaseSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
+            if (!_sceneAction.CanExecute(snapshot.Inventory, slot))
+                return ActionResult.Failed("Inventory action cannot execute");
+
+            return _sceneAction.Execute(snapshot.Inventory, slot);
+        }
 
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {

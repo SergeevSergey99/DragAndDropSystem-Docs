@@ -32,6 +32,7 @@ namespace UniversalDragAndDrop.Interaction
         }
 
         public SlotInteractionAction Action => _action;
+        public KeyTriggerPhase TriggerPhase => _triggerPhase;
         public string Label => string.IsNullOrEmpty(_label)
             ? (_action != null ? _action.DisplayName : "Key Binding")
             : _label;

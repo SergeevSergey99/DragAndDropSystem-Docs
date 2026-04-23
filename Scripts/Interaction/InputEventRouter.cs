@@ -200,15 +200,6 @@ namespace UniversalDragAndDrop.Interaction
             return true;
         }
 
-        public BaseSlot ResolveFocusedSlot(UniversalInventory inventory)
-        {
-            if (inventory == null)
-                return null;
-
-            var state = GetOrCreateState(inventory);
-            return state.FocusedBaseSlot;
-        }
-
         public bool IsInventoryActive(UniversalInventory inventory)
             => inventory != null && ReferenceEquals(_activeInventory, inventory);
 
@@ -287,7 +278,16 @@ namespace UniversalDragAndDrop.Interaction
             // PointerDown should allow regular slot actions (selection, inventory ops)
             // and drag start actions. Drag completion/cancel is processed on PointerUp.
             _pointerDownHandledThisFrame.Add(eventData.button);
-            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Down);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.Pointer,
+                inventory,
+                adapter,
+                eventData,
+                pointerPhase: PointerTriggerPhase.Down,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
+            ExecutePointerBindings(interactionSnapshot);
         }
 
         public void RoutePointerUp(SlotInputAdapter adapter, PointerEventData eventData)
@@ -310,36 +310,60 @@ namespace UniversalDragAndDrop.Interaction
                 _pointerUpHandledThisFrame.Add(eventData.button);
                 if (isDraggingNow)
                 {
-                    ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up);
+                    var upSnapshot = BuildInteractionSnapshot(
+                        InteractionInputKind.Pointer,
+                        inventory,
+                        adapter,
+                        eventData,
+                        pointerPhase: PointerTriggerPhase.Up,
+                        keyPhase: null,
+                        inputActionPhase: null,
+                        nativeInputContext: null);
+                    ExecutePointerBindings(upSnapshot);
                 }
                 else if (releaseOfPressedButton && state.PressedAdapter != null)
                 {
                     bool handledClick = false;
                     if (TryResolveClickPhase(state, eventData, out var clickPhase))
                     {
-                        handledClick = ExecutePointerBindings(
+                        var clickSnapshot = BuildInteractionSnapshot(
+                            InteractionInputKind.Pointer,
                             inventory,
                             adapter,
                             eventData,
-                            clickPhase);
+                            pointerPhase: clickPhase,
+                            keyPhase: null,
+                            inputActionPhase: null,
+                            nativeInputContext: null);
+                        handledClick = ExecutePointerBindings(clickSnapshot);
 
                         if (!handledClick && clickPhase != PointerTriggerPhase.Click)
                         {
-                            handledClick = ExecutePointerBindings(
+                            var plainClickSnapshot = BuildInteractionSnapshot(
+                                InteractionInputKind.Pointer,
                                 inventory,
                                 adapter,
                                 eventData,
-                                PointerTriggerPhase.Click);
+                                pointerPhase: PointerTriggerPhase.Click,
+                                keyPhase: null,
+                                inputActionPhase: null,
+                                nativeInputContext: null);
+                            handledClick = ExecutePointerBindings(plainClickSnapshot);
                         }
                     }
 
                     if (!handledClick)
                     {
-                        ExecutePointerBindings(
+                        var fallbackUpSnapshot = BuildInteractionSnapshot(
+                            InteractionInputKind.Pointer,
                             inventory,
                             adapter,
                             eventData,
-                            PointerTriggerPhase.Up);
+                            pointerPhase: PointerTriggerPhase.Up,
+                            keyPhase: null,
+                            inputActionPhase: null,
+                            nativeInputContext: null);
+                        ExecutePointerBindings(fallbackUpSnapshot);
                     }
                 }
             }
@@ -358,7 +382,16 @@ namespace UniversalDragAndDrop.Interaction
             if (!TryGetInventory(adapter, out var inventory))
                 return;
 
-            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.BeginDrag);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.Pointer,
+                inventory,
+                adapter,
+                eventData,
+                pointerPhase: PointerTriggerPhase.BeginDrag,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
+            ExecutePointerBindings(interactionSnapshot);
         }
 
         public void RouteFocusEnter(SlotInputAdapter adapter, FocusSource source)
@@ -430,39 +463,35 @@ namespace UniversalDragAndDrop.Interaction
                 DragAndDropManager.AutoCreateInstance.PopDropTarget(dropArea);
         }
 
-        private bool ExecutePointerBindings(
-            UniversalInventory inventory,
-            SlotInputAdapter adapter,
-            PointerEventData eventData,
-            PointerTriggerPhase phase)
+        private bool ExecutePointerBindings(RuntimeInteractionSnapshot interactionSnapshot)
         {
-            if (eventData == null) return false;
+            if (interactionSnapshot?.PointerEventData == null)
+                return false;
 
-            var bindings = ResolvePointerBindings(inventory);
+            var bindings = ResolvePointerBindings(interactionSnapshot.Inventory);
 
             int executedActions = 0;
             bool isDragging = DragAndDropManager.AutoCreateInstance.IsDragging;
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
-                if (binding == null || !binding.IsValid() || !binding.Matches(eventData, phase))
+                if (binding == null || !binding.IsValid() || !binding.Matches(interactionSnapshot.PointerEventData, interactionSnapshot.PointerPhase ?? PointerTriggerPhase.Any))
                     continue;
 
                 if (!isDragging && binding.Action.IsDragOnlyBinding())
                     continue;
 
-                // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
-                if (adapter == null && !binding.Action.AllowOutOfSlot())
+                if (!interactionSnapshot.HasConcreteTarget && !binding.Action.AllowOutOfSlot())
                     continue;
 
-                if (binding.Action.CanExecute(inventory, adapter, eventData))
+                if (binding.Action.CanExecute(interactionSnapshot))
                 {
-                    _ = binding.Action.Execute(inventory, adapter, eventData);
+                    _ = binding.Action.Execute(interactionSnapshot);
                     executedActions++;
                 }
             }
 
-            eventData.Use();
+            interactionSnapshot.PointerEventData.Use();
             return executedActions > 0;
         }
 
@@ -470,14 +499,15 @@ namespace UniversalDragAndDrop.Interaction
         {
             var inventory = _activeInventory;
             var bindings = ResolveKeyBindings(inventory);
-
-            SlotInputAdapter adapter = null;
-            if (inventory != null)
-            {
-                var state = GetOrCreateState(inventory);
-                adapter = ResolveAdapterFromSlot(state.FocusedBaseSlot)
-                          ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
-            }
+            var baseSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.Key,
+                inventory,
+                adapter: null,
+                pointerEventData: null,
+                pointerPhase: null,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
             bool isDragging = DragAndDropManager.AutoCreateInstance.IsDragging;
             for (int i = 0; i < bindings.Count; i++)
             {
@@ -487,14 +517,15 @@ namespace UniversalDragAndDrop.Interaction
 
                 if (!isDragging && binding.Action.IsDragOnlyBinding())
                     continue;
-                
-                // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
-                if (adapter == null && !binding.Action.AllowOutOfSlot())
+
+                var interactionSnapshot = baseSnapshot.WithKeyPhase(binding.TriggerPhase);
+
+                if (!interactionSnapshot.HasConcreteTarget && !binding.Action.AllowOutOfSlot())
                     continue;
 
-                if (binding.Action.CanExecute(inventory, adapter, null))
+                if (binding.Action.CanExecute(interactionSnapshot))
                 {
-                    _ = binding.Action.Execute(inventory, adapter, null);
+                    _ = binding.Action.Execute(interactionSnapshot);
                 }
             }
         }
@@ -517,7 +548,17 @@ namespace UniversalDragAndDrop.Interaction
                           ?? state.HoveredAdapter
                           ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
 
-            ExecuteInputActionBindings(ResolveInputActionBindings(inventory), inventory, adapter, context);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.InputAction,
+                inventory,
+                adapter,
+                pointerEventData: null,
+                pointerPhase: null,
+                keyPhase: null,
+                inputActionPhase: TriggerPhaseFromCallbackContext(context),
+                nativeInputContext: context);
+
+            ExecuteInputActionBindings(ResolveInputActionBindings(inventory), interactionSnapshot, context);
         }
 
         private void HandleDefaultProfileInputAction(InputAction.CallbackContext context)
@@ -531,13 +572,22 @@ namespace UniversalDragAndDrop.Interaction
             if (DefaultBindingsProfile == null)
                 return;
 
-            ExecuteInputActionBindings(DefaultBindingsProfile.InputActionBindingsRuntime, null, null, context);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.InputAction,
+                inventory: null,
+                adapter: null,
+                pointerEventData: null,
+                pointerPhase: null,
+                keyPhase: null,
+                inputActionPhase: TriggerPhaseFromCallbackContext(context),
+                nativeInputContext: context);
+
+            ExecuteInputActionBindings(DefaultBindingsProfile.InputActionBindingsRuntime, interactionSnapshot, context);
         }
 
         private void ExecuteInputActionBindings(
             IReadOnlyList<InputActionBinding> bindings,
-            UniversalInventory inventory,
-            SlotInputAdapter adapter,
+            RuntimeInteractionSnapshot interactionSnapshot,
             InputAction.CallbackContext context)
         {
             var action = context.action;
@@ -553,13 +603,12 @@ namespace UniversalDragAndDrop.Interaction
 
                 if (!isDragging && binding.Action.IsDragOnlyBinding())
                     continue;
-                
-                // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
-                if (adapter == null && !binding.Action.AllowOutOfSlot())
+
+                if (!interactionSnapshot.HasConcreteTarget && !binding.Action.AllowOutOfSlot())
                     continue;
 
-                if (binding.Action.CanExecute(inventory, adapter, null))
-                    _ = binding.Action.Execute(inventory, adapter, null);
+                if (binding.Action.CanExecute(interactionSnapshot))
+                    _ = binding.Action.Execute(interactionSnapshot);
             }
         }
 
@@ -719,6 +768,20 @@ namespace UniversalDragAndDrop.Interaction
         }
 
 #if UDND_INPUT_SYSTEM
+        private static TriggerPhaseEnum TriggerPhaseFromCallbackContext(InputAction.CallbackContext context)
+        {
+            switch (context.phase)
+            {
+                case InputActionPhase.Started:
+                    return TriggerPhaseEnum.Started;
+                case InputActionPhase.Canceled:
+                    return TriggerPhaseEnum.Canceled;
+                case InputActionPhase.Performed:
+                default:
+                    return TriggerPhaseEnum.Performed;
+            }
+        }
+
         private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(UniversalInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
@@ -887,6 +950,46 @@ namespace UniversalDragAndDrop.Interaction
             return baseSlot.GetComponent<SlotInputAdapter>();
         }
 
+        private RuntimeInteractionSnapshot BuildInteractionSnapshot(
+            InteractionInputKind inputKind,
+            UniversalInventory inventory,
+            SlotInputAdapter adapter,
+            PointerEventData pointerEventData,
+            PointerTriggerPhase? pointerPhase,
+            KeyTriggerPhase? keyPhase,
+            TriggerPhaseEnum? inputActionPhase,
+            object nativeInputContext)
+        {
+            RuntimeState state = inventory != null ? GetOrCreateState(inventory) : null;
+            var resolvedAdapter = adapter
+                                  ?? state?.FocusedAdapter
+                                  ?? ResolveAdapterFromSlot(state?.FocusedBaseSlot)
+                                  ?? state?.HoveredAdapter
+                                  ?? ResolveAdapterFromSlot(state?.HoveredBaseSlot);
+
+            var resolvedBaseSlot = resolvedAdapter?.BaseSlot
+                                   ?? state?.FocusedBaseSlot
+                                   ?? state?.HoveredBaseSlot;
+
+            return new RuntimeInteractionSnapshot(
+                inputKind: inputKind,
+                inventory: inventory,
+                resolvedBaseSlot: resolvedBaseSlot,
+                focusedBaseSlot: state?.FocusedBaseSlot,
+                hoveredBaseSlot: state?.HoveredBaseSlot,
+                pressedBaseSlot: state?.PressedAdapter?.BaseSlot,
+                dropArea: state?.FocusedDropArea,
+                activeFocusSource: state?.ActiveFocusSource ?? FocusSource.None,
+                pointerEventData: pointerEventData,
+                pointerPhase: pointerPhase,
+                keyPhase: keyPhase,
+                inputActionPhase: inputActionPhase,
+                nativeInputContext: nativeInputContext,
+                isDragging: DragAndDropManager.IsInstanceExist && DragAndDropManager.AutoCreateInstance.IsDragging,
+                currentDragContext: DragAndDropManager.IsInstanceExist ? DragAndDropManager.AutoCreateInstance.CurrentContext : null,
+                selection: SelectionManager.IsInstanceExist ? SelectionManager.AutoCreateInstance.CurrentContext : SelectionContext.Empty);
+        }
+
         private bool TryGetInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
         {
             inventory = null;
@@ -966,7 +1069,16 @@ namespace UniversalDragAndDrop.Interaction
             var eventData = new PointerEventData(EventSystem.current) { button = button };
 
             _pointerUpHandledThisFrame.Add(button);
-            ExecutePointerBindings(inventory, adapter, eventData, PointerTriggerPhase.Up);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.Pointer,
+                inventory,
+                adapter,
+                eventData,
+                pointerPhase: PointerTriggerPhase.Up,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
+            ExecutePointerBindings(interactionSnapshot);
         }
 
         private bool TryResolveInventoryForGlobalPointerUp(out UniversalInventory inventory)
@@ -1103,7 +1215,16 @@ namespace UniversalDragAndDrop.Interaction
 
             _pointerDownHandledThisFrame.Add(inputButton);
             var eventData = new PointerEventData(es) { button = inputButton, position = mousePos };
-            ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Down);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.Pointer,
+                _activeInventory,
+                adapter: null,
+                eventData,
+                pointerPhase: PointerTriggerPhase.Down,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
+            ExecutePointerBindings(interactionSnapshot);
         }
 
         private void ProcessUnhandledGlobalRelease(ButtonControl button, PointerEventData.InputButton inputButton)
@@ -1133,15 +1254,55 @@ namespace UniversalDragAndDrop.Interaction
                     ? PointerTriggerPhase.ClickLong
                     : PointerTriggerPhase.ClickShort;
 
-                bool handled = ExecutePointerBindings(_activeInventory, null, eventData, clickPhase);
+                var clickSnapshot = BuildInteractionSnapshot(
+                    InteractionInputKind.Pointer,
+                    _activeInventory,
+                    adapter: null,
+                    eventData,
+                    pointerPhase: clickPhase,
+                    keyPhase: null,
+                    inputActionPhase: null,
+                    nativeInputContext: null);
+                bool handled = ExecutePointerBindings(clickSnapshot);
                 if (!handled && clickPhase != PointerTriggerPhase.Click)
-                    handled = ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Click);
+                {
+                    var plainClickSnapshot = BuildInteractionSnapshot(
+                        InteractionInputKind.Pointer,
+                        _activeInventory,
+                        adapter: null,
+                        eventData,
+                        pointerPhase: PointerTriggerPhase.Click,
+                        keyPhase: null,
+                        inputActionPhase: null,
+                        nativeInputContext: null);
+                    handled = ExecutePointerBindings(plainClickSnapshot);
+                }
                 if (!handled)
-                    ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
+                {
+                    var upSnapshot = BuildInteractionSnapshot(
+                        InteractionInputKind.Pointer,
+                        _activeInventory,
+                        adapter: null,
+                        eventData,
+                        pointerPhase: PointerTriggerPhase.Up,
+                        keyPhase: null,
+                        inputActionPhase: null,
+                        nativeInputContext: null);
+                    ExecutePointerBindings(upSnapshot);
+                }
             }
             else
             {
-                ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
+                var upSnapshot = BuildInteractionSnapshot(
+                    InteractionInputKind.Pointer,
+                    _activeInventory,
+                    adapter: null,
+                    eventData,
+                    pointerPhase: PointerTriggerPhase.Up,
+                    keyPhase: null,
+                    inputActionPhase: null,
+                    nativeInputContext: null);
+                ExecutePointerBindings(upSnapshot);
             }
         }
 #else
@@ -1171,7 +1332,16 @@ namespace UniversalDragAndDrop.Interaction
 
             _pointerDownHandledThisFrame.Add(inputButton);
             var eventData = new PointerEventData(es) { button = inputButton, position = mousePos };
-            ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Down);
+            var interactionSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.Pointer,
+                _activeInventory,
+                adapter: null,
+                eventData,
+                pointerPhase: PointerTriggerPhase.Down,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
+            ExecutePointerBindings(interactionSnapshot);
         }
 
         private void ProcessUnhandledGlobalReleaseLegacy(int mouseButton, PointerEventData.InputButton inputButton)
@@ -1201,15 +1371,55 @@ namespace UniversalDragAndDrop.Interaction
                     ? PointerTriggerPhase.ClickLong
                     : PointerTriggerPhase.ClickShort;
 
-                bool handled = ExecutePointerBindings(_activeInventory, null, eventData, clickPhase);
+                var clickSnapshot = BuildInteractionSnapshot(
+                    InteractionInputKind.Pointer,
+                    _activeInventory,
+                    adapter: null,
+                    eventData,
+                    pointerPhase: clickPhase,
+                    keyPhase: null,
+                    inputActionPhase: null,
+                    nativeInputContext: null);
+                bool handled = ExecutePointerBindings(clickSnapshot);
                 if (!handled && clickPhase != PointerTriggerPhase.Click)
-                    handled = ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Click);
+                {
+                    var plainClickSnapshot = BuildInteractionSnapshot(
+                        InteractionInputKind.Pointer,
+                        _activeInventory,
+                        adapter: null,
+                        eventData,
+                        pointerPhase: PointerTriggerPhase.Click,
+                        keyPhase: null,
+                        inputActionPhase: null,
+                        nativeInputContext: null);
+                    handled = ExecutePointerBindings(plainClickSnapshot);
+                }
                 if (!handled)
-                    ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
+                {
+                    var upSnapshot = BuildInteractionSnapshot(
+                        InteractionInputKind.Pointer,
+                        _activeInventory,
+                        adapter: null,
+                        eventData,
+                        pointerPhase: PointerTriggerPhase.Up,
+                        keyPhase: null,
+                        inputActionPhase: null,
+                        nativeInputContext: null);
+                    ExecutePointerBindings(upSnapshot);
+                }
             }
             else
             {
-                ExecutePointerBindings(_activeInventory, null, eventData, PointerTriggerPhase.Up);
+                var upSnapshot = BuildInteractionSnapshot(
+                    InteractionInputKind.Pointer,
+                    _activeInventory,
+                    adapter: null,
+                    eventData,
+                    pointerPhase: PointerTriggerPhase.Up,
+                    keyPhase: null,
+                    inputActionPhase: null,
+                    nativeInputContext: null);
+                ExecutePointerBindings(upSnapshot);
             }
         }
 #endif
