@@ -368,8 +368,8 @@ namespace UniversalDragAndDrop.Interaction
                 }
             }
 
-            if (releaseOfPressedButton)
-                state.PressedAdapter = null;
+            if (state.PressedButton == eventData.button)
+                ClearPressedState(state);
         }
 
         public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
@@ -869,6 +869,17 @@ namespace UniversalDragAndDrop.Interaction
             OnHoldPreviewEnded?.Invoke();
         }
 
+        private static void ClearPressedState(RuntimeState state)
+        {
+            if (state == null)
+                return;
+
+            state.PressedAdapter = null;
+            state.PressedButton = PointerEventData.InputButton.Left;
+            state.PressedTime = -1f;
+            state.PressedPosition = Vector2.zero;
+        }
+
         private RuntimeState GetOrCreateState(UniversalInventory inventory)
         {
             if (!_runtimeStateByInventory.TryGetValue(inventory, out var state) || state == null)
@@ -961,15 +972,23 @@ namespace UniversalDragAndDrop.Interaction
             object nativeInputContext)
         {
             RuntimeState state = inventory != null ? GetOrCreateState(inventory) : null;
-            var resolvedAdapter = adapter
-                                  ?? state?.FocusedAdapter
+            bool allowSlotFallback = inputKind != InteractionInputKind.Pointer || adapter != null;
+
+            var resolvedAdapter = adapter;
+            if (resolvedAdapter == null && allowSlotFallback)
+            {
+                resolvedAdapter = state?.FocusedAdapter
                                   ?? ResolveAdapterFromSlot(state?.FocusedSlot)
                                   ?? state?.HoveredAdapter
                                   ?? ResolveAdapterFromSlot(state?.HoveredSlot);
+            }
 
-            var resolvedBaseSlot = resolvedAdapter?.BaseSlot
-                                   ?? state?.FocusedSlot
+            var resolvedBaseSlot = resolvedAdapter?.BaseSlot;
+            if (resolvedBaseSlot == null && allowSlotFallback)
+            {
+                resolvedBaseSlot = state?.FocusedSlot
                                    ?? state?.HoveredSlot;
+            }
 
             return new RuntimeInteractionSnapshot(
                 inputKind: inputKind,
@@ -1079,6 +1098,7 @@ namespace UniversalDragAndDrop.Interaction
                 inputActionPhase: null,
                 nativeInputContext: null);
             ExecutePointerBindings(interactionSnapshot);
+            ClearPressedState(state);
         }
 
         private bool TryResolveInventoryForGlobalPointerUp(out UniversalInventory inventory)
@@ -1304,6 +1324,9 @@ namespace UniversalDragAndDrop.Interaction
                     nativeInputContext: null);
                 ExecutePointerBindings(upSnapshot);
             }
+
+            if (_activeInventory != null && _runtimeStateByInventory.TryGetValue(_activeInventory, out var state))
+                ClearPressedState(state);
         }
 #else
         private void TrackGlobalPressStateLegacy()
@@ -1421,6 +1444,9 @@ namespace UniversalDragAndDrop.Interaction
                     nativeInputContext: null);
                 ExecutePointerBindings(upSnapshot);
             }
+
+            if (_activeInventory != null && _runtimeStateByInventory.TryGetValue(_activeInventory, out var state))
+                ClearPressedState(state);
         }
 #endif
 
@@ -1509,7 +1535,7 @@ namespace UniversalDragAndDrop.Interaction
             public FocusSource ActiveFocusSource;
             public SlotInputAdapter PressedAdapter;
             public PointerEventData.InputButton PressedButton;
-            public float PressedTime;
+            public float PressedTime = -1f;
             public Vector2 PressedPosition;
         }
 
