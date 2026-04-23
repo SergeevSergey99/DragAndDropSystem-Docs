@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 10
+  serializedVersion: 9
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -42,8 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 13
-  m_BakeOnSceneLoad: 0
+  serializedVersion: 12
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -66,6 +66,9 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
+    m_FinalGather: 0
+    m_FinalGatherFiltering: 1
+    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -1236,7 +1239,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.3
+  m_PixelsPerUnitMultiplier: 0.45
 --- !u!222 &233341991
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1382,6 +1385,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1062125621}
     m_Modifications:
+    - target: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
+      propertyPath: debug
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2063,7 +2070,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.3
+  m_PixelsPerUnitMultiplier: 0.45
 --- !u!222 &485691800
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3895,7 +3902,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.3
+  m_PixelsPerUnitMultiplier: 0.45
 --- !u!222 &1324997594
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4061,7 +4068,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.3
+  m_PixelsPerUnitMultiplier: 0.45
 --- !u!222 &1358364180
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4683,7 +4690,6 @@ MonoBehaviour:
   _bindingsProfile: {fileID: 0}
   _pointerBindings: []
   _keyBindings: []
-  _inputActionBindings: []
   references:
     version: 2
     RefIds: []
@@ -4879,6 +4885,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ce28377e79c6303488aff89adf2b1808, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1508389864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1508389851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 688a74ff5d833a644ac2eab66a38a13d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &1604339176
@@ -5410,7 +5428,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.3
+  m_PixelsPerUnitMultiplier: 0.45
 --- !u!222 &1818827036
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5538,7 +5556,6 @@ MonoBehaviour:
     _triggerPhase: 0
     _action:
       rid: 8490480936160067588
-  _inputActionBindings: []
   references:
     version: 2
     RefIds:
@@ -6677,6 +6694,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2246638230345617431, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1508389857}
+    - targetCorrespondingSourceObject: {fileID: 2246638230345617431, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1508389864}
   m_SourcePrefab: {fileID: 100100000, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
 --- !u!114 &910000000000000005
 MonoBehaviour:
@@ -6701,7 +6721,6 @@ MonoBehaviour:
     _triggerPhase: 0
     _action:
       rid: 8490480936160067589
-  _inputActionBindings: []
   references:
     version: 2
     RefIds:
