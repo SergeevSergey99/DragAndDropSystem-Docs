@@ -160,8 +160,8 @@ namespace UniversalDragAndDrop.Interaction
                 return true;
 
             var state = GetOrCreateState(inventory);
-            var activeSlot = state.FocusedBaseSlot
-                             ?? state.HoveredBaseSlot
+            var activeSlot = state.FocusedSlot
+                             ?? state.HoveredSlot
                              ?? inventory.ResolveAutoTransferSlot();
             if (!action.CanExecute(inventory, activeSlot))
             {
@@ -212,8 +212,8 @@ namespace UniversalDragAndDrop.Interaction
                 return null;
 
             var state = GetOrCreateState(inventory);
-            return state.FocusedBaseSlot
-                   ?? state.HoveredBaseSlot
+            return state.FocusedSlot
+                   ?? state.HoveredSlot
                    ?? inventory.ResolveAutoTransferSlot();
         }
 
@@ -225,7 +225,7 @@ namespace UniversalDragAndDrop.Interaction
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.HoveredAdapter = adapter;
-            state.HoveredBaseSlot = adapter.BaseSlot;
+            state.HoveredSlot = adapter.BaseSlot;
             state.ActiveFocusSource = FocusSource.Mouse;
 
             if (DragAndDropManager.AutoCreateInstance.IsDragging && adapter.BaseSlot.IsInteractable)
@@ -238,12 +238,12 @@ namespace UniversalDragAndDrop.Interaction
                 return;
 
             var state = GetOrCreateState(inventory);
-            if (ReferenceEquals(state.HoveredBaseSlot, adapter.BaseSlot))
+            if (ReferenceEquals(state.HoveredSlot, adapter.BaseSlot))
             {
                 state.HoveredAdapter = null;
-                state.HoveredBaseSlot = null;
+                state.HoveredSlot = null;
 
-                if (state.FocusedBaseSlot == null)
+                if (state.FocusedSlot == null)
                     state.ActiveFocusSource = FocusSource.None;
             }
 
@@ -268,7 +268,7 @@ namespace UniversalDragAndDrop.Interaction
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
-            state.FocusedBaseSlot = adapter.BaseSlot;
+            state.FocusedSlot = adapter.BaseSlot;
             state.ActiveFocusSource = FocusSource.Mouse;
             state.PressedAdapter = adapter;
             state.PressedButton = eventData.button;
@@ -402,7 +402,7 @@ namespace UniversalDragAndDrop.Interaction
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
             state.FocusedAdapter = adapter;
-            state.FocusedBaseSlot = adapter.BaseSlot;
+            state.FocusedSlot = adapter.BaseSlot;
             state.ActiveFocusSource = source;
 
             if (DragAndDropManager.AutoCreateInstance.IsDragging && adapter.BaseSlot.IsInteractable)
@@ -430,10 +430,10 @@ namespace UniversalDragAndDrop.Interaction
                 return;
 
             var state = GetOrCreateState(inventory);
-            if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedBaseSlot, adapter.BaseSlot))
+            if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedSlot, adapter.BaseSlot))
             {
                 state.FocusedAdapter = null;
-                state.FocusedBaseSlot = null;
+                state.FocusedSlot = null;
                 state.ActiveFocusSource = FocusSource.None;
             }
 
@@ -453,7 +453,7 @@ namespace UniversalDragAndDrop.Interaction
             if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedDropArea, dropArea))
             {
                 state.FocusedDropArea = null;
-                if (state.FocusedBaseSlot == null)
+                if (state.FocusedSlot == null)
                     state.ActiveFocusSource = FocusSource.None;
             }
 
@@ -544,9 +544,9 @@ namespace UniversalDragAndDrop.Interaction
 
             var state = GetOrCreateState(inventory);
             var adapter = state.FocusedAdapter
-                          ?? ResolveAdapterFromSlot(state.FocusedBaseSlot)
+                          ?? ResolveAdapterFromSlot(state.FocusedSlot)
                           ?? state.HoveredAdapter
-                          ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
+                          ?? ResolveAdapterFromSlot(state.HoveredSlot);
 
             var interactionSnapshot = BuildInteractionSnapshot(
                 InteractionInputKind.InputAction,
@@ -892,7 +892,7 @@ namespace UniversalDragAndDrop.Interaction
                 return;
 
             var state = GetOrCreateState(inventory);
-            if (state.HoveredBaseSlot == null && state.FocusedBaseSlot == null && state.FocusedDropArea == null)
+            if (state.HoveredSlot == null && state.FocusedSlot == null && state.FocusedDropArea == null)
                 _activeInventory = null;
         }
 
@@ -963,21 +963,21 @@ namespace UniversalDragAndDrop.Interaction
             RuntimeState state = inventory != null ? GetOrCreateState(inventory) : null;
             var resolvedAdapter = adapter
                                   ?? state?.FocusedAdapter
-                                  ?? ResolveAdapterFromSlot(state?.FocusedBaseSlot)
+                                  ?? ResolveAdapterFromSlot(state?.FocusedSlot)
                                   ?? state?.HoveredAdapter
-                                  ?? ResolveAdapterFromSlot(state?.HoveredBaseSlot);
+                                  ?? ResolveAdapterFromSlot(state?.HoveredSlot);
 
             var resolvedBaseSlot = resolvedAdapter?.BaseSlot
-                                   ?? state?.FocusedBaseSlot
-                                   ?? state?.HoveredBaseSlot;
+                                   ?? state?.FocusedSlot
+                                   ?? state?.HoveredSlot;
 
             return new RuntimeInteractionSnapshot(
                 inputKind: inputKind,
                 inventory: inventory,
-                resolvedBaseSlot: resolvedBaseSlot,
-                focusedBaseSlot: state?.FocusedBaseSlot,
-                hoveredBaseSlot: state?.HoveredBaseSlot,
-                pressedBaseSlot: state?.PressedAdapter?.BaseSlot,
+                activeSlot: resolvedBaseSlot,
+                focusedSlot: state?.FocusedSlot,
+                hoveredSlot: state?.HoveredSlot,
+                pressedSlot: state?.PressedAdapter?.BaseSlot,
                 dropArea: state?.FocusedDropArea,
                 activeFocusSource: state?.ActiveFocusSource ?? FocusSource.None,
                 pointerEventData: pointerEventData,
@@ -1063,9 +1063,9 @@ namespace UniversalDragAndDrop.Interaction
             var state = GetOrCreateState(inventory);
             var adapter = state.PressedAdapter
                           ?? state.FocusedAdapter
-                          ?? ResolveAdapterFromSlot(state.FocusedBaseSlot)
+                          ?? ResolveAdapterFromSlot(state.FocusedSlot)
                           ?? state.HoveredAdapter
-                          ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
+                          ?? ResolveAdapterFromSlot(state.HoveredSlot);
             var eventData = new PointerEventData(EventSystem.current) { button = button };
 
             _pointerUpHandledThisFrame.Add(button);
@@ -1501,10 +1501,10 @@ namespace UniversalDragAndDrop.Interaction
 
         private sealed class RuntimeState
         {
-            public BaseSlot FocusedBaseSlot;
+            public BaseSlot FocusedSlot;
             public SlotInputAdapter FocusedAdapter;
             public InventoryDropArea FocusedDropArea;
-            public BaseSlot HoveredBaseSlot;
+            public BaseSlot HoveredSlot;
             public SlotInputAdapter HoveredAdapter;
             public FocusSource ActiveFocusSource;
             public SlotInputAdapter PressedAdapter;

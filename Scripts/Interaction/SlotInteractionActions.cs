@@ -41,7 +41,7 @@ namespace UniversalDragAndDrop.Interaction
             if (snapshot?.Inventory == null || snapshot.IsDragging)
                 return false;
 
-            var slot = snapshot.ResolvedBaseSlot;
+            var slot = snapshot.ActiveSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
@@ -50,7 +50,7 @@ namespace UniversalDragAndDrop.Interaction
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is already active");
 
-            var sourceSlot = snapshot?.ResolvedBaseSlot;
+            var sourceSlot = snapshot?.ActiveSlot;
             if (sourceSlot == null || sourceSlot.IsEmpty || !sourceSlot.IsInteractable)
                 return ActionResult.Failed("Source slot is empty or not interactable");
 
@@ -131,7 +131,7 @@ namespace UniversalDragAndDrop.Interaction
             if (_sceneAction == null || snapshot?.Inventory == null)
                 return false;
 
-            var slot = snapshot.ResolvedBaseSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
+            var slot = snapshot.ActiveSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
             return _sceneAction.CanExecute(snapshot.Inventory, slot);
         }
 
@@ -140,7 +140,7 @@ namespace UniversalDragAndDrop.Interaction
             if (_sceneAction == null || snapshot?.Inventory == null)
                 return ActionResult.Failed("Inventory action is not configured");
 
-            var slot = snapshot.ResolvedBaseSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
+            var slot = snapshot.ActiveSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
             if (!_sceneAction.CanExecute(snapshot.Inventory, slot))
                 return ActionResult.Failed("Inventory action cannot execute");
 

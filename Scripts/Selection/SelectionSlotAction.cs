@@ -18,7 +18,7 @@ namespace UniversalDragAndDrop.Selection
                 return ActionResult.Failed("Selection operation is not available");
 
             var manager = SelectionManager.AutoCreateInstance;
-            var slot = snapshot?.ResolvedBaseSlot;
+            var slot = snapshot?.ActiveSlot;
             if (_operation.CanExecute(manager, slot))
             {
                 _operation.Execute(manager, slot);

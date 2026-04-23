@@ -20,10 +20,10 @@ namespace UniversalDragAndDrop.Interaction
         public static readonly RuntimeInteractionSnapshot Empty = new RuntimeInteractionSnapshot(
             inputKind: InteractionInputKind.Pointer,
             inventory: null,
-            resolvedBaseSlot: null,
-            focusedBaseSlot: null,
-            hoveredBaseSlot: null,
-            pressedBaseSlot: null,
+            activeSlot: null,
+            focusedSlot: null,
+            hoveredSlot: null,
+            pressedSlot: null,
             dropArea: null,
             activeFocusSource: FocusSource.None,
             pointerEventData: null,
@@ -38,10 +38,10 @@ namespace UniversalDragAndDrop.Interaction
         public RuntimeInteractionSnapshot(
             InteractionInputKind inputKind,
             UniversalInventory inventory,
-            BaseSlot resolvedBaseSlot,
-            BaseSlot focusedBaseSlot,
-            BaseSlot hoveredBaseSlot,
-            BaseSlot pressedBaseSlot,
+            BaseSlot activeSlot,
+            BaseSlot focusedSlot,
+            BaseSlot hoveredSlot,
+            BaseSlot pressedSlot,
             InventoryDropArea dropArea,
             FocusSource activeFocusSource,
             PointerEventData pointerEventData,
@@ -55,10 +55,10 @@ namespace UniversalDragAndDrop.Interaction
         {
             InputKind = inputKind;
             Inventory = inventory;
-            ResolvedBaseSlot = resolvedBaseSlot;
-            FocusedBaseSlot = focusedBaseSlot;
-            HoveredBaseSlot = hoveredBaseSlot;
-            PressedBaseSlot = pressedBaseSlot;
+            ActiveSlot = activeSlot;
+            FocusedSlot = focusedSlot;
+            HoveredSlot = hoveredSlot;
+            PressedSlot = pressedSlot;
             DropArea = dropArea;
             ActiveFocusSource = activeFocusSource;
             PointerEventData = pointerEventData;
@@ -78,16 +78,16 @@ namespace UniversalDragAndDrop.Interaction
         public UniversalInventory Inventory { get; }
 
         // Slot chosen as the concrete action target for this execution.
-        public BaseSlot ResolvedBaseSlot { get; }
+        public BaseSlot ActiveSlot { get; }
 
         // Slot currently focused by navigation.
-        public BaseSlot FocusedBaseSlot { get; }
+        public BaseSlot FocusedSlot { get; }
 
         // Slot currently hovered by the pointer.
-        public BaseSlot HoveredBaseSlot { get; }
+        public BaseSlot HoveredSlot { get; }
 
         // Slot that received the active press and is used for click/hold resolution.
-        public BaseSlot PressedBaseSlot { get; }
+        public BaseSlot PressedSlot { get; }
 
         // Focused drop area target when execution is happening outside a slot.
         public InventoryDropArea DropArea { get; }
@@ -119,7 +119,7 @@ namespace UniversalDragAndDrop.Interaction
         // Current multi-selection snapshot from SelectionManager.
         public SelectionContext Selection { get; }
 
-        public bool HasSlot => ResolvedBaseSlot != null;
+        public bool HasSlot => ActiveSlot != null;
         public bool HasDropArea => DropArea != null;
         public bool HasConcreteTarget => HasSlot || HasDropArea;
 
@@ -128,10 +128,10 @@ namespace UniversalDragAndDrop.Interaction
             return new RuntimeInteractionSnapshot(
                 inputKind: InputKind,
                 inventory: Inventory,
-                resolvedBaseSlot: ResolvedBaseSlot,
-                focusedBaseSlot: FocusedBaseSlot,
-                hoveredBaseSlot: HoveredBaseSlot,
-                pressedBaseSlot: PressedBaseSlot,
+                activeSlot: ActiveSlot,
+                focusedSlot: FocusedSlot,
+                hoveredSlot: HoveredSlot,
+                pressedSlot: PressedSlot,
                 dropArea: DropArea,
                 activeFocusSource: ActiveFocusSource,
                 pointerEventData: PointerEventData,

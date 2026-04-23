@@ -20,7 +20,7 @@ namespace UniversalDragAndDrop.Selection
             if (snapshot?.Inventory == null || DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var sourceSlots = BuildSourceSlots(snapshot.Inventory, snapshot.ResolvedBaseSlot);
+            var sourceSlots = BuildSourceSlots(snapshot.Inventory, snapshot.ActiveSlot);
             return sourceSlots.Count > 0;
         }
 
@@ -30,7 +30,7 @@ namespace UniversalDragAndDrop.Selection
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Already dragging");
 
-            var sourceSlots = BuildSourceSlots(inventory, snapshot?.ResolvedBaseSlot);
+            var sourceSlots = BuildSourceSlots(inventory, snapshot?.ActiveSlot);
             if (sourceSlots.Count == 0)
                 return ActionResult.Failed("No valid slots for multi drag");
 

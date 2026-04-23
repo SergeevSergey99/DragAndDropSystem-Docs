@@ -16,13 +16,13 @@ namespace UniversalDragAndDrop.Interaction
             if (snapshot?.Inventory == null || DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var slot = snapshot.ResolvedBaseSlot;
+            var slot = snapshot.ActiveSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
         public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
-            var slot = snapshot?.ResolvedBaseSlot;
+            var slot = snapshot?.ActiveSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
@@ -46,13 +46,13 @@ namespace UniversalDragAndDrop.Interaction
             if (snapshot?.Inventory == null || DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var slot = snapshot.ResolvedBaseSlot;
+            var slot = snapshot.ActiveSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
         public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
-            var slot = snapshot?.ResolvedBaseSlot;
+            var slot = snapshot?.ActiveSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 

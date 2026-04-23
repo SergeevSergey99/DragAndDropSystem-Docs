@@ -38,7 +38,7 @@ namespace UniversalDragAndDrop.ContextMenu
                 return ActionResult.Failed("Inventory is null");
             }
             
-            var slot = snapshot.ResolvedBaseSlot ?? inventory.ResolveAutoTransferSlot();
+            var slot = snapshot.ActiveSlot ?? inventory.ResolveAutoTransferSlot();
 
             var ctx = new ContextMenuContext
             {
