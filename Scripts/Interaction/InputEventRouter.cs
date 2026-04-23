@@ -441,13 +441,14 @@ namespace UniversalDragAndDrop.Interaction
             var bindings = ResolvePointerBindings(inventory);
 
             int executedActions = 0;
+            bool isDragging = DragAndDropManager.AutoCreateInstance.IsDragging;
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsValid() || !binding.Matches(eventData, phase))
                     continue;
 
-                if (!DragAndDropManager.AutoCreateInstance.IsDragging && binding.Action.IsDragOnlyBinding())
+                if (!isDragging && binding.Action.IsDragOnlyBinding())
                     continue;
 
                 // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
@@ -470,19 +471,26 @@ namespace UniversalDragAndDrop.Interaction
             var inventory = _activeInventory;
             var bindings = ResolveKeyBindings(inventory);
 
+            SlotInputAdapter adapter = null;
+            if (inventory != null)
+            {
+                var state = GetOrCreateState(inventory);
+                adapter = ResolveAdapterFromSlot(state.FocusedBaseSlot)
+                          ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
+            }
+            bool isDragging = DragAndDropManager.AutoCreateInstance.IsDragging;
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsValid() || !binding.IsTriggered())
                     continue;
 
-                SlotInputAdapter adapter = null;
-                if (inventory != null)
-                {
-                    var state = GetOrCreateState(inventory);
-                    adapter = ResolveAdapterFromSlot(state.FocusedBaseSlot)
-                              ?? ResolveAdapterFromSlot(state.HoveredBaseSlot);
-                }
+                if (!isDragging && binding.Action.IsDragOnlyBinding())
+                    continue;
+                
+                // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
+                if (adapter == null && !binding.Action.AllowOutOfSlot())
+                    continue;
 
                 if (binding.Action.CanExecute(inventory, adapter, null))
                 {
@@ -536,16 +544,22 @@ namespace UniversalDragAndDrop.Interaction
             if (action == null || bindings == null)
                 return;
 
+            bool isDragging = DragAndDropManager.AutoCreateInstance.IsDragging;
             for (int i = 0; i < bindings.Count; i++)
             {
                 var binding = bindings[i];
                 if (binding == null || !binding.IsValid() || !binding.Matches(context))
                     continue;
 
+                if (!isDragging && binding.Action.IsDragOnlyBinding())
+                    continue;
+                
+                // Outside-slot pointer events (no adapter under cursor) only fire actions that opted in.
+                if (adapter == null && !binding.Action.AllowOutOfSlot())
+                    continue;
+
                 if (binding.Action.CanExecute(inventory, adapter, null))
                     _ = binding.Action.Execute(inventory, adapter, null);
-
-                return;
             }
         }
 

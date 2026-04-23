@@ -33,26 +33,31 @@ namespace UniversalDragAndDrop.Interaction
 
     [Serializable]
     public sealed class StartDragAction : AssetSafeSlotInteractionAction
-    {        
+    {
         [SerializeField, Tooltip("Temporary item amount override for the current StartDrag. Applied to each selected source slot.")]
         private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
 
-        public override bool IsDragOnlyBinding() => true;
-        
         public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => DragAndDropManager.AutoCreateInstance.IsDragging;
+        {
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+                return false;
+
+            var slot = adapter?.BaseSlot;
+            return slot != null && !slot.IsEmpty && slot.IsInteractable;
+        }
 
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
-                return ActionResult.Failed("Drag is not active");
+            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+                return ActionResult.Failed("Drag is already active");
 
             var sourceSlot = adapter?.BaseSlot;
-            if  (sourceSlot == null)
-                return ActionResult.Failed("Source slot is not configured");
-            
-            DragAndDropManager.AutoCreateInstance.StartDrag(sourceSlot, _dragPolicyOverride.TryBuild());
-            return ActionResult.Succeeded();
+            if (sourceSlot == null || sourceSlot.IsEmpty || !sourceSlot.IsInteractable)
+                return ActionResult.Failed("Source slot is empty or not interactable");
+
+            return DragAndDropManager.AutoCreateInstance.StartDrag(sourceSlot, _dragPolicyOverride.TryBuild())
+                ? ActionResult.Succeeded()
+                : ActionResult.Failed("Start drag failed");
         }
     }
     [Serializable]
@@ -62,14 +67,8 @@ namespace UniversalDragAndDrop.Interaction
 
         public override bool IsDragOnlyBinding() => true;
         
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => DragAndDropManager.AutoCreateInstance.IsDragging;
-
         public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
         {
-            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
-                return ActionResult.Failed("Drag is not active");
-
             DragAndDropManager.AutoCreateInstance.CompleteDrag(_dropPolicyOverride.TryBuild());
             return ActionResult.Succeeded();
         }
