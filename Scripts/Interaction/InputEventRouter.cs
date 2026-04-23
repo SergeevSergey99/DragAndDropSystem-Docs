@@ -881,7 +881,11 @@ namespace UniversalDragAndDrop.Interaction
             }
         }
 
-        private static SlotInputAdapter ResolveAdapterFromSlot(BaseSlot baseSlot) => baseSlot?.GetComponent<SlotInputAdapter>();
+        private static SlotInputAdapter ResolveAdapterFromSlot(BaseSlot baseSlot)
+        {
+            if (baseSlot == null) return null;
+            return baseSlot.GetComponent<SlotInputAdapter>();
+        }
 
         private bool TryGetInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
         {
