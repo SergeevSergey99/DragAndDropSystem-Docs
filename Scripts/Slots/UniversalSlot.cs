@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Interaction;
 using UniversalDragAndDrop.Inventories;
 
 namespace UniversalDragAndDrop.Slots
@@ -23,7 +24,7 @@ namespace UniversalDragAndDrop.Slots
         [SerializeField] private Color _highlightColor   = Color.yellow;
 
         [SerializeField, Tooltip("Optional: CanvasGroup for controlling interactivity")]
-        private CanvasGroup _canvasGroup;
+        private SlotInputAdapter _slotInputAdapter;
 
         protected override void RenderFilled()
         {
@@ -65,11 +66,10 @@ namespace UniversalDragAndDrop.Slots
         /// </summary>
         protected override void UpdateInteractableVisuals()
         {
-            if (_canvasGroup != null)
+            if (_slotInputAdapter != null)
             {
-                _canvasGroup.interactable  = IsInteractable;
-                _canvasGroup.blocksRaycasts = IsInteractable;
-                _canvasGroup.alpha         = IsInteractable ? 1f : 0.5f;
+                _slotInputAdapter.interactable  = IsInteractable;
+                _iconImage.color = new Color(_iconImage.color.r, _iconImage.color.g, _iconImage.color.b, IsInteractable ? 1f : 0.5f);
             }
         }
     }

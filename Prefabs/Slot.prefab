@@ -251,12 +251,9 @@ MonoBehaviour:
   _iconImage: {fileID: 792273188827622069}
   _countText: {fileID: 5316538883934507234}
   _countContainer: {fileID: 8636620739137549066}
-  _showCount: 1
-  _emptyColor: {r: 1, g: 1, b: 1, a: 0.3}
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
   _highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _nonInteractableColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-  _canvasGroup: {fileID: 0}
+  _slotInputAdapter: {fileID: 556677889900112233}
   references:
     version: 2
     RefIds: []
