@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Interaction;
 using UniversalDragAndDrop.Inventories;
@@ -16,21 +15,22 @@ namespace UniversalDragAndDrop.Selection
         [SerializeField, Tooltip("Temporary item amount override for the current StartDrag. Applied to each selected source slot.")]
         private DragRequestPolicySettings _dragPolicyOverride = new DragRequestPolicySettings();
         
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
         {
-            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+            if (snapshot?.Inventory == null || DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var sourceSlots = BuildSourceSlots(inventory, adapter);
+            var sourceSlots = BuildSourceSlots(snapshot.Inventory, snapshot.ResolvedBaseSlot);
             return sourceSlots.Count > 0;
         }
 
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
+            var inventory = snapshot?.Inventory;
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Already dragging");
 
-            var sourceSlots = BuildSourceSlots(inventory, adapter);
+            var sourceSlots = BuildSourceSlots(inventory, snapshot?.ResolvedBaseSlot);
             if (sourceSlots.Count == 0)
                 return ActionResult.Failed("No valid slots for multi drag");
 
@@ -39,10 +39,9 @@ namespace UniversalDragAndDrop.Selection
                 : ActionResult.Failed("Failed to start multi drag");
         }
 
-        private List<BaseSlot> BuildSourceSlots(UniversalInventory inventory, SlotInputAdapter adapter)
+        private List<BaseSlot> BuildSourceSlots(UniversalInventory inventory, BaseSlot activeSlot)
         {
             var result = new List<BaseSlot>();
-            var activeSlot = adapter?.BaseSlot;
 
             if (SelectionManager.IsInstanceExist)
             {

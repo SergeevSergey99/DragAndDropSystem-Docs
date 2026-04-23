@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Inventories;
 
 namespace UniversalDragAndDrop.ContextMenu
 {
@@ -18,7 +16,7 @@ namespace UniversalDragAndDrop.ContextMenu
     {
         public override string DisplayName => "Show Context Menu";
 
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
         {
             if (!ContextMenuManager.IsInstanceExist)
                 return false;
@@ -26,27 +24,28 @@ namespace UniversalDragAndDrop.ContextMenu
             if (ContextMenuManager.AutoCreateInstance.IsOpen)
                 return true;
 
-            return inventory != null
+            return snapshot?.Inventory != null
                    && (ContextMenuManager.AutoCreateInstance.DefaultPreset != null
-                       || inventory.GetComponent<ContextMenuBinder>() != null);
+                       || snapshot.Inventory.GetComponent<ContextMenuBinder>() != null);
         }
 
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
+            var inventory = snapshot?.Inventory;
             if (inventory == null)
             {
                 ContextMenuManager.AutoCreateInstance.Hide();
                 return ActionResult.Failed("Inventory is null");
             }
             
-            var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
+            var slot = snapshot.ResolvedBaseSlot ?? inventory.ResolveAutoTransferSlot();
 
             var ctx = new ContextMenuContext
             {
                 Inventory      = inventory,
                 BaseSlot           = slot,
                 ItemStack      = slot?.Stack,
-                ScreenPosition = eventData?.position ?? Vector2.zero,
+                ScreenPosition = snapshot.PointerEventData?.position ?? Vector2.zero,
                 InputSource    = InputEventRouter.AutoCreateInstance.ResolveActiveFocusSource(inventory),
             };
             

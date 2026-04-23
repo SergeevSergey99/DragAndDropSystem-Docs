@@ -1,7 +1,5 @@
 using System;
-using UniversalDragAndDrop.Slots;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Inventories;
 
@@ -15,26 +13,17 @@ namespace UniversalDragAndDrop.Interaction
         public virtual bool IsDragOnlyBinding() => false;
 
         /// <summary>
-        /// If true, this action may fire when there is no concrete slot in the interaction snapshot.
+        /// If true, this action may fire when there is no concrete target in the interaction snapshot.
         /// This includes pointer events outside a slot, keyboard/input-action execution while a DropArea is focused,
         /// and inventory-level drag actions that operate through the active drop target.
-        /// Implementations must tolerate null adapter and (possibly) null inventory.
+        /// Implementations must tolerate missing slot and (possibly) null inventory.
         /// </summary>
         public virtual bool AllowOutOfSlot() => false;
 
         public virtual bool CanExecute(RuntimeInteractionSnapshot snapshot)
-            => CanExecute(snapshot?.Inventory, ResolveAdapter(snapshot?.ResolvedBaseSlot), snapshot?.PointerEventData);
+            => snapshot?.Inventory != null;
 
         public virtual ActionResult Execute(RuntimeInteractionSnapshot snapshot)
-            => Execute(snapshot?.Inventory, ResolveAdapter(snapshot?.ResolvedBaseSlot), snapshot?.PointerEventData);
-
-        private static SlotInputAdapter ResolveAdapter(BaseSlot baseSlot)
-            => baseSlot != null ? baseSlot.GetComponent<SlotInputAdapter>() : null;
-
-        public virtual bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => inventory != null;
-
-        public virtual ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
             => ActionResult.Failed("Action is not implemented");
     }
 
@@ -49,28 +38,19 @@ namespace UniversalDragAndDrop.Interaction
 
         public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
         {
-            if (snapshot == null || snapshot.IsDragging)
+            if (snapshot?.Inventory == null || snapshot.IsDragging)
                 return false;
 
             var slot = snapshot.ResolvedBaseSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (DragAndDropManager.AutoCreateInstance.IsDragging)
-                return false;
-
-            var slot = adapter?.BaseSlot;
-            return slot != null && !slot.IsEmpty && slot.IsInteractable;
-        }
-
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is already active");
 
-            var sourceSlot = adapter?.BaseSlot;
+            var sourceSlot = snapshot?.ResolvedBaseSlot;
             if (sourceSlot == null || sourceSlot.IsEmpty || !sourceSlot.IsInteractable)
                 return ActionResult.Failed("Source slot is empty or not interactable");
 
@@ -90,7 +70,7 @@ namespace UniversalDragAndDrop.Interaction
         public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
             => snapshot != null && snapshot.IsDragging;
         
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
             DragAndDropManager.AutoCreateInstance.CompleteDrag(_dropPolicyOverride.TryBuild());
             return ActionResult.Succeeded();
@@ -110,10 +90,7 @@ namespace UniversalDragAndDrop.Interaction
         public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
             => snapshot != null && snapshot.IsDragging;
 
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => DragAndDropManager.AutoCreateInstance.IsDragging;
-
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
             if (!DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is not active");
@@ -133,10 +110,7 @@ namespace UniversalDragAndDrop.Interaction
         public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
             => snapshot != null && snapshot.IsDragging;
 
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-            => DragAndDropManager.AutoCreateInstance.IsDragging;
-
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
             if (!DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is not active");
@@ -171,27 +145,6 @@ namespace UniversalDragAndDrop.Interaction
                 return ActionResult.Failed("Inventory action cannot execute");
 
             return _sceneAction.Execute(snapshot.Inventory, slot);
-        }
-
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (_sceneAction == null || inventory == null)
-                return false;
-
-            var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
-            return _sceneAction.CanExecute(inventory, slot);
-        }
-
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
-        {
-            if (_sceneAction == null || inventory == null)
-                return ActionResult.Failed("Inventory action is not configured");
-
-            var slot = adapter?.BaseSlot ?? inventory.ResolveAutoTransferSlot();
-            if (!_sceneAction.CanExecute(inventory, slot))
-                return ActionResult.Failed("Inventory action cannot execute");
-
-            return _sceneAction.Execute(inventory, slot);
         }
     }
 }

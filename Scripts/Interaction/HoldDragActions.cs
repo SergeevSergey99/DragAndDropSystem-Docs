@@ -1,7 +1,5 @@
 using System;
-using UnityEngine.EventSystems;
 using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
 
 namespace UniversalDragAndDrop.Interaction
 {
@@ -13,22 +11,22 @@ namespace UniversalDragAndDrop.Interaction
     [Serializable]
     public sealed class StartHoldCountAction : AssetSafeSlotInteractionAction
     {
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
         {
-            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+            if (snapshot?.Inventory == null || DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var slot = adapter?.BaseSlot;
+            var slot = snapshot.ResolvedBaseSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
-            var slot = adapter?.BaseSlot;
+            var slot = snapshot?.ResolvedBaseSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
-            InputEventRouter.AutoCreateInstance.BeginHoldCount(inventory, slot);
+            InputEventRouter.AutoCreateInstance.BeginHoldCount(snapshot.Inventory, slot);
             return ActionResult.Succeeded();
         }
     }
@@ -43,18 +41,18 @@ namespace UniversalDragAndDrop.Interaction
     {
         public override bool IsDragOnlyBinding() => true;
 
-        public override bool CanExecute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
         {
-            if (DragAndDropManager.AutoCreateInstance.IsDragging)
+            if (snapshot?.Inventory == null || DragAndDropManager.AutoCreateInstance.IsDragging)
                 return false;
 
-            var slot = adapter?.BaseSlot;
+            var slot = snapshot.ResolvedBaseSlot;
             return slot != null && !slot.IsEmpty && slot.IsInteractable;
         }
 
-        public override ActionResult Execute(UniversalInventory inventory, SlotInputAdapter adapter, PointerEventData eventData)
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
-            var slot = adapter?.BaseSlot;
+            var slot = snapshot?.ResolvedBaseSlot;
             if (slot == null || slot.IsEmpty || !slot.IsInteractable)
                 return ActionResult.Failed("Slot is empty or not interactable");
 
