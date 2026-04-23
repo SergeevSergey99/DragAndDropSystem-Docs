@@ -745,7 +745,7 @@ namespace UniversalDragAndDrop.Inventories
             if (!SupportsAlternativePlacement(operation.Policy))
                 return false;
 
-            return !ReferenceEquals(operation.Entry.SourceInventory, operation.TargetInventory);
+            return true;
         }
 
         private bool CanStrategyPlaceIntoSlot(
