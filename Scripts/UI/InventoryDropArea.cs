@@ -59,7 +59,7 @@ namespace UniversalDragAndDrop.UI
         public override void OnDeselect(BaseEventData eventData)
         {
             base.OnDeselect(eventData);
-            InputEventRouter.AutoCreateInstance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
+            InputEventRouter.Instance.RouteDropAreaFocusExit(this, FocusSource.Gamepad);
         }
 
         // ══════════════════════════════════════════════════════════
