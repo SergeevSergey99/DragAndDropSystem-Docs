@@ -43,7 +43,19 @@ MonoBehaviour:
     _triggerPhase: 1
     _action:
       rid: 8490480985534889987
-  _keyBindings: []
+  _keyBindings:
+  - _label: Start Drag Enter
+    _key: 13
+    _modifier: 0
+    _triggerPhase: 0
+    _action:
+      rid: 8490480985534889994
+  - _label: Comple Drag Enter
+    _key: 13
+    _modifier: 0
+    _triggerPhase: 0
+    _action:
+      rid: 8490480988165767168
   references:
     version: 2
     RefIds:
@@ -90,4 +102,28 @@ MonoBehaviour:
       data: 
     - rid: 8490480985534889992
       type: {class: ToggleFilledSlotOperation, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8490480985534889994
+      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragPolicyOverride:
+          _overrideAmount: 0
+          _amount: 0
+          _customAmount: 1
+    - rid: 8490480988165767168
+      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dropPolicyOverride:
+          _overrideBlockedTargetResolver: 0
+          _blockedTargetResolver:
+            rid: 8490480988165767169
+          _overrideAllowPartial: 0
+          _allowPartial: 1
+    - rid: 8490480988165767169
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480988165767170
+    - rid: 8490480988165767170
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
