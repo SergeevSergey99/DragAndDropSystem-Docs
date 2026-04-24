@@ -92,10 +92,9 @@ namespace UniversalDragAndDrop.Tests
             if (_dropPolicy != null)
                 SetField(inventory, "_dropPolicy", _dropPolicy);
 
-            // In EditMode, Awake does NOT fire on AddComponent or SetActive because
-            // UniversalInventory is not marked [ExecuteInEditMode]. Invoke it manually
-            // after fields are injected. Awake is idempotent via its internal guard.
-            InvokeAwake(inventory);
+            // In EditMode, Unity lifecycle methods do not fire for this test object.
+            // Invoke Start manually after fields are injected so slots/strategies are ready.
+            InvokeLifecycleMethod(inventory, "Start");
 
             return inventory;
         }
@@ -130,17 +129,17 @@ namespace UniversalDragAndDrop.Tests
             field.SetValue(target, value);
         }
 
-        private static void InvokeAwake(MonoBehaviour target)
+        private static void InvokeLifecycleMethod(MonoBehaviour target, string methodName)
         {
             var type = target.GetType();
-            MethodInfo awake = null;
-            while (type != null && awake == null)
+            MethodInfo method = null;
+            while (type != null && method == null)
             {
-                awake = type.GetMethod("Awake",
+                method = type.GetMethod(methodName,
                     BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                 type = type.BaseType;
             }
-            awake?.Invoke(target, null);
+            method?.Invoke(target, null);
         }
     }
 }

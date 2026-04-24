@@ -398,7 +398,8 @@ namespace UniversalDragAndDrop.Inventories
             // which creates slots on the fly via TryAddStack / DynamicSlotDecorator.
             if (plannedAmount == 0 &&
                 operation.AcceptableByInventory > 0 &&
-                CanUseDeferredPlacement(operation))
+                CanUseDeferredPlacement(operation) &&
+                !HasCurrentSlotPlacementCapacity(operation))
             {
                 int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
@@ -749,6 +750,28 @@ namespace UniversalDragAndDrop.Inventories
                 return true;
 
             return CanSearchAlternativeSlots(operation);
+        }
+
+        private bool HasCurrentSlotPlacementCapacity(EntryPlanningOperation operation)
+        {
+            if (operation.TargetInventory?.Slots == null)
+                return false;
+
+            bool uniqueMode = IsUniqueInventory(operation.TargetInventory);
+            int desiredAmount = uniqueMode ? 1 : operation.RequestedAmount;
+
+            foreach (var slot in operation.TargetInventory.Slots)
+            {
+                if (slot == null)
+                    continue;
+
+                var realState = new VirtualSlotState(slot);
+                int capacity = GetSlotPlacementCapacity(operation, realState, desiredAmount, uniqueMode);
+                if (capacity > 0 && IsCandidateAllowedByRules(operation, slot, capacity))
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool CanResolveAlternativeSlots(
