@@ -1,6 +1,18 @@
 # UI Toolkit Support Recommendations
 
-**Last Updated**: 2026-03-14
+**Last Updated**: 2026-04-25
+
+## Актуальный статус
+
+Документ всё ещё актуален по главному выводу: UI Toolkit лучше добавлять через отдельный adapter/view layer, а не через `if (uGUI/UITK)` внутри текущих компонентов.
+
+Что изменилось в коде с момента первой версии:
+- slot-сущность теперь называется `BaseSlot`; отдельного `ISlot` interface в runtime нет;
+- `SlotInteractionAction` уже работает через `RuntimeInteractionSnapshot`, поэтому action layer стал менее привязан к `SlotInputAdapter`, чем раньше;
+- но `RuntimeInteractionSnapshot`, `InputEventRouter`, `PointerBinding`, tooltip, drop areas и navigation всё ещё завязаны на `PointerEventData`, `Selectable`, `InventoryDropArea`, `RectTransform` и `Canvas`;
+- `UniversalInventory` кэширует `BaseSlot` через `GetComponentsInChildren<BaseSlot>()`, поэтому UITK `VisualElement` всё ещё не может быть полноценным slot backend без выделения отдельного slot contract/model.
+
+Вывод: рекомендация "делать вариант B" остаётся правильной, но первый шаг теперь следует формулировать не как `ISlot -> interface`, а как `BaseSlot/slot model -> framework-neutral contract + uGUI implementation`.
 
 Документ фиксирует практические рекомендации по добавлению поддержки Unity UI Toolkit в `UniversalDragAndDrop`.
 
@@ -32,20 +44,21 @@
 - `InventoryDropProcessor` уже выступает границей между UI target layer и transfer core;
 - `TransferPlanner` / `TransferPlanExecutor` / `InventoryTransferService` в целом не зависят от UI-фреймворка;
 - правила (`Global`, `Inventory`, `Slot`) уже отделены от конкретного UI;
-- `SelectionManager` и `SelectionContext` — чисто data-driven, работают с `HashSet<ISlot>` и `Dictionary<IInventory, List<ISlot>>` без каких-либо uGUI-зависимостей. Визуальный feedback (`SlotSelectionView`) привязан к uGUI, но state management полностью переносим;
+- `SelectionManager` и `SelectionContext` — data-driven, работают с `HashSet<BaseSlot>` и `Dictionary<IInventory, List<BaseSlot>>` без прямой зависимости от uGUI-компонентов. Визуальный feedback (`SlotSelectionView`) привязан к `MonoBehaviour`, но state management переносим после выделения framework-neutral slot contract;
 - `InputEventRouter` концептуально отделяет raw input от действий;
+- `RuntimeInteractionSnapshot` уже является полезной промежуточной абстракцией между input router и actions, но пока всё ещё содержит `PointerEventData` и uGUI/drop-area references;
 - `.claude`-документация прямо фиксирует намерение держать input отдельно от transfer/domain logic.
 
 Это значит, что **переписывать ядро drag/drop и selection state не нужно** — только визуальные компоненты.
 
 ## Что сейчас мешает UI Toolkit
 
-### 1. `ISlot` является `abstract class : MonoBehaviour`
+### 1. `BaseSlot` является `abstract class : MonoBehaviour`
 
-Файл: `Scripts/Slots/ISlot.cs`
+Файл: `Scripts/Slots/BaseSlot.cs`
 
-Важно: несмотря на имя, `ISlot` — это **не интерфейс, а abstract class**, наследующий `MonoBehaviour`.
-Это значит, что UITK `VisualElement` не может реализовать `ISlot` даже теоретически — наследование от двух классов невозможно в C#.
+Важно: текущий slot contract фактически живёт в `BaseSlot`, а `BaseSlot` наследует `MonoBehaviour`.
+Это значит, что UITK `VisualElement` не может быть полноценным slot object'ом в текущей модели — наследование от двух классов невозможно в C#.
 
 Сейчас слот одновременно является:
 - доменной сущностью;
@@ -58,7 +71,7 @@
 
 Следствие:
 - текущий слот нельзя напрямую переиспользовать как UITK element;
-- **первым шагом** должно быть превращение `ISlot` из abstract class в настоящий `interface`, с выносом MonoBehaviour-реализации в отдельный `SlotBase : MonoBehaviour, ISlot`;
+- **первым шагом** должно быть выделение framework-neutral slot contract/model из `BaseSlot`, с сохранением uGUI-реализации как `MonoBehaviour`;
 - без этого шага ни bridge-слой, ни разделение state/view не будут чистыми.
 
 ### 2. `UniversalInventory` ожидает scene/prefab slots
@@ -66,9 +79,9 @@
 Файл: `Scripts/Inventories/UniversalInventory.cs`
 
 Сейчас инвентарь:
-- кэширует слоты через `GetComponentsInChildren<ISlot>()`;
+- кэширует слоты через `GetComponentsInChildren<BaseSlot>()`;
 - инстанцирует `UniversalSlot` prefab;
-- хранит список `ISlot`, которые фактически являются `GameObject`-компонентами.
+- хранит список `BaseSlot`, которые фактически являются `GameObject`-компонентами.
 
 Это означает, что текущий `UniversalInventory` спроектирован вокруг object-based scene UI, а не вокруг data-driven UITK tree.
 
@@ -87,7 +100,7 @@
 - `SlotInputAdapter` наследуется от `Selectable`;
 - pointer flow использует `PointerEventData`;
 - focus/navigation опираются на `EventSystem.currentSelectedGameObject`;
-- actions принимают `SlotInputAdapter` и `PointerEventData`, то есть контракты уже завязаны на uGUI;
+- actions уже принимают `RuntimeInteractionSnapshot`, но snapshot всё ещё несёт `PointerEventData`, `InventoryDropArea` и `BaseSlot`, поэтому контракт только частично отвязан от uGUI;
 - **критично**: `InputEventRouter.FindBestFocusTarget()` итерирует `Selectable.allSelectablesArray` — глобальный реестр uGUI. Для UITK потребуется полностью альтернативная система focus tracking, а не просто замена типов в сигнатурах.
 
 Это главный и **самый сложный** участок рефакторинга. Простая замена `PointerEventData` на нейтральную структуру недостаточна — нужна замена механизма обнаружения и переключения focus targets.
@@ -98,6 +111,7 @@
 - `Scripts/UI/DragVisualPresenter.cs`
 - `Scripts/UI/TooltipManager.cs`
 - `Scripts/ContextMenu/UI/UniversalContextMenuView.cs`
+- `Scripts/ContextMenu/UI/ContextMenuViewBase.cs`
 - `Scripts/UI/InventoryDropArea.cs`
 
 Сейчас здесь используются:
@@ -109,6 +123,7 @@
 - позиционирование через экранные координаты и `RectTransformUtility`.
 
 Для UI Toolkit эти компоненты почти не переиспользуются.
+Даже `ContextMenuViewBase`, несмотря на комментарий про UI Toolkit, сейчас наследует `MonoBehaviour`; для UITK это может быть scene-wrapper, но не сам `VisualElement` view.
 
 Следствие:
 - drag ghost;
@@ -130,7 +145,7 @@
 
 Оставить текущие core-классы почти без изменений и добавить слой адаптеров для UI Toolkit, который:
 - строит визуальные `VisualElement`-слоты;
-- хранит связь `VisualElement <-> ISlot`;
+- хранит связь `VisualElement <-> BaseSlot` или `VisualElement <-> future slot contract`;
 - вручную конвертирует UITK события в вызовы `InputEventRouter`;
 - отдельно реализует tooltip / drag ghost / context menu.
 
@@ -203,7 +218,7 @@
 
 Пример состава `InventoryInteractionContext`:
 - `UniversalInventory Inventory`
-- `ISlot Slot`
+- `BaseSlot Slot` на переходном этапе или `IInventorySlot` после выделения slot contract
 - `Vector2 ScreenPosition`
 - `FocusSource FocusSource`
 - `PointerButton Button`
@@ -212,7 +227,7 @@
 - `object SourceHandle`
 
 Тогда:
-- `SlotInteractionAction` перестанет принимать `SlotInputAdapter`;
+- `SlotInteractionAction` уже принимает `RuntimeInteractionSnapshot`; следующий шаг — убрать из snapshot uGUI-specific поля;
 - `InputEventRouter` будет работать не с `PointerEventData`, а с нейтральным input event;
 - uGUI и UITK будут только поставщиками этих данных.
 
@@ -240,7 +255,7 @@
 
 ### Оценка
 
-- Этап 0 (ISlot → interface): **1 неделя** (высокий риск регрессий, много зависимого кода)
+- Этап 0 (`BaseSlot`/slot model → framework-neutral contract): **1-2 недели** (высокий риск регрессий, много зависимого кода)
 - Архитектурный рефакторинг contracts + focus system: **2-3 недели** (замена `Selectable.allSelectablesArray` и построение альтернативного focus tracking — основная сложность)
 - Базовый UITK backend: **1-2 недели**
 - Tooltip/context menu/navigation parity: **2-4 недели** (navigation parity — самый сложный UX-этап)
@@ -255,7 +270,7 @@
 ### Идея
 
 Сделать более фундаментальный шаг:
-- перестать считать `ISlot` одновременно data-unit и visual component;
+- перестать считать `BaseSlot` одновременно data-unit и visual component;
 - ввести отдельную модель слота;
 - представление слота в uGUI и UITK сделать чисто визуальным.
 
@@ -351,25 +366,25 @@ UI Toolkit support не должен приводить к переписыва�
 
 Ниже минимальный рекомендуемый поэтапный план.
 
-### Этап 0. Превратить `ISlot` из abstract class в interface
+### Этап 0. Выделить slot contract из `BaseSlot`
 
 Цель:
 - устранить фундаментальный блокер: `VisualElement` не может наследовать `MonoBehaviour`.
 
 Сделать:
-- извлечь из `abstract class ISlot : MonoBehaviour` чистый `interface ISlot`;
-- создать `SlotBase : MonoBehaviour, ISlot` с текущей реализацией;
-- перевести `UniversalSlot` на наследование от `SlotBase`;
-- обновить все места, которые используют `ISlot` как `MonoBehaviour` (кастинг, `GetComponent<ISlot>()`, `GetComponentsInChildren<ISlot>()`).
+- ввести чистый runtime-контракт, например `IInventorySlot` или `IInventorySlotModel`;
+- оставить `BaseSlot : MonoBehaviour, IInventorySlot` как uGUI/scene implementation;
+- постепенно перевести core contracts с `BaseSlot` на новый интерфейс там, где не нужен `Transform`/`Component`;
+- обновить места, которые используют `BaseSlot` как `MonoBehaviour` (`GetComponent<BaseSlot>()`, `GetComponentsInChildren<BaseSlot>()`, кастинг к `Component`/`Transform`).
 
 Риски:
-- **самый рискованный этап** с точки зрения регрессий — `ISlot` используется повсеместно;
-- `GetComponentsInChildren<ISlot>()` в `UniversalInventory` продолжит работать, т.к. Unity поддерживает поиск по интерфейсам;
-- нужна тщательная проверка всех мест, где `ISlot` кастится к `MonoBehaviour`, `Component` или `Transform`.
+- **самый рискованный этап** с точки зрения регрессий — `BaseSlot` используется повсеместно;
+- `GetComponentsInChildren<BaseSlot>()` в `UniversalInventory` нужно оставить для uGUI path или заменить на регистрацию слотов через view bridge;
+- нужна тщательная проверка всех мест, где `BaseSlot` используется как `MonoBehaviour`, `Component` или `Transform`.
 
 Результат:
-- UITK-слоты смогут реализовать `ISlot` без наследования от `MonoBehaviour`;
-- существующий uGUI-код продолжит работать через `SlotBase`.
+- UITK-слоты смогут иметь slot model/contract без наследования от `MonoBehaviour`;
+- существующий uGUI-код продолжит работать через `BaseSlot`.
 
 ### Этап 1. Выделить framework-neutral interaction context
 
@@ -393,7 +408,7 @@ UI Toolkit support не должен приводить к переписыва�
 
 Сделать:
 - ввести handle/anchor abstraction для focused/hovered slot;
-- хранить `ISlot` отдельно от view reference;
+- хранить slot model/contract отдельно от view reference;
 - дать router возможность работать без `GameObject`.
 
 Результат:
@@ -404,7 +419,7 @@ UI Toolkit support не должен приводить к переписыва�
 Сделать:
 - `UIDocument`/`VisualElement`-based inventory root;
 - visual slots;
-- биндинг `ISlot -> VisualElement`;
+- биндинг slot model/contract -> `VisualElement`;
 - hover/pressed/focus state mapping;
 - отправку событий в router.
 
@@ -480,7 +495,7 @@ UI Toolkit support не должен приводить к переписыва�
 
 Поля:
 - `UniversalInventory Inventory`
-- `ISlot Slot`
+- `BaseSlot Slot` на переходном этапе или `IInventorySlot Slot` после Этапа 0
 - `FocusSource FocusSource`
 - `InventoryPointerEvent Pointer`
 - `ISlotViewHandle ViewHandle`

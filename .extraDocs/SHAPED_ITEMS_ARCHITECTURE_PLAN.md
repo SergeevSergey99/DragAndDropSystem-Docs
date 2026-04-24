@@ -1,6 +1,18 @@
 # Shaped Items Architecture Plan
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-04-25
+
+## Актуальный статус
+
+План всё ещё актуален как направление для будущей поддержки Diablo/Tarkov-style shaped items. В текущем коде этой фичи ещё нет: inventory по-прежнему slot-based, `BaseSlot` остаётся `MonoBehaviour`, `DragContext` хранит один `TargetBaseSlot`, а `InventoryTransferResult` возвращает один `TargetBaseSlot`.
+
+Что изменилось с момента первой версии плана:
+- публичная slot-сущность в коде сейчас называется `BaseSlot`, а не `ISlot`;
+- drop policy уже переведён на resolver-контракт `BlockedTargetResolverBase.Resolve(...)`, который возвращает `BlockedTargetResolution` (`Reject`, `AlternativeSlots`, `SwapTargets`);
+- `TransferPlanner` не должен знать про конкретные nested strategies resolver'ов, поэтому shaped/grid fallback должен подключаться через resolver result или grid-aware planning layer, а не через прямую проверку `IAlternativePlacementStrategy`;
+- `FindAlternative` для same-inventory теперь настраивается через `AllowSameInventoryAlternativePlacement`, и grid-поведение должно явно решить, разрешён ли 2D fallback внутри того же inventory.
+
+Вывод: документ стоит оставить, но читать его как high-level архитектурный план. Перед реализацией нужно сначала стабилизировать базовые абстракции slot/view/model, иначе shaped items и UI Toolkit будут тянуть проект в разные стороны.
 
 Документ описывает рекомендуемую архитектуру для поддержки предметов разного размера и формы, занимающих несколько ячеек инвентаря.
 
@@ -16,10 +28,10 @@
 
 ## Ключевой принцип
 
-Не пытаться внедрить shaped items как особый случай текущего `ISlot`.
+Не пытаться внедрить shaped items как особый случай текущего `BaseSlot`.
 
 Правильная модель:
-- `ISlot` остается минимальной ячейкой UI/инвентаря;
+- `BaseSlot` остаётся минимальной slot-ячейкой текущей UI/инвентарной модели;
 - поверх набора слотов вводится слой layout/occupancy;
 - предмет может знать свой footprint через опциональный интерфейс;
 - planner работает не с одиночным slot, а с набором занимаемых ячеек.
@@ -163,7 +175,7 @@ Occupancy пересчитывается при загрузке из этого
 
 ### IInventoryStrategy
 
-**Это самое болезненное место.** Текущий `IInventoryStrategy.TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex)` принимает один `targetIndex`. Для shaped item нужно передать anchor + orientation — это не расширяемо без смены сигнатуры.
+**Это самое болезненное место.** Текущий placement contract идёт через `IPlacementStrategy.TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, ...)` и `TryAddToSlot(..., BaseSlot targetBaseSlot, ...)`. Оба API принимают одиночный target slot/index. Для shaped item нужно передать anchor + orientation + covered cells — это не расширяемо без смены модели placement.
 
 **Решение**: для grid inventory вводится отдельный `IGridInventoryStrategy`, не наследующий от `IInventoryStrategy`. Grid inventory использует его вместо базовой стратегии. Существующие стратегии (`UniqueItemStrategy`, `StackableItemStrategy` и др.) не трогаются.
 
@@ -185,13 +197,13 @@ Occupancy пересчитывается при загрузке из этого
 - остальные занятые слоты знают, что они являются частью placement и ссылаются на anchor;
 - публичные методы, принимающие slot, должны уметь резолвить placement через anchor.
 
-### ISlot / UniversalSlot
+### BaseSlot / UniversalSlot
 
-**Важно: не добавлять placement-состояние в интерфейс `ISlot`.** `ISlot` — публичный интерфейс, изменение которого сломает все существующие реализации. Placement-aware запросы должны идти через occupancy layer / grid inventory:
+**Важно: не добавлять placement-состояние напрямую в `BaseSlot`.** `BaseSlot` сейчас является публичной slot-моделью и одновременно `MonoBehaviour`-основой для uGUI-slot'ов. Добавление placement-состояния в сам slot размажет grid-логику по всей системе. Placement-aware запросы должны идти через occupancy layer / grid inventory:
 
 - `gridInventory.GetPlacement(slot)` → `Placement?` (anchor, orientation, covered cells);
 - `gridInventory.IsFollowerSlot(slot)` → `bool`;
-- `gridInventory.ResolveAnchorSlot(slot)` → `ISlot` (для follower возвращает anchor, для anchor — себя).
+- `gridInventory.ResolveAnchorSlot(slot)` → `BaseSlot` (для follower возвращает anchor, для anchor — себя).
 
 Слот остаётся лёгкой единицей UI и не знает о placement. Код, которому нужна placement-информация, обращается к инвентарю, а не к слоту.
 
@@ -236,13 +248,13 @@ Executor должен применять plan как placement transaction:
 
 ### InventoryTransferResult
 
-Текущий `InventoryTransferResult` возвращает один `ISlot TargetSlot`. После placement multi-cell предмета это поле теряет смысл или становится двусмысленным.
+Текущий `InventoryTransferResult` возвращает один `BaseSlot TargetBaseSlot`. После placement multi-cell предмета это поле теряет смысл или становится двусмысленным.
 
 **Решение**: добавить в `InventoryTransferResult` опциональные поля:
-- `ISlot AnchorSlot` — anchor slot размещения (для shaped items);
+- `BaseSlot AnchorBaseSlot` — anchor slot размещения (для shaped items);
 - `IReadOnlyList<int> CoveredSlotIndices` — все занятые ячейки.
 
-Для 1x1 переносов `AnchorSlot == TargetSlot`, `CoveredSlotIndices` содержит один элемент. Все существующие подписчики события трансфера продолжают работать без изменений.
+Для 1x1 переносов `AnchorBaseSlot == TargetBaseSlot`, `CoveredSlotIndices` содержит один элемент. Все существующие подписчики события трансфера продолжают работать без изменений.
 
 ### RuleEvaluationService / Rules
 
@@ -268,7 +280,7 @@ Rules должны начать получать расширенный конт
 - нужно проверить, что каждый вытесненный предмет поместится на освободившееся место;
 - порядок вытеснения и валидации зависит от формы всех участников.
 
-При дропе shaped item на occupied cell — reject (через `BlockedTargetBehavior.Reject`). Shaped item swap — отдельная фича Phase 4.
+При дропе shaped item на occupied cell в Phase 1-3 — reject через `BlockedTargetResolution.Reject()` / `RejectBlockedTargetResolver`. Shaped item swap — отдельная фича Phase 4.
 
 ### Batch drag + shaped items — зафиксированное ограничение
 
@@ -393,7 +405,7 @@ Selection должна работать на уровне placement, а не о�
 ### Не покрытые аспекты (учесть при реализации)
 
 - **FilterSortController**: auto-sort явно отключён для grid inventory в Phase 1–3, но фильтрация (hide/show) может быть полезна. Нужно определить, как фильтрация взаимодействует с occupancy — скрытый предмет всё ещё занимает ячейки.
-- **DropPolicySettings**: `FindAlternative` для grid inventory означает поиск валидного anchor в 2D, а не просто «следующий слот». `DropPolicySettings.Resolve` должен корректно работать с grid-aware поиском альтернатив.
+- **DropPolicySettings / blocked-target resolvers**: `FindAlternative` для grid inventory означает поиск валидного anchor в 2D, а не просто «следующий слот». Это должно быть выражено через `BlockedTargetResolution.AlternativeSlots(...)` или отдельный grid-aware resolver/planner branch. `TransferPlanner` не должен напрямую читать nested `IAlternativePlacementStrategy`.
 - **Tooltip/Describable**: для shaped items tooltip должен появляться при наведении на любую covered cell, но показывать данные anchor placement. Нужен проход через `ResolveAnchorSlot` в tooltip pipeline.
 
 ## Что важно не сломать
@@ -452,7 +464,7 @@ Selection должна работать на уровне placement, а не о�
 - occupancy как производное состояние от списка placements;
 - `IGridInventoryStrategy` отдельно от существующих стратегий;
 - `IPlacementRule` рядом с `IDragRule` для placement-aware валидации;
-- placement-запросы через grid inventory, не через `ISlot`;
+- placement-запросы через grid inventory, не через сам `BaseSlot`;
 - shaped items Count = 1 (Phase 1–3);
 - swap и batch drag для shaped items отключены (Phase 1–3);
 - grid inventory только с Fixed slot management;
