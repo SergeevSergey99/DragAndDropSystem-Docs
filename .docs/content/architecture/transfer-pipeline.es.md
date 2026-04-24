@@ -250,6 +250,11 @@ Resolvers integrados para blocked target:
 Cuando se selecciona `Swap`, contiene internamente una `[SerializeReference]` `ISwapStrategy`.
 Cuando se selecciona `FindAlternative`, contiene internamente una `[SerializeReference]` `IAlternativePlacementStrategy`.
 
+Internamente, el manejo de blocked-target pasa por un contrato único:
+`BlockedTargetResolverBase.Resolve(...)`. El resolver devuelve un `BlockedTargetResolution`
+como `Reject`, `AlternativeSlots` o `SwapTargets`. El planner consume ese resultado;
+no inspecciona directamente las strategies anidadas del resolver.
+
 ## Override temporal a través de acciones
 
 El override temporal de drop policy se hace mediante la request policy de la acción, no mutando `DragContext`.
@@ -277,8 +282,8 @@ Para crear tu propio comportamiento de blocked target:
 
 1. Crea una clase que herede de `BlockedTargetResolverBase`.
 2. Márquela con `[Serializable]`.
-3. Sobrescribe `SwapStrategy` si tu resolver debe buscar swap candidates personalizados.
-4. Sobrescribe `AlternativePlacementStrategy` si tu resolver debe buscar slots alternativos.
+3. Sobrescribe `Resolve(BlockedTargetResolutionContext context)`.
+4. Devuelve `BlockedTargetResolution.Reject()`, `AlternativeSlots(...)` o `SwapTargets(...)`.
 5. La clase aparecerá automáticamente en el managed reference picker de `DropPolicySettings`.
 
 Para crear tu propia swap strategy:
@@ -305,12 +310,12 @@ Para una sola drag entry:
 4. Si solo cabe una parte:
    - `AllowPartial = false` -> fallo
    - `AllowPartial = true` -> éxito parcial
-   - el resto puede buscar alternativas solo cuando el resolver activo expone `AlternativePlacementStrategy`
+   - el resto puede buscar alternativas solo cuando el resolver activo devuelve `AlternativeSlots`
 5. Si no cabe nada en el objetivo:
    - `Reject` -> fallo
-   - resolver con soporte de `Swap` -> el planner crea una swap entry
-   - resolver con alternative placement -> la placement strategy enumera slots alternativos
-6. En drops dentro del mismo inventario, los resolvers con alternative placement no reordenan items a través de otros slots. Si el target falla, el item permanece en su sitio
+   - el resolver devuelve `SwapTargets` -> el planner crea una swap entry
+   - el resolver devuelve `AlternativeSlots` -> el planner prueba esos candidate slots
+6. La colocación alternativa dentro del mismo inventario es configurable en `FindAlternativeBlockedTargetResolver`. Por defecto puede usar otro slot válido; desactiva `AllowSameInventoryAlternativePlacement` si un drop sobre un slot bloqueado del mismo inventario debe dejar el item en su slot original.
 
 ## Operaciones por lotes
 
@@ -331,7 +336,7 @@ Por defecto, el batch mode proviene de `DropPolicySettings` del inventario objet
 
 ```mermaid
 flowchart TD
-    A["Target slot is occupied"] --> B{"Active resolver supports swap?"}
+    A["Target slot is occupied"] --> B{"Resolver returns SwapTargets?"}
     B -->|No| C["Reject"]
     B -->|Yes| D["Validate both directions\non target-side preview stacks"]
     D --> E["Capture copies of both stacks"]

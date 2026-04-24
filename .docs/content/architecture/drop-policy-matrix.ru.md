@@ -81,7 +81,8 @@
 ### Same-inventory
 
 - `FindAlternative` не должен "перераскладывать" предметы по всему инвентарю как сортировка
-- если target не подошёл, предмет остаётся на месте
+- по умолчанию `FindAlternative` может перенести предмет в другой подходящий слот, если hinted target заблокирован
+- отключите `AllowSameInventoryAlternativePlacement` в `FindAlternativeBlockedTargetResolver`, если blocked drop внутри того же инвентаря должен оставлять предмет в исходном слоте
 - swap поддерживается только для одиночного entry и полного source stack
 
 ### Cross-inventory

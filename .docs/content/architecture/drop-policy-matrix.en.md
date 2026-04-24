@@ -81,7 +81,8 @@ So the `occupied handler` has priority over both swap and alternative placement.
 ### Same-inventory
 
 - `FindAlternative` is not a global reshuffle or sort
-- if the target fails, the item stays in place
+- by default, `FindAlternative` may move the item to another valid slot when the hinted target is blocked
+- disable `AllowSameInventoryAlternativePlacement` on `FindAlternativeBlockedTargetResolver` when a blocked same-inventory drop should leave the item in its original slot
 - swap is only supported for a single entry and a full source stack
 
 ### Cross-inventory

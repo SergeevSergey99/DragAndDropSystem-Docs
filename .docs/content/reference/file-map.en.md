@@ -59,13 +59,13 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level drop policy defaults, including the blocked-target resolver and batch/partial settings. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Serializable authoring helper for one-off drop request overrides in actions and triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Serializable authoring helper for temporary drag-amount overrides when starting a drag. |
-| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Base class for blocked-target behavior authoring in `DropPolicySettings`. |
+| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase`, `BlockedTargetResolution`, `BlockedTargetResolutionContext` | Base contract for blocked-target behavior. Resolvers return `Reject`, `AlternativeSlots`, or `SwapTargets` resolutions. |
 | `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver that rejects a blocked target immediately. |
-| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver that delegates blocked-target swap handling to a nested swap strategy. |
+| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver that turns nested swap strategy candidates into `SwapTargets` resolutions. |
 | `Scripts/Core/Drop/ISwapStrategy.cs` | `ISwapStrategy` | Contract for object-based swap target enumeration used by `SwapBlockedTargetResolver`. |
 | `Scripts/Core/Drop/SwapSearchContext.cs` | `SwapSearchContext` | Context passed into swap strategies so they can inspect drag state, target inventory, and the hinted slot. |
 | `Scripts/Core/Drop/HintedTargetSwapStrategy.cs` | `HintedTargetSwapStrategy` | Default swap strategy that only considers the currently hinted target slot. |
-| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver that delegates blocked-target handling to an alternative placement strategy. |
+| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver that turns alternative placement candidates into `AlternativeSlots` resolutions and can disable same-inventory fallback. |
 | `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Contract for object-based alternative slot enumeration used by `FindAlternativeBlockedTargetResolver`. |
 | `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers merge candidates first. |
 | `Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Alternative placement strategy that prefers empty slots first. |
@@ -111,7 +111,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Inventories/VirtualSlotState.cs` | `VirtualSlotState` | Internal virtual slot representation used while planning without mutating live UI state. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Internal utility that applies target/source adapter conversion consistently across planning and execution. |
 | `Scripts/Inventories/TransferPlanExecutor.cs` | `TransferExecutionSummary`, `TransferExecutionOptions`, `TransferPlanExecutor` | Executes transfer plans, applies mutations, runs commit hooks, handles rollback, and dispatches deferred events. |
-| `Scripts/Inventories/TransferPlanner.cs` | `TransferPlanFailureCode`, `PlanFailure`, `PlannedSwapData`, `PlannedEntryTransfer`, `TransferPlan`, `TransferPlanner` | Builds a transfer plan without mutating inventories. Central file for preview logic, placement search, swap decisions, and failure reporting. |
+| `Scripts/Inventories/TransferPlanner.cs` | `TransferPlanFailureCode`, `PlanFailure`, `PlannedSwapData`, `PlannedEntryTransfer`, `TransferPlan`, `TransferPlanner` | Builds a transfer plan without mutating inventories. Consumes blocked-target resolver results and handles preview allocation, swap planning, and failure reporting. |
 
 ---
 

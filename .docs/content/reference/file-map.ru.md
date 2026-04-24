@@ -59,13 +59,13 @@
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level настройки drop policy, включая blocked-target resolver и параметры batch/partial. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемый helper для временных drop request override'ов в actions и triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
-| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase` | Базовый класс для authoring blocked-target поведения в `DropPolicySettings`. |
+| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase`, `BlockedTargetResolution`, `BlockedTargetResolutionContext` | Базовый контракт blocked-target поведения. Resolver возвращает `Reject`, `AlternativeSlots` или `SwapTargets`. |
 | `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver, который сразу отклоняет blocked target. |
-| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который делегирует swap-обработку blocked target вложенной swap strategy. |
+| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который превращает кандидатов вложенной swap strategy в `SwapTargets`. |
 | `Scripts/Core/Drop/ISwapStrategy.cs` | `ISwapStrategy` | Контракт для object-based перечисления swap-candidates, используемый `SwapBlockedTargetResolver`. |
 | `Scripts/Core/Drop/SwapSearchContext.cs` | `SwapSearchContext` | Контекст, который swap strategy получает для доступа к состоянию drag, target inventory и hinted slot. |
 | `Scripts/Core/Drop/HintedTargetSwapStrategy.cs` | `HintedTargetSwapStrategy` | Дефолтная swap strategy, которая рассматривает только текущий hinted target slot. |
-| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который делегирует blocked-target обработку стратегии alternative placement. |
+| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который превращает alternative placement candidates в `AlternativeSlots` и может отключать fallback внутри того же inventory. |
 | `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Контракт для object-based перечисления альтернативных слотов, используемый `FindAlternativeBlockedTargetResolver`. |
 | `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет merge-кандидаты. |
 | `Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет пустые слоты. |
@@ -111,7 +111,7 @@
 | `Scripts/Inventories/VirtualSlotState.cs` | `VirtualSlotState` | Виртуальное состояние слота, используемое при planning без мутации реального UI. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Внутренний utility, который последовательно применяет конвертацию adapter'ов в planning и execution. |
 | `Scripts/Inventories/TransferPlanExecutor.cs` | `TransferExecutionSummary`, `TransferExecutionOptions`, `TransferPlanExecutor` | Выполняет transfer plan, вносит мутации, запускает commit hooks, rollback и deferred events. |
-| `Scripts/Inventories/TransferPlanner.cs` | `TransferPlanFailureCode`, `PlanFailure`, `PlannedSwapData`, `PlannedEntryTransfer`, `TransferPlan`, `TransferPlanner` | Строит план переноса без изменения состояния инвентаря. Центральный файл для preview-логики, placement search, swap-решений и диагностики ошибок. |
+| `Scripts/Inventories/TransferPlanner.cs` | `TransferPlanFailureCode`, `PlanFailure`, `PlannedSwapData`, `PlannedEntryTransfer`, `TransferPlan`, `TransferPlanner` | Строит план переноса без изменения состояния инвентаря. Использует результаты blocked-target resolver'ов и отвечает за preview allocation, swap planning и диагностику ошибок. |
 
 ---
 

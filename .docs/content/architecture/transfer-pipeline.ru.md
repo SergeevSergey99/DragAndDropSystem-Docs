@@ -253,6 +253,11 @@ flowchart TD
 Если выбран `Swap`, внутри него задаётся вложенная `[SerializeReference]` `ISwapStrategy`.
 Если выбран `FindAlternative`, внутри него задаётся вложенная `[SerializeReference]` `IAlternativePlacementStrategy`.
 
+Внутри blocked-target обработка проходит через единый контракт resolver'а:
+`BlockedTargetResolverBase.Resolve(...)`. Resolver возвращает `BlockedTargetResolution`
+например `Reject`, `AlternativeSlots` или `SwapTargets`. Planner использует этот результат;
+он не читает вложенные стратегии resolver'а напрямую.
+
 ## Временный override через actions
 
 Временная подмена drop policy делается не через мутацию `DragContext`, а через action-level request override.
@@ -280,8 +285,8 @@ flowchart TD
 
 1. Создайте класс-наследник `BlockedTargetResolverBase`.
 2. Пометьте его `[Serializable]`.
-3. Переопределите `SwapStrategy`, если resolver должен искать кастомные swap-candidates.
-4. Переопределите `AlternativePlacementStrategy`, если resolver должен искать альтернативные слоты.
+3. Переопределите `Resolve(BlockedTargetResolutionContext context)`.
+4. Верните `BlockedTargetResolution.Reject()`, `AlternativeSlots(...)` или `SwapTargets(...)`.
 5. Класс автоматически появится в managed reference picker у `DropPolicySettings`.
 
 Чтобы создать свою swap strategy:
@@ -308,12 +313,12 @@ flowchart TD
 4. Если вошла только часть:
    - `AllowPartial = false` -> fail
    - `AllowPartial = true` -> partial success
-   - остаток ищет другие слоты только если активный resolver отдаёт `AlternativePlacementStrategy`
+   - остаток ищет другие слоты только если активный resolver возвращает `AlternativeSlots`
 5. Если в target не вошло ничего:
    - `Reject` -> fail
-   - resolver с поддержкой `Swap` -> planner строит swap entry
-   - resolver с alternative placement -> стратегия перечисляет alternative slots
-6. Для same-inventory резолверы с alternative placement не перераскладывают предметы по другим слотам. Если target не подошёл, предмет остаётся на месте
+   - resolver возвращает `SwapTargets` -> planner строит swap entry
+   - resolver возвращает `AlternativeSlots` -> planner пробует эти candidate slots
+6. Same-inventory alternative placement настраивается в `FindAlternativeBlockedTargetResolver`. По умолчанию resolver может использовать другой подходящий слот; отключите `AllowSameInventoryAlternativePlacement`, если drop в заблокированный слот того же инвентаря должен оставлять предмет на исходном месте.
 
 ## Batch-операции
 
@@ -332,11 +337,11 @@ flowchart TD
 
 ## Swap — это часть того же пайплайна
 
-Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если активный resolver поддерживает `Swap`.
+Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если активный resolver возвращает `SwapTargets`.
 
 ```mermaid
 flowchart TD
-    A["Целевой слот занят"] --> B{"Активный resolver поддерживает swap?"}
+    A["Целевой слот занят"] --> B{"Resolver вернул SwapTargets?"}
     B -->|Нет| C["Отклонить"]
     B -->|Да| D["Проверить оба направления\nна target-side preview stacks"]
     D --> E["Снять копии обоих стеков"]
