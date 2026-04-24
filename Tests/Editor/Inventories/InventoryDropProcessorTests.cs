@@ -1,0 +1,409 @@
+using System.Linq;
+using System.Reflection;
+using NUnit.Framework;
+using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
+
+namespace UniversalDragAndDrop.Tests.Inventories
+{
+    /// <summary>
+    /// Integration tests for InventoryDropProcessor — the public entry point of the
+    /// plan + execute pipeline. Each test wires two real UniversalInventory instances
+    /// via InventoryBuilder, builds a DragContext with DragContextBuilder, and asserts
+    /// against the resulting TransferExecutionSummary + final slot state.
+    ///
+    /// Covers the scenarios that used to regress silently before the snapshot fix:
+    ///   - 5 Unique items dropped into a 4-slot area (BestEffort)
+    ///   - Atomic rollback on partial failure
+    ///   - AllowPartial=false early reject
+    ///   - Swap via SwapBlockedTargetResolver
+    ///   - FindAlternative with EmptyFirst / MergeFirst placement
+    /// </summary>
+    [TestFixture]
+    public class InventoryDropProcessorTests
+    {
+        private UniversalInventory _source;
+        private UniversalInventory _target;
+
+        [TearDown]
+        public void TearDown()
+        {
+            InventoryBuilder.Destroy(_source);
+            InventoryBuilder.Destroy(_target);
+            _source = null;
+            _target = null;
+        }
+
+        // ---------- 5 -> 4 regression (the bug that started all this) ----------
+
+        [Test]
+        public void ProcessDrop_FiveUnique_IntoFourEmptySlots_BestEffort_SourceKeepsOne()
+        {
+            // Regression guard for the original bug: 5 Unique items dragged into a
+            // 4-slot target with BestEffort must land 4 items in the target and leave
+            // exactly 1 in the source (in the LAST source slot that failed to transfer).
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(5)
+                .WithName("Source5")
+                .Build();
+
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(4)
+                .WithName("Target4")
+                .Build();
+
+            for (int i = 0; i < 5; i++)
+                Assert.IsTrue(_source.TryAddStack(ItemStackBuilder.Unique(1, $"gem_{i}")));
+
+            var context = DragContextBuilder.FromAllSlots(_source)
+                .ToTarget(_target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context);
+
+            Assert.IsTrue(summary.Success, $"Expected success (partial), got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(summary.IsPartial, "Operation must report partial");
+            Assert.AreEqual(4, summary.TransferredAmount);
+            Assert.AreEqual(4, CountFilledSlots(_target));
+            Assert.AreEqual(1, CountFilledSlots(_source),
+                "Exactly one source slot must retain its item after partial transfer");
+        }
+
+        [Test]
+        public void ProcessDrop_AllowPartialFalse_SingleEntryCannotFitFully_Rejected()
+        {
+            // AllowPartial is a PER-ENTRY check in the planner: it fires when a single
+            // entry's stack would have to be split across capacity. Here a 10-coin source
+            // stack tries to land in a 5-capacity target slot — the planner would plan 5/10,
+            // which is partial, so AllowPartial=false must reject the whole operation.
+            _source = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(20)
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(5)
+                .WithFixedSlots(1)
+                .Build();
+
+            _source.TryAddStack(ItemStackBuilder.Unique(10, "coin"));
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithPartial(false));
+
+            Assert.IsFalse(summary.Success, "AllowPartial=false must reject when the entry can only fit partially");
+            Assert.AreEqual(0, summary.TransferredAmount);
+            Assert.AreEqual(10, _source.GetSlot(0).Stack.Count, "Source must be untouched on full reject");
+            Assert.IsTrue(_target.GetSlot(0).IsEmpty, "Target must remain empty on full reject");
+        }
+
+        // ---------- Stackable: partial merge + spill ----------
+
+        [Test]
+        public void ProcessDrop_Stackable_WithLimit_MergesIntoPartial_AndSpillsIntoEmpty()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(5)
+                .WithFixedSlots(2)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(5)
+                .WithFixedSlots(3)
+                .Build();
+
+            // target[0] = 3/5, target[1] empty, target[2] empty
+            _target.TryAddStack(ItemStackBuilder.Unique(3, "coin"));
+            // source has 6 coins (fills source[0]=5, source[1]=1)
+            _source.TryAddStack(ItemStackBuilder.Unique(6, "coin"));
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context);
+
+            Assert.IsTrue(summary.Success);
+            Assert.AreEqual(6, summary.TransferredAmount,
+                "All 6 must fit: 2 merge into target[0], remaining 4 spill into empty slot");
+            Assert.AreEqual(0, _source.Slots.Sum(s => s.Stack?.Count ?? 0),
+                "Source must be fully drained");
+            Assert.AreEqual(9, _target.Slots.Sum(s => s.Stack?.Count ?? 0));
+        }
+
+        // ---------- AllowPartial semantics ----------
+
+        [Test]
+        public void ProcessDrop_AllowPartialTrue_PartialFillSucceeds()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(3)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+
+            for (int i = 0; i < 3; i++)
+                _source.TryAddStack(ItemStackBuilder.Unique(1, $"gem_{i}"));
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithPartial(true));
+
+            Assert.IsTrue(summary.Success);
+            Assert.IsTrue(summary.IsPartial);
+            Assert.AreEqual(1, summary.TransferredAmount);
+            Assert.AreEqual(1, CountFilledSlots(_target));
+            Assert.AreEqual(2, CountFilledSlots(_source), "Two items must remain in source");
+        }
+
+        // ---------- Atomic mode ----------
+
+        [Test]
+        public void ProcessDrop_AtomicMode_OneEntryFails_WholeOperationRollsBack()
+        {
+            var atomicSettings = new DropPolicySettings();
+            SetPrivateField(atomicSettings, "_batchMode", BatchMode.Atomic);
+
+            // Sanity: reflection must actually flip _batchMode before we proceed,
+            // otherwise the rest of the test is meaningless.
+            Assume.That(
+                atomicSettings.Resolve(null, null).BatchMode,
+                Is.EqualTo(BatchMode.Atomic),
+                "Reflection failed to set _batchMode on DropPolicySettings");
+
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(5)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(4)
+                .WithDropPolicy(atomicSettings)
+                .Build();
+
+            // And verify the inventory actually exposes atomic mode through its provider.
+            Assume.That(
+                _target.ResolveDropPolicy(null, null).BatchMode,
+                Is.EqualTo(BatchMode.Atomic),
+                "InventoryBuilder failed to wire atomic settings into UniversalInventory");
+
+            for (int i = 0; i < 5; i++)
+                _source.TryAddStack(ItemStackBuilder.Unique(1, $"gem_{i}"));
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context);
+
+            Assert.IsFalse(summary.Success, "Atomic must fail when not every entry can be placed");
+            Assert.AreEqual(0, summary.TransferredAmount);
+            Assert.AreEqual(5, CountFilledSlots(_source), "Source must be fully restored after rollback");
+            Assert.AreEqual(0, CountFilledSlots(_target), "Target must be fully restored after rollback");
+        }
+
+        // ---------- Swap resolver ----------
+
+        [Test]
+        public void ProcessDrop_WithSwapResolver_SingleTargetSlotOccupied_SwapsContents()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+
+            _source.TryAddStack(ItemStackBuilder.Unique(1, "sword"));
+            _target.TryAddStack(ItemStackBuilder.Unique(1, "shield"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+
+            Assert.IsTrue(summary.Success, $"Swap must succeed, got: {summary.DropResult.FailureReason}");
+            Assert.AreEqual("sword", _target.GetSlot(0).Stack.ItemAdapter.ItemId);
+            Assert.AreEqual("shield", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
+        }
+
+        // ---------- FindAlternative: EmptyFirst vs MergeFirst ----------
+
+        [Test]
+        public void ProcessDrop_FindAlternative_EmptyFirst_OccupiedTarget_GoesToEmptyNotMerge()
+        {
+            // StackableItemStrategy.TryAddToSlot has an AllowMergeOnDrop fallback that will
+            // re-route any drop to an existing mergeable stack regardless of the planner's
+            // chosen allocation. To test the planner's EmptyFirst alternative strategy
+            // faithfully, we must disable that execution-time fallback.
+            var settings = new DropPolicySettings();
+            SetPrivateField(settings, "_allowMergeOnDrop", false);
+
+            _source = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(3)
+                .WithDropPolicy(settings)
+                .Build();
+
+            // target[0] = other type (blocks direct drop), target[1] = same type (merge candidate),
+            // target[2] = empty (EmptyFirst should prefer this).
+            _target.TryAddStack(ItemStackBuilder.Unique(1, "other"));
+            _target.GetSlot(1).SetStack(ItemStackBuilder.Unique(2, "coin"));
+
+            _source.TryAddStack(ItemStackBuilder.Unique(3, "coin"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithFindAlternative(new EmptyFirstAlternativePlacementStrategy()));
+
+            Assert.IsTrue(summary.Success);
+            Assert.AreEqual("other", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Blocked target must stay untouched");
+            Assert.AreEqual(2, _target.GetSlot(1).Stack.Count, "EmptyFirst must not merge into the partial stack");
+            Assert.AreEqual(3, _target.GetSlot(2).Stack.Count, "EmptyFirst must place into the empty slot");
+        }
+
+        [Test]
+        public void ProcessDrop_FindAlternative_MergeFirst_OccupiedTarget_MergesIntoPartial()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(3)
+                .Build();
+
+            _target.TryAddStack(ItemStackBuilder.Unique(1, "other"));
+            _target.GetSlot(1).SetStack(ItemStackBuilder.Unique(2, "coin"));
+
+            _source.TryAddStack(ItemStackBuilder.Unique(3, "coin"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithFindAlternative(new MergeFirstAlternativePlacementStrategy()));
+
+            Assert.IsTrue(summary.Success);
+            Assert.AreEqual(5, _target.GetSlot(1).Stack.Count, "MergeFirst must merge into existing coin stack");
+            Assert.IsTrue(_target.GetSlot(2).IsEmpty, "Empty slot must remain empty when merge is preferred");
+        }
+
+        [Test]
+        public void ProcessDrop_FindAlternative_SameInventoryFallbackDisabled_OccupiedTargetDoesNotMoveToEmptySlot()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(3)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _source.GetSlot(1).SetStack(ItemStackBuilder.Unique(1, "shield"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_source.GetSlot(1), _source)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_source.GetSlot(1), _source, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithFindAlternative(
+                    allowSameInventoryAlternativePlacement: false));
+
+            Assert.IsFalse(summary.Success, "Same-inventory blocked drop must be rejected instead of using an empty fallback slot");
+            Assert.AreEqual("sword", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
+            Assert.AreEqual("shield", _source.GetSlot(1).Stack.ItemAdapter.ItemId);
+            Assert.IsTrue(_source.GetSlot(2).IsEmpty, "Fallback slot must stay empty");
+        }
+
+        // ---------- Degenerate inputs ----------
+
+        [Test]
+        public void ProcessDrop_NullContext_FailsGracefully()
+        {
+            _target = new InventoryBuilder().WithFixedSlots(1).Build();
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(null);
+
+            Assert.IsFalse(summary.Success);
+            Assert.IsNotNull(summary.DropResult.FailureReason);
+        }
+
+        [Test]
+        public void ProcessDrop_EmptySourceSlot_FailsGracefully()
+        {
+            // Build a DragContext with an empty source — our builder refuses, so we hand-craft.
+            _source = new InventoryBuilder().WithFixedSlots(1).Build();
+            _target = new InventoryBuilder().WithFixedSlots(1).Build();
+
+            var emptyStack = ItemStack.Empty();
+            var context = new DragContext(emptyStack, _source.GetSlot(0), _source);
+
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context);
+
+            Assert.IsFalse(summary.Success, "Empty stack cannot produce a valid transfer");
+        }
+
+        // ---------- helpers ----------
+
+        private static int CountFilledSlots(IInventory inv)
+        {
+            int n = 0;
+            for (int i = 0; i < inv.SlotCount; i++)
+                if (!inv.GetSlot(i).IsEmpty) n++;
+            return n;
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            var type = target.GetType();
+            FieldInfo field = null;
+            while (type != null && field == null)
+            {
+                field = type.GetField(fieldName,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                type = type.BaseType;
+            }
+            Assert.IsNotNull(field, $"Field '{fieldName}' not found on {target.GetType().Name}");
+            field.SetValue(target, value);
+        }
+    }
+}

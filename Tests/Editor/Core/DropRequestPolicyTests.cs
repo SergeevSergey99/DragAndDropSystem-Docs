@@ -58,6 +58,16 @@ namespace UniversalDragAndDrop.Tests.Core
             Assert.AreSame(custom, resolver.AlternativePlacementStrategy);
         }
 
+        [Test]
+        public void WithFindAlternative_CanDisableSameInventoryAlternativePlacement()
+        {
+            var policy = DropRequestPolicy.WithFindAlternative(
+                allowSameInventoryAlternativePlacement: false);
+
+            var resolver = (FindAlternativeBlockedTargetResolver)policy.BlockedTargetResolver;
+            Assert.IsFalse(resolver.AllowSameInventoryAlternativePlacement);
+        }
+
         [TestCase(true)]
         [TestCase(false)]
         public void WithPartial_SetsAllowPartial_LeavesResolverNull(bool allow)
