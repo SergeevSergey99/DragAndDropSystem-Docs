@@ -352,6 +352,94 @@ namespace UniversalDragAndDrop.Tests.Inventories
             Assert.IsTrue(_source.GetSlot(2).IsEmpty, "Fallback slot must stay empty");
         }
 
+        [Test]
+        public void ProcessDrop_FindAlternative_SameInventoryFallbackEnabled_OccupiedTargetMovesToEmptySlot()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(3)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _source.GetSlot(1).SetStack(ItemStackBuilder.Unique(1, "shield"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_source.GetSlot(1), _source)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_source.GetSlot(1), _source, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithFindAlternative());
+
+            Assert.IsTrue(summary.Success, $"Expected fallback move, got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source slot must be emptied after the move");
+            Assert.AreEqual("shield", _source.GetSlot(1).Stack.ItemAdapter.ItemId, "Blocked target must stay untouched");
+            Assert.AreEqual("sword", _source.GetSlot(2).Stack.ItemAdapter.ItemId, "Item must move into the alternative slot");
+        }
+
+        [Test]
+        public void ProcessDrop_FindAlternative_CrossInventoryFallbackDisabled_StillMovesToAlternativeSlot()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "shield"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithFindAlternative(
+                    allowSameInventoryAlternativePlacement: false));
+
+            Assert.IsTrue(summary.Success, $"Cross-inventory fallback must remain enabled, got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty);
+            Assert.AreEqual("shield", _target.GetSlot(0).Stack.ItemAdapter.ItemId);
+            Assert.AreEqual("sword", _target.GetSlot(1).Stack.ItemAdapter.ItemId);
+        }
+
+        [Test]
+        public void ProcessDrop_RejectResolver_OccupiedTargetRejectedAndUnchanged()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "shield"));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithResolver(new RejectBlockedTargetResolver()));
+
+            Assert.IsFalse(summary.Success, "Reject resolver must not search alternatives or swap");
+            Assert.AreEqual("sword", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
+            Assert.AreEqual("shield", _target.GetSlot(0).Stack.ItemAdapter.ItemId);
+            Assert.IsTrue(_target.GetSlot(1).IsEmpty);
+        }
+
         // ---------- Degenerate inputs ----------
 
         [Test]

@@ -41,7 +41,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 .WithFixedSlots(2)
                 .Build();
 
-            Assert.IsNotNull(_inventory.Strategy, "Strategy must be initialized after Awake");
+            Assert.IsNotNull(_inventory.Strategy, "Strategy must be initialized after Build");
             Assert.IsNotNull(_inventory.PlacementStrategy, "PlacementStrategy lazy-init must work");
             Assert.IsTrue(_inventory.PlacementStrategy.UsesPerItemSlotPlanning,
                 "Unique strategy exposes per-item planning");
