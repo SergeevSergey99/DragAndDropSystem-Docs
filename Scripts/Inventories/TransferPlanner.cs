@@ -297,7 +297,15 @@ namespace UniversalDragAndDrop.Inventories
 
             if (isFirstEntry &&
                 targetBaseSlotHint != null &&
-                !SupportsAlternativePlacement(policy))
+                !CanResolveAlternativeSlots(
+                    context,
+                    entry,
+                    policy,
+                    targetInventory,
+                    targetBaseSlotHint,
+                    preferHint: true,
+                    targetItem,
+                    excludeBaseSlot: targetBaseSlotHint))
             {
                 return PlanHintOnlyEntry(
                     context,
@@ -388,7 +396,9 @@ namespace UniversalDragAndDrop.Inventories
             // Dynamic inventories fallback: when virtual slot allocation found nothing
             // but the inventory reports capacity (via potentialNewSlots), defer to execution
             // which creates slots on the fly via TryAddStack / DynamicSlotDecorator.
-            if (plannedAmount == 0 && operation.AcceptableByInventory > 0)
+            if (plannedAmount == 0 &&
+                operation.AcceptableByInventory > 0 &&
+                CanUseDeferredPlacement(operation))
             {
                 int deferredAmount = operation.Policy.AllowPartial
                     ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
@@ -555,26 +565,6 @@ namespace UniversalDragAndDrop.Inventories
             return rounded;
         }
 
-        private static bool ShouldPlanSwap(
-            DragContext context,
-            DragEntry entry,
-            ResolvedDropPolicy policy,
-            BaseSlot targetBaseSlotHint,
-            bool preferHint)
-        {
-            return SupportsSwap(policy);
-        }
-
-        private static bool SupportsSwap(ResolvedDropPolicy policy)
-        {
-            return policy.BlockedTargetResolver?.SwapStrategy != null;
-        }
-
-        private static bool SupportsAlternativePlacement(ResolvedDropPolicy policy)
-        {
-            return policy.BlockedTargetResolver?.AlternativePlacementStrategy != null;
-        }
-
         private IReadOnlyList<PlannedSlotAllocation> AllocateForStrategyInventory(EntryPlanningOperation operation)
         {
             bool canSearchAlternatives = CanSearchAlternativeSlots(operation);
@@ -602,7 +592,7 @@ namespace UniversalDragAndDrop.Inventories
                 if (remaining <= 0)
                     return allocations;
 
-                if (!anyPlaced && SupportsSwap(operation.Policy))
+                if (!anyPlaced && CanResolveSwapTargets(operation))
                     return EmptyAllocations;
 
                 if (!canSearchAlternatives)
@@ -742,10 +732,89 @@ namespace UniversalDragAndDrop.Inventories
 
         private static bool CanSearchAlternativeSlots(EntryPlanningOperation operation)
         {
-            if (!SupportsAlternativePlacement(operation.Policy))
-                return false;
+            return CanResolveAlternativeSlots(
+                operation.Context,
+                operation.Entry,
+                operation.Policy,
+                operation.TargetInventory,
+                operation.TargetBaseSlotHint,
+                operation.PreferHint,
+                operation.TargetItemAdapter,
+                operation.PreferHint ? operation.TargetBaseSlotHint : null);
+        }
 
-            return true;
+        private static bool CanUseDeferredPlacement(EntryPlanningOperation operation)
+        {
+            if (operation.TargetBaseSlotHint == null)
+                return true;
+
+            return CanSearchAlternativeSlots(operation);
+        }
+
+        private static bool CanResolveAlternativeSlots(
+            DragContext context,
+            DragEntry entry,
+            ResolvedDropPolicy policy,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlotHint,
+            bool preferHint,
+            IItemAdapter targetItem,
+            BaseSlot excludeBaseSlot)
+        {
+            return ResolveBlockedTarget(
+                context,
+                entry,
+                policy,
+                targetInventory,
+                targetBaseSlotHint,
+                preferHint,
+                targetItem,
+                excludeBaseSlot).Kind == BlockedTargetResolutionKind.AlternativeSlots;
+        }
+
+        private static bool CanResolveSwapTargets(EntryPlanningOperation operation)
+        {
+            return ResolveBlockedTarget(
+                operation.Context,
+                operation.Entry,
+                operation.Policy,
+                operation.TargetInventory,
+                operation.TargetBaseSlotHint,
+                operation.PreferHint,
+                operation.TargetItemAdapter,
+                excludeBaseSlot: null).Kind == BlockedTargetResolutionKind.SwapTargets;
+        }
+
+        private static BlockedTargetResolution ResolveBlockedTarget(
+            DragContext context,
+            DragEntry entry,
+            ResolvedDropPolicy policy,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlotHint,
+            bool preferHint,
+            IItemAdapter targetItem,
+            BaseSlot excludeBaseSlot)
+        {
+            var resolver = policy.BlockedTargetResolver;
+            if (resolver == null)
+                return BlockedTargetResolution.Reject();
+
+            var placementStrategy = ResolvePlacementStrategy(targetInventory);
+            System.Func<BaseSlot, IItemAdapter, bool> canUseAlternativeSlot = placementStrategy != null
+                ? placementStrategy.CanUseAlternativeSlot
+                : null;
+            var resolutionContext = new BlockedTargetResolutionContext(
+                context,
+                entry,
+                targetInventory,
+                targetBaseSlotHint,
+                preferHint,
+                GetInventorySlots(targetInventory),
+                targetItem,
+                excludeBaseSlot,
+                canUseAlternativeSlot);
+
+            return resolver.Resolve(resolutionContext) ?? BlockedTargetResolution.Reject();
         }
 
         private bool CanStrategyPlaceIntoSlot(
@@ -784,20 +853,22 @@ namespace UniversalDragAndDrop.Inventories
             if (placementStrategy == null)
                 yield break;
 
-            var alternativePlacementStrategy = operation.Policy.BlockedTargetResolver?.AlternativePlacementStrategy;
-            if (alternativePlacementStrategy == null)
-                yield break;
-
-            IEnumerable<BaseSlot> orderedSlots = alternativePlacementStrategy.EnumerateAlternativeSlots(
-                GetInventorySlots(operation.TargetInventory),
+            var resolution = ResolveBlockedTarget(
+                operation.Context,
+                operation.Entry,
+                operation.Policy,
+                operation.TargetInventory,
+                operation.TargetBaseSlotHint,
+                operation.PreferHint,
                 operation.TargetItemAdapter,
-                excludeBaseSlot,
-                placementStrategy.CanUseAlternativeSlot);
-
-            if (orderedSlots == null)
+                excludeBaseSlot);
+            if (resolution.Kind != BlockedTargetResolutionKind.AlternativeSlots)
                 yield break;
 
-            foreach (var orderedSlot in orderedSlots)
+            if (resolution.TargetSlots == null)
+                yield break;
+
+            foreach (var orderedSlot in resolution.TargetSlots)
             {
                 var state = FindVirtualSlot(orderedSlot, operation.VirtualSlots);
                 if (state != null)
@@ -863,15 +934,19 @@ namespace UniversalDragAndDrop.Inventories
             int requested,
             IItemAdapter targetItem)
         {
-            if (!ShouldPlanSwap(context, entry, policy, targetBaseSlotHint, preferHint))
+            var resolution = ResolveBlockedTarget(
+                context,
+                entry,
+                policy,
+                targetInventory,
+                targetBaseSlotHint,
+                preferHint,
+                targetItem,
+                excludeBaseSlot: null);
+            if (resolution.Kind != BlockedTargetResolutionKind.SwapTargets)
                 return null;
 
-            var swapStrategy = policy.BlockedTargetResolver?.SwapStrategy;
-            if (swapStrategy == null)
-                return null;
-
-            var searchContext = new SwapSearchContext(context, entry, targetInventory, targetBaseSlotHint, preferHint);
-            var swapTargets = swapStrategy.EnumerateSwapTargets(searchContext);
+            var swapTargets = resolution.TargetSlots;
             if (swapTargets == null)
                 return null;
 

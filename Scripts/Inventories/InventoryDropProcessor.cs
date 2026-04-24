@@ -200,8 +200,7 @@ namespace UniversalDragAndDrop.Inventories
 
             var policy = plan.Policy;
             var blockedResolverName = policy.BlockedTargetResolver?.GetType().Name ?? "None";
-            var alternativePlacementName = policy.BlockedTargetResolver?.AlternativePlacementStrategy?.GetType().Name ?? "None";
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetBaseSlot?.Index.ToString() ?? "AREA"} | Policy=[BlockedResolver={blockedResolverName}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}, AlternativePlacement={alternativePlacementName}]</color>");
+            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetBaseSlot?.Index.ToString() ?? "AREA"} | Policy=[BlockedResolver={blockedResolverName}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}]</color>");
             return true;
         }
 

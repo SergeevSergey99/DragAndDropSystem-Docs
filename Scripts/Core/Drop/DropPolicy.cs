@@ -47,12 +47,13 @@ namespace UniversalDragAndDrop.Core
             return new DropRequestPolicy(new SwapBlockedTargetResolver());
         }
 
-        public static DropRequestPolicy WithFindAlternative(IAlternativePlacementStrategy placementStrategy = null)
+        public static DropRequestPolicy WithFindAlternative(
+            IAlternativePlacementStrategy placementStrategy = null,
+            bool allowSameInventoryAlternativePlacement = true)
         {
-            var resolver = new FindAlternativeBlockedTargetResolver();
-            if (placementStrategy != null)
-                resolver.SetAlternativePlacementStrategy(placementStrategy);
-
+            var resolver = new FindAlternativeBlockedTargetResolver(
+                placementStrategy,
+                allowSameInventoryAlternativePlacement);
             return new DropRequestPolicy(resolver);
         }
 
