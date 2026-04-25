@@ -940,11 +940,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490481047700242459
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _alternativePlacement: 0
   _slots:
   - {fileID: 2074890394}
   - {fileID: 239422815}
@@ -964,14 +964,6 @@ MonoBehaviour:
   - {fileID: 2146818450}
   - {fileID: 1369556861}
   - {fileID: 552215055}
-  _itemBehavior: 1
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -983,6 +975,15 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8490481047700242459
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490481047700242460
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8490481047700242460
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &249221549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1221,6 +1222,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DragCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2723276657636712345, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      propertyPath: <DefaultBindingsProfile>k__BackingField
+      value: 
+      objectReference: {fileID: 11400000, guid: 280e4129d3a583a4dbbc6c317aa5a05c, type: 2}
     - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
       propertyPath: m_RenderMode
       value: 0
@@ -1595,20 +1600,12 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
+    _blockedTargetResolver:
+      rid: 8490481047700242457
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
-    _alternativePlacement: 0
   _slots: []
-  _itemBehavior: 1
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
   references:
     version: 2
     RefIds:
@@ -1620,6 +1617,15 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8490481047700242457
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490481047700242458
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8490481047700242458
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
 --- !u!114 &550390918
 MonoBehaviour:
   m_ObjectHideFlags: 0
