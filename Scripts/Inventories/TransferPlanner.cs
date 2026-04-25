@@ -331,6 +331,12 @@ namespace UniversalDragAndDrop.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory cannot accept this itemAdapter");
             }
 
+            // Occupied slot handler takes priority over default blocked-target behavior.
+            // Data bindings can interpret a drop onto an occupied slot as a domain action
+            // (for example, putting an item inside a container) instead of placement.
+            if (TryPlanOccupiedSlotHandler(entry, targetInventory, targetBaseSlotHint, isFirstEntry, requested, targetItem, out var occupiedHandlerPlan))
+                return occupiedHandlerPlan;
+
             var operation = new EntryPlanningOperation(
                 context,
                 entry,
@@ -377,22 +383,6 @@ namespace UniversalDragAndDrop.Inventories
             // Example: resultCount=6, capacity=64 -> transfer 60 (10 full crafts).
             plannedAmount = ApplySourceDragAmountStep(entry, plannedAmount, ref allocations);
 
-            // Occupied slot handler takes priority: data binding may handle drop onto occupied slot
-            // (e.g. placing item into a container). Must check before deferred allocation.
-            if (plannedAmount == 0 && isFirstEntry && targetBaseSlotHint != null && !targetBaseSlotHint.IsEmpty
-                && targetInventory is UniversalInventory occupiedUni
-                && occupiedUni.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
-            {
-                return new PlannedEntryTransfer(
-                    entry,
-                    requested,
-                    requested,
-                    EmptyAllocations,
-                    previewTargetItemAdapter: targetItem,
-                    requiresOccupiedHandler: true,
-                    occupiedTargetBaseSlot: targetBaseSlotHint);
-            }
-
             // Dynamic inventories fallback: when virtual slot allocation found nothing
             // but the inventory reports capacity (via potentialNewSlots), defer to execution
             // which creates slots on the fly via TryAddStack / DynamicSlotDecorator.
@@ -434,6 +424,34 @@ namespace UniversalDragAndDrop.Inventories
             }
 
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
+        }
+
+        private static bool TryPlanOccupiedSlotHandler(
+            DragEntry entry,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlotHint,
+            bool isFirstEntry,
+            int requestedAmount,
+            IItemAdapter targetItem,
+            out PlannedEntryTransfer plan)
+        {
+            plan = null;
+            if (!isFirstEntry ||
+                targetBaseSlotHint == null ||
+                targetBaseSlotHint.IsEmpty ||
+                targetInventory is not UniversalInventory occupiedUni ||
+                !occupiedUni.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
+                return false;
+
+            plan = new PlannedEntryTransfer(
+                entry,
+                requestedAmount,
+                requestedAmount,
+                EmptyAllocations,
+                previewTargetItemAdapter: targetItem,
+                requiresOccupiedHandler: true,
+                occupiedTargetBaseSlot: targetBaseSlotHint);
+            return true;
         }
 
         private PlannedEntryTransfer PlanHintOnlyEntry(
@@ -486,19 +504,8 @@ namespace UniversalDragAndDrop.Inventories
                 return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
             }
 
-            if (!targetBaseSlotHint.IsEmpty &&
-                targetInventory is UniversalInventory occupiedUni &&
-                occupiedUni.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
-            {
-                return new PlannedEntryTransfer(
-                    entry,
-                    requested,
-                    requested,
-                    EmptyAllocations,
-                    previewTargetItemAdapter: targetItem,
-                    requiresOccupiedHandler: true,
-                    occupiedTargetBaseSlot: targetBaseSlotHint);
-            }
+            if (TryPlanOccupiedSlotHandler(entry, targetInventory, targetBaseSlotHint, true, requested, targetItem, out var occupiedHandlerPlan))
+                return occupiedHandlerPlan;
 
             var swapPlan = TryPlanSwap(context, entry, policy, targetInventory, targetBaseSlotHint, true, globalRules, requested, targetItem);
             if (swapPlan != null)

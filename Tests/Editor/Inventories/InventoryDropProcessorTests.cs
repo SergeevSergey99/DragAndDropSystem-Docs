@@ -2,6 +2,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.DataBinding;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Rules;
 using UniversalDragAndDrop.Slots;
@@ -410,6 +411,41 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_OccupiedSlotHandler_WithFindAlternative_TakesPriorityOverAlternativeSlot()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "container"));
+
+            var binding = _target.gameObject.AddComponent<TestOccupiedSlotBinding>();
+            binding.HandledSlot = _target.GetSlot(0);
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithFindAlternative());
+
+            Assert.IsTrue(summary.Success, $"Occupied handler must succeed, got: {summary.DropResult.FailureReason}");
+            Assert.Greater(binding.CanHandleCalls, 0, "Planner must ask the data binding before using FindAlternative");
+            Assert.AreEqual(1, binding.ExecuteCalls, "Executor must use the occupied-slot handler");
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source must be consumed by the occupied-slot handler");
+            Assert.AreEqual("container", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Occupied target must stay untouched");
+            Assert.IsTrue(_target.GetSlot(1).IsEmpty, "FindAlternative must not move the item into the free slot");
+        }
+
+        [Test]
         public void ProcessDrop_RejectResolver_OccupiedTargetRejectedAndUnchanged()
         {
             _source = new InventoryBuilder()
@@ -493,5 +529,31 @@ namespace UniversalDragAndDrop.Tests.Inventories
             Assert.IsNotNull(field, $"Field '{fieldName}' not found on {target.GetType().Name}");
             field.SetValue(target, value);
         }
+    }
+
+    public sealed class TestOccupiedSlotBinding : InventoryDataBindingBase
+    {
+        public BaseSlot HandledSlot { get; set; }
+        public int CanHandleCalls { get; private set; }
+        public int ExecuteCalls { get; private set; }
+
+        protected override void Awake() { }
+
+        protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        {
+            CanHandleCalls++;
+            return ReferenceEquals(occupiedBaseSlot, HandledSlot);
+        }
+
+        protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        {
+            ExecuteCalls++;
+            entry.SourceBaseSlot.Clear();
+            return true;
+        }
+
+        protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context) { }
+        protected override void OnReloadUI() { }
     }
 }
