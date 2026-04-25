@@ -87,8 +87,11 @@ namespace UniversalDragAndDrop.Slots
         protected virtual void RenderFilled(){}
 
         /// <summary>Render a non-empty slot that is the source of a drag/transfer.</summary>
-        protected virtual void RenderFilledAndDraggedFrom() => RenderEmpty();
-
+        protected virtual void RenderFilledAndDraggedFrom()
+        {
+            if (Stack.Count > 0) RenderFilled();
+            else RenderEmpty();
+        }
         /// <summary>Render a non-empty slot that is the target of a transfer animation.</summary>
         protected virtual void RenderFilledAndDraggedTo()
         {
