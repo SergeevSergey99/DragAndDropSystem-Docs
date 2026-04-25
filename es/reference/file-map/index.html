@@ -896,7 +896,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de drop policy
+    Matriz de Drop Policy
   
 
     
@@ -2454,8 +2454,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicy.cs</code></td>
-<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
-<td>Enums base y modelos value-type de drop policy usados por planning y execution.</td>
+<td><code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
+<td>Modelos value-type base de drop policy usados por planning y execution.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicySettings.cs</code></td>
@@ -2474,8 +2474,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/BlockedTargetResolverBase.cs</code></td>
-<td><code>BlockedTargetResolverBase</code></td>
-<td>Clase base para authoring del comportamiento ante blocked target en <code>DropPolicySettings</code>.</td>
+<td><code>BlockedTargetResolverBase</code>, <code>BlockedTargetResolution</code>, <code>BlockedTargetResolutionContext</code></td>
+<td>Contrato base para el comportamiento ante blocked target. Los resolvers devuelven <code>Reject</code>, <code>AlternativeSlots</code> o <code>SwapTargets</code>.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/RejectBlockedTargetResolver.cs</code></td>
@@ -2485,17 +2485,32 @@
 <tr>
 <td><code>Scripts/Core/Drop/SwapBlockedTargetResolver.cs</code></td>
 <td><code>SwapBlockedTargetResolver</code></td>
-<td>Resolver que prefiere swap planning en blocked targets.</td>
+<td>Resolver que convierte los candidatos de una swap strategy anidada en <code>SwapTargets</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/ISwapStrategy.cs</code></td>
+<td><code>ISwapStrategy</code></td>
+<td>Contrato para la enumeración object-based de swap candidates usado por <code>SwapBlockedTargetResolver</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/SwapSearchContext.cs</code></td>
+<td><code>SwapSearchContext</code></td>
+<td>Contexto entregado a las swap strategies para inspeccionar el estado del drag, el inventario objetivo y el hinted slot.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/HintedTargetSwapStrategy.cs</code></td>
+<td><code>HintedTargetSwapStrategy</code></td>
+<td>Swap strategy por defecto que solo considera el target slot actualmente sugerido.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs</code></td>
 <td><code>FindAlternativeBlockedTargetResolver</code></td>
-<td>Resolver que delega el manejo del blocked target a una strategy de colocación alternativa.</td>
+<td>Resolver que convierte candidatos de colocación alternativa en <code>AlternativeSlots</code> y puede desactivar fallback dentro del mismo inventario.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/IAlternativePlacementStrategy.cs</code></td>
 <td><code>IAlternativePlacementStrategy</code></td>
-<td>Contrato para el orden de búsqueda de slots alternativos usado por <code>FindAlternativeBlockedTargetResolver</code>.</td>
+<td>Contrato para la enumeración object-based de slots alternativos usado por <code>FindAlternativeBlockedTargetResolver</code>.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs</code></td>
@@ -2676,7 +2691,7 @@
 <tr>
 <td><code>Scripts/Inventories/TransferPlanner.cs</code></td>
 <td><code>TransferPlanFailureCode</code>, <code>PlanFailure</code>, <code>PlannedSwapData</code>, <code>PlannedEntryTransfer</code>, <code>TransferPlan</code>, <code>TransferPlanner</code></td>
-<td>Construye un plan de transferencia sin mutar inventarios. Archivo central para lógica de preview, búsqueda de placement, decisiones de swap e informes de error.</td>
+<td>Construye un plan de transferencia sin mutar inventarios. Consume resultados de blocked-target resolvers y maneja preview allocation, swap planning e informes de error.</td>
 </tr>
 </tbody>
 </table>

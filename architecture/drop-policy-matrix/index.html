@@ -2074,7 +2074,7 @@ This page is the condensed behavior matrix.</p>
 <ul>
 <li>whether a concrete <code>target slot</code> exists</li>
 <li>whether that slot is empty or occupied</li>
-<li>which <code>BlockedTargetBehavior</code> is selected</li>
+<li>which blocked-target resolver is selected</li>
 </ul>
 <p>Additional modifiers:</p>
 <ul>
@@ -2163,7 +2163,8 @@ Otherwise you get misleading validation logs for neighboring slots.</p>
 <h3 id="same-inventory">Same-inventory</h3>
 <ul>
 <li><code>FindAlternative</code> is not a global reshuffle or sort</li>
-<li>if the target fails, the item stays in place</li>
+<li>by default, <code>FindAlternative</code> may move the item to another valid slot when the hinted target is blocked</li>
+<li>disable <code>AllowSameInventoryAlternativePlacement</code> on <code>FindAlternativeBlockedTargetResolver</code> when a blocked same-inventory drop should leave the item in its original slot</li>
 <li>swap is only supported for a single entry and a full source stack</li>
 </ul>
 <h3 id="cross-inventory">Cross-inventory</h3>
@@ -2176,7 +2177,7 @@ Otherwise you get misleading validation logs for neighboring slots.</p>
 <h2 id="batch-drag">Batch drag</h2>
 <p>For batch drag, keep these separate:</p>
 <ul>
-<li><code>BlockedTargetBehavior</code></li>
+<li>blocked-target resolver</li>
 <li><code>BatchMode</code></li>
 </ul>
 <p><code>BatchMode</code> answers "what happens if one entry fails":</p>
@@ -2193,7 +2194,7 @@ The current swap implementation is aimed at a single entry and a full source sta
 <ul>
 <li>a concrete slot exists</li>
 <li>that slot is occupied</li>
-<li><code>BlockedTargetBehavior = Swap</code></li>
+<li><code>SwapBlockedTargetResolver</code> is active</li>
 </ul>
 <p>Expected behavior:</p>
 <ul>

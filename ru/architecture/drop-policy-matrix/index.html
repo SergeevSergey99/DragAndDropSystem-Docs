@@ -2074,7 +2074,7 @@
 <ul>
 <li>есть ли конкретный <code>target slot</code></li>
 <li>пуст он или занят</li>
-<li>какой <code>BlockedTargetBehavior</code> выбран</li>
+<li>какой blocked-target resolver выбран</li>
 </ul>
 <p>Дополнительно влияют:</p>
 <ul>
@@ -2163,7 +2163,8 @@
 <h3 id="same-inventory">Same-inventory</h3>
 <ul>
 <li><code>FindAlternative</code> не должен "перераскладывать" предметы по всему инвентарю как сортировка</li>
-<li>если target не подошёл, предмет остаётся на месте</li>
+<li>по умолчанию <code>FindAlternative</code> может перенести предмет в другой подходящий слот, если hinted target заблокирован</li>
+<li>отключите <code>AllowSameInventoryAlternativePlacement</code> в <code>FindAlternativeBlockedTargetResolver</code>, если blocked drop внутри того же инвентаря должен оставлять предмет в исходном слоте</li>
 <li>swap поддерживается только для одиночного entry и полного source stack</li>
 </ul>
 <h3 id="cross-inventory">Cross-inventory</h3>
@@ -2176,7 +2177,7 @@
 <h2 id="batch-drag">Batch drag</h2>
 <p>Для batch drag важно разделять две вещи:</p>
 <ul>
-<li><code>BlockedTargetBehavior</code></li>
+<li>blocked-target resolver</li>
 <li><code>BatchMode</code></li>
 </ul>
 <p><code>BatchMode</code> отвечает на вопрос "что делать, если один из entries не прошёл":</p>
@@ -2193,7 +2194,7 @@
 <ul>
 <li>есть конкретный slot</li>
 <li>слот занят</li>
-<li><code>BlockedTargetBehavior = Swap</code></li>
+<li>активен <code>SwapBlockedTargetResolver</code></li>
 </ul>
 <p>Ожидаемое поведение:</p>
 <ul>

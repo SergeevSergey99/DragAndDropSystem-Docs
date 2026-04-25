@@ -2454,8 +2454,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicy.cs</code></td>
-<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
-<td>Базовые enum'ы и value-type модели drop policy, используемые planning и execution.</td>
+<td><code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
+<td>Базовые value-type модели drop policy, используемые planning и execution.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicySettings.cs</code></td>
@@ -2474,8 +2474,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/BlockedTargetResolverBase.cs</code></td>
-<td><code>BlockedTargetResolverBase</code></td>
-<td>Базовый класс для authoring blocked-target поведения в <code>DropPolicySettings</code>.</td>
+<td><code>BlockedTargetResolverBase</code>, <code>BlockedTargetResolution</code>, <code>BlockedTargetResolutionContext</code></td>
+<td>Базовый контракт blocked-target поведения. Resolver возвращает <code>Reject</code>, <code>AlternativeSlots</code> или <code>SwapTargets</code>.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/RejectBlockedTargetResolver.cs</code></td>
@@ -2485,17 +2485,32 @@
 <tr>
 <td><code>Scripts/Core/Drop/SwapBlockedTargetResolver.cs</code></td>
 <td><code>SwapBlockedTargetResolver</code></td>
-<td>Resolver, который предпочитает swap planning при blocked target.</td>
+<td>Resolver, который превращает кандидатов вложенной swap strategy в <code>SwapTargets</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/ISwapStrategy.cs</code></td>
+<td><code>ISwapStrategy</code></td>
+<td>Контракт для object-based перечисления swap-candidates, используемый <code>SwapBlockedTargetResolver</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/SwapSearchContext.cs</code></td>
+<td><code>SwapSearchContext</code></td>
+<td>Контекст, который swap strategy получает для доступа к состоянию drag, target inventory и hinted slot.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/HintedTargetSwapStrategy.cs</code></td>
+<td><code>HintedTargetSwapStrategy</code></td>
+<td>Дефолтная swap strategy, которая рассматривает только текущий hinted target slot.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs</code></td>
 <td><code>FindAlternativeBlockedTargetResolver</code></td>
-<td>Resolver, который делегирует blocked-target обработку стратегии alternative placement.</td>
+<td>Resolver, который превращает alternative placement candidates в <code>AlternativeSlots</code> и может отключать fallback внутри того же inventory.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/IAlternativePlacementStrategy.cs</code></td>
 <td><code>IAlternativePlacementStrategy</code></td>
-<td>Контракт для порядка поиска альтернативных слотов, используемый <code>FindAlternativeBlockedTargetResolver</code>.</td>
+<td>Контракт для object-based перечисления альтернативных слотов, используемый <code>FindAlternativeBlockedTargetResolver</code>.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs</code></td>
@@ -2676,7 +2691,7 @@
 <tr>
 <td><code>Scripts/Inventories/TransferPlanner.cs</code></td>
 <td><code>TransferPlanFailureCode</code>, <code>PlanFailure</code>, <code>PlannedSwapData</code>, <code>PlannedEntryTransfer</code>, <code>TransferPlan</code>, <code>TransferPlanner</code></td>
-<td>Строит план переноса без изменения состояния инвентаря. Центральный файл для preview-логики, placement search, swap-решений и диагностики ошибок.</td>
+<td>Строит план переноса без изменения состояния инвентаря. Использует результаты blocked-target resolver'ов и отвечает за preview allocation, swap planning и диагностику ошибок.</td>
 </tr>
 </tbody>
 </table>

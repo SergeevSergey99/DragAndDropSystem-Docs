@@ -896,7 +896,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de drop policy
+    Matriz de Drop Policy
   
 
     
@@ -1960,27 +1960,15 @@ El inventario principal no depende de ello. Consulta <a href="../../reference/op
 <tbody>
 <tr>
 <td><strong>Cursor</strong></td>
-<td>El tooltip sigue al cursor (se actualiza cada frame)</td>
+<td>El tooltip sigue al cursor (se actualiza cada frame), pero evita solaparse con el slot hovered</td>
 </tr>
 <tr>
-<td><strong>SlotTopRight</strong></td>
-<td>Anclado a la esquina superior derecha del slot</td>
-</tr>
-<tr>
-<td><strong>SlotTopLeft</strong></td>
-<td>Anclado a la esquina superior izquierda del slot</td>
-</tr>
-<tr>
-<td><strong>SlotBottomRight</strong></td>
-<td>Anclado a la esquina inferior derecha del slot</td>
-</tr>
-<tr>
-<td><strong>SlotBottomLeft</strong></td>
-<td>Anclado a la esquina inferior izquierda del slot</td>
+<td><strong>SlotPivot</strong></td>
+<td>El tooltip se ancla a un punto normalizado dentro del slot hovered (<code>Pivot</code>: 0,0 = esquina inferior izquierda; 1,1 = esquina superior derecha)</td>
 </tr>
 </tbody>
 </table>
-<p>En todos los modos funciona el adaptive flipping: si la tarjeta sale de los límites de la pantalla, se invierte automáticamente hacia el lado opuesto.</p>
+<p>En todos los modos funciona el adaptive flipping: si la tarjeta sale de los límites de la pantalla o se solapa con el slot hovered, el manager elige un lado más adecuado.</p>
 <hr />
 <h2 id="referencia-de-clases">Referencia de clases</h2>
 <table>

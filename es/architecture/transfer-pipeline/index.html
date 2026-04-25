@@ -1150,7 +1150,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de drop policy
+    Matriz de Drop Policy
   
 
     
@@ -2402,8 +2402,7 @@
 <li><code>DropRequestPolicy</code></li>
 <li>override temporal por operación</li>
 <li>puede sobrescribir:<ul>
-<li><code>BlockedTargetBehavior</code></li>
-<li><code>AlternativePlacementMode</code></li>
+<li><code>BlockedTargetResolverBase</code></li>
 <li><code>AllowPartial</code></li>
 </ul>
 </li>
@@ -2414,24 +2413,30 @@
 <li>permitir merge on drop</li>
 <li>permitir parcial</li>
 <li>batch mode</li>
-<li>strategy de colocación alternativa para <code>FindAlternative</code></li>
 </ul>
 </li>
 <li><code>ResolvedDropPolicy</code></li>
 <li>policy final no anulable que usa el planner</li>
+<li>contiene el blocked-target resolver concreto usado por esta transferencia</li>
 </ul>
 <p>Resolvers integrados para blocked target:
 - <code>Reject</code>
 - <code>Swap</code>
 - <code>FindAlternative</code></p>
-<p>Cuando se selecciona <code>FindAlternative</code>, contiene internamente una <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
+<p>Cuando se selecciona <code>Swap</code>, contiene internamente una <code>[SerializeReference]</code> <code>ISwapStrategy</code>.
+Cuando se selecciona <code>FindAlternative</code>, contiene internamente una <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
+<p>Internamente, el manejo de blocked-target pasa por un contrato único:
+<code>BlockedTargetResolverBase.Resolve(...)</code>. El resolver devuelve un <code>BlockedTargetResolution</code>
+como <code>Reject</code>, <code>AlternativeSlots</code> o <code>SwapTargets</code>. El planner consume ese resultado;
+no inspecciona directamente las strategies anidadas del resolver.</p>
 <h2 id="override-temporal-a-traves-de-acciones">Override temporal a través de acciones</h2>
 <p>El override temporal de drop policy se hace mediante la request policy de la acción, no mutando <code>DragContext</code>.</p>
 <p>Ejemplo:
 - <code>CompleteDragAction</code> por defecto llama a <code>CompleteDrag(null)</code>
-- la variante con <code>Ctrl</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
+- la variante con <code>Ctrl</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithSwap())</code>
 - la variante con <code>Shift</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
-- las acciones también pueden sobrescribir <code>AllowPartial</code> y <code>AlternativePlacementMode</code> para una sola transferencia</p>
+- las acciones también pueden sobrescribir <code>AllowPartial</code>
+- si hace falta, también pueden pasar un resolver propio o una placement strategy propia con <code>DropRequestPolicy.WithResolver(...)</code> o <code>DropRequestPolicy.WithFindAlternative(...)</code></p>
 <p>Una variante separada es <code>SplitDropAction</code>: llama a <code>SplitDrop(policy, count)</code> en lugar de <code>CompleteDrag</code>. Esto permite soltar parte del stack (p. ej., 1 item) sin terminar el drag. La transferencia pasa por el mismo pipeline (planner → executor → eventos). Ver <a href="../../systems/interaction/#split-drop">Input and Interaction</a> para más detalles.</p>
 <p>Importante:
 - el override solo se aplica a la operación de transferencia actual
@@ -2445,15 +2450,22 @@
 <ol>
 <li>Crea una clase que herede de <code>BlockedTargetResolverBase</code>.</li>
 <li>Márquela con <code>[Serializable]</code>.</li>
-<li>Sobrescribe <code>Behavior</code>.</li>
-<li>Si tu resolver necesita controlar la colocación alternativa, sobrescribe <code>GetAlternativePlacement()</code>.</li>
+<li>Sobrescribe <code>Resolve(BlockedTargetResolutionContext context)</code>.</li>
+<li>Devuelve <code>BlockedTargetResolution.Reject()</code>, <code>AlternativeSlots(...)</code> o <code>SwapTargets(...)</code>.</li>
 <li>La clase aparecerá automáticamente en el managed reference picker de <code>DropPolicySettings</code>.</li>
+</ol>
+<p>Para crear tu propia swap strategy:</p>
+<ol>
+<li>Crea una clase que implemente <code>ISwapStrategy</code>.</li>
+<li>Márquela con <code>[Serializable]</code>.</li>
+<li>Implementa <code>EnumerateSwapTargets(...)</code> y devuelve los swap candidates en el orden exacto que necesites.</li>
+<li>La clase aparecerá automáticamente dentro de <code>SwapBlockedTargetResolver</code>.</li>
 </ol>
 <p>Para crear tu propia strategy de colocación alternativa:</p>
 <ol>
 <li>Crea una clase que implemente <code>IAlternativePlacementStrategy</code>.</li>
 <li>Márquela con <code>[Serializable]</code>.</li>
-<li>Devuelve el <code>AlternativePlacementMode</code> deseado desde <code>Mode</code>.</li>
+<li>Implementa <code>EnumerateAlternativeSlots(...)</code> y devuelve los slots en el orden exacto que necesites.</li>
 <li>La clase aparecerá automáticamente dentro de <code>FindAlternativeBlockedTargetResolver</code>.</li>
 </ol>
 <h2 id="orden-de-procesamiento-de-drop-policy">Orden de procesamiento de Drop Policy</h2>
@@ -2465,12 +2477,12 @@
 <li>Si solo cabe una parte:</li>
 <li><code>AllowPartial = false</code> -&gt; fallo</li>
 <li><code>AllowPartial = true</code> -&gt; éxito parcial</li>
-<li>el resto puede buscar alternativas solo cuando <code>BlockedTargetBehavior = FindAlternative</code></li>
+<li>el resto puede buscar alternativas solo cuando el resolver activo devuelve <code>AlternativeSlots</code></li>
 <li>Si no cabe nada en el objetivo:</li>
 <li><code>Reject</code> -&gt; fallo</li>
-<li><code>Swap</code> -&gt; el planner crea una swap entry</li>
-<li><code>FindAlternative</code> -&gt; la placement strategy enumera slots alternativos</li>
-<li>En drops dentro del mismo inventario, <code>FindAlternative</code> no reordena items a través de otros slots. Si el target falla, el item permanece en su sitio</li>
+<li>el resolver devuelve <code>SwapTargets</code> -&gt; el planner crea una swap entry</li>
+<li>el resolver devuelve <code>AlternativeSlots</code> -&gt; el planner prueba esos candidate slots</li>
+<li>La colocación alternativa dentro del mismo inventario es configurable en <code>FindAlternativeBlockedTargetResolver</code>. Por defecto puede usar otro slot válido; desactiva <code>AllowSameInventoryAlternativePlacement</code> si un drop sobre un slot bloqueado del mismo inventario debe dejar el item en su slot original.</li>
 </ol>
 <h2 id="operaciones-por-lotes">Operaciones por lotes</h2>
 <p>Al transferir varios items a la vez, el comportamiento viene determinado por <code>BatchMode</code> dentro de <code>DropPolicy</code>:</p>
@@ -2482,7 +2494,7 @@
 <hr />
 <h2 id="el-swap-forma-parte-del-mismo-pipeline">El swap forma parte del mismo pipeline</h2>
 <pre class="mermaid"><code>flowchart TD
-    A["Target slot is occupied"] --&gt; B{"BlockedTargetBehavior = Swap?"}
+    A["Target slot is occupied"] --&gt; B{"Resolver returns SwapTargets?"}
     B --&gt;|No| C["Reject"]
     B --&gt;|Yes| D["Validate both directions\non target-side preview stacks"]
     D --&gt; E["Capture copies of both stacks"]

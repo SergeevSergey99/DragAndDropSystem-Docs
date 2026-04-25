@@ -1960,27 +1960,15 @@ The core inventory does not depend on it. See <a href="../../reference/optional-
 <tbody>
 <tr>
 <td><strong>Cursor</strong></td>
-<td>Tooltip follows the cursor (updated every frame)</td>
+<td>Tooltip follows the cursor (updated every frame), but still avoids overlapping the hovered slot</td>
 </tr>
 <tr>
-<td><strong>SlotTopRight</strong></td>
-<td>Anchored to the top-right corner of the slot</td>
-</tr>
-<tr>
-<td><strong>SlotTopLeft</strong></td>
-<td>Anchored to the top-left corner of the slot</td>
-</tr>
-<tr>
-<td><strong>SlotBottomRight</strong></td>
-<td>Anchored to the bottom-right corner of the slot</td>
-</tr>
-<tr>
-<td><strong>SlotBottomLeft</strong></td>
-<td>Anchored to the bottom-left corner of the slot</td>
+<td><strong>SlotPivot</strong></td>
+<td>Tooltip is anchored to a normalized point inside the hovered slot (<code>Pivot</code>: 0,0 = bottom-left; 1,1 = top-right)</td>
 </tr>
 </tbody>
 </table>
-<p>In all modes, adaptive flipping works: if the card goes beyond the screen boundaries, it automatically flips to the opposite side.</p>
+<p>In all modes, adaptive flipping works: if the card goes beyond the screen boundaries or overlaps the hovered slot, it automatically chooses a better side.</p>
 <hr />
 <h2 id="class-reference">Class Reference</h2>
 <table>

@@ -2425,8 +2425,7 @@
 <li><code>DropRequestPolicy</code></li>
 <li>временный override для конкретной операции</li>
 <li>может задать:<ul>
-<li><code>BlockedTargetBehavior</code></li>
-<li><code>AlternativePlacementMode</code></li>
+<li><code>BlockedTargetResolverBase</code></li>
 <li><code>AllowPartial</code></li>
 </ul>
 </li>
@@ -2437,25 +2436,31 @@
 <li>allow merge on drop</li>
 <li>allow partial</li>
 <li>batch mode</li>
-<li>alternative placement strategy для <code>FindAlternative</code></li>
 </ul>
 </li>
 <li><code>ResolvedDropPolicy</code></li>
 <li>итог после resolution</li>
 <li>именно он используется planner-ом</li>
+<li>содержит конкретный blocked-target resolver для текущего переноса</li>
 </ul>
 <p>Встроенные blocked target resolver'ы:
 - <code>Reject</code>
 - <code>Swap</code>
 - <code>FindAlternative</code></p>
-<p>Если выбран <code>FindAlternative</code>, внутри него задаётся вложенная <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
+<p>Если выбран <code>Swap</code>, внутри него задаётся вложенная <code>[SerializeReference]</code> <code>ISwapStrategy</code>.
+Если выбран <code>FindAlternative</code>, внутри него задаётся вложенная <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
+<p>Внутри blocked-target обработка проходит через единый контракт resolver'а:
+<code>BlockedTargetResolverBase.Resolve(...)</code>. Resolver возвращает <code>BlockedTargetResolution</code>
+например <code>Reject</code>, <code>AlternativeSlots</code> или <code>SwapTargets</code>. Planner использует этот результат;
+он не читает вложенные стратегии resolver'а напрямую.</p>
 <h2 id="override-actions">Временный override через actions</h2>
 <p>Временная подмена drop policy делается не через мутацию <code>DragContext</code>, а через action-level request override.</p>
 <p>Пример:
 - обычный <code>CompleteDragAction</code> вызывает <code>CompleteDrag(null)</code>
-- <code>Ctrl</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithBlocked(BlockedTargetBehavior.Swap))</code>
+- <code>Ctrl</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithSwap())</code>
 - <code>Shift</code>-вариант <code>CompleteDragAction</code> вызывает <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
-- action также может временно переопределить <code>AllowPartial</code> и <code>AlternativePlacementMode</code></p>
+- action также может временно переопределить <code>AllowPartial</code>
+- при необходимости action может передать свой resolver или свою стратегию alternative placement через <code>DropRequestPolicy.WithResolver(...)</code> или <code>DropRequestPolicy.WithFindAlternative(...)</code></p>
 <p>Отдельный вариант — <code>SplitDropAction</code>: вызывает <code>SplitDrop(policy, count)</code> вместо <code>CompleteDrag</code>. Это позволяет сбросить часть стека (например, 1 предмет), не прекращая перетаскивание. Перенос проходит через тот же конвейер (planner → executor → события). Подробнее — в разделе <a href="../../systems/interaction/#частичный-сброс-split-drop">Ввод и взаимодействие</a>.</p>
 <p>Важно:
 - override действует только на текущую операцию переноса
@@ -2469,15 +2474,22 @@
 <ol>
 <li>Создайте класс-наследник <code>BlockedTargetResolverBase</code>.</li>
 <li>Пометьте его <code>[Serializable]</code>.</li>
-<li>Переопределите <code>Behavior</code>.</li>
-<li>Если resolver должен управлять alternative placement, переопределите <code>GetAlternativePlacement()</code>.</li>
+<li>Переопределите <code>Resolve(BlockedTargetResolutionContext context)</code>.</li>
+<li>Верните <code>BlockedTargetResolution.Reject()</code>, <code>AlternativeSlots(...)</code> или <code>SwapTargets(...)</code>.</li>
 <li>Класс автоматически появится в managed reference picker у <code>DropPolicySettings</code>.</li>
+</ol>
+<p>Чтобы создать свою swap strategy:</p>
+<ol>
+<li>Создайте класс, реализующий <code>ISwapStrategy</code>.</li>
+<li>Пометьте его <code>[Serializable]</code>.</li>
+<li>Реализуйте <code>EnumerateSwapTargets(...)</code> и возвращайте swap-candidates в нужном вам порядке.</li>
+<li>Класс автоматически появится внутри <code>SwapBlockedTargetResolver</code>.</li>
 </ol>
 <p>Чтобы создать свою стратегию alternative placement:</p>
 <ol>
 <li>Создайте класс, реализующий <code>IAlternativePlacementStrategy</code>.</li>
 <li>Пометьте его <code>[Serializable]</code>.</li>
-<li>Верните нужный <code>AlternativePlacementMode</code> из <code>Mode</code>.</li>
+<li>Реализуйте <code>EnumerateAlternativeSlots(...)</code> и возвращайте слоты в нужном вам порядке.</li>
 <li>Класс автоматически появится внутри <code>FindAlternativeBlockedTargetResolver</code>.</li>
 </ol>
 <h2 id="drop-policy_2">Порядок обработки Drop Policy</h2>
@@ -2489,12 +2501,12 @@
 <li>Если вошла только часть:</li>
 <li><code>AllowPartial = false</code> -&gt; fail</li>
 <li><code>AllowPartial = true</code> -&gt; partial success</li>
-<li>остаток ищет другие слоты только если <code>BlockedTargetBehavior = FindAlternative</code></li>
+<li>остаток ищет другие слоты только если активный resolver возвращает <code>AlternativeSlots</code></li>
 <li>Если в target не вошло ничего:</li>
 <li><code>Reject</code> -&gt; fail</li>
-<li><code>Swap</code> -&gt; planner строит swap entry</li>
-<li><code>FindAlternative</code> -&gt; стратегия перечисляет alternative slots</li>
-<li>Для same-inventory <code>FindAlternative</code> не перераскладывает предметы по другим слотам. Если target не подошёл, предмет остаётся на месте</li>
+<li>resolver возвращает <code>SwapTargets</code> -&gt; planner строит swap entry</li>
+<li>resolver возвращает <code>AlternativeSlots</code> -&gt; planner пробует эти candidate slots</li>
+<li>Same-inventory alternative placement настраивается в <code>FindAlternativeBlockedTargetResolver</code>. По умолчанию resolver может использовать другой подходящий слот; отключите <code>AllowSameInventoryAlternativePlacement</code>, если drop в заблокированный слот того же инвентаря должен оставлять предмет на исходном месте.</li>
 </ol>
 <h2 id="batch-">Batch-операции</h2>
 <p>При групповом переносе (несколько предметов за раз) поведение определяется <code>BatchMode</code> внутри <code>DropPolicy</code>:</p>
@@ -2505,9 +2517,9 @@
 <p>По умолчанию batch mode берётся из inventory-level <code>DropPolicySettings</code>, а request override меняет только временное поведение конкретной операции.</p>
 <hr />
 <h2 id="swap">Swap — это часть того же пайплайна</h2>
-<p>Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если <code>BlockedTargetBehavior = Swap</code>.</p>
+<p>Обмен предметами не является отдельной системой. Для пользователя это просто ещё один вариант успешного переноса, если активный resolver возвращает <code>SwapTargets</code>.</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Целевой слот занят"] --&gt; B{"Политика позволяет swap?"}
+    A["Целевой слот занят"] --&gt; B{"Resolver вернул SwapTargets?"}
     B --&gt;|Нет| C["Отклонить"]
     B --&gt;|Да| D["Проверить оба направления\nна target-side preview stacks"]
     D --&gt; E["Снять копии обоих стеков"]

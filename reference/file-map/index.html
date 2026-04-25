@@ -2454,8 +2454,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicy.cs</code></td>
-<td><code>BlockedTargetBehavior</code>, <code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>AlternativePlacementMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
-<td>Core drop policy enums and resolved/request policy value types used by planning and execution.</td>
+<td><code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
+<td>Core drop policy value types used by planning and execution.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicySettings.cs</code></td>
@@ -2474,8 +2474,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/BlockedTargetResolverBase.cs</code></td>
-<td><code>BlockedTargetResolverBase</code></td>
-<td>Base class for blocked-target behavior authoring in <code>DropPolicySettings</code>.</td>
+<td><code>BlockedTargetResolverBase</code>, <code>BlockedTargetResolution</code>, <code>BlockedTargetResolutionContext</code></td>
+<td>Base contract for blocked-target behavior. Resolvers return <code>Reject</code>, <code>AlternativeSlots</code>, or <code>SwapTargets</code> resolutions.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/RejectBlockedTargetResolver.cs</code></td>
@@ -2485,17 +2485,32 @@
 <tr>
 <td><code>Scripts/Core/Drop/SwapBlockedTargetResolver.cs</code></td>
 <td><code>SwapBlockedTargetResolver</code></td>
-<td>Resolver that prefers swap planning on blocked targets.</td>
+<td>Resolver that turns nested swap strategy candidates into <code>SwapTargets</code> resolutions.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/ISwapStrategy.cs</code></td>
+<td><code>ISwapStrategy</code></td>
+<td>Contract for object-based swap target enumeration used by <code>SwapBlockedTargetResolver</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/SwapSearchContext.cs</code></td>
+<td><code>SwapSearchContext</code></td>
+<td>Context passed into swap strategies so they can inspect drag state, target inventory, and the hinted slot.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Drop/HintedTargetSwapStrategy.cs</code></td>
+<td><code>HintedTargetSwapStrategy</code></td>
+<td>Default swap strategy that only considers the currently hinted target slot.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs</code></td>
 <td><code>FindAlternativeBlockedTargetResolver</code></td>
-<td>Resolver that delegates blocked-target handling to an alternative placement strategy.</td>
+<td>Resolver that turns alternative placement candidates into <code>AlternativeSlots</code> resolutions and can disable same-inventory fallback.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/IAlternativePlacementStrategy.cs</code></td>
 <td><code>IAlternativePlacementStrategy</code></td>
-<td>Contract for alternative slot search order used by <code>FindAlternativeBlockedTargetResolver</code>.</td>
+<td>Contract for object-based alternative slot enumeration used by <code>FindAlternativeBlockedTargetResolver</code>.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs</code></td>
@@ -2676,7 +2691,7 @@
 <tr>
 <td><code>Scripts/Inventories/TransferPlanner.cs</code></td>
 <td><code>TransferPlanFailureCode</code>, <code>PlanFailure</code>, <code>PlannedSwapData</code>, <code>PlannedEntryTransfer</code>, <code>TransferPlan</code>, <code>TransferPlanner</code></td>
-<td>Builds a transfer plan without mutating inventories. Central file for preview logic, placement search, swap decisions, and failure reporting.</td>
+<td>Builds a transfer plan without mutating inventories. Consumes blocked-target resolver results and handles preview allocation, swap planning, and failure reporting.</td>
 </tr>
 </tbody>
 </table>
