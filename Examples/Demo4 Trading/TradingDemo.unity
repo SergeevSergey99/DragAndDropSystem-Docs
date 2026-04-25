@@ -1401,7 +1401,7 @@ MonoBehaviour:
     _inlineRules: []
   _dropPolicy:
     _blockedTargetResolver:
-      rid: 8490481047700242449
+      rid: 8490481047700242455
     _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
@@ -1423,14 +1423,13 @@ MonoBehaviour:
     - rid: 8490480897462108201
       type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
       data: 
-    - rid: 8490481047700242449
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+    - rid: 8490481047700242455
+      type: {class: SwapBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data:
-        _alternativePlacementStrategy:
-          rid: 8490481047700242450
-        _allowSameInventoryAlternativePlacement: 1
-    - rid: 8490481047700242450
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+        _swapStrategy:
+          rid: 8490481047700242456
+    - rid: 8490481047700242456
+      type: {class: HintedTargetSwapStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
 --- !u!114 &520690178
 MonoBehaviour:
@@ -3551,7 +3550,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Potions
+  m_Text: 'Food
 
     (multiple)'
 --- !u!114 &1223928537 stripped

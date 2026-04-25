@@ -86,13 +86,10 @@ Asigna tu prefab en `TooltipManager` en lugar del prefab por defecto.
 
 | Modo | Descripción |
 |------|-------------|
-| **Cursor** | El tooltip sigue al cursor (se actualiza cada frame) |
-| **SlotTopRight** | Anclado a la esquina superior derecha del slot |
-| **SlotTopLeft** | Anclado a la esquina superior izquierda del slot |
-| **SlotBottomRight** | Anclado a la esquina inferior derecha del slot |
-| **SlotBottomLeft** | Anclado a la esquina inferior izquierda del slot |
+| **Cursor** | El tooltip sigue al cursor (se actualiza cada frame), pero evita solaparse con el slot hovered |
+| **SlotPivot** | El tooltip se ancla a un punto normalizado dentro del slot hovered (`Pivot`: 0,0 = esquina inferior izquierda; 1,1 = esquina superior derecha) |
 
-En todos los modos funciona el adaptive flipping: si la tarjeta sale de los límites de la pantalla, se invierte automáticamente hacia el lado opuesto.
+En todos los modos funciona el adaptive flipping: si la tarjeta sale de los límites de la pantalla o se solapa con el slot hovered, el manager elige un lado más adecuado.
 
 ---
 

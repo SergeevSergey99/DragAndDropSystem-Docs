@@ -1,7 +1,9 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UniversalDragAndDrop.Interaction;
 using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools;
 using UniversalDragAndDrop.Tools.Inspector;
 
 namespace UniversalDragAndDrop.UI
@@ -37,6 +39,9 @@ namespace UniversalDragAndDrop.UI
         [SerializeField, Tooltip("Minimum distance between the cursor and the card")]
         private float _cursorMargin = 5f;
 
+        [SerializeField, Tooltip("Minimum distance between the slot and the card")]
+        private float _slotMargin = 8f;
+
         [Header("Timing")]
         [SerializeField, Tooltip("Delay before showing the tooltip (seconds)")]
         private float _showDelay = 0.5f;
@@ -44,6 +49,7 @@ namespace UniversalDragAndDrop.UI
         private Coroutine _showCoroutine;
         private SlotHoverEventArgs _currentHoverArgs;
         private BaseTooltipView _currentBaseTooltipView;
+        private bool _tooltipLayoutDirty;
 
 
         private void OnEnable()
@@ -151,6 +157,7 @@ namespace UniversalDragAndDrop.UI
 
             // Show the tooltip with content
             _currentBaseTooltipView.Show(args.ItemAdapter);
+            _tooltipLayoutDirty = true;
 
             // Position it
             UpdateTooltipPosition(args);
@@ -169,6 +176,7 @@ namespace UniversalDragAndDrop.UI
                 Destroy(toHide.gameObject);
             });
             _currentBaseTooltipView = null;
+            _tooltipLayoutDirty = false;
         }
 
         #endregion
@@ -184,13 +192,23 @@ namespace UniversalDragAndDrop.UI
                 return;
 
             Vector2 position;
+            RefreshTooltipLayout();
+
+            var tooltipSize = GetTooltipScreenSize();
+            var tooltipPivot = _currentBaseTooltipView.rectTransform.pivot;
+            var hasSlotBounds = TryGetSlotScreenBounds(args.SlotRectTransform, out var slotBounds);
+            var anchorPosition = args.ScreenPosition;
+
+            if (_anchor == TooltipAnchor.SlotPivot && hasSlotBounds)
+                anchorPosition = GetPointInRect(slotBounds, pivot);
 
             // Use adaptive positioning
             position = CalculateAdaptivePosition(
-                args.ScreenPosition,
-                _currentBaseTooltipView.GetSize(),
-                _currentBaseTooltipView.rectTransform.pivot,
-                _offset
+                anchorPosition,
+                tooltipSize,
+                tooltipPivot,
+                _offset,
+                hasSlotBounds ? slotBounds : (Rect?)null
             );
 
             _currentBaseTooltipView.UpdatePosition(position);
@@ -218,6 +236,31 @@ namespace UniversalDragAndDrop.UI
             return rect.Contains(point);
         }
 
+        private static bool IsRectInsideScreen(Rect rect, float padding)
+        {
+            return rect.xMin >= padding &&
+                   rect.yMin >= padding &&
+                   rect.xMax <= Screen.width - padding &&
+                   rect.yMax <= Screen.height - padding;
+        }
+
+        private static float GetOverlapArea(Rect a, Rect b)
+        {
+            float width = Mathf.Max(0f, Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin));
+            float height = Mathf.Max(0f, Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin));
+            return width * height;
+        }
+
+        private float GetOffscreenPenalty(Rect rect)
+        {
+            float penalty = 0f;
+            penalty += Mathf.Max(0f, _screenPadding - rect.xMin);
+            penalty += Mathf.Max(0f, _screenPadding - rect.yMin);
+            penalty += Mathf.Max(0f, rect.xMax - (Screen.width - _screenPadding));
+            penalty += Mathf.Max(0f, rect.yMax - (Screen.height - _screenPadding));
+            return penalty;
+        }
+
         /// <summary>
         /// Calculate an adaptive tooltip position taking screen bounds and the cursor into account
         /// </summary>
@@ -230,7 +273,8 @@ namespace UniversalDragAndDrop.UI
             Vector2 cursorPosition,
             Vector2 tooltipSize,
             Vector2 tooltipPivot,
-            Vector2 baseOffset)
+            Vector2 baseOffset,
+            Rect? avoidRect = null)
         {
             // Copy the offset so it can be adjusted
             Vector2 adjustedOffset = baseOffset;
@@ -290,7 +334,19 @@ namespace UniversalDragAndDrop.UI
                 bounds = GetTooltipScreenBounds(position, tooltipSize, tooltipPivot);
             }
 
-            // Step 7: Final clamp (for very large cards or screen edges)
+            // Step 7: Keep the tooltip outside the hovered slot when slot bounds are available.
+            if (avoidRect.HasValue && bounds.Overlaps(avoidRect.Value))
+            {
+                position = CalculatePositionOutsideRect(
+                    avoidRect.Value,
+                    cursorPosition,
+                    tooltipSize,
+                    tooltipPivot,
+                    baseOffset);
+                bounds = GetTooltipScreenBounds(position, tooltipSize, tooltipPivot);
+            }
+
+            // Step 8: Final clamp (for very large cards or screen edges)
             // Keep the entire card visible on screen
             float clampedX = position.x;
             float clampedY = position.y;
@@ -316,6 +372,155 @@ namespace UniversalDragAndDrop.UI
             }
 
             return new Vector2(clampedX, clampedY);
+        }
+
+        private Vector2 CalculatePositionOutsideRect(
+            Rect avoidRect,
+            Vector2 anchorPosition,
+            Vector2 tooltipSize,
+            Vector2 tooltipPivot,
+            Vector2 baseOffset)
+        {
+            var candidates = new[]
+            {
+                CreateCandidateRightOfRect(avoidRect, anchorPosition, tooltipSize, tooltipPivot),
+                CreateCandidateLeftOfRect(avoidRect, anchorPosition, tooltipSize, tooltipPivot),
+                CreateCandidateAboveRect(avoidRect, anchorPosition, tooltipSize, tooltipPivot),
+                CreateCandidateBelowRect(avoidRect, anchorPosition, tooltipSize, tooltipPivot)
+            };
+
+            Vector2 best = candidates[0];
+            float bestScore = float.PositiveInfinity;
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                var candidate = candidates[i];
+                var bounds = GetTooltipScreenBounds(candidate, tooltipSize, tooltipPivot);
+                float overlap = GetOverlapArea(bounds, avoidRect);
+                float offscreen = GetOffscreenPenalty(bounds);
+                float distance = Vector2.Distance(candidate, anchorPosition);
+                float directionPenalty = GetDirectionPenalty(i, baseOffset);
+                float fitBonus = IsRectInsideScreen(bounds, _screenPadding) ? -1000f : 0f;
+                float score = overlap * 100000f + offscreen * 1000f + distance + directionPenalty + fitBonus;
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = candidate;
+                }
+            }
+
+            return best;
+        }
+
+        private Vector2 CreateCandidateRightOfRect(Rect rect, Vector2 anchorPosition, Vector2 tooltipSize, Vector2 tooltipPivot)
+        {
+            return new Vector2(
+                rect.xMax + _slotMargin + tooltipSize.x * tooltipPivot.x,
+                anchorPosition.y);
+        }
+
+        private Vector2 CreateCandidateLeftOfRect(Rect rect, Vector2 anchorPosition, Vector2 tooltipSize, Vector2 tooltipPivot)
+        {
+            return new Vector2(
+                rect.xMin - _slotMargin - tooltipSize.x * (1f - tooltipPivot.x),
+                anchorPosition.y);
+        }
+
+        private Vector2 CreateCandidateAboveRect(Rect rect, Vector2 anchorPosition, Vector2 tooltipSize, Vector2 tooltipPivot)
+        {
+            return new Vector2(
+                anchorPosition.x,
+                rect.yMax + _slotMargin + tooltipSize.y * tooltipPivot.y);
+        }
+
+        private Vector2 CreateCandidateBelowRect(Rect rect, Vector2 anchorPosition, Vector2 tooltipSize, Vector2 tooltipPivot)
+        {
+            return new Vector2(
+                anchorPosition.x,
+                rect.yMin - _slotMargin - tooltipSize.y * (1f - tooltipPivot.y));
+        }
+
+        private static float GetDirectionPenalty(int candidateIndex, Vector2 baseOffset)
+        {
+            const float preferredDirectionBonus = -100f;
+            switch (candidateIndex)
+            {
+                case 0:
+                    return baseOffset.x >= 0f ? preferredDirectionBonus : 0f;
+                case 1:
+                    return baseOffset.x < 0f ? preferredDirectionBonus : 0f;
+                case 2:
+                    return baseOffset.y >= 0f ? preferredDirectionBonus : 0f;
+                case 3:
+                    return baseOffset.y < 0f ? preferredDirectionBonus : 0f;
+                default:
+                    return 0f;
+            }
+        }
+
+        private void RefreshTooltipLayout()
+        {
+            if (!_tooltipLayoutDirty)
+                return;
+
+            var rectTransform = _currentBaseTooltipView != null ? _currentBaseTooltipView.rectTransform : null;
+            if (rectTransform == null)
+                return;
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+            Canvas.ForceUpdateCanvases();
+            _tooltipLayoutDirty = false;
+        }
+
+        private Vector2 GetTooltipScreenSize()
+        {
+            var rectTransform = _currentBaseTooltipView != null ? _currentBaseTooltipView.rectTransform : null;
+            if (rectTransform == null)
+                return Vector2.zero;
+
+            if (TryGetRectScreenBounds(rectTransform, out var bounds) && bounds.size.sqrMagnitude > 0f)
+                return bounds.size;
+
+            return _currentBaseTooltipView.GetSize();
+        }
+
+        private static Vector2 GetPointInRect(Rect rect, Vector2 normalizedPoint)
+        {
+            return new Vector2(
+                Mathf.Lerp(rect.xMin, rect.xMax, normalizedPoint.x),
+                Mathf.Lerp(rect.yMin, rect.yMax, normalizedPoint.y));
+        }
+
+        private static bool TryGetSlotScreenBounds(RectTransform slotRectTransform, out Rect bounds)
+        {
+            return TryGetRectScreenBounds(slotRectTransform, out bounds);
+        }
+
+        private static bool TryGetRectScreenBounds(RectTransform rectTransform, out Rect bounds)
+        {
+            bounds = default;
+            if (rectTransform == null)
+                return false;
+
+            var worldCorners = new Vector3[4];
+            rectTransform.GetWorldCorners(worldCorners);
+            var camera = Extensions.GetCanvasCamera(rectTransform);
+            var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+            var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+
+            for (int i = 0; i < worldCorners.Length; i++)
+            {
+                var screenPoint = RectTransformUtility.WorldToScreenPoint(camera, worldCorners[i]);
+                min = Vector2.Min(min, screenPoint);
+                max = Vector2.Max(max, screenPoint);
+            }
+
+            if (float.IsInfinity(min.x) || float.IsInfinity(min.y) || float.IsInfinity(max.x) || float.IsInfinity(max.y))
+                return false;
+
+            bounds = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            return true;
         }
 
         #endregion

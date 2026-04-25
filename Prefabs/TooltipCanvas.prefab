@@ -102,4 +102,5 @@ MonoBehaviour:
   _anchor: 0
   _screenPadding: 100
   _cursorMargin: 5
+  _slotMargin: 8
   _showDelay: 0

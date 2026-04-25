@@ -86,13 +86,10 @@ Assign your prefab in `TooltipManager` instead of the default one.
 
 | Mode | Description |
 |------|-------------|
-| **Cursor** | Tooltip follows the cursor (updated every frame) |
-| **SlotTopRight** | Anchored to the top-right corner of the slot |
-| **SlotTopLeft** | Anchored to the top-left corner of the slot |
-| **SlotBottomRight** | Anchored to the bottom-right corner of the slot |
-| **SlotBottomLeft** | Anchored to the bottom-left corner of the slot |
+| **Cursor** | Tooltip follows the cursor (updated every frame), but still avoids overlapping the hovered slot |
+| **SlotPivot** | Tooltip is anchored to a normalized point inside the hovered slot (`Pivot`: 0,0 = bottom-left; 1,1 = top-right) |
 
-In all modes, adaptive flipping works: if the card goes beyond the screen boundaries, it automatically flips to the opposite side.
+In all modes, adaptive flipping works: if the card goes beyond the screen boundaries or overlaps the hovered slot, it automatically chooses a better side.
 
 ---
 

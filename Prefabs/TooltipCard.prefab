@@ -42,7 +42,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 450, y: 600}
+  m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &274697801403109535
 CanvasRenderer:
@@ -94,13 +94,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a0fece5b634aeb4db15f502aac13783, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.UI.DefaultTooltipView
-  _itemNameText: {fileID: 2444690023836693734}
-  _itemDescriptionText: {fileID: 5533605600210660977}
-  _itemIcon: {fileID: 6698373089783088225}
-  _useFadeAnimation: 1
   _canvasGroup: {fileID: 5211121533764405160}
   _fadeInTime: 0.3
   _fadeOutTime: 0.3
+  _itemNameText: {fileID: 2444690023836693734}
+  _itemDescriptionText: {fileID: 5533605600210660977}
+  _itemIcon: {fileID: 6698373089783088225}
 --- !u!225 &5211121533764405160
 CanvasGroup:
   m_ObjectHideFlags: 0
