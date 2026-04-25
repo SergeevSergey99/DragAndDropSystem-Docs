@@ -36,7 +36,7 @@ namespace UniversalDragAndDrop.Slots
         protected override void RenderEmpty()
         {
             _iconImage.gameObject.SetActive(false);
-            RenderCounter();
+            _countContainer.SetActive(false);
         }
         protected override void RenderFilledAndDraggedFrom() => base.RenderFilledAndDraggedFrom();
         protected override void RenderFilledAndDraggedTo() => base.RenderFilledAndDraggedTo();
