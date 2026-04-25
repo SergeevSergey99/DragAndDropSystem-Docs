@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UniversalDragAndDrop.Interaction;
@@ -38,7 +39,29 @@ namespace UniversalDragAndDrop.Slots
             _iconImage.gameObject.SetActive(false);
             _countContainer.SetActive(false);
         }
-        protected override void RenderFilledAndDraggedFrom() => base.RenderFilledAndDraggedFrom();
+        protected override void RenderFilledAndDraggedFrom()
+        {
+            var stack = DragAndDropManager.Instance.CurrentContext.Entries.First(e => e.SourceBaseSlot == this).Stack;
+            int count = Stack.Count - stack.Count;
+
+            if (count > 0)
+            {
+                RenderFilled();
+                
+                bool shouldShow = !IsEmpty && count > 1;
+                _countContainer.SetActive(shouldShow);
+
+                if (shouldShow && _countText != null)
+                    _countText.text = count.ToString();
+            }
+            else
+            {
+                RenderEmpty();
+                _countContainer.SetActive(false);
+            }
+            
+        }
+
         protected override void RenderFilledAndDraggedTo() => base.RenderFilledAndDraggedTo();
         
         /// <summary>Updates the stack counter. It is shown only when there is more than one item.</summary>
