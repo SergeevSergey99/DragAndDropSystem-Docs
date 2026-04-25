@@ -38,7 +38,8 @@ namespace UniversalDragAndDrop.Slots
             _iconImage.gameObject.SetActive(false);
             RenderCounter();
         }
-        protected override void RenderFilledAndDragged() => RenderEmpty();
+        protected override void RenderFilledAndDraggedFrom() => base.RenderFilledAndDraggedFrom();
+        protected override void RenderFilledAndDraggedTo() => base.RenderFilledAndDraggedTo();
         
         /// <summary>Updates the stack counter. It is shown only when there is more than one item.</summary>
         void RenderCounter()

@@ -60,10 +60,14 @@ namespace UniversalDragAndDrop.Slots
         protected bool _isHighlighted;
 
         /// <summary>
-        /// Icon visibility flag. Set by animation systems through
-        /// <see cref="SetDragged"/> and applied on the next UpdateVisuals.
+        /// Source-side drag flag. Applied on the next UpdateVisuals.
         /// </summary>
-        protected bool _isDragged = false;
+        protected bool _isDraggedFrom = false;
+
+        /// <summary>
+        /// Target-side transfer flag. Applied on the next UpdateVisuals.
+        /// </summary>
+        protected bool _isDraggedTo = false;
         
         /// <summary>
         /// Single entry point for a full visual refresh.
@@ -72,7 +76,8 @@ namespace UniversalDragAndDrop.Slots
         public virtual void UpdateVisuals()
         {
             if (IsEmpty) RenderEmpty();
-            else if (_isDragged) RenderFilledAndDragged();
+            else if (_isDraggedFrom) RenderFilledAndDraggedFrom();
+            else if (_isDraggedTo) RenderFilledAndDraggedTo();
             else RenderFilled();
 
             OnVisualsUpdated();
@@ -81,9 +86,16 @@ namespace UniversalDragAndDrop.Slots
         /// <summary>Render a non-empty slot: icon + counter.</summary>
         protected virtual void RenderFilled(){}
 
-        /// <summary>Render a non-empty slot that is being dragged.</summary>
-        protected virtual void RenderFilledAndDragged() => RenderEmpty();
-        
+        /// <summary>Render a non-empty slot that is the source of a drag/transfer.</summary>
+        protected virtual void RenderFilledAndDraggedFrom() => RenderEmpty();
+
+        /// <summary>Render a non-empty slot that is the target of a transfer animation.</summary>
+        protected virtual void RenderFilledAndDraggedTo()
+        {
+            if (Stack.Count > 1) RenderFilled();
+            else RenderEmpty();
+        }
+
         /// <summary>Render an empty slot: hide icon and counter.</summary>
         protected virtual void RenderEmpty(){}
         
@@ -115,13 +127,23 @@ namespace UniversalDragAndDrop.Slots
         protected virtual void UpdateInteractableVisuals() {}
 
         /// <summary>
-        /// Temporarily hide/show the icon (for auto-transfer animations).
-        /// Preserves the flag and performs a full UpdateVisuals so other
-        /// visual states are not reset.
+        /// Marks this slot as the source of a drag/transfer.
+        /// Default source rendering hides the content to avoid duplicate visuals.
         /// </summary>
-        public virtual void SetDragged(bool dragged)
+        public virtual void SetDraggedFrom(bool dragged)
         {
-            _isDragged = dragged;
+            _isDraggedFrom = dragged;
+            UpdateVisuals();
+        }
+
+        /// <summary>
+        /// Marks this slot as the target of a transfer animation.
+        /// Default target rendering keeps the slot visible; override
+        /// RenderFilledAndDraggedTo for custom previews.
+        /// </summary>
+        public virtual void SetDraggedTo(bool dragged)
+        {
+            _isDraggedTo = dragged;
             UpdateVisuals();
         }
 

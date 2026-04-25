@@ -195,7 +195,7 @@ namespace UniversalDragAndDrop
                 if (sourceBaseSlot == null || !processedSlots.Add(sourceBaseSlot))
                     continue;
 
-                sourceBaseSlot.SetDragged(isDragging);
+                sourceBaseSlot.SetDraggedFrom(isDragging);
             }
         }
 
@@ -678,11 +678,12 @@ namespace UniversalDragAndDrop
                     if (entry.SourceBaseSlot == null || entry.TargetBaseSlot == null || entry.ItemAdapter == null || entry.Amount <= 0)
                         continue;
 
-                    if (entry.TargetBaseSlot != null)
-                        entry.TargetBaseSlot.SetDragged(true);
-
                     if (!ItemStack.TryCreate(entry.TargetBaseSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
                         continue;
+
+                    if (entry.TargetBaseSlot != null)
+                        entry.TargetBaseSlot.SetDraggedTo(true);
+
                     var presenter = DragVisualPresenter.AutoCreateInstance;
                     var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceBaseSlot.Inventory);
 
@@ -698,7 +699,7 @@ namespace UniversalDragAndDrop
                         () =>
                         {
                             if (entry.TargetBaseSlot != null)
-                                entry.TargetBaseSlot.SetDragged(false);
+                                entry.TargetBaseSlot.SetDraggedTo(false);
                             animationCompleted();
                         });
 
