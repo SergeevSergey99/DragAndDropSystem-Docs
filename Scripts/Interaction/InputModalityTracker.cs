@@ -97,9 +97,9 @@ namespace UniversalDragAndDrop.Interaction
 #else
             return Mathf.Abs(Input.GetAxisRaw("Horizontal")) >= LegacyNavigationAxisThreshold
                    || Mathf.Abs(Input.GetAxisRaw("Vertical")) >= LegacyNavigationAxisThreshold
-                   || Input.GetButtonDown("Submit")
-                   || Input.GetButtonDown("Cancel")
-                   || Input.GetKeyDown(KeyCode.Tab)
+                   //|| Input.GetButtonDown("Submit")
+                   //|| Input.GetButtonDown("Cancel")
+                   //|| Input.GetKeyDown(KeyCode.Tab)
                    || Input.GetKeyDown(KeyCode.UpArrow)
                    || Input.GetKeyDown(KeyCode.DownArrow)
                    || Input.GetKeyDown(KeyCode.LeftArrow)
