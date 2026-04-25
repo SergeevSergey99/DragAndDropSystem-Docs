@@ -18,58 +18,65 @@ MonoBehaviour:
     _modifier: 1
     _triggerPhase: 1
     _action:
-      rid: 6676589293835124806
+      rid: 8490481047700242434
   - _label: LMB Drag All
     _button: 0
     _modifier: 0
     _triggerPhase: 1
     _action:
-      rid: 6676588777423765576
+      rid: 8490481047700242435
   - _label: LMB Drag Half
     _button: 0
     _modifier: 3
     _triggerPhase: 1
     _action:
-      rid: 6676589293835124808
+      rid: 8490481047700242436
   - _label: LMB Drag Half
     _button: 0
     _modifier: 4
     _triggerPhase: 2
     _action:
       rid: 6676589293835124809
-  _inputActionBindings: []
+  _keyBindings: []
   references:
     version: 2
     RefIds:
-    - rid: 6676588777423765576
-      type: {class: DragSlotAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+    - rid: 6676589293835124809
+      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
       data:
-        _dragPolicyOverride:
-          _overrideAmount: 1
-          _amount: 0
-          _customAmount: 1
-    - rid: 6676589293835124806
-      type: {class: DragSlotAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+        _dropPolicyOverride:
+          _overrideBlockedTargetResolver: 0
+          _blockedTargetResolver:
+            rid: 8490481047700242432
+          _overrideAllowPartial: 0
+          _allowPartial: 1
+    - rid: 8490481047700242432
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490481047700242433
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8490481047700242433
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8490481047700242434
+      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 2
           _customAmount: 1
-    - rid: 6676589293835124808
-      type: {class: DragSlotAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+    - rid: 8490481047700242435
+      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dragPolicyOverride:
+          _overrideAmount: 1
+          _amount: 0
+          _customAmount: 1
+    - rid: 8490481047700242436
+      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 4
           _customAmount: 1
-    - rid: 6676589293835124809
-      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
-      data:
-        <CancelOnNoSlots>k__BackingField: 1
-        _dropPolicyOverride:
-          _overrideBlockedTarget: 0
-          _blockedTarget: 2
-          _overrideAlternativePlacement: 0
-          _alternativePlacement: 0
-          _overrideAllowPartial: 0
-          _allowPartial: 1
