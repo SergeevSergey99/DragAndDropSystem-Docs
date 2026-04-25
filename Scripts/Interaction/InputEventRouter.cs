@@ -267,8 +267,10 @@ namespace UniversalDragAndDrop.Interaction
 
             MarkInventoryActive(inventory);
             var state = GetOrCreateState(inventory);
-            state.FocusedAdapter = adapter;
-            state.FocusedSlot = adapter.BaseSlot;
+            // Mouse press is transient. Do not store it as FocusedSlot:
+            // key quick-actions must use the current hover/navigation focus, not an old drag source.
+            state.HoveredAdapter = adapter;
+            state.HoveredSlot = adapter.BaseSlot;
             state.ActiveFocusSource = FocusSource.Mouse;
             state.PressedAdapter = adapter;
             state.PressedButton = eventData.button;

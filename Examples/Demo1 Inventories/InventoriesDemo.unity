@@ -787,6 +787,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480928290766851
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480928290766851
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -1207,6 +1208,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480897462108224
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480897462108224
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -2021,6 +2023,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480897462108216
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480897462108216
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -3870,6 +3873,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480897462108220
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480897462108220
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -4036,6 +4040,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480897462108218
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480897462108218
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -5490,6 +5495,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480935803813891
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480935803813891
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -6031,6 +6037,7 @@ MonoBehaviour:
       data:
         _alternativePlacementStrategy:
           rid: 8490480928290766849
+        _allowSameInventoryAlternativePlacement: 1
     - rid: 8490480928290766849
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
       data: 
@@ -6679,14 +6686,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1437108917}
-    - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
-      propertyPath: m_RenderMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3953592695543780856, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
-      propertyPath: m_AdditionalShaderChannelsFlag
-      value: 25
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
