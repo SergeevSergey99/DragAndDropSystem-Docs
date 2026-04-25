@@ -2,7 +2,7 @@
 
 <div class="showcase-video">
     <iframe
-    src="https://www.youtube.com/embed/ZYOjIkwxcdU"
+    src="https://www.youtube.com/embed/3BFn4jt9xhM"
     title="Project showcase video"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
