@@ -63,7 +63,7 @@ El seguimiento de modalidad pointer/navigation también funciona en proyectos co
 ## Modelo básico
 
 <div class="showcase-media">
-    <img src="../../assets/showcase/basic-diagram.png" alt="Basic Diagram">
+    <img src="../assets/showcase/basic-diagram.png" alt="Basic Diagram">
 </div>
 Para la mayoría de proyectos conviene tener exactamente este esquema en mente:
 
