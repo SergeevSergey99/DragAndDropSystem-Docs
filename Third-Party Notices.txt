@@ -1,0 +1,93 @@
+Universal Drag & Drop System - Third-Party Notices
+==================================================
+
+This file documents third-party assets known to be included in this package.
+It is provided for attribution and release review purposes and is not legal advice.
+
+
+Google Noto Emoji
+-----------------
+
+Included files:
+
+- 2D/*.png
+- Examples/2D/Google emoji/*.png
+
+Source:
+
+- https://github.com/googlefonts/noto-emoji
+
+Copyright:
+
+- Copyright Google LLC and contributors.
+
+License:
+
+- Noto Emoji image resources are distributed by Google under the Apache License,
+  Version 2.0, except where the upstream project states otherwise.
+- License text: https://www.apache.org/licenses/LICENSE-2.0
+- Upstream license information: https://github.com/googlefonts/noto-emoji
+
+Notes:
+
+- These images are used as sample/demo item icons.
+- This package is not endorsed by, sponsored by, or affiliated with Google LLC.
+- If any Noto Emoji asset was modified for this package, the modified version is
+  distributed only as a demo asset for this package.
+
+
+Minecraft / Block-Crafting Demo Placeholder Art
+-----------------------------------------------
+
+Included files:
+
+- Examples/2D/Craft/Barrel.png
+- Examples/2D/Craft/Composter.png
+- Examples/2D/Craft/Crafting_Table.png
+- Examples/2D/Craft/Oak_Log.png
+- Examples/2D/Craft/Oak_Planks.png
+- Examples/2D/Craft/Oak_Slab.png
+- Examples/2D/Craft/Oak_Wood.png
+- Examples/2D/Craft/Stick.png
+- Examples/2D/Craft/Wooden_Axe.png
+- Examples/2D/Craft/Wooden_Hoe.png
+- Examples/2D/Craft/Wooden_Pickaxe.png
+- Examples/2D/Craft/Wooden_Shovel.png
+- Examples/2D/Craft/Wooden_Sword.png
+
+Related demo content:
+
+- Examples/Demo3 Minecraft/*
+
+Owner / rights holder:
+
+- Minecraft is owned by Mojang AB / Microsoft Corporation.
+
+Guidelines:
+
+- https://www.minecraft.net/en-us/usage-guidelines
+
+Release note:
+
+- These files are currently treated as Minecraft-inspired demo placeholder art.
+- This notice does not grant any license from Mojang AB or Microsoft Corporation.
+- If these files are copied from, extracted from, or closely derived from
+  Minecraft assets, they should not be included in an Asset Store release unless
+  you have explicit permission or have replaced them with original art.
+- For commercial Asset Store distribution, the recommended release-safe option is
+  to replace these files and rename the demo to use generic block-crafting
+  terminology instead of Minecraft branding.
+- This package is not endorsed by, sponsored by, approved by, or associated with
+  Mojang AB or Microsoft Corporation.
+
+
+Publisher-Owned / Project Assets
+--------------------------------
+
+The remaining scripts, prefabs, scenes, settings, tests, documentation, and demo
+integration code are treated as publisher-owned project content unless another
+notice is added here.
+
+Before each public release, review newly added images, fonts, sounds, models,
+templates, and code snippets and update this file if any third-party material is
+included.
