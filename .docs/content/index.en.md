@@ -63,7 +63,7 @@ Pointer and navigation modality tracking also works in legacy-input projects.
 ## Basic Model
 
 <div class="showcase-media">
-    <img src="../assets/showcase/basic-diagram.png" alt="Basic Diagram">
+    <img src="assets/showcase/basic-diagram.png" alt="Basic Diagram">
 </div>
 For most projects, it is useful to keep exactly this diagram in mind:
 
