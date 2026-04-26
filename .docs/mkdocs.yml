@@ -128,3 +128,6 @@ site_dir: .site
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/lang-switch-prefix-fix.js
