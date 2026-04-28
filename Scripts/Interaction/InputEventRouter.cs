@@ -104,6 +104,7 @@ namespace UniversalDragAndDrop.Interaction
 #endif
             ProcessGlobalPointerUpsWhileDragging();
             PollKeyBindings();
+            PollLegacyInputActionBindings();
             TickHoldPreview();
         }
         private void LateUpdate()
@@ -527,6 +528,47 @@ namespace UniversalDragAndDrop.Interaction
 
                 if (binding.Action.CanExecute(interactionSnapshot))
                 {
+                    if (!TryMarkKeyboardLikeActionHandled(inventory, binding.Action, binding.TriggerPhase))
+                        continue;
+
+                    _ = binding.Action.Execute(interactionSnapshot);
+                }
+            }
+        }
+
+        private void PollLegacyInputActionBindings()
+        {
+            var inventory = _activeInventory;
+            var bindings = ResolveLegacyInputActionBindings(inventory);
+            var baseSnapshot = BuildInteractionSnapshot(
+                InteractionInputKind.LegacyInputAction,
+                inventory,
+                adapter: null,
+                pointerEventData: null,
+                pointerPhase: null,
+                keyPhase: null,
+                inputActionPhase: null,
+                nativeInputContext: null);
+            bool isDragging = DragAndDropManager.AutoCreateInstance.IsDragging;
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                var binding = bindings[i];
+                if (binding == null || !binding.IsValid() || !binding.IsTriggered())
+                    continue;
+
+                if (!isDragging && binding.Action.IsDragOnlyBinding())
+                    continue;
+
+                var interactionSnapshot = baseSnapshot.WithKeyPhase(binding.TriggerPhase, binding.ButtonName);
+
+                if (!interactionSnapshot.HasConcreteTarget && !binding.Action.AllowOutOfSlot())
+                    continue;
+
+                if (binding.Action.CanExecute(interactionSnapshot))
+                {
+                    if (!TryMarkKeyboardLikeActionHandled(inventory, binding.Action, binding.TriggerPhase))
+                        continue;
+
                     _ = binding.Action.Execute(interactionSnapshot);
                 }
             }
@@ -767,6 +809,30 @@ namespace UniversalDragAndDrop.Interaction
             return DefaultBindingsProfile != null
                 ? DefaultBindingsProfile.KeyBindingsRuntime
                 : Array.Empty<KeyBinding>();
+        }
+
+        private IReadOnlyList<LegacyInputActionBinding> ResolveLegacyInputActionBindings(UniversalInventory inventory)
+        {
+            if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
+            {
+                return overrideBinder.LegacyInputActionBindingsResolved;
+            }
+
+            return DefaultBindingsProfile != null
+                ? DefaultBindingsProfile.LegacyInputActionBindingsRuntime
+                : Array.Empty<LegacyInputActionBinding>();
+        }
+
+        private bool TryMarkKeyboardLikeActionHandled(
+            UniversalInventory inventory,
+            SlotInteractionAction action,
+            KeyTriggerPhase triggerPhase)
+        {
+            if (action == null)
+                return false;
+
+            var key = new IntentDedupKey(2000 + (int)triggerPhase, inventory, action);
+            return _handledThisFrame.Add(key);
         }
 
 #if UDND_INPUT_SYSTEM

@@ -47,7 +47,7 @@ Thresholds are configured in `InputEventRouter`: `_longClickThresholdSeconds` (d
 
 ## Binding Profiles
 
-Bindings are configured via the ScriptableObject `InteractionBindingsProfile`. It contains pointer bindings, legacy key bindings, and optional Input Action bindings.
+Bindings are configured via the ScriptableObject `InteractionBindingsProfile`. It contains pointer bindings, legacy `KeyCode` bindings, legacy Input Manager button-name bindings, and optional Input Action bindings.
 
 ### Pointer Bindings
 
@@ -61,6 +61,19 @@ Each binding consists of: mouse button + modifier + phase + action.
 | LMB | Ctrl | ClickShort | Toggle selection |
 | LMB | Shift | ClickShort | Range selection |
 | RMB | --- | ClickShort | Context menu |
+
+### Legacy Input Manager Bindings
+
+Use `LegacyInputActionBinding` when a project still relies on the old Input Manager and you want to bind by button name instead of `KeyCode`.
+Typical names are `Submit`, `Cancel`, or any custom button configured in **Project Settings > Input Manager**.
+
+| Button Name | Phase | Typical Action |
+|-------------|-------|----------------|
+| Submit | Down | Auto-transfer or complete drag |
+| Cancel | Down | Cancel drag or close UI |
+
+These bindings are polled by `InputEventRouter` and require Legacy Input Manager support to be enabled in Player Settings.
+They are separate from `InputActionBinding`, which belongs to the new Input System package.
 
 ### Input Action Bindings
 
@@ -130,10 +143,12 @@ If the target slot is occupied and cannot accept the item, the operation rolls b
 | Class | Role |
 |-------|------|
 | `InputEventRouter` | Singleton: routes input to bindings |
-| `InteractionBindingsProfile` | SO profile with pointer and Input Action bindings |
+| `InteractionBindingsProfile` | SO profile with pointer, legacy, and Input Action bindings |
 | `SlotInputAdapter` | Component on a slot: forwards raw events |
 | `InputModalityTracker` | Determines the current input mode (Mouse / Navigation) for both legacy and Input System setups |
 | `PointerBinding` | Binding: button + modifier + phase + action |
+| `KeyBinding` | Legacy `KeyCode` binding to an action |
+| `LegacyInputActionBinding` | Old Input Manager button-name binding to an action |
 | `InputActionBinding` | Input System Action binding to an action |
 | `InventoryExtraInteractionBinder` | Binding override for a specific inventory |
 | `SplitDropAction` | Action: drop part of a stack without ending drag |

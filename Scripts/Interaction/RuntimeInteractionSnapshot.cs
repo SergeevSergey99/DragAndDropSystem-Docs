@@ -11,7 +11,8 @@ namespace UniversalDragAndDrop.Interaction
     {
         Pointer = 0,
         Key = 1,
-        InputAction = 2
+        InputAction = 2,
+        LegacyInputAction = 3
     }
 
     public sealed class RuntimeInteractionSnapshot
@@ -71,7 +72,7 @@ namespace UniversalDragAndDrop.Interaction
             Selection = selection ?? SelectionContext.Empty;
         }
 
-        // Which input pipeline triggered this snapshot: pointer, legacy key binding, or InputAction.
+        // Which input pipeline triggered this snapshot: pointer, legacy KeyCode, old Input Manager, or InputAction.
         public InteractionInputKind InputKind { get; }
 
         // Inventory currently being routed. May be null for global/default-profile input.
@@ -123,7 +124,7 @@ namespace UniversalDragAndDrop.Interaction
         public bool HasDropArea => DropArea != null;
         public bool HasConcreteTarget => HasSlot || HasDropArea;
 
-        public RuntimeInteractionSnapshot WithKeyPhase(KeyTriggerPhase? keyPhase)
+        public RuntimeInteractionSnapshot WithKeyPhase(KeyTriggerPhase? keyPhase, object nativeInputContext = null)
         {
             return new RuntimeInteractionSnapshot(
                 inputKind: InputKind,
@@ -138,7 +139,7 @@ namespace UniversalDragAndDrop.Interaction
                 pointerPhase: PointerPhase,
                 keyPhase: keyPhase,
                 inputActionPhase: InputActionPhase,
-                nativeInputContext: NativeInputContext,
+                nativeInputContext: nativeInputContext ?? NativeInputContext,
                 isDragging: IsDragging,
                 currentDragContext: CurrentDragContext,
                 selection: Selection);

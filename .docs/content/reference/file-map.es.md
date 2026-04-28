@@ -178,9 +178,11 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 |---|---|---|
 | `Scripts/Interaction/Bindings/PointerBinding.cs` | `PointerBinding` | Definición runtime de pointer binding. |
 | `Scripts/Interaction/Bindings/KeyBinding.cs` | `KeyBinding` | Definición runtime de binding para teclas legacy. |
+| `Scripts/Interaction/Bindings/LegacyInputActionBinding.cs` | `LegacyInputActionBinding` | Definición runtime de binding del Input Manager antiguo por nombre de botón. |
 | `Scripts/Interaction/Bindings/InputActionBinding.cs` | `InputActionBinding` | Definición runtime de binding del Input System. |
 | `Scripts/Interaction/Bindings/AssetPointerBinding.cs` | `AssetPointerBinding` | Entrada serializada de asset/profile para pointer binding. |
 | `Scripts/Interaction/Bindings/AssetKeyBinding.cs` | `AssetKeyBinding` | Entrada serializada de asset/profile para key binding legacy. |
+| `Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs` | `AssetLegacyInputActionBinding` | Entrada serializada de asset/profile para binding del Input Manager antiguo por nombre de botón. |
 | `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Entrada serializada de asset/profile para Input System binding. |
 | `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper para comprobaciones de modifier keys usadas durante la evaluación de bindings. |
 
@@ -420,4 +422,3 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | Añadir contenido de tooltip | `IDescribable.cs`, `TooltipManager.cs`, `DefaultTooltipView.cs` |
 | Entender la integración de world drop | `DropAreaBase.cs`, `InventoryDropArea.cs`, `WorldDropZone.cs` |
 | Implementar conversión de items entre inventarios | `IItemAdapterConverter.cs`, `TransferItemConversionUtility.cs`, converters de Demo4 |
-

@@ -178,9 +178,11 @@ The tables below list every script file and describe the main class, interface, 
 |---|---|---|
 | `Scripts/Interaction/Bindings/PointerBinding.cs` | `PointerBinding` | Runtime pointer binding definition. |
 | `Scripts/Interaction/Bindings/KeyBinding.cs` | `KeyBinding` | Runtime legacy key binding definition. |
+| `Scripts/Interaction/Bindings/LegacyInputActionBinding.cs` | `LegacyInputActionBinding` | Runtime old Input Manager button-name binding definition. |
 | `Scripts/Interaction/Bindings/InputActionBinding.cs` | `InputActionBinding` | Runtime Input System binding definition. |
 | `Scripts/Interaction/Bindings/AssetPointerBinding.cs` | `AssetPointerBinding` | Serialized pointer binding asset/profile entry. |
 | `Scripts/Interaction/Bindings/AssetKeyBinding.cs` | `AssetKeyBinding` | Serialized legacy key binding asset/profile entry. |
+| `Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs` | `AssetLegacyInputActionBinding` | Serialized old Input Manager button-name binding asset/profile entry. |
 | `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Serialized Input System binding asset/profile entry. |
 | `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper for modifier-key checks used by binding evaluation. |
 
@@ -420,4 +422,3 @@ The tables below list every script file and describe the main class, interface, 
 | Add tooltip content | `IDescribable.cs`, `TooltipManager.cs`, `DefaultTooltipView.cs` |
 | Understand world drop integration | `DropAreaBase.cs`, `InventoryDropArea.cs`, `WorldDropZone.cs` |
 | Implement item conversion across inventories | `IItemAdapterConverter.cs`, `TransferItemConversionUtility.cs`, Demo4 converters |
-

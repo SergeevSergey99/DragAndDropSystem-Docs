@@ -178,9 +178,11 @@
 |---|---|---|
 | `Scripts/Interaction/Bindings/PointerBinding.cs` | `PointerBinding` | Runtime-описание pointer binding. |
 | `Scripts/Interaction/Bindings/KeyBinding.cs` | `KeyBinding` | Runtime-описание legacy key binding. |
+| `Scripts/Interaction/Bindings/LegacyInputActionBinding.cs` | `LegacyInputActionBinding` | Runtime-описание binding старого Input Manager по имени кнопки. |
 | `Scripts/Interaction/Bindings/InputActionBinding.cs` | `InputActionBinding` | Runtime-описание binding для нового Input System. |
 | `Scripts/Interaction/Bindings/AssetPointerBinding.cs` | `AssetPointerBinding` | Сериализуемая profile-версия pointer binding. |
 | `Scripts/Interaction/Bindings/AssetKeyBinding.cs` | `AssetKeyBinding` | Сериализуемая profile-версия legacy key binding. |
+| `Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs` | `AssetLegacyInputActionBinding` | Сериализуемая profile-версия binding старого Input Manager по имени кнопки. |
 | `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Сериализуемая profile-версия Input System binding. |
 | `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper для проверки modifier keys в процессе оценки bindings. |
 
@@ -420,4 +422,3 @@
 | Добавить tooltip content | `IDescribable.cs`, `TooltipManager.cs`, `DefaultTooltipView.cs` |
 | Понять world drop integration | `DropAreaBase.cs`, `InventoryDropArea.cs`, `WorldDropZone.cs` |
 | Реализовать конвертацию предметов между инвентарями | `IItemAdapterConverter.cs`, `TransferItemConversionUtility.cs`, конвертеры из Demo4 |
-

@@ -8,12 +8,14 @@ namespace UniversalDragAndDrop.Interaction
     {
         [SerializeField] private List<AssetPointerBinding> _pointerBindings = new();
         [SerializeField] private List<AssetKeyBinding> _keyBindings = new();
+        [SerializeField] private List<AssetLegacyInputActionBinding> _legacyInputActionBindings = new();
 #if UDND_INPUT_SYSTEM
         [SerializeField] private List<AssetInputActionBinding> _inputActionBindings = new();
 #endif
 
         private readonly List<PointerBinding> _runtimePointerBindings = new();
         private readonly List<KeyBinding> _runtimeKeyBindings = new();
+        private readonly List<LegacyInputActionBinding> _runtimeLegacyInputActionBindings = new();
 #if UDND_INPUT_SYSTEM
         private readonly List<InputActionBinding> _runtimeInputActionBindings = new();
 #endif
@@ -21,6 +23,7 @@ namespace UniversalDragAndDrop.Interaction
 
         public IReadOnlyList<AssetPointerBinding> PointerBindings => _pointerBindings;
         public IReadOnlyList<AssetKeyBinding> KeyBindings => _keyBindings;
+        public IReadOnlyList<AssetLegacyInputActionBinding> LegacyInputActionBindings => _legacyInputActionBindings;
 #if UDND_INPUT_SYSTEM
         public IReadOnlyList<AssetInputActionBinding> InputActionBindings => _inputActionBindings;
 #endif
@@ -40,6 +43,15 @@ namespace UniversalDragAndDrop.Interaction
             {
                 RebuildRuntimeIfNeeded();
                 return _runtimeKeyBindings;
+            }
+        }
+
+        public IReadOnlyList<LegacyInputActionBinding> LegacyInputActionBindingsRuntime
+        {
+            get
+            {
+                RebuildRuntimeIfNeeded();
+                return _runtimeLegacyInputActionBindings;
             }
         }
 
@@ -72,9 +84,11 @@ namespace UniversalDragAndDrop.Interaction
             _runtimeDirty = false;
             _runtimePointerBindings.Clear();
             _runtimeKeyBindings.Clear();
+            _runtimeLegacyInputActionBindings.Clear();
 
             AppendRuntimeBindings(_pointerBindings, _runtimePointerBindings, b => b.ToRuntimeBinding());
             AppendRuntimeBindings(_keyBindings, _runtimeKeyBindings, b => b.ToRuntimeBinding());
+            AppendRuntimeBindings(_legacyInputActionBindings, _runtimeLegacyInputActionBindings, b => b.ToRuntimeBinding());
 #if UDND_INPUT_SYSTEM
             _runtimeInputActionBindings.Clear();
             AppendRuntimeBindings(_inputActionBindings, _runtimeInputActionBindings, b => b.ToRuntimeBinding());

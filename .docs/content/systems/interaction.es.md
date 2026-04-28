@@ -47,7 +47,7 @@ Los umbrales se configuran en `InputEventRouter`: `_longClickThresholdSeconds` (
 
 ## Binding Profiles
 
-Los bindings se configuran mediante el ScriptableObject `InteractionBindingsProfile`. Contiene pointer bindings, key bindings legacy y Input Action bindings opcionales.
+Los bindings se configuran mediante el ScriptableObject `InteractionBindingsProfile`. Contiene pointer bindings, bindings legacy `KeyCode`, bindings del Input Manager legacy por nombre de botón y bindings Input Action opcionales.
 
 ### Pointer Bindings
 
@@ -61,6 +61,19 @@ Cada binding consiste en: botón de ratón + modificador + fase + acción.
 | LMB | Ctrl | ClickShort | Toggle selection |
 | LMB | Shift | ClickShort | Range selection |
 | RMB | --- | ClickShort | Context menu |
+
+### Bindings del Input Manager legacy
+
+Usa `LegacyInputActionBinding` cuando el proyecto todavía dependa del Input Manager antiguo y quieras vincular por nombre de botón en vez de `KeyCode`.
+Nombres típicos: `Submit`, `Cancel` o cualquier botón personalizado configurado en **Project Settings > Input Manager**.
+
+| Nombre del botón | Fase | Acción típica |
+|-------------------|------|---------------|
+| Submit | Down | Auto-transfer o terminar drag |
+| Cancel | Down | Cancelar drag o cerrar UI |
+
+Estos bindings son consultados por `InputEventRouter` y requieren que el soporte Legacy Input Manager esté habilitado en Player Settings.
+Son independientes de `InputActionBinding`, que pertenece al nuevo paquete Input System.
 
 ### Input Action Bindings
 
@@ -130,10 +143,12 @@ Si el slot destino está ocupado y no puede aceptar el item, la operación se re
 | Clase | Rol |
 |-------|------|
 | `InputEventRouter` | Singleton: enruta el input hacia los bindings |
-| `InteractionBindingsProfile` | SO profile con pointer bindings y Input Action bindings |
+| `InteractionBindingsProfile` | SO profile con pointer, legacy e Input Action bindings |
 | `SlotInputAdapter` | Componente en un slot: reenvía raw events |
 | `InputModalityTracker` | Determina el modo de input actual (Mouse / Navigation) tanto en legacy como en Input System |
 | `PointerBinding` | Binding: botón + modificador + fase + acción |
+| `KeyBinding` | Binding legacy `KeyCode` hacia una acción |
+| `LegacyInputActionBinding` | Binding del Input Manager antiguo por nombre de botón hacia una acción |
 | `InputActionBinding` | Binding de Input System Action a una acción |
 | `InventoryExtraInteractionBinder` | Override de bindings para un inventario concreto |
 | `SplitDropAction` | Acción: soltar parte del stack sin terminar el drag |

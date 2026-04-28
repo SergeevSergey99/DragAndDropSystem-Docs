@@ -63,6 +63,49 @@ namespace UniversalDragAndDrop.Tests.Core
                 "Quick actions must use the current hovered slot, not a stale mouse-down drag source.");
         }
 
+        [Test]
+        public void LegacyInputActionBinding_TrimmedButtonName_IsValid()
+        {
+            var binding = new LegacyInputActionBinding(
+                "Submit",
+                "  Submit  ",
+                ModifierKey.None,
+                KeyTriggerPhase.Down,
+                new TestSlotAction());
+
+            Assert.IsTrue(binding.IsValid());
+            Assert.AreEqual("Submit", binding.ButtonName);
+            Assert.AreEqual(KeyTriggerPhase.Down, binding.TriggerPhase);
+        }
+
+        [Test]
+        public void InteractionBindingsProfile_LegacyInputActionBinding_ConvertsToRuntimeBinding()
+        {
+            var profile = ScriptableObject.CreateInstance<InteractionBindingsProfile>();
+            try
+            {
+                var assetBinding = new AssetLegacyInputActionBinding();
+                SetPrivateField(assetBinding, "_label", "Submit");
+                SetPrivateField(assetBinding, "_buttonName", "Submit");
+                SetPrivateField(assetBinding, "_action", new TestAssetSafeSlotAction());
+
+                SetPrivateField(
+                    profile,
+                    "_legacyInputActionBindings",
+                    new System.Collections.Generic.List<AssetLegacyInputActionBinding> { assetBinding });
+
+                var runtimeBindings = profile.LegacyInputActionBindingsRuntime;
+
+                Assert.AreEqual(1, runtimeBindings.Count);
+                Assert.AreEqual("Submit", runtimeBindings[0].ButtonName);
+                Assert.IsTrue(runtimeBindings[0].IsValid());
+            }
+            finally
+            {
+                Object.DestroyImmediate(profile);
+            }
+        }
+
         private static SlotInputAdapter AddInputAdapter(BaseSlot slot)
         {
             var adapter = slot.gameObject.AddComponent<SlotInputAdapter>();
@@ -70,6 +113,21 @@ namespace UniversalDragAndDrop.Tests.Core
                 .GetField("baseSlot", BindingFlags.Instance | BindingFlags.NonPublic)
                 ?.SetValue(adapter, slot);
             return adapter;
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            target.GetType()
+                .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.SetValue(target, value);
+        }
+
+        private sealed class TestSlotAction : SlotInteractionAction
+        {
+        }
+
+        private sealed class TestAssetSafeSlotAction : AssetSafeSlotInteractionAction
+        {
         }
     }
 }

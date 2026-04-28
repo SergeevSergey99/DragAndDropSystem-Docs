@@ -24,7 +24,7 @@ Because of that separation, the asset can work with:
 - inventory, slot, and global rules
 - domain hooks before commit and after success
 - context menu, tooltip, and selection systems
-- input pipeline for mouse, navigation, and `InputAction`
+- input pipeline for mouse, navigation, legacy Input Manager buttons, and `InputAction`
 - world loot / drop support
 - item conversion between different inventory models
 - nested container example
@@ -61,6 +61,7 @@ Available without `com.unity.inputsystem`:
 - tooltip system
 - selection through pointer interactions
 - legacy `KeyCode` bindings
+- legacy Input Manager button-name bindings such as `Submit` and `Cancel`
 
 Requires `com.unity.inputsystem`:
 
@@ -76,6 +77,7 @@ Legacy input setup notes:
 - the runtime now auto-adds `StandaloneInputModule` when it detects legacy input mode and no usable UI input module is present
 - mixed setups are supported: a project may include the new Input System while a specific scene still uses `StandaloneInputModule`
 - in a mixed setup, pointer and UI navigation follow the scene's active `EventSystem` module
+- old Input Manager button-name bindings require Legacy Input Manager support to be enabled in Player Settings
 - `InputAction`-driven features still depend on the new Input System being configured for that workflow, so they may not work as expected in scenes intentionally using the legacy UI input path
 
 ## Notes

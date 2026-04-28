@@ -47,7 +47,7 @@ flowchart TD
 
 ## Профили привязок
 
-Привязки настраиваются через ScriptableObject `InteractionBindingsProfile`. В нём есть pointer bindings, legacy key bindings и опциональные Input Action bindings.
+Привязки настраиваются через ScriptableObject `InteractionBindingsProfile`. В нём есть pointer bindings, legacy `KeyCode` bindings, legacy Input Manager bindings по имени кнопки и опциональные Input Action bindings.
 
 ### Привязки указателя (Pointer Bindings)
 
@@ -61,6 +61,19 @@ flowchart TD
 | ЛКМ | Ctrl | ClickShort | Переключить выделение |
 | ЛКМ | Shift | ClickShort | Диапазонное выделение |
 | ПКМ | --- | ClickShort | Контекстное меню |
+
+### Привязки Legacy Input Manager
+
+Используйте `LegacyInputActionBinding`, если проект всё ещё работает через старый Input Manager и действие нужно задавать строковым именем кнопки, а не `KeyCode`.
+Типичные имена: `Submit`, `Cancel` или любая своя кнопка из **Project Settings > Input Manager**.
+
+| Имя кнопки | Фаза | Типичное действие |
+|------------|------|-------------------|
+| Submit | Down | Автоперенос или завершение drag |
+| Cancel | Down | Отмена drag или закрытие UI |
+
+Эти привязки опрашиваются через `InputEventRouter` и требуют включённой поддержки Legacy Input Manager в Player Settings.
+Они не заменяют `InputActionBinding`: это отдельный путь для старой системы ввода.
 
 ### Привязки Input Action
 
@@ -130,10 +143,12 @@ Mixed setup поддерживается, но важно помнить, что
 | Класс | Роль |
 |-------|------|
 | `InputEventRouter` | Синглтон: маршрутизирует ввод к привязкам |
-| `InteractionBindingsProfile` | SO-профиль с привязками указателя и Input Action |
+| `InteractionBindingsProfile` | SO-профиль с pointer, legacy и Input Action привязками |
 | `SlotInputAdapter` | Компонент на слоте: пересылает сырые события |
 | `InputModalityTracker` | Определяет текущий режим ввода (Mouse / Navigation) и в legacy, и в Input System конфигурации |
 | `PointerBinding` | Привязка: кнопка + модификатор + фаза + действие |
+| `KeyBinding` | Legacy `KeyCode` привязка к действию |
+| `LegacyInputActionBinding` | Привязка старого Input Manager по имени кнопки к действию |
 | `InputActionBinding` | Привязка Input System Action к действию |
 | `InventoryExtraInteractionBinder` | Переопределение привязок для конкретного инвентаря |
 | `SplitDropAction` | Действие: сбросить часть стека, не прекращая drag |
