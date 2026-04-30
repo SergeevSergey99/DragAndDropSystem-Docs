@@ -1,5 +1,5 @@
 ---
-Last Updated: 2026-04-29
+Last Updated: 2026-04-30
 ---
 
 # Shaped Items Architecture Plan
@@ -129,7 +129,7 @@ Snapshot/rollback всегда работает в терминах placement-т
 
 Переносы между grid- и slot-инвентарями работают по тем же контрактам:
 
-- **grid → slot.** `DragContext` несёт footprint предмета. Целевой slot-инвентарь при `CanAccept`/`TryAdd` интерпретирует placement как 1-cell (своя политика occupancy). Footprint сохраняется как item-метаданные; если предмет позже перенесут обратно в grid, он снова развернётся.
+- **grid → slot.** `DragEntry` несёт footprint предмета через `SourcePlacement` / item adapter metadata. Целевой slot-инвентарь при `CanAccept`/`TryAdd` интерпретирует placement как 1-cell (своя политика occupancy). Footprint сохраняется как item-метаданные; если предмет позже перенесут обратно в grid, он снова развернётся.
 - **slot → grid.** Footprint резолвится из item adapter-а. Если предмет был collapsed в slot-инвентаре, при переносе обратно в grid он снова занимает свой реальный footprint. Только обычные non-shaped items имеют footprint `(1,1)`.
 - **grid → grid (разные размеры).** Тот же планировщик, та же валидация по occupancy целевого инвентаря.
 
