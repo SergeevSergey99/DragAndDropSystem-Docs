@@ -9,7 +9,7 @@ Last Updated: 2026-04-29
 ## Ведущие принципы
 
 1. **Без альтернативных путей.** Не плодить `IGridInventoryStrategy` рядом с `IInventoryStrategy`, `IPlacementRule` рядом с `IDragRule`, optional grid-поля рядом с обычными. Расширяем общие контракты так, чтобы slot-инвентарь стал вырожденным случаем placement-инвентаря.
-2. **Footprint — свойство предмета.** Форма едет вместе с предметом между инвентарями. Реализуется опциональным интерфейсом, без правки `IInventoryItem`.
+2. **Footprint — свойство item adapter-а.** Форма едет вместе с предметом между инвентарями. Реализуется опциональным интерфейсом на `IItemAdapter`-совместимом адаптере, без правки базового `IItemAdapter`.
 3. **Occupancy interpretation — свойство инвентаря.** Каждый инвентарь сам решает, как трактовать placement request. Slot-инвентарь занимает 1 слот вне зависимости от footprint, grid — все covered cells.
 4. **Источник истины — placement.** Stack хранится на `Placement`, а не на каком-либо слоте. Слот ничего не знает про anchor/follower-роли — он лишь спрашивает инвентарь, какой placement его накрывает.
 5. **Cross-inventory transfer — первоклассный сценарий.** Перетаскивание shaped item между grid- и slot-инвентарями должно работать без специального кода: footprint сохраняется как метаданные предмета, целевой инвентарь интерпретирует placement по своим правилам.
@@ -17,7 +17,7 @@ Last Updated: 2026-04-29
 ## Целевая модель данных
 
 ```
-IShapedItem : IInventoryItem
+IItemFootprintProvider
     int FootprintWidth  { get; }
     int FootprintHeight { get; }
     // Phase 4: bool[,] ShapeMask { get; }
@@ -26,7 +26,7 @@ Placement
     int          Id
     Vector2Int   AnchorCell        // координата, не «специальный слот»
     Orientation  Orientation       // 0 / 90 в Phase 1
-    Footprint    Footprint         // (W, H), для не-IShapedItem = (1, 1)
+    Footprint    Footprint         // (W, H), для adapter-а без IItemFootprintProvider = (1, 1)
     ItemStack    Stack             // источник истины
     IReadOnlyList<int> CoveredIndices  // производное от anchor + footprint + orientation
 
@@ -36,43 +36,63 @@ UniversalInventory
     GridTopology?                Grid                // null → линейный slot inventory
 ```
 
+`IItemFootprintProvider` — optional interface, который обычно реализует тот же object, что и `IItemAdapter`. Footprint резолвится из `stack.PrimaryAdapter`; если адаптер не реализует интерфейс, используется `(1, 1)`. В проекте нет `IInventoryItem`, поэтому shaped-контракт не должен ссылаться на него.
+
 `AnchorCell` — это геометрическая координата placement-а (нужна для расчёта bounds, сериализации и `candidateAnchor = pointerCell - grabOffset`), а не привилегированный слот. Все слоты в `CoveredIndices` идентичны по роли.
 
-`slot.ItemStack` становится тонким акцессором: `inventory.GetPlacementAt(this)?.Stack`. Это устраняет дублирование источника истины и делает 1×1 в slot-инвентаре тривиальным частным случаем placement-модели.
+`slot.Stack` становится compatibility facade: `inventory.GetPlacementAt(this)?.Stack ?? ItemStack.Empty()`. `slot.SetStack` / `slot.Clear` должны перейти на inventory placement API, а не напрямую менять поле в слоте. Это самая большая миграция: сейчас drag, стратегии, snapshots, UI, filter/sort, context menu и tests активно читают/пишут `BaseSlot.Stack`.
 
 ### Инварианты
 
 - Один `Placement` ↔ один `ItemStack`. Один `ItemStack` живёт ровно в одном placement-е.
-- Shaped items (`IShapedItem` с footprint > 1×1) всегда `Stack.Count == 1` в Phase 1–3. Стекуемые shaped items — Phase 4.
+- Shaped items (`IItemFootprintProvider` с footprint > 1×1) всегда `Stack.Count == 1` в Phase 1–3. Стекуемые shaped items — Phase 4.
 - Grid inventory работает только с `SlotManagementType.Fixed`. Dynamic несовместим с фиксированной NxM-топологией. Динамический рост grid — Phase 4+.
 - Координаты grid — row-major: `index = y * columns + x`.
 
 ## Хранение и сериализация
 
-Сериализуется список `PlacementData`, occupancy перестраивается при загрузке.
+Сериализуется список `PlacementData`, occupancy перестраивается при загрузке. Это runtime/UI persistence, а не универсальная замена внешнему data model.
 
 ```
 PlacementData
     int    AnchorIndex
-    string ItemId
+    string ItemKey       // opaque key, выдаёт DataBinding / adapter persistence layer
     int    Count          // Phase 1–3: всегда 1
     int    Orientation    // 0 или 90
 ```
 
 Состояние follower-cells не сериализуется — оно полностью производно от placement-списка. Это снимает риск рассинхронизации.
 
-## Контракты, которые расширяются (а не дублируются)
-
-### `DragContext`
-
-Всегда несёт placement-метаданные. Для 1×1 они тривиальны, поэтому существующие сценарии не ломаются.
+Важно: одного `ItemId` недостаточно для текущего проекта. `ItemStack` хранит adapter instances, а демо и bindings могут работать с ScriptableObject, model-adapter, container instances, торговыми item model-ами и converter-ами. Для slot-only binding-ов старый путь остаётся рабочим; для grid/shaped persistence нужен placement-aware binding contract:
 
 ```
-DragContext
-    BaseSlot     SourceSlot
+IPlacementDataBinding
+    IEnumerable<PlacementData<TData>> GetPlacements()
+    IItemAdapter CreateAdapter(TData data)
+    string GetPersistenceKey(IItemAdapter adapter)
+    void AddPlacementData(PlacementCommitContext context)
+    void RemovePlacementData(PlacementCommitContext context)
+```
+
+Конкретная форма generic/non-generic API может быть уточнена при реализации, но план должен явно признавать: внешний data layer, а не `UniversalInventory`, отвечает за восстановление доменных item instances.
+
+## Контракты, которые расширяются (а не дублируются)
+
+### `DragEntry` / `DragContext`
+
+Placement-метаданные живут на `DragEntry`, потому что текущая модель поддерживает batch drag через `DragContext.Entries`. Для 1×1 они тривиальны, поэтому существующие сценарии не ломаются.
+
+```
+DragEntry
+    ItemStack    Stack
+    BaseSlot     SourceSlot        // pressed / source covered cell
+    IInventory   SourceInventory
     Placement    SourcePlacement     // включая Stack, footprint, orientation
     Vector2Int   GrabOffset          // (0,0) для 1×1
+
+DragContext
     BaseSlot     TargetSlot          // слот под курсором
+    IInventory   TargetInventory
 ```
 
 `GrabOffset` — смещение от `AnchorCell` placement-а до cell, за который пользователь схватил предмет. Без него shaped item «прыгает» при захвате не за угловую ячейку.
@@ -86,16 +106,20 @@ PlacementRequest
     ItemStack    Stack
     int          AnchorIndex
     Orientation  Orientation
-    Footprint    Footprint   // из IShapedItem, или (1,1)
+    Footprint    Footprint   // из IItemFootprintProvider, или (1,1)
 ```
+
+Для миграции не обязательно одномоментно ломать все strategy interfaces. Можно ввести placement API на уровне `UniversalInventory` (`CanPlace`, `TryPlace`, `RemovePlacement`) и адаптировать существующие стратегии через compatibility layer, пока `StackableItemStrategy` / `UniqueItemStrategy` не будут переписаны на `PlacementRequest`.
 
 ### `IDragRule`
 
-Контекст правила обогащается placement-полями (anchor, covered, orientation). Старые правила, не читающие новые поля, продолжают работать на 1×1. Никакого отдельного `IPlacementRule`.
+Контекст правила обогащается placement-полями (anchor, covered, orientation), доступными через `DragEntry` и target placement query. Старые правила, не читающие новые поля, продолжают работать на 1×1. Никакого отдельного `IPlacementRule`.
 
 ### `InventoryTransferResult`
 
-`AnchorSlot` и `CoveredSlots` — первичные поля, не optional-расширения. Для 1×1: `AnchorSlot == TargetSlot`, `CoveredSlots == [TargetSlot]`. Существующие подписчики не видят разницы.
+`AnchorSlot` и `CoveredSlots` — первичные поля placement commit-а. Для 1×1: `AnchorSlot == TargetBaseSlot`, `CoveredSlots == [TargetBaseSlot]`. `TargetBaseSlot` сохраняется как backward-compatible alias на anchor/resolved target для существующих подписчиков.
+
+`InventoryItemEventContext` тоже должен получить placement metadata (`PlacementId`, `AnchorIndex`, `CoveredIndices`, `Orientation`). Иначе `SlotIndexedInventoryDataBinding` сможет обновить только anchor slot и потеряет информацию о footprint.
 
 ### `InventorySnapshot`
 
@@ -106,7 +130,7 @@ Snapshot/rollback всегда работает в терминах placement-т
 Переносы между grid- и slot-инвентарями работают по тем же контрактам:
 
 - **grid → slot.** `DragContext` несёт footprint предмета. Целевой slot-инвентарь при `CanAccept`/`TryAdd` интерпретирует placement как 1-cell (своя политика occupancy). Footprint сохраняется как item-метаданные; если предмет позже перенесут обратно в grid, он снова развернётся.
-- **slot → grid.** Footprint предмета равен (1,1), grid занимает одну ячейку.
+- **slot → grid.** Footprint резолвится из item adapter-а. Если предмет был collapsed в slot-инвентаре, при переносе обратно в grid он снова занимает свой реальный footprint. Только обычные non-shaped items имеют footprint `(1,1)`.
 - **grid → grid (разные размеры).** Тот же планировщик, та же валидация по occupancy целевого инвентаря.
 
 Highlight рассчитывается как **view-query к target-инвентарю**, без глобального `if (shaped)`:
@@ -116,7 +140,7 @@ candidateAnchor = pointerCell - dragContext.GrabOffset
 highlightSlots  = targetInventory.GetCoveredCells(candidateAnchor, footprint, orientation)
 ```
 
-Slot-инвентарь возвращает `[pointerSlot]`. Grid возвращает covered cells. Source-инвентарь подсвечивает свой `SourcePlacement`. Один и тот же код для обоих случаев.
+Slot-инвентарь возвращает `[pointerSlot]`. Grid возвращает covered cells. Source-инвентарь подсвечивает `entry.SourcePlacement`. Один и тот же код для обоих случаев.
 
 **Политика slot-инвентаря для shaped items** — параметр инвентаря:
 
@@ -133,11 +157,11 @@ Slot-инвентарь возвращает `[pointerSlot]`. Grid возвра�
 2. placement   = inventory.GetPlacementAt(pressedSlot)   // null → нет драга
 3. grabOffset  = pressedSlot.cell - placement.AnchorCell
                   // (0,0) для slot inventory автоматически
-4. DragContext { SourceSlot=pressedSlot, SourcePlacement=placement,
-                 GrabOffset=grabOffset, ... }
+4. DragEntry { SourceSlot=pressedSlot, SourcePlacement=placement,
+               GrabOffset=grabOffset, ... }
 ```
 
-`ItemStack` достаётся из `placement.Stack`. Никаких `ResolveAnchorSlot`/`IsFollower`/`IsAnchor` API в слоте — слот не знает про роли. 1×1 проходит через ту же ветку (placement тривиальный).
+`ItemStack` достаётся из `placement.Stack`, а metadata записывается в `DragEntry`. Никаких `ResolveAnchorSlot`/`IsFollower`/`IsAnchor` API в слоте — слот не знает про роли. 1×1 проходит через ту же ветку (placement тривиальный).
 
 ## Визуал размещённого предмета
 
@@ -158,49 +182,53 @@ PlacementOverlay (sibling сетки слотов)
 
 Hover/selection/context menu, попавшие на любую covered cell, делегируют запрос инвентарю и работают по placement-у целиком.
 
+Filter/sort для grid должен быть ограничен. Текущий `FilterSortController` может скрывать слоты, выключать interactivity и менять sibling order отдельных cells; для фиксированной grid-топологии это ломает соответствие `index = y * columns + x`. В Phase 1–3 для grid разрешены только режимы, которые не меняют геометрию ячеек: dim/covered overlay/filter marker. Hide и MoveToEnd должны быть disabled или заменены grid-aware представлением.
+
 ## Зафиксированные ограничения Phase 1–3
 
 Эти ограничения — не временные «todo», а часть scope-а первого релиза. Каждое описано в плане явно, чтобы planner/executor не пытались поддержать их «частично».
 
-- **Shaped items не стекуются.** `Stack.Count > 1` для shaped item отвергается на этапе валидации placement.
+- **Shaped items не стекуются.** `Stack.Count > 1` для shaped item отвергается на этапе валидации placement и drag-start.
 - **Swap shaped items отключён.** При дропе shaped item на occupied cell (или при пересечении footprint-а с существующими placement-ами) — reject через стандартный `BlockedTargetResolution.Reject()`.
 - **Batch drag с shaped items отключён.** Поиск нескольких shaped placements — комбинаторная задача, отдельная фича.
 - **Auto-transfer для shaped items отключён.** `AutoTransferAnimationStrategy` работает на 1-cell уровне; для placement нужна отдельная анимационная подсистема.
 - **Auto-sort для grid inventory отключён.** 2D bin packing — отдельная задача, в Phase 1–3 не входит. Фильтрация (hide/show) работает: скрытый предмет всё ещё занимает ячейки.
 - **Произвольные shape masks не поддерживаются.** Только прямоугольные footprint, ротация 0/90.
 
-Все эти отказы — стандартный `Reject` через существующий drop policy / `BlockedTargetResolverBase`. Никаких новых ветвей в `TransferPlanner` для них не вводится.
+Все эти отказы должны выглядеть для внешнего API как стандартный `Reject` через существующий drop policy / `BlockedTargetResolverBase`. Внутри planner-а допустима явная placement-aware проверка capability, если она нужна для корректного failure reason и чтобы не допустить частичную поддержку shaped cases.
 
 ## Этапы реализации
 
-### Phase 1. Foundation (без drag-pipeline)
+### Phase 1. Foundation (без shaped drag)
 
 Цель: построить placement-модель и убедиться, что 1×1 в slot-инвентаре через неё работает идентично текущему коду.
 
-1. Ввести `IShapedItem`.
+1. Ввести `IItemFootprintProvider` как optional adapter interface.
 2. Ввести `Placement` с инвариантом «stack живёт здесь, не на слоте».
-3. Перевести `slot.ItemStack` на акцессор `inventory.GetPlacementAt(slot)?.Stack`. Это самая болезненная миграция — выполнять её первой.
+3. Перевести `slot.Stack` на compatibility facade через `inventory.GetPlacementAt(slot)?.Stack`. Это самая болезненная миграция — выполнять её первой, с сохранением публичных `SetStack` / `Clear` как thin wrappers поверх placement API.
 4. Расширить `UniversalInventory` API: `GetPlacementAt`, `GetCoveredCells`, `CanPlace(PlacementRequest)`, `TryPlace`, `RemovePlacement`. Slot-инвентарь реализует их тривиально.
 5. Добавить `GridTopology` (columns, rows, row-major mapping) как опциональное поле инвентаря. `null` → линейный slot inventory.
 6. Реализовать occupancy map как производное состояние от `Placements`.
-7. Сериализация: `List<PlacementData>` вместо «slot stores stack».
-8. Валидация: grid + Dynamic = ошибка инициализации; shaped item + Count > 1 = отказ при placement.
-9. Unit/play-mode тесты на API: создание grid, программное размещение, occupancy, сериализация → загрузка.
+7. Снимки rollback (`InventorySnapshot`) перевести на placement state, но сохранить 1×1 slot snapshot semantics для существующих tests.
+8. DataBinding: оставить текущие slot/list bindings рабочими через facade; добавить отдельный placement-aware binding contract для grid persistence.
+9. Валидация: grid + Dynamic = ошибка инициализации; shaped item + Count > 1 = отказ при placement.
+10. Unit/play-mode тесты на API: создание grid, программное размещение, occupancy, snapshot restore, binding reload для 1×1, serialization/persistence hook для placement.
 
-Без визуальных изменений и без изменений в drag pipeline. Существующие игры не должны заметить разницы.
+Phase 1 не включает полноценный shaped drag/overlay, но не является «без изменений drag/UI pipeline» в буквальном смысле: нужно сохранить текущий slot-only UX поверх новой storage model. Существующие игры не должны заметить разницы.
 
 ### Phase 2. Drag pipeline integration
 
 Цель: shaped placement становится first-class в transfer pipeline.
 
-1. Расширить `DragContext` полями `SourcePlacement`, `GrabOffset`. Инициализаторы DragContext выставляют тривиальные значения для 1×1 — старые сценарии работают.
-2. Перевести `IInventoryStrategy.TryAdd` / `CanAccept` на `PlacementRequest`. Существующие стратегии адаптируются с тривиальной интерпретацией.
-3. `TransferPlanner` строит placement-aware allocations через `inventory.CanPlace(PlacementRequest)`. Никаких grid-specific ветвей.
-4. `TransferPlanExecutor` применяет plan как placement-транзакцию (освободить старый placement целиком, занять новый целиком, события — раз на placement).
-5. `InventorySnapshot` захватывает/восстанавливает placement state.
-6. `InventoryTransferResult.AnchorSlot`/`CoveredSlots` — первичные поля.
-7. `IDragRule` контекст обогащается placement-полями.
-8. Reject-политики для swap/batch/auto-transfer shaped items через стандартный drop policy.
+1. Расширить `DragEntry` полями `SourcePlacement`, `GrabOffset`; `DragContext` остаётся контейнером entries + target state. Инициализаторы выставляют тривиальные значения для 1×1.
+2. Перевести placement planning с `PlannedSlotAllocation(BaseSlot, amount)` на `PlannedPlacementAllocation(PlacementRequest, amount/resolvedPlacement)`. Для 1×1 это даёт тот же результат, но не привязывает core к одному target slot.
+3. Перевести `IInventoryStrategy.TryAdd` / `CanAccept` на `PlacementRequest` или закрыть старые стратегии compatibility adapter-ом. Существующие стратегии трактуют любой запрос как 1-cell.
+4. `TransferPlanner` строит placement-aware allocations через `inventory.CanPlace(PlacementRequest)`. Допустимы internal capability checks для reject случаев shaped/swap/batch/auto-transfer, но не отдельный публичный grid pipeline.
+5. `TransferPlanExecutor` применяет plan как placement-транзакцию (освободить старый placement целиком, занять новый целиком, события — раз на placement).
+6. `InventorySnapshot` захватывает/восстанавливает placement state.
+7. `InventoryTransferResult.AnchorSlot`/`CoveredSlots` — первичные поля.
+8. `IDragRule` контекст обогащается placement-полями.
+9. Reject-политики для swap/batch/auto-transfer shaped items через стандартный drop policy.
 
 Cross-inventory grid ↔ slot должен работать после Phase 2 на уровне core-логики, до UI-визуализации.
 
@@ -231,7 +259,7 @@ Cross-inventory grid ↔ slot должен работать после Phase 2 �
 - Совместимость context menu, batch drag (для не-shaped), world drop, rollback-safe transfer.
 - Текущий rule pipeline.
 
-Способ обеспечить это: миграция `slot.ItemStack` на акцессор делается в Phase 1 как механическая замена под капотом, публичный API сохраняется. Все остальные расширения контрактов (`PlacementRequest`, `DragContext`, `InventoryTransferResult`) делаются обратно совместимо за счёт тривиальных значений по умолчанию для 1×1.
+Способ обеспечить это: миграция `slot.Stack` на facade делается в Phase 1 как совместимый слой под капотом, публичный API сохраняется. Все остальные расширения контрактов (`PlacementRequest`, `DragEntry`, `DragContext`, `InventoryTransferResult`) делаются обратно совместимо за счёт тривиальных значений по умолчанию для 1×1.
 
 ## Naming
 
@@ -247,11 +275,11 @@ Cross-inventory grid ↔ slot должен работать после Phase 2 �
 |---|---|
 | Storage модель | Stack живёт на `Placement`, не на слоте |
 | Slot роли | Нет anchor/follower; все covered cells симметричны |
-| `slot.ItemStack` | Акцессор через `inventory.GetPlacementAt(slot)?.Stack` |
-| Footprint | Опциональный `IShapedItem`, не трогает `IInventoryItem` |
+| `slot.Stack` | Compatibility facade через `inventory.GetPlacementAt(slot)?.Stack` |
+| Footprint | Опциональный `IItemFootprintProvider` на item adapter-е, не трогает `IItemAdapter` |
 | Стратегии | Один `IInventoryStrategy` с `PlacementRequest`, никакого `IGridInventoryStrategy` |
 | Rules | Один `IDragRule` с placement-context, никакого `IPlacementRule` |
-| `DragContext` | Всегда несёт `SourcePlacement` + `GrabOffset` |
+| `DragEntry` | Всегда несёт `SourcePlacement` + `GrabOffset` |
 | `InventoryTransferResult` | `AnchorSlot` + `CoveredSlots` — первичные поля |
 | Координаты grid | row-major (`index = y * columns + x`) |
 | Slot management | Grid → только Fixed |
