@@ -17,6 +17,7 @@ namespace UniversalDragAndDrop.Core
         public Vector2Int GrabOffset { get; }
         public Footprint Footprint { get; }
         public PlacementOrientation Orientation { get; }
+        public bool IsShaped => !Footprint.IsSingleCell;
 
         public DragEntry(
             ItemStack stack,
@@ -52,6 +53,34 @@ namespace UniversalDragAndDrop.Core
     {
         public IReadOnlyList<DragEntry> Entries { get; }
         public bool IsBatchDrag => Entries.Count > 1;
+        public bool HasShapedEntries
+        {
+            get
+            {
+                for (int i = 0; i < Entries.Count; i++)
+                {
+                    if (Entries[i].IsShaped)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasStackedShapedEntries
+        {
+            get
+            {
+                for (int i = 0; i < Entries.Count; i++)
+                {
+                    var entry = Entries[i];
+                    if (entry.IsShaped && entry.Stack != null && entry.Stack.Count > 1)
+                        return true;
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Target slot of the operation.

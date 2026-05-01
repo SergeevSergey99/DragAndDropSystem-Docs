@@ -296,6 +296,21 @@ namespace UniversalDragAndDrop.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected itemAdapter conversion");
             }
 
+            var targetFootprint = Footprint.Resolve(targetItem);
+            if (!targetFootprint.IsSingleCell)
+            {
+                if (requested != 1)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item transfer requires a single item");
+
+                if (context.IsBatchDrag)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Batch transfer does not support shaped items");
+
+                if ((targetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue) &&
+                    targetBaseSlotHint != null &&
+                    !targetBaseSlotHint.IsEmpty)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item drops onto occupied slots are not supported");
+            }
+
             if (TryPlanGridPlacementEntry(
                     context,
                     entry,
@@ -462,9 +477,6 @@ namespace UniversalDragAndDrop.Inventories
             if (footprint.IsSingleCell)
                 return false;
 
-            if (TryPlanOccupiedSlotHandler(entry, targetInventory, targetBaseSlotHint, isFirstEntry, requested, targetItem, out plan))
-                return true;
-
             if (requested != 1)
             {
                 plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped grid placement requires a single item");
@@ -551,6 +563,9 @@ namespace UniversalDragAndDrop.Inventories
             out PlannedEntryTransfer plan)
         {
             plan = null;
+            if (!Footprint.Resolve(targetItem).IsSingleCell)
+                return false;
+
             if (!isFirstEntry ||
                 targetBaseSlotHint == null ||
                 targetBaseSlotHint.IsEmpty ||

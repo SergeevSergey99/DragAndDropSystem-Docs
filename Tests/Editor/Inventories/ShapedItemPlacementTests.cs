@@ -128,6 +128,116 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void DragContext_ShapedBatchAndStackedShapedEntries_AreDetected()
+        {
+            var shapedStack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+            var stackedShapedStack = ItemStackBuilder.Of(
+                new FootprintAdapter("crate", 2, 1),
+                new FootprintAdapter("crate", 2, 1));
+
+            var batchContext = new DragContext(new[]
+            {
+                new DragEntry(shapedStack, null, null),
+                new DragEntry(ItemStackBuilder.Of(new FakeItemAdapter("coin")), null, null)
+            });
+            var stackedContext = new DragContext(new[]
+            {
+                new DragEntry(stackedShapedStack, null, null)
+            });
+
+            Assert.IsTrue(batchContext.IsBatchDrag);
+            Assert.IsTrue(batchContext.HasShapedEntries);
+            Assert.IsTrue(stackedContext.HasStackedShapedEntries);
+        }
+
+        [Test]
+        public void AutoTransferService_RejectsShapedItems()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var service = new AutoTransferService();
+                Assert.IsFalse(service.TryCreateContext(
+                    new[] { source.GetSlot(0) },
+                    source,
+                    target,
+                    out var context,
+                    out string failureReason));
+                Assert.IsNull(context);
+                StringAssert.Contains("shaped", failureReason);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void StackableSlotInventory_ShapedItemsDoNotMerge()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(2)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+
+                Assert.AreEqual(1, inventory.GetSlot(0).Stack.Count);
+                Assert.AreEqual(1, inventory.GetSlot(1).Stack.Count);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedSlotToOccupiedSlot_Rejects()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+
+                var sourceSlot = source.GetSlot(0);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsFalse(summary.Success);
+                Assert.AreEqual(1, source.GetSlot(0).Stack.Count);
+                Assert.AreEqual(1, target.GetSlot(0).Stack.Count);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedGridToGrid_UsesGrabOffsetAnchor()
         {
             var source = new InventoryBuilder()

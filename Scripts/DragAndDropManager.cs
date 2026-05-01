@@ -149,7 +149,14 @@ namespace UniversalDragAndDrop
             if (entries.Count == 0)
                 return false;
 
-            _currentContext = new DragContext(entries);
+            var dragContext = new DragContext(entries);
+            if (!ValidateShapedDragScope(dragContext, out var shapedFailureReason))
+            {
+                Extensions.DragAndDropLog($"Cannot start drag: {shapedFailureReason}");
+                return false;
+            }
+
+            _currentContext = dragContext;
 
             // Event: starting
             OnDragAttempting?.Invoke(_currentContext);
@@ -181,6 +188,51 @@ namespace UniversalDragAndDrop
             OnDragStarted?.Invoke(_currentContext);
             Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
+        }
+
+        private static bool ValidateShapedDragScope(DragContext context, out string failureReason)
+        {
+            failureReason = null;
+            if (context == null)
+            {
+                failureReason = "Invalid drag context";
+                return false;
+            }
+
+            if (context.HasStackedShapedEntries || HasStackedShapedSource(context))
+            {
+                failureReason = "Shaped items cannot be dragged as stacks";
+                return false;
+            }
+
+            if (context.IsBatchDrag && context.HasShapedEntries)
+            {
+                failureReason = "Batch drag does not support shaped items";
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool HasStackedShapedSource(DragContext context)
+        {
+            if (context?.Entries == null)
+                return false;
+
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var entry = context.Entries[i];
+                if (!entry.IsShaped)
+                    continue;
+
+                int sourceCount = entry.SourcePlacement?.Stack?.Count
+                    ?? entry.SourceBaseSlot?.Stack?.Count
+                    ?? 0;
+                if (sourceCount > 1)
+                    return true;
+            }
+
+            return false;
         }
 
         private static void SetDraggedState(IReadOnlyList<DragEntry> entries, bool isDragging)

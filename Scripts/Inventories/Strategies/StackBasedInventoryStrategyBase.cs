@@ -28,6 +28,9 @@ namespace UniversalDragAndDrop.Inventories
             if (itemAdapter == null)
                 return 0;
 
+            if (!Footprint.Resolve(itemAdapter).IsSingleCell)
+                return 1;
+
             if (_allowItemStackOverride && itemAdapter is IStackSizeLimitable limitable)
                 return Mathf.Max(1, limitable.MaxStackSize);
 
