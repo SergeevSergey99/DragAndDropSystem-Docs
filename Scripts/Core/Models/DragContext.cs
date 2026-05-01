@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Slots;
 
@@ -12,12 +13,34 @@ namespace UniversalDragAndDrop.Core
         public ItemStack Stack { get; }
         public BaseSlot SourceBaseSlot { get; }
         public IInventory SourceInventory { get; }
+        public Placement SourcePlacement { get; }
+        public Vector2Int GrabOffset { get; }
+        public Footprint Footprint { get; }
+        public PlacementOrientation Orientation { get; }
 
-        public DragEntry(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory)
+        public DragEntry(
+            ItemStack stack,
+            BaseSlot sourceBaseSlot,
+            IInventory sourceInventory,
+            Placement sourcePlacement = null,
+            Vector2Int? grabOffset = null)
         {
             Stack = stack;
             SourceBaseSlot = sourceBaseSlot;
             SourceInventory = sourceInventory;
+            SourcePlacement = sourcePlacement;
+
+            var universalInventory = sourceInventory as UniversalInventory
+                ?? sourceBaseSlot?.Inventory as UniversalInventory;
+            if (SourcePlacement == null && universalInventory != null && sourceBaseSlot != null)
+                SourcePlacement = universalInventory.GetPlacementAt(sourceBaseSlot);
+
+            Footprint = SourcePlacement?.Footprint ?? UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
+            Orientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
+            GrabOffset = grabOffset
+                ?? (universalInventory != null
+                    ? universalInventory.GetGrabOffset(SourcePlacement, sourceBaseSlot)
+                    : Vector2Int.zero);
         }
     }
 

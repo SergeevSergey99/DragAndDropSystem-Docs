@@ -16,7 +16,21 @@ namespace UniversalDragAndDrop.Slots
         [field: SerializeField, HideLabel, FoldoutGroup("Slot Rules", expanded: false)]
         public SlotRuleValidator SlotRuleValidator { get; protected set; } = new();
         
-        public ItemStack Stack { get; protected set; } = ItemStack.Empty();
+        private ItemStack _stack = ItemStack.Empty();
+
+        public ItemStack Stack
+        {
+            get
+            {
+                if (Inventory is UniversalInventory universalInventory &&
+                    universalInventory.TryGetPlacementStackForSlot(this, out var placementStack))
+                    return placementStack ?? ItemStack.Empty();
+
+                return _stack ?? ItemStack.Empty();
+            }
+            protected set => _stack = value ?? ItemStack.Empty();
+        }
+
         public int Index { get; protected set; }
         public bool IsEmpty => Stack == null || Stack.IsEmpty;
         public virtual Transform Transform => transform;
@@ -47,13 +61,38 @@ namespace UniversalDragAndDrop.Slots
 
         public virtual void SetStack(ItemStack stack)
         {
+            if (Inventory is UniversalInventory universalInventory &&
+                universalInventory.TrySetPlacementStackFromSlot(this, stack ?? ItemStack.Empty()))
+            {
+                UpdateVisuals();
+                return;
+            }
+
             Stack = stack ?? ItemStack.Empty();
             UpdateVisuals();
         }
+
         public virtual void Clear()
         {
+            if (Inventory is UniversalInventory universalInventory &&
+                universalInventory.TrySetPlacementStackFromSlot(this, ItemStack.Empty()))
+            {
+                UpdateVisuals();
+                return;
+            }
+
             Stack = ItemStack.Empty();
             UpdateVisuals();
+        }
+
+        internal ItemStack GetLocalStackForPlacementMigration()
+        {
+            return _stack;
+        }
+
+        internal void SetLocalStackForPlacementMigration(ItemStack stack)
+        {
+            _stack = stack ?? ItemStack.Empty();
         }
         
         /// <summary>Highlight flag (hover / drop-preview). Preserved across UpdateVisuals.</summary>

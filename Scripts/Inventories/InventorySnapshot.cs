@@ -8,12 +8,57 @@ namespace UniversalDragAndDrop.Inventories
     /// </summary>
     public sealed class InventorySnapshot
     {
-        public InventorySnapshot(List<InventorySlotState> slots)
+        public InventorySnapshot(
+            List<InventorySlotState> slots,
+            List<InventoryPlacementState> placements = null)
         {
             Slots = slots ?? new List<InventorySlotState>();
+            Placements = placements ?? new List<InventoryPlacementState>();
         }
 
         public List<InventorySlotState> Slots { get; }
+        public List<InventoryPlacementState> Placements { get; }
+    }
+
+    /// <summary>
+    /// Snapshot of a placement transaction.
+    /// For 1x1 slot inventories this is equivalent to a single occupied slot,
+    /// but it also preserves placement metadata needed by grid inventories.
+    /// </summary>
+    public struct InventoryPlacementState
+    {
+        public InventoryPlacementState(
+            int anchorIndex,
+            IReadOnlyList<IItemAdapter> adapters,
+            PlacementOrientation orientation,
+            Footprint footprint,
+            IReadOnlyList<int> coveredIndices = null)
+        {
+            AnchorIndex = anchorIndex;
+            Adapters = adapters == null || adapters.Count == 0
+                ? System.Array.Empty<IItemAdapter>()
+                : Copy(adapters);
+            Orientation = orientation;
+            Footprint = footprint.Normalized();
+            CoveredIndices = coveredIndices == null || coveredIndices.Count == 0
+                ? System.Array.Empty<int>()
+                : Copy(coveredIndices);
+        }
+
+        public int AnchorIndex { get; }
+        public IReadOnlyList<IItemAdapter> Adapters { get; }
+        public PlacementOrientation Orientation { get; }
+        public Footprint Footprint { get; }
+        public IReadOnlyList<int> CoveredIndices { get; }
+        public bool IsEmpty => Adapters == null || Adapters.Count <= 0;
+
+        private static T[] Copy<T>(IReadOnlyList<T> items)
+        {
+            var copy = new T[items.Count];
+            for (int i = 0; i < items.Count; i++)
+                copy[i] = items[i];
+            return copy;
+        }
     }
 
     /// <summary>

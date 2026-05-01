@@ -53,6 +53,18 @@ namespace UniversalDragAndDrop.Inventories
         [SerializeField, Tooltip("Slots created in the scene. Can be assigned manually in the Inspector. If empty, they will be found automatically.")]
         private List<BaseSlot> _slots = new List<BaseSlot>();
 
+        [FoldoutGroup("Placement", expanded: false)]
+        [SerializeField, Tooltip("Use fixed row-major grid topology for placement queries.")]
+        private bool _useGridTopology;
+
+        [FoldoutGroup("Placement")]
+        [SerializeField, Tooltip("Grid dimensions used when grid topology is enabled.")]
+        private GridTopology _gridTopology = new GridTopology(1, 1);
+
+        [FoldoutGroup("Placement")]
+        [SerializeField, Tooltip("Policy for shaped items in non-grid slot inventories.")]
+        private SlotShapedItemPolicy _slotShapedItemPolicy = SlotShapedItemPolicy.Accept;
+
         private IInventoryStrategy _strategy;
         private IPlacementStrategy _placementStrategy;
         private IAcceptanceStrategy _acceptanceStrategy;
@@ -61,9 +73,26 @@ namespace UniversalDragAndDrop.Inventories
         private BaseSlot _pointerHoveredBaseSlot;
         private BaseSlot _lastInteractedBaseSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
+        private readonly List<Placement> _placements = new List<Placement>();
+        private readonly Dictionary<int, int> _cellToPlacementId = new Dictionary<int, int>();
+        private readonly Dictionary<int, Placement> _placementById = new Dictionary<int, Placement>();
+        private int _nextPlacementId = 1;
+        private bool _placementStateInitialized;
 
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
+        public IReadOnlyList<Placement> Placements
+        {
+            get
+            {
+                EnsurePlacementStateInitialized();
+                PruneEmptyPlacements();
+                return _placements.AsReadOnly();
+            }
+        }
+
+        public GridTopology? Grid => _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null;
+        public SlotShapedItemPolicy ShapedItemPolicy => _slotShapedItemPolicy;
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
@@ -214,6 +243,7 @@ namespace UniversalDragAndDrop.Inventories
         {
             EnsureInventoryStrategySettings();
             EnsureSlotManagementSettings();
+            EnsurePlacementSettings();
 
             // Sort rules when values change in the Inspector
             _ruleValidator?.OnValidate();
@@ -309,6 +339,7 @@ namespace UniversalDragAndDrop.Inventories
         {
             EnsureInventoryStrategySettings();
             EnsureSlotManagementSettings();
+            EnsurePlacementSettings();
 
             _inventoryStrategy.BindInventory(this);
             _slotManagementSettings.BindInventory(this);
@@ -351,6 +382,7 @@ namespace UniversalDragAndDrop.Inventories
             if (_slots.Count == 0)
                 InitializeSlots();
 
+            EnsurePlacementStateInitialized();
             InitializeStrategy();
 
             if (Application.isPlaying && DataBinding != null)
@@ -369,6 +401,7 @@ namespace UniversalDragAndDrop.Inventories
 
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy not initialized, initializing now...</color>");
             InitializeSlots();
+            EnsurePlacementStateInitialized();
             InitializeStrategy();
             EnsureFreeSlots();
         }
@@ -382,7 +415,10 @@ namespace UniversalDragAndDrop.Inventories
                 _inventoryStrategy?.CaptureConfigurationJson(),
                 _slotManagementSettings?.GetType().AssemblyQualifiedName,
                 _slotManagementSettings?.CaptureConfigurationJson(),
-                _dropPolicy.AllowMergeOnDrop);
+                _dropPolicy.AllowMergeOnDrop,
+                _useGridTopology,
+                _gridTopology.Normalized().ToString(),
+                _slotShapedItemPolicy.ToString());
         }
 
         /// <summary>
@@ -408,6 +444,375 @@ namespace UniversalDragAndDrop.Inventories
             return null;
         }
 
+        public Placement GetPlacementAt(BaseSlot baseSlot)
+        {
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return null;
+
+            return GetPlacementAt(baseSlot.Index);
+        }
+
+        public Placement GetPlacementAt(int cellIndex)
+        {
+            EnsurePlacementStateInitialized();
+            PruneEmptyPlacements();
+            return GetPlacementAtInitialized(cellIndex);
+        }
+
+        public IReadOnlyList<int> GetCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation = PlacementOrientation.Rot0)
+        {
+            EnsurePlacementStateInitialized();
+            return BuildCoveredCells(anchorIndex, footprint, orientation);
+        }
+
+        public Vector2Int GetCellForIndex(int index)
+        {
+            EnsurePlacementSettings();
+            return IndexToCell(index);
+        }
+
+        public Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot)
+        {
+            if (placement == null || baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return Vector2Int.zero;
+
+            return GetCellForIndex(baseSlot.Index) - placement.AnchorCell;
+        }
+
+        public bool CanPlace(PlacementRequest request)
+        {
+            EnsurePlacementStateInitialized();
+            PruneEmptyPlacements();
+            return CanPlaceInitialized(request);
+        }
+
+        public bool TryPlace(PlacementRequest request)
+        {
+            return TryPlace(request, out _);
+        }
+
+        public bool TryPlace(PlacementRequest request, out Placement placement)
+        {
+            EnsurePlacementStateInitialized();
+            PruneEmptyPlacements();
+            return TryPlaceInitialized(request, out placement);
+        }
+
+        public bool RemovePlacement(Placement placement)
+        {
+            if (placement == null)
+                return false;
+
+            EnsurePlacementStateInitialized();
+            return UnregisterPlacement(placement);
+        }
+
+        public bool RemovePlacementAt(BaseSlot baseSlot)
+        {
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return false;
+
+            return RemovePlacementAt(baseSlot.Index);
+        }
+
+        public bool RemovePlacementAt(int cellIndex)
+        {
+            EnsurePlacementStateInitialized();
+            var placement = GetPlacementAtInitialized(cellIndex);
+            return placement != null && UnregisterPlacement(placement);
+        }
+
+        internal bool TryGetPlacementStackForSlot(BaseSlot baseSlot, out ItemStack stack)
+        {
+            stack = null;
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return false;
+
+            if (!_placementStateInitialized)
+                return false;
+
+            PruneEmptyPlacements();
+            stack = GetPlacementAtInitialized(baseSlot.Index)?.Stack ?? ItemStack.Empty();
+            return true;
+        }
+
+        internal bool TrySetPlacementStackFromSlot(BaseSlot baseSlot, ItemStack stack)
+        {
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return false;
+
+            EnsurePlacementStateInitialized();
+            PruneEmptyPlacements();
+
+            var existingPlacement = GetPlacementAtInitialized(baseSlot.Index);
+
+            if (stack == null || stack.IsEmpty)
+            {
+                if (existingPlacement != null)
+                    UnregisterPlacement(existingPlacement);
+
+                baseSlot.SetLocalStackForPlacementMigration(ItemStack.Empty());
+                return true;
+            }
+
+            var request = new PlacementRequest(
+                stack,
+                baseSlot.Index,
+                PlacementOrientation.Rot0,
+                Footprint.Resolve(stack.PrimaryAdapter));
+
+            if (existingPlacement != null)
+                UnregisterPlacement(existingPlacement);
+
+            if (!TryPlaceInitialized(request, out _))
+            {
+                if (existingPlacement != null)
+                    RegisterPlacement(existingPlacement);
+
+                return true;
+            }
+
+            baseSlot.SetLocalStackForPlacementMigration(ItemStack.Empty());
+            return true;
+        }
+
+        private void EnsurePlacementStateInitialized()
+        {
+            if (_placementStateInitialized)
+                return;
+
+            _placements.Clear();
+            _cellToPlacementId.Clear();
+            _placementById.Clear();
+            _nextPlacementId = 1;
+
+            if (_slots != null)
+            {
+                for (int i = 0; i < _slots.Count; i++)
+                {
+                    var slot = _slots[i];
+                    var stack = slot?.GetLocalStackForPlacementMigration();
+                    if (stack == null || stack.IsEmpty)
+                        continue;
+
+                    var request = new PlacementRequest(
+                        stack,
+                        i,
+                        PlacementOrientation.Rot0,
+                        Footprint.Resolve(stack.PrimaryAdapter));
+
+                    if (CanPlaceInitialized(request))
+                    {
+                        var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
+                        RegisterPlacement(new Placement(
+                            _nextPlacementId++,
+                            IndexToCell(i),
+                            i,
+                            request.Orientation,
+                            request.Footprint,
+                            stack,
+                            coveredIndices));
+                        slot.SetLocalStackForPlacementMigration(ItemStack.Empty());
+                    }
+                }
+            }
+
+            _placementStateInitialized = true;
+        }
+
+        private void ResetPlacementState()
+        {
+            _placements.Clear();
+            _cellToPlacementId.Clear();
+            _placementById.Clear();
+            _nextPlacementId = 1;
+            _placementStateInitialized = false;
+        }
+
+        private void ClearInitializedPlacementState()
+        {
+            _placements.Clear();
+            _cellToPlacementId.Clear();
+            _placementById.Clear();
+            _nextPlacementId = 1;
+            _placementStateInitialized = true;
+        }
+
+        private bool CanPlaceInitialized(PlacementRequest request)
+        {
+            if (request.Stack == null || request.Stack.IsEmpty)
+                return false;
+
+            if (!_useGridTopology &&
+                _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
+                !request.Footprint.IsSingleCell)
+                return false;
+
+            if (!request.Footprint.IsSingleCell && request.Stack.Count > 1)
+                return false;
+
+            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
+            if (coveredIndices == null || coveredIndices.Count == 0)
+                return false;
+
+            for (int i = 0; i < coveredIndices.Count; i++)
+            {
+                if (_cellToPlacementId.ContainsKey(coveredIndices[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private void PruneEmptyPlacements()
+        {
+            for (int i = _placements.Count - 1; i >= 0; i--)
+            {
+                var placement = _placements[i];
+                if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
+                    UnregisterPlacement(placement);
+            }
+        }
+
+        private bool TryPlaceInitialized(PlacementRequest request, out Placement placement)
+        {
+            placement = null;
+            if (!CanPlaceInitialized(request))
+                return false;
+
+            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
+            var anchorCell = IndexToCell(request.AnchorIndex);
+            placement = new Placement(
+                _nextPlacementId++,
+                anchorCell,
+                request.AnchorIndex,
+                request.Orientation,
+                request.Footprint,
+                request.Stack,
+                coveredIndices);
+
+            RegisterPlacement(placement);
+            return true;
+        }
+
+        private Placement GetPlacementAtInitialized(int cellIndex)
+        {
+            if (_cellToPlacementId.TryGetValue(cellIndex, out int placementId) &&
+                _placementById.TryGetValue(placementId, out var placement))
+                return placement;
+
+            return null;
+        }
+
+        private bool RemovePlacementAtInitialized(int cellIndex)
+        {
+            var placement = GetPlacementAtInitialized(cellIndex);
+            return placement != null && UnregisterPlacement(placement);
+        }
+
+        private void RegisterPlacement(Placement placement)
+        {
+            if (placement == null)
+                return;
+
+            _placements.Add(placement);
+            _placementById[placement.Id] = placement;
+            for (int i = 0; i < placement.CoveredIndices.Count; i++)
+                _cellToPlacementId[placement.CoveredIndices[i]] = placement.Id;
+        }
+
+        private bool UnregisterPlacement(Placement placement)
+        {
+            if (placement == null || !_placementById.Remove(placement.Id))
+                return false;
+
+            _placements.Remove(placement);
+            for (int i = 0; i < placement.CoveredIndices.Count; i++)
+            {
+                int cellIndex = placement.CoveredIndices[i];
+                if (_cellToPlacementId.TryGetValue(cellIndex, out int placementId) &&
+                    placementId == placement.Id)
+                    _cellToPlacementId.Remove(cellIndex);
+            }
+
+            return true;
+        }
+
+        private IReadOnlyList<int> BuildCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation)
+        {
+            if (_useGridTopology)
+                return BuildGridCoveredCells(anchorIndex, footprint, orientation);
+
+            return anchorIndex >= 0 && anchorIndex < _slots.Count
+                ? new[] { anchorIndex }
+                : Array.Empty<int>();
+        }
+
+        private IReadOnlyList<int> BuildGridCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation)
+        {
+            var topology = _gridTopology.Normalized();
+            if (!topology.IsValidIndex(anchorIndex))
+                return Array.Empty<int>();
+
+            var anchorCell = topology.ToCell(anchorIndex);
+            var size = footprint.GetSize(orientation);
+            var result = new List<int>(size.x * size.y);
+
+            for (int y = 0; y < size.y; y++)
+            {
+                for (int x = 0; x < size.x; x++)
+                {
+                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
+                    if (!topology.Contains(cell))
+                        return Array.Empty<int>();
+
+                    int index = topology.ToIndex(cell);
+                    if (index < 0 || index >= _slots.Count)
+                        return Array.Empty<int>();
+
+                    result.Add(index);
+                }
+            }
+
+            return result;
+        }
+
+        private Vector2Int IndexToCell(int index)
+        {
+            if (_useGridTopology)
+                return _gridTopology.Normalized().ToCell(index);
+
+            return new Vector2Int(index, 0);
+        }
+
+        private void ShiftPlacementIndicesAfterSlotRemoved(int removedIndex)
+        {
+            if (!_placementStateInitialized || removedIndex < 0)
+                return;
+
+            _cellToPlacementId.Clear();
+            for (int i = 0; i < _placements.Count; i++)
+            {
+                var placement = _placements[i];
+                int anchorIndex = placement.AnchorIndex > removedIndex
+                    ? placement.AnchorIndex - 1
+                    : placement.AnchorIndex;
+                var covered = BuildCoveredCells(anchorIndex, placement.Footprint, placement.Orientation);
+                placement.MoveAnchor(IndexToCell(anchorIndex), anchorIndex, covered);
+                for (int c = 0; c < placement.CoveredIndices.Count; c++)
+                    _cellToPlacementId[placement.CoveredIndices[c]] = placement.Id;
+            }
+        }
+
         /// <summary>
         /// Set the stack limit at runtime (for example, from DataBinding).
         /// maxStackSize = 0 means unlimited.
@@ -425,6 +830,8 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsureStrategyInitialized();
+            if (!CanAcceptStackByPlacementPolicy(stack))
+                return false;
 
             Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
@@ -460,6 +867,9 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsureStrategyInitialized();
+            if (!CanAcceptStackByPlacementPolicy(stack))
+                return false;
+
             return _placementStrategy.TryAddQuite(_slots, stack, targetSlotIndex);
         }
 
@@ -519,6 +929,8 @@ namespace UniversalDragAndDrop.Inventories
 
         public InventorySnapshot CaptureSnapshot()
         {
+            EnsurePlacementStateInitialized();
+
             var slotsSnapshot = new List<InventorySlotState>(_slots.Count);
             foreach (var slot in _slots)
             {
@@ -532,7 +944,22 @@ namespace UniversalDragAndDrop.Inventories
                 }
             }
 
-            return new InventorySnapshot(slotsSnapshot);
+            var placementSnapshot = new List<InventoryPlacementState>(_placements.Count);
+            for (int i = 0; i < _placements.Count; i++)
+            {
+                var placement = _placements[i];
+                if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
+                    continue;
+
+                placementSnapshot.Add(new InventoryPlacementState(
+                    placement.AnchorIndex,
+                    placement.Stack.Adapters,
+                    placement.Orientation,
+                    placement.Footprint,
+                    placement.CoveredIndices));
+            }
+
+            return new InventorySnapshot(slotsSnapshot, placementSnapshot);
         }
 
         public void RestoreSnapshot(InventorySnapshot snapshot)
@@ -557,11 +984,41 @@ namespace UniversalDragAndDrop.Inventories
             while (_slots.Count > desiredCount)
             {
                 var slot = _slots[_slots.Count - 1];
+                RemovePlacementAt(slot);
                 _slots.RemoveAt(_slots.Count - 1);
                 if (slot?.Transform != null)
                 {
                     Destroy(slot.Transform.gameObject);
                 }
+            }
+
+            for (int i = 0; i < _slots.Count; i++)
+                _slots[i].SetInventoryIndex(i, this);
+
+            if (snapshot.Placements != null && snapshot.Placements.Count > 0)
+            {
+                ClearInitializedPlacementState();
+                for (int i = 0; i < _slots.Count; i++)
+                    _slots[i].SetLocalStackForPlacementMigration(ItemStack.Empty());
+
+                for (int i = 0; i < snapshot.Placements.Count; i++)
+                {
+                    var placementState = snapshot.Placements[i];
+                    if (placementState.IsEmpty)
+                        continue;
+
+                    if (!ItemStack.TryCreate(placementState.Adapters, out var restoredStack))
+                        continue;
+
+                    TryPlace(new PlacementRequest(
+                        restoredStack,
+                        placementState.AnchorIndex,
+                        placementState.Orientation,
+                        placementState.Footprint));
+                }
+
+                UpdateAllVisuals();
+                return;
             }
 
             for (int i = 0; i < _slots.Count; i++)
@@ -605,10 +1062,12 @@ namespace UniversalDragAndDrop.Inventories
             }
 
             _slots.Clear();
+            ResetPlacementState();
 
             for (int i = 0; i < slotCount; i++)
                 CreateSlot();
 
+            EnsurePlacementStateInitialized();
             UpdateAllVisuals();
         }
 
@@ -815,6 +1274,39 @@ namespace UniversalDragAndDrop.Inventories
             _slotManagementSettings ??= new FixedSlotManagementSettings();
         }
 
+        private void EnsurePlacementSettings()
+        {
+            _gridTopology = _gridTopology.Normalized();
+
+            if (_useGridTopology && _slotManagementSettings is DynamicSlotManagementSettings)
+            {
+                Debug.LogError($"[{name}] Grid placement requires fixed slot management. Dynamic slot management was replaced with FixedSlotManagementSettings.");
+                _slotManagementSettings = new FixedSlotManagementSettings();
+            }
+        }
+
+        private bool CanAcceptStackByPlacementPolicy(ItemStack stack)
+        {
+            return stack != null && !stack.IsEmpty && CanAcceptFootprint(stack.PrimaryAdapter, stack.Count);
+        }
+
+        private bool CanAcceptFootprint(IItemAdapter itemAdapter, int count)
+        {
+            if (itemAdapter == null || count <= 0)
+                return false;
+
+            var footprint = Footprint.Resolve(itemAdapter);
+            if (_useGridTopology && !footprint.IsSingleCell)
+                return false;
+
+            if (!_useGridTopology &&
+                _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
+                !footprint.IsSingleCell)
+                return false;
+
+            return footprint.IsSingleCell || count <= 1;
+        }
+
         /// <summary>
         /// Check whether the inventory can accept an item (without targeting a specific slot)
         /// Checks inventory rules plus matching slot availability or the ability to create a new slot
@@ -833,6 +1325,8 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsureStrategyInitialized();
+            if (!CanAcceptFootprint(request.ItemAdapter, request.DesiredCount))
+                return false;
 
             bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
             int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
@@ -852,6 +1346,8 @@ namespace UniversalDragAndDrop.Inventories
                 return 0;
 
             EnsureStrategyInitialized();
+            if (!CanAcceptFootprint(request.ItemAdapter, request.DesiredCount))
+                return 0;
 
             bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
             int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
@@ -897,6 +1393,8 @@ namespace UniversalDragAndDrop.Inventories
             if (!baseSlot.IsEmpty)
                 return;
 
+            RemovePlacementAt(baseSlot);
+
             EnsureSlotManagementSettings();
             _slotManagementSettings.HandleSlotEmptied(
                 this,
@@ -934,12 +1432,15 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             var slotTransform = baseSlot.Transform;
+            RemovePlacementAt(baseSlot);
             _slots.RemoveAt(index);
 
             for (int i = index; i < _slots.Count; i++)
             {
                 _slots[i].SetInventoryIndex(i, this);
             }
+
+            ShiftPlacementIndicesAfterSlotRemoved(index);
 
             if (slotTransform != null)
             {
