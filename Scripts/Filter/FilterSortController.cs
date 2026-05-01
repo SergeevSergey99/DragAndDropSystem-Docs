@@ -66,6 +66,7 @@ namespace UniversalDragAndDrop.Filter
             {
                 _inventory.OnItemAdded += OnInventoryChanged;
                 _inventory.OnItemRemoved += OnInventoryChanged;
+                _inventory.OnContentRefreshed += OnInventoryContentRefreshed;
             }
         }
 
@@ -75,10 +76,16 @@ namespace UniversalDragAndDrop.Filter
             {
                 _inventory.OnItemAdded -= OnInventoryChanged;
                 _inventory.OnItemRemoved -= OnInventoryChanged;
+                _inventory.OnContentRefreshed -= OnInventoryContentRefreshed;
             }
         }
         
         private void OnInventoryChanged(InventoryItemEventContext context)
+        {
+            ApplyFilterAndSort();
+        }
+
+        private void OnInventoryContentRefreshed()
         {
             ApplyFilterAndSort();
         }

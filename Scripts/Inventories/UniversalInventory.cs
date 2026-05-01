@@ -167,6 +167,12 @@ namespace UniversalDragAndDrop.Inventories
         public event Action<InventoryItemEventContext> OnItemRemoved;
 
         /// <summary>
+        /// Event raised when inventory content is refreshed in bulk (for example, after DataBinding.ReloadUI).
+        /// Useful when items are changed via quiet APIs and item-level events are suppressed.
+        /// </summary>
+        public event Action OnContentRefreshed;
+
+        /// <summary>
         /// Event raised when an item swap affecting this inventory is attempted.
         /// A subscriber can cancel the swap via context.Cancel = true.
         /// </summary>
@@ -227,6 +233,12 @@ namespace UniversalDragAndDrop.Inventories
         {
             OnSwapCompleted?.Invoke(context);
         }
+
+        public void NotifyContentRefreshed()
+        {
+            OnContentRefreshed?.Invoke();
+        }
+
         private void Start()
         {
             EnsureStrategyInitialized();
@@ -1217,6 +1229,7 @@ namespace UniversalDragAndDrop.Inventories
 
             _pointerHoveredBaseSlot = null;
             _lastInteractedBaseSlot = null;
+            ClearInitializedPlacementState();
         }
 
         /// <summary>

@@ -39,6 +39,7 @@ namespace UniversalDragAndDrop.UI
             {
                 _inventory.OnItemAdded += HandleInventoryChanged;
                 _inventory.OnItemRemoved += HandleInventoryChanged;
+                _inventory.OnContentRefreshed += HandleContentRefreshed;
             }
 
             DragAndDropManager.OnDragStarted += HandleDragChanged;
@@ -54,6 +55,7 @@ namespace UniversalDragAndDrop.UI
             {
                 _inventory.OnItemAdded -= HandleInventoryChanged;
                 _inventory.OnItemRemoved -= HandleInventoryChanged;
+                _inventory.OnContentRefreshed -= HandleContentRefreshed;
             }
 
             DragAndDropManager.OnDragStarted -= HandleDragChanged;
@@ -247,5 +249,6 @@ namespace UniversalDragAndDrop.UI
         private void HandleDragChanged(DragContext context) => Refresh();
         private void HandleDragEnded() => Refresh();
         private void HandleInventoryChanged(InventoryItemEventContext context) => Refresh();
+        private void HandleContentRefreshed() => Refresh();
     }
 }
