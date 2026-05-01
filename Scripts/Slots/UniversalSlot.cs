@@ -21,6 +21,8 @@ namespace UniversalDragAndDrop.Slots
         // [SerializeField] private TMPro.TMP_Text _countText;
         [SerializeField] private Text _countText;
         [SerializeField] private GameObject _countContainer;
+        [SerializeField, Tooltip("Optional explicit graphic used for slot-level hover/drop preview. If empty, a non-raycast runtime overlay is created.")]
+        private Graphic _highlightGraphic;
 
         [Header("Settings")]
         [SerializeField] private Color _normalColor      = Color.white;
@@ -28,6 +30,10 @@ namespace UniversalDragAndDrop.Slots
 
         [SerializeField, Tooltip("Optional: CanvasGroup for controlling interactivity")]
         private SlotInputAdapter _slotInputAdapter;
+
+        private bool _hasStoredHighlightGraphicColor;
+        private Color _storedHighlightGraphicColor;
+        private Image _runtimeHighlightImage;
 
         protected override void RenderFilled()
         {
@@ -93,8 +99,33 @@ namespace UniversalDragAndDrop.Slots
         public override void Highlight(bool highlight)
         {
             _isHighlighted = highlight;
-            if (_iconImage != null)
-                _iconImage.color = highlight ? _highlightColor :  _normalColor;
+
+            var graphic = ResolveHighlightGraphic();
+            if (graphic != null)
+            {
+                if (highlight)
+                {
+                    if (!_hasStoredHighlightGraphicColor)
+                    {
+                        _storedHighlightGraphicColor = graphic.color;
+                        _hasStoredHighlightGraphicColor = true;
+                    }
+
+                    graphic.color = _highlightColor;
+                }
+                else if (_hasStoredHighlightGraphicColor)
+                {
+                    graphic.color = _storedHighlightGraphicColor;
+                    _hasStoredHighlightGraphicColor = false;
+                }
+            }
+            else
+            {
+                SetRuntimeHighlightVisible(highlight);
+            }
+
+            if (_iconImage != null && !ReferenceEquals(_iconImage, graphic))
+                _iconImage.color = highlight ? _highlightColor : _normalColor;
         }
 
         /// <summary>
@@ -109,6 +140,51 @@ namespace UniversalDragAndDrop.Slots
                 _slotInputAdapter.interactable  = IsInteractable;
                 _iconImage.color = new Color(_iconImage.color.r, _iconImage.color.g, _iconImage.color.b, IsInteractable ? 1f : 0.5f);
             }
+        }
+
+        private Graphic ResolveHighlightGraphic()
+        {
+            if (_highlightGraphic != null)
+                return _highlightGraphic;
+
+            return null;
+        }
+
+        private void SetRuntimeHighlightVisible(bool visible)
+        {
+            if (visible)
+                EnsureRuntimeHighlightImage().color = _highlightColor;
+
+            if (_runtimeHighlightImage != null)
+                _runtimeHighlightImage.gameObject.SetActive(visible);
+        }
+
+        private Image EnsureRuntimeHighlightImage()
+        {
+            if (_runtimeHighlightImage != null)
+                return _runtimeHighlightImage;
+
+            var highlightObject = new GameObject("Slot Drop Preview Highlight", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            highlightObject.transform.SetParent(transform, false);
+            highlightObject.transform.SetAsFirstSibling();
+
+            var rect = highlightObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            _runtimeHighlightImage = highlightObject.GetComponent<Image>();
+            _runtimeHighlightImage.raycastTarget = false;
+
+            if (_slotInputAdapter != null && _slotInputAdapter.targetGraphic is Image targetImage)
+            {
+                _runtimeHighlightImage.sprite = targetImage.sprite;
+                _runtimeHighlightImage.type = targetImage.type;
+                _runtimeHighlightImage.pixelsPerUnitMultiplier = targetImage.pixelsPerUnitMultiplier;
+            }
+
+            return _runtimeHighlightImage;
         }
 
         private bool ShouldHideSlotIconForPlacement()
