@@ -4,13 +4,13 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-05-01
 **Version**: 2.2
 
 ## Expert Baseline
 
 1. Keep drag state in `DragContext`; avoid ad-hoc lock flags.
-2. Keep behavior policy-driven (`DropPolicy`).
+2. Keep behavior policy-driven (`DropRequestPolicy` / `DropPolicySettings` / `ResolvedDropPolicy`).
 3. Keep planning/mutation separated (`TransferPlanner` vs `TransferPlanExecutor`).
 4. Keep swap in main execution pipeline, not parallel legacy branches.
 5. Preserve rollback safety and deferred events in atomic mode.
@@ -27,7 +27,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 
 ## Critical Files
 
-- `Scripts/Core/DropPolicy.cs`
+- `Scripts/Core/Drop/DropPolicy.cs`
 - `Scripts/Core/DragContext.cs`
 - `Scripts/Inventories/InventoryDropProcessor.cs`
 - `Scripts/Inventories/TransferPlanner.cs`

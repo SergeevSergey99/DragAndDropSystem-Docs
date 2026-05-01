@@ -1,6 +1,6 @@
 # Operations
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-05-01
 
 ## Manual Drag & Drop (Pipeline)
 
@@ -85,3 +85,5 @@ Auto-transfer uses the same planner/executor pipeline as manual drag & drop.
 - `Scripts/Inventories/TransferPlanExecutor.cs`
 - `Scripts/Inventories/InventoryTransferService.cs`
 - `Scripts/Inventories/InventoryAcceptanceRequest.cs`
+- `Scripts/Interaction/InputEventRouter.cs`
+- `Scripts/UI/InventoryDropArea.cs`

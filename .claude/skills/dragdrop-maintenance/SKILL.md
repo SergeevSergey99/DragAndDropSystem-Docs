@@ -7,7 +7,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 **Purpose**: Keep Claude skills synchronized with codebase changes
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-05-01
 
 **When to use this skill**:
 - After implementing major architectural changes
@@ -62,9 +62,9 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 1. **dragdrop-system** - Quick usage reference
    - **SKILL.md**: Core architecture, essential concepts, quick patterns
-   - **CORE_CONCEPTS.md**: DragContext, Rules, Strategies, DataBinding deep dive
+   - **CORE_CONCEPTS.md**: DragContext, rules, transfer pipeline, DataBinding deep dive
    - **OPERATIONS.md**: Detailed flow diagrams for all operations
-   - **ADVANCED_FEATURES.md**: Animations, 3D integration, tooltips, extensions
+   - **ADVANCED_FEATURES.md**: Input routing, occupied-slot handling, tooltips, extensions
    - **EXAMPLES.md**: Complete demo scene breakdowns
 
 2. **dragdrop-architecture** - Technical reference
@@ -75,7 +75,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
    - **PERFORMANCE.md**: Hot paths, optimizations, benchmarks
 
 3. **dragdrop-expert** - Expert guidance
-   - **SKILL.md**: KISS principles, decision tree, code review checklist
+   - **SKILL.md**: Architecture review checklist, decision rules, code review checklist
    - **ANTIPATTERNS.md**: Complete anti-pattern catalog
    - **BEST_PRACTICES.md**: Extension examples, optimizations
    - **TESTING.md**: Comprehensive test scenarios
@@ -93,7 +93,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 🚩 **Immediate Update Required**:
 - New core component added (e.g., `InventoryAcceptanceRequest`, `TransferItemConversionUtility`)
-- Existing component refactored (e.g., ISlot → abstract class)
+- Existing component refactored (e.g., `BaseSlot`/`ISlot` boundary changes, strategy capability split)
 - New public API methods added
 - Breaking changes to existing APIs
 - New design patterns introduced
@@ -146,7 +146,7 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 - `Scripts/DataBinding/InventoryDataBindingBase.cs` - DataBinding base (direct notifications, sync, conversion)
 - `Scripts/DataBinding/ListInventoryDataBinding.cs` - Template for list-based DataBindings
 - `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` - Template for slot-mapped DataBindings
-- `Scripts/Slots/ISlot.cs` - Slot base class
+- `Scripts/Slots/BaseSlot.cs` - Slot base class
 - `Scripts/Rules/` - Rule system files
 
 ---
@@ -173,7 +173,7 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
    - InventoryAcceptanceRequest
    - Preview Conversion Pipeline
    - TransferPlanExecutor
-   - ISlot
+   - BaseSlot
    - Dynamic Slot Management
    - DataBinding System
 
@@ -317,7 +317,7 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 ```bash
 # Check for inconsistencies
 grep -n "ISlot.*interface" .claude/skills/*/SKILL.md .claude/skills/*/*.md
-# Should find NONE (ISlot is abstract class now)
+# Should find NONE (slot base is BaseSlot; ISlot is used only for filter/sorter contracts)
 
 grep -n "InventoryTransferService" .claude/skills/*/SKILL.md .claude/skills/*/*.md
 # Should find in ALL main skills
@@ -363,11 +363,11 @@ done
 
 ### Scenario 2: Component Refactored
 
-**Example**: `ISlot` changed from interface to abstract class
+**Example**: slot model moved from `ISlot`-based base class docs to `BaseSlot`
 
 **Steps**:
 1. ✅ Update **dragdrop-system/SKILL.md**: Update quick reference
-2. ✅ Update **dragdrop-system/CORE_CONCEPTS.md**: Update ISlot section, add migration notes
+2. ✅ Update **dragdrop-system/CORE_CONCEPTS.md**: Update BaseSlot section, add migration notes
 3. ✅ Update **dragdrop-architecture/COMPONENTS.md**: Update type description with ⚠️ marker
 4. ✅ Update **dragdrop-expert/SKILL.md**: Add to architectural changes
 5. ✅ Update **dragdrop-expert/ANTIPATTERNS.md**: Add migration anti-patterns if needed
@@ -375,10 +375,10 @@ done
 
 **Search and verify**:
 ```bash
-# Find all ISlot references
+# Find all BaseSlot / ISlot references
 grep -rn "ISlot" .claude/skills/
 
-# Ensure all show "abstract class" not "interface"
+# Ensure slot base references point to BaseSlot
 grep -rn "ISlot.*interface" .claude/skills/
 # Should return NOTHING
 ```

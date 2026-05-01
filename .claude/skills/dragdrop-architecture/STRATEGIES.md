@@ -2,7 +2,7 @@
 
 Detailed documentation of current inventory strategies.
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-05-01
 
 ## Strategy Hierarchy
 
@@ -154,7 +154,7 @@ Current runtime delegation from `UniversalInventory`:
 
 ```csharp
 bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
-bool TryAddQuite(List<ISlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
+bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
 ```
 
 When `skipRules = true`, `PassesRules()` calls are bypassed for all candidate slots.

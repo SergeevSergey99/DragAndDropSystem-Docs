@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-05-01
 
 ## DragAndDropManager
 
@@ -31,7 +31,7 @@ Location: `Scripts/Inventories/InventoryDropProcessor.cs`
 
 Responsibilities:
 - resolve effective target inventory/slot
-- resolve effective `DropPolicy`
+- resolve effective `DropRequestPolicy` / `DropPolicySettings` into `ResolvedDropPolicy`
 - invoke planner and executor
 - pass execution options (global rules, swap callbacks)
 
@@ -39,7 +39,7 @@ This is the adapter between UI target layer and transfer core.
 
 ## DropPolicy
 
-Location: `Scripts/Core/DropPolicy.cs`
+Location: `Scripts/Core/Drop/DropPolicy.cs`
 
 Defines three policy layers:
 - `DropRequestPolicy` - runtime operation override
@@ -101,11 +101,11 @@ Related execution helpers:
 - `AlternativeSlotSearchOperation`
 - `InventoryAcceptanceRequest`
 
-## UniversalInventory / ISlot
+## UniversalInventory / BaseSlot
 
 Locations:
 - `Scripts/Inventories/UniversalInventory.cs`
-- `Scripts/Slots/ISlot.cs`
+- `Scripts/Slots/BaseSlot.cs`
 
 Responsibilities:
 - store and mutate item stacks
@@ -146,7 +146,7 @@ Key classes:
   swap event subscriptions, sync scope, rule integration, item conversion pipeline,
   and occupied-slot drop hooks
 - `ListInventoryDataBinding<TData, TAdapter>` — template for list-based data sources
-- `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<ISlot, SlotBinding<TData, TAdapter>>`,
+- `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<BaseSlot, SlotBinding<TData, TAdapter>>`,
   `TryGetTargetBinding()` / `TryGetSourceBinding()` helpers.
   `SlotBinding<TData, TAdapter>` is internally list-based: `GetAll` returns `TData` (for reload),
   `Add`/`Remove` receive `TAdapter` lists, `CanDrop`/`CanStartDrag` receive `TAdapter` (no `ExtractData` needed).
@@ -159,8 +159,8 @@ Responsibilities:
 - rule integration (`CanStartDrag`, `CanDrop`, `CanSwap`)
 - swap handling via event subscriptions (`OnSwapAttempting` / `OnSwapCompleted`)
 - occupied-slot drop interception via two virtual hooks:
-  - `CanHandleOccupiedSlotDrop(DragEntry, ISlot)` — pure check, called by planner
-  - `ExecuteOccupiedSlotDrop(DragEntry, ISlot)` — full mutation, called by executor
+  - `CanHandleOccupiedSlotDrop(DragEntry, BaseSlot)` — pure check, called by planner
+  - `ExecuteOccupiedSlotDrop(DragEntry, BaseSlot)` — full mutation, called by executor
 
 Current note:
 - conversion now lives on inventory-side `ItemConverter`

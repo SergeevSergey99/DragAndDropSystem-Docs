@@ -2,7 +2,7 @@
 
 Performance considerations and optimization strategies.
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-05-01
 
 ## Hot Paths
 

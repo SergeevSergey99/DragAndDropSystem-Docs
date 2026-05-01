@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-03-26
+**Last Updated**: 2026-05-01
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -21,7 +21,7 @@ Validation order:
 
 ## 3. Policy-Driven Transfer Behavior
 
-`Scripts/Core/DropPolicy.cs`
+`Scripts/Core/Drop/DropPolicy.cs`
 
 Policy defines:
 - blocked target handling

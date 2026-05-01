@@ -4,17 +4,18 @@ description: Quick reference for Unity Drag & Drop Inventory System with policy/
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 2.3
-**Last Updated**: 2026-03-26
+**Version**: 2.4
+**Last Updated**: 2026-05-01
 
 ## System Overview
 
 Core drag & drop works through a single transfer pipeline:
 
-1. `DropPolicy` (`Scripts/Core/DropPolicy.cs`) - resolves runtime request + inventory defaults into final behavior.
+1. `DropRequestPolicy` / `DropPolicySettings` / `ResolvedDropPolicy` (`Scripts/Core/Drop/DropPolicy.cs`, `Scripts/Core/Drop/DropPolicySettings.cs`) - resolves runtime request + inventory defaults into final behavior.
 2. `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`) - builds immutable plan.
 3. `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`) - executes plan with rollback options.
 4. `InventoryAcceptanceRequest` (`Scripts/Inventories/InventoryAcceptanceRequest.cs`) - carries context-aware preview data.
+5. `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`) - resolves target-side preview conversion.
 
 Main benefits:
 - unified behavior for single and batch drag
@@ -37,6 +38,10 @@ Main benefits:
   - transfer request/result models used by executor
 - `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`)
   - resolves target preview item before planning/execution
+- `InputEventRouter` / `InputModalityTracker` (`Scripts/Interaction/`)
+  - input routing and modality state
+- `InventoryDropArea` (`Scripts/UI/InventoryDropArea.cs`)
+  - area-drop entry point that builds preview requests
 
 ## Policy Model
 
