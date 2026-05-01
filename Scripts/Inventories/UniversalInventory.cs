@@ -565,10 +565,8 @@ namespace UniversalDragAndDrop.Inventories
             }
 
             var anchorCell = GetCellForIndex(targetBaseSlot.Index) - entry.GrabOffset;
-            if (!TryGetIndexForCell(anchorCell, out int anchorIndex))
-                return true;
-
-            var coveredIndices = GetPreviewCoveredCells(anchorIndex, footprint, entry.Orientation);
+            var hasValidAnchor = TryGetIndexForCell(anchorCell, out int anchorIndex);
+            var coveredIndices = GetPreviewCoveredCells(anchorCell, footprint, entry.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return true;
 
@@ -590,6 +588,9 @@ namespace UniversalDragAndDrop.Inventories
                 entry);
             var previewStack = acceptanceRequest.CreatePreviewStack(entry.Stack.Count, targetItem);
             if (previewStack == null)
+                return true;
+
+            if (!hasValidAnchor)
                 return true;
 
             var ignoredPlacement = ReferenceEquals(entry.SourceInventory, this)
@@ -919,18 +920,16 @@ namespace UniversalDragAndDrop.Inventories
         }
 
         private IReadOnlyList<int> GetPreviewCoveredCells(
-            int anchorIndex,
+            Vector2Int anchorCell,
             Footprint footprint,
             PlacementOrientation orientation)
         {
             if (!_useGridTopology)
-                return GetCoveredCells(anchorIndex, footprint, orientation);
+                return TryGetIndexForCell(anchorCell, out int anchorIndex)
+                    ? GetCoveredCells(anchorIndex, footprint, orientation)
+                    : Array.Empty<int>();
 
             var topology = _gridTopology.Normalized();
-            if (!topology.IsValidIndex(anchorIndex))
-                return Array.Empty<int>();
-
-            var anchorCell = topology.ToCell(anchorIndex);
             var size = footprint.GetSize(orientation);
             var result = new List<int>(size.x * size.y);
 

@@ -167,6 +167,84 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void DropPreview_WhenFootprintLeavesGridLeft_ShowsInBoundsCells()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(1);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                Assert.IsTrue(target.TryGetDropPreviewSlots(
+                    target.GetSlot(0),
+                    context,
+                    out var previewSlots,
+                    out bool canPlace));
+
+                Assert.IsFalse(canPlace);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 3 },
+                    previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void DropPreview_WhenFootprintLeavesGridUp_ShowsInBoundsCells()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(3);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                Assert.IsTrue(target.TryGetDropPreviewSlots(
+                    target.GetSlot(0),
+                    context,
+                    out var previewSlots,
+                    out bool canPlace));
+
+                Assert.IsFalse(canPlace);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1 },
+                    previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void DragContext_ShapedBatchAndStackedShapedEntries_AreDetected()
         {
             var shapedStack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
