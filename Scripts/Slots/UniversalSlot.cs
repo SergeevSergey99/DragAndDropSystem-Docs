@@ -124,7 +124,7 @@ namespace UniversalDragAndDrop.Slots
             if (universalInventory.TryGetComponent<PlacementOverlay>(out var overlay) &&
                 overlay != null &&
                 overlay.HideSlotIconsForShapedItems &&
-                overlay.HasRenderedPlacement(placement.Id))
+                overlay.HasRenderedPlacement(placement))
                 return true;
 
             return placement.AnchorIndex != Index;

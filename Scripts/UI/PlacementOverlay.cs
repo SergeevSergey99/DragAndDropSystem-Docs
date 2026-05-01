@@ -18,11 +18,11 @@ namespace UniversalDragAndDrop.UI
         [SerializeField] private bool _hideSlotIconsForShapedItems = true;
 
         private readonly List<Image> _activeImages = new List<Image>();
-        private readonly HashSet<int> _renderedPlacementIds = new HashSet<int>();
+        private readonly HashSet<Placement> _renderedPlacements = new HashSet<Placement>();
         private readonly Vector3[] _corners = new Vector3[4];
 
         public bool HideSlotIconsForShapedItems => _hideSlotIconsForShapedItems;
-        public bool HasRenderedPlacement(int placementId) => _renderedPlacementIds.Contains(placementId);
+        public bool HasRenderedPlacement(Placement placement) => _renderedPlacements.Contains(placement);
 
         private void Awake()
         {
@@ -84,9 +84,8 @@ namespace UniversalDragAndDrop.UI
                 return;
 
             var placements = _inventory.Placements;
-            for (int i = 0; i < placements.Count; i++)
+            foreach (var placement in placements)
             {
-                var placement = placements[i];
                 if (placement == null ||
                     placement.Footprint.IsSingleCell ||
                     placement.Stack == null ||
@@ -109,7 +108,7 @@ namespace UniversalDragAndDrop.UI
                     : Vector3.zero;
                 image.transform.SetAsLastSibling();
                 _activeImages.Add(image);
-                _renderedPlacementIds.Add(placement.Id);
+                _renderedPlacements.Add(placement);
             }
         }
 
@@ -147,7 +146,7 @@ namespace UniversalDragAndDrop.UI
             else
             {
                 var imageObject = new GameObject(
-                    $"Placement Overlay Item {placement.Id}",
+                    $"Placement Overlay Item {placement.AnchorIndex}",
                     typeof(RectTransform),
                     typeof(CanvasRenderer),
                     typeof(Image));
@@ -226,7 +225,7 @@ namespace UniversalDragAndDrop.UI
                 var entry = context.Entries[i];
                 if (ReferenceEquals(entry.SourceInventory, _inventory) &&
                     entry.SourcePlacement != null &&
-                    entry.SourcePlacement.Id == placement.Id)
+                    ReferenceEquals(entry.SourcePlacement, placement))
                     return true;
             }
 
@@ -242,7 +241,7 @@ namespace UniversalDragAndDrop.UI
             }
 
             _activeImages.Clear();
-            _renderedPlacementIds.Clear();
+            _renderedPlacements.Clear();
         }
 
         private void HandleDragChanged(DragContext context) => Refresh();

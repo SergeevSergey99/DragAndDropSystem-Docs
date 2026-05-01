@@ -73,22 +73,20 @@ namespace UniversalDragAndDrop.Inventories
         private BaseSlot _pointerHoveredBaseSlot;
         private BaseSlot _lastInteractedBaseSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
-        private readonly List<Placement> _placements = new List<Placement>();
-        private readonly Dictionary<int, int> _cellToPlacementId = new Dictionary<int, int>();
-        private readonly Dictionary<int, Placement> _placementById = new Dictionary<int, Placement>();
+        
+        private readonly Dictionary<int, Placement> _cellToPlacement = new Dictionary<int, Placement>();
         private readonly List<BaseSlot> _dropPreviewSlots = new List<BaseSlot>();
-        private int _nextPlacementId = 1;
         private bool _placementStateInitialized;
 
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
-        public IReadOnlyList<Placement> Placements
+        public HashSet<Placement> Placements
         {
             get
             {
                 EnsurePlacementStateInitialized();
                 PruneEmptyPlacements();
-                return _placements.AsReadOnly();
+                return new HashSet<Placement>(_cellToPlacement.Values);
             }
         }
 
@@ -715,10 +713,7 @@ namespace UniversalDragAndDrop.Inventories
             if (_placementStateInitialized)
                 return;
 
-            _placements.Clear();
-            _cellToPlacementId.Clear();
-            _placementById.Clear();
-            _nextPlacementId = 1;
+            _cellToPlacement.Clear();
 
             if (_slots != null)
             {
@@ -739,7 +734,6 @@ namespace UniversalDragAndDrop.Inventories
                     {
                         var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
                         RegisterPlacement(new Placement(
-                            _nextPlacementId++,
                             IndexToCell(i),
                             i,
                             request.Orientation,
@@ -756,19 +750,13 @@ namespace UniversalDragAndDrop.Inventories
 
         private void ResetPlacementState()
         {
-            _placements.Clear();
-            _cellToPlacementId.Clear();
-            _placementById.Clear();
-            _nextPlacementId = 1;
+            _cellToPlacement.Clear();
             _placementStateInitialized = false;
         }
 
         private void ClearInitializedPlacementState()
         {
-            _placements.Clear();
-            _cellToPlacementId.Clear();
-            _placementById.Clear();
-            _nextPlacementId = 1;
+            _cellToPlacement.Clear();
             _placementStateInitialized = true;
         }
 
@@ -791,8 +779,8 @@ namespace UniversalDragAndDrop.Inventories
 
             for (int i = 0; i < coveredIndices.Count; i++)
             {
-                if (_cellToPlacementId.TryGetValue(coveredIndices[i], out int placementId) &&
-                    (ignoredPlacement == null || placementId != ignoredPlacement.Id))
+                if (_cellToPlacement.TryGetValue(coveredIndices[i], out var existing) &&
+                    !ReferenceEquals(existing, ignoredPlacement))
                     return false;
             }
 
@@ -801,12 +789,15 @@ namespace UniversalDragAndDrop.Inventories
 
         private void PruneEmptyPlacements()
         {
-            for (int i = _placements.Count - 1; i >= 0; i--)
+            var toPrune = new HashSet<Placement>();
+            foreach (var placement in _cellToPlacement.Values)
             {
-                var placement = _placements[i];
                 if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
-                    UnregisterPlacement(placement);
+                    toPrune.Add(placement);
             }
+
+            foreach (var placement in toPrune)
+                UnregisterPlacement(placement);
         }
 
         private bool TryPlaceInitialized(PlacementRequest request, out Placement placement)
@@ -818,7 +809,6 @@ namespace UniversalDragAndDrop.Inventories
             var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
             var anchorCell = IndexToCell(request.AnchorIndex);
             placement = new Placement(
-                _nextPlacementId++,
                 anchorCell,
                 request.AnchorIndex,
                 request.Orientation,
@@ -832,11 +822,7 @@ namespace UniversalDragAndDrop.Inventories
 
         private Placement GetPlacementAtInitialized(int cellIndex)
         {
-            if (_cellToPlacementId.TryGetValue(cellIndex, out int placementId) &&
-                _placementById.TryGetValue(placementId, out var placement))
-                return placement;
-
-            return null;
+            return _cellToPlacement.TryGetValue(cellIndex, out var placement) ? placement : null;
         }
 
         private bool RemovePlacementAtInitialized(int cellIndex)
@@ -850,27 +836,28 @@ namespace UniversalDragAndDrop.Inventories
             if (placement == null)
                 return;
 
-            _placements.Add(placement);
-            _placementById[placement.Id] = placement;
             for (int i = 0; i < placement.CoveredIndices.Count; i++)
-                _cellToPlacementId[placement.CoveredIndices[i]] = placement.Id;
+                _cellToPlacement[placement.CoveredIndices[i]] = placement;
         }
 
         private bool UnregisterPlacement(Placement placement)
         {
-            if (placement == null || !_placementById.Remove(placement.Id))
+            if (placement == null)
                 return false;
 
-            _placements.Remove(placement);
+            bool removed = false;
             for (int i = 0; i < placement.CoveredIndices.Count; i++)
             {
                 int cellIndex = placement.CoveredIndices[i];
-                if (_cellToPlacementId.TryGetValue(cellIndex, out int placementId) &&
-                    placementId == placement.Id)
-                    _cellToPlacementId.Remove(cellIndex);
+                if (_cellToPlacement.TryGetValue(cellIndex, out var existing) &&
+                    ReferenceEquals(existing, placement))
+                {
+                    _cellToPlacement.Remove(cellIndex);
+                    removed = true;
+                }
             }
 
-            return true;
+            return removed;
         }
 
         private IReadOnlyList<int> BuildCoveredCells(
@@ -931,17 +918,17 @@ namespace UniversalDragAndDrop.Inventories
             if (!_placementStateInitialized || removedIndex < 0)
                 return;
 
-            _cellToPlacementId.Clear();
-            for (int i = 0; i < _placements.Count; i++)
+            var uniquePlacements = new HashSet<Placement>(_cellToPlacement.Values);
+            _cellToPlacement.Clear();
+            foreach (var placement in uniquePlacements)
             {
-                var placement = _placements[i];
                 int anchorIndex = placement.AnchorIndex > removedIndex
                     ? placement.AnchorIndex - 1
                     : placement.AnchorIndex;
                 var covered = BuildCoveredCells(anchorIndex, placement.Footprint, placement.Orientation);
                 placement.MoveAnchor(IndexToCell(anchorIndex), anchorIndex, covered);
                 for (int c = 0; c < placement.CoveredIndices.Count; c++)
-                    _cellToPlacementId[placement.CoveredIndices[c]] = placement.Id;
+                    _cellToPlacement[placement.CoveredIndices[c]] = placement;
             }
         }
 
@@ -1076,10 +1063,13 @@ namespace UniversalDragAndDrop.Inventories
                 }
             }
 
-            var placementSnapshot = new List<InventoryPlacementState>(_placements.Count);
-            for (int i = 0; i < _placements.Count; i++)
+            var placementSnapshot = new List<InventoryPlacementState>();
+            var seen = new HashSet<Placement>();
+            foreach (var placement in _cellToPlacement.Values)
             {
-                var placement = _placements[i];
+                if (!seen.Add(placement))
+                    continue;
+
                 if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
                     continue;
 

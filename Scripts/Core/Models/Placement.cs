@@ -118,7 +118,6 @@ namespace UniversalDragAndDrop.Core
         private readonly List<int> _coveredIndices;
 
         public Placement(
-            int id,
             Vector2Int anchorCell,
             int anchorIndex,
             PlacementOrientation orientation,
@@ -126,7 +125,6 @@ namespace UniversalDragAndDrop.Core
             ItemStack stack,
             IReadOnlyList<int> coveredIndices)
         {
-            Id = id;
             AnchorCell = anchorCell;
             AnchorIndex = anchorIndex;
             Orientation = orientation;
@@ -137,7 +135,6 @@ namespace UniversalDragAndDrop.Core
                 : new List<int> { anchorIndex };
         }
 
-        public int Id { get; }
         public Vector2Int AnchorCell { get; private set; }
         public int AnchorIndex { get; private set; }
         public PlacementOrientation Orientation { get; }
