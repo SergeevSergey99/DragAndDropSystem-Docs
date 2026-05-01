@@ -236,7 +236,8 @@ namespace UniversalDragAndDrop.Inventories
                             plannedEntry.Entry.SourceBaseSlot,
                             plan.TargetInventory,
                             allocation.BaseSlot,
-                            requestStack);
+                            requestStack,
+                            plannedEntry.Entry.Orientation);
 
                         if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItemAdapter, out var domainContext))
                         {
@@ -741,6 +742,7 @@ namespace UniversalDragAndDrop.Inventories
                 sourceSlot,
                 transferStack,
                 transferAmount,
+                request.Orientation,
                 targetInventorySnapshot,
                 operationContext);
 
@@ -820,6 +822,9 @@ namespace UniversalDragAndDrop.Inventories
 
             operation.OperationContext?.ResetResult();
 
+            if (TryAddToTargetPlacement(operation))
+                return true;
+
             if (operation.RequiresStrategyPlacement)
             {
                 Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Using strategy placement mode ({operation.TransferStack.Count} items)</color>");
@@ -874,6 +879,41 @@ namespace UniversalDragAndDrop.Inventories
             }
 
             return false;
+        }
+
+        private bool TryAddToTargetPlacement(TargetPlacementOperation operation)
+        {
+            if (operation.TargetInventory is not UniversalInventory targetUniversal ||
+                !targetUniversal.Grid.HasValue ||
+                operation.RequestedBaseSlot == null ||
+                operation.TransferStack == null ||
+                operation.TransferStack.IsEmpty)
+                return false;
+
+            var footprint = Footprint.Resolve(operation.TransferStack.PrimaryAdapter);
+            if (footprint.IsSingleCell)
+                return false;
+
+            if (operation.TransferStack.Count > 1 || operation.TransferAmount != operation.TransferStack.Count)
+                return false;
+
+            var placedStack = operation.TransferStack.CreateCopy(operation.TransferAmount);
+            if (placedStack == null || placedStack.IsEmpty)
+                return false;
+
+            bool wasEmpty = operation.RequestedBaseSlot.IsEmpty;
+            var request = new PlacementRequest(
+                placedStack,
+                operation.RequestedBaseSlot.Index,
+                operation.Orientation,
+                footprint);
+
+            if (!targetUniversal.TryPlace(request, out _))
+                return false;
+
+            operation.TransferStack.RemoveFromStack(placedStack.Count);
+            operation.OperationContext?.RecordResult(operation.RequestedBaseSlot, wasEmpty, placedStack.Count);
+            return operation.TransferStack.IsEmpty;
         }
 
         private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)

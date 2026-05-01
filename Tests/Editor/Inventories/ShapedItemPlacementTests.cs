@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.Rules;
 
 namespace UniversalDragAndDrop.Tests.Inventories
 {
@@ -79,6 +80,82 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 Assert.AreEqual(new Vector2Int(1, 1), entry.GrabOffset);
                 Assert.AreEqual(new Footprint(2, 2), entry.Footprint);
                 Assert.AreEqual(PlacementOrientation.Rot0, entry.Orientation);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridToGrid_UsesGrabOffsetAnchor()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .WithName("SourceGrid")
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .WithName("TargetGrid")
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(4);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(4), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(1, summary.TransferredAmount);
+                Assert.IsNull(source.GetPlacementAt(0));
+
+                var targetPlacement = target.GetPlacementAt(4);
+                Assert.IsNotNull(targetPlacement);
+                Assert.AreEqual(0, targetPlacement.AnchorIndex);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, targetPlacement.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedWithinSameGrid_AllowsOverlapWithSourcePlacement()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = inventory.GetSlot(4);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(inventory.GetSlot(5), inventory, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                var movedPlacement = inventory.GetPlacementAt(5);
+                Assert.IsNotNull(movedPlacement);
+                Assert.AreEqual(1, movedPlacement.AnchorIndex);
+                CollectionAssert.AreEqual(new[] { 1, 2, 4, 5 }, movedPlacement.CoveredIndices);
+                Assert.IsNull(inventory.GetPlacementAt(0));
             }
             finally
             {

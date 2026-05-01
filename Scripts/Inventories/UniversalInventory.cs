@@ -474,6 +474,27 @@ namespace UniversalDragAndDrop.Inventories
             return IndexToCell(index);
         }
 
+        public bool TryGetIndexForCell(Vector2Int cell, out int index)
+        {
+            EnsurePlacementSettings();
+
+            if (_useGridTopology)
+            {
+                var topology = _gridTopology.Normalized();
+                if (!topology.Contains(cell))
+                {
+                    index = -1;
+                    return false;
+                }
+
+                index = topology.ToIndex(cell);
+                return index >= 0 && index < _slots.Count;
+            }
+
+            index = cell.y == 0 ? cell.x : -1;
+            return index >= 0 && index < _slots.Count;
+        }
+
         public Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot)
         {
             if (placement == null || baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
@@ -487,6 +508,13 @@ namespace UniversalDragAndDrop.Inventories
             EnsurePlacementStateInitialized();
             PruneEmptyPlacements();
             return CanPlaceInitialized(request);
+        }
+
+        public bool CanPlace(PlacementRequest request, Placement ignoredPlacement)
+        {
+            EnsurePlacementStateInitialized();
+            PruneEmptyPlacements();
+            return CanPlaceInitialized(request, ignoredPlacement);
         }
 
         public bool TryPlace(PlacementRequest request)
@@ -641,7 +669,7 @@ namespace UniversalDragAndDrop.Inventories
             _placementStateInitialized = true;
         }
 
-        private bool CanPlaceInitialized(PlacementRequest request)
+        private bool CanPlaceInitialized(PlacementRequest request, Placement ignoredPlacement = null)
         {
             if (request.Stack == null || request.Stack.IsEmpty)
                 return false;
@@ -660,7 +688,8 @@ namespace UniversalDragAndDrop.Inventories
 
             for (int i = 0; i < coveredIndices.Count; i++)
             {
-                if (_cellToPlacementId.ContainsKey(coveredIndices[i]))
+                if (_cellToPlacementId.TryGetValue(coveredIndices[i], out int placementId) &&
+                    (ignoredPlacement == null || placementId != ignoredPlacement.Id))
                     return false;
             }
 
@@ -1261,6 +1290,9 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsureStrategyInitialized();
+            if (!CanAcceptStackByPlacementPolicy(stack))
+                return false;
+
             return _placementStrategy.TryAddToSlot(_slots, stack, targetBaseSlot, EnsureFreeSlots, operationContext);
         }
 
