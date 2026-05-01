@@ -7643,9 +7643,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _inventory: {fileID: 782000759}
   _overlayRoot: {fileID: 1776293383}
-  _imagePrefab: {fileID: 3466436043385608349, guid: 8ec015131e3dfc642903d080ddf795ca, type: 3}
+  _itemPrefab: {fileID: 9055747231481220608, guid: 8ec015131e3dfc642903d080ddf795ca, type: 3}
   _color: {r: 1, g: 1, b: 1, a: 0.8235294}
-  _hideSlotIconsForShapedItems: 1
 --- !u!1001 &1828177147
 PrefabInstance:
   m_ObjectHideFlags: 0
