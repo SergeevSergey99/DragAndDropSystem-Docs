@@ -212,14 +212,14 @@ methods check `IsSyncing` before calling virtual `OnItemAddedToUI()`/`OnItemRemo
 
 ```csharp
 // Planner phase — pure check, no mutation
-protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
 {
     // check capacity, type compatibility, etc.
     return true; // or false to fall through to normal BlockedTargetBehavior
 }
 
 // Executor phase — full mutation, owned by DataBinding
-protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot)
+protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
 {
     // add to container, clear source slot, fire events
     return true;

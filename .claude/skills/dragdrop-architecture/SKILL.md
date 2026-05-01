@@ -4,16 +4,17 @@ description: Architecture reference for UniversalDragAndDrop with policy-driven 
 ---
 # DragDrop Architecture
 
-**Version**: 2.2
-**Last Updated**: 2026-03-22
+**Version**: 2.3
+**Last Updated**: 2026-05-01
 
 ## Architectural Baseline
 
 Transfer architecture is centered on:
-- `DropPolicy` (behavior contract)
+- `DropRequestPolicy`, `DropPolicySettings`, `ResolvedDropPolicy` (behavior resolution)
 - `TransferPlanner` (pure planning)
 - `TransferPlanExecutor` (state mutation + rollback)
 - `InventoryAcceptanceRequest` (context-aware preview request)
+- `TransferItemConversionUtility` (preview conversion helper)
 
 ## Core Documents
 
@@ -33,3 +34,4 @@ Transfer architecture is centered on:
 6. Keep DataBinding notification direct for add/remove; events only for external subscribers and swap.
 7. Keep `TryAddToSlot` as pure mutation with no internal event emission.
 8. Keep preview conversion target-aware and non-mutating before planning/execution.
+9. Keep slot-domain code on `BaseSlot`; `ISlot` is only for filter/sorter contracts.

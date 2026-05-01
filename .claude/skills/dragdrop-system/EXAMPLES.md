@@ -1,21 +1,21 @@
 # Examples
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-05-01
 
 ## Demo1 - Basic Inventory
 
 Location:
-- `Examples/Demo1/`
+- `Examples/Demo1 Inventories/`
 
 Focus:
 - basic drag/drop
 - slot and inventory rules
 - adapters for item models / SOs
 
-## Demo2 - Trading
+## Demo4 - Trading
 
 Location:
-- `Examples/Demo2 Trading/`
+- `Examples/Demo4 Trading/`
 
 Focus:
 - economy constraints via template DataBindings
@@ -33,10 +33,10 @@ Current note:
 - mapped-slot preview now relies on shared acceptance infrastructure, not per-binding preview guards
 - `TryGetTargetBinding()` / `TryGetSourceBinding()` are the preferred access pattern in mapped bindings
 
-## Demo3 - Loot / World Interaction
+## Demo2 - Loot / World Interaction
 
 Location:
-- `Examples/Demo3 Loot/`
+- `Examples/Demo2 Loot/`
 
 Focus:
 - event-driven UI open/close

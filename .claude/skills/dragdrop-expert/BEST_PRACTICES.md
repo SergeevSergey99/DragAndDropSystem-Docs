@@ -2,7 +2,7 @@
 
 Complete guide for extending the system and optimization strategies.
 
-**Last Updated**: 2026-03-22
+**Last Updated**: 2026-05-01
 
 ## Extension Points
 
@@ -63,7 +63,7 @@ Complete guide for extending the system and optimization strategies.
 - Zone restrictions (can't drag items in combat)
 - Cooldown validation (can't use item on cooldown)
 
-**Check Implementation**: `Examples/Demo1/ItemTypeExampleFilterRule.cs` for simple example.
+**Check Implementation**: `Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs` for simple example.
 
 ---
 
@@ -126,7 +126,7 @@ Complete guide for extending the system and optimization strategies.
 **Location**: → `Scripts/Inventories/UniversalInventory.cs` (potential implementation)
 
 **How It Works**:
-- Maintain `HashSet<ISlot>` of dirty slots
+- Maintain `HashSet<BaseSlot>` of dirty slots
 - `MarkDirty(slot)` adds slot to set
 - `UpdateDirtyVisuals()` updates only marked slots, then clears set
 - Call from `LateUpdate()` to batch all frame updates

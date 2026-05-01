@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-05-01
 
 ## Quick Click Auto-Transfer
 
@@ -47,8 +47,8 @@ Allows DataBinding to intercept a drop on an occupied slot **before** `BlockedTa
 
 Two virtual hooks in `InventoryDataBindingBase`:
 ```csharp
-protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot);  // planner
-protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, ISlot occupiedSlot);    // executor
+protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);  // planner
+protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);    // executor
 ```
 
 Pipeline integration:
@@ -89,8 +89,8 @@ This is possible because DataBinding has a 1:1 relationship with `UniversalInven
 ### Occupied Slot Drop Hooks
 
 See [Occupied Slot Handler](#occupied-slot-handler) above. These are called by the planner/executor — not via events:
-- `CanHandleOccupiedSlotDrop(entry, slot)` — pure check
-- `ExecuteOccupiedSlotDrop(entry, slot)` — full mutation
+- `CanHandleOccupiedSlotDrop(entry, BaseSlot)` — pure check
+- `ExecuteOccupiedSlotDrop(entry, BaseSlot)` — full mutation
 
 ### Swap (Event-Based)
 
@@ -116,7 +116,7 @@ shared transfer helpers:
 
 `MappedSlotInventoryDataBinding<TData, TAdapter>`:
 - slot-mapped data template
-- uses `Dictionary<ISlot, SlotBinding<TData, TAdapter>>`
+- uses `Dictionary<BaseSlot, SlotBinding<TData, TAdapter>>`
 - `SlotBinding` internally list-based: `GetAll` (returns TData for reload), `Add`/`Remove` (receive TAdapter lists), `Clear`, `CanDrop`/`CanStartDrag` (receive TAdapter)
 - two constructors: simple (single-item: `get/set/clear`) and stacking (`getAll/add/remove/clear`)
 - both can be mixed in the same `CreateBindingMap()` dictionary

@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-05-01
 
 ## Manual Drop Flow
 
@@ -118,8 +118,8 @@ TransferPlanExecutor.ExecuteCore()
 ```
 
 Virtual hooks in `InventoryDataBindingBase`:
-- `CanHandleOccupiedSlotDrop(DragEntry, ISlot)` — pure check, no mutation
-- `ExecuteOccupiedSlotDrop(DragEntry, ISlot)` — performs mutation, returns success
+- `CanHandleOccupiedSlotDrop(DragEntry, BaseSlot)` — pure check, no mutation
+- `ExecuteOccupiedSlotDrop(DragEntry, BaseSlot)` — performs mutation, returns success
 
 ## Swap Flow
 
