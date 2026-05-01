@@ -243,12 +243,31 @@ namespace UniversalDragAndDrop
             var processedSlots = new HashSet<BaseSlot>();
             for (int i = 0; i < entries.Count; i++)
             {
-                var sourceBaseSlot = entries[i].SourceBaseSlot;
-                if (sourceBaseSlot == null || !processedSlots.Add(sourceBaseSlot))
+                var entry = entries[i];
+                if (TrySetPlacementDraggedState(entry, isDragging, processedSlots))
                     continue;
 
-                sourceBaseSlot.SetDraggedFrom(isDragging);
+                var sourceBaseSlot = entry.SourceBaseSlot;
+                if (sourceBaseSlot != null && processedSlots.Add(sourceBaseSlot))
+                    sourceBaseSlot.SetDraggedFrom(isDragging);
             }
+        }
+
+        private static bool TrySetPlacementDraggedState(DragEntry entry, bool isDragging, HashSet<BaseSlot> processedSlots)
+        {
+            if (entry.SourcePlacement == null ||
+                entry.SourcePlacement.Footprint.IsSingleCell ||
+                entry.SourceInventory is not UniversalInventory inventory)
+                return false;
+
+            for (int i = 0; i < entry.SourcePlacement.CoveredIndices.Count; i++)
+            {
+                var slot = inventory.GetSlot(entry.SourcePlacement.CoveredIndices[i]);
+                if (slot != null && processedSlots.Add(slot))
+                    slot.SetDraggedFrom(isDragging);
+            }
+
+            return true;
         }
 
         /// <summary>

@@ -1,8 +1,10 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Interaction;
 using UniversalDragAndDrop.Inventories;
+using UniversalDragAndDrop.UI;
 
 namespace UniversalDragAndDrop.Slots
 {
@@ -29,6 +31,12 @@ namespace UniversalDragAndDrop.Slots
 
         protected override void RenderFilled()
         {
+            if (ShouldHideSlotIconForPlacement())
+            {
+                RenderEmpty();
+                return;
+            }
+
             _iconImage.gameObject.SetActive(true);
             _iconImage.sprite  = Stack.Icon;
             RenderCounter();
@@ -41,13 +49,19 @@ namespace UniversalDragAndDrop.Slots
         }
         protected override void RenderFilledAndDraggedFrom()
         {
-            var stack = DragAndDropManager.Instance.CurrentContext.Entries.First(e => e.SourceBaseSlot == this).Stack;
+            if (!TryGetDraggedEntryForThisSlot(out var entry))
+            {
+                RenderEmpty();
+                return;
+            }
+
+            var stack = entry.Stack;
             int count = Stack.Count - stack.Count;
 
             if (count > 0)
             {
                 RenderFilled();
-                
+
                 bool shouldShow = !IsEmpty && count > 1;
                 _countContainer.SetActive(shouldShow);
 
@@ -59,11 +73,11 @@ namespace UniversalDragAndDrop.Slots
                 RenderEmpty();
                 _countContainer.SetActive(false);
             }
-            
+
         }
 
         protected override void RenderFilledAndDraggedTo() => base.RenderFilledAndDraggedTo();
-        
+
         /// <summary>Updates the stack counter. It is shown only when there is more than one item.</summary>
         void RenderCounter()
         {
@@ -75,7 +89,7 @@ namespace UniversalDragAndDrop.Slots
             if (shouldShow && _countText != null)
                 _countText.text = Stack.Count.ToString();
         }
-        
+
         public override void Highlight(bool highlight)
         {
             _isHighlighted = highlight;
@@ -95,6 +109,58 @@ namespace UniversalDragAndDrop.Slots
                 _slotInputAdapter.interactable  = IsInteractable;
                 _iconImage.color = new Color(_iconImage.color.r, _iconImage.color.g, _iconImage.color.b, IsInteractable ? 1f : 0.5f);
             }
+        }
+
+        private bool ShouldHideSlotIconForPlacement()
+        {
+            if (Inventory is not UniversalInventory universalInventory ||
+                !universalInventory.Grid.HasValue)
+                return false;
+
+            var placement = universalInventory.GetPlacementAt(this);
+            if (placement == null || placement.Footprint.IsSingleCell)
+                return false;
+
+            if (universalInventory.TryGetComponent<PlacementOverlay>(out var overlay) &&
+                overlay != null &&
+                overlay.HideSlotIconsForShapedItems &&
+                overlay.HasRenderedPlacement(placement.Id))
+                return true;
+
+            return placement.AnchorIndex != Index;
+        }
+
+        private bool TryGetDraggedEntryForThisSlot(out DragEntry entry)
+        {
+            entry = default;
+            if (!DragAndDropManager.IsInstanceExist)
+                return false;
+
+            var context = DragAndDropManager.AutoCreateInstance.CurrentContext;
+            if (context?.Entries == null)
+                return false;
+
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var candidate = context.Entries[i];
+                if (candidate.SourceBaseSlot == this)
+                {
+                    entry = candidate;
+                    return true;
+                }
+
+                if (candidate.SourcePlacement == null ||
+                    !ReferenceEquals(candidate.SourceInventory, Inventory))
+                    continue;
+
+                if (candidate.SourcePlacement.CoveredIndices.Contains(Index))
+                {
+                    entry = candidate;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
