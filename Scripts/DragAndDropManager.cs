@@ -591,10 +591,33 @@ namespace UniversalDragAndDrop
             }
 
             SetDraggedState(dragContext?.Entries, false);
+            RefreshDragInventories(dragContext);
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
             OnDragEnded?.Invoke();
+        }
+
+        private static void RefreshDragInventories(DragContext dragContext)
+        {
+            if (dragContext == null)
+                return;
+
+            var inventories = new HashSet<UniversalInventory>();
+            if (dragContext.TargetInventory is UniversalInventory targetInventory)
+                inventories.Add(targetInventory);
+
+            if (dragContext.Entries != null)
+            {
+                for (int i = 0; i < dragContext.Entries.Count; i++)
+                {
+                    if (dragContext.Entries[i].SourceInventory is UniversalInventory sourceInventory)
+                        inventories.Add(sourceInventory);
+                }
+            }
+
+            foreach (var inventory in inventories)
+                inventory.UpdateAllVisuals();
         }
 
         /// <summary>

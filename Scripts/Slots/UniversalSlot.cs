@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Interaction;
 using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.UI;
 
 namespace UniversalDragAndDrop.Slots
 {
@@ -37,19 +36,15 @@ namespace UniversalDragAndDrop.Slots
 
         protected override void RenderFilled()
         {
-            if (ShouldHideSlotIconForPlacement())
-            {
-                RenderEmpty();
-                return;
-            }
-
             _iconImage.gameObject.SetActive(true);
             _iconImage.sprite  = Stack.Icon;
+            _iconImage.enabled = true;
             RenderCounter();
         }
 
         protected override void RenderEmpty()
         {
+            _iconImage.enabled = true;
             _iconImage.gameObject.SetActive(false);
             _countContainer.SetActive(false);
         }
@@ -185,25 +180,6 @@ namespace UniversalDragAndDrop.Slots
             }
 
             return _runtimeHighlightImage;
-        }
-
-        private bool ShouldHideSlotIconForPlacement()
-        {
-            if (Inventory is not UniversalInventory universalInventory ||
-                !universalInventory.Grid.HasValue)
-                return false;
-
-            var placement = universalInventory.GetPlacementAt(this);
-            if (placement == null || placement.Footprint.IsSingleCell)
-                return false;
-
-            if (universalInventory.TryGetComponent<PlacementOverlay>(out var overlay) &&
-                overlay != null &&
-                overlay.HideSlotIconsForShapedItems &&
-                overlay.HasRenderedPlacement(placement))
-                return true;
-
-            return placement.AnchorIndex != Index;
         }
 
         private bool TryGetDraggedEntryForThisSlot(out DragEntry entry)

@@ -415,6 +415,7 @@ namespace UniversalDragAndDrop.Inventories
             EnsurePlacementStateInitialized();
             InitializeStrategy();
             EnsureFreeSlots();
+            UpdateAllVisuals();
         }
 
         private StrategyConfiguration CaptureStrategyConfiguration()

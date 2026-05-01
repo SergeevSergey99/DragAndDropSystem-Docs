@@ -713,6 +713,8 @@ namespace UniversalDragAndDrop.Inventories
 
             transferAmount = transferStack.Count;
             sourceSlot.UpdateVisuals();
+            if (sourceInventory is UniversalInventory sourceUniversalAfterSplit && sourceUniversalAfterSplit.Grid.HasValue)
+                sourceUniversalAfterSplit.UpdateAllVisuals();
 
             var sourceRemovedStack = transferStack.CreateCopy();
 
@@ -913,6 +915,7 @@ namespace UniversalDragAndDrop.Inventories
 
             operation.TransferStack.RemoveFromStack(placedStack.Count);
             operation.OperationContext?.RecordResult(operation.RequestedBaseSlot, wasEmpty, placedStack.Count);
+            targetUniversal.UpdateAllVisuals();
             return operation.TransferStack.IsEmpty;
         }
 

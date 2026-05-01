@@ -16,13 +16,10 @@ namespace UniversalDragAndDrop.UI
         [SerializeField] private RectTransform _overlayRoot;
         [SerializeField] private Image _imagePrefab;
         [SerializeField] private Color _color = Color.white;
-        [SerializeField] private bool _hideSlotIconsForShapedItems = true;
 
         private readonly List<Image> _activeImages = new List<Image>();
         private readonly HashSet<Placement> _renderedPlacements = new HashSet<Placement>();
         private readonly Vector3[] _corners = new Vector3[4];
-        
-        public bool HideSlotIconsForShapedItems => _hideSlotIconsForShapedItems;
         public bool HasRenderedPlacement(Placement placement) => _renderedPlacements.Contains(placement);
 
         private void Awake()
