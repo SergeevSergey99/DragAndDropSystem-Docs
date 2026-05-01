@@ -12,7 +12,7 @@ namespace UniversalDragAndDrop.UI
     public class DragVisualPresenter : MonoSingleton<DragVisualPresenter>
     {
         [SerializeField] private Canvas _canvas;
-        [SerializeField] private DefaultDragVisual _defaultDragVisualPrefab;
+        [SerializeField] private IDragVisual _defaultDragVisualPrefab;
         [SerializeField] private Transform _visualContainer;
         [Header("Batch Layout")]
         [SerializeField, Min(0f)] private float _batchVisualRadius = 36f;

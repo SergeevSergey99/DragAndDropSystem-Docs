@@ -12,7 +12,7 @@ namespace UniversalDragAndDrop.UI
     /// For shaped placements, the size is computed from all covered source slots.
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class SourceSizedDragVisual : MonoBehaviour, IDragVisual
+    public class SourceSizedDragVisual : IDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
@@ -26,22 +26,10 @@ namespace UniversalDragAndDrop.UI
         [SerializeField] private Color _normalColor = Color.white;
 
         private readonly Vector3[] _corners = new Vector3[4];
-        private RectTransform _rectTransform;
 
         public bool IsVisible => gameObject.activeSelf;
 
-        private RectTransform RectTransform
-        {
-            get
-            {
-                if (_rectTransform == null)
-                    _rectTransform = transform as RectTransform;
-
-                return _rectTransform;
-            }
-        }
-
-        public void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(IReadOnlyList<DragEntry> entries)
         {
             if (entries == null || entries.Count == 0 || _iconImage == null)
             {
@@ -62,15 +50,9 @@ namespace UniversalDragAndDrop.UI
             gameObject.SetActive(true);
         }
 
-        public void Hide()
+        public override void Hide()
         {
             gameObject.SetActive(false);
-        }
-
-        public void UpdatePosition(Vector3 position)
-        {
-            if (RectTransform != null)
-                RectTransform.position = position;
         }
 
         private void RenderStack(ItemStack stack)
@@ -94,8 +76,8 @@ namespace UniversalDragAndDrop.UI
             if (size.x <= 0f || size.y <= 0f)
                 size = _fallbackSize;
 
-            RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
-            RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
         }
 
         private Vector2 ResolveSourceSize(DragEntry entry)
@@ -183,7 +165,7 @@ namespace UniversalDragAndDrop.UI
 
         private Vector2 TransformPointToVisualParent(Vector3 worldPoint)
         {
-            return RectTransform.parent is RectTransform parentRect
+            return _rectTransform.parent is RectTransform parentRect
                 ? (Vector2)parentRect.InverseTransformPoint(worldPoint)
                 : (Vector2)worldPoint;
         }

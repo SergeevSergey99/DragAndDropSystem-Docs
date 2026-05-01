@@ -10,7 +10,7 @@ namespace UniversalDragAndDrop.UI
     /// Demonstrates how the default visual can be overridden
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class FancyDragVisual : MonoBehaviour, IDragVisual
+    public class FancyDragVisual : IDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
@@ -33,15 +33,13 @@ namespace UniversalDragAndDrop.UI
         private float _bobTimer;
         private bool _isVisible;
 
-        public bool IsVisible => _isVisible;
-
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
             Hide();
         }
 
-        public void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(IReadOnlyList<DragEntry> entries)
         {
             if (entries == null || entries.Count == 0 || _iconImage == null)
             {
@@ -87,13 +85,13 @@ namespace UniversalDragAndDrop.UI
             gameObject.SetActive(true);
         }
 
-        public void Hide()
+        public override void Hide()
         {
             _isVisible = false;
             gameObject.SetActive(false);
         }
 
-        public void UpdatePosition(Vector3 position)
+        public override void UpdatePosition(Vector3 position)
         {
             if (_rectTransform == null)
                 return;
