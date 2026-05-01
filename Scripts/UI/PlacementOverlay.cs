@@ -14,10 +14,10 @@ namespace UniversalDragAndDrop.UI
     {
         [SerializeField] private UniversalInventory _inventory;
         [SerializeField] private RectTransform _overlayRoot;
-        [SerializeField] private Image _imagePrefab;
+        [SerializeField] private PlacementOverlayItem _itemPrefab;
         [SerializeField] private Color _color = Color.white;
 
-        private readonly List<Image> _activeImages = new List<Image>();
+        private readonly List<PlacementOverlayItem> _activeItems = new List<PlacementOverlayItem>();
         private readonly HashSet<Placement> _renderedPlacements = new HashSet<Placement>();
         private readonly Vector3[] _corners = new Vector3[4];
         public bool HasRenderedPlacement(Placement placement) => _renderedPlacements.Contains(placement);
@@ -101,8 +101,7 @@ namespace UniversalDragAndDrop.UI
                 if (placement == null ||
                     //placement.Footprint.IsSingleCell ||
                     placement.Stack == null ||
-                    placement.Stack.IsEmpty ||
-                    IsSourcePlacementBeingDragged(placement))
+                    placement.Stack.IsEmpty)
                 {
                     continue;
                 }
@@ -112,18 +111,19 @@ namespace UniversalDragAndDrop.UI
                     continue;
                 }
 
-                var image = CreateImage(root, placement);
-                var imageRect = image.rectTransform;
-                imageRect.anchorMin = new Vector2(0.5f, 0.5f);
-                imageRect.anchorMax = new Vector2(0.5f, 0.5f);
-                imageRect.pivot = new Vector2(0.5f, 0.5f);
-                imageRect.anchoredPosition = rect.center;
-                imageRect.sizeDelta = rect.size;
-                imageRect.localEulerAngles = placement.Orientation == PlacementOrientation.Rot90
+                var item = CreateItem(root, placement);
+                var itemRect = item.RectTransform;
+                itemRect.anchorMin = new Vector2(0.5f, 0.5f);
+                itemRect.anchorMax = new Vector2(0.5f, 0.5f);
+                itemRect.pivot = new Vector2(0.5f, 0.5f);
+                itemRect.anchoredPosition = rect.center;
+                itemRect.sizeDelta = rect.size;
+                itemRect.localEulerAngles = placement.Orientation == PlacementOrientation.Rot90
                     ? new Vector3(0f, 0f, -90f)
                     : Vector3.zero;
-                image.transform.SetAsLastSibling();
-                _activeImages.Add(image);
+                item.transform.SetAsLastSibling();
+                item.Render(placement, ResolveRenderState(placement), _color);
+                _activeItems.Add(item);
                 _renderedPlacements.Add(placement);
             }
         }
@@ -152,30 +152,58 @@ namespace UniversalDragAndDrop.UI
             return _overlayRoot;
         }
 
-        private Image CreateImage(RectTransform root, Placement placement)
+        private PlacementOverlayItem CreateItem(RectTransform root, Placement placement)
         {
-            Image image;
-            if (_imagePrefab != null)
+            PlacementOverlayItem item;
+            if (_itemPrefab != null)
             {
-                image = Instantiate(_imagePrefab, root);
+                item = Instantiate(_itemPrefab, root);
             }
             else
             {
-                var imageObject = new GameObject(
+                var itemObject = new GameObject(
                     $"Placement Overlay Item {placement.AnchorIndex}",
                     typeof(RectTransform),
                     typeof(CanvasRenderer),
-                    typeof(Image));
-                imageObject.transform.SetParent(root, false);
-                image = imageObject.GetComponent<Image>();
+                    typeof(Image),
+                    typeof(PlacementOverlayItem));
+                itemObject.transform.SetParent(root, false);
+                item = itemObject.GetComponent<PlacementOverlayItem>();
             }
 
-            image.raycastTarget = false;
-            image.sprite = placement.Stack.Icon;
-            image.color = _color;
-            image.preserveAspect = placement.Stack.Icon != null;
-            image.enabled = true;
-            return image;
+            return item;
+        }
+
+        private PlacementOverlayRenderState ResolveRenderState(Placement placement)
+        {
+            if (IsSourcePlacementBeingDragged(placement))
+                return PlacementOverlayRenderState.FilledAndDraggedFrom;
+
+            if (HasCoveredSlotState(placement, draggedTo: true))
+                return PlacementOverlayRenderState.FilledAndDraggedTo;
+
+            return PlacementOverlayRenderState.Filled;
+        }
+
+        private bool HasCoveredSlotState(Placement placement, bool draggedTo)
+        {
+            if (placement == null)
+                return false;
+
+            for (int i = 0; i < placement.CoveredIndices.Count; i++)
+            {
+                var slot = _inventory.GetSlot(placement.CoveredIndices[i]);
+                if (slot == null)
+                    continue;
+
+                if (draggedTo && slot.IsDraggedToVisualState)
+                    return true;
+
+                if (!draggedTo && slot.IsDraggedFromVisualState)
+                    return true;
+            }
+
+            return false;
         }
 
         private bool TryGetPlacementRect(Placement placement, RectTransform root, out Rect rect)
@@ -296,13 +324,13 @@ namespace UniversalDragAndDrop.UI
 
         private void Clear()
         {
-            for (int i = 0; i < _activeImages.Count; i++)
+            for (int i = 0; i < _activeItems.Count; i++)
             {
-                if (_activeImages[i] != null)
-                    Destroy(_activeImages[i].gameObject);
+                if (_activeItems[i] != null)
+                    Destroy(_activeItems[i].gameObject);
             }
 
-            _activeImages.Clear();
+            _activeItems.Clear();
             _renderedPlacements.Clear();
         }
 

@@ -107,6 +107,9 @@ namespace UniversalDragAndDrop.Slots
         /// Target-side transfer flag. Applied on the next UpdateVisuals.
         /// </summary>
         protected bool _isDraggedTo = false;
+
+        public bool IsDraggedFromVisualState => _isDraggedFrom;
+        public bool IsDraggedToVisualState => _isDraggedTo;
         
         /// <summary>
         /// Single entry point for a full visual refresh.
