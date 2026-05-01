@@ -45,15 +45,12 @@ namespace UniversalDragAndDrop.UI
 
         protected virtual void RenderFilled(Placement placement, Color fallbackColor)
         {
-            var image = ResolveImage();
-            if (image == null)
+            if (_image == null)
                 return;
 
-            image.raycastTarget = false;
-            image.sprite = placement?.Stack?.Icon;
-            image.color = fallbackColor;
-            image.preserveAspect = image.sprite != null;
-            image.enabled = true;
+            _image.raycastTarget = false;
+            _image.sprite = placement?.Stack?.Icon;
+            _image.color = fallbackColor;
             gameObject.SetActive(true);
         }
 
@@ -65,14 +62,6 @@ namespace UniversalDragAndDrop.UI
         protected virtual void RenderFilledAndDraggedTo(Placement placement, Color fallbackColor)
         {
             RenderFilled(placement, fallbackColor);
-        }
-
-        protected Image ResolveImage()
-        {
-            if (_image == null)
-                _image = GetComponent<Image>();
-
-            return _image;
         }
     }
 }

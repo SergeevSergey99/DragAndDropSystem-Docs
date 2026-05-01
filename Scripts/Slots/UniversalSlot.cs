@@ -95,22 +95,21 @@ namespace UniversalDragAndDrop.Slots
         {
             _isHighlighted = highlight;
 
-            var graphic = ResolveHighlightGraphic();
-            if (graphic != null)
+            if (_highlightGraphic != null)
             {
                 if (highlight)
                 {
                     if (!_hasStoredHighlightGraphicColor)
                     {
-                        _storedHighlightGraphicColor = graphic.color;
+                        _storedHighlightGraphicColor = _highlightGraphic.color;
                         _hasStoredHighlightGraphicColor = true;
                     }
 
-                    graphic.color = _highlightColor;
+                    _highlightGraphic.color = _highlightColor;
                 }
                 else if (_hasStoredHighlightGraphicColor)
                 {
-                    graphic.color = _storedHighlightGraphicColor;
+                    _highlightGraphic.color = _storedHighlightGraphicColor;
                     _hasStoredHighlightGraphicColor = false;
                 }
             }
@@ -119,7 +118,7 @@ namespace UniversalDragAndDrop.Slots
                 SetRuntimeHighlightVisible(highlight);
             }
 
-            if (_iconImage != null && !ReferenceEquals(_iconImage, graphic))
+            if (_iconImage != null && !ReferenceEquals(_iconImage, _highlightGraphic))
                 _iconImage.color = highlight ? _highlightColor : _normalColor;
         }
 
@@ -135,14 +134,6 @@ namespace UniversalDragAndDrop.Slots
                 _slotInputAdapter.interactable  = IsInteractable;
                 _iconImage.color = new Color(_iconImage.color.r, _iconImage.color.g, _iconImage.color.b, IsInteractable ? 1f : 0.5f);
             }
-        }
-
-        private Graphic ResolveHighlightGraphic()
-        {
-            if (_highlightGraphic != null)
-                return _highlightGraphic;
-
-            return null;
         }
 
         private void SetRuntimeHighlightVisible(bool visible)
