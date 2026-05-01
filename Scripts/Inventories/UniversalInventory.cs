@@ -76,6 +76,7 @@ namespace UniversalDragAndDrop.Inventories
         private readonly List<Placement> _placements = new List<Placement>();
         private readonly Dictionary<int, int> _cellToPlacementId = new Dictionary<int, int>();
         private readonly Dictionary<int, Placement> _placementById = new Dictionary<int, Placement>();
+        private readonly List<BaseSlot> _dropPreviewSlots = new List<BaseSlot>();
         private int _nextPlacementId = 1;
         private bool _placementStateInitialized;
 
@@ -515,6 +516,108 @@ namespace UniversalDragAndDrop.Inventories
             EnsurePlacementStateInitialized();
             PruneEmptyPlacements();
             return CanPlaceInitialized(request, ignoredPlacement);
+        }
+
+        public bool TryGetDropPreviewSlots(
+            BaseSlot targetBaseSlot,
+            DragContext context,
+            out IReadOnlyList<BaseSlot> previewSlots,
+            out bool canPlace)
+        {
+            previewSlots = Array.Empty<BaseSlot>();
+            canPlace = false;
+
+            if (targetBaseSlot == null ||
+                !ReferenceEquals(targetBaseSlot.Inventory, this) ||
+                context == null ||
+                context.Entries == null ||
+                context.Entries.Count == 0)
+                return false;
+
+            var entry = context.Entries[0];
+            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.PrimaryAdapter == null)
+                return false;
+
+            if (!TransferItemConversionUtility.TryResolveTargetItem(
+                    entry.SourceInventory,
+                    this,
+                    entry.Stack.PrimaryAdapter,
+                    out var targetItem))
+                return false;
+
+            var footprint = Footprint.Resolve(targetItem);
+            if (!_useGridTopology || footprint.IsSingleCell)
+            {
+                previewSlots = new[] { targetBaseSlot };
+                canPlace = true;
+                return true;
+            }
+
+            var anchorCell = GetCellForIndex(targetBaseSlot.Index) - entry.GrabOffset;
+            if (!TryGetIndexForCell(anchorCell, out int anchorIndex))
+                return true;
+
+            var coveredIndices = GetCoveredCells(anchorIndex, footprint, entry.Orientation);
+            if (coveredIndices == null || coveredIndices.Count == 0)
+                return true;
+
+            var slots = new List<BaseSlot>(coveredIndices.Count);
+            for (int i = 0; i < coveredIndices.Count; i++)
+            {
+                var slot = GetSlot(coveredIndices[i]);
+                if (slot != null)
+                    slots.Add(slot);
+            }
+
+            previewSlots = slots;
+
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                this,
+                targetItem,
+                entry.Stack.Count,
+                context,
+                entry);
+            var previewStack = acceptanceRequest.CreatePreviewStack(entry.Stack.Count, targetItem);
+            if (previewStack == null)
+                return true;
+
+            var ignoredPlacement = ReferenceEquals(entry.SourceInventory, this)
+                ? entry.SourcePlacement
+                : null;
+            canPlace = CanPlace(
+                new PlacementRequest(previewStack, anchorIndex, entry.Orientation, footprint),
+                ignoredPlacement);
+            return true;
+        }
+
+        public bool ShowDropPreview(BaseSlot targetBaseSlot, DragContext context)
+        {
+            ClearDropPreview();
+
+            if (!TryGetDropPreviewSlots(targetBaseSlot, context, out var previewSlots, out _) ||
+                previewSlots == null ||
+                previewSlots.Count == 0)
+                return false;
+
+            for (int i = 0; i < previewSlots.Count; i++)
+            {
+                var slot = previewSlots[i];
+                if (slot == null)
+                    continue;
+
+                slot.Highlight(true);
+                _dropPreviewSlots.Add(slot);
+            }
+
+            return _dropPreviewSlots.Count > 0;
+        }
+
+        public void ClearDropPreview()
+        {
+            for (int i = 0; i < _dropPreviewSlots.Count; i++)
+                _dropPreviewSlots[i]?.Highlight(false);
+
+            _dropPreviewSlots.Clear();
         }
 
         public bool TryPlace(PlacementRequest request)

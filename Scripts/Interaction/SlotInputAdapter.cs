@@ -189,14 +189,25 @@ namespace UniversalDragAndDrop.Interaction
 
         public void OnBecomeActiveTarget()
         {
-            if (baseSlot != null)
-                baseSlot.Highlight(true);
+            if (baseSlot == null)
+                return;
+
+            if (baseSlot.Inventory is UniversalInventory universalInventory &&
+                universalInventory.ShowDropPreview(baseSlot, DragAndDropManager.AutoCreateInstance.CurrentContext))
+                return;
+
+            baseSlot.Highlight(true);
         }
 
         public void OnBecomeInactiveTarget()
         {
-            if (baseSlot != null)
-                baseSlot.Highlight(false);
+            if (baseSlot == null)
+                return;
+
+            if (baseSlot.Inventory is UniversalInventory universalInventory)
+                universalInventory.ClearDropPreview();
+
+            baseSlot.Highlight(false);
         }
 
         private void TryRaiseHoverEnter(PointerEventData eventData)

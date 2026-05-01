@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -84,6 +85,45 @@ namespace UniversalDragAndDrop.Tests.Inventories
             finally
             {
                 InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void DropPreview_UsesCoveredCellsFromGrabOffset()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(4);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                Assert.IsTrue(target.TryGetDropPreviewSlots(
+                    target.GetSlot(4),
+                    context,
+                    out var previewSlots,
+                    out bool canPlace));
+
+                Assert.IsTrue(canPlace);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1, 3, 4 },
+                    previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
             }
         }
 
