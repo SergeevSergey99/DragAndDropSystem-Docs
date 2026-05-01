@@ -568,7 +568,7 @@ namespace UniversalDragAndDrop.Inventories
             if (!TryGetIndexForCell(anchorCell, out int anchorIndex))
                 return true;
 
-            var coveredIndices = GetCoveredCells(anchorIndex, footprint, entry.Orientation);
+            var coveredIndices = GetPreviewCoveredCells(anchorIndex, footprint, entry.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return true;
 
@@ -912,6 +912,39 @@ namespace UniversalDragAndDrop.Inventories
                         return Array.Empty<int>();
 
                     result.Add(index);
+                }
+            }
+
+            return result;
+        }
+
+        private IReadOnlyList<int> GetPreviewCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation)
+        {
+            if (!_useGridTopology)
+                return GetCoveredCells(anchorIndex, footprint, orientation);
+
+            var topology = _gridTopology.Normalized();
+            if (!topology.IsValidIndex(anchorIndex))
+                return Array.Empty<int>();
+
+            var anchorCell = topology.ToCell(anchorIndex);
+            var size = footprint.GetSize(orientation);
+            var result = new List<int>(size.x * size.y);
+
+            for (int y = 0; y < size.y; y++)
+            {
+                for (int x = 0; x < size.x; x++)
+                {
+                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
+                    if (!topology.Contains(cell))
+                        continue;
+
+                    int index = topology.ToIndex(cell);
+                    if (index >= 0 && index < _slots.Count)
+                        result.Add(index);
                 }
             }
 
