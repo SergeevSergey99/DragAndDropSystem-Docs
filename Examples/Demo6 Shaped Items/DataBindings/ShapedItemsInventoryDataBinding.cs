@@ -45,7 +45,6 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
             if (Inventory.Grid.HasValue)
             {
                 ReloadGrid();
-                EnsurePlacementOverlay();
             }
             else
             {
@@ -152,17 +151,6 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
                 _placements.RemoveAt(i);
                 return;
             }
-        }
-
-        private void EnsurePlacementOverlay()
-        {
-            if (Inventory == null || !Inventory.Grid.HasValue)
-                return;
-
-            if (!Inventory.TryGetComponent<PlacementOverlay>(out var overlay))
-                overlay = Inventory.gameObject.AddComponent<PlacementOverlay>();
-
-            overlay.Refresh();
         }
     }
 }

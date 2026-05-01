@@ -4,11 +4,12 @@ using UnityEngine.UI;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tools.Inspector;
 
 namespace UniversalDragAndDrop.UI
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(UniversalInventory))]
+    //[DefaultExecutionOrder(1000)]
     public sealed class PlacementOverlay : MonoBehaviour
     {
         [SerializeField] private UniversalInventory _inventory;
@@ -20,14 +21,17 @@ namespace UniversalDragAndDrop.UI
         private readonly List<Image> _activeImages = new List<Image>();
         private readonly HashSet<Placement> _renderedPlacements = new HashSet<Placement>();
         private readonly Vector3[] _corners = new Vector3[4];
-
+        
         public bool HideSlotIconsForShapedItems => _hideSlotIconsForShapedItems;
         public bool HasRenderedPlacement(Placement placement) => _renderedPlacements.Contains(placement);
 
         private void Awake()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+            {
+                Debug.LogError($"[{nameof(PlacementOverlay)}] No inventory assigned. Attempting to find one on the same GameObject.", this);
+                gameObject.SetActive(false);
+            }
         }
 
         private void OnEnable()
@@ -46,6 +50,14 @@ namespace UniversalDragAndDrop.UI
             DragAndDropManager.OnDragEnded += HandleDragEnded;
             DragAndDropManager.OnDragCancelled += HandleDragChanged;
             DragAndDropManager.OnDropCompleted += HandleDragChanged;
+            //Canvas.preWillRenderCanvases += HandleWillRenderCanvases;
+            //Canvas.willRenderCanvases += HandleWillRenderCanvases;
+            
+            Refresh();
+        }
+
+        private void Start()
+        {
             Refresh();
         }
 
@@ -62,20 +74,21 @@ namespace UniversalDragAndDrop.UI
             DragAndDropManager.OnDragEnded -= HandleDragEnded;
             DragAndDropManager.OnDragCancelled -= HandleDragChanged;
             DragAndDropManager.OnDropCompleted -= HandleDragChanged;
+            //Canvas.preWillRenderCanvases -= HandleWillRenderCanvases;
+            //Canvas.willRenderCanvases -= HandleWillRenderCanvases;
+
             Clear();
         }
 
-        private void OnRectTransformDimensionsChange()
-        {
-            if (isActiveAndEnabled)
-                Refresh();
-        }
+        private void OnRectTransformDimensionsChange() => Refresh();
 
-        public void Refresh()
+        [Button]
+        void Refresh()
         {
-            if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+            if (!isActiveAndEnabled)
+                return;
 
+            Canvas.ForceUpdateCanvases();
             Clear();
 
             if (_inventory == null || !_inventory.Grid.HasValue)
@@ -89,14 +102,18 @@ namespace UniversalDragAndDrop.UI
             foreach (var placement in placements)
             {
                 if (placement == null ||
-                    placement.Footprint.IsSingleCell ||
+                    //placement.Footprint.IsSingleCell ||
                     placement.Stack == null ||
                     placement.Stack.IsEmpty ||
                     IsSourcePlacementBeingDragged(placement))
+                {
                     continue;
+                }
 
                 if (!TryGetPlacementRect(placement, root, out var rect))
+                {
                     continue;
+                }
 
                 var image = CreateImage(root, placement);
                 var imageRect = image.rectTransform;
@@ -170,28 +187,27 @@ namespace UniversalDragAndDrop.UI
             bool hasPoint = false;
             var min = Vector2.zero;
             var max = Vector2.zero;
-
+            
             for (int i = 0; i < placement.CoveredIndices.Count; i++)
             {
                 var slot = _inventory.GetSlot(placement.CoveredIndices[i]);
-                var slotRect = ResolveSlotRect(slot);
-                if (slotRect == null)
-                    continue;
+                if (!TryGetSlotWorldCorners(slot))
+                    return false;
 
-                slotRect.GetWorldCorners(_corners);
                 for (int c = 0; c < _corners.Length; c++)
                 {
-                    var local = (Vector2)root.InverseTransformPoint(_corners[c]);
+                    var localPoint = (Vector2)root.InverseTransformPoint(_corners[c]);
+                    
                     if (!hasPoint)
                     {
-                        min = local;
-                        max = local;
+                        min = localPoint;
+                        max = localPoint;
                         hasPoint = true;
                         continue;
                     }
 
-                    min = Vector2.Min(min, local);
-                    max = Vector2.Max(max, local);
+                    min = Vector2.Min(min, localPoint);
+                    max = Vector2.Max(max, localPoint);
                 }
             }
 
@@ -200,6 +216,53 @@ namespace UniversalDragAndDrop.UI
 
             rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             return rect.width > 0f && rect.height > 0f;
+        }
+
+        private bool TryGetSlotWorldCorners(BaseSlot slot)
+        {
+            var slotRect = ResolveSlotRect(slot);
+            if (TryGetRectWorldCorners(slotRect))
+                return true;
+
+            if (slotRect == null)
+                return false;
+
+            var childRects = slotRect.GetComponentsInChildren<RectTransform>(true);
+            RectTransform bestRect = null;
+            float bestArea = 0f;
+
+            for (int i = 0; i < childRects.Length; i++)
+            {
+                var childRect = childRects[i];
+                if (ReferenceEquals(childRect, slotRect))
+                    continue;
+
+                var size = childRect.rect.size;
+                float area = size.x * size.y;
+                if (area <= bestArea)
+                    continue;
+
+                if (size.x <= 0f || size.y <= 0f)
+                    continue;
+
+                bestArea = area;
+                bestRect = childRect;
+            }
+
+            return TryGetRectWorldCorners(bestRect);
+        }
+
+        private bool TryGetRectWorldCorners(RectTransform rect)
+        {
+            if (rect == null)
+                return false;
+
+            var size = rect.rect.size;
+            if (size.x <= 0f || size.y <= 0f)
+                return false;
+
+            rect.GetWorldCorners(_corners);
+            return true;
         }
 
         private static RectTransform ResolveSlotRect(BaseSlot slot)
