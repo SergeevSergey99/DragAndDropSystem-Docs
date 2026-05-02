@@ -102,6 +102,36 @@ namespace UniversalDragAndDrop.Interaction
     }
 
     [Serializable]
+    public sealed class RotateDragAction : AssetSafeSlotInteractionAction
+    {
+        [SerializeField, Tooltip("How many 90-degree clockwise steps to apply to the active drag.")]
+        private RotationStep _step = RotationStep.Clockwise90;
+
+        public override bool IsDragOnlyBinding() => true;
+        public override bool AllowOutOfSlot() => true;
+
+        public override bool CanExecute(RuntimeInteractionSnapshot snapshot)
+            => snapshot != null && snapshot.IsDragging;
+
+        public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
+        {
+            if (!DragAndDropManager.AutoCreateInstance.IsDragging)
+                return ActionResult.Failed("Drag is not active");
+
+            return DragAndDropManager.AutoCreateInstance.RotateCurrentDrag((int)_step)
+                ? ActionResult.Succeeded()
+                : ActionResult.Failed("Rotate drag failed");
+        }
+
+        private enum RotationStep
+        {
+            Clockwise90 = 1,
+            Clockwise180 = 2,
+            Clockwise270 = 3
+        }
+    }
+
+    [Serializable]
     public sealed class CancelDragAction : AssetSafeSlotInteractionAction
     {
         public override bool IsDragOnlyBinding() => true;

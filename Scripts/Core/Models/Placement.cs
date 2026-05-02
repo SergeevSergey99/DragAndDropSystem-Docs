@@ -38,7 +38,7 @@ namespace UniversalDragAndDrop.Core
         public Footprint Normalized() => new Footprint(Width, Height);
 
         public Vector2Int GetSize(PlacementOrientation orientation)
-            => orientation == PlacementOrientation.Rot90
+            => orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
                 ? new Vector2Int(Height, Width)
                 : new Vector2Int(Width, Height);
 
@@ -51,7 +51,9 @@ namespace UniversalDragAndDrop.Core
     public enum PlacementOrientation : byte
     {
         Rot0 = 0,
-        Rot90 = 1
+        Rot90 = 1,
+        Rot180 = 2,
+        Rot270 = 3
     }
 
     public enum SlotShapedItemPolicy : byte

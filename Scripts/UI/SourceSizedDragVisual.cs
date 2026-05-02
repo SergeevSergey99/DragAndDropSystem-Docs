@@ -47,6 +47,7 @@ namespace UniversalDragAndDrop.UI
 
             ApplySourceSize(entry);
             RenderStack(stack);
+            ApplyOrientation(entry.Orientation);
             gameObject.SetActive(true);
         }
 
@@ -73,6 +74,9 @@ namespace UniversalDragAndDrop.UI
         private void ApplySourceSize(DragEntry entry)
         {
             var size = ResolveSourceSize(entry);
+            if (ShouldSwapSourceSize(entry))
+                size = new Vector2(size.y, size.x);
+
             if (size.x <= 0f || size.y <= 0f)
                 size = _fallbackSize;
 
@@ -94,6 +98,25 @@ namespace UniversalDragAndDrop.UI
             return TryGetSlotSize(entry.SourceBaseSlot, out var slotSize)
                 ? slotSize
                 : _fallbackSize;
+        }
+
+        private static bool ShouldSwapSourceSize(DragEntry entry)
+        {
+            if (entry.SourcePlacement == null)
+                return entry.Orientation == PlacementOrientation.Rot90 ||
+                       entry.Orientation == PlacementOrientation.Rot270;
+
+            bool sourceSwapped = entry.SourcePlacement.Orientation == PlacementOrientation.Rot90 ||
+                                 entry.SourcePlacement.Orientation == PlacementOrientation.Rot270;
+            bool entrySwapped = entry.Orientation == PlacementOrientation.Rot90 ||
+                                entry.Orientation == PlacementOrientation.Rot270;
+            return sourceSwapped != entrySwapped;
+        }
+
+        private void ApplyOrientation(PlacementOrientation orientation)
+        {
+            if (_iconImage != null)
+                _iconImage.rectTransform.localEulerAngles = new Vector3(0f, 0f, -90f * (int)orientation);
         }
 
         private bool TryGetPlacementSize(UniversalInventory inventory, Placement placement, out Vector2 size)

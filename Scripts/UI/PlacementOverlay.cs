@@ -118,9 +118,7 @@ namespace UniversalDragAndDrop.UI
                 itemRect.pivot = new Vector2(0.5f, 0.5f);
                 itemRect.anchoredPosition = rect.center;
                 itemRect.sizeDelta = rect.size;
-                itemRect.localEulerAngles = placement.Orientation == PlacementOrientation.Rot90
-                    ? new Vector3(0f, 0f, -90f)
-                    : Vector3.zero;
+                itemRect.localEulerAngles = new Vector3(0f, 0f, -90f * (int)placement.Orientation);
                 item.transform.SetAsLastSibling();
                 item.Render(placement, ResolveRenderState(placement), _color);
                 _activeItems.Add(item);

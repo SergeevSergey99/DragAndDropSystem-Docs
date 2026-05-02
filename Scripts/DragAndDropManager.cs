@@ -71,6 +71,7 @@ namespace UniversalDragAndDrop
         public static event Action<DragContext> OnDropCompleted;
         public static event Action<DragContext> OnDragCancelled;
         public static event Action<DragContext> OnDragStackChanged;
+        public static event Action<DragContext> OnDragOrientationChanged;
         public static event Action OnDragEnded;
 
         // Auto-transfer events
@@ -395,6 +396,47 @@ namespace UniversalDragAndDrop
             _ = CompleteDragAsync(requested);
         }
 
+        public bool RotateCurrentDrag(int quarterTurns = 1)
+        {
+            if (!IsDragging ||
+                _currentContext?.Entries == null ||
+                _currentContext.Entries.Count == 0 ||
+                _isCompletingDrag ||
+                _isProcessingTransfer)
+                return false;
+
+            int normalizedTurns = ((quarterTurns % 4) + 4) % 4;
+            if (normalizedTurns == 0)
+                return true;
+
+            var rotatedEntries = new List<DragEntry>(_currentContext.Entries.Count);
+            for (int i = 0; i < _currentContext.Entries.Count; i++)
+            {
+                var entry = _currentContext.Entries[i];
+                rotatedEntries.Add(entry.WithOrientation(RotateOrientation(entry.Orientation, normalizedTurns)));
+            }
+
+            _currentContext = _currentContext.WithEntries(rotatedEntries);
+            RefreshActiveDropPreview();
+            OnDragOrientationChanged?.Invoke(_currentContext);
+            return true;
+        }
+
+        private static PlacementOrientation RotateOrientation(PlacementOrientation orientation, int quarterTurns)
+        {
+            int value = ((int)orientation + quarterTurns) % 4;
+            return (PlacementOrientation)value;
+        }
+
+        private void RefreshActiveDropPreview()
+        {
+            if (_activeDropTarget == null)
+                return;
+
+            _activeDropTarget.OnBecomeInactiveTarget();
+            _activeDropTarget.OnBecomeActiveTarget();
+        }
+
         private async Task CompleteDragAsync(DropRequestPolicy? requested)
         {
             if (_isProcessingTransfer)
@@ -515,7 +557,13 @@ namespace UniversalDragAndDrop
                 if (splitStack.IsEmpty)
                     return false;
 
-                var splitEntry = new DragEntry(splitStack, entry.SourceBaseSlot, entry.SourceInventory);
+                var splitEntry = new DragEntry(
+                    splitStack,
+                    entry.SourceBaseSlot,
+                    entry.SourceInventory,
+                    entry.SourcePlacement,
+                    entry.GrabOffset,
+                    entry.Orientation);
                 var splitContext = new DragContext(new[] { splitEntry });
 
                 bool success = false;

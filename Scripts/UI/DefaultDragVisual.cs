@@ -41,6 +41,7 @@ namespace UniversalDragAndDrop.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
+            _iconImage.rectTransform.localEulerAngles = ToEulerAngles(entries[0].Orientation);
 
             if (_showCount && _countText != null)
             {
@@ -62,5 +63,8 @@ namespace UniversalDragAndDrop.UI
         {
             gameObject.SetActive(false);
         }
+
+        private static Vector3 ToEulerAngles(PlacementOrientation orientation)
+            => new Vector3(0f, 0f, -90f * (int)orientation);
     }
 }

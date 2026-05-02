@@ -6869,6 +6869,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DragCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2723276657636712345, guid: 27eaec42f104e444e834a569cd04b0dc, type: 3}
+      propertyPath: <DefaultBindingsProfile>k__BackingField
+      value: 
+      objectReference: {fileID: 11400000, guid: a53fe1412fc83c34b9a9f781fbe02231, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

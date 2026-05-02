@@ -87,6 +87,7 @@ namespace UniversalDragAndDrop.UI
 
             DragAndDropManager.OnDragStarted += HandleDragStarted;
             DragAndDropManager.OnDragStackChanged += HandleDragStackChanged;
+            DragAndDropManager.OnDragOrientationChanged += HandleDragStackChanged;
             DragAndDropManager.OnDragCancelled += HandleDragFinished;
             DragAndDropManager.OnDropCompleted += HandleDragFinished;
             _subscribed = true;
@@ -99,6 +100,7 @@ namespace UniversalDragAndDrop.UI
 
             DragAndDropManager.OnDragStarted -= HandleDragStarted;
             DragAndDropManager.OnDragStackChanged -= HandleDragStackChanged;
+            DragAndDropManager.OnDragOrientationChanged -= HandleDragStackChanged;
             DragAndDropManager.OnDragCancelled -= HandleDragFinished;
             DragAndDropManager.OnDropCompleted -= HandleDragFinished;
             _subscribed = false;

@@ -24,7 +24,8 @@ namespace UniversalDragAndDrop.Core
             BaseSlot sourceBaseSlot,
             IInventory sourceInventory,
             Placement sourcePlacement = null,
-            Vector2Int? grabOffset = null)
+            Vector2Int? grabOffset = null,
+            PlacementOrientation? orientation = null)
         {
             Stack = stack;
             SourceBaseSlot = sourceBaseSlot;
@@ -37,11 +38,39 @@ namespace UniversalDragAndDrop.Core
                 SourcePlacement = universalInventory.GetPlacementAt(sourceBaseSlot);
 
             Footprint = SourcePlacement?.Footprint ?? UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
-            Orientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
+            Orientation = orientation ?? SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
             GrabOffset = grabOffset
                 ?? (universalInventory != null
                     ? universalInventory.GetGrabOffset(SourcePlacement, sourceBaseSlot)
                     : Vector2Int.zero);
+        }
+
+        public DragEntry WithOrientation(PlacementOrientation orientation)
+            => new DragEntry(
+                Stack,
+                SourceBaseSlot,
+                SourceInventory,
+                SourcePlacement,
+                RotateGrabOffset(GrabOffset, Footprint, Orientation, orientation),
+                orientation);
+
+        private static Vector2Int RotateGrabOffset(
+            Vector2Int grabOffset,
+            Footprint footprint,
+            PlacementOrientation from,
+            PlacementOrientation to)
+        {
+            int turns = ((int)to - (int)from + 4) % 4;
+            var offset = grabOffset;
+            var size = footprint.GetSize(from);
+
+            for (int i = 0; i < turns; i++)
+            {
+                offset = new Vector2Int(size.y - 1 - offset.y, offset.x);
+                size = new Vector2Int(size.y, size.x);
+            }
+
+            return offset;
         }
     }
 
@@ -149,6 +178,9 @@ namespace UniversalDragAndDrop.Core
         /// </summary>
         public DragContext WithTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
             => new DragContext(Entries, targetBaseSlot, targetInventory);
+
+        public DragContext WithEntries(IReadOnlyList<DragEntry> entries)
+            => new DragContext(entries, TargetBaseSlot, TargetInventory);
 
         public void SetTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
         {

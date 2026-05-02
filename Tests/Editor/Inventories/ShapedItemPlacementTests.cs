@@ -62,6 +62,17 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void Footprint_GetSize_SupportsFourOrientations()
+        {
+            var footprint = new Footprint(2, 3);
+
+            Assert.AreEqual(new Vector2Int(2, 3), footprint.GetSize(PlacementOrientation.Rot0));
+            Assert.AreEqual(new Vector2Int(3, 2), footprint.GetSize(PlacementOrientation.Rot90));
+            Assert.AreEqual(new Vector2Int(2, 3), footprint.GetSize(PlacementOrientation.Rot180));
+            Assert.AreEqual(new Vector2Int(3, 2), footprint.GetSize(PlacementOrientation.Rot270));
+        }
+
+        [Test]
         public void DragEntry_FromCoveredCell_CapturesPlacementMetadata()
         {
             var inventory = new InventoryBuilder()
@@ -81,6 +92,31 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 Assert.AreEqual(new Vector2Int(1, 1), entry.GrabOffset);
                 Assert.AreEqual(new Footprint(2, 2), entry.Footprint);
                 Assert.AreEqual(PlacementOrientation.Rot0, entry.Orientation);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void DragEntry_WithOrientation_RotatesGrabOffset()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+
+                var entry = new DragEntry(stack.CreateCopy(), inventory.GetSlot(1), inventory, placement);
+                var rotated = entry.WithOrientation(PlacementOrientation.Rot90);
+
+                Assert.AreEqual(PlacementOrientation.Rot90, rotated.Orientation);
+                Assert.AreEqual(new Vector2Int(0, 1), rotated.GrabOffset);
             }
             finally
             {
@@ -236,6 +272,50 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 CollectionAssert.AreEqual(
                     new[] { 0, 1 },
                     previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridToGrid_UsesDragEntryOrientation()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .WithName("SourceGrid")
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .WithName("TargetGrid")
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(
+                    dragSlot.Stack.CreateCopy(),
+                    dragSlot,
+                    source,
+                    orientation: PlacementOrientation.Rot90);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(1), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                var targetPlacement = target.GetPlacementAt(1);
+                Assert.IsNotNull(targetPlacement);
+                Assert.AreEqual(PlacementOrientation.Rot90, targetPlacement.Orientation);
+                CollectionAssert.AreEqual(new[] { 1, 4 }, targetPlacement.CoveredIndices);
             }
             finally
             {

@@ -31,6 +31,7 @@ namespace UniversalDragAndDrop.UI
         private RectTransform _rectTransform;
         private Vector3 _basePosition;
         private float _bobTimer;
+        private float _orientationAngle;
         private bool _isVisible;
 
         private void Awake()
@@ -56,6 +57,7 @@ namespace UniversalDragAndDrop.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
+            _orientationAngle = -90f * (int)entries[0].Orientation;
 
             if (_glowEffect != null)
             {
@@ -105,7 +107,7 @@ namespace UniversalDragAndDrop.UI
             // Rotation
             if (_iconImage != null)
             {
-                _iconImage.transform.rotation = Quaternion.Euler(0, 0, Mathf.Sin(_bobTimer) * _rotationSpeed);
+                _iconImage.transform.rotation = Quaternion.Euler(0, 0, _orientationAngle + Mathf.Sin(_bobTimer) * _rotationSpeed);
             }
 
             // Glow pulse
