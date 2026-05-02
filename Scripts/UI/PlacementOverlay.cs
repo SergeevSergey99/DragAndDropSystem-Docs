@@ -117,13 +117,20 @@ namespace UniversalDragAndDrop.UI
                 itemRect.anchorMax = new Vector2(0.5f, 0.5f);
                 itemRect.pivot = new Vector2(0.5f, 0.5f);
                 itemRect.anchoredPosition = rect.center;
-                itemRect.sizeDelta = rect.size;
+                itemRect.sizeDelta = GetPreRotatedSize(rect.size, placement.Orientation);
                 itemRect.localEulerAngles = new Vector3(0f, 0f, -90f * (int)placement.Orientation);
                 item.transform.SetAsLastSibling();
                 item.Render(placement, ResolveRenderState(placement), _color);
                 _activeItems.Add(item);
                 _renderedPlacements.Add(placement);
             }
+        }
+
+        private static Vector2 GetPreRotatedSize(Vector2 targetSize, PlacementOrientation orientation)
+        {
+            return orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
+                ? new Vector2(targetSize.y, targetSize.x)
+                : targetSize;
         }
 
         private RectTransform ResolveOverlayRoot()

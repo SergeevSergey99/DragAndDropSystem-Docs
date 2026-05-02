@@ -110,7 +110,7 @@ namespace UniversalDragAndDrop.UI
                                  entry.SourcePlacement.Orientation == PlacementOrientation.Rot270;
             bool entrySwapped = entry.Orientation == PlacementOrientation.Rot90 ||
                                 entry.Orientation == PlacementOrientation.Rot270;
-            return sourceSwapped != entrySwapped;
+            return sourceSwapped;
         }
 
         private void ApplyOrientation(PlacementOrientation orientation)
