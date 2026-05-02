@@ -118,6 +118,7 @@ namespace UniversalDragAndDrop.Interaction
             if (!DragAndDropManager.AutoCreateInstance.IsDragging)
                 return ActionResult.Failed("Drag is not active");
 
+            DragAndDropManager.AutoCreateInstance.ActivateDropTargetForSlot(snapshot?.HoveredSlot ?? snapshot?.FocusedSlot ?? snapshot?.ActiveSlot);
             return DragAndDropManager.AutoCreateInstance.RotateCurrentDrag((int)_step)
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Rotate drag failed");

@@ -511,6 +511,80 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_RotatedShapedWithinSameGrid_DraggedFromLowerCell_AllowsMoveDown()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90)));
+
+                var dragSlot = inventory.GetSlot(3);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                    .WithOrientation(PlacementOrientation.Rot180);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(inventory.GetSlot(6), inventory, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                var movedPlacement = inventory.GetPlacementAt(6);
+                Assert.IsNotNull(movedPlacement);
+                Assert.AreEqual(6, movedPlacement.AnchorIndex);
+                Assert.AreEqual(PlacementOrientation.Rot180, movedPlacement.Orientation);
+                CollectionAssert.AreEqual(new[] { 6, 7 }, movedPlacement.CoveredIndices);
+                Assert.IsNull(inventory.GetPlacementAt(0));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_RotatedShapedWithinSameGrid_AllowsRotationBeforeLeavingSourceArea()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90)));
+
+                var dragSlot = inventory.GetSlot(3);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                    .WithOrientation(PlacementOrientation.Rot180);
+                var context = new DragContext(new[] { entry });
+
+                var globalRules = new GlobalRuleValidator();
+                globalRules.AddRule(new SameSlotRule());
+                var processor = new InventoryDropProcessor(inventory.GetSlot(3), inventory, globalRules);
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                var movedPlacement = inventory.GetPlacementAt(3);
+                Assert.IsNotNull(movedPlacement);
+                Assert.AreEqual(3, movedPlacement.AnchorIndex);
+                Assert.AreEqual(PlacementOrientation.Rot180, movedPlacement.Orientation);
+                CollectionAssert.AreEqual(new[] { 3, 4 }, movedPlacement.CoveredIndices);
+                Assert.IsNull(inventory.GetPlacementAt(0));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void CanPlace_RejectsOverlapAndOutOfBoundsFootprints()
         {
             var inventory = new InventoryBuilder()

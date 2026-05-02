@@ -108,8 +108,6 @@ namespace UniversalDragAndDrop.UI
 
             bool sourceSwapped = entry.SourcePlacement.Orientation == PlacementOrientation.Rot90 ||
                                  entry.SourcePlacement.Orientation == PlacementOrientation.Rot270;
-            bool entrySwapped = entry.Orientation == PlacementOrientation.Rot90 ||
-                                entry.Orientation == PlacementOrientation.Rot270;
             return sourceSwapped;
         }
 

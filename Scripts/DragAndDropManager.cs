@@ -187,7 +187,21 @@ namespace UniversalDragAndDrop
 
             SetDraggedState(_currentContext.Entries, true);
             OnDragStarted?.Invoke(_currentContext);
+            ActivateDropTargetForSlot(_currentContext.Entries[0].SourceBaseSlot);
             Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
+            return true;
+        }
+
+        public bool ActivateDropTargetForSlot(BaseSlot targetBaseSlot)
+        {
+            if (!IsDragging || targetBaseSlot == null)
+                return false;
+
+            var target = targetBaseSlot.GetComponent<IDropTarget>();
+            if (target == null || !ReferenceEquals(target.GetTargetSlot(), targetBaseSlot))
+                return false;
+
+            PushDropTarget(target);
             return true;
         }
 

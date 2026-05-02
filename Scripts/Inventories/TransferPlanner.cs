@@ -538,7 +538,7 @@ namespace UniversalDragAndDrop.Inventories
                 targetItem,
                 requested,
                 acceptableByInventory: requested);
-            if (!IsCandidateAllowedByRules(operation, anchorSlot, requested))
+            if (!IsCandidateAllowedByRules(operation, targetBaseSlotHint, requested))
             {
                 plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target rules rejected shaped placement");
                 return true;
@@ -1295,7 +1295,10 @@ namespace UniversalDragAndDrop.Inventories
                 validationEntry = new DragEntry(
                     validationStack,
                     operation.Entry.SourceBaseSlot,
-                    operation.Entry.SourceInventory);
+                    operation.Entry.SourceInventory,
+                    operation.Entry.SourcePlacement,
+                    operation.Entry.GrabOffset,
+                    operation.Entry.Orientation);
             }
 
             var result = _ruleEvaluationService.ValidateEntryDrop(
