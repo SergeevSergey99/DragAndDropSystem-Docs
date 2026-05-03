@@ -28,6 +28,10 @@ namespace UniversalDragAndDrop.Tests
         private int? _maxStackSize;
         private bool _allowItemOverride;
         private DropPolicySettings _dropPolicy;
+        private SlotManagementSettingsBase _slotManagementSettings = new FixedSlotManagementSettings();
+        private bool _useGridTopology;
+        private GridTopology _gridTopology = new GridTopology(1, 1);
+        private SlotShapedItemPolicy _slotShapedItemPolicy = SlotShapedItemPolicy.Accept;
         private string _name = "TestInventory";
 
         public InventoryBuilder WithStrategy(InventoryStrategyBase strategy)
@@ -60,6 +64,25 @@ namespace UniversalDragAndDrop.Tests
             return this;
         }
 
+        public InventoryBuilder WithSlotManagementSettings(SlotManagementSettingsBase settings)
+        {
+            _slotManagementSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            return this;
+        }
+
+        public InventoryBuilder WithGridTopology(int columns, int rows)
+        {
+            _useGridTopology = true;
+            _gridTopology = new GridTopology(columns, rows);
+            return this;
+        }
+
+        public InventoryBuilder WithSlotShapedItemPolicy(SlotShapedItemPolicy policy)
+        {
+            _slotShapedItemPolicy = policy;
+            return this;
+        }
+
         public InventoryBuilder WithName(string name)
         {
             _name = name ?? "TestInventory";
@@ -88,7 +111,10 @@ namespace UniversalDragAndDrop.Tests
             SetField(inventory, "_initialSlotCount", _slotCount);
             SetField(inventory, "_inventoryStrategy", _strategy);
             SetField(inventory, "_slots", new List<BaseSlot>());
-            SetField(inventory, "_slotManagementSettings", new FixedSlotManagementSettings());
+            SetField(inventory, "_slotManagementSettings", _slotManagementSettings);
+            SetField(inventory, "_useGridTopology", _useGridTopology);
+            SetField(inventory, "_gridTopology", _gridTopology);
+            SetField(inventory, "_slotShapedItemPolicy", _slotShapedItemPolicy);
             if (_dropPolicy != null)
                 SetField(inventory, "_dropPolicy", _dropPolicy);
 

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UniversalDragAndDrop.Core;
+using UniversalDragAndDrop.Inventories;
 
 namespace UniversalDragAndDrop.Rules
 {
@@ -17,10 +18,36 @@ namespace UniversalDragAndDrop.Rules
         public override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             // For batch operations TargetSlot is a UI hint, not the actual entry target; slot validation is handled by the execution pipeline
-            if (!context.IsBatchDrag && entry.SourceBaseSlot == context.TargetBaseSlot)
+            if (!context.IsBatchDrag &&
+                entry.SourceBaseSlot == context.TargetBaseSlot &&
+                !IsChangedShapedPlacement(context, entry))
                 return RuleResult.Failure("Cannot drop to the same slot");
 
             return RuleResult.Success();
+        }
+
+        private static bool IsChangedShapedPlacement(DragContext context, DragEntry entry)
+        {
+            if (!entry.IsShaped ||
+                entry.SourcePlacement == null ||
+                context.TargetBaseSlot == null ||
+                entry.SourceInventory is not UniversalInventory inventory ||
+                !ReferenceEquals(context.TargetInventory, inventory) ||
+                !ReferenceEquals(context.TargetBaseSlot.Inventory, inventory))
+                return false;
+
+            if (!inventory.TryResolveShapedPlacementAnchor(
+                    context.TargetBaseSlot,
+                    context,
+                    entry,
+                    entry.Footprint,
+                    entry.Stack?.PrimaryAdapter,
+                    out _,
+                    out int anchorIndex))
+                return false;
+
+            return anchorIndex != entry.SourcePlacement.AnchorIndex ||
+                   entry.Orientation != entry.SourcePlacement.Orientation;
         }
     }
 

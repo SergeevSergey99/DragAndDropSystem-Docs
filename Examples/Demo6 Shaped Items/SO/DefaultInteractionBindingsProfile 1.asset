@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17a1a438d577b354090d3fde8fdec7e2, type: 3}
+  m_Name: DefaultInteractionBindingsProfile 1
+  m_EditorClassIdentifier: 
+  _pointerBindings:
+  - _label: LMB Drag
+    _button: 0
+    _modifier: 0
+    _triggerPhase: 1
+    _action:
+      rid: 6676588890579796076
+  - _label: LMB Drop
+    _button: 0
+    _modifier: 0
+    _triggerPhase: 2
+    _action:
+      rid: 8490480985322553345
+  _keyBindings:
+  - _label: 
+    _key: 101
+    _modifier: 0
+    _triggerPhase: 0
+    _action:
+      rid: 8757923531141414912
+  _legacyInputActionBindings: []
+  _inputActionBindings: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 6676588890579796076
+      type: {class: StartMultiDragAction, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _restrictToSameInventory: 1
+        _dragPolicyOverride:
+          _overrideAmount: 0
+          _amount: 0
+          _customAmount: 1
+    - rid: 8490480985322553345
+      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _dropPolicyOverride:
+          _overrideBlockedTargetResolver: 0
+          _blockedTargetResolver:
+            rid: 8490480985322553346
+          _overrideAllowPartial: 0
+          _allowPartial: 1
+    - rid: 8490480985322553346
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8490480985322553347
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8490480985322553347
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      data: 
+    - rid: 8757923531141414912
+      type: {class: RotateDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      data:
+        _step: 1

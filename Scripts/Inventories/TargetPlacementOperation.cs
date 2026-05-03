@@ -12,6 +12,7 @@ namespace UniversalDragAndDrop.Inventories
             BaseSlot sourceBaseSlot,
             ItemStack transferStack,
             int transferAmount,
+            PlacementOrientation orientation,
             InventorySnapshot targetSnapshot,
             SlotOperationContext operationContext)
         {
@@ -21,6 +22,7 @@ namespace UniversalDragAndDrop.Inventories
             SourceBaseSlot = sourceBaseSlot;
             TransferStack = transferStack;
             TransferAmount = transferAmount;
+            Orientation = orientation;
             TargetSnapshot = targetSnapshot;
             OperationContext = operationContext;
         }
@@ -31,6 +33,7 @@ namespace UniversalDragAndDrop.Inventories
         public BaseSlot SourceBaseSlot { get; }
         public ItemStack TransferStack { get; }
         public int TransferAmount { get; }
+        public PlacementOrientation Orientation { get; }
         public InventorySnapshot TargetSnapshot { get; }
         public SlotOperationContext OperationContext { get; }
 

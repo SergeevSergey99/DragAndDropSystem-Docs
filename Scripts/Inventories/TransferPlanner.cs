@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Rules;
 using UniversalDragAndDrop.Slots;
@@ -295,6 +296,35 @@ namespace UniversalDragAndDrop.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected itemAdapter conversion");
             }
 
+            var targetFootprint = Footprint.Resolve(targetItem);
+            if (!targetFootprint.IsSingleCell)
+            {
+                if (requested != 1)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item transfer requires a single item");
+
+                if (context.IsBatchDrag)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Batch transfer does not support shaped items");
+
+                if ((targetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue) &&
+                    targetBaseSlotHint != null &&
+                    !targetBaseSlotHint.IsEmpty)
+                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item drops onto occupied slots are not supported");
+            }
+
+            if (TryPlanGridPlacementEntry(
+                    context,
+                    entry,
+                    policy,
+                    targetInventory,
+                    targetBaseSlotHint,
+                    isFirstEntry,
+                    virtualSlots,
+                    globalRules,
+                    requested,
+                    targetItem,
+                    out var gridPlacementPlan))
+                return gridPlacementPlan;
+
             if (isFirstEntry &&
                 targetBaseSlotHint != null &&
                 !CanResolveAlternativeSlots(
@@ -426,6 +456,109 @@ namespace UniversalDragAndDrop.Inventories
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
         }
 
+        private bool TryPlanGridPlacementEntry(
+            DragContext context,
+            DragEntry entry,
+            ResolvedDropPolicy policy,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlotHint,
+            bool isFirstEntry,
+            IReadOnlyList<VirtualSlotState> virtualSlots,
+            GlobalRuleValidator globalRules,
+            int requested,
+            IItemAdapter targetItem,
+            out PlannedEntryTransfer plan)
+        {
+            plan = null;
+            if (targetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue)
+                return false;
+
+            var footprint = Footprint.Resolve(targetItem);
+            if (footprint.IsSingleCell)
+                return false;
+
+            if (requested != 1)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped grid placement requires a single item");
+                return true;
+            }
+
+            if (targetBaseSlotHint == null || !ReferenceEquals(targetBaseSlotHint.Inventory, targetInventory))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped grid placement requires a target cell");
+                return true;
+            }
+
+            if (!targetUniversal.TryResolveShapedPlacementAnchor(
+                    targetBaseSlotHint,
+                    context,
+                    entry,
+                    footprint,
+                    targetItem,
+                    out _,
+                    out int anchorIndex))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item anchor is outside the target grid");
+                return true;
+            }
+
+            var anchorSlot = targetUniversal.GetSlot(anchorIndex);
+            if (anchorSlot == null)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item anchor slot is missing");
+                return true;
+            }
+
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                targetInventory,
+                targetItem,
+                requested,
+                context,
+                entry);
+            var previewStack = acceptanceRequest.CreatePreviewStack(requested, targetItem);
+            if (previewStack == null)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Failed to create shaped placement preview");
+                return true;
+            }
+
+            var ignoredPlacement = ReferenceEquals(targetInventory, entry.SourceInventory)
+                ? entry.SourcePlacement
+                : null;
+            var placementRequest = new PlacementRequest(previewStack, anchorIndex, entry.Orientation, footprint);
+            if (!targetUniversal.CanPlace(placementRequest, ignoredPlacement))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target grid cells are not available");
+                return true;
+            }
+
+            var operation = new EntryPlanningOperation(
+                context,
+                entry,
+                policy,
+                targetInventory,
+                targetBaseSlotHint,
+                preferHint: true,
+                virtualSlots,
+                globalRules,
+                targetItem,
+                requested,
+                acceptableByInventory: requested);
+            if (!IsCandidateAllowedByRules(operation, targetBaseSlotHint, requested))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target rules rejected shaped placement");
+                return true;
+            }
+
+            plan = new PlannedEntryTransfer(
+                entry,
+                requested,
+                requested,
+                new[] { new PlannedSlotAllocation(anchorSlot, requested) },
+                previewTargetItemAdapter: targetItem);
+            return true;
+        }
+
         private static bool TryPlanOccupiedSlotHandler(
             DragEntry entry,
             IInventory targetInventory,
@@ -436,6 +569,9 @@ namespace UniversalDragAndDrop.Inventories
             out PlannedEntryTransfer plan)
         {
             plan = null;
+            if (!Footprint.Resolve(targetItem).IsSingleCell)
+                return false;
+
             if (!isFirstEntry ||
                 targetBaseSlotHint == null ||
                 targetBaseSlotHint.IsEmpty ||
@@ -1165,7 +1301,10 @@ namespace UniversalDragAndDrop.Inventories
                 validationEntry = new DragEntry(
                     validationStack,
                     operation.Entry.SourceBaseSlot,
-                    operation.Entry.SourceInventory);
+                    operation.Entry.SourceInventory,
+                    operation.Entry.SourcePlacement,
+                    operation.Entry.GrabOffset,
+                    operation.Entry.Orientation);
             }
 
             var result = _ruleEvaluationService.ValidateEntryDrop(

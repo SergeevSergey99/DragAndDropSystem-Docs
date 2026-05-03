@@ -71,6 +71,7 @@ namespace UniversalDragAndDrop
         public static event Action<DragContext> OnDropCompleted;
         public static event Action<DragContext> OnDragCancelled;
         public static event Action<DragContext> OnDragStackChanged;
+        public static event Action<DragContext> OnDragOrientationChanged;
         public static event Action OnDragEnded;
 
         // Auto-transfer events
@@ -149,7 +150,14 @@ namespace UniversalDragAndDrop
             if (entries.Count == 0)
                 return false;
 
-            _currentContext = new DragContext(entries);
+            var dragContext = new DragContext(entries);
+            if (!ValidateShapedDragScope(dragContext, out var shapedFailureReason))
+            {
+                Extensions.DragAndDropLog($"Cannot start drag: {shapedFailureReason}");
+                return false;
+            }
+
+            _currentContext = dragContext;
 
             // Event: starting
             OnDragAttempting?.Invoke(_currentContext);
@@ -179,8 +187,67 @@ namespace UniversalDragAndDrop
 
             SetDraggedState(_currentContext.Entries, true);
             OnDragStarted?.Invoke(_currentContext);
+            ActivateDropTargetForSlot(_currentContext.Entries[0].SourceBaseSlot);
             Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
+        }
+
+        public bool ActivateDropTargetForSlot(BaseSlot targetBaseSlot)
+        {
+            if (!IsDragging || targetBaseSlot == null)
+                return false;
+
+            var target = targetBaseSlot.GetComponent<IDropTarget>();
+            if (target == null || !ReferenceEquals(target.GetTargetSlot(), targetBaseSlot))
+                return false;
+
+            PushDropTarget(target);
+            return true;
+        }
+
+        private static bool ValidateShapedDragScope(DragContext context, out string failureReason)
+        {
+            failureReason = null;
+            if (context == null)
+            {
+                failureReason = "Invalid drag context";
+                return false;
+            }
+
+            if (context.HasStackedShapedEntries || HasStackedShapedSource(context))
+            {
+                failureReason = "Shaped items cannot be dragged as stacks";
+                return false;
+            }
+
+            if (context.IsBatchDrag && context.HasShapedEntries)
+            {
+                failureReason = "Batch drag does not support shaped items";
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool HasStackedShapedSource(DragContext context)
+        {
+            if (context?.Entries == null)
+                return false;
+
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var entry = context.Entries[i];
+                if (!entry.IsShaped)
+                    continue;
+
+                int sourceCount = entry.SourcePlacement?.Stack?.Count
+                    ?? entry.SourceBaseSlot?.Stack?.Count
+                    ?? 0;
+                if (sourceCount > 1)
+                    return true;
+            }
+
+            return false;
         }
 
         private static void SetDraggedState(IReadOnlyList<DragEntry> entries, bool isDragging)
@@ -191,12 +258,31 @@ namespace UniversalDragAndDrop
             var processedSlots = new HashSet<BaseSlot>();
             for (int i = 0; i < entries.Count; i++)
             {
-                var sourceBaseSlot = entries[i].SourceBaseSlot;
-                if (sourceBaseSlot == null || !processedSlots.Add(sourceBaseSlot))
+                var entry = entries[i];
+                if (TrySetPlacementDraggedState(entry, isDragging, processedSlots))
                     continue;
 
-                sourceBaseSlot.SetDraggedFrom(isDragging);
+                var sourceBaseSlot = entry.SourceBaseSlot;
+                if (sourceBaseSlot != null && processedSlots.Add(sourceBaseSlot))
+                    sourceBaseSlot.SetDraggedFrom(isDragging);
             }
+        }
+
+        private static bool TrySetPlacementDraggedState(DragEntry entry, bool isDragging, HashSet<BaseSlot> processedSlots)
+        {
+            if (entry.SourcePlacement == null ||
+                entry.SourcePlacement.Footprint.IsSingleCell ||
+                entry.SourceInventory is not UniversalInventory inventory)
+                return false;
+
+            for (int i = 0; i < entry.SourcePlacement.CoveredIndices.Count; i++)
+            {
+                var slot = inventory.GetSlot(entry.SourcePlacement.CoveredIndices[i]);
+                if (slot != null && processedSlots.Add(slot))
+                    slot.SetDraggedFrom(isDragging);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -324,6 +410,47 @@ namespace UniversalDragAndDrop
             _ = CompleteDragAsync(requested);
         }
 
+        public bool RotateCurrentDrag(int quarterTurns = 1)
+        {
+            if (!IsDragging ||
+                _currentContext?.Entries == null ||
+                _currentContext.Entries.Count == 0 ||
+                _isCompletingDrag ||
+                _isProcessingTransfer)
+                return false;
+
+            int normalizedTurns = ((quarterTurns % 4) + 4) % 4;
+            if (normalizedTurns == 0)
+                return true;
+
+            var rotatedEntries = new List<DragEntry>(_currentContext.Entries.Count);
+            for (int i = 0; i < _currentContext.Entries.Count; i++)
+            {
+                var entry = _currentContext.Entries[i];
+                rotatedEntries.Add(entry.WithOrientation(RotateOrientation(entry.Orientation, normalizedTurns)));
+            }
+
+            _currentContext = _currentContext.WithEntries(rotatedEntries);
+            RefreshActiveDropPreview();
+            OnDragOrientationChanged?.Invoke(_currentContext);
+            return true;
+        }
+
+        private static PlacementOrientation RotateOrientation(PlacementOrientation orientation, int quarterTurns)
+        {
+            int value = ((int)orientation + quarterTurns) % 4;
+            return (PlacementOrientation)value;
+        }
+
+        private void RefreshActiveDropPreview()
+        {
+            if (_activeDropTarget == null)
+                return;
+
+            _activeDropTarget.OnBecomeInactiveTarget();
+            _activeDropTarget.OnBecomeActiveTarget();
+        }
+
         private async Task CompleteDragAsync(DropRequestPolicy? requested)
         {
             if (_isProcessingTransfer)
@@ -444,7 +571,13 @@ namespace UniversalDragAndDrop
                 if (splitStack.IsEmpty)
                     return false;
 
-                var splitEntry = new DragEntry(splitStack, entry.SourceBaseSlot, entry.SourceInventory);
+                var splitEntry = new DragEntry(
+                    splitStack,
+                    entry.SourceBaseSlot,
+                    entry.SourceInventory,
+                    entry.SourcePlacement,
+                    entry.GrabOffset,
+                    entry.Orientation);
                 var splitContext = new DragContext(new[] { splitEntry });
 
                 bool success = false;
@@ -520,10 +653,33 @@ namespace UniversalDragAndDrop
             }
 
             SetDraggedState(dragContext?.Entries, false);
+            RefreshDragInventories(dragContext);
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
             OnDragEnded?.Invoke();
+        }
+
+        private static void RefreshDragInventories(DragContext dragContext)
+        {
+            if (dragContext == null)
+                return;
+
+            var inventories = new HashSet<UniversalInventory>();
+            if (dragContext.TargetInventory is UniversalInventory targetInventory)
+                inventories.Add(targetInventory);
+
+            if (dragContext.Entries != null)
+            {
+                for (int i = 0; i < dragContext.Entries.Count; i++)
+                {
+                    if (dragContext.Entries[i].SourceInventory is UniversalInventory sourceInventory)
+                        inventories.Add(sourceInventory);
+                }
+            }
+
+            foreach (var inventory in inventories)
+                inventory.UpdateAllVisuals();
         }
 
         /// <summary>

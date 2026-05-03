@@ -10,7 +10,7 @@ namespace UniversalDragAndDrop.UI
     /// Demonstrates how the default visual can be overridden
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class FancyDragVisual : MonoBehaviour, IDragVisual
+    public class FancyDragVisual : IDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
@@ -31,9 +31,8 @@ namespace UniversalDragAndDrop.UI
         private RectTransform _rectTransform;
         private Vector3 _basePosition;
         private float _bobTimer;
+        private float _orientationAngle;
         private bool _isVisible;
-
-        public bool IsVisible => _isVisible;
 
         private void Awake()
         {
@@ -41,7 +40,7 @@ namespace UniversalDragAndDrop.UI
             Hide();
         }
 
-        public void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(IReadOnlyList<DragEntry> entries)
         {
             if (entries == null || entries.Count == 0 || _iconImage == null)
             {
@@ -58,6 +57,7 @@ namespace UniversalDragAndDrop.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
+            _orientationAngle = -90f * (int)entries[0].Orientation;
 
             if (_glowEffect != null)
             {
@@ -87,13 +87,13 @@ namespace UniversalDragAndDrop.UI
             gameObject.SetActive(true);
         }
 
-        public void Hide()
+        public override void Hide()
         {
             _isVisible = false;
             gameObject.SetActive(false);
         }
 
-        public void UpdatePosition(Vector3 position)
+        public override void UpdatePosition(Vector3 position)
         {
             if (_rectTransform == null)
                 return;
@@ -107,7 +107,7 @@ namespace UniversalDragAndDrop.UI
             // Rotation
             if (_iconImage != null)
             {
-                _iconImage.transform.rotation = Quaternion.Euler(0, 0, Mathf.Sin(_bobTimer) * _rotationSpeed);
+                _iconImage.transform.rotation = Quaternion.Euler(0, 0, _orientationAngle + Mathf.Sin(_bobTimer) * _rotationSpeed);
             }
 
             // Glow pulse

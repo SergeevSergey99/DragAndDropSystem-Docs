@@ -10,7 +10,7 @@ namespace UniversalDragAndDrop.UI
     /// A simple icon that follows the cursor
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class DefaultDragVisual : MonoBehaviour, IDragVisual
+    public class DefaultDragVisual : IDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
@@ -24,12 +24,7 @@ namespace UniversalDragAndDrop.UI
         [SerializeField] private bool _showCount = true;
         [SerializeField] private Color _normalColor = Color.white;
 
-        private RectTransform _rectTransform => transform as RectTransform;
-
-        public bool IsVisible => gameObject.activeSelf;
-
-
-        public void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(IReadOnlyList<DragEntry> entries)
         {
             if (entries == null || entries.Count == 0 || _iconImage == null)
             {
@@ -46,6 +41,7 @@ namespace UniversalDragAndDrop.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
+            _iconImage.rectTransform.localEulerAngles = ToEulerAngles(entries[0].Orientation);
 
             if (_showCount && _countText != null)
             {
@@ -63,17 +59,12 @@ namespace UniversalDragAndDrop.UI
             gameObject.SetActive(true);
         }
 
-        public void Hide()
+        public override void Hide()
         {
             gameObject.SetActive(false);
         }
 
-        public void UpdatePosition(Vector3 position)
-        {
-            if (_rectTransform != null)
-            {
-                _rectTransform.position = position;
-            }
-        }
+        private static Vector3 ToEulerAngles(PlacementOrientation orientation)
+            => new Vector3(0f, 0f, -90f * (int)orientation);
     }
 }

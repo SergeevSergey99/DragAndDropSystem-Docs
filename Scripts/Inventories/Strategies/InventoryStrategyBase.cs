@@ -129,8 +129,12 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         protected static int GetMaxStackSize(IItemAdapter itemAdapter, int defaultMaxStackSize, bool allowItemOverride)
         {
+            if (!Footprint.Resolve(itemAdapter).IsSingleCell)
+                return 1;
+
             if (allowItemOverride && itemAdapter is IStackSizeLimitable limitable)
                 return Math.Max(1, limitable.MaxStackSize);
+
             return defaultMaxStackSize > 0 ? defaultMaxStackSize : int.MaxValue;
         }
 

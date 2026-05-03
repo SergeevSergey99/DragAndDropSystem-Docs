@@ -211,6 +211,7 @@ namespace UniversalDragAndDrop.DataBinding
             {
                 Inventory.ClearAll();
                 OnReloadUI();
+                Inventory.NotifyContentRefreshed();
             }
         }
 

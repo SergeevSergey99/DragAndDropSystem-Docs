@@ -10,13 +10,15 @@ namespace UniversalDragAndDrop.Inventories
             BaseSlot sourceBaseSlot,
             IInventory targetInventory,
             BaseSlot targetBaseSlot,
-            ItemStack draggedStack)
+            ItemStack draggedStack,
+            PlacementOrientation orientation = PlacementOrientation.Rot0)
         {
             SourceInventory = sourceInventory;
             SourceBaseSlot = sourceBaseSlot;
             TargetInventory = targetInventory;
             TargetBaseSlot = targetBaseSlot;
             DraggedStack = draggedStack;
+            Orientation = orientation;
         }
 
         public IInventory SourceInventory { get; }
@@ -24,6 +26,7 @@ namespace UniversalDragAndDrop.Inventories
         public IInventory TargetInventory { get; }
         public BaseSlot TargetBaseSlot { get; }
         public ItemStack DraggedStack { get; }
+        public PlacementOrientation Orientation { get; }
 
         public bool IsValid =>
             SourceInventory != null &&

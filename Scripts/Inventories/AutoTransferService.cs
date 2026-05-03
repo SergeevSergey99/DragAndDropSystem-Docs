@@ -70,12 +70,44 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
             }
 
-            context = new DragContext(entries)
+            if (HasShapedAutoTransferEntry(entries, targetInventory))
             {
-                TargetInventory = targetInventory
-            };
+                failureReason = "Auto-transfer does not support shaped items";
+                return false;
+            }
+
+            var dragContext = new DragContext(entries);
+            dragContext.TargetInventory = targetInventory;
+            context = dragContext;
 
             return true;
+        }
+
+        private static bool HasShapedAutoTransferEntry(IReadOnlyList<DragEntry> entries, IInventory targetInventory)
+        {
+            if (entries == null)
+                return false;
+
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                if (entry.IsShaped)
+                    return true;
+
+                var sourceItem = entry.Stack?.PrimaryAdapter;
+                if (sourceItem == null)
+                    continue;
+
+                if (TransferItemConversionUtility.TryResolveTargetItem(
+                        entry.SourceInventory,
+                        targetInventory,
+                        sourceItem,
+                        out var targetItem) &&
+                    !Footprint.Resolve(targetItem).IsSingleCell)
+                    return true;
+            }
+
+            return false;
         }
 
         public async Task<(DropResult result, TransferExecutionSummary summary)> ExecuteAsync(

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Slots;
 
@@ -12,12 +13,64 @@ namespace UniversalDragAndDrop.Core
         public ItemStack Stack { get; }
         public BaseSlot SourceBaseSlot { get; }
         public IInventory SourceInventory { get; }
+        public Placement SourcePlacement { get; }
+        public Vector2Int GrabOffset { get; }
+        public Footprint Footprint { get; }
+        public PlacementOrientation Orientation { get; }
+        public bool IsShaped => !Footprint.IsSingleCell;
 
-        public DragEntry(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory)
+        public DragEntry(
+            ItemStack stack,
+            BaseSlot sourceBaseSlot,
+            IInventory sourceInventory,
+            Placement sourcePlacement = null,
+            Vector2Int? grabOffset = null,
+            PlacementOrientation? orientation = null)
         {
             Stack = stack;
             SourceBaseSlot = sourceBaseSlot;
             SourceInventory = sourceInventory;
+            SourcePlacement = sourcePlacement;
+
+            var universalInventory = sourceInventory as UniversalInventory
+                ?? sourceBaseSlot?.Inventory as UniversalInventory;
+            if (SourcePlacement == null && universalInventory != null && sourceBaseSlot != null)
+                SourcePlacement = universalInventory.GetPlacementAt(sourceBaseSlot);
+
+            Footprint = SourcePlacement?.Footprint ?? UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
+            Orientation = orientation ?? SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
+            GrabOffset = grabOffset
+                ?? (universalInventory != null
+                    ? universalInventory.GetGrabOffset(SourcePlacement, sourceBaseSlot)
+                    : Vector2Int.zero);
+        }
+
+        public DragEntry WithOrientation(PlacementOrientation orientation)
+            => new DragEntry(
+                Stack,
+                SourceBaseSlot,
+                SourceInventory,
+                SourcePlacement,
+                RotateGrabOffset(GrabOffset, Footprint, Orientation, orientation),
+                orientation);
+
+        private static Vector2Int RotateGrabOffset(
+            Vector2Int grabOffset,
+            Footprint footprint,
+            PlacementOrientation from,
+            PlacementOrientation to)
+        {
+            int turns = ((int)to - (int)from + 4) % 4;
+            var offset = grabOffset;
+            var size = footprint.GetSize(from);
+
+            for (int i = 0; i < turns; i++)
+            {
+                offset = new Vector2Int(size.y - 1 - offset.y, offset.x);
+                size = new Vector2Int(size.y, size.x);
+            }
+
+            return offset;
         }
     }
 
@@ -29,6 +82,34 @@ namespace UniversalDragAndDrop.Core
     {
         public IReadOnlyList<DragEntry> Entries { get; }
         public bool IsBatchDrag => Entries.Count > 1;
+        public bool HasShapedEntries
+        {
+            get
+            {
+                for (int i = 0; i < Entries.Count; i++)
+                {
+                    if (Entries[i].IsShaped)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasStackedShapedEntries
+        {
+            get
+            {
+                for (int i = 0; i < Entries.Count; i++)
+                {
+                    var entry = Entries[i];
+                    if (entry.IsShaped && entry.Stack != null && entry.Stack.Count > 1)
+                        return true;
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Target slot of the operation.
@@ -97,6 +178,9 @@ namespace UniversalDragAndDrop.Core
         /// </summary>
         public DragContext WithTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
             => new DragContext(Entries, targetBaseSlot, targetInventory);
+
+        public DragContext WithEntries(IReadOnlyList<DragEntry> entries)
+            => new DragContext(entries, TargetBaseSlot, TargetInventory);
 
         public void SetTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
         {
