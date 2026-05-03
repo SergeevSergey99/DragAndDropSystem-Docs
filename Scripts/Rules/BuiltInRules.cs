@@ -36,8 +36,14 @@ namespace UniversalDragAndDrop.Rules
                 !ReferenceEquals(context.TargetBaseSlot.Inventory, inventory))
                 return false;
 
-            var anchorCell = inventory.GetCellForIndex(context.TargetBaseSlot.Index) - entry.GrabOffset;
-            if (!inventory.TryGetIndexForCell(anchorCell, out int anchorIndex))
+            if (!inventory.TryResolveShapedPlacementAnchor(
+                    context.TargetBaseSlot,
+                    context,
+                    entry,
+                    entry.Footprint,
+                    entry.Stack?.PrimaryAdapter,
+                    out _,
+                    out int anchorIndex))
                 return false;
 
             return anchorIndex != entry.SourcePlacement.AnchorIndex ||

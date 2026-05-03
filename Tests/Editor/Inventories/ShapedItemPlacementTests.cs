@@ -164,6 +164,42 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void DropPreview_SourceGrabOffsetAnchorStrategy_DoesNotShiftSquareWhenRotated()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                inventory.SetShapedPlacementAnchorStrategy(new SourceGrabOffsetAnchorStrategy());
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = inventory.GetSlot(4);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                    .WithOrientation(PlacementOrientation.Rot90);
+                var context = new DragContext(new[] { entry });
+
+                Assert.IsTrue(inventory.TryGetDropPreviewSlots(
+                    inventory.GetSlot(4),
+                    context,
+                    out var previewSlots,
+                    out bool canPlace));
+
+                Assert.IsTrue(canPlace);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1, 3, 4 },
+                    previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void DropPreview_WhenFootprintLeavesGrid_ShowsInBoundsCells()
         {
             var source = new InventoryBuilder()

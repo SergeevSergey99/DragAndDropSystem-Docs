@@ -489,8 +489,14 @@ namespace UniversalDragAndDrop.Inventories
                 return true;
             }
 
-            var anchorCell = targetUniversal.GetCellForIndex(targetBaseSlotHint.Index) - entry.GrabOffset;
-            if (!targetUniversal.TryGetIndexForCell(anchorCell, out int anchorIndex))
+            if (!targetUniversal.TryResolveShapedPlacementAnchor(
+                    targetBaseSlotHint,
+                    context,
+                    entry,
+                    footprint,
+                    targetItem,
+                    out _,
+                    out int anchorIndex))
             {
                 plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item anchor is outside the target grid");
                 return true;

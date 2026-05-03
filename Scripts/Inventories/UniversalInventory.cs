@@ -65,6 +65,10 @@ namespace UniversalDragAndDrop.Inventories
         [SerializeField, Tooltip("Policy for shaped items in non-grid slot inventories.")]
         private SlotShapedItemPolicy _slotShapedItemPolicy = SlotShapedItemPolicy.Accept;
 
+        [FoldoutGroup("Placement")]
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel, Tooltip("Controls how a hovered grid slot is converted to a shaped-item placement anchor.")]
+        private ShapedPlacementAnchorStrategyBase _shapedPlacementAnchorStrategy = new RotatedGrabOffsetAnchorStrategy();
+
         private IInventoryStrategy _strategy;
         private IPlacementStrategy _placementStrategy;
         private IAcceptanceStrategy _acceptanceStrategy;
@@ -92,6 +96,7 @@ namespace UniversalDragAndDrop.Inventories
 
         public GridTopology? Grid => _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null;
         public SlotShapedItemPolicy ShapedItemPolicy => _slotShapedItemPolicy;
+        public IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy => ResolveShapedPlacementAnchorStrategy();
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
@@ -255,6 +260,7 @@ namespace UniversalDragAndDrop.Inventories
             EnsureInventoryStrategySettings();
             EnsureSlotManagementSettings();
             EnsurePlacementSettings();
+            ResolveShapedPlacementAnchorStrategy();
 
             // Sort rules when values change in the Inspector
             _ruleValidator?.OnValidate();
@@ -405,6 +411,11 @@ namespace UniversalDragAndDrop.Inventories
             UpdateAllVisuals();
         }
 
+        private ShapedPlacementAnchorStrategyBase ResolveShapedPlacementAnchorStrategy()
+        {
+            return _shapedPlacementAnchorStrategy ??= new RotatedGrabOffsetAnchorStrategy();
+        }
+
         private void EnsureStrategyInitialized()
         {
             if (_strategy != null)
@@ -515,6 +526,56 @@ namespace UniversalDragAndDrop.Inventories
             return GetCellForIndex(baseSlot.Index) - placement.AnchorCell;
         }
 
+        public void SetShapedPlacementAnchorStrategy(ShapedPlacementAnchorStrategyBase strategy)
+        {
+            _shapedPlacementAnchorStrategy = strategy ?? new RotatedGrabOffsetAnchorStrategy();
+        }
+
+        public bool TryResolveShapedPlacementAnchorCell(
+            BaseSlot targetBaseSlot,
+            DragContext context,
+            DragEntry entry,
+            Footprint footprint,
+            IItemAdapter targetItemAdapter,
+            out Vector2Int anchorCell)
+        {
+            anchorCell = Vector2Int.zero;
+            if (targetBaseSlot == null || !ReferenceEquals(targetBaseSlot.Inventory, this))
+                return false;
+
+            var strategyContext = new ShapedPlacementAnchorContext(
+                this,
+                targetBaseSlot,
+                context,
+                entry,
+                footprint,
+                entry.Orientation,
+                targetItemAdapter);
+            return ResolveShapedPlacementAnchorStrategy().TryResolveAnchorCell(strategyContext, out anchorCell);
+        }
+
+        public bool TryResolveShapedPlacementAnchor(
+            BaseSlot targetBaseSlot,
+            DragContext context,
+            DragEntry entry,
+            Footprint footprint,
+            IItemAdapter targetItemAdapter,
+            out Vector2Int anchorCell,
+            out int anchorIndex)
+        {
+            anchorIndex = -1;
+            if (!TryResolveShapedPlacementAnchorCell(
+                    targetBaseSlot,
+                    context,
+                    entry,
+                    footprint,
+                    targetItemAdapter,
+                    out anchorCell))
+                return false;
+
+            return TryGetIndexForCell(anchorCell, out anchorIndex);
+        }
+
         public bool CanPlace(PlacementRequest request)
         {
             EnsurePlacementStateInitialized();
@@ -564,7 +625,15 @@ namespace UniversalDragAndDrop.Inventories
                 return true;
             }
 
-            var anchorCell = GetCellForIndex(targetBaseSlot.Index) - entry.GrabOffset;
+            if (!TryResolveShapedPlacementAnchorCell(
+                    targetBaseSlot,
+                    context,
+                    entry,
+                    footprint,
+                    targetItem,
+                    out var anchorCell))
+                return true;
+
             var hasValidAnchor = TryGetIndexForCell(anchorCell, out int anchorIndex);
             var coveredIndices = GetPreviewCoveredCells(anchorCell, footprint, entry.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
