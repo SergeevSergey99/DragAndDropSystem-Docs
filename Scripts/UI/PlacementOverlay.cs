@@ -18,8 +18,11 @@ namespace UniversalDragAndDrop.UI
         [SerializeField] private Color _color = Color.white;
 
         private readonly List<PlacementOverlayItem> _activeItems = new List<PlacementOverlayItem>();
+        private readonly Stack<PlacementOverlayItem> _itemPool = new Stack<PlacementOverlayItem>();
         private readonly HashSet<Placement> _renderedPlacements = new HashSet<Placement>();
         private readonly Vector3[] _corners = new Vector3[4];
+        private bool _refreshScheduled;
+        private bool _dimensionsDirty;
         public bool HasRenderedPlacement(Placement placement) => _renderedPlacements.Contains(placement);
 
         private void Awake()
@@ -47,15 +50,24 @@ namespace UniversalDragAndDrop.UI
             DragAndDropManager.OnDragEnded += HandleDragEnded;
             DragAndDropManager.OnDragCancelled += HandleDragChanged;
             DragAndDropManager.OnDropCompleted += HandleDragChanged;
-            //Canvas.preWillRenderCanvases += HandleWillRenderCanvases;
-            //Canvas.willRenderCanvases += HandleWillRenderCanvases;
-            
-            Refresh();
+
+            ScheduleRefresh(dimensionsChanged: true);
         }
 
         private void Start()
         {
-            Refresh();
+            ScheduleRefresh(dimensionsChanged: true);
+        }
+
+        private void LateUpdate()
+        {
+            if (!_refreshScheduled)
+                return;
+
+            _refreshScheduled = false;
+            bool dimensionsChanged = _dimensionsDirty;
+            _dimensionsDirty = false;
+            Refresh(dimensionsChanged);
         }
 
         private void OnDisable()
@@ -71,22 +83,30 @@ namespace UniversalDragAndDrop.UI
             DragAndDropManager.OnDragEnded -= HandleDragEnded;
             DragAndDropManager.OnDragCancelled -= HandleDragChanged;
             DragAndDropManager.OnDropCompleted -= HandleDragChanged;
-            //Canvas.preWillRenderCanvases -= HandleWillRenderCanvases;
-            //Canvas.willRenderCanvases -= HandleWillRenderCanvases;
 
-            Clear();
+            ReleaseAllActiveItems();
+            _renderedPlacements.Clear();
+            _refreshScheduled = false;
+            _dimensionsDirty = false;
         }
 
-        private void OnRectTransformDimensionsChange() => Refresh();
+        private void OnRectTransformDimensionsChange() => ScheduleRefresh(dimensionsChanged: true);
 
         [Button]
-        void Refresh()
+        void Refresh() => Refresh(dimensionsChanged: true);
+
+        private void Refresh(bool dimensionsChanged)
         {
             if (!isActiveAndEnabled)
                 return;
 
-            Canvas.ForceUpdateCanvases();
-            Clear();
+            // ForceUpdateCanvases is global and expensive; only call it when slot rects could
+            // have moved (layout/inventory dimension change). Item-only changes don't need it.
+            if (dimensionsChanged)
+                Canvas.ForceUpdateCanvases();
+
+            ReleaseAllActiveItems();
+            _renderedPlacements.Clear();
 
             if (_inventory == null || !_inventory.Grid.HasValue)
                 return;
@@ -159,7 +179,20 @@ namespace UniversalDragAndDrop.UI
 
         private PlacementOverlayItem CreateItem(RectTransform root, Placement placement)
         {
-            PlacementOverlayItem item;
+            PlacementOverlayItem item = null;
+            while (_itemPool.Count > 0)
+            {
+                var pooled = _itemPool.Pop();
+                if (pooled == null)
+                    continue;
+
+                item = pooled;
+                if (item.transform.parent != root)
+                    item.transform.SetParent(root, false);
+                item.gameObject.SetActive(true);
+                return item;
+            }
+
             if (_itemPrefab != null)
             {
                 item = Instantiate(_itemPrefab, root);
@@ -177,6 +210,21 @@ namespace UniversalDragAndDrop.UI
             }
 
             return item;
+        }
+
+        private void ReleaseAllActiveItems()
+        {
+            for (int i = 0; i < _activeItems.Count; i++)
+            {
+                var item = _activeItems[i];
+                if (item == null)
+                    continue;
+
+                item.gameObject.SetActive(false);
+                _itemPool.Push(item);
+            }
+
+            _activeItems.Clear();
         }
 
         private PlacementOverlayRenderState ResolveRenderState(Placement placement)
@@ -327,21 +375,19 @@ namespace UniversalDragAndDrop.UI
             return false;
         }
 
-        private void Clear()
+        private void ScheduleRefresh(bool dimensionsChanged)
         {
-            for (int i = 0; i < _activeItems.Count; i++)
-            {
-                if (_activeItems[i] != null)
-                    Destroy(_activeItems[i].gameObject);
-            }
+            if (dimensionsChanged)
+                _dimensionsDirty = true;
 
-            _activeItems.Clear();
-            _renderedPlacements.Clear();
+            _refreshScheduled = true;
         }
 
-        private void HandleDragChanged(DragContext context) => Refresh();
-        private void HandleDragEnded() => Refresh();
-        private void HandleInventoryChanged(InventoryItemEventContext context) => Refresh();
-        private void HandleContentRefreshed() => Refresh();
+        // Drag/inventory events don't move slot rects, so we don't need a global Canvas update.
+        // Layout-affecting changes go through OnRectTransformDimensionsChange and set the dirty flag.
+        private void HandleDragChanged(DragContext context) => ScheduleRefresh(dimensionsChanged: false);
+        private void HandleDragEnded() => ScheduleRefresh(dimensionsChanged: false);
+        private void HandleInventoryChanged(InventoryItemEventContext context) => ScheduleRefresh(dimensionsChanged: false);
+        private void HandleContentRefreshed() => ScheduleRefresh(dimensionsChanged: true);
     }
 }

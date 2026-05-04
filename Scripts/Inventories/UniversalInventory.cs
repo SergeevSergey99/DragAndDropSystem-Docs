@@ -79,18 +79,20 @@ namespace UniversalDragAndDrop.Inventories
         private StrategyConfiguration _appliedStrategyConfiguration;
         
         private readonly Dictionary<int, Placement> _cellToPlacement = new Dictionary<int, Placement>();
+        private readonly HashSet<Placement> _placements = new HashSet<Placement>();
+        private readonly List<Placement> _pruneScratch = new List<Placement>();
         private readonly List<BaseSlot> _dropPreviewSlots = new List<BaseSlot>();
         private bool _placementStateInitialized;
 
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
-        public HashSet<Placement> Placements
+        public IReadOnlyCollection<Placement> Placements
         {
             get
             {
                 EnsurePlacementStateInitialized();
                 PruneEmptyPlacements();
-                return new HashSet<Placement>(_cellToPlacement.Values);
+                return _placements;
             }
         }
 
@@ -802,12 +804,14 @@ namespace UniversalDragAndDrop.Inventories
         private void ResetPlacementState()
         {
             _cellToPlacement.Clear();
+            _placements.Clear();
             _placementStateInitialized = false;
         }
 
         private void ClearInitializedPlacementState()
         {
             _cellToPlacement.Clear();
+            _placements.Clear();
             _placementStateInitialized = true;
         }
 
@@ -840,15 +844,21 @@ namespace UniversalDragAndDrop.Inventories
 
         private void PruneEmptyPlacements()
         {
-            var toPrune = new HashSet<Placement>();
-            foreach (var placement in _cellToPlacement.Values)
+            // Iterate the unique set (no per-cell duplicates) and avoid allocations on the common
+            // path where nothing needs pruning. _pruneScratch is reused across calls.
+            foreach (var placement in _placements)
             {
                 if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
-                    toPrune.Add(placement);
+                    _pruneScratch.Add(placement);
             }
 
-            foreach (var placement in toPrune)
-                UnregisterPlacement(placement);
+            if (_pruneScratch.Count == 0)
+                return;
+
+            for (int i = 0; i < _pruneScratch.Count; i++)
+                UnregisterPlacement(_pruneScratch[i]);
+
+            _pruneScratch.Clear();
         }
 
         private bool TryPlaceInitialized(PlacementRequest request, out Placement placement)
@@ -887,6 +897,7 @@ namespace UniversalDragAndDrop.Inventories
             if (placement == null)
                 return;
 
+            _placements.Add(placement);
             for (int i = 0; i < placement.CoveredIndices.Count; i++)
                 _cellToPlacement[placement.CoveredIndices[i]] = placement;
         }
@@ -908,6 +919,7 @@ namespace UniversalDragAndDrop.Inventories
                 }
             }
 
+            _placements.Remove(placement);
             return removed;
         }
 
@@ -1000,9 +1012,8 @@ namespace UniversalDragAndDrop.Inventories
             if (!_placementStateInitialized || removedIndex < 0)
                 return;
 
-            var uniquePlacements = new HashSet<Placement>(_cellToPlacement.Values);
             _cellToPlacement.Clear();
-            foreach (var placement in uniquePlacements)
+            foreach (var placement in _placements)
             {
                 int anchorIndex = placement.AnchorIndex > removedIndex
                     ? placement.AnchorIndex - 1
@@ -1145,13 +1156,9 @@ namespace UniversalDragAndDrop.Inventories
                 }
             }
 
-            var placementSnapshot = new List<InventoryPlacementState>();
-            var seen = new HashSet<Placement>();
-            foreach (var placement in _cellToPlacement.Values)
+            var placementSnapshot = new List<InventoryPlacementState>(_placements.Count);
+            foreach (var placement in _placements)
             {
-                if (!seen.Add(placement))
-                    continue;
-
                 if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
                     continue;
 
