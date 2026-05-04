@@ -743,9 +743,7 @@ namespace UniversalDragAndDrop.Inventories
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
 
-            if (!_placementStateInitialized)
-                return false;
-
+            EnsurePlacementStateInitialized();
             PruneEmptyPlacements();
             stack = GetPlacementAtInitialized(baseSlot.Index)?.Stack ?? ItemStack.Empty();
             return true;
@@ -766,9 +764,11 @@ namespace UniversalDragAndDrop.Inventories
                 if (existingPlacement != null)
                     UnregisterPlacement(existingPlacement);
 
-                baseSlot.SetLocalStackForPlacementMigration(ItemStack.Empty());
                 return true;
             }
+
+            if (existingPlacement != null && existingPlacement.AnchorIndex != baseSlot.Index)
+                return false;
 
             var request = new PlacementRequest(
                 stack,
@@ -784,10 +784,9 @@ namespace UniversalDragAndDrop.Inventories
                 if (existingPlacement != null)
                     RegisterPlacement(existingPlacement);
 
-                return true;
+                return false;
             }
 
-            baseSlot.SetLocalStackForPlacementMigration(ItemStack.Empty());
             return true;
         }
 
@@ -797,37 +796,6 @@ namespace UniversalDragAndDrop.Inventories
                 return;
 
             _cellToPlacement.Clear();
-
-            if (_slots != null)
-            {
-                for (int i = 0; i < _slots.Count; i++)
-                {
-                    var slot = _slots[i];
-                    var stack = slot?.GetLocalStackForPlacementMigration();
-                    if (stack == null || stack.IsEmpty)
-                        continue;
-
-                    var request = new PlacementRequest(
-                        stack,
-                        i,
-                        PlacementOrientation.Rot0,
-                        Footprint.Resolve(stack.PrimaryAdapter));
-
-                    if (CanPlaceInitialized(request))
-                    {
-                        var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
-                        RegisterPlacement(new Placement(
-                            IndexToCell(i),
-                            i,
-                            request.Orientation,
-                            request.Footprint,
-                            stack,
-                            coveredIndices));
-                        slot.SetLocalStackForPlacementMigration(ItemStack.Empty());
-                    }
-                }
-            }
-
             _placementStateInitialized = true;
         }
 
@@ -1231,12 +1199,10 @@ namespace UniversalDragAndDrop.Inventories
             for (int i = 0; i < _slots.Count; i++)
                 _slots[i].SetInventoryIndex(i, this);
 
-            if (snapshot.Placements != null && snapshot.Placements.Count > 0)
-            {
-                ClearInitializedPlacementState();
-                for (int i = 0; i < _slots.Count; i++)
-                    _slots[i].SetLocalStackForPlacementMigration(ItemStack.Empty());
+            ClearInitializedPlacementState();
 
+            if (snapshot.Placements != null)
+            {
                 for (int i = 0; i < snapshot.Placements.Count; i++)
                 {
                     var placementState = snapshot.Placements[i];
@@ -1255,24 +1221,6 @@ namespace UniversalDragAndDrop.Inventories
 
                 UpdateAllVisuals();
                 return;
-            }
-
-            for (int i = 0; i < _slots.Count; i++)
-            {
-                var slot = _slots[i];
-                var state = snapshot.Slots[i];
-
-                if (state.IsEmpty)
-                {
-                    slot.Clear();
-                }
-                else
-                {
-                    if (ItemStack.TryCreate(state.Adapters, out var restoredStack))
-                        slot.SetStack(restoredStack);
-                }
-
-                slot.SetInventoryIndex(i, this);
             }
         }
 

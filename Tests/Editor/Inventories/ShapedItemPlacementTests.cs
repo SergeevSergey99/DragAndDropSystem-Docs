@@ -39,6 +39,69 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void SlotFacade_SetStackOnCoveredNonAnchor_DoesNotReplacePlacement()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+
+                var coveredSlot = inventory.GetSlot(3);
+                LogAssert.Expect(
+                    LogType.Warning,
+                    $"[{coveredSlot.name}] SetStack failed for placement-backed slot {coveredSlot.Index}");
+
+                coveredSlot.SetStack(ItemStackBuilder.Of(new FakeItemAdapter("gem")));
+
+                Assert.AreSame(placement, inventory.GetPlacementAt(0));
+                Assert.AreSame(placement, inventory.GetPlacementAt(3));
+                CollectionAssert.AreEqual(new[] { 0, 1, 2, 3 }, placement.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void SlotFacade_FailedSetStack_RestoresExistingPlacement()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
+                .Build();
+
+            try
+            {
+                var original = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
+                var blocker = ItemStackBuilder.Of(new FakeItemAdapter("rock"));
+                inventory.GetSlot(0).SetStack(original);
+                inventory.GetSlot(1).SetStack(blocker);
+
+                var anchorSlot = inventory.GetSlot(0);
+                LogAssert.Expect(
+                    LogType.Warning,
+                    $"[{anchorSlot.name}] SetStack failed for placement-backed slot {anchorSlot.Index}");
+
+                anchorSlot.SetStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2)));
+
+                Assert.AreSame(original, inventory.GetSlot(0).Stack);
+                Assert.AreSame(blocker, inventory.GetSlot(1).Stack);
+                Assert.IsNull(inventory.GetPlacementAt(2));
+                Assert.IsNull(inventory.GetPlacementAt(3));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void TryPlace_WithGridTopology_CoversFootprintCells()
         {
             var inventory = new InventoryBuilder()

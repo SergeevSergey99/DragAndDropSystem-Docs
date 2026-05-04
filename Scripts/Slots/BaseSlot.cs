@@ -16,9 +16,7 @@ namespace UniversalDragAndDrop.Slots
         [field: SerializeField, HideLabel, FoldoutGroup("Slot Rules", expanded: false)]
         public SlotRuleValidator SlotRuleValidator { get; protected set; } = new();
         
-        private ItemStack _stack = ItemStack.Empty();
-
-        public ItemStack Stack
+        public virtual ItemStack Stack
         {
             get
             {
@@ -26,9 +24,9 @@ namespace UniversalDragAndDrop.Slots
                     universalInventory.TryGetPlacementStackForSlot(this, out var placementStack))
                     return placementStack ?? ItemStack.Empty();
 
-                return _stack ?? ItemStack.Empty();
+                return ItemStack.Empty();
             }
-            protected set => _stack = value ?? ItemStack.Empty();
+            protected set { }
         }
 
         public int Index { get; protected set; }
@@ -61,38 +59,32 @@ namespace UniversalDragAndDrop.Slots
 
         public virtual void SetStack(ItemStack stack)
         {
-            if (Inventory is UniversalInventory universalInventory &&
-                universalInventory.TrySetPlacementStackFromSlot(this, stack ?? ItemStack.Empty()))
+            if (Inventory is UniversalInventory universalInventory)
             {
+                if (!universalInventory.TrySetPlacementStackFromSlot(this, stack ?? ItemStack.Empty()))
+                    Debug.LogWarning($"[{name}] SetStack failed for placement-backed slot {Index}");
+
                 UpdateVisuals();
                 return;
             }
 
-            Stack = stack ?? ItemStack.Empty();
+            Debug.LogWarning($"[{name}] SetStack ignored: BaseSlot requires UniversalInventory-backed placement storage.");
             UpdateVisuals();
         }
 
         public virtual void Clear()
         {
-            if (Inventory is UniversalInventory universalInventory &&
-                universalInventory.TrySetPlacementStackFromSlot(this, ItemStack.Empty()))
+            if (Inventory is UniversalInventory universalInventory)
             {
+                if (!universalInventory.TrySetPlacementStackFromSlot(this, ItemStack.Empty()))
+                    Debug.LogWarning($"[{name}] Clear failed for placement-backed slot {Index}");
+
                 UpdateVisuals();
                 return;
             }
 
-            Stack = ItemStack.Empty();
+            Debug.LogWarning($"[{name}] Clear ignored: BaseSlot requires UniversalInventory-backed placement storage.");
             UpdateVisuals();
-        }
-
-        internal ItemStack GetLocalStackForPlacementMigration()
-        {
-            return _stack;
-        }
-
-        internal void SetLocalStackForPlacementMigration(ItemStack stack)
-        {
-            _stack = stack ?? ItemStack.Empty();
         }
         
         /// <summary>Highlight flag (hover / drop-preview). Preserved across UpdateVisuals.</summary>

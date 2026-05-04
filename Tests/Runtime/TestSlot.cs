@@ -1,4 +1,5 @@
 using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Core;
 
 namespace UniversalDragAndDrop.Tests
 {
@@ -9,5 +10,36 @@ namespace UniversalDragAndDrop.Tests
     /// </summary>
     public sealed class TestSlot : BaseSlot
     {
+        private ItemStack _testStack = ItemStack.Empty();
+
+        public override ItemStack Stack
+        {
+            get => Inventory != null ? base.Stack : _testStack;
+            protected set => _testStack = value ?? ItemStack.Empty();
+        }
+
+        public override void SetStack(ItemStack stack)
+        {
+            if (Inventory != null)
+            {
+                base.SetStack(stack);
+                return;
+            }
+
+            _testStack = stack ?? ItemStack.Empty();
+            UpdateVisuals();
+        }
+
+        public override void Clear()
+        {
+            if (Inventory != null)
+            {
+                base.Clear();
+                return;
+            }
+
+            _testStack = ItemStack.Empty();
+            UpdateVisuals();
+        }
     }
 }
