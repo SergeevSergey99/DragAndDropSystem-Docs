@@ -424,6 +424,53 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void BuildPlan_ShapedGridPlacement_UsesPlacementAllocation()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(4);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+                var planner = new TransferPlanner();
+
+                var plan = planner.BuildPlan(
+                    context,
+                    new DropPolicySettings().Resolve(null, context),
+                    target,
+                    target.GetSlot(8),
+                    new GlobalRuleValidator());
+
+                Assert.IsTrue(plan.IsValid, plan.Failure?.Reason);
+                Assert.AreEqual(1, plan.Entries.Count);
+                Assert.IsTrue(plan.Entries[0].HasPlacementAllocation);
+                Assert.AreEqual(0, plan.Entries[0].Allocations.Count);
+
+                var allocation = plan.Entries[0].PlacementAllocation.Value;
+                Assert.AreEqual(4, allocation.AnchorIndex);
+                Assert.AreEqual(PlacementOrientation.Rot0, allocation.Orientation);
+                Assert.AreEqual(new Footprint(2, 2), allocation.Footprint);
+                Assert.AreEqual(1, allocation.Amount);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void DragContext_ShapedBatchAndStackedShapedEntries_AreDetected()
         {
             var shapedStack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));

@@ -14,7 +14,8 @@ namespace UniversalDragAndDrop.Inventories
             int transferAmount,
             PlacementOrientation orientation,
             InventorySnapshot targetSnapshot,
-            SlotOperationContext operationContext)
+            SlotOperationContext operationContext,
+            PlannedPlacementAllocation? placementAllocation = null)
         {
             TargetInventory = targetInventory;
             RequestedBaseSlot = requestedBaseSlot;
@@ -25,6 +26,7 @@ namespace UniversalDragAndDrop.Inventories
             Orientation = orientation;
             TargetSnapshot = targetSnapshot;
             OperationContext = operationContext;
+            PlacementAllocation = placementAllocation;
         }
 
         public IInventory TargetInventory { get; }
@@ -36,6 +38,7 @@ namespace UniversalDragAndDrop.Inventories
         public PlacementOrientation Orientation { get; }
         public InventorySnapshot TargetSnapshot { get; }
         public SlotOperationContext OperationContext { get; }
+        public PlannedPlacementAllocation? PlacementAllocation { get; }
 
         public UniversalInventory AlternativeTargetInventory => TargetInventory as UniversalInventory;
 

@@ -43,6 +43,26 @@ namespace UniversalDragAndDrop.Inventories
         public int Amount { get; }
     }
 
+    public readonly struct PlannedPlacementAllocation
+    {
+        public PlannedPlacementAllocation(
+            int anchorIndex,
+            PlacementOrientation orientation,
+            Footprint footprint,
+            int amount)
+        {
+            AnchorIndex = anchorIndex;
+            Orientation = orientation;
+            Footprint = footprint.Normalized();
+            Amount = amount;
+        }
+
+        public int AnchorIndex { get; }
+        public PlacementOrientation Orientation { get; }
+        public Footprint Footprint { get; }
+        public int Amount { get; }
+    }
+
     public sealed class PlannedSwapData
     {
         public PlannedSwapData(
@@ -80,12 +100,13 @@ namespace UniversalDragAndDrop.Inventories
             IItemAdapter previewTargetItemAdapter = null,
             bool requiresOccupiedHandler = false,
             BaseSlot occupiedTargetBaseSlot = null,
-            PlannedSwapData swapData = null)
+            PlannedSwapData swapData = null,
+            PlannedPlacementAllocation? placementAllocation = null)
         {
             Entry = entry;
             RequestedAmount = requestedAmount;
             PlannedAmount = plannedAmount;
-            Allocations = allocations;
+            Allocations = allocations ?? new PlannedSlotAllocation[0];
             FailureReason = failureReason;
             RequiresSwap = requiresSwap;
             SwapTargetBaseSlot = swapTargetBaseSlot;
@@ -93,6 +114,7 @@ namespace UniversalDragAndDrop.Inventories
             RequiresOccupiedHandler = requiresOccupiedHandler;
             OccupiedTargetBaseSlot = occupiedTargetBaseSlot;
             SwapData = swapData;
+            PlacementAllocation = placementAllocation;
         }
 
         public DragEntry Entry { get; }
@@ -106,7 +128,9 @@ namespace UniversalDragAndDrop.Inventories
         public bool RequiresOccupiedHandler { get; }
         public BaseSlot OccupiedTargetBaseSlot { get; }
         public PlannedSwapData SwapData { get; }
-        public bool IsPlanned => RequiresSwap || RequiresOccupiedHandler || (PlannedAmount > 0 && Allocations.Count > 0);
+        public PlannedPlacementAllocation? PlacementAllocation { get; }
+        public bool HasPlacementAllocation => PlacementAllocation.HasValue;
+        public bool IsPlanned => RequiresSwap || RequiresOccupiedHandler || HasPlacementAllocation || (PlannedAmount > 0 && Allocations.Count > 0);
         public bool IsPartial => PlannedAmount > 0 && PlannedAmount < RequestedAmount;
     }
 
@@ -502,13 +526,6 @@ namespace UniversalDragAndDrop.Inventories
                 return true;
             }
 
-            var anchorSlot = targetUniversal.GetSlot(anchorIndex);
-            if (anchorSlot == null)
-            {
-                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item anchor slot is missing");
-                return true;
-            }
-
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 targetInventory,
                 targetItem,
@@ -554,8 +571,13 @@ namespace UniversalDragAndDrop.Inventories
                 entry,
                 requested,
                 requested,
-                new[] { new PlannedSlotAllocation(anchorSlot, requested) },
-                previewTargetItemAdapter: targetItem);
+                EmptyAllocations,
+                previewTargetItemAdapter: targetItem,
+                placementAllocation: new PlannedPlacementAllocation(
+                    anchorIndex,
+                    entry.Orientation,
+                    footprint,
+                    requested));
             return true;
         }
 

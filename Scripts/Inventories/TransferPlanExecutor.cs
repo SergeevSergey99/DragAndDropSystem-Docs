@@ -210,6 +210,69 @@ namespace UniversalDragAndDrop.Inventories
                         Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Swap failed: {swapAttempt.FailureReason}</color>");
                     }
                 }
+                else if (plannedEntry.HasPlacementAllocation)
+                {
+                    var allocation = plannedEntry.PlacementAllocation.Value;
+                    var targetUniversal = plan.TargetInventory as UniversalInventory;
+                    var anchorSlot = targetUniversal?.GetSlot(allocation.AnchorIndex);
+
+                    if (targetUniversal == null || anchorSlot == null || allocation.Amount <= 0)
+                    {
+                        entryFailed = true;
+                    }
+                    else if (!ItemStack.TryCreate(
+                                 plannedEntry.Entry.Stack.Adapters.Take(allocation.Amount),
+                                 out var requestStack))
+                    {
+                        entryFailed = true;
+                    }
+                    else
+                    {
+                        var request = new InventoryTransferRequest(
+                            plannedEntry.Entry.SourceInventory,
+                            plannedEntry.Entry.SourceBaseSlot,
+                            plan.TargetInventory,
+                            anchorSlot,
+                            requestStack,
+                            allocation.Orientation);
+
+                        if (!TryBuildDomainContext(request, plannedEntry.PreviewTargetItemAdapter, out var domainContext))
+                        {
+                            var domainFailure = "Failed to build domain context";
+                            Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {domainFailure}</color>");
+                            entryFailed = true;
+                        }
+                        else
+                        {
+                            var validationResult = await ValidateDomainHandlersAsync(domainContext, allowAsyncDomainValidation, cancellationToken);
+                            if (!validationResult.IsValid)
+                            {
+                                Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Domain validation failed: {validationResult.FailureReason}</color>");
+                                entryFailed = true;
+                            }
+                            else if (!TryExecuteTransfer(request, out var outcome, allocation) || outcome.Amount <= 0)
+                            {
+                                entryFailed = true;
+                            }
+                            else
+                            {
+                                entryTransferred += outcome.Amount;
+                                transferredAmount += outcome.Amount;
+                                lastItemAdapter = outcome.ItemAdapter;
+                                lastTargetBaseSlot = outcome.TargetBaseSlot ?? anchorSlot;
+                                hadPartialTransfer |= outcome.IsPartialTransfer;
+                                domainContext.MarkCommitted(outcome);
+                                successfulOutcomes.Add(outcome);
+                                successfulDomainContexts.Add(domainContext);
+                                executedEntries.Add(new ExecutedTransferEntry(
+                                    outcome.SourceBaseSlot,
+                                    outcome.TargetBaseSlot ?? anchorSlot,
+                                    outcome.ItemAdapter,
+                                    outcome.Amount));
+                            }
+                        }
+                    }
+                }
                 else
                 {
                     int adapterOffset = 0;
@@ -676,7 +739,10 @@ namespace UniversalDragAndDrop.Inventories
             return TransferKind.Move;
         }
 
-        private bool TryExecuteTransfer(InventoryTransferRequest request, out InventoryTransferResult result)
+        private bool TryExecuteTransfer(
+            InventoryTransferRequest request,
+            out InventoryTransferResult result,
+            PlannedPlacementAllocation? placementAllocation = null)
         {
             result = default;
 
@@ -746,7 +812,8 @@ namespace UniversalDragAndDrop.Inventories
                 transferAmount,
                 request.Orientation,
                 targetInventorySnapshot,
-                operationContext);
+                operationContext,
+                placementAllocation);
 
             bool added = TryAddToTargetInventory(placementOperation);
             if (!added)
@@ -887,12 +954,12 @@ namespace UniversalDragAndDrop.Inventories
         {
             if (operation.TargetInventory is not UniversalInventory targetUniversal ||
                 !targetUniversal.Grid.HasValue ||
-                operation.RequestedBaseSlot == null ||
                 operation.TransferStack == null ||
                 operation.TransferStack.IsEmpty)
                 return false;
 
-            var footprint = Footprint.Resolve(operation.TransferStack.PrimaryAdapter);
+            var footprint = operation.PlacementAllocation?.Footprint
+                ?? Footprint.Resolve(operation.TransferStack.PrimaryAdapter);
             if (footprint.IsSingleCell)
                 return false;
 
@@ -903,18 +970,28 @@ namespace UniversalDragAndDrop.Inventories
             if (placedStack == null || placedStack.IsEmpty)
                 return false;
 
-            bool wasEmpty = operation.RequestedBaseSlot.IsEmpty;
+            int anchorIndex = operation.PlacementAllocation?.AnchorIndex
+                ?? operation.RequestedBaseSlot?.Index
+                ?? -1;
+            if (anchorIndex < 0)
+                return false;
+
+            var resolvedAnchorSlot = targetUniversal.GetSlot(anchorIndex);
+            if (resolvedAnchorSlot == null)
+                return false;
+
+            bool wasEmpty = resolvedAnchorSlot.IsEmpty;
             var request = new PlacementRequest(
                 placedStack,
-                operation.RequestedBaseSlot.Index,
-                operation.Orientation,
+                anchorIndex,
+                operation.PlacementAllocation?.Orientation ?? operation.Orientation,
                 footprint);
 
             if (!targetUniversal.TryPlace(request, out _))
                 return false;
 
             operation.TransferStack.RemoveFromStack(placedStack.Count);
-            operation.OperationContext?.RecordResult(operation.RequestedBaseSlot, wasEmpty, placedStack.Count);
+            operation.OperationContext?.RecordResult(resolvedAnchorSlot, wasEmpty, placedStack.Count);
             targetUniversal.UpdateAllVisuals();
             return operation.TransferStack.IsEmpty;
         }
