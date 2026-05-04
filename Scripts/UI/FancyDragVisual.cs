@@ -28,17 +28,9 @@ namespace UniversalDragAndDrop.UI
         [SerializeField] private Color _normalColor = Color.white;
         [SerializeField] private Color _glowColor = new Color(1f, 1f, 0f, 0.5f);
 
-        private RectTransform _rectTransform;
         private Vector3 _basePosition;
         private float _bobTimer;
         private float _orientationAngle;
-        private bool _isVisible;
-
-        private void Awake()
-        {
-            _rectTransform = GetComponent<RectTransform>();
-            Hide();
-        }
 
         public override void Show(IReadOnlyList<DragEntry> entries)
         {
@@ -82,14 +74,12 @@ namespace UniversalDragAndDrop.UI
                 }
             }
 
-            _isVisible = true;
             _bobTimer = 0f;
             gameObject.SetActive(true);
         }
 
         public override void Hide()
         {
-            _isVisible = false;
             gameObject.SetActive(false);
         }
 
