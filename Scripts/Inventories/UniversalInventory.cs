@@ -1143,19 +1143,6 @@ namespace UniversalDragAndDrop.Inventories
         {
             EnsurePlacementStateInitialized();
 
-            var slotsSnapshot = new List<InventorySlotState>(_slots.Count);
-            foreach (var slot in _slots)
-            {
-                if (slot != null && !slot.IsEmpty)
-                {
-                    slotsSnapshot.Add(new InventorySlotState(slot.Stack.Adapters));
-                }
-                else
-                {
-                    slotsSnapshot.Add(new InventorySlotState(null));
-                }
-            }
-
             var placementSnapshot = new List<InventoryPlacementState>(_placements.Count);
             foreach (var placement in _placements)
             {
@@ -1170,7 +1157,7 @@ namespace UniversalDragAndDrop.Inventories
                     placement.CoveredIndices));
             }
 
-            return new InventorySnapshot(slotsSnapshot, placementSnapshot);
+            return new InventorySnapshot(_slots.Count, placementSnapshot);
         }
 
         public void RestoreSnapshot(InventorySnapshot snapshot)
@@ -1183,7 +1170,7 @@ namespace UniversalDragAndDrop.Inventories
                 _slots = new List<BaseSlot>();
             }
 
-            int desiredCount = snapshot.Slots.Count;
+            int desiredCount = snapshot.SlotCount;
 
             // Increase the number of slots to the required amount
             while (_slots.Count < desiredCount)

@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Rules;
+using UniversalDragAndDrop.Slots;
 
 namespace UniversalDragAndDrop.Tests.Inventories
 {
@@ -927,6 +928,106 @@ namespace UniversalDragAndDrop.Tests.Inventories
             {
                 InventoryBuilder.Destroy(inventory);
             }
+        }
+
+        [Test]
+        public void TryPlanSwapAgainstTarget_ShapedSourceItem_IsRejected()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
+
+                var sourceSlot = source.GetSlot(0);
+                var targetSlot = target.GetSlot(0);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var planner = new TransferPlanner();
+                var planned = InvokeTryPlanSwapAgainstTarget(
+                    planner,
+                    context,
+                    entry,
+                    target,
+                    targetSlot,
+                    requested: 1,
+                    targetItem: entry.Stack.PrimaryAdapter);
+
+                Assert.IsNull(planned, "Shaped source must not produce a swap plan");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void TryPlanSwapAgainstTarget_ShapedTargetItem_IsRejected()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
+                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+
+                var sourceSlot = source.GetSlot(0);
+                var targetSlot = target.GetSlot(0);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var planner = new TransferPlanner();
+                var planned = InvokeTryPlanSwapAgainstTarget(
+                    planner,
+                    context,
+                    entry,
+                    target,
+                    targetSlot,
+                    requested: 1,
+                    targetItem: entry.Stack.PrimaryAdapter);
+
+                Assert.IsNull(planned, "Shaped target must not be swapped");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        private static PlannedEntryTransfer InvokeTryPlanSwapAgainstTarget(
+            TransferPlanner planner,
+            DragContext context,
+            DragEntry entry,
+            UniversalInventory targetInventory,
+            BaseSlot targetSlot,
+            int requested,
+            IItemAdapter targetItem)
+        {
+            var method = typeof(TransferPlanner).GetMethod(
+                "TryPlanSwapAgainstTarget",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(method, "TryPlanSwapAgainstTarget must exist");
+            return (PlannedEntryTransfer)method.Invoke(
+                planner,
+                new object[]
+                {
+                    context, entry, targetInventory, targetSlot,
+                    new GlobalRuleValidator(), requested, targetItem
+                });
         }
 
         private static void EnableGrid(UniversalInventory inventory, int columns, int rows)

@@ -1151,6 +1151,13 @@ namespace UniversalDragAndDrop.Inventories
             // Current swap implementation supports only full stack from source slot.
             if (sourceSlot.Stack.Count != entry.Stack.Count)
                 return null;
+            // Shaped items aren't supported by swap in Phase 1–3 (TryCommitSwapViaPlacement
+            // doesn't preserve footprint geometry on either side). Defensive guard so a
+            // custom resolver/strategy can't accidentally route a shaped entry here.
+            if (!Footprint.Resolve(entry.Stack.PrimaryAdapter).IsSingleCell)
+                return null;
+            if (!Footprint.Resolve(swapTargetBaseSlot.Stack.PrimaryAdapter).IsSingleCell)
+                return null;
 
             if (!ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceStackBefore))
                 return null;

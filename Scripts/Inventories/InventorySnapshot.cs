@@ -4,19 +4,19 @@ using UniversalDragAndDrop.Core;
 namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
-    /// Snapshot of inventory state. Stores the contents of each slot and their counts.
+    /// Inventory state snapshot used for rollback. Restoration reads <see cref="Placements"/>
+    /// only — placements are the single source of truth. <see cref="SlotCount"/> records
+    /// how many slots existed at capture time so dynamic inventories can shrink/grow back.
     /// </summary>
     public sealed class InventorySnapshot
     {
-        public InventorySnapshot(
-            List<InventorySlotState> slots,
-            List<InventoryPlacementState> placements = null)
+        public InventorySnapshot(int slotCount, List<InventoryPlacementState> placements = null)
         {
-            Slots = slots ?? new List<InventorySlotState>();
+            SlotCount = slotCount < 0 ? 0 : slotCount;
             Placements = placements ?? new List<InventoryPlacementState>();
         }
 
-        public List<InventorySlotState> Slots { get; }
+        public int SlotCount { get; }
         public List<InventoryPlacementState> Placements { get; }
     }
 
