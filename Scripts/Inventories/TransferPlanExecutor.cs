@@ -953,47 +953,44 @@ namespace UniversalDragAndDrop.Inventories
         private bool TryAddToTargetPlacement(TargetPlacementOperation operation)
         {
             if (operation.TargetInventory is not UniversalInventory targetUniversal ||
-                !targetUniversal.Grid.HasValue ||
                 operation.TransferStack == null ||
                 operation.TransferStack.IsEmpty)
                 return false;
 
-            var footprint = operation.PlacementAllocation?.Footprint
-                ?? Footprint.Resolve(operation.TransferStack.PrimaryAdapter);
-            if (footprint.IsSingleCell)
+            var strategy = targetUniversal.PlacementStrategy;
+            if (strategy == null)
                 return false;
 
-            if (operation.TransferStack.Count > 1 || operation.TransferAmount != operation.TransferStack.Count)
-                return false;
+            var allocation = operation.PlacementAllocation
+                ?? new PlannedPlacementAllocation(
+                    operation.RequestedBaseSlot?.Index ?? -1,
+                    operation.Orientation,
+                    Footprint.Resolve(operation.TransferStack.PrimaryAdapter),
+                    operation.TransferAmount);
 
-            var placedStack = operation.TransferStack.CreateCopy(operation.TransferAmount);
-            if (placedStack == null || placedStack.IsEmpty)
-                return false;
+            var executionContext = new ShapedPlacementExecutionContext(
+                operation.TargetInventory,
+                operation.TransferStack,
+                operation.TransferAmount,
+                allocation,
+                operation.Orientation,
+                operation.OperationContext);
 
-            int anchorIndex = operation.PlacementAllocation?.AnchorIndex
-                ?? operation.RequestedBaseSlot?.Index
-                ?? -1;
-            if (anchorIndex < 0)
-                return false;
+            var result = strategy.TryExecuteShapedPlacement(executionContext);
+            switch (result.Outcome)
+            {
+                case ShapedPlacementExecutionOutcome.Placed:
+                    operation.OperationContext?.RecordResult(
+                        result.ResolvedAnchorSlot,
+                        result.TargetWasEmpty,
+                        result.PlacedAmount);
+                    return operation.TransferStack.IsEmpty;
 
-            var resolvedAnchorSlot = targetUniversal.GetSlot(anchorIndex);
-            if (resolvedAnchorSlot == null)
-                return false;
-
-            bool wasEmpty = resolvedAnchorSlot.IsEmpty;
-            var request = new PlacementRequest(
-                placedStack,
-                anchorIndex,
-                operation.PlacementAllocation?.Orientation ?? operation.Orientation,
-                footprint);
-
-            if (!targetUniversal.TryPlace(request, out _))
-                return false;
-
-            operation.TransferStack.RemoveFromStack(placedStack.Count);
-            operation.OperationContext?.RecordResult(resolvedAnchorSlot, wasEmpty, placedStack.Count);
-            targetUniversal.UpdateAllVisuals();
-            return operation.TransferStack.IsEmpty;
+                case ShapedPlacementExecutionOutcome.Failed:
+                case ShapedPlacementExecutionOutcome.NotApplicable:
+                default:
+                    return false;
+            }
         }
 
         private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)

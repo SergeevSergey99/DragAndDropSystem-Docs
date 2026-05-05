@@ -111,6 +111,101 @@ namespace UniversalDragAndDrop.Inventories
         public virtual bool RequiresStrategyPlacement(ItemStack stack) => false;
         public virtual bool UsesPerItemSlotPlanning => false;
 
+        public virtual ShapedPlacementPlanResult TryPlanShapedPlacement(ShapedPlacementPlanContext context)
+        {
+            if (context.Footprint.IsSingleCell)
+                return ShapedPlacementPlanResult.NotApplicable();
+
+            if (context.TargetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue)
+                return ShapedPlacementPlanResult.NotApplicable();
+
+            if (context.RequestedAmount != 1)
+                return ShapedPlacementPlanResult.Rejected("Shaped grid placement requires a single item");
+
+            if (context.TargetBaseSlotHint == null ||
+                !ReferenceEquals(context.TargetBaseSlotHint.Inventory, context.TargetInventory))
+                return ShapedPlacementPlanResult.Rejected("Shaped grid placement requires a target cell");
+
+            if (!targetUniversal.TryResolveShapedPlacementAnchor(
+                    context.TargetBaseSlotHint,
+                    context.DragContext,
+                    context.Entry,
+                    context.Footprint,
+                    context.TargetItemAdapter,
+                    out _,
+                    out int anchorIndex))
+                return ShapedPlacementPlanResult.Rejected("Shaped item anchor is outside the target grid");
+
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                context.TargetInventory,
+                context.TargetItemAdapter,
+                context.RequestedAmount,
+                context.DragContext,
+                context.Entry);
+            var previewStack = acceptanceRequest.CreatePreviewStack(context.RequestedAmount, context.TargetItemAdapter);
+            if (previewStack == null)
+                return ShapedPlacementPlanResult.Rejected("Failed to create shaped placement preview");
+
+            var ignoredPlacement = ReferenceEquals(context.TargetInventory, context.Entry.SourceInventory)
+                ? context.Entry.SourcePlacement
+                : null;
+            var placementRequest = new PlacementRequest(
+                previewStack,
+                anchorIndex,
+                context.Orientation,
+                context.Footprint);
+            if (!targetUniversal.CanPlace(placementRequest, ignoredPlacement))
+                return ShapedPlacementPlanResult.Rejected("Target grid cells are not available");
+
+            return ShapedPlacementPlanResult.Planned(new PlannedPlacementAllocation(
+                anchorIndex,
+                context.Orientation,
+                context.Footprint,
+                context.RequestedAmount));
+        }
+
+        public virtual ShapedPlacementExecutionResult TryExecuteShapedPlacement(ShapedPlacementExecutionContext context)
+        {
+            if (context.TargetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue)
+                return ShapedPlacementExecutionResult.NotApplicable();
+
+            if (context.TransferStack == null || context.TransferStack.IsEmpty)
+                return ShapedPlacementExecutionResult.NotApplicable();
+
+            var allocation = context.Allocation;
+            var footprint = allocation.Footprint;
+            if (footprint.IsSingleCell || footprint.Equals(default(Footprint)))
+                footprint = Footprint.Resolve(context.TransferStack.PrimaryAdapter);
+            if (footprint.IsSingleCell)
+                return ShapedPlacementExecutionResult.NotApplicable();
+
+            if (context.TransferStack.Count > 1 || context.TransferAmount != context.TransferStack.Count)
+                return ShapedPlacementExecutionResult.Failed("Shaped placement requires a single item");
+
+            var placedStack = context.TransferStack.CreateCopy(context.TransferAmount);
+            if (placedStack == null || placedStack.IsEmpty)
+                return ShapedPlacementExecutionResult.Failed("Failed to copy stack for shaped placement");
+
+            int anchorIndex = allocation.AnchorIndex;
+            if (anchorIndex < 0)
+                return ShapedPlacementExecutionResult.Failed("Invalid shaped placement anchor");
+
+            var resolvedAnchorSlot = targetUniversal.GetSlot(anchorIndex);
+            if (resolvedAnchorSlot == null)
+                return ShapedPlacementExecutionResult.Failed("Anchor slot not found");
+
+            bool wasEmpty = resolvedAnchorSlot.IsEmpty;
+            var request = new PlacementRequest(placedStack, anchorIndex, allocation.Orientation, footprint);
+
+            if (!targetUniversal.TryPlace(request, out _))
+                return ShapedPlacementExecutionResult.Failed("Inventory rejected shaped placement");
+
+            context.TransferStack.RemoveFromStack(placedStack.Count);
+            targetUniversal.UpdateAllVisuals();
+
+            return ShapedPlacementExecutionResult.Placed(resolvedAnchorSlot, wasEmpty, placedStack.Count);
+        }
+
         public virtual bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
             if (baseSlot == null || itemAdapter == null)
