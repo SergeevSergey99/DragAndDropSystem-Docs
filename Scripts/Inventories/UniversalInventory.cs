@@ -190,22 +190,67 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         public event Action<InventorySwapContext> OnSwapCompleted;
 
-        internal void EmitItemAdded(ItemStack stack, int slotIndex, IInventory sourceInventory, BaseSlot sourceBaseSlot, BaseSlot targetBaseSlot)
+        internal void EmitItemAdded(
+            ItemStack stack,
+            int slotIndex,
+            IInventory sourceInventory,
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
+            PlacementTransferMetadata placementMetadata = null)
         {
+            placementMetadata ??= ResolvePlacementTransferMetadata(targetBaseSlot);
             var context = new InventoryItemEventContext(
-                stack, slotIndex, sourceInventory, this, sourceBaseSlot, targetBaseSlot);
+                stack,
+                slotIndex,
+                sourceInventory,
+                this,
+                sourceBaseSlot,
+                targetBaseSlot,
+                placementMetadata);
 
             DataBinding?.HandleItemAdded(context);
             OnItemAdded?.Invoke(context);
         }
 
-        internal void EmitItemRemoved(ItemStack stack, int slotIndex, IInventory targetInventory, BaseSlot sourceBaseSlot, BaseSlot targetBaseSlot)
+        internal void EmitItemRemoved(
+            ItemStack stack,
+            int slotIndex,
+            IInventory targetInventory,
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
+            PlacementTransferMetadata placementMetadata = null)
         {
+            placementMetadata ??= ResolvePlacementTransferMetadata(sourceBaseSlot);
             var context = new InventoryItemEventContext(
-                stack, slotIndex, this, targetInventory, sourceBaseSlot, targetBaseSlot);
+                stack,
+                slotIndex,
+                this,
+                targetInventory,
+                sourceBaseSlot,
+                targetBaseSlot,
+                placementMetadata);
 
             DataBinding?.HandleItemRemoved(context);
             OnItemRemoved?.Invoke(context);
+        }
+
+        private PlacementTransferMetadata ResolvePlacementTransferMetadata(BaseSlot baseSlot)
+        {
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return PlacementTransferMetadata.None;
+
+            EnsurePlacementStateInitialized();
+            var placement = GetPlacementAtInitialized(baseSlot.Index);
+            if (placement != null)
+                return PlacementTransferMetadata.FromPlacement(placement, GetSlot);
+
+            return new PlacementTransferMetadata(
+                baseSlot.Index,
+                PlacementOrientation.Rot0,
+                Footprint.One,
+                new[] { baseSlot.Index },
+                baseSlot,
+                new[] { baseSlot });
         }
 
         /// <summary>
@@ -1206,11 +1251,18 @@ namespace UniversalDragAndDrop.Inventories
                     if (!ItemStack.TryCreate(placementState.Adapters, out var restoredStack))
                         continue;
 
-                    TryPlace(new PlacementRequest(
+                    var request = new PlacementRequest(
                         restoredStack,
                         placementState.AnchorIndex,
                         placementState.Orientation,
-                        placementState.Footprint));
+                        placementState.Footprint);
+
+                    if (!TryPlace(request))
+                    {
+                        Debug.LogError(
+                            $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {placementState.AnchorIndex} ({placementState.Footprint}, {placementState.Orientation}).",
+                            this);
+                    }
                 }
 
                 UpdateAllVisuals();

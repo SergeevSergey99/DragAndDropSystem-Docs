@@ -189,6 +189,35 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void DragEntry_DirectOrientation_RotatesResolvedGrabOffset()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+
+                var entry = new DragEntry(
+                    stack.CreateCopy(),
+                    inventory.GetSlot(1),
+                    inventory,
+                    placement,
+                    orientation: PlacementOrientation.Rot90);
+
+                Assert.AreEqual(PlacementOrientation.Rot90, entry.Orientation);
+                Assert.AreEqual(new Vector2Int(0, 1), entry.GrabOffset);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void DropPreview_UsesCoveredCellsFromGrabOffset()
         {
             var source = new InventoryBuilder()
@@ -624,6 +653,79 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_ShapedGridToGrid_ReportsPlacementMetadata()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .WithName("SourceGrid")
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .WithName("TargetGrid")
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                InventoryItemEventContext removedContext = null;
+                InventoryItemEventContext addedContext = null;
+                source.OnItemRemoved += context => removedContext = context;
+                target.OnItemAdded += context => addedContext = context;
+
+                var dragSlot = source.GetSlot(4);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(8), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                Assert.AreEqual(4, summary.DropResult.AnchorIndex);
+                Assert.AreEqual(PlacementOrientation.Rot0, summary.DropResult.Orientation);
+                Assert.AreEqual(new Footprint(2, 2), summary.DropResult.Footprint);
+                CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, summary.DropResult.CoveredIndices);
+                CollectionAssert.AreEqual(
+                    new[] { 4, 5, 7, 8 },
+                    summary.DropResult.CoveredSlots.Select(slot => slot.Index).ToArray());
+
+                Assert.AreEqual(1, summary.ExecutedEntries.Count);
+                var executedEntry = summary.ExecutedEntries[0];
+                Assert.AreEqual(4, executedEntry.AnchorIndex);
+                CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, executedEntry.CoveredIndices);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, executedEntry.SourcePlacementMetadata.CoveredIndices);
+
+                Assert.IsNotNull(removedContext);
+                Assert.AreEqual(0, removedContext.AnchorIndex);
+                Assert.AreEqual(PlacementOrientation.Rot0, removedContext.Orientation);
+                Assert.AreEqual(new Footprint(2, 2), removedContext.Footprint);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, removedContext.CoveredIndices);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1, 3, 4 },
+                    removedContext.CoveredBaseSlots.Select(slot => slot.Index).ToArray());
+
+                Assert.IsNotNull(addedContext);
+                Assert.AreEqual(4, addedContext.AnchorIndex);
+                Assert.AreSame(target.GetSlot(4), addedContext.AnchorBaseSlot);
+                Assert.AreEqual(PlacementOrientation.Rot0, addedContext.Orientation);
+                Assert.AreEqual(new Footprint(2, 2), addedContext.Footprint);
+                CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, addedContext.CoveredIndices);
+                CollectionAssert.AreEqual(
+                    new[] { 4, 5, 7, 8 },
+                    addedContext.CoveredBaseSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedWithinSameGrid_AllowsOverlapWithSourcePlacement()
         {
             var inventory = new InventoryBuilder()
@@ -923,6 +1025,43 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 var restoredPlacement = inventory.GetPlacementAt(4);
                 Assert.IsNotNull(restoredPlacement);
                 CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, restoredPlacement.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void RestoreSnapshot_WhenPlacementCannotBeRestored_LogsError()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .Build();
+
+            try
+            {
+                EnableGrid(inventory, 1, 1);
+                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+                var snapshot = new InventorySnapshot(
+                    1,
+                    new System.Collections.Generic.List<InventoryPlacementState>
+                    {
+                        new InventoryPlacementState(
+                            0,
+                            stack.Adapters,
+                            PlacementOrientation.Rot0,
+                            new Footprint(2, 1),
+                            new[] { 0, 1 })
+                    });
+
+                LogAssert.Expect(
+                    LogType.Error,
+                    $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor 0 (2x1, Rot0).");
+
+                inventory.RestoreSnapshot(snapshot);
+
+                Assert.IsNull(inventory.GetPlacementAt(0));
             }
             finally
             {

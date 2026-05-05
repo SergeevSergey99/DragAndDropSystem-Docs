@@ -71,7 +71,7 @@ namespace UniversalDragAndDrop.DataBinding
         {
             if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
 
-            int index = context.TargetBaseSlot?.Index ?? -1;
+            int index = context.AnchorIndex;
             if (index < 0) return;
 
             AddToSlotData(index, adapter, context.Stack.Count);
@@ -81,7 +81,7 @@ namespace UniversalDragAndDrop.DataBinding
         {
             if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
 
-            int index = context.SourceBaseSlot?.Index ?? -1;
+            int index = context.AnchorIndex;
             if (index < 0) return;
 
             RemoveFromSlotData(index, adapter, context.Stack.Count);

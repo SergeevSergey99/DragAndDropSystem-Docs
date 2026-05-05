@@ -42,7 +42,8 @@ namespace UniversalDragAndDrop.Core
             IInventory sourceInventory = null,
             IInventory targetInventory = null,
             BaseSlot sourceBaseSlot = null,
-            BaseSlot targetBaseSlot = null)
+            BaseSlot targetBaseSlot = null,
+            PlacementTransferMetadata placementMetadata = null)
         {
             Stack = stack ?? ItemStack.Empty();
             SlotIndex = slotIndex;
@@ -50,7 +51,18 @@ namespace UniversalDragAndDrop.Core
             TargetInventory = targetInventory;
             SourceBaseSlot = sourceBaseSlot;
             TargetBaseSlot = targetBaseSlot;
+            PlacementMetadata = placementMetadata ?? PlacementTransferMetadata.None;
         }
+
+        public PlacementTransferMetadata PlacementMetadata { get; }
+        public int AnchorIndex => PlacementMetadata.AnchorIndex >= 0
+            ? PlacementMetadata.AnchorIndex
+            : SlotIndex;
+        public BaseSlot AnchorBaseSlot => PlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot ?? SourceBaseSlot;
+        public System.Collections.Generic.IReadOnlyList<int> CoveredIndices => PlacementMetadata.CoveredIndices;
+        public System.Collections.Generic.IReadOnlyList<BaseSlot> CoveredBaseSlots => PlacementMetadata.CoveredBaseSlots;
+        public PlacementOrientation Orientation => PlacementMetadata.Orientation;
+        public Footprint Footprint => PlacementMetadata.Footprint;
     }
 
     /// <summary>

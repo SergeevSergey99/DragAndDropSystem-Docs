@@ -69,7 +69,8 @@ namespace UniversalDragAndDrop.Core
             bool isPartialTransfer,
             int remainingInSource,
             int succeededEntries,
-            int failedEntries)
+            int failedEntries,
+            PlacementTransferMetadata placementMetadata = null)
         {
             Success = success;
             ItemAdapter = itemAdapter;
@@ -81,7 +82,18 @@ namespace UniversalDragAndDrop.Core
             RemainingInSource = remainingInSource;
             SucceededEntries = succeededEntries;
             FailedEntries = failedEntries;
+            PlacementMetadata = placementMetadata ?? PlacementTransferMetadata.None;
         }
+
+        public PlacementTransferMetadata PlacementMetadata { get; }
+        public BaseSlot AnchorSlot => PlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot;
+        public System.Collections.Generic.IReadOnlyList<BaseSlot> CoveredSlots => PlacementMetadata.CoveredBaseSlots;
+        public System.Collections.Generic.IReadOnlyList<int> CoveredIndices => PlacementMetadata.CoveredIndices;
+        public int AnchorIndex => PlacementMetadata.AnchorIndex >= 0
+            ? PlacementMetadata.AnchorIndex
+            : TargetBaseSlot?.Index ?? -1;
+        public PlacementOrientation Orientation => PlacementMetadata.Orientation;
+        public Footprint Footprint => PlacementMetadata.Footprint;
 
         /// <summary>
         /// Create a successful drop result
@@ -94,7 +106,8 @@ namespace UniversalDragAndDrop.Core
             bool isPartialTransfer = false,
             int remainingInSource = 0,
             int succeededEntries = 1,
-            int failedEntries = 0)
+            int failedEntries = 0,
+            PlacementTransferMetadata placementMetadata = null)
         {
             return new DropResult(
                 success: true,
@@ -106,7 +119,8 @@ namespace UniversalDragAndDrop.Core
                 isPartialTransfer: isPartialTransfer,
                 remainingInSource: remainingInSource,
                 succeededEntries: succeededEntries,
-                failedEntries: failedEntries);
+                failedEntries: failedEntries,
+                placementMetadata: placementMetadata);
         }
 
         /// <summary>
@@ -138,7 +152,8 @@ namespace UniversalDragAndDrop.Core
             int succeededEntries,
             int failedEntries,
             bool isPartialTransfer,
-            int remainingInSource = 0)
+            int remainingInSource = 0,
+            PlacementTransferMetadata placementMetadata = null)
         {
             return new DropResult(
                 success: true,
@@ -150,7 +165,8 @@ namespace UniversalDragAndDrop.Core
                 isPartialTransfer: isPartialTransfer,
                 remainingInSource: remainingInSource,
                 succeededEntries: succeededEntries,
-                failedEntries: failedEntries);
+                failedEntries: failedEntries,
+                placementMetadata: placementMetadata);
         }
 
         /// <summary>

@@ -38,11 +38,16 @@ namespace UniversalDragAndDrop.Core
                 SourcePlacement = universalInventory.GetPlacementAt(sourceBaseSlot);
 
             Footprint = SourcePlacement?.Footprint ?? UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
-            Orientation = orientation ?? SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
-            GrabOffset = grabOffset
+            var sourceOrientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
+            Orientation = orientation ?? sourceOrientation;
+
+            var resolvedGrabOffset = grabOffset
                 ?? (universalInventory != null
                     ? universalInventory.GetGrabOffset(SourcePlacement, sourceBaseSlot)
                     : Vector2Int.zero);
+            GrabOffset = grabOffset.HasValue
+                ? resolvedGrabOffset
+                : RotateGrabOffset(resolvedGrabOffset, Footprint, sourceOrientation, Orientation);
         }
 
         public DragEntry WithOrientation(PlacementOrientation orientation)

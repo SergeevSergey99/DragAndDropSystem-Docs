@@ -1,0 +1,19 @@
+# Keep Unity-generated text files consistent across platforms.
+*.cs text eol=crlf
+*.asmdef text eol=crlf
+*.json text eol=crlf
+*.md text eol=crlf
+*.txt text eol=crlf
+*.meta text eol=crlf
+*.asset text eol=crlf
+*.prefab text eol=crlf
+*.unity text eol=crlf
+*.uxml text eol=crlf
+*.uss text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.fbx binary

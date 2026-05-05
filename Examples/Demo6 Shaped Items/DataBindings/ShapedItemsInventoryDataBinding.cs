@@ -61,12 +61,10 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
 
             if (Inventory.Grid.HasValue)
             {
-                var placement = context.TargetBaseSlot != null
-                    ? Inventory.GetPlacementAt(context.TargetBaseSlot)
-                    : null;
-                int anchorIndex = placement?.AnchorIndex ?? Mathf.Max(0, context.SlotIndex);
-                var orientation = placement?.Orientation ?? PlacementOrientation.Rot0;
-                _placements.Add(new ShapedPlacementSeed(adapter.item, anchorIndex, orientation));
+                _placements.Add(new ShapedPlacementSeed(
+                    adapter.item,
+                    Mathf.Max(0, context.AnchorIndex),
+                    context.Orientation));
                 return;
             }
 
@@ -81,7 +79,7 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
             if (context?.Stack?.PrimaryAdapter is not ShapedItemAdapter adapter || adapter.item == null)
                 return;
 
-            RemoveFirstPlacement(adapter.item);
+            RemoveFirstPlacement(adapter.item, context.AnchorIndex);
         }
 
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
@@ -141,16 +139,22 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
             }
         }
 
-        private void RemoveFirstPlacement(ShapedItemExampleSO item)
+        private void RemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex)
         {
             for (int i = 0; i < _placements.Count; i++)
             {
                 if (!ReferenceEquals(_placements[i].item, item))
                     continue;
 
+                if (anchorIndex >= 0 && _placements[i].anchorIndex != anchorIndex)
+                    continue;
+
                 _placements.RemoveAt(i);
                 return;
             }
+
+            if (anchorIndex >= 0)
+                RemoveFirstPlacement(item, -1);
         }
     }
 }

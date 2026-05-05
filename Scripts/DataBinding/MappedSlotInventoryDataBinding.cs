@@ -174,7 +174,7 @@ namespace UniversalDragAndDrop.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (!TryGetTargetBinding(context.TargetBaseSlot, out var binding)) return;
+            if (!TryGetTargetBinding(context.AnchorBaseSlot, out var binding)) return;
 
             var added = FilterAdapters(context.Stack);
             if (added.Count > 0)
@@ -183,7 +183,7 @@ namespace UniversalDragAndDrop.DataBinding
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (!TryGetSourceBinding(context.SourceBaseSlot, out var binding)) return;
+            if (!TryGetSourceBinding(context.AnchorBaseSlot, out var binding)) return;
 
             var removed = FilterAdapters(context.Stack);
             if (removed.Count > 0)

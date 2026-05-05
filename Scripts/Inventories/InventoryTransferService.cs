@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.Slots;
 
@@ -47,7 +48,9 @@ namespace UniversalDragAndDrop.Inventories
             ItemStack sourceRemovedStack,
             ItemStack transferredStack,
             bool targetWasEmptyBefore,
-            int remainingInSource = 0)
+            int remainingInSource = 0,
+            PlacementTransferMetadata targetPlacementMetadata = null,
+            PlacementTransferMetadata sourcePlacementMetadata = null)
         {
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
@@ -57,6 +60,8 @@ namespace UniversalDragAndDrop.Inventories
             TransferredStack = transferredStack ?? ItemStack.Empty();
             TargetWasEmptyBefore = targetWasEmptyBefore;
             RemainingInSource = remainingInSource;
+            TargetPlacementMetadata = targetPlacementMetadata ?? PlacementTransferMetadata.None;
+            SourcePlacementMetadata = sourcePlacementMetadata ?? PlacementTransferMetadata.None;
         }
 
         public IInventory SourceInventory { get; }
@@ -81,5 +86,16 @@ namespace UniversalDragAndDrop.Inventories
         public bool TargetWasEmptyBefore { get; }
         public int RemainingInSource { get; }
         public bool IsPartialTransfer => RemainingInSource > 0;
+        public PlacementTransferMetadata SourcePlacementMetadata { get; }
+        public PlacementTransferMetadata TargetPlacementMetadata { get; }
+        public PlacementTransferMetadata PlacementMetadata => TargetPlacementMetadata;
+        public BaseSlot AnchorSlot => TargetPlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot;
+        public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementMetadata.CoveredBaseSlots;
+        public IReadOnlyList<int> CoveredIndices => TargetPlacementMetadata.CoveredIndices;
+        public int AnchorIndex => TargetPlacementMetadata.AnchorIndex >= 0
+            ? TargetPlacementMetadata.AnchorIndex
+            : TargetBaseSlot?.Index ?? -1;
+        public PlacementOrientation Orientation => TargetPlacementMetadata.Orientation;
+        public Footprint Footprint => TargetPlacementMetadata.Footprint;
     }
 }

@@ -12,18 +12,37 @@ namespace UniversalDragAndDrop.Inventories
 {
     public readonly struct ExecutedTransferEntry
     {
-        public ExecutedTransferEntry(BaseSlot sourceBaseSlot, BaseSlot targetBaseSlot, IItemAdapter itemAdapter, int amount)
+        public ExecutedTransferEntry(
+            BaseSlot sourceBaseSlot,
+            BaseSlot targetBaseSlot,
+            IItemAdapter itemAdapter,
+            int amount,
+            PlacementTransferMetadata targetPlacementMetadata = null,
+            PlacementTransferMetadata sourcePlacementMetadata = null)
         {
             SourceBaseSlot = sourceBaseSlot;
             TargetBaseSlot = targetBaseSlot;
             ItemAdapter = itemAdapter;
             Amount = amount;
+            TargetPlacementMetadata = targetPlacementMetadata ?? PlacementTransferMetadata.None;
+            SourcePlacementMetadata = sourcePlacementMetadata ?? PlacementTransferMetadata.None;
         }
 
         public BaseSlot SourceBaseSlot { get; }
         public BaseSlot TargetBaseSlot { get; }
         public IItemAdapter ItemAdapter { get; }
         public int Amount { get; }
+        public PlacementTransferMetadata SourcePlacementMetadata { get; }
+        public PlacementTransferMetadata TargetPlacementMetadata { get; }
+        public PlacementTransferMetadata PlacementMetadata => TargetPlacementMetadata;
+        public BaseSlot AnchorSlot => TargetPlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot;
+        public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementMetadata.CoveredBaseSlots;
+        public IReadOnlyList<int> CoveredIndices => TargetPlacementMetadata.CoveredIndices;
+        public int AnchorIndex => TargetPlacementMetadata.AnchorIndex >= 0
+            ? TargetPlacementMetadata.AnchorIndex
+            : TargetBaseSlot?.Index ?? -1;
+        public PlacementOrientation Orientation => TargetPlacementMetadata.Orientation;
+        public Footprint Footprint => TargetPlacementMetadata.Footprint;
     }
 
     public sealed class TransferExecutionSummary
@@ -129,6 +148,7 @@ namespace UniversalDragAndDrop.Inventories
             int transferredAmount = 0;
             IItemAdapter lastItemAdapter = null;
             BaseSlot lastTargetBaseSlot = null;
+            PlacementTransferMetadata lastTargetPlacementMetadata = PlacementTransferMetadata.None;
             bool hadPartialTransfer = false;
             var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
             var successfulDomainContexts = new List<TransferDomainContext>(plan.Entries.Count);
@@ -260,6 +280,7 @@ namespace UniversalDragAndDrop.Inventories
                                 transferredAmount += outcome.Amount;
                                 lastItemAdapter = outcome.ItemAdapter;
                                 lastTargetBaseSlot = outcome.TargetBaseSlot ?? anchorSlot;
+                                lastTargetPlacementMetadata = outcome.TargetPlacementMetadata;
                                 hadPartialTransfer |= outcome.IsPartialTransfer;
                                 domainContext.MarkCommitted(outcome);
                                 successfulOutcomes.Add(outcome);
@@ -268,7 +289,9 @@ namespace UniversalDragAndDrop.Inventories
                                     outcome.SourceBaseSlot,
                                     outcome.TargetBaseSlot ?? anchorSlot,
                                     outcome.ItemAdapter,
-                                    outcome.Amount));
+                                    outcome.Amount,
+                                    outcome.TargetPlacementMetadata,
+                                    outcome.SourcePlacementMetadata));
                             }
                         }
                     }
@@ -328,6 +351,7 @@ namespace UniversalDragAndDrop.Inventories
                         transferredAmount += outcome.Amount;
                         lastItemAdapter = outcome.ItemAdapter;
                         lastTargetBaseSlot = outcome.TargetBaseSlot ?? allocation.BaseSlot;
+                        lastTargetPlacementMetadata = outcome.TargetPlacementMetadata;
                         hadPartialTransfer |= outcome.IsPartialTransfer;
                         domainContext.MarkCommitted(outcome);
                         successfulOutcomes.Add(outcome);
@@ -336,7 +360,9 @@ namespace UniversalDragAndDrop.Inventories
                             outcome.SourceBaseSlot,
                             outcome.TargetBaseSlot ?? allocation.BaseSlot,
                             outcome.ItemAdapter,
-                            outcome.Amount));
+                            outcome.Amount,
+                            outcome.TargetPlacementMetadata,
+                            outcome.SourcePlacementMetadata));
                     }
                 }
 
@@ -399,7 +425,8 @@ namespace UniversalDragAndDrop.Inventories
                 succeededEntries: succeededEntries,
                 failedEntries: failedEntries,
                 isPartialTransfer: isPartial,
-                remainingInSource: 0);
+                remainingInSource: 0,
+                placementMetadata: lastTargetPlacementMetadata);
 
             // Emit events only after the whole operation completes successfully.
             // In Atomic mode this prevents false-positive events before a later rollback.
@@ -764,6 +791,7 @@ namespace UniversalDragAndDrop.Inventories
             var sourceInventorySnapshot = sourceSnapshotProvider?.CaptureSnapshot();
             var targetInventorySnapshot = targetSnapshotProvider?.CaptureSnapshot();
             var sourceSlotState = InventorySnapshotUtility.CaptureSlotState(sourceSlot);
+            var sourcePlacementMetadata = ResolvePlacementMetadata(sourceInventory, sourceSlot);
 
             int requestedAmount = draggedStack.Count;
             int transferAmount = requestedAmount;
@@ -870,6 +898,7 @@ namespace UniversalDragAndDrop.Inventories
             else
                 transferredStack = ItemStack.Empty();
 
+            var targetPlacementMetadata = ResolvePlacementMetadata(targetInventory, resolvedSlot);
             result = new InventoryTransferResult(
                 sourceInventory,
                 targetInventory,
@@ -878,7 +907,9 @@ namespace UniversalDragAndDrop.Inventories
                 sourceRemovedStack,
                 transferredStack,
                 targetWasEmpty,
-                actualRemaining);
+                actualRemaining,
+                targetPlacementMetadata,
+                sourcePlacementMetadata);
 
             Extensions.DragAndDropLog($"<color=green>[TransferPlanExecutor] Transfer complete: {actuallyAdded} transferred, {actualRemaining} remaining in source</color>");
             return true;
@@ -996,6 +1027,28 @@ namespace UniversalDragAndDrop.Inventories
             }
         }
 
+        private static PlacementTransferMetadata ResolvePlacementMetadata(
+            IInventory inventory,
+            BaseSlot resolvedSlot)
+        {
+            if (inventory is UniversalInventory universalInventory && resolvedSlot != null)
+            {
+                var placement = universalInventory.GetPlacementAt(resolvedSlot);
+                if (placement != null)
+                    return PlacementTransferMetadata.FromPlacement(placement, universalInventory.GetSlot);
+            }
+
+            return resolvedSlot != null
+                ? new PlacementTransferMetadata(
+                    resolvedSlot.Index,
+                    PlacementOrientation.Rot0,
+                    Footprint.One,
+                    new[] { resolvedSlot.Index },
+                    resolvedSlot,
+                    new[] { resolvedSlot })
+                : PlacementTransferMetadata.None;
+        }
+
         private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)
         {
             if (outcomes == null)
@@ -1013,7 +1066,8 @@ namespace UniversalDragAndDrop.Inventories
                         outcome.SourceBaseSlot?.Index ?? -1,
                         outcome.TargetInventory,
                         outcome.SourceBaseSlot,
-                        outcome.TargetBaseSlot);
+                        outcome.TargetBaseSlot,
+                        outcome.SourcePlacementMetadata);
                     sourceUniversal.HandleSlotEmptied(outcome.SourceBaseSlot);
                 }
 
@@ -1024,7 +1078,8 @@ namespace UniversalDragAndDrop.Inventories
                         outcome.TargetBaseSlot.Index,
                         outcome.SourceInventory,
                         outcome.SourceBaseSlot,
-                        outcome.TargetBaseSlot);
+                        outcome.TargetBaseSlot,
+                        outcome.TargetPlacementMetadata);
                 }
             }
         }
