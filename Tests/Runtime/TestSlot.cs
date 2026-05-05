@@ -12,11 +12,7 @@ namespace UniversalDragAndDrop.Tests
     {
         private ItemStack _testStack = ItemStack.Empty();
 
-        public override ItemStack Stack
-        {
-            get => Inventory != null ? base.Stack : _testStack;
-            protected set => _testStack = value ?? ItemStack.Empty();
-        }
+        public override ItemStack Stack => Inventory != null ? base.Stack : _testStack;
 
         public override void SetStack(ItemStack stack)
         {
