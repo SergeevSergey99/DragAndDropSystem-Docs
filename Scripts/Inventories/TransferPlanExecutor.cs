@@ -987,6 +987,9 @@ namespace UniversalDragAndDrop.Inventories
                     return operation.TransferStack.IsEmpty;
 
                 case ShapedPlacementExecutionOutcome.Failed:
+                    Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Shaped placement failed: {result.FailureReason}</color>");
+                    return false;
+
                 case ShapedPlacementExecutionOutcome.NotApplicable:
                 default:
                     return false;

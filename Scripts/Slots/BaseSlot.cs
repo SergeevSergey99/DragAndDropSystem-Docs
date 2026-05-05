@@ -26,7 +26,6 @@ namespace UniversalDragAndDrop.Slots
 
                 return ItemStack.Empty();
             }
-            protected set { }
         }
 
         public int Index { get; protected set; }
