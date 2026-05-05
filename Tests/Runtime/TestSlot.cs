@@ -8,7 +8,7 @@ namespace UniversalDragAndDrop.Tests
     /// No visuals, no UI — relies entirely on BaseSlot defaults.
     /// Lives in a runtime test assembly so AddComponent works.
     /// </summary>
-    public sealed class TestSlot : BaseSlot
+    public class TestSlot : BaseSlot
     {
         private ItemStack _testStack = ItemStack.Empty();
 

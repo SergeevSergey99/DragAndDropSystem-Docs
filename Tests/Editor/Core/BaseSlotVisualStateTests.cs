@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using UniversalDragAndDrop.Slots;
+using UniversalDragAndDrop.Tests;
 
 namespace UniversalDragAndDrop.Tests.Core
 {
@@ -51,7 +52,7 @@ namespace UniversalDragAndDrop.Tests.Core
         }
     }
 
-    public sealed class VisualStateTestSlot : BaseSlot
+    public sealed class VisualStateTestSlot : TestSlot
     {
         public enum RenderState
         {
