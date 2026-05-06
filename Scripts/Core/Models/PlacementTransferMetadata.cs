@@ -33,20 +33,12 @@ namespace UniversalDragAndDrop.Core
         public IReadOnlyList<BaseSlot> CoveredBaseSlots { get; }
         public bool HasCoveredCells => CoveredIndices.Count > 0;
 
-        public static PlacementTransferMetadata None { get; } = new PlacementTransferMetadata(
-            -1,
-            PlacementOrientation.Rot0,
-            Footprint.One,
-            Array.Empty<int>(),
-            null,
-            Array.Empty<BaseSlot>());
-
         public static PlacementTransferMetadata FromPlacement(
             Placement placement,
             Func<int, BaseSlot> slotResolver = null)
         {
             if (placement == null)
-                return None;
+                return null;
 
             return new PlacementTransferMetadata(
                 placement.AnchorIndex,

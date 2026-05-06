@@ -237,7 +237,7 @@ namespace UniversalDragAndDrop.Inventories
         private PlacementTransferMetadata ResolvePlacementTransferMetadata(BaseSlot baseSlot)
         {
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
-                return PlacementTransferMetadata.None;
+                return null;
 
             EnsurePlacementStateInitialized();
             var placement = GetPlacementAtInitialized(baseSlot.Index);

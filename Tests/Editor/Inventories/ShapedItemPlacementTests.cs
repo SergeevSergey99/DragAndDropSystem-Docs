@@ -40,6 +40,55 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void InventoryItemEventContext_WithoutPlacementMetadata_UsesNullAndSafeFallbacks()
+        {
+            var context = new InventoryItemEventContext(ItemStack.Empty());
+
+            Assert.IsNull(context.PlacementMetadata);
+            Assert.AreEqual(-1, context.AnchorIndex);
+            Assert.AreEqual(PlacementOrientation.Rot0, context.Orientation);
+            Assert.AreEqual(Footprint.One, context.Footprint);
+            Assert.IsEmpty(context.CoveredIndices);
+            Assert.IsEmpty(context.CoveredBaseSlots);
+        }
+
+        [Test]
+        public void InventoryItemEventContext_ResolvedSlots_DoNotCrossFallbackSourceAndTarget()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
+                var sourceSlot = inventory.GetSlot(0);
+                var targetSlot = inventory.GetSlot(1);
+                var metadata = new PlacementTransferMetadata(
+                    targetSlot.Index,
+                    PlacementOrientation.Rot0,
+                    Footprint.One,
+                    anchorBaseSlot: targetSlot);
+
+                var sourceOnlyContext = new InventoryItemEventContext(stack, sourceBaseSlot: sourceSlot);
+                Assert.AreSame(sourceSlot, sourceOnlyContext.ResolvedSourceBaseSlot);
+                Assert.IsNull(sourceOnlyContext.ResolvedTargetBaseSlot);
+
+                var targetOnlyContext = new InventoryItemEventContext(stack, targetBaseSlot: targetSlot);
+                Assert.AreSame(targetSlot, targetOnlyContext.ResolvedTargetBaseSlot);
+                Assert.IsNull(targetOnlyContext.ResolvedSourceBaseSlot);
+
+                var placementContext = new InventoryItemEventContext(stack, placementMetadata: metadata);
+                Assert.AreSame(targetSlot, placementContext.ResolvedTargetBaseSlot);
+                Assert.AreSame(targetSlot, placementContext.ResolvedSourceBaseSlot);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void SlotFacade_SetStackOnCoveredNonAnchor_DoesNotReplacePlacement()
         {
             var inventory = new InventoryBuilder()

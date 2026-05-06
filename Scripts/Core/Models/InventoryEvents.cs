@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Slots;
 
@@ -51,18 +52,20 @@ namespace UniversalDragAndDrop.Core
             TargetInventory = targetInventory;
             SourceBaseSlot = sourceBaseSlot;
             TargetBaseSlot = targetBaseSlot;
-            PlacementMetadata = placementMetadata ?? PlacementTransferMetadata.None;
+            PlacementMetadata = placementMetadata;
         }
 
         public PlacementTransferMetadata PlacementMetadata { get; }
-        public int AnchorIndex => PlacementMetadata.AnchorIndex >= 0
+        public int AnchorIndex => PlacementMetadata != null && PlacementMetadata.AnchorIndex >= 0
             ? PlacementMetadata.AnchorIndex
             : SlotIndex;
-        public BaseSlot AnchorBaseSlot => PlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot ?? SourceBaseSlot;
-        public System.Collections.Generic.IReadOnlyList<int> CoveredIndices => PlacementMetadata.CoveredIndices;
-        public System.Collections.Generic.IReadOnlyList<BaseSlot> CoveredBaseSlots => PlacementMetadata.CoveredBaseSlots;
-        public PlacementOrientation Orientation => PlacementMetadata.Orientation;
-        public Footprint Footprint => PlacementMetadata.Footprint;
+        public BaseSlot AnchorBaseSlot => PlacementMetadata?.AnchorBaseSlot ?? TargetBaseSlot ?? SourceBaseSlot;
+        public BaseSlot ResolvedTargetBaseSlot => TargetBaseSlot ?? PlacementMetadata?.AnchorBaseSlot;
+        public BaseSlot ResolvedSourceBaseSlot => SourceBaseSlot ?? PlacementMetadata?.AnchorBaseSlot;
+        public IReadOnlyList<int> CoveredIndices => PlacementMetadata?.CoveredIndices ?? Array.Empty<int>();
+        public IReadOnlyList<BaseSlot> CoveredBaseSlots => PlacementMetadata?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
+        public PlacementOrientation Orientation => PlacementMetadata?.Orientation ?? PlacementOrientation.Rot0;
+        public Footprint Footprint => PlacementMetadata?.Footprint ?? Footprint.One;
     }
 
     /// <summary>

@@ -24,8 +24,8 @@ namespace UniversalDragAndDrop.Inventories
             TargetBaseSlot = targetBaseSlot;
             ItemAdapter = itemAdapter;
             Amount = amount;
-            TargetPlacementMetadata = targetPlacementMetadata ?? PlacementTransferMetadata.None;
-            SourcePlacementMetadata = sourcePlacementMetadata ?? PlacementTransferMetadata.None;
+            TargetPlacementMetadata = targetPlacementMetadata;
+            SourcePlacementMetadata = sourcePlacementMetadata;
         }
 
         public BaseSlot SourceBaseSlot { get; }
@@ -35,14 +35,14 @@ namespace UniversalDragAndDrop.Inventories
         public PlacementTransferMetadata SourcePlacementMetadata { get; }
         public PlacementTransferMetadata TargetPlacementMetadata { get; }
         public PlacementTransferMetadata PlacementMetadata => TargetPlacementMetadata;
-        public BaseSlot AnchorSlot => TargetPlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot;
-        public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementMetadata.CoveredBaseSlots;
-        public IReadOnlyList<int> CoveredIndices => TargetPlacementMetadata.CoveredIndices;
-        public int AnchorIndex => TargetPlacementMetadata.AnchorIndex >= 0
+        public BaseSlot AnchorSlot => TargetPlacementMetadata?.AnchorBaseSlot ?? TargetBaseSlot;
+        public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementMetadata?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
+        public IReadOnlyList<int> CoveredIndices => TargetPlacementMetadata?.CoveredIndices ?? Array.Empty<int>();
+        public int AnchorIndex => TargetPlacementMetadata != null && TargetPlacementMetadata.AnchorIndex >= 0
             ? TargetPlacementMetadata.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
-        public PlacementOrientation Orientation => TargetPlacementMetadata.Orientation;
-        public Footprint Footprint => TargetPlacementMetadata.Footprint;
+        public PlacementOrientation Orientation => TargetPlacementMetadata?.Orientation ?? PlacementOrientation.Rot0;
+        public Footprint Footprint => TargetPlacementMetadata?.Footprint ?? Footprint.One;
     }
 
     public sealed class TransferExecutionSummary
@@ -148,7 +148,7 @@ namespace UniversalDragAndDrop.Inventories
             int transferredAmount = 0;
             IItemAdapter lastItemAdapter = null;
             BaseSlot lastTargetBaseSlot = null;
-            PlacementTransferMetadata lastTargetPlacementMetadata = PlacementTransferMetadata.None;
+            PlacementTransferMetadata lastTargetPlacementMetadata = null;
             bool hadPartialTransfer = false;
             var successfulOutcomes = new List<InventoryTransferResult>(plan.Entries.Count);
             var successfulDomainContexts = new List<TransferDomainContext>(plan.Entries.Count);
@@ -1046,7 +1046,7 @@ namespace UniversalDragAndDrop.Inventories
                     new[] { resolvedSlot.Index },
                     resolvedSlot,
                     new[] { resolvedSlot })
-                : PlacementTransferMetadata.None;
+                : null;
         }
 
         private static void DispatchTransferEvents(IReadOnlyList<InventoryTransferResult> outcomes)

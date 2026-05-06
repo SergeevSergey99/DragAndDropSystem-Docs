@@ -141,6 +141,15 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
 
         private void RemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex)
         {
+            if (TryRemoveFirstPlacement(item, anchorIndex))
+                return;
+
+            if (anchorIndex >= 0)
+                TryRemoveFirstPlacement(item, -1);
+        }
+
+        private bool TryRemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex)
+        {
             for (int i = 0; i < _placements.Count; i++)
             {
                 if (!ReferenceEquals(_placements[i].item, item))
@@ -150,11 +159,10 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
                     continue;
 
                 _placements.RemoveAt(i);
-                return;
+                return true;
             }
 
-            if (anchorIndex >= 0)
-                RemoveFirstPlacement(item, -1);
+            return false;
         }
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Slots;
 
@@ -82,18 +84,18 @@ namespace UniversalDragAndDrop.Core
             RemainingInSource = remainingInSource;
             SucceededEntries = succeededEntries;
             FailedEntries = failedEntries;
-            PlacementMetadata = placementMetadata ?? PlacementTransferMetadata.None;
+            PlacementMetadata = placementMetadata;
         }
 
         public PlacementTransferMetadata PlacementMetadata { get; }
-        public BaseSlot AnchorSlot => PlacementMetadata.AnchorBaseSlot ?? TargetBaseSlot;
-        public System.Collections.Generic.IReadOnlyList<BaseSlot> CoveredSlots => PlacementMetadata.CoveredBaseSlots;
-        public System.Collections.Generic.IReadOnlyList<int> CoveredIndices => PlacementMetadata.CoveredIndices;
-        public int AnchorIndex => PlacementMetadata.AnchorIndex >= 0
+        public BaseSlot AnchorSlot => PlacementMetadata?.AnchorBaseSlot ?? TargetBaseSlot;
+        public IReadOnlyList<BaseSlot> CoveredSlots => PlacementMetadata?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
+        public IReadOnlyList<int> CoveredIndices => PlacementMetadata?.CoveredIndices ?? Array.Empty<int>();
+        public int AnchorIndex => PlacementMetadata != null && PlacementMetadata.AnchorIndex >= 0
             ? PlacementMetadata.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
-        public PlacementOrientation Orientation => PlacementMetadata.Orientation;
-        public Footprint Footprint => PlacementMetadata.Footprint;
+        public PlacementOrientation Orientation => PlacementMetadata?.Orientation ?? PlacementOrientation.Rot0;
+        public Footprint Footprint => PlacementMetadata?.Footprint ?? Footprint.One;
 
         /// <summary>
         /// Create a successful drop result
