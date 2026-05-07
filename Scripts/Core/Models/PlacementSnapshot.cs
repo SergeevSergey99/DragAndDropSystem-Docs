@@ -5,11 +5,11 @@ using UniversalDragAndDrop.Slots;
 namespace UniversalDragAndDrop.Core
 {
     /// <summary>
-    /// Placement-aware metadata for shaped transfers, events, and drop results.
+    /// Immutable placement state captured for shaped transfers, events, and drop results.
     /// </summary>
-    public sealed class PlacementTransferMetadata
+    public sealed class PlacementSnapshot
     {
-        public PlacementTransferMetadata(
+        public PlacementSnapshot(
             int anchorIndex,
             PlacementOrientation orientation,
             Footprint footprint,
@@ -33,14 +33,14 @@ namespace UniversalDragAndDrop.Core
         public IReadOnlyList<BaseSlot> CoveredBaseSlots { get; }
         public bool HasCoveredCells => CoveredIndices.Count > 0;
 
-        public static PlacementTransferMetadata FromPlacement(
+        public static PlacementSnapshot FromPlacement(
             Placement placement,
             Func<int, BaseSlot> slotResolver = null)
         {
             if (placement == null)
                 return null;
 
-            return new PlacementTransferMetadata(
+            return new PlacementSnapshot(
                 placement.AnchorIndex,
                 placement.Orientation,
                 placement.Footprint,

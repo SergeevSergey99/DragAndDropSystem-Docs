@@ -40,11 +40,11 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void InventoryItemEventContext_WithoutPlacementMetadata_UsesNullAndSafeFallbacks()
+        public void InventoryItemEventContext_WithoutPlacementSnapshot_UsesNullAndSafeFallbacks()
         {
             var context = new InventoryItemEventContext(ItemStack.Empty());
 
-            Assert.IsNull(context.PlacementMetadata);
+            Assert.IsNull(context.PlacementSnapshot);
             Assert.AreEqual(-1, context.AnchorIndex);
             Assert.AreEqual(PlacementOrientation.Rot0, context.Orientation);
             Assert.AreEqual(Footprint.One, context.Footprint);
@@ -64,7 +64,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 var stack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
                 var sourceSlot = inventory.GetSlot(0);
                 var targetSlot = inventory.GetSlot(1);
-                var metadata = new PlacementTransferMetadata(
+                var snapshot = new PlacementSnapshot(
                     targetSlot.Index,
                     PlacementOrientation.Rot0,
                     Footprint.One,
@@ -78,7 +78,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 Assert.AreSame(targetSlot, targetOnlyContext.ResolvedTargetBaseSlot);
                 Assert.IsNull(targetOnlyContext.ResolvedSourceBaseSlot);
 
-                var placementContext = new InventoryItemEventContext(stack, placementMetadata: metadata);
+                var placementContext = new InventoryItemEventContext(stack, placementSnapshot: snapshot);
                 Assert.AreSame(targetSlot, placementContext.ResolvedTargetBaseSlot);
                 Assert.AreSame(targetSlot, placementContext.ResolvedSourceBaseSlot);
             }
@@ -186,7 +186,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void DragEntry_FromCoveredCell_CapturesPlacementMetadata()
+        public void DragEntry_FromCoveredCell_CapturesPlacementSnapshot()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -702,7 +702,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void ProcessDrop_ShapedGridToGrid_ReportsPlacementMetadata()
+        public void ProcessDrop_ShapedGridToGrid_ReportsPlacementSnapshot()
         {
             var source = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -746,7 +746,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 var executedEntry = summary.ExecutedEntries[0];
                 Assert.AreEqual(4, executedEntry.AnchorIndex);
                 CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, executedEntry.CoveredIndices);
-                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, executedEntry.SourcePlacementMetadata.CoveredIndices);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, executedEntry.SourcePlacementSnapshot.CoveredIndices);
 
                 Assert.IsNotNull(removedContext);
                 Assert.AreEqual(0, removedContext.AnchorIndex);
@@ -1048,7 +1048,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void Snapshot_PreservesPlacementMetadata()
+        public void Snapshot_PreservesPlacementSnapshot()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)

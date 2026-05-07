@@ -196,9 +196,9 @@ namespace UniversalDragAndDrop.Inventories
             IInventory sourceInventory,
             BaseSlot sourceBaseSlot,
             BaseSlot targetBaseSlot,
-            PlacementTransferMetadata placementMetadata = null)
+            PlacementSnapshot placementSnapshot = null)
         {
-            placementMetadata ??= ResolvePlacementTransferMetadata(targetBaseSlot);
+            placementSnapshot ??= ResolvePlacementSnapshot(targetBaseSlot);
             var context = new InventoryItemEventContext(
                 stack,
                 slotIndex,
@@ -206,7 +206,7 @@ namespace UniversalDragAndDrop.Inventories
                 this,
                 sourceBaseSlot,
                 targetBaseSlot,
-                placementMetadata);
+                placementSnapshot);
 
             DataBinding?.HandleItemAdded(context);
             OnItemAdded?.Invoke(context);
@@ -218,9 +218,9 @@ namespace UniversalDragAndDrop.Inventories
             IInventory targetInventory,
             BaseSlot sourceBaseSlot,
             BaseSlot targetBaseSlot,
-            PlacementTransferMetadata placementMetadata = null)
+            PlacementSnapshot placementSnapshot = null)
         {
-            placementMetadata ??= ResolvePlacementTransferMetadata(sourceBaseSlot);
+            placementSnapshot ??= ResolvePlacementSnapshot(sourceBaseSlot);
             var context = new InventoryItemEventContext(
                 stack,
                 slotIndex,
@@ -228,13 +228,13 @@ namespace UniversalDragAndDrop.Inventories
                 targetInventory,
                 sourceBaseSlot,
                 targetBaseSlot,
-                placementMetadata);
+                placementSnapshot);
 
             DataBinding?.HandleItemRemoved(context);
             OnItemRemoved?.Invoke(context);
         }
 
-        private PlacementTransferMetadata ResolvePlacementTransferMetadata(BaseSlot baseSlot)
+        private PlacementSnapshot ResolvePlacementSnapshot(BaseSlot baseSlot)
         {
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return null;
@@ -242,9 +242,9 @@ namespace UniversalDragAndDrop.Inventories
             EnsurePlacementStateInitialized();
             var placement = GetPlacementAtInitialized(baseSlot.Index);
             if (placement != null)
-                return PlacementTransferMetadata.FromPlacement(placement, GetSlot);
+                return PlacementSnapshot.FromPlacement(placement, GetSlot);
 
-            return new PlacementTransferMetadata(
+            return new PlacementSnapshot(
                 baseSlot.Index,
                 PlacementOrientation.Rot0,
                 Footprint.One,

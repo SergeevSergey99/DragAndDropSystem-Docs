@@ -72,7 +72,7 @@ namespace UniversalDragAndDrop.Core
             int remainingInSource,
             int succeededEntries,
             int failedEntries,
-            PlacementTransferMetadata placementMetadata = null)
+            PlacementSnapshot placementSnapshot = null)
         {
             Success = success;
             ItemAdapter = itemAdapter;
@@ -84,18 +84,18 @@ namespace UniversalDragAndDrop.Core
             RemainingInSource = remainingInSource;
             SucceededEntries = succeededEntries;
             FailedEntries = failedEntries;
-            PlacementMetadata = placementMetadata;
+            PlacementSnapshot = placementSnapshot;
         }
 
-        public PlacementTransferMetadata PlacementMetadata { get; }
-        public BaseSlot AnchorSlot => PlacementMetadata?.AnchorBaseSlot ?? TargetBaseSlot;
-        public IReadOnlyList<BaseSlot> CoveredSlots => PlacementMetadata?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
-        public IReadOnlyList<int> CoveredIndices => PlacementMetadata?.CoveredIndices ?? Array.Empty<int>();
-        public int AnchorIndex => PlacementMetadata != null && PlacementMetadata.AnchorIndex >= 0
-            ? PlacementMetadata.AnchorIndex
+        public PlacementSnapshot PlacementSnapshot { get; }
+        public BaseSlot AnchorSlot => PlacementSnapshot?.AnchorBaseSlot ?? TargetBaseSlot;
+        public IReadOnlyList<BaseSlot> CoveredSlots => PlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
+        public IReadOnlyList<int> CoveredIndices => PlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
+        public int AnchorIndex => PlacementSnapshot != null && PlacementSnapshot.AnchorIndex >= 0
+            ? PlacementSnapshot.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
-        public PlacementOrientation Orientation => PlacementMetadata?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => PlacementMetadata?.Footprint ?? Footprint.One;
+        public PlacementOrientation Orientation => PlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
+        public Footprint Footprint => PlacementSnapshot?.Footprint ?? Footprint.One;
 
         /// <summary>
         /// Create a successful drop result
@@ -109,7 +109,7 @@ namespace UniversalDragAndDrop.Core
             int remainingInSource = 0,
             int succeededEntries = 1,
             int failedEntries = 0,
-            PlacementTransferMetadata placementMetadata = null)
+            PlacementSnapshot placementSnapshot = null)
         {
             return new DropResult(
                 success: true,
@@ -122,7 +122,7 @@ namespace UniversalDragAndDrop.Core
                 remainingInSource: remainingInSource,
                 succeededEntries: succeededEntries,
                 failedEntries: failedEntries,
-                placementMetadata: placementMetadata);
+                placementSnapshot: placementSnapshot);
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace UniversalDragAndDrop.Core
             int failedEntries,
             bool isPartialTransfer,
             int remainingInSource = 0,
-            PlacementTransferMetadata placementMetadata = null)
+            PlacementSnapshot placementSnapshot = null)
         {
             return new DropResult(
                 success: true,
@@ -168,7 +168,7 @@ namespace UniversalDragAndDrop.Core
                 remainingInSource: remainingInSource,
                 succeededEntries: succeededEntries,
                 failedEntries: failedEntries,
-                placementMetadata: placementMetadata);
+                placementSnapshot: placementSnapshot);
         }
 
         /// <summary>

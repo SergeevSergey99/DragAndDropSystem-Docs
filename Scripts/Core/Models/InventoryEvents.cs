@@ -44,7 +44,7 @@ namespace UniversalDragAndDrop.Core
             IInventory targetInventory = null,
             BaseSlot sourceBaseSlot = null,
             BaseSlot targetBaseSlot = null,
-            PlacementTransferMetadata placementMetadata = null)
+            PlacementSnapshot placementSnapshot = null)
         {
             Stack = stack ?? ItemStack.Empty();
             SlotIndex = slotIndex;
@@ -52,20 +52,20 @@ namespace UniversalDragAndDrop.Core
             TargetInventory = targetInventory;
             SourceBaseSlot = sourceBaseSlot;
             TargetBaseSlot = targetBaseSlot;
-            PlacementMetadata = placementMetadata;
+            PlacementSnapshot = placementSnapshot;
         }
 
-        public PlacementTransferMetadata PlacementMetadata { get; }
-        public int AnchorIndex => PlacementMetadata != null && PlacementMetadata.AnchorIndex >= 0
-            ? PlacementMetadata.AnchorIndex
+        public PlacementSnapshot PlacementSnapshot { get; }
+        public int AnchorIndex => PlacementSnapshot != null && PlacementSnapshot.AnchorIndex >= 0
+            ? PlacementSnapshot.AnchorIndex
             : SlotIndex;
-        public BaseSlot AnchorBaseSlot => PlacementMetadata?.AnchorBaseSlot ?? TargetBaseSlot ?? SourceBaseSlot;
-        public BaseSlot ResolvedTargetBaseSlot => TargetBaseSlot ?? PlacementMetadata?.AnchorBaseSlot;
-        public BaseSlot ResolvedSourceBaseSlot => SourceBaseSlot ?? PlacementMetadata?.AnchorBaseSlot;
-        public IReadOnlyList<int> CoveredIndices => PlacementMetadata?.CoveredIndices ?? Array.Empty<int>();
-        public IReadOnlyList<BaseSlot> CoveredBaseSlots => PlacementMetadata?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
-        public PlacementOrientation Orientation => PlacementMetadata?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => PlacementMetadata?.Footprint ?? Footprint.One;
+        public BaseSlot AnchorBaseSlot => PlacementSnapshot?.AnchorBaseSlot ?? TargetBaseSlot ?? SourceBaseSlot;
+        public BaseSlot ResolvedTargetBaseSlot => TargetBaseSlot ?? PlacementSnapshot?.AnchorBaseSlot;
+        public BaseSlot ResolvedSourceBaseSlot => SourceBaseSlot ?? PlacementSnapshot?.AnchorBaseSlot;
+        public IReadOnlyList<int> CoveredIndices => PlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
+        public IReadOnlyList<BaseSlot> CoveredBaseSlots => PlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
+        public PlacementOrientation Orientation => PlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
+        public Footprint Footprint => PlacementSnapshot?.Footprint ?? Footprint.One;
     }
 
     /// <summary>

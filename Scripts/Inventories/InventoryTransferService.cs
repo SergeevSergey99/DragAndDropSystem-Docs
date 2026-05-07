@@ -50,8 +50,8 @@ namespace UniversalDragAndDrop.Inventories
             ItemStack transferredStack,
             bool targetWasEmptyBefore,
             int remainingInSource = 0,
-            PlacementTransferMetadata targetPlacementMetadata = null,
-            PlacementTransferMetadata sourcePlacementMetadata = null)
+            PlacementSnapshot targetPlacementSnapshot = null,
+            PlacementSnapshot sourcePlacementSnapshot = null)
         {
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
@@ -61,8 +61,8 @@ namespace UniversalDragAndDrop.Inventories
             TransferredStack = transferredStack ?? ItemStack.Empty();
             TargetWasEmptyBefore = targetWasEmptyBefore;
             RemainingInSource = remainingInSource;
-            TargetPlacementMetadata = targetPlacementMetadata;
-            SourcePlacementMetadata = sourcePlacementMetadata;
+            TargetPlacementSnapshot = targetPlacementSnapshot;
+            SourcePlacementSnapshot = sourcePlacementSnapshot;
         }
 
         public IInventory SourceInventory { get; }
@@ -87,16 +87,16 @@ namespace UniversalDragAndDrop.Inventories
         public bool TargetWasEmptyBefore { get; }
         public int RemainingInSource { get; }
         public bool IsPartialTransfer => RemainingInSource > 0;
-        public PlacementTransferMetadata SourcePlacementMetadata { get; }
-        public PlacementTransferMetadata TargetPlacementMetadata { get; }
-        public PlacementTransferMetadata PlacementMetadata => TargetPlacementMetadata;
-        public BaseSlot AnchorSlot => TargetPlacementMetadata?.AnchorBaseSlot ?? TargetBaseSlot;
-        public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementMetadata?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
-        public IReadOnlyList<int> CoveredIndices => TargetPlacementMetadata?.CoveredIndices ?? Array.Empty<int>();
-        public int AnchorIndex => TargetPlacementMetadata != null && TargetPlacementMetadata.AnchorIndex >= 0
-            ? TargetPlacementMetadata.AnchorIndex
+        public PlacementSnapshot SourcePlacementSnapshot { get; }
+        public PlacementSnapshot TargetPlacementSnapshot { get; }
+        public PlacementSnapshot PlacementSnapshot => TargetPlacementSnapshot;
+        public BaseSlot AnchorSlot => TargetPlacementSnapshot?.AnchorBaseSlot ?? TargetBaseSlot;
+        public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
+        public IReadOnlyList<int> CoveredIndices => TargetPlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
+        public int AnchorIndex => TargetPlacementSnapshot != null && TargetPlacementSnapshot.AnchorIndex >= 0
+            ? TargetPlacementSnapshot.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
-        public PlacementOrientation Orientation => TargetPlacementMetadata?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => TargetPlacementMetadata?.Footprint ?? Footprint.One;
+        public PlacementOrientation Orientation => TargetPlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
+        public Footprint Footprint => TargetPlacementSnapshot?.Footprint ?? Footprint.One;
     }
 }
