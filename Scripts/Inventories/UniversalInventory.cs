@@ -1210,12 +1210,14 @@ namespace UniversalDragAndDrop.Inventories
             if (snapshot == null)
                 return;
 
+            int desiredCount = snapshot.SlotCount;
+            if (!TryBuildSnapshotPlacementRequests(snapshot, desiredCount, out var placementRequests))
+                return;
+
             if (_slots == null)
             {
                 _slots = new List<BaseSlot>();
             }
-
-            int desiredCount = snapshot.SlotCount;
 
             // Increase the number of slots to the required amount
             while (_slots.Count < desiredCount)
@@ -1240,34 +1242,149 @@ namespace UniversalDragAndDrop.Inventories
 
             ClearInitializedPlacementState();
 
-            if (snapshot.Placements != null)
+            for (int i = 0; i < placementRequests.Count; i++)
             {
-                for (int i = 0; i < snapshot.Placements.Count; i++)
+                var request = placementRequests[i];
+                if (!TryPlace(request))
                 {
-                    var placementState = snapshot.Placements[i];
-                    if (placementState.IsEmpty)
-                        continue;
+                    Debug.LogError(
+                        $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {request.AnchorIndex} ({request.Footprint}, {request.Orientation}).",
+                        this);
+                    ClearInitializedPlacementState();
+                    UpdateAllVisuals();
+                    return;
+                }
+            }
 
-                    if (!ItemStack.TryCreate(placementState.Adapters, out var restoredStack))
-                        continue;
+            UpdateAllVisuals();
+        }
 
-                    var request = new PlacementRequest(
-                        restoredStack,
-                        placementState.AnchorIndex,
-                        placementState.Orientation,
-                        placementState.Footprint);
+        private bool TryBuildSnapshotPlacementRequests(
+            InventorySnapshot snapshot,
+            int desiredSlotCount,
+            out List<PlacementRequest> requests)
+        {
+            requests = new List<PlacementRequest>(snapshot?.Placements?.Count ?? 0);
+            if (snapshot?.Placements == null)
+                return true;
 
-                    if (!TryPlace(request))
-                    {
-                        Debug.LogError(
-                            $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {placementState.AnchorIndex} ({placementState.Footprint}, {placementState.Orientation}).",
-                            this);
-                    }
+            var occupiedCells = new HashSet<int>();
+            for (int i = 0; i < snapshot.Placements.Count; i++)
+            {
+                var placementState = snapshot.Placements[i];
+                if (placementState.IsEmpty)
+                    continue;
+
+                if (!ItemStack.TryCreate(placementState.Adapters, out var restoredStack))
+                {
+                    LogSnapshotRestoreFailure(placementState);
+                    return false;
                 }
 
-                UpdateAllVisuals();
-                return;
+                var request = new PlacementRequest(
+                    restoredStack,
+                    placementState.AnchorIndex,
+                    placementState.Orientation,
+                    placementState.Footprint);
+
+                if (!CanPlaceSnapshotRequest(request, desiredSlotCount, occupiedCells))
+                {
+                    LogSnapshotRestoreFailure(placementState);
+                    return false;
+                }
+
+                requests.Add(request);
             }
+
+            return true;
+        }
+
+        private bool CanPlaceSnapshotRequest(
+            PlacementRequest request,
+            int desiredSlotCount,
+            HashSet<int> occupiedCells)
+        {
+            if (request.Stack == null || request.Stack.IsEmpty)
+                return false;
+
+            if (!_useGridTopology &&
+                _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
+                !request.Footprint.IsSingleCell)
+                return false;
+
+            if (!request.Footprint.IsSingleCell && request.Stack.Count > 1)
+                return false;
+
+            var coveredIndices = BuildSnapshotCoveredCells(
+                request.AnchorIndex,
+                request.Footprint,
+                request.Orientation,
+                desiredSlotCount);
+
+            if (coveredIndices == null || coveredIndices.Count == 0)
+                return false;
+
+            for (int i = 0; i < coveredIndices.Count; i++)
+            {
+                if (!occupiedCells.Add(coveredIndices[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private IReadOnlyList<int> BuildSnapshotCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation,
+            int desiredSlotCount)
+        {
+            if (_useGridTopology)
+                return BuildSnapshotGridCoveredCells(anchorIndex, footprint, orientation, desiredSlotCount);
+
+            return anchorIndex >= 0 && anchorIndex < desiredSlotCount
+                ? new[] { anchorIndex }
+                : Array.Empty<int>();
+        }
+
+        private IReadOnlyList<int> BuildSnapshotGridCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation,
+            int desiredSlotCount)
+        {
+            var topology = _gridTopology.Normalized();
+            if (!topology.IsValidIndex(anchorIndex) || anchorIndex >= desiredSlotCount)
+                return Array.Empty<int>();
+
+            var anchorCell = topology.ToCell(anchorIndex);
+            var size = footprint.GetSize(orientation);
+            var result = new List<int>(size.x * size.y);
+
+            for (int y = 0; y < size.y; y++)
+            {
+                for (int x = 0; x < size.x; x++)
+                {
+                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
+                    if (!topology.Contains(cell))
+                        return Array.Empty<int>();
+
+                    int index = topology.ToIndex(cell);
+                    if (index < 0 || index >= desiredSlotCount)
+                        return Array.Empty<int>();
+
+                    result.Add(index);
+                }
+            }
+
+            return result;
+        }
+
+        private void LogSnapshotRestoreFailure(InventoryPlacementState placementState)
+        {
+            Debug.LogError(
+                $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {placementState.AnchorIndex} ({placementState.Footprint}, {placementState.Orientation}).",
+                this);
         }
 
         public void ReInitSlots(int slotCount)

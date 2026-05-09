@@ -1119,6 +1119,56 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void RestoreSnapshot_WhenPlacementCannotBeRestored_DoesNotApplyPartialSnapshot()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .Build();
+
+            try
+            {
+                EnableGrid(inventory, 2, 2);
+                var existingAdapter = new FakeItemAdapter("existing");
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(ItemStackBuilder.Of(existingAdapter), 3)));
+
+                var firstSnapshotStack = ItemStackBuilder.Of(new FakeItemAdapter("first"));
+                var overlappingSnapshotStack = ItemStackBuilder.Of(new FakeItemAdapter("overlap"));
+                var snapshot = new InventorySnapshot(
+                    4,
+                    new System.Collections.Generic.List<InventoryPlacementState>
+                    {
+                        new InventoryPlacementState(
+                            0,
+                            firstSnapshotStack.Adapters,
+                            PlacementOrientation.Rot0,
+                            Footprint.One,
+                            new[] { 0 }),
+                        new InventoryPlacementState(
+                            0,
+                            overlappingSnapshotStack.Adapters,
+                            PlacementOrientation.Rot0,
+                            Footprint.One,
+                            new[] { 0 })
+                    });
+
+                LogAssert.Expect(
+                    LogType.Error,
+                    $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor 0 (1x1, Rot0).");
+
+                inventory.RestoreSnapshot(snapshot);
+
+                Assert.IsNull(inventory.GetPlacementAt(0));
+                var existingPlacement = inventory.GetPlacementAt(3);
+                Assert.IsNotNull(existingPlacement);
+                Assert.AreSame(existingAdapter, existingPlacement.Stack.PrimaryAdapter);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void TryPlanSwapAgainstTarget_ShapedSourceItem_IsRejected()
         {
             var source = new InventoryBuilder()
