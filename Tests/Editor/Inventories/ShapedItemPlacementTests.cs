@@ -89,7 +89,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void SlotFacade_SetStackOnCoveredNonAnchor_DoesNotReplacePlacement()
+        public void SlotStore_SetStackOnCoveredNonAnchor_DoesNotReplacePlacement()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(4)
@@ -102,11 +102,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
                 var coveredSlot = inventory.GetSlot(3);
-                LogAssert.Expect(
-                    LogType.Warning,
-                    $"[{coveredSlot.name}] SetStack failed for placement-backed slot {coveredSlot.Index}");
-
-                coveredSlot.SetStack(ItemStackBuilder.Of(new FakeItemAdapter("gem")));
+                Assert.IsFalse(inventory.TrySetStackForSlot(coveredSlot, ItemStackBuilder.Of(new FakeItemAdapter("gem"))));
 
                 Assert.AreSame(placement, inventory.GetPlacementAt(0));
                 Assert.AreSame(placement, inventory.GetPlacementAt(3));
@@ -119,7 +115,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void SlotFacade_FailedSetStack_RestoresExistingPlacement()
+        public void SlotStore_FailedSetStack_RestoresExistingPlacement()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(4)
@@ -134,11 +130,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 inventory.GetSlot(1).SetStack(blocker);
 
                 var anchorSlot = inventory.GetSlot(0);
-                LogAssert.Expect(
-                    LogType.Warning,
-                    $"[{anchorSlot.name}] SetStack failed for placement-backed slot {anchorSlot.Index}");
-
-                anchorSlot.SetStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2)));
+                Assert.IsFalse(inventory.TrySetStackForSlot(anchorSlot, ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2))));
 
                 Assert.AreSame(original, inventory.GetSlot(0).Stack);
                 Assert.AreSame(blocker, inventory.GetSlot(1).Stack);
@@ -1126,11 +1118,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                             new[] { 0, 1 })
                     });
 
-                LogAssert.Expect(
-                    LogType.Error,
-                    $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor 0 (2x1, Rot0).");
-
-                inventory.RestoreSnapshot(snapshot);
+                Assert.IsFalse(inventory.TryRestoreSnapshot(snapshot, logFailures: false));
 
                 Assert.IsNull(inventory.GetPlacementAt(0));
             }
@@ -1173,11 +1161,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
                             new[] { 0 })
                     });
 
-                LogAssert.Expect(
-                    LogType.Error,
-                    $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor 0 (1x1, Rot0).");
-
-                inventory.RestoreSnapshot(snapshot);
+                Assert.IsFalse(inventory.TryRestoreSnapshot(snapshot, logFailures: false));
 
                 Assert.IsNull(inventory.GetPlacementAt(0));
                 var existingPlacement = inventory.GetPlacementAt(3);

@@ -1264,12 +1264,17 @@ namespace UniversalDragAndDrop.Inventories
 
         public void RestoreSnapshot(InventorySnapshot snapshot)
         {
+            TryRestoreSnapshot(snapshot);
+        }
+
+        public bool TryRestoreSnapshot(InventorySnapshot snapshot, bool logFailures = true)
+        {
             if (snapshot == null)
-                return;
+                return false;
 
             int desiredCount = snapshot.SlotCount;
-            if (!TryBuildSnapshotPlacementRequests(snapshot, desiredCount, out var placementRequests))
-                return;
+            if (!TryBuildSnapshotPlacementRequests(snapshot, desiredCount, out var placementRequests, logFailures))
+                return false;
 
             if (_slots == null)
             {
@@ -1304,22 +1309,28 @@ namespace UniversalDragAndDrop.Inventories
                 var request = placementRequests[i];
                 if (!TryPlace(request))
                 {
-                    Debug.LogError(
-                        $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {request.AnchorIndex} ({request.Footprint}, {request.Orientation}).",
-                        this);
+                    if (logFailures)
+                    {
+                        Debug.LogError(
+                            $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {request.AnchorIndex} ({request.Footprint}, {request.Orientation}).",
+                            this);
+                    }
+
                     ClearInitializedPlacementState();
                     UpdateAllVisuals();
-                    return;
+                    return false;
                 }
             }
 
             UpdateAllVisuals();
+            return true;
         }
 
         private bool TryBuildSnapshotPlacementRequests(
             InventorySnapshot snapshot,
             int desiredSlotCount,
-            out List<PlacementRequest> requests)
+            out List<PlacementRequest> requests,
+            bool logFailures)
         {
             requests = new List<PlacementRequest>(snapshot?.Placements?.Count ?? 0);
             if (snapshot?.Placements == null)
@@ -1334,7 +1345,9 @@ namespace UniversalDragAndDrop.Inventories
 
                 if (!ItemStack.TryCreate(placementState.Adapters, out var restoredStack))
                 {
-                    LogSnapshotRestoreFailure(placementState);
+                    if (logFailures)
+                        LogSnapshotRestoreFailure(placementState);
+
                     return false;
                 }
 
@@ -1346,7 +1359,9 @@ namespace UniversalDragAndDrop.Inventories
 
                 if (!CanPlaceSnapshotRequest(request, desiredSlotCount, occupiedCells))
                 {
-                    LogSnapshotRestoreFailure(placementState);
+                    if (logFailures)
+                        LogSnapshotRestoreFailure(placementState);
+
                     return false;
                 }
 
