@@ -1082,6 +1082,28 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
+        public void InventorySnapshot_CopiesPlacementList()
+        {
+            var adapters = ItemStackBuilder.Of(new FakeItemAdapter("gem")).Adapters;
+            var placements = new System.Collections.Generic.List<InventoryPlacementState>
+            {
+                new InventoryPlacementState(
+                    0,
+                    adapters,
+                    PlacementOrientation.Rot0,
+                    Footprint.One,
+                    new[] { 0 })
+            };
+
+            var snapshot = new InventorySnapshot(2, placements);
+
+            placements.Clear();
+
+            Assert.AreEqual(1, snapshot.Placements.Count);
+            Assert.AreEqual(0, snapshot.Placements[0].AnchorIndex);
+        }
+
+        [Test]
         public void RestoreSnapshot_WhenPlacementCannotBeRestored_LogsError()
         {
             var inventory = new InventoryBuilder()

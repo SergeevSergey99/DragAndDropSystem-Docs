@@ -10,14 +10,24 @@ namespace UniversalDragAndDrop.Inventories
     /// </summary>
     public sealed class InventorySnapshot
     {
-        public InventorySnapshot(int slotCount, List<InventoryPlacementState> placements = null)
+        public InventorySnapshot(int slotCount, IReadOnlyList<InventoryPlacementState> placements = null)
         {
             SlotCount = slotCount < 0 ? 0 : slotCount;
-            Placements = placements ?? new List<InventoryPlacementState>();
+            Placements = placements == null || placements.Count == 0
+                ? System.Array.Empty<InventoryPlacementState>()
+                : Copy(placements);
         }
 
         public int SlotCount { get; }
-        public List<InventoryPlacementState> Placements { get; }
+        public IReadOnlyList<InventoryPlacementState> Placements { get; }
+
+        private static InventoryPlacementState[] Copy(IReadOnlyList<InventoryPlacementState> placements)
+        {
+            var copy = new InventoryPlacementState[placements.Count];
+            for (int i = 0; i < placements.Count; i++)
+                copy[i] = placements[i];
+            return copy;
+        }
     }
 
     /// <summary>

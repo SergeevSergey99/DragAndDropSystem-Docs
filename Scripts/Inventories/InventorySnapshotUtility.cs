@@ -112,7 +112,7 @@ namespace UniversalDragAndDrop.Inventories
         }
 
         private static Dictionary<int, (IItemAdapter adapter, int count)> BuildCellOccupancy(
-            List<InventoryPlacementState> placements)
+            IReadOnlyList<InventoryPlacementState> placements)
         {
             var map = new Dictionary<int, (IItemAdapter adapter, int count)>();
             if (placements == null)
