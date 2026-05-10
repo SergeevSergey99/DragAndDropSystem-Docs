@@ -325,7 +325,17 @@ namespace UniversalDragAndDrop.Inventories
         }
 
         protected static bool TryMergeIntoSlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
+            => TryMergeIntoSlot(stack, baseSlot, maxStackSize, ensureFreeSlots, operationContext, out _);
+
+        protected static bool TryMergeIntoSlot(
+            ItemStack stack,
+            BaseSlot baseSlot,
+            int maxStackSize,
+            System.Action ensureFreeSlots,
+            SlotOperationContext operationContext,
+            out int addedAmount)
         {
+            addedAmount = 0;
             int canFit = Math.Max(0, maxStackSize - baseSlot.Stack.Count);
             int toAdd = Math.Min(stack.Count, canFit);
             if (toAdd <= 0) return false;
@@ -334,16 +344,38 @@ namespace UniversalDragAndDrop.Inventories
             if (movedStack.IsEmpty)
                 return false;
 
-            if (!baseSlot.Stack.TryAddToStack(movedStack))
+            var stackStore = baseSlot.Inventory as ISlotStackStore;
+            bool added = stackStore != null
+                ? stackStore.TryAddToSlotStack(baseSlot, movedStack)
+                : baseSlot.Stack.TryAddToStack(movedStack);
+
+            if (!added)
             {
                 stack.TryAddToStack(movedStack);
                 return false;
             }
 
             baseSlot.UpdateVisuals();
+            addedAmount = toAdd;
             operationContext?.RecordResult(baseSlot, false, toAdd);
             ensureFreeSlots?.Invoke();
             return true;
+        }
+
+        protected static int RemoveFromSlot(BaseSlot baseSlot, int amount)
+        {
+            if (baseSlot == null || amount <= 0)
+                return 0;
+
+            if (baseSlot.Inventory is ISlotStackStore stackStore &&
+                stackStore.TrySplitFromSlot(baseSlot, amount, out var removedStack))
+                return removedStack.Count;
+
+            int removed = baseSlot.Stack.RemoveFromStack(amount);
+            if (removed > 0)
+                baseSlot.UpdateVisuals();
+
+            return removed;
         }
 
         protected static bool TryPlaceIntoEmptySlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)

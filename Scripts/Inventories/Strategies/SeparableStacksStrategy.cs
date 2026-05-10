@@ -55,18 +55,10 @@ namespace UniversalDragAndDrop.Inventories
                     int toAdd = Math.Min(remaining, canFit);
                     if (toAdd > 0 && (skipRules || PassesRules(targetSlot, stack.PrimaryAdapter, toAdd)))
                     {
-                        var movedStack = stack.Split(toAdd);
-                        if (movedStack.IsEmpty)
+                        if (!TryMergeIntoSlot(stack, targetSlot, maxSize, null, null, out int added))
                             return false;
 
-                        if (!targetSlot.Stack.TryAddToStack(movedStack))
-                        {
-                            stack.TryAddToStack(movedStack);
-                            return false;
-                        }
-
-                        targetSlot.UpdateVisuals();
-                        remaining -= toAdd;
+                        remaining -= added;
                     }
                 }
                 // Otherwise we cannot add (slot is occupied by another item or merge is disabled)
@@ -85,18 +77,10 @@ namespace UniversalDragAndDrop.Inventories
                         int toAdd = Math.Min(remaining, canFit);
                         if (toAdd > 0 && (skipRules || PassesRules(slot, stack.PrimaryAdapter, toAdd)))
                         {
-                            var movedStack = stack.Split(toAdd);
-                            if (movedStack.IsEmpty)
+                            if (!TryMergeIntoSlot(stack, slot, maxSize, null, null, out int added))
                                 return false;
 
-                            if (!slot.Stack.TryAddToStack(movedStack))
-                            {
-                                stack.TryAddToStack(movedStack);
-                                return false;
-                            }
-
-                            slot.UpdateVisuals();
-                            remaining -= toAdd;
+                            remaining -= added;
                         }
                     }
                 }
@@ -136,8 +120,7 @@ namespace UniversalDragAndDrop.Inventories
                 var slot = slots[sourceIndex];
                 if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
-                    int removed = slot.Stack.RemoveFromStack(remaining);
-                    slot.UpdateVisuals();
+                    int removed = RemoveFromSlot(slot, remaining);
                     return removed > 0;
                 }
                 return false;
@@ -150,8 +133,7 @@ namespace UniversalDragAndDrop.Inventories
 
                 if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
-                    remaining -= slot.Stack.RemoveFromStack(remaining);
-                    slot.UpdateVisuals();
+                    remaining -= RemoveFromSlot(slot, remaining);
                 }
             }
 
@@ -191,20 +173,7 @@ namespace UniversalDragAndDrop.Inventories
                 if (toAdd <= 0 || !PassesRules(targetBaseSlot, stack.PrimaryAdapter, toAdd))
                     return false;
 
-                var mergeStack = stack.Split(toAdd);
-                if (mergeStack.IsEmpty)
-                    return false;
-
-                if (!targetBaseSlot.Stack.TryAddToStack(mergeStack))
-                {
-                    stack.TryAddToStack(mergeStack);
-                    return false;
-                }
-
-                targetBaseSlot.UpdateVisuals();
-                operationContext?.RecordResult(targetBaseSlot, false, toAdd);
-                ensureFreeSlots?.Invoke();
-                return true;
+                return TryMergeIntoSlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
             }
 
             int toPlace = Math.Min(stack.Count, maxSize);

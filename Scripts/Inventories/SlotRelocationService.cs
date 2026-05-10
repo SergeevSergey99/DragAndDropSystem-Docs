@@ -181,7 +181,12 @@ namespace UniversalDragAndDrop.Inventories
                 if (!canAcceptByRules(destinationBaseSlot, itemToMove, amountToMove))
                     return false;
 
-                if (!destinationBaseSlot.Stack.TryAddToStack(sourceStack))
+                var destinationStore = destinationBaseSlot.Inventory as ISlotStackStore;
+                bool added = destinationStore != null
+                    ? destinationStore.TryAddToSlotStack(destinationBaseSlot, sourceStack)
+                    : destinationBaseSlot.Stack.TryAddToStack(sourceStack);
+
+                if (!added)
                     return false;
 
                 destinationBaseSlot.UpdateVisuals();
@@ -195,7 +200,17 @@ namespace UniversalDragAndDrop.Inventories
             if (!ItemStack.TryCreate(sourceStack.Adapters, out var movedStack))
                 return false;
 
-            destinationBaseSlot.SetStack(movedStack);
+            var emptyDestinationStore = destinationBaseSlot.Inventory as ISlotStackStore;
+            if (emptyDestinationStore != null)
+            {
+                if (!emptyDestinationStore.TrySetStackForSlot(destinationBaseSlot, movedStack))
+                    return false;
+            }
+            else
+            {
+                destinationBaseSlot.SetStack(movedStack);
+            }
+
             destinationBaseSlot.UpdateVisuals();
             sourceBaseSlot.Clear();
             return true;
