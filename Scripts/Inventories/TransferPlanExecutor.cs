@@ -787,10 +787,11 @@ namespace UniversalDragAndDrop.Inventories
 
             var sourceSnapshotProvider = sourceInventory as IInventorySnapshotProvider;
             var targetSnapshotProvider = targetInventory as IInventorySnapshotProvider;
+            var sourceStackStore = sourceInventory as ISlotStackStore
+                ?? sourceSlot?.Inventory as ISlotStackStore;
 
             var sourceInventorySnapshot = sourceSnapshotProvider?.CaptureSnapshot();
             var targetInventorySnapshot = targetSnapshotProvider?.CaptureSnapshot();
-            var sourceSlotState = InventorySnapshotUtility.CaptureSlotState(sourceSlot);
             var sourcePlacementSnapshot = ResolvePlacementSnapshot(sourceInventory, sourceSlot);
 
             int requestedAmount = draggedStack.Count;
@@ -798,12 +799,10 @@ namespace UniversalDragAndDrop.Inventories
 
             Extensions.DragAndDropLog($"<color=cyan>[TransferPlanExecutor] Requested: {requestedAmount}, Transfer: {transferAmount}</color>");
 
-            var transferStack = sourceSlot.Stack.Split(transferAmount);
-            if (transferStack.IsEmpty)
-            {
-                InventorySnapshotUtility.RestoreSlotState(sourceSlot, sourceSlotState);
+            if (sourceStackStore == null ||
+                !sourceStackStore.TrySplitFromSlot(sourceSlot, transferAmount, out var transferStack) ||
+                transferStack.IsEmpty)
                 return false;
-            }
 
             transferAmount = transferStack.Count;
             sourceSlot.UpdateVisuals();
@@ -815,16 +814,16 @@ namespace UniversalDragAndDrop.Inventories
             if (!TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, transferStack))
             {
                 Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Source outgoing conversion failed, rolling back</color>");
-                sourceSlot.Stack.TryAddToStack(transferStack);
-                sourceSlot.UpdateVisuals();
+                if (!sourceStackStore.TryAddToSlotStack(sourceSlot, transferStack))
+                    InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot);
                 return false;
             }
 
             if (!TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, transferStack))
             {
                 Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Target incoming conversion failed, rolling back</color>");
-                sourceSlot.Stack.TryAddToStack(sourceRemovedStack);
-                sourceSlot.UpdateVisuals();
+                if (!sourceStackStore.TryAddToSlotStack(sourceSlot, sourceRemovedStack))
+                    InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot);
                 return false;
             }
 
@@ -847,8 +846,8 @@ namespace UniversalDragAndDrop.Inventories
             if (!added)
             {
                 Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to add to target, rolling back</color>");
-                InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot, sourceSlot, sourceSlotState);
-                InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot, null, default);
+                InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot);
+                InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot);
                 return false;
             }
 
@@ -860,15 +859,21 @@ namespace UniversalDragAndDrop.Inventories
                 Extensions.DragAndDropLog($"<color=yellow>[TransferPlanExecutor] {transferStack.Count} items not placed, returning to source</color>");
                 if (sourceSlot.IsEmpty)
                 {
-                    sourceSlot.SetStack(transferStack);
+                    if (!sourceStackStore.TrySetStackForSlot(sourceSlot, transferStack))
+                    {
+                        Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to restore unplaced items to empty source, rolling back</color>");
+                        InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot);
+                        InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot);
+                        return false;
+                    }
                 }
                 else
                 {
-                    if (!sourceSlot.Stack.TryAddToStack(transferStack))
+                    if (!sourceStackStore.TryAddToSlotStack(sourceSlot, transferStack))
                     {
                         Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Failed to return unplaced items to source, rolling back</color>");
-                        InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot, sourceSlot, sourceSlotState);
-                        InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot, null, default);
+                        InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot);
+                        InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot);
                         return false;
                     }
                 }

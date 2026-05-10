@@ -32,18 +32,19 @@ namespace UniversalDragAndDrop.Core
             SourceInventory = sourceInventory;
             SourcePlacement = sourcePlacement;
 
-            var universalInventory = sourceInventory as UniversalInventory
-                ?? sourceBaseSlot?.Inventory as UniversalInventory;
-            if (SourcePlacement == null && universalInventory != null && sourceBaseSlot != null)
-                SourcePlacement = universalInventory.GetPlacementAt(sourceBaseSlot);
+            var stackStore = sourceInventory as ISlotStackStore
+                ?? sourceBaseSlot?.Inventory as ISlotStackStore;
+            if (SourcePlacement == null && stackStore != null && sourceBaseSlot != null &&
+                stackStore.TryGetPlacementAt(sourceBaseSlot, out var resolvedPlacement))
+                SourcePlacement = resolvedPlacement;
 
             Footprint = SourcePlacement?.Footprint ?? UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
             var sourceOrientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
             Orientation = orientation ?? sourceOrientation;
 
             var resolvedGrabOffset = grabOffset
-                ?? (universalInventory != null
-                    ? universalInventory.GetGrabOffset(SourcePlacement, sourceBaseSlot)
+                ?? (stackStore != null
+                    ? stackStore.GetGrabOffset(SourcePlacement, sourceBaseSlot)
                     : Vector2Int.zero);
             GrabOffset = grabOffset.HasValue
                 ? resolvedGrabOffset

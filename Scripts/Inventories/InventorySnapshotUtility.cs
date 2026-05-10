@@ -9,38 +9,10 @@ namespace UniversalDragAndDrop.Inventories
     /// </summary>
     public static class InventorySnapshotUtility
     {
-        public static InventorySlotState CaptureSlotState(BaseSlot baseSlot)
-        {
-            if (baseSlot == null || baseSlot.IsEmpty)
-                return new InventorySlotState(null);
-
-            return new InventorySlotState(baseSlot.Stack.Adapters);
-        }
-
-        public static void RestoreSlotState(BaseSlot baseSlot, InventorySlotState state)
-        {
-            if (baseSlot == null)
-                return;
-
-            if (state.IsEmpty)
-            {
-                baseSlot.Clear();
-            }
-            else
-            {
-                if (ItemStack.TryCreate(state.Adapters, out var restoredStack))
-                    baseSlot.SetStack(restoredStack);
-            }
-
-            baseSlot.UpdateVisuals();
-        }
-
         public static void RestoreInventorySnapshot(
             IInventory inventory,
             IInventorySnapshotProvider provider,
-            InventorySnapshot snapshot,
-            BaseSlot fallbackBaseSlot,
-            InventorySlotState fallbackState)
+            InventorySnapshot snapshot)
         {
             if (inventory == null)
                 return;
@@ -49,10 +21,6 @@ namespace UniversalDragAndDrop.Inventories
             {
                 provider.RestoreSnapshot(snapshot);
                 inventory.UpdateAllVisuals();
-            }
-            else if (fallbackBaseSlot != null)
-            {
-                RestoreSlotState(fallbackBaseSlot, fallbackState);
             }
         }
 

@@ -72,35 +72,6 @@ namespace UniversalDragAndDrop.Inventories
     }
 
     /// <summary>
-    /// Snapshot of a single slot.
-    /// </summary>
-    public struct InventorySlotState
-    {
-        public InventorySlotState(IReadOnlyList<IItemAdapter> adapters)
-        {
-            // Snapshot must be independent of subsequent ItemStack mutations (Split/RemoveFromStack
-            // operate on the same backing list that ItemStack.Adapters returns).
-            if (adapters == null || adapters.Count == 0)
-            {
-                Adapters = System.Array.Empty<IItemAdapter>();
-                return;
-            }
-
-            var copy = new IItemAdapter[adapters.Count];
-            for (int i = 0; i < adapters.Count; i++)
-                copy[i] = adapters[i];
-            Adapters = copy;
-        }
-
-        public IReadOnlyList<IItemAdapter> Adapters;
-
-        public IItemAdapter ItemAdapter => Adapters.Count > 0 ? Adapters[0] : null;
-        public int Count => Adapters.Count;
-
-        public bool IsEmpty => Adapters == null || Adapters.Count <= 0;
-    }
-
-    /// <summary>
     /// Interface for inventories capable of creating state snapshots (for rollback operations).
     /// </summary>
     public interface IInventorySnapshotProvider

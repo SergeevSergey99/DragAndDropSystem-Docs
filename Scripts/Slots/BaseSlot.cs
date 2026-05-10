@@ -20,8 +20,8 @@ namespace UniversalDragAndDrop.Slots
         {
             get
             {
-                if (Inventory is UniversalInventory universalInventory &&
-                    universalInventory.TryGetPlacementStackForSlot(this, out var placementStack))
+                if (Inventory is ISlotStackStore stackStore &&
+                    stackStore.TryGetStackForSlot(this, out var placementStack))
                     return placementStack ?? ItemStack.Empty();
 
                 return ItemStack.Empty();
@@ -58,31 +58,31 @@ namespace UniversalDragAndDrop.Slots
 
         public virtual void SetStack(ItemStack stack)
         {
-            if (Inventory is UniversalInventory universalInventory)
+            if (Inventory is ISlotStackStore stackStore)
             {
-                if (!universalInventory.TrySetPlacementStackFromSlot(this, stack ?? ItemStack.Empty()))
+                if (!stackStore.TrySetStackForSlot(this, stack ?? ItemStack.Empty()))
                     Debug.LogWarning($"[{name}] SetStack failed for placement-backed slot {Index}");
 
                 UpdateVisuals();
                 return;
             }
 
-            Debug.LogWarning($"[{name}] SetStack ignored: BaseSlot requires UniversalInventory-backed placement storage.");
+            Debug.LogWarning($"[{name}] SetStack ignored: BaseSlot requires ISlotStackStore-backed storage.");
             UpdateVisuals();
         }
 
         public virtual void Clear()
         {
-            if (Inventory is UniversalInventory universalInventory)
+            if (Inventory is ISlotStackStore stackStore)
             {
-                if (!universalInventory.TrySetPlacementStackFromSlot(this, ItemStack.Empty()))
+                if (!stackStore.TryClearSlot(this))
                     Debug.LogWarning($"[{name}] Clear failed for placement-backed slot {Index}");
 
                 UpdateVisuals();
                 return;
             }
 
-            Debug.LogWarning($"[{name}] Clear ignored: BaseSlot requires UniversalInventory-backed placement storage.");
+            Debug.LogWarning($"[{name}] Clear ignored: BaseSlot requires ISlotStackStore-backed storage.");
             UpdateVisuals();
         }
         

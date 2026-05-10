@@ -17,7 +17,7 @@ namespace UniversalDragAndDrop.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider, IDropPolicyProvider
+    public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -261,11 +261,10 @@ namespace UniversalDragAndDrop.Inventories
         /// <returns>Number of removed items, or 0 if nothing was removed</returns>
         internal int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
         {
-            if (sourceBaseSlot?.Stack == null || sourceBaseSlot.Stack.IsEmpty || stackToRemove == null || stackToRemove.IsEmpty)
+            if (sourceBaseSlot == null || stackToRemove == null || stackToRemove.IsEmpty)
                 return 0;
 
-            int removed = sourceBaseSlot.Stack.RemoveAdapters(stackToRemove.Adapters);
-            if (removed <= 0)
+            if (!TryRemoveFromSlot(sourceBaseSlot, stackToRemove.Adapters, out int removed) || removed <= 0)
                 return 0;
 
             sourceBaseSlot.UpdateVisuals();
@@ -784,7 +783,7 @@ namespace UniversalDragAndDrop.Inventories
             return placement != null && UnregisterPlacement(placement);
         }
 
-        internal bool TryGetPlacementStackForSlot(BaseSlot baseSlot, out ItemStack stack)
+        public bool TryGetStackForSlot(BaseSlot baseSlot, out ItemStack stack)
         {
             stack = null;
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
@@ -796,7 +795,7 @@ namespace UniversalDragAndDrop.Inventories
             return true;
         }
 
-        internal bool TrySetPlacementStackFromSlot(BaseSlot baseSlot, ItemStack stack)
+        public bool TrySetStackForSlot(BaseSlot baseSlot, ItemStack stack)
         {
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
@@ -834,6 +833,64 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
             }
 
+            return true;
+        }
+
+        public bool TryClearSlot(BaseSlot baseSlot)
+            => TrySetStackForSlot(baseSlot, ItemStack.Empty());
+
+        public bool TryGetPlacementAt(BaseSlot baseSlot, out Placement placement)
+        {
+            placement = GetPlacementAt(baseSlot);
+            return placement != null;
+        }
+
+        public bool TrySplitFromSlot(BaseSlot baseSlot, int amount, out ItemStack splitStack)
+        {
+            splitStack = ItemStack.Empty();
+            if (!TryGetStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
+                return false;
+
+            splitStack = stack.Split(amount);
+            if (splitStack == null || splitStack.IsEmpty)
+                return false;
+
+            if (stack.IsEmpty)
+                RemovePlacementAt(baseSlot);
+
+            baseSlot.UpdateVisuals();
+            return true;
+        }
+
+        public bool TryAddToSlotStack(BaseSlot baseSlot, ItemStack stack)
+        {
+            if (baseSlot == null || stack == null || stack.IsEmpty)
+                return false;
+
+            if (!TryGetStackForSlot(baseSlot, out var existingStack) || existingStack == null || existingStack.IsEmpty)
+                return TrySetStackForSlot(baseSlot, stack);
+
+            bool added = existingStack.TryAddToStack(stack);
+            if (added)
+                baseSlot.UpdateVisuals();
+
+            return added;
+        }
+
+        public bool TryRemoveFromSlot(BaseSlot baseSlot, IReadOnlyList<IItemAdapter> adapters, out int removed)
+        {
+            removed = 0;
+            if (!TryGetStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
+                return false;
+
+            removed = stack.RemoveAdapters(adapters);
+            if (removed <= 0)
+                return false;
+
+            if (stack.IsEmpty)
+                RemovePlacementAt(baseSlot);
+
+            baseSlot.UpdateVisuals();
             return true;
         }
 
