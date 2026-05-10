@@ -783,7 +783,7 @@ namespace UniversalDragAndDrop.Inventories
             return placement != null && UnregisterPlacement(placement);
         }
 
-        public bool TryGetStackForSlot(BaseSlot baseSlot, out ItemStack stack)
+        public bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack)
         {
             stack = null;
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
@@ -792,6 +792,18 @@ namespace UniversalDragAndDrop.Inventories
             EnsurePlacementStateInitialized();
             PruneEmptyPlacements();
             stack = GetPlacementAtInitialized(baseSlot.Index)?.Stack ?? ItemStack.Empty();
+            return true;
+        }
+
+        private bool TryGetMutableStackForSlot(BaseSlot baseSlot, out ItemStack stack)
+        {
+            stack = null;
+            if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
+                return false;
+
+            EnsurePlacementStateInitialized();
+            PruneEmptyPlacements();
+            stack = GetPlacementAtInitialized(baseSlot.Index)?.MutableStack ?? ItemStack.Empty();
             return true;
         }
 
@@ -848,7 +860,7 @@ namespace UniversalDragAndDrop.Inventories
         public bool TrySplitFromSlot(BaseSlot baseSlot, int amount, out ItemStack splitStack)
         {
             splitStack = ItemStack.Empty();
-            if (!TryGetStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
+            if (!TryGetMutableStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
                 return false;
 
             splitStack = stack.Split(amount);
@@ -867,7 +879,7 @@ namespace UniversalDragAndDrop.Inventories
             if (baseSlot == null || stack == null || stack.IsEmpty)
                 return false;
 
-            if (!TryGetStackForSlot(baseSlot, out var existingStack) || existingStack == null || existingStack.IsEmpty)
+            if (!TryGetMutableStackForSlot(baseSlot, out var existingStack) || existingStack == null || existingStack.IsEmpty)
                 return TrySetStackForSlot(baseSlot, stack);
 
             bool added = existingStack.TryAddToStack(stack);
@@ -880,7 +892,7 @@ namespace UniversalDragAndDrop.Inventories
         public bool TryRemoveFromSlot(BaseSlot baseSlot, IReadOnlyList<IItemAdapter> adapters, out int removed)
         {
             removed = 0;
-            if (!TryGetStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
+            if (!TryGetMutableStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
                 return false;
 
             removed = stack.RemoveAdapters(adapters);
@@ -950,7 +962,7 @@ namespace UniversalDragAndDrop.Inventories
             // path where nothing needs pruning. _pruneScratch is reused across calls.
             foreach (var placement in _placements)
             {
-                if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
+                if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
                     _pruneScratch.Add(placement);
             }
 
@@ -1248,12 +1260,12 @@ namespace UniversalDragAndDrop.Inventories
             var placementSnapshot = new List<InventoryPlacementState>(_placements.Count);
             foreach (var placement in _placements)
             {
-                if (placement == null || placement.Stack == null || placement.Stack.IsEmpty)
+                if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
                     continue;
 
                 placementSnapshot.Add(new InventoryPlacementState(
                     placement.AnchorIndex,
-                    placement.Stack.Adapters,
+                    placement.MutableStack.Adapters,
                     placement.Orientation,
                     placement.Footprint,
                     placement.CoveredIndices));
@@ -1926,8 +1938,8 @@ namespace UniversalDragAndDrop.Inventories
             try
             {
                 // Perform the swap
-                var tempStack = targetBaseSlot.Stack;
-                targetBaseSlot.SetStack(sourceBaseSlot.Stack);
+                var tempStack = targetBaseSlot.Stack.CreateCopy();
+                targetBaseSlot.SetStack(sourceBaseSlot.Stack.CreateCopy());
                 sourceBaseSlot.SetStack(tempStack);
 
                 targetBaseSlot.UpdateVisuals();

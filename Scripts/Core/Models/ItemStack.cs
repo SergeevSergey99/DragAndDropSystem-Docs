@@ -6,6 +6,25 @@ using UnityEngine;
 namespace UniversalDragAndDrop.Core
 {
     /// <summary>
+    /// Read-only stack view exposed by live inventory slots and placements.
+    /// Mutating inventory-owned stacks must go through inventory/store APIs.
+    /// </summary>
+    public interface IReadOnlyItemStack
+    {
+        IItemAdapter PrimaryAdapter { get; }
+        IItemAdapter ItemAdapter { get; }
+        IReadOnlyList<IItemAdapter> Adapters { get; }
+        int Count { get; }
+        string ID { get; }
+        Sprite Icon { get; }
+        string DisplayName { get; }
+        Type AdapterType { get; }
+        bool IsEmpty { get; }
+        bool CanStack(IItemAdapter otherItemAdapter);
+        ItemStack CreateCopy(int amount = -1);
+    }
+
+    /// <summary>
     /// Universal wrapper for an item with an amount
     /// Works with any type implementing IItemAdapter
     /// Stack limits are defined through Max Stack Size in UniversalInventory
@@ -13,7 +32,7 @@ namespace UniversalDragAndDrop.Core
     /// if allowItemStackOverride is enabled in the inventory
     /// </summary>
     [Serializable]
-    public class ItemStack
+    public class ItemStack : IReadOnlyItemStack
     {
         private readonly List<IItemAdapter> _adapters = new List<IItemAdapter>();
 

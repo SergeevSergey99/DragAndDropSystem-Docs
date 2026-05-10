@@ -186,7 +186,7 @@ namespace UniversalDragAndDrop.Inventories
                 if (!canAcceptByRules(destinationBaseSlot, itemToMove, amountToMove))
                     return false;
 
-                if (!destinationStore.TryAddToSlotStack(destinationBaseSlot, sourceStack))
+                if (!destinationStore.TryAddToSlotStack(destinationBaseSlot, sourceStack.CreateCopy()))
                     return false;
 
                 destinationBaseSlot.UpdateVisuals();

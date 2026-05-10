@@ -131,7 +131,7 @@ namespace UniversalDragAndDrop.Core
             AnchorIndex = anchorIndex;
             Orientation = orientation;
             Footprint = footprint.Normalized();
-            Stack = stack ?? ItemStack.Empty();
+            MutableStack = stack ?? ItemStack.Empty();
             _coveredIndices = coveredIndices != null
                 ? new List<int>(coveredIndices)
                 : new List<int> { anchorIndex };
@@ -141,7 +141,9 @@ namespace UniversalDragAndDrop.Core
         public int AnchorIndex { get; private set; }
         public PlacementOrientation Orientation { get; }
         public Footprint Footprint { get; }
-        public ItemStack Stack { get; }
+        /// <summary>Read-only view of the inventory-owned stack.</summary>
+        public IReadOnlyItemStack Stack => MutableStack;
+        internal ItemStack MutableStack { get; }
         public IReadOnlyList<int> CoveredIndices => _coveredIndices;
 
         internal void MoveAnchor(Vector2Int anchorCell, int anchorIndex, IReadOnlyList<int> coveredIndices)

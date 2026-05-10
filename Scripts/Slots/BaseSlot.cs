@@ -16,7 +16,11 @@ namespace UniversalDragAndDrop.Slots
         [field: SerializeField, HideLabel, FoldoutGroup("Slot Rules", expanded: false)]
         public SlotRuleValidator SlotRuleValidator { get; protected set; } = new();
         
-        public virtual ItemStack Stack
+        /// <summary>
+        /// Read-only view of the stack currently shown in this slot.
+        /// Use inventory/store APIs for mutations so placement bookkeeping stays consistent.
+        /// </summary>
+        public virtual IReadOnlyItemStack Stack
         {
             get
             {

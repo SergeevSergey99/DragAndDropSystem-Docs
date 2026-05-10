@@ -10,7 +10,7 @@ namespace UniversalDragAndDrop.Inventories
     /// </summary>
     public interface ISlotStackStore
     {
-        bool TryGetStackForSlot(BaseSlot baseSlot, out ItemStack stack);
+        bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack);
         bool TrySetStackForSlot(BaseSlot baseSlot, ItemStack stack);
         bool TryClearSlot(BaseSlot baseSlot);
         bool TryGetPlacementAt(BaseSlot baseSlot, out Placement placement);
