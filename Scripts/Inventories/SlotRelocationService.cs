@@ -170,6 +170,11 @@ namespace UniversalDragAndDrop.Inventories
             if (sourceStack == null || sourceStack.IsEmpty)
                 return false;
 
+            var sourceStore = sourceBaseSlot.Inventory as ISlotStackStore;
+            var destinationStore = destinationBaseSlot.Inventory as ISlotStackStore;
+            if (sourceStore == null || destinationStore == null)
+                return false;
+
             int amountToMove = sourceStack.Count;
             var itemToMove = sourceStack.PrimaryAdapter;
 
@@ -181,16 +186,11 @@ namespace UniversalDragAndDrop.Inventories
                 if (!canAcceptByRules(destinationBaseSlot, itemToMove, amountToMove))
                     return false;
 
-                var destinationStore = destinationBaseSlot.Inventory as ISlotStackStore;
-                bool added = destinationStore != null
-                    ? destinationStore.TryAddToSlotStack(destinationBaseSlot, sourceStack)
-                    : destinationBaseSlot.Stack.TryAddToStack(sourceStack);
-
-                if (!added)
+                if (!destinationStore.TryAddToSlotStack(destinationBaseSlot, sourceStack))
                     return false;
 
                 destinationBaseSlot.UpdateVisuals();
-                sourceBaseSlot.Clear();
+                sourceStore.TryClearSlot(sourceBaseSlot);
                 return true;
             }
 
@@ -200,19 +200,11 @@ namespace UniversalDragAndDrop.Inventories
             if (!ItemStack.TryCreate(sourceStack.Adapters, out var movedStack))
                 return false;
 
-            var emptyDestinationStore = destinationBaseSlot.Inventory as ISlotStackStore;
-            if (emptyDestinationStore != null)
-            {
-                if (!emptyDestinationStore.TrySetStackForSlot(destinationBaseSlot, movedStack))
-                    return false;
-            }
-            else
-            {
-                destinationBaseSlot.SetStack(movedStack);
-            }
+            if (!destinationStore.TrySetStackForSlot(destinationBaseSlot, movedStack))
+                return false;
 
             destinationBaseSlot.UpdateVisuals();
-            sourceBaseSlot.Clear();
+            sourceStore.TryClearSlot(sourceBaseSlot);
             return true;
         }
     }

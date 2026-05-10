@@ -345,19 +345,28 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             var stackStore = baseSlot.Inventory as ISlotStackStore;
-            bool added = stackStore != null
-                ? stackStore.TryAddToSlotStack(baseSlot, movedStack)
-                : baseSlot.Stack.TryAddToStack(movedStack);
+            if (stackStore == null)
+            {
+                stack.TryAddToStack(movedStack);
+                return false;
+            }
 
-            if (!added)
+            int before = baseSlot.Stack.Count;
+            if (!stackStore.TryAddToSlotStack(baseSlot, movedStack))
             {
                 stack.TryAddToStack(movedStack);
                 return false;
             }
 
             baseSlot.UpdateVisuals();
-            addedAmount = toAdd;
-            operationContext?.RecordResult(baseSlot, false, toAdd);
+            addedAmount = Math.Max(0, baseSlot.Stack.Count - before);
+            if (addedAmount <= 0)
+            {
+                stack.TryAddToStack(movedStack);
+                return false;
+            }
+
+            operationContext?.RecordResult(baseSlot, false, addedAmount);
             ensureFreeSlots?.Invoke();
             return true;
         }
@@ -371,11 +380,7 @@ namespace UniversalDragAndDrop.Inventories
                 stackStore.TrySplitFromSlot(baseSlot, amount, out var removedStack))
                 return removedStack.Count;
 
-            int removed = baseSlot.Stack.RemoveFromStack(amount);
-            if (removed > 0)
-                baseSlot.UpdateVisuals();
-
-            return removed;
+            return 0;
         }
 
         protected static bool TryPlaceIntoEmptySlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
