@@ -1539,7 +1539,7 @@ namespace UniversalDragAndDrop.Inventories
             {
                 if (!slot.IsEmpty)
                 {
-                    stacks.Add(slot.Stack);
+                    stacks.Add(slot.Stack.CreateCopy());
                 }
             }
             return stacks;

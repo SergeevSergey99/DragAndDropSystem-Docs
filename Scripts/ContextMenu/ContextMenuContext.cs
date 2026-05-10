@@ -14,7 +14,7 @@ namespace UniversalDragAndDrop.ContextMenu
         public BaseSlot BaseSlot;
 
         /// <summary>Item stack in the slot. null if the slot is empty.</summary>
-        public ItemStack ItemStack;
+        public IReadOnlyItemStack ItemStack;
 
         /// <summary>Screen position of the click.</summary>
         public Vector2 ScreenPosition;
