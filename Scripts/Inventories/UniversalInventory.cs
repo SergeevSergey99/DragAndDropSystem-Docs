@@ -80,7 +80,6 @@ namespace UniversalDragAndDrop.Inventories
         
         private readonly Dictionary<int, Placement> _cellToPlacement = new Dictionary<int, Placement>();
         private readonly HashSet<Placement> _placements = new HashSet<Placement>();
-        private readonly List<Placement> _pruneScratch = new List<Placement>();
         private readonly List<BaseSlot> _dropPreviewSlots = new List<BaseSlot>();
         private bool _placementStateInitialized;
 
@@ -91,7 +90,6 @@ namespace UniversalDragAndDrop.Inventories
             get
             {
                 EnsurePlacementStateInitialized();
-                PruneEmptyPlacements();
                 return _placements;
             }
         }
@@ -524,7 +522,6 @@ namespace UniversalDragAndDrop.Inventories
         public Placement GetPlacementAt(int cellIndex)
         {
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
             return GetPlacementAtInitialized(cellIndex);
         }
 
@@ -625,14 +622,12 @@ namespace UniversalDragAndDrop.Inventories
         public bool CanPlace(PlacementRequest request)
         {
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
             return CanPlaceInitialized(request);
         }
 
         public bool CanPlace(PlacementRequest request, Placement ignoredPlacement)
         {
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
             return CanPlaceInitialized(request, ignoredPlacement);
         }
 
@@ -755,7 +750,6 @@ namespace UniversalDragAndDrop.Inventories
         public bool TryPlace(PlacementRequest request, out Placement placement)
         {
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
             return TryPlaceInitialized(request, out placement);
         }
 
@@ -790,7 +784,6 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
             stack = GetPlacementAtInitialized(baseSlot.Index)?.Stack ?? ItemStack.Empty();
             return true;
         }
@@ -802,7 +795,6 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
             stack = GetPlacementAtInitialized(baseSlot.Index)?.MutableStack ?? ItemStack.Empty();
             return true;
         }
@@ -813,7 +805,6 @@ namespace UniversalDragAndDrop.Inventories
                 return false;
 
             EnsurePlacementStateInitialized();
-            PruneEmptyPlacements();
 
             var existingPlacement = GetPlacementAtInitialized(baseSlot.Index);
 
@@ -954,25 +945,6 @@ namespace UniversalDragAndDrop.Inventories
             }
 
             return true;
-        }
-
-        private void PruneEmptyPlacements()
-        {
-            // Iterate the unique set (no per-cell duplicates) and avoid allocations on the common
-            // path where nothing needs pruning. _pruneScratch is reused across calls.
-            foreach (var placement in _placements)
-            {
-                if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
-                    _pruneScratch.Add(placement);
-            }
-
-            if (_pruneScratch.Count == 0)
-                return;
-
-            for (int i = 0; i < _pruneScratch.Count; i++)
-                UnregisterPlacement(_pruneScratch[i]);
-
-            _pruneScratch.Clear();
         }
 
         private bool TryPlaceInitialized(PlacementRequest request, out Placement placement)
@@ -1542,6 +1514,18 @@ namespace UniversalDragAndDrop.Inventories
                     stacks.Add(slot.Stack.CreateCopy());
                 }
             }
+            return stacks;
+        }
+
+        public IReadOnlyList<IReadOnlyItemStack> GetAllStacksReadOnly()
+        {
+            var stacks = new List<IReadOnlyItemStack>();
+            foreach (var slot in _slots)
+            {
+                if (!slot.IsEmpty)
+                    stacks.Add(slot.Stack);
+            }
+
             return stacks;
         }
 

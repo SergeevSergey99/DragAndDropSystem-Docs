@@ -29,8 +29,11 @@ namespace UniversalDragAndDrop.Tests.Inventories
 
                 var placement = inventory.GetPlacementAt(0);
                 Assert.IsNotNull(placement);
-                Assert.AreSame(stack, placement.Stack);
-                Assert.AreSame(stack, slot.Stack);
+                Assert.AreNotSame(stack, placement.Stack);
+                Assert.AreSame(placement.Stack, slot.Stack);
+                Assert.AreEqual(stack.PrimaryAdapter, placement.Stack.PrimaryAdapter);
+                Assert.Throws<System.NotSupportedException>(() =>
+                    ((System.Collections.Generic.IList<int>)placement.CoveredIndices)[0] = 1);
                 Assert.IsTrue(inventory.GetSlot(1).IsEmpty);
             }
             finally
@@ -132,8 +135,8 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 var anchorSlot = inventory.GetSlot(0);
                 Assert.IsFalse(inventory.TrySetStackForSlot(anchorSlot, ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2))));
 
-                Assert.AreSame(original, inventory.GetSlot(0).Stack);
-                Assert.AreSame(blocker, inventory.GetSlot(1).Stack);
+                Assert.AreEqual(original.PrimaryAdapter, inventory.GetSlot(0).Stack.PrimaryAdapter);
+                Assert.AreEqual(blocker.PrimaryAdapter, inventory.GetSlot(1).Stack.PrimaryAdapter);
                 Assert.IsNull(inventory.GetPlacementAt(2));
                 Assert.IsNull(inventory.GetPlacementAt(3));
             }
@@ -1016,7 +1019,7 @@ namespace UniversalDragAndDrop.Tests.Inventories
         }
 
         [Test]
-        public void CanPlace_PrunesPlacementAfterStackMutationEmptiesIt()
+        public void TryPlace_CopiesInputStackOwnership()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(1)
@@ -1030,8 +1033,11 @@ namespace UniversalDragAndDrop.Tests.Inventories
                 stack.RemoveFromStack(1);
 
                 var replacement = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
-                Assert.IsTrue(inventory.CanPlace(new PlacementRequest(replacement, 0)));
-                Assert.IsNull(inventory.GetPlacementAt(0));
+                Assert.IsFalse(inventory.CanPlace(new PlacementRequest(replacement, 0)));
+
+                var placement = inventory.GetPlacementAt(0);
+                Assert.IsNotNull(placement);
+                Assert.AreEqual(1, placement.Stack.Count);
             }
             finally
             {

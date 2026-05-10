@@ -117,7 +117,8 @@ namespace UniversalDragAndDrop.Core
 
     public sealed class Placement
     {
-        private readonly List<int> _coveredIndices;
+        private int[] _coveredIndices;
+        private IReadOnlyList<int> _coveredIndicesView;
 
         public Placement(
             Vector2Int anchorCell,
@@ -131,10 +132,8 @@ namespace UniversalDragAndDrop.Core
             AnchorIndex = anchorIndex;
             Orientation = orientation;
             Footprint = footprint.Normalized();
-            MutableStack = stack ?? ItemStack.Empty();
-            _coveredIndices = coveredIndices != null
-                ? new List<int>(coveredIndices)
-                : new List<int> { anchorIndex };
+            MutableStack = stack?.CreateCopy() ?? ItemStack.Empty();
+            SetCoveredIndices(coveredIndices, anchorIndex);
         }
 
         public Vector2Int AnchorCell { get; private set; }
@@ -144,17 +143,28 @@ namespace UniversalDragAndDrop.Core
         /// <summary>Read-only view of the inventory-owned stack.</summary>
         public IReadOnlyItemStack Stack => MutableStack;
         internal ItemStack MutableStack { get; }
-        public IReadOnlyList<int> CoveredIndices => _coveredIndices;
+        public IReadOnlyList<int> CoveredIndices => _coveredIndicesView;
 
         internal void MoveAnchor(Vector2Int anchorCell, int anchorIndex, IReadOnlyList<int> coveredIndices)
         {
             AnchorCell = anchorCell;
             AnchorIndex = anchorIndex;
-            _coveredIndices.Clear();
-            if (coveredIndices != null)
-                _coveredIndices.AddRange(coveredIndices);
-            else
-                _coveredIndices.Add(anchorIndex);
+            SetCoveredIndices(coveredIndices, anchorIndex);
+        }
+
+        private void SetCoveredIndices(IReadOnlyList<int> coveredIndices, int fallbackAnchorIndex)
+        {
+            if (coveredIndices == null || coveredIndices.Count == 0)
+            {
+                _coveredIndices = new[] { fallbackAnchorIndex };
+                _coveredIndicesView = Array.AsReadOnly(_coveredIndices);
+                return;
+            }
+
+            _coveredIndices = new int[coveredIndices.Count];
+            for (int i = 0; i < coveredIndices.Count; i++)
+                _coveredIndices[i] = coveredIndices[i];
+            _coveredIndicesView = Array.AsReadOnly(_coveredIndices);
         }
     }
 }

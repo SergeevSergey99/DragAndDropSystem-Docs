@@ -22,6 +22,8 @@ namespace UniversalDragAndDrop.Inventories
         private int _customDragAmount = 1;
 
         [NonSerialized] protected UniversalInventory _inventory;
+        private static bool _warnedMissingStackStoreForMerge;
+        private static bool _warnedMissingStackStoreForRemove;
 
         private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmount.Custom;
         protected virtual bool ShowDragAmountSettings => true;
@@ -347,6 +349,12 @@ namespace UniversalDragAndDrop.Inventories
             var stackStore = baseSlot.Inventory as ISlotStackStore;
             if (stackStore == null)
             {
+                if (!_warnedMissingStackStoreForMerge)
+                {
+                    Debug.LogWarning("[InventoryStrategyBase] Cannot merge into slot: inventory does not implement ISlotStackStore.");
+                    _warnedMissingStackStoreForMerge = true;
+                }
+
                 stack.TryAddToStack(movedStack);
                 return false;
             }
@@ -379,6 +387,12 @@ namespace UniversalDragAndDrop.Inventories
             if (baseSlot.Inventory is ISlotStackStore stackStore &&
                 stackStore.TrySplitFromSlot(baseSlot, amount, out var removedStack))
                 return removedStack.Count;
+
+            if (baseSlot.Inventory is not ISlotStackStore && !_warnedMissingStackStoreForRemove)
+            {
+                Debug.LogWarning("[InventoryStrategyBase] Cannot remove from slot: inventory does not implement ISlotStackStore.");
+                _warnedMissingStackStoreForRemove = true;
+            }
 
             return 0;
         }
