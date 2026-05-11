@@ -1,4 +1,6 @@
-﻿namespace UniversalDragAndDrop.Inventories
+﻿using UniversalDragAndDrop.Core;
+
+namespace UniversalDragAndDrop.Inventories
 {
     /// <summary>
     /// Strategy for managing inventory slots
@@ -10,5 +12,7 @@
         /// maxStackSize = 0 means unlimited.
         /// </summary>
         void SetMaxStackSize(int maxStackSize, bool allowItemOverride);
+        
+        int GetMaxStackSizeForItem(IItemAdapter itemAdapter);
     }
 }

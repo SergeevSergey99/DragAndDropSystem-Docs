@@ -31,9 +31,4 @@ namespace UniversalDragAndDrop.Inventories
         /// </summary>
         ShapedPlacementExecutionResult TryExecuteShapedPlacement(ShapedPlacementExecutionContext context);
     }
-
-    public interface IStackLimitStrategy
-    {
-        int GetMaxStackSizeForItem(IItemAdapter itemAdapter);
-    }
 }

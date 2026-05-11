@@ -9,7 +9,7 @@ namespace UniversalDragAndDrop.Inventories
     /// Decorator for dynamic slot creation
     /// Wraps any strategy (Unique or Stackable) and adds automatic slot creation
     /// </summary>
-    public class DynamicSlotDecorator : IInventoryStrategy, IStackLimitStrategy
+    public class DynamicSlotDecorator : IInventoryStrategy
     {
         private readonly IInventoryStrategy _baseStrategy;
         private readonly System.Func<BaseSlot> _createSlotFunc;
@@ -161,9 +161,7 @@ namespace UniversalDragAndDrop.Inventories
 
         public int GetMaxStackSizeForItem(IItemAdapter itemAdapter)
         {
-            return _baseStrategy is IStackLimitStrategy stackLimitStrategy
-                ? stackLimitStrategy.GetMaxStackSizeForItem(itemAdapter)
-                : (itemAdapter == null ? 0 : int.MaxValue);
+            return _baseStrategy.GetMaxStackSizeForItem(itemAdapter);
         }
 
         public bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)

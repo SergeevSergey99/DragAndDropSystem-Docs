@@ -1330,7 +1330,7 @@ namespace UniversalDragAndDrop.Inventories
 
         private static int GetMaxStackSize(IInventory inventory, IItemAdapter itemAdapter)
         {
-            var strategy = ResolvePlacementStrategy(inventory) as IStackLimitStrategy;
+            var strategy = ResolvePlacementStrategy(inventory) as IInventoryStrategy;
             if (strategy == null)
                 return int.MaxValue;
 
