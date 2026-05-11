@@ -806,8 +806,8 @@ namespace UniversalDragAndDrop.Inventories
 
             transferAmount = transferStack.Count;
             sourceSlot.UpdateVisuals();
-            if (sourceInventory is UniversalInventory sourceUniversalAfterSplit && sourceUniversalAfterSplit.Grid.HasValue)
-                sourceUniversalAfterSplit.UpdateAllVisuals();
+            if (sourceInventory is IPlacementInventory sourcePlacementInventory && sourcePlacementInventory.Grid.HasValue)
+                sourceInventory.UpdateAllVisuals();
 
             var sourceRemovedStack = transferStack.CreateCopy();
 

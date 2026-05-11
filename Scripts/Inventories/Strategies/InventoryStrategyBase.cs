@@ -11,7 +11,7 @@ namespace UniversalDragAndDrop.Inventories
     /// Base strategy with shared methods
     /// </summary>
     [Serializable]
-    public abstract class InventoryStrategyBase : IInventoryStrategy
+    public abstract class InventoryStrategyBase : IInventoryStrategy, IStackLimitStrategy
     {
         [SerializeField, LabelText("Drag Amount"), Tooltip("How many items to take when dragging from a stack.")]
         [ShowIf(nameof(ShowDragAmountSettings))]

@@ -1078,8 +1078,7 @@ namespace UniversalDragAndDrop.Inventories
         }
 
         private static bool IsUniqueInventory(IInventory inventory) =>
-            inventory is UniversalInventory universal &&
-            universal.PlacementStrategy.UsesPerItemSlotPlanning;
+            ResolvePlacementStrategy(inventory)?.UsesPerItemSlotPlanning == true;
 
         private static int Min(int a, int b) => a < b ? a : b;
 
@@ -1331,11 +1330,11 @@ namespace UniversalDragAndDrop.Inventories
 
         private static int GetMaxStackSize(IInventory inventory, IItemAdapter itemAdapter)
         {
-            var universal = inventory as UniversalInventory;
-            if (universal == null)
+            var strategy = ResolvePlacementStrategy(inventory) as IStackLimitStrategy;
+            if (strategy == null)
                 return int.MaxValue;
 
-            return universal.GetMaxStackSizeForItem(itemAdapter);
+            return strategy.GetMaxStackSizeForItem(itemAdapter);
         }
 
         private static readonly IReadOnlyList<PlannedSlotAllocation> EmptyAllocations = new PlannedSlotAllocation[0];
