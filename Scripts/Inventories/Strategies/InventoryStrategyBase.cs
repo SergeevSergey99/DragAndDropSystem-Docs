@@ -118,7 +118,7 @@ namespace UniversalDragAndDrop.Inventories
             if (context.Footprint.IsSingleCell)
                 return ShapedPlacementPlanResult.NotApplicable();
 
-            if (context.TargetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue)
+            if (context.TargetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue)
                 return ShapedPlacementPlanResult.NotApplicable();
 
             if (context.RequestedAmount != 1)
@@ -128,7 +128,7 @@ namespace UniversalDragAndDrop.Inventories
                 !ReferenceEquals(context.TargetBaseSlotHint.Inventory, context.TargetInventory))
                 return ShapedPlacementPlanResult.Rejected("Shaped grid placement requires a target cell");
 
-            if (!targetUniversal.TryResolveShapedPlacementAnchor(
+            if (!targetPlacementInventory.TryResolveShapedPlacementAnchor(
                     context.TargetBaseSlotHint,
                     context.DragContext,
                     context.Entry,
@@ -156,7 +156,7 @@ namespace UniversalDragAndDrop.Inventories
                 anchorIndex,
                 context.Orientation,
                 context.Footprint);
-            if (!targetUniversal.CanPlace(placementRequest, ignoredPlacement))
+            if (!targetPlacementInventory.CanPlace(placementRequest, ignoredPlacement))
                 return ShapedPlacementPlanResult.Rejected("Target grid cells are not available");
 
             return ShapedPlacementPlanResult.Planned(new PlannedPlacementAllocation(
@@ -168,7 +168,7 @@ namespace UniversalDragAndDrop.Inventories
 
         public virtual ShapedPlacementExecutionResult TryExecuteShapedPlacement(ShapedPlacementExecutionContext context)
         {
-            if (context.TargetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue)
+            if (context.TargetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue)
                 return ShapedPlacementExecutionResult.NotApplicable();
 
             if (context.TransferStack == null || context.TransferStack.IsEmpty)
@@ -192,18 +192,18 @@ namespace UniversalDragAndDrop.Inventories
             if (anchorIndex < 0)
                 return ShapedPlacementExecutionResult.Failed("Invalid shaped placement anchor");
 
-            var resolvedAnchorSlot = targetUniversal.GetSlot(anchorIndex);
+            var resolvedAnchorSlot = targetPlacementInventory.GetSlot(anchorIndex);
             if (resolvedAnchorSlot == null)
                 return ShapedPlacementExecutionResult.Failed("Anchor slot not found");
 
             bool wasEmpty = resolvedAnchorSlot.IsEmpty;
             var request = new PlacementRequest(placedStack, anchorIndex, allocation.Orientation, footprint);
 
-            if (!targetUniversal.TryPlace(request, out _))
+            if (!targetPlacementInventory.TryPlace(request, out _))
                 return ShapedPlacementExecutionResult.Failed("Inventory rejected shaped placement");
 
             context.TransferStack.RemoveFromStack(placedStack.Count);
-            targetUniversal.UpdateAllVisuals();
+            targetPlacementInventory.UpdateAllVisuals();
 
             return ShapedPlacementExecutionResult.Placed(resolvedAnchorSlot, wasEmpty, placedStack.Count);
         }

@@ -17,7 +17,7 @@ namespace UniversalDragAndDrop.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IInventory, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore
+    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]

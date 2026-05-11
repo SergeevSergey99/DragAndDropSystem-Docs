@@ -233,10 +233,10 @@ namespace UniversalDragAndDrop.Inventories
                 else if (plannedEntry.HasPlacementAllocation)
                 {
                     var allocation = plannedEntry.PlacementAllocation.Value;
-                    var targetUniversal = plan.TargetInventory as UniversalInventory;
-                    var anchorSlot = targetUniversal?.GetSlot(allocation.AnchorIndex);
+                    var targetPlacementInventory = plan.TargetInventory as IPlacementInventory;
+                    var anchorSlot = targetPlacementInventory?.GetSlot(allocation.AnchorIndex);
 
-                    if (targetUniversal == null || anchorSlot == null || allocation.Amount <= 0)
+                    if (targetPlacementInventory == null || anchorSlot == null || allocation.Amount <= 0)
                     {
                         entryFailed = true;
                     }
@@ -988,12 +988,12 @@ namespace UniversalDragAndDrop.Inventories
 
         private bool TryAddToTargetPlacement(TargetPlacementOperation operation)
         {
-            if (operation.TargetInventory is not UniversalInventory targetUniversal ||
+            if (operation.TargetInventory is not IPlacementInventory targetPlacementInventory ||
                 operation.TransferStack == null ||
                 operation.TransferStack.IsEmpty)
                 return false;
 
-            var strategy = targetUniversal.PlacementStrategy;
+            var strategy = targetPlacementInventory.PlacementStrategy;
             if (strategy == null)
                 return false;
 
@@ -1036,11 +1036,11 @@ namespace UniversalDragAndDrop.Inventories
             IInventory inventory,
             BaseSlot resolvedSlot)
         {
-            if (inventory is UniversalInventory universalInventory && resolvedSlot != null)
+            if (inventory is IPlacementInventory placementInventory && resolvedSlot != null)
             {
-                var placement = universalInventory.GetPlacementAt(resolvedSlot);
+                var placement = placementInventory.GetPlacementAt(resolvedSlot);
                 if (placement != null)
-                    return PlacementSnapshot.FromPlacement(placement, universalInventory.GetSlot);
+                    return PlacementSnapshot.FromPlacement(placement, placementInventory.GetSlot);
             }
 
             return resolvedSlot != null

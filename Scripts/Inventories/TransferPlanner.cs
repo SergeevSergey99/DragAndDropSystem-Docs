@@ -329,7 +329,7 @@ namespace UniversalDragAndDrop.Inventories
                 if (context.IsBatchDrag)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Batch transfer does not support shaped items");
 
-                if ((targetInventory is not UniversalInventory targetUniversal || !targetUniversal.Grid.HasValue) &&
+                if ((targetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue) &&
                     targetBaseSlotHint != null &&
                     !targetBaseSlotHint.IsEmpty)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item drops onto occupied slots are not supported");
@@ -1317,8 +1317,8 @@ namespace UniversalDragAndDrop.Inventories
 
         private static IPlacementStrategy ResolvePlacementStrategy(IInventory inventory)
         {
-            var universal = inventory as UniversalInventory;
-            return universal != null ? universal.PlacementStrategy : null;
+            var placementInventory = inventory as IPlacementInventory;
+            return placementInventory != null ? placementInventory.PlacementStrategy : null;
         }
 
         private static List<BaseSlot> GetInventorySlots(IInventory inventory)

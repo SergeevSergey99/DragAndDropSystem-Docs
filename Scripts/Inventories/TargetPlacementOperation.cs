@@ -40,7 +40,7 @@ namespace UniversalDragAndDrop.Inventories
         public SlotOperationContext OperationContext { get; }
         public PlannedPlacementAllocation? PlacementAllocation { get; }
 
-        public UniversalInventory AlternativeTargetInventory => TargetInventory as UniversalInventory;
+        public IPlacementInventory AlternativeTargetInventory => TargetInventory as IPlacementInventory;
 
         public bool RequiresStrategyPlacement =>
             AlternativeTargetInventory != null &&

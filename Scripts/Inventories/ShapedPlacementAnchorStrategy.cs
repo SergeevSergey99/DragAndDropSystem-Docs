@@ -8,7 +8,7 @@ namespace UniversalDragAndDrop.Inventories
     public readonly struct ShapedPlacementAnchorContext
     {
         public ShapedPlacementAnchorContext(
-            UniversalInventory targetInventory,
+            IPlacementInventory targetInventory,
             BaseSlot targetBaseSlot,
             DragContext dragContext,
             DragEntry entry,
@@ -25,7 +25,7 @@ namespace UniversalDragAndDrop.Inventories
             TargetItemAdapter = targetItemAdapter;
         }
 
-        public UniversalInventory TargetInventory { get; }
+        public IPlacementInventory TargetInventory { get; }
         public BaseSlot TargetBaseSlot { get; }
         public DragContext DragContext { get; }
         public DragEntry Entry { get; }
@@ -43,7 +43,7 @@ namespace UniversalDragAndDrop.Inventories
             {
                 if (Entry.SourcePlacement != null &&
                     Entry.SourceBaseSlot != null &&
-                    Entry.SourceInventory is UniversalInventory sourceInventory)
+                    Entry.SourceInventory is IPlacementInventory sourceInventory)
                 {
                     return sourceInventory.GetGrabOffset(Entry.SourcePlacement, Entry.SourceBaseSlot);
                 }
