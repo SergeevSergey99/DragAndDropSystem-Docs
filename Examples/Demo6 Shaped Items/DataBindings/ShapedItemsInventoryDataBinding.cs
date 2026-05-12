@@ -5,7 +5,6 @@ using UniversalDragAndDrop.Core;
 using UniversalDragAndDrop.DataBinding;
 using UniversalDragAndDrop.Inventories;
 using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.UI;
 
 namespace UniversalDragAndDrop.Examples.ShapedItems
 {
@@ -24,62 +23,45 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
         }
     }
 
-    public class ShapedItemsInventoryDataBinding : InventoryDataBindingBase
+    public class ShapedItemsInventoryDataBinding : PlacementInventoryDataBinding<ShapedItemExampleSO, ShapedItemAdapter>
     {
         [Header("Data")]
-        [SerializeField] private List<ShapedPlacementSeed> _placements = new List<ShapedPlacementSeed>();
+        [SerializeField] private List<ShapedPlacementSeed> _placements = new();
 
-        protected override void Awake()
+        protected override IEnumerable<PlacementData<ShapedItemExampleSO>> GetPlacements()
         {
-            if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
-
-            base.Awake();
+            for (int i = 0; i < _placements.Count; i++)
+            {
+                var seed = _placements[i];
+                if (seed.item != null)
+                    yield return new PlacementData<ShapedItemExampleSO>(
+                        seed.item,
+                        seed.anchorIndex,
+                        1,
+                        seed.orientation);
+            }
         }
 
-        protected override void OnReloadUI()
+        protected override ShapedItemAdapter CreateAdapter(ShapedItemExampleSO item) => item != null ? new ShapedItemAdapter(item) : null;
+        protected override ShapedItemExampleSO ExtractData(ShapedItemAdapter adapter) => adapter?.item;
+
+        protected override void AddPlacementData(PlacementCommitContext<ShapedItemExampleSO, ShapedItemAdapter> context)
         {
-            if (Inventory == null)
+            if (context.Data == null)
                 return;
-
-            if (Inventory.Grid.HasValue)
-            {
-                ReloadGrid();
-            }
-            else
-            {
-                ReloadSlots();
-            }
-
-            Inventory.UpdateAllVisuals();
-        }
-
-        protected override void OnItemAddedToUI(InventoryItemEventContext context)
-        {
-            if (context?.Stack?.PrimaryAdapter is not ShapedItemAdapter adapter || adapter.item == null)
-                return;
-
-            if (Inventory.Grid.HasValue)
-            {
-                _placements.Add(new ShapedPlacementSeed(
-                    adapter.item,
-                    Mathf.Max(0, context.AnchorIndex),
-                    context.Orientation));
-                return;
-            }
 
             _placements.Add(new ShapedPlacementSeed(
-                adapter.item,
-                Mathf.Max(0, context.SlotIndex),
-                PlacementOrientation.Rot0));
+                context.Data,
+                Mathf.Max(0, context.AnchorIndex),
+                context.Orientation));
         }
 
-        protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
+        protected override void RemovePlacementData(PlacementCommitContext<ShapedItemExampleSO, ShapedItemAdapter> context)
         {
-            if (context?.Stack?.PrimaryAdapter is not ShapedItemAdapter adapter || adapter.item == null)
+            if (context.Data == null)
                 return;
 
-            RemoveFirstPlacement(adapter.item, context.AnchorIndex);
+            RemoveFirstPlacement(context.Data, context.AnchorIndex, context.Orientation);
         }
 
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)
@@ -100,55 +82,15 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
                 ReloadUI();
         }
 
-        private void ReloadSlots()
+        private void RemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation)
         {
-            for (int i = 0; i < _placements.Count; i++)
-            {
-                var seed = _placements[i];
-                if (seed.item == null)
-                    continue;
+            if (TryRemoveFirstPlacement(item, anchorIndex, orientation, requireOrientation: true)) return;
+            if (TryRemoveFirstPlacement(item, anchorIndex, orientation, requireOrientation: false)) return;
 
-                AddToUIQuiet(new[] { new ShapedItemAdapter(seed.item) });
-            }
+            TryRemoveFirstPlacement(item, -1, orientation, requireOrientation: false);
         }
 
-        private void ReloadGrid()
-        {
-            for (int i = 0; i < _placements.Count; i++)
-            {
-                var seed = _placements[i];
-                if (seed.item == null)
-                    continue;
-
-                var adapter = new ShapedItemAdapter(seed.item);
-                if (!ItemStack.TryCreate(new[] { adapter }, out var stack))
-                    continue;
-
-                var request = new PlacementRequest(
-                    stack,
-                    Mathf.Max(0, seed.anchorIndex),
-                    seed.orientation,
-                    adapter.Footprint);
-
-                if (!Inventory.TryPlace(request))
-                {
-                    Debug.LogWarning(
-                        $"[{nameof(ShapedItemsInventoryDataBinding)}] Could not place '{adapter.DisplayName}' at anchor {seed.anchorIndex}.",
-                        this);
-                }
-            }
-        }
-
-        private void RemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex)
-        {
-            if (TryRemoveFirstPlacement(item, anchorIndex))
-                return;
-
-            if (anchorIndex >= 0)
-                TryRemoveFirstPlacement(item, -1);
-        }
-
-        private bool TryRemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex)
+        private bool TryRemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation, bool requireOrientation)
         {
             for (int i = 0; i < _placements.Count; i++)
             {
@@ -156,6 +98,9 @@ namespace UniversalDragAndDrop.Examples.ShapedItems
                     continue;
 
                 if (anchorIndex >= 0 && _placements[i].anchorIndex != anchorIndex)
+                    continue;
+
+                if (requireOrientation && _placements[i].orientation != orientation)
                     continue;
 
                 _placements.RemoveAt(i);
