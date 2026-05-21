@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace UniversalDragAndDrop.ContextMenu.BuiltInEntries
+namespace UDND.ContextMenu.BuiltInEntries
 {
     [CreateAssetMenu(fileName = "DebugContextMenuEntry", menuName = "DragAndDrop/ContextMenu/Built-in/Debug Entry", order = 101)]
     public class DebugContextMenuEntrySO : ContextMenuEntryDefinitionSO

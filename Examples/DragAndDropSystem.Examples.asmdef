@@ -1,8 +1,8 @@
 {
-  "name": "UniversalDragAndDrop.Examples",
-  "rootNamespace": "UniversalDragAndDrop.Examples",
+  "name": "UDND.Examples",
+  "rootNamespace": "UDND.Examples",
   "references": [
-    "UniversalDragAndDrop.Runtime",
+    "UDND.Runtime",
     "Unity.ugui"
   ],
   "includePlatforms": [],

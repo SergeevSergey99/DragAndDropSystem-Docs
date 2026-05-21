@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Filter.Filters
+namespace UDND.Filter.Filters
 {
     /// <summary>
     /// Filters slots by <see cref="IFilterable.Rarity"/> within a range.

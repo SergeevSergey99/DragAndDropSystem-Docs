@@ -1,8 +1,8 @@
 using UnityEngine;
-using UniversalDragAndDrop.Examples.Trading.Data;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Examples.Trading.Data;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// ScriptableObject for a tradable item with buy/sell prices

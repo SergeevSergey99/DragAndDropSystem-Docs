@@ -1,8 +1,8 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Examples.Trading.Data;
+using UDND.Core;
+using UDND.Examples.Trading.Data;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// Adapter for TradableItemSO implementing IItemAdapter

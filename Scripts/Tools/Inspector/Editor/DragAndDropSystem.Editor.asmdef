@@ -1,8 +1,8 @@
 {
-  "name": "UniversalDragAndDrop.Editor",
-  "rootNamespace": "UniversalDragAndDrop",
+  "name": "UDND.Editor",
+  "rootNamespace": "UDND",
   "references": [
-    "UniversalDragAndDrop.Runtime"
+    "UDND.Runtime"
   ],
   "includePlatforms": [
     "Editor"

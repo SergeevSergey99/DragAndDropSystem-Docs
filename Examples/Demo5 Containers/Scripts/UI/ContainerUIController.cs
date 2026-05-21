@@ -2,7 +2,7 @@
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace UniversalDragAndDrop.Examples.Containers.UI
+namespace UDND.Examples.Containers.UI
 {
     public class ContainerUIController : MonoBehaviour
     {

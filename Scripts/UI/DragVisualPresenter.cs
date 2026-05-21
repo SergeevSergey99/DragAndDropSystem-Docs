@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using CodeUtils;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Inventories;
+using UDND.Core;
+using UDND.Interaction;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     [DisallowMultipleComponent]
     public class DragVisualPresenter : MonoSingleton<DragVisualPresenter>

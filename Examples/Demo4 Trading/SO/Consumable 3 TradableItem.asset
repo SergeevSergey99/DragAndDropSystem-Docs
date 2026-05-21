@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d67b65887402ee247ac17bd9ed41fc07, type: 3}
   m_Name: Consumable 3 TradableItem
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.TradableItemSO
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.Trading.TradableItemSO
   _displayName: Stuffed flatbread
   _icon: {fileID: 21300000, guid: 931310fa2ba61554f8462b4c313e9511, type: 3}
   _itemType: 3

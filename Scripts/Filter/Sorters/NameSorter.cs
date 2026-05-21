@@ -1,6 +1,6 @@
 using System;
 
-namespace UniversalDragAndDrop.Filter.Sorters
+namespace UDND.Filter.Sorters
 {
     /// <summary>
     /// Sorts slots alphabetically by <see cref="Core.ItemStack.DisplayName"/>.

@@ -1,7 +1,7 @@
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
+using UDND.Core;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// Converts incoming tradable items to the merchant's SO adapter.

@@ -124,8 +124,8 @@ public class LegendaryItemAdapter : ItemSOAdapter, ITooltipProvider
 ### Шаг 1: Создать класс наследник
 
 ```csharp
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.UI;
+using UDND.Core;
+using UDND.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

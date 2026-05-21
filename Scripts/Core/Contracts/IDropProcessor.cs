@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Interface for handling drop operations.

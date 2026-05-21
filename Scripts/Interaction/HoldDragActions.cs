@@ -1,7 +1,7 @@
 using System;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     /// <summary>
     /// Bind to the Down phase. Starts hold counting on the slot.

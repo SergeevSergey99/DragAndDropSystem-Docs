@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     [Serializable]
     public abstract class StackBasedInventoryStrategyBase : InventoryStrategyBase

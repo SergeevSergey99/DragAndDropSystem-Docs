@@ -1,8 +1,8 @@
 using NUnit.Framework;
 using UnityEngine;
-using UniversalDragAndDrop.Inventories;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Tests.Inventories
+namespace UDND.Tests.Inventories
 {
     /// <summary>
     /// Smoke tests for InventoryBuilder. These lock down the foundation that every

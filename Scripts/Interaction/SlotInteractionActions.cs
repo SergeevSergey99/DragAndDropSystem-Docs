@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
+using UDND.Core;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     [Serializable]
     public abstract class SlotInteractionAction

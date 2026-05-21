@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Inventories;
+using UDND.Rules;
 
-namespace UniversalDragAndDrop.Examples.ShapedItems
+namespace UDND.Examples.ShapedItems
 {
     [Serializable]
     public struct ShapedPlacementSeed

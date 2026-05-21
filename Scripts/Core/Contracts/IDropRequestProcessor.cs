@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     public interface IDropRequestProcessor : IDropProcessor
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UniversalDragAndDrop.ContextMenu
+namespace UDND.ContextMenu
 {
     /// <summary>
     /// Base ScriptableObject for a single context menu entry.

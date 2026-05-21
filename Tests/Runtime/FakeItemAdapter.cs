@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Tests
+namespace UDND.Tests
 {
     /// <summary>
     /// Minimal IItemAdapter for tests. Each instance is a distinct adapter reference;

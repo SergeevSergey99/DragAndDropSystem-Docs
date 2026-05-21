@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     [Serializable]
     public class AssetPointerBinding

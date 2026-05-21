@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.DataBinding
+namespace UDND.DataBinding
 {
     /// <summary>
     /// Template DataBinding for inventories with fixed slots.

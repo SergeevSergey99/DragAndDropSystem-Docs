@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Filter
+namespace UDND.Filter
 {
     /// <summary>
     /// Context passed to filters and sorters during evaluation.

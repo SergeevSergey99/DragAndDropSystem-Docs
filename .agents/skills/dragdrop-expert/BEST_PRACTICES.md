@@ -182,9 +182,9 @@ Complete guide for extending the system and optimization strategies.
 ### Code Style
 
 **Namespace Convention**:
-- `UniversalDragAndDrop` - Root namespace
-- `UniversalDragAndDrop.Core` - Core classes
-- `UniversalDragAndDrop.Rules` - Rule system
+- `UDND` - Root namespace
+- `UDND.Core` - Core classes
+- `UDND.Rules` - Rule system
 - etc.
 
 **XML Documentation**:

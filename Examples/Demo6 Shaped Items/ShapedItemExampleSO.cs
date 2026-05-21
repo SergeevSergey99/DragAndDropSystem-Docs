@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Examples.ShapedItems
+namespace UDND.Examples.ShapedItems
 {
     [CreateAssetMenu(fileName = "ShapedItemExampleSO", menuName = "DragAndDrop/Examples/Shaped Item", order = 6)]
     public class ShapedItemExampleSO : ScriptableObject

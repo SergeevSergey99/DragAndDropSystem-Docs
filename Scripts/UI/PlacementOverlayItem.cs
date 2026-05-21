@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     public enum PlacementOverlayRenderState
     {

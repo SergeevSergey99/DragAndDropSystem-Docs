@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Interaction;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Selection
+namespace UDND.Selection
 {
     [Serializable]
     public sealed class StartMultiDragAction : AssetSafeSlotInteractionAction

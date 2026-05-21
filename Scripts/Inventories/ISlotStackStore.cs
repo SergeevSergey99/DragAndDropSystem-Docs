@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Inventory-owned slot stack storage. Mutating live slot stacks should go through this contract.

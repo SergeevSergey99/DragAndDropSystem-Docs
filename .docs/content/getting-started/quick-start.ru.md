@@ -62,7 +62,7 @@ public class ItemSO : ScriptableObject
 Чтобы такой тип можно было отображать в слотах для него нужно сделать адаптер, который реализует `IItemAdapter`, например:
 
 ```csharp
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 using UnityEngine;
 
 public class ItemSOAdapter : IItemAdapter
@@ -91,8 +91,8 @@ public class ItemSOAdapter : IItemAdapter
 ## Шаг 4. Добавьте простой binding
 
 ```csharp
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
+using UDND.Core;
+using UDND.DataBinding;
 using System.Collections.Generic;
 using UnityEngine;
 

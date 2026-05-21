@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Read-only stack view exposed by live inventory slots and placements.

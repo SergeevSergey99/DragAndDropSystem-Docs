@@ -1,8 +1,8 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Tools;
+using UDND.Core;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.Examples.Loot
+namespace UDND.Examples.Loot
 {
     /// <summary>
     /// UI zone for dropping items into the 3D world.

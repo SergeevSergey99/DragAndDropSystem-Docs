@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Optional inventory contract for grid/shaped placement support.

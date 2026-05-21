@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
+using UDND.Core;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Rules
+namespace UDND.Rules
 {
     /// <summary>
     /// Prevents dropping an item into the same slot it was taken from

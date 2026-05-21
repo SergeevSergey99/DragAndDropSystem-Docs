@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Tools;
+using UDND.Interaction;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.ContextMenu.UI
+namespace UDND.ContextMenu.UI
 {
     public class UniversalContextMenuView : ContextMenuViewBase
     {

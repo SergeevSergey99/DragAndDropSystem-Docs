@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Examples.Containers
+namespace UDND.Examples.Containers
 {
     [Serializable]
     public class ContainerItemInstance : IContainerizeItemInstance

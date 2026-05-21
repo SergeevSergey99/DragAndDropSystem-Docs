@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Tools;
+using UDND.Core;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.DataBinding
+namespace UDND.DataBinding
 {
     /// <summary>
     /// EXAMPLE of extending GameManager with methods and events for Data Binding

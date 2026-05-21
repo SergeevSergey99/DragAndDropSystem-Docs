@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using CodeUtils;
-using UniversalDragAndDrop.Examples.Trading.Data;
+using UDND.Examples.Trading.Data;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// Centralized economy manager for the trading system

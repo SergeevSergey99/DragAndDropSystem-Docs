@@ -1,8 +1,8 @@
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Domain-operation context for a single planned transfer allocation.

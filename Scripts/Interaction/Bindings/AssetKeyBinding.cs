@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     [Serializable]
     public class AssetKeyBinding

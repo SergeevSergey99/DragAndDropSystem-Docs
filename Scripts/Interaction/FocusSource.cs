@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     public enum FocusSource
     {

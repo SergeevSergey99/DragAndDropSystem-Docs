@@ -1,9 +1,9 @@
 using System;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.Interaction;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Selection
+namespace UDND.Selection
 {
     [Serializable]
     public sealed class SelectionSlotAction : AssetSafeSlotInteractionAction

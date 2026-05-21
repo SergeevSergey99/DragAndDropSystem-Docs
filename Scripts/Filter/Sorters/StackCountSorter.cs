@@ -1,6 +1,6 @@
 using System;
 
-namespace UniversalDragAndDrop.Filter.Sorters
+namespace UDND.Filter.Sorters
 {
     /// <summary>
     /// Sorts slots by stack count (larger stacks first by default).

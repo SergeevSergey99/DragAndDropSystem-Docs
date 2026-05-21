@@ -1,8 +1,8 @@
 {
-    "name": "UniversalDragAndDrop.Tests.Helpers",
-    "rootNamespace": "UniversalDragAndDrop.Tests",
+    "name": "UDND.Tests.Helpers",
+    "rootNamespace": "UDND.Tests",
     "references": [
-        "UniversalDragAndDrop.Runtime",
+        "UDND.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

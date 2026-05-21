@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools;
+using UDND.Interaction;
+using UDND.Inventories;
+using UDND.Slots;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Base class for drop areas/zones.

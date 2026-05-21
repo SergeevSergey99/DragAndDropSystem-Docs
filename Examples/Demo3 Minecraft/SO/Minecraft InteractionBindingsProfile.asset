@@ -42,7 +42,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676589293835124809
-      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: CompleteDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dropPolicyOverride:
           _overrideBlockedTargetResolver: 0
@@ -51,30 +51,30 @@ MonoBehaviour:
           _overrideAllowPartial: 0
           _allowPartial: 1
     - rid: 8490481047700242432
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8490481047700242433
         _allowSameInventoryAlternativePlacement: 1
     - rid: 8490481047700242433
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
     - rid: 8490481047700242434
-      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: StartDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 2
           _customAmount: 1
     - rid: 8490481047700242435
-      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: StartDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1
           _amount: 0
           _customAmount: 1
     - rid: 8490481047700242436
-      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: StartDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 1

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests
+namespace UDND.Tests
 {
     /// <summary>
     /// Fluent builder that assembles a minimal, fully-initialized UniversalInventory

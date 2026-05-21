@@ -1,6 +1,6 @@
 using System;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     [Serializable]
     public sealed class RejectBlockedTargetResolver : BlockedTargetResolverBase

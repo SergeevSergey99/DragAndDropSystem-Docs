@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Result of a drop operation performed by IDropHandler.

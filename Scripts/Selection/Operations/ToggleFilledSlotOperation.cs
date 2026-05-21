@@ -1,6 +1,6 @@
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Selection
+namespace UDND.Selection
 {
     /// <summary>
     /// Toggles selection of a single slot (Ctrl+Click)

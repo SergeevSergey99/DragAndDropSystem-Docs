@@ -1,6 +1,6 @@
 {
-  "name": "UniversalDragAndDrop.Runtime",
-  "rootNamespace": "UniversalDragAndDrop",
+  "name": "UDND.Runtime",
+  "rootNamespace": "UDND",
   "references": [
     "Unity.InputSystem",
     "Unity.ugui"

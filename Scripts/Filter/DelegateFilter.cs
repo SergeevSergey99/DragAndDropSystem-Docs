@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Filter
+namespace UDND.Filter
 {
     /// <summary>
     /// Wraps a <see cref="FilterPredicate"/> delegate as <see cref="ISlotFilter"/>.

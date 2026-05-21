@@ -7,7 +7,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Tools.Inspector.Editor
+namespace UDND.Tools.Inspector.Editor
 {
     internal static class InspectorReflectionUtility
     {

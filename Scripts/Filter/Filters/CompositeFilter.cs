@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Filter.Filters
+namespace UDND.Filter.Filters
 {
     /// <summary>
     /// Combines multiple <see cref="ISlotFilter"/> with AND/OR logic.

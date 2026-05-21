@@ -11,12 +11,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb314c01c6c85ee47b4790364a4ee113, type: 3}
   m_Name: SortPreset
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Filter.SortPreset
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Filter.SortPreset
   _sorter:
     rid: 8490480804800233685
   references:
     version: 2
     RefIds:
     - rid: 8490480804800233685
-      type: {class: NameSorter, ns: UniversalDragAndDrop.Filter.Sorters, asm: UniversalDragAndDrop.Runtime}
+      type: {class: NameSorter, ns: UDND.Filter.Sorters, asm: UDND.Runtime}
       data: 

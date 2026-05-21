@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Examples.Minecraft
+namespace UDND.Examples.Minecraft
 {
     [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/MinecraftItemSO")]
     public class MinecraftItemSO : ScriptableObject

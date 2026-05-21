@@ -1,7 +1,7 @@
 using System;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Filter.Sorters
+namespace UDND.Filter.Sorters
 {
     /// <summary>
     /// Sorts slots alphabetically by <see cref="IFilterable.Category"/>.

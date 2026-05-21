@@ -1,11 +1,11 @@
 using System;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Rules;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Slots
+namespace UDND.Slots
 {
     /// <summary>
     /// Base class for slots. Inherits from MonoBehaviour so it can be referenced in the Inspector.

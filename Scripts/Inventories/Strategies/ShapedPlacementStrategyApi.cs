@@ -1,7 +1,7 @@
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Inputs that a strategy needs to plan a shaped (multi-cell) placement

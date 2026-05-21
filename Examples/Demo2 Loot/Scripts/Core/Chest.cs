@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Examples;
+using UDND.Examples;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Examples.Loot
+namespace UDND.Examples.Loot
 {
     /// <summary>
     /// Chest: a container with items.

@@ -1,13 +1,13 @@
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Inventories;
+using UDND.Rules;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests.Inventories
+namespace UDND.Tests.Inventories
 {
     /// <summary>
     /// Integration tests for InventoryDropProcessor — the public entry point of the

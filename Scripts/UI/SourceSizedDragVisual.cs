@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     /// <summary>
     /// Drag visual that preserves the UI size of the dragged source.

@@ -4,14 +4,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Rules;
+using UDND.Slots;
+using UDND.Tools;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Universal inventory built around composition

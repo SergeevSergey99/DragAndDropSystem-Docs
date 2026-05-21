@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.ContextMenu
+namespace UDND.ContextMenu
 {
     /// <summary>
     /// Context menu preset: a reusable list of entries.

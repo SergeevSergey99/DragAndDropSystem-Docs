@@ -95,7 +95,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0424ec56cd3c7044a6b8419cb8f051b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.UI.TooltipManager
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.UI.TooltipManager
   _canvas: {fileID: 3691492171055251600}
   _defaultTooltipPrefab: {fileID: 6972696159155140825, guid: db86d9002e9a4f54cbbf34193e282545, type: 3}
   _offset: {x: 15, y: -15}

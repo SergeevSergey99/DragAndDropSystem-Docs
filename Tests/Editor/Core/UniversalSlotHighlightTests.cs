@@ -1,8 +1,8 @@
 using NUnit.Framework;
 using UnityEngine;
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests.Core
+namespace UDND.Tests.Core
 {
     [TestFixture]
     public class UniversalSlotHighlightTests

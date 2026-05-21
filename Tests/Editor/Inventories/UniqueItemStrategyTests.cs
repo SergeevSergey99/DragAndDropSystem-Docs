@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using NUnit.Framework;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests.Inventories
+namespace UDND.Tests.Inventories
 {
     [TestFixture]
     public class UniqueItemStrategyTests

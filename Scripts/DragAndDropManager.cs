@@ -5,16 +5,16 @@ using CodeUtils;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Selection;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools;
-using UniversalDragAndDrop.Tools.Inspector;
-using UniversalDragAndDrop.UI;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Rules;
+using UDND.Selection;
+using UDND.Slots;
+using UDND.Tools;
+using UDND.Tools.Inspector;
+using UDND.UI;
 
-namespace UniversalDragAndDrop
+namespace UDND
 {
     /// <summary>
     /// Next-generation drag-and-drop manager

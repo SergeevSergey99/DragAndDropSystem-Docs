@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Slots;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     [DisallowMultipleComponent]
     //[DefaultExecutionOrder(1000)]

@@ -1,9 +1,9 @@
 using System.Linq;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Rules;
+using UDND.Core;
+using UDND.Rules;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Examples.General
+namespace UDND.Examples.General
 {
     public class ItemTypeExampleFilterRule : DragRuleBase, IInventoryRule, ISlotRule
     {

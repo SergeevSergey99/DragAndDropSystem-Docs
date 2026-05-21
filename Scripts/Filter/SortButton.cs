@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Filter
+namespace UDND.Filter
 {
     /// <summary>
     /// Sort button. Applies a <see cref="SlotSorterSO"/> on click.

@@ -1,8 +1,8 @@
-using UniversalDragAndDrop.Examples;
+using UDND.Examples;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Examples
+namespace UDND.Examples
 {
     /// <summary>
     /// Adapter for ItemExampleWith3DSO

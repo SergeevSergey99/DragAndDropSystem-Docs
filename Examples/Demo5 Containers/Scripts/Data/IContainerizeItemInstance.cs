@@ -1,4 +1,4 @@
-﻿namespace UniversalDragAndDrop.Examples.Containers
+﻿namespace UDND.Examples.Containers
 {
     public interface IContainerizeItemInstance
     {

@@ -60,12 +60,12 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 6676588890579796071
-      type: {class: SelectionSlotAction, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      type: {class: SelectionSlotAction, ns: UDND.Selection, asm: UDND.Runtime}
       data:
         _operation:
           rid: 8490480985534889992
     - rid: 6676588890579796076
-      type: {class: StartMultiDragAction, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      type: {class: StartMultiDragAction, ns: UDND.Selection, asm: UDND.Runtime}
       data:
         _restrictToSameInventory: 1
         _dragPolicyOverride:
@@ -73,10 +73,10 @@ MonoBehaviour:
           _amount: 0
           _customAmount: 1
     - rid: 6676588977941643265
-      type: {class: ShowContextMenuAction, ns: UniversalDragAndDrop.ContextMenu, asm: UniversalDragAndDrop.Runtime}
+      type: {class: ShowContextMenuAction, ns: UDND.ContextMenu, asm: UDND.Runtime}
       data: 
     - rid: 8490480985534889984
-      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: CompleteDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dropPolicyOverride:
           _overrideBlockedTargetResolver: 0
@@ -85,33 +85,33 @@ MonoBehaviour:
           _overrideAllowPartial: 0
           _allowPartial: 1
     - rid: 8490480985534889985
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8490480985534889986
     - rid: 8490480985534889986
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
     - rid: 8490480985534889987
-      type: {class: SelectionSlotAction, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      type: {class: SelectionSlotAction, ns: UDND.Selection, asm: UDND.Runtime}
       data:
         _operation:
           rid: 8490480985534889988
     - rid: 8490480985534889988
-      type: {class: ClearSelectionOperation, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      type: {class: ClearSelectionOperation, ns: UDND.Selection, asm: UDND.Runtime}
       data: 
     - rid: 8490480985534889992
-      type: {class: ToggleFilledSlotOperation, ns: UniversalDragAndDrop.Selection, asm: UniversalDragAndDrop.Runtime}
+      type: {class: ToggleFilledSlotOperation, ns: UDND.Selection, asm: UDND.Runtime}
       data: 
     - rid: 8490480985534889994
-      type: {class: StartDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: StartDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dragPolicyOverride:
           _overrideAmount: 0
           _amount: 0
           _customAmount: 1
     - rid: 8490480988165767168
-      type: {class: CompleteDragAction, ns: UniversalDragAndDrop.Interaction, asm: UniversalDragAndDrop.Runtime}
+      type: {class: CompleteDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
         _dropPolicyOverride:
           _overrideBlockedTargetResolver: 0
@@ -120,10 +120,10 @@ MonoBehaviour:
           _overrideAllowPartial: 0
           _allowPartial: 1
     - rid: 8490480988165767169
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8490480988165767170
     - rid: 8490480988165767170
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 

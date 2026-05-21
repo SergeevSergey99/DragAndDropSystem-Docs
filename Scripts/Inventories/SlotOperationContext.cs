@@ -1,6 +1,6 @@
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Context for an add-to-slot operation.

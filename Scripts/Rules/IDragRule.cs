@@ -1,8 +1,8 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Tools;
+using UDND.Core;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.Rules
+namespace UDND.Rules
 {
     /// <summary>
     /// Rule validation result

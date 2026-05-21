@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using CodeUtils;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Examples.Minecraft
+namespace UDND.Examples.Minecraft
 {
     public class CraftingManager : MonoSingleton<CraftingManager>
     {

@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Filter
+namespace UDND.Filter
 {
     /// <summary>
     /// ScriptableObject wrapper for any <see cref="ISlotSorter"/>.

@@ -1,12 +1,12 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Interaction;
+using UDND.Slots;
+using UDND.Tools;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     /// <summary>
     /// Tooltip manager used to display item information when hovering slots.

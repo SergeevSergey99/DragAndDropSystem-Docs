@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     internal readonly struct StrategyConfiguration : IEquatable<StrategyConfiguration>
     {

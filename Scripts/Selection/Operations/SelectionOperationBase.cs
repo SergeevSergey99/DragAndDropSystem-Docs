@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Selection
+namespace UDND.Selection
 {
     /// <summary>
     /// Base class for selection operations.

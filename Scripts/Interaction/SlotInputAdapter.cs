@@ -4,12 +4,12 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Slots;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     /// <summary>
     /// Thin slot adapter: forwards raw events to InputEventRouter.

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Slots;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Filter
+namespace UDND.Filter
 {
     /// <summary>
     /// Inventory filtering and sorting controller.

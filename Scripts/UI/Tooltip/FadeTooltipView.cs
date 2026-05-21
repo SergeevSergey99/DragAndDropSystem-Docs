@@ -1,8 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using UniversalDragAndDrop.Tools;
+using UDND.Tools;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     public abstract class FadeTooltipView : BaseTooltipView
     {

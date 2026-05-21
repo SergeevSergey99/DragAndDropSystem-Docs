@@ -1,6 +1,6 @@
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     public interface IDropPolicyProvider
     {

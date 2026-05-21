@@ -1,19 +1,19 @@
 ﻿using UnityEngine;
 
-namespace UniversalDragAndDrop.Tools
+namespace UDND.Tools
 {
     public static class Extensions
     {
         public static void DragAndDropLog(string message)
         {
 #if UNITY_EDITOR && UNIVERSAL_INVENTORY_LOG
-            Debug.Log($"<color=cyan>[UniversalDragAndDrop]</color> {message}");
+            Debug.Log($"<color=cyan>[UDND]</color> {message}");
 #endif
         }
         public static void DragAndDropLogWarning(string message)
         {
 #if UNITY_EDITOR && UNIVERSAL_INVENTORY_LOG
-            Debug.LogWarning($"<color=cyan>[UniversalDragAndDrop]</color> {message}");
+            Debug.LogWarning($"<color=cyan>[UDND]</color> {message}");
 #endif
         }
 

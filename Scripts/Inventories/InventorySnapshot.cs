@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Inventory state snapshot used for rollback. Restoration reads <see cref="Placements"/>

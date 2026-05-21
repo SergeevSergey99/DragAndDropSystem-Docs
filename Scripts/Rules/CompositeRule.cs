@@ -1,8 +1,8 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Core;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Rules
+namespace UDND.Rules
 {
     public class CompositeRule<TRule> : DragRuleBase where TRule : IDragRule
     {

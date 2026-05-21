@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests
+namespace UDND.Tests
 {
     /// <summary>
     /// Creates lists of BaseSlot-backed GameObjects for strategy-level tests.

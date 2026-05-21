@@ -1,6 +1,6 @@
-﻿using UniversalDragAndDrop.Core;
+﻿using UDND.Core;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Strategy for managing inventory slots

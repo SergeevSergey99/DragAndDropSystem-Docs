@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UniversalDragAndDrop.Examples.Containers
+namespace UDND.Examples.Containers
 {
     /// <summary>
     /// Runtime item instance. For containers it stores nested contents.

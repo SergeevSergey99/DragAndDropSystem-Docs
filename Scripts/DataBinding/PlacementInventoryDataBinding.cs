@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.DataBinding
+namespace UDND.DataBinding
 {
     /// <summary>
     /// Serializable placement payload used by placement-aware inventory bindings.

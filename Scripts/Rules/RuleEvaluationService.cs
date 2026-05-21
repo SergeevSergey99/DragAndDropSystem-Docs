@@ -1,8 +1,8 @@
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
+using UDND.Slots;
+using UDND.Core;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Rules
+namespace UDND.Rules
 {
     /// <summary>
     /// Single rule evaluation entry point for planner/executor/handlers.

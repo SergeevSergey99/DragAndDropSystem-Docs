@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Strategy: each item occupies its own slot (not stackable)

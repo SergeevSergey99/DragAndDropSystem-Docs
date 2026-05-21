@@ -1,11 +1,11 @@
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Selection;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.UI;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Selection;
+using UDND.Slots;
+using UDND.UI;
 using UnityEngine.EventSystems;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     public enum InteractionInputKind
     {

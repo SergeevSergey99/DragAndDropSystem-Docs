@@ -249,7 +249,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!224 &44483269 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
@@ -265,7 +265,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!224 &77010076 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
@@ -281,7 +281,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &118631622
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -993,7 +993,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &504213134
 GameObject:
   m_ObjectHideFlags: 0
@@ -1124,7 +1124,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 34a568dd0946f36468c0a263327aa5c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Inventories.UniversalInventory
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Inventories.UniversalInventory
   _slotContainer: {fileID: 1527925729}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 8
@@ -1154,19 +1154,19 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 8490480897462108197
-      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8490481047700242445
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8490481047700242446
         _allowSameInventoryAlternativePlacement: 1
     - rid: 8490481047700242446
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
     - rid: 8490481047700242454
-      type: {class: UniqueItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: UniqueItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
@@ -1335,7 +1335,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &520690172
 GameObject:
   m_ObjectHideFlags: 0
@@ -1388,7 +1388,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 34a568dd0946f36468c0a263327aa5c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Inventories.UniversalInventory
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Inventories.UniversalInventory
   _slotContainer: {fileID: 667194795}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 4
@@ -1414,22 +1414,22 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 8490480897462108200
-      type: {class: StackableItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: StackableItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
         _maxStackSize: 0
         _allowItemStackOverride: 0
     - rid: 8490480897462108201
-      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8490481047700242455
-      type: {class: SwapBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: SwapBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _swapStrategy:
           rid: 8490481047700242456
     - rid: 8490481047700242456
-      type: {class: HintedTargetSwapStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: HintedTargetSwapStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
 --- !u!114 &520690178
 MonoBehaviour:
@@ -1480,7 +1480,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ad75d55e3595b0041a3c0bbd8748e53a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.EquipmentInventoryDataBinding
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.Trading.EquipmentInventoryDataBinding
   _inventory: {fileID: 520690177}
   weaponBaseSlot: {fileID: 519712178}
   armorBaseSlot: {fileID: 1919514845}
@@ -1536,7 +1536,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbef04b3267b4754093a4606da2c5734, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.MerchantInventoryDataBinding
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.Trading.MerchantInventoryDataBinding
   _inventory: {fileID: 515452348}
   _merchantId: id_2
   _merchantNameText: {fileID: 1980043958}
@@ -1571,7 +1571,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4d2b1ade8713b7e4a87b7fed7514394b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.TradingEconomyManager
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.Trading.TradingEconomyManager
   _playerData:
     <Money>k__BackingField: 1000
     _inventory:
@@ -1644,7 +1644,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &592403417
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2201,7 +2201,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &703833625
 GameObject:
   m_ObjectHideFlags: 0
@@ -2405,7 +2405,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &858273839
 GameObject:
   m_ObjectHideFlags: 0
@@ -2683,7 +2683,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1038755530
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2808,7 +2808,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1042347257
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2936,7 +2936,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1180264806
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3061,7 +3061,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1181299575
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3295,7 +3295,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1193174529
 GameObject:
   m_ObjectHideFlags: 0
@@ -3563,7 +3563,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1285256415
 GameObject:
   m_ObjectHideFlags: 0
@@ -3767,7 +3767,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1367620453
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3928,7 +3928,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 34a568dd0946f36468c0a263327aa5c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Inventories.UniversalInventory
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Inventories.UniversalInventory
   _slotContainer: {fileID: 1601878449}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
   _initialSlotCount: 8
@@ -3958,19 +3958,19 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 8490480897462108199
-      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8490481047700242447
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8490481047700242448
         _allowSameInventoryAlternativePlacement: 1
     - rid: 8490481047700242448
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
     - rid: 8490481047700242453
-      type: {class: UniqueItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: UniqueItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
@@ -4164,7 +4164,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1482260154
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4289,7 +4289,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1490426032
 GameObject:
   m_ObjectHideFlags: 0
@@ -4340,7 +4340,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbef04b3267b4754093a4606da2c5734, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.MerchantInventoryDataBinding
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.Trading.MerchantInventoryDataBinding
   _inventory: {fileID: 1383874838}
   _merchantId: id_1
   _merchantNameText: {fileID: 1193174533}
@@ -4362,7 +4362,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!224 &1516834691 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2088209858968659231, guid: 1bcb54d72019c834d8ead55aaef39a84, type: 3}
@@ -4378,7 +4378,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1527925728
 GameObject:
   m_ObjectHideFlags: 0
@@ -4607,7 +4607,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1591853238
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4732,7 +4732,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1592052891
 GameObject:
   m_ObjectHideFlags: 0
@@ -5173,7 +5173,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1783280763
 GameObject:
   m_ObjectHideFlags: 0
@@ -5366,7 +5366,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1818827033
 GameObject:
   m_ObjectHideFlags: 0
@@ -5457,7 +5457,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 34a568dd0946f36468c0a263327aa5c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Inventories.UniversalInventory
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Inventories.UniversalInventory
   _slotContainer: {fileID: 1858480037}
   baseSlotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 8
@@ -5487,21 +5487,21 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 8490480897462108203
-      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8490480897462108204
-      type: {class: UniqueItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: UniqueItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
     - rid: 8490481047700242451
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8490481047700242452
         _allowSameInventoryAlternativePlacement: 1
     - rid: 8490481047700242452
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
 --- !u!114 &1818827038
 MonoBehaviour:
@@ -5514,7 +5514,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5a4cca525379c642b725df2ed40421f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.Trading.PlayerInventoryDataBinding
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.Trading.PlayerInventoryDataBinding
   _inventory: {fileID: 1818827037}
 --- !u!1 &1840686954
 GameObject:
@@ -5745,7 +5745,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1858480036
 GameObject:
   m_ObjectHideFlags: 0
@@ -6020,7 +6020,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1001 &1937240696
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6145,7 +6145,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &1980043954
 GameObject:
   m_ObjectHideFlags: 0
@@ -6349,7 +6349,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1 &2131016122
 GameObject:
   m_ObjectHideFlags: 0
@@ -6666,7 +6666,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

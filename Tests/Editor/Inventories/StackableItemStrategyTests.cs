@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using NUnit.Framework;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests.Inventories
+namespace UDND.Tests.Inventories
 {
     [TestFixture]
     public class StackableItemStrategyTests

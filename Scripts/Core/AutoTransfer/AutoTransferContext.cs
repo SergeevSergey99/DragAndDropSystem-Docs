@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 using UnityEngine.EventSystems;
-using UniversalDragAndDrop.Inventories;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     [Serializable]
     public class InventoryList

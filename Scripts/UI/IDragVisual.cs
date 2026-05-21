@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.UI
+namespace UDND.UI
 {
     /// <summary>
     /// Interface for drag item visualization

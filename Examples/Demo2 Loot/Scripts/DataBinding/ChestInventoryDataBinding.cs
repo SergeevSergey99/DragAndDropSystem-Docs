@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Examples;
-using UniversalDragAndDrop.DataBinding;
+using UDND.Core;
+using UDND.Examples;
+using UDND.DataBinding;
 
-namespace UniversalDragAndDrop.Examples.Loot
+namespace UDND.Examples.Loot
 {
     /// <summary>
     /// DataBinding for the chest inventory.

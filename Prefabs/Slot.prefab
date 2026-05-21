@@ -244,7 +244,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3f0eb751e3c0447b82340b39994db7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Slots.UniversalSlot
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Slots.UniversalSlot
   <SlotRuleValidator>k__BackingField:
     _presets: []
     _inlineRules: []
@@ -268,7 +268,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f7120d4f55f4b5986652408c95e9a87, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Interaction.SlotInputAdapter
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Interaction.SlotInputAdapter
   m_Navigation:
     m_Mode: 3
     m_WrapAround: 0

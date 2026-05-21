@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// One entry in a drag operation (source + stack)
@@ -38,7 +38,7 @@ namespace UniversalDragAndDrop.Core
                 stackStore.TryGetPlacementAt(sourceBaseSlot, out var resolvedPlacement))
                 SourcePlacement = resolvedPlacement;
 
-            Footprint = SourcePlacement?.Footprint ?? UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
+            Footprint = SourcePlacement?.Footprint ?? UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter);
             var sourceOrientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
             Orientation = orientation ?? sourceOrientation;
 

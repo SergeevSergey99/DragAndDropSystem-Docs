@@ -138,7 +138,7 @@ Canvas
 #### Код (если нужна своя система вместо TooltipManager):
 
 ```csharp
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
 public class MySoundManager : MonoBehaviour
 {
@@ -215,7 +215,7 @@ Equipment Slot
 #### Пример: Особый слот экипировки со свечением
 
 ```csharp
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 using UnityEngine;
 
 public class EquipmentSlotHoverListener : SlotHoverEventListener

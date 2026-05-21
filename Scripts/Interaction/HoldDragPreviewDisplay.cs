@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     /// <summary>
     /// Displays item amount while holding a slot (hold preview).

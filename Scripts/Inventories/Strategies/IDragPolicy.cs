@@ -1,6 +1,6 @@
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Responsible for calculating how many items are picked up during a drag operation.

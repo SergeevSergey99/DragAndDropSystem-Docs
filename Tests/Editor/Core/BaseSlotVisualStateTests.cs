@@ -1,9 +1,9 @@
 using NUnit.Framework;
 using UnityEngine;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tests;
+using UDND.Slots;
+using UDND.Tests;
 
-namespace UniversalDragAndDrop.Tests.Core
+namespace UDND.Tests.Core
 {
     [TestFixture]
     public class BaseSlotVisualStateTests

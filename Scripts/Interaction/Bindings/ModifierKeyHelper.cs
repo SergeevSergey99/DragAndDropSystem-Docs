@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Interaction
+namespace UDND.Interaction
 {
     public static class ModifierKeyHelper
     {

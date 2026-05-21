@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     public interface IItemFootprintProvider
     {
@@ -106,7 +106,7 @@ namespace UniversalDragAndDrop.Core
             Orientation = orientation;
             Footprint = footprint.HasValue
                 ? footprint.Value.Normalized()
-                : UniversalDragAndDrop.Core.Footprint.Resolve(stack?.PrimaryAdapter);
+                : UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter);
         }
 
         public ItemStack Stack { get; }

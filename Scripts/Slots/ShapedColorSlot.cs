@@ -2,7 +2,7 @@
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace UniversalDragAndDrop.Slots
+namespace UDND.Slots
 {
     public class ShapedColorSlot : BaseSlot
     {

@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
-using UniversalDragAndDrop.Examples.Trading.Data;
+using UDND.Examples.Trading.Data;
 using UnityEngine;
 using UnityEngine.Serialization;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.DataBinding;
+using UDND.Inventories;
+using UDND.Rules;
+using UDND.Slots;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// DataBinding for the player's equipment inventory.

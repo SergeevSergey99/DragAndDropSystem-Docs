@@ -1,9 +1,9 @@
 using System;
-using UniversalDragAndDrop.Examples.General;
+using UDND.Examples.General;
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Examples.General
+namespace UDND.Examples.General
 {
     /// <summary>
     /// Adapter for ItemSO to work with the new system

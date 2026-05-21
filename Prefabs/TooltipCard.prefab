@@ -93,7 +93,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a0fece5b634aeb4db15f502aac13783, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.UI.DefaultTooltipView
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.UI.DefaultTooltipView
   _canvasGroup: {fileID: 5211121533764405160}
   _fadeInTime: 0.3
   _fadeOutTime: 0.3

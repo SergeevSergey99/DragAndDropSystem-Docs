@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Tests
+namespace UDND.Tests
 {
     /// <summary>
     /// Thin wrapper over ItemStack.TryCreate. Keeps tests readable and asserts

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Rules
+namespace UDND.Rules
 {
     /// <summary>
     /// Base rule container that can be reused as a ScriptableObject preset

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using CodeUtils;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Tools
+namespace UDND.Tools
 {
     public enum MiniTweenEase
     {

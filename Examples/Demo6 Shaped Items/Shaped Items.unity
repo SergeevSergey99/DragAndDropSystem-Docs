@@ -4242,26 +4242,31 @@ MonoBehaviour:
     _columns: 8
     _rows: 8
   _slotShapedItemPolicy: 0
+  _shapedPlacementAnchorStrategy:
+    rid: 8757923584337772545
   references:
     version: 2
     RefIds:
     - rid: 8757923508012974081
-      type: {class: FixedSlotManagementSettings, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8757923508012974082
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
       data:
         _alternativePlacementStrategy:
           rid: 8757923508012974083
         _allowSameInventoryAlternativePlacement: 1
     - rid: 8757923508012974083
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UniversalDragAndDrop.Core, asm: UniversalDragAndDrop.Runtime}
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
     - rid: 8757923508012974084
-      type: {class: UniqueItemStrategy, ns: UniversalDragAndDrop.Inventories, asm: UniversalDragAndDrop.Runtime}
+      type: {class: UniqueItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data:
         _dragAmount: 0
         _customDragAmount: 1
+    - rid: 8757923584337772545
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
 --- !u!114 &782000760
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Result of a slot swap operation. Contains copies of stacks before and after the swap.

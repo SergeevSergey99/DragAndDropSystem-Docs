@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Selection;
-using UniversalDragAndDrop.Slots;
+using UDND.Selection;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// Shows the total purchase price of selected items.

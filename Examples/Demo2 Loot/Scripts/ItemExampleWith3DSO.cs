@@ -1,7 +1,7 @@
-using UniversalDragAndDrop.Examples.Loot;
+using UDND.Examples.Loot;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Examples
+namespace UDND.Examples
 {
     /// <summary>
     /// Example item with support for a 3D representation

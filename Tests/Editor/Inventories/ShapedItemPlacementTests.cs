@@ -3,12 +3,12 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Rules;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests.Inventories
+namespace UDND.Tests.Inventories
 {
     [TestFixture]
     public class ShapedItemPlacementTests

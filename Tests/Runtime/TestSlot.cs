@@ -1,7 +1,7 @@
-using UniversalDragAndDrop.Slots;
-using UniversalDragAndDrop.Core;
+using UDND.Slots;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Tests
+namespace UDND.Tests
 {
     /// <summary>
     /// Minimal concrete BaseSlot for EditMode tests.

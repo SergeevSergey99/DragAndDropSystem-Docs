@@ -1,6 +1,6 @@
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Selection
+namespace UDND.Selection
 {
     /// <summary>
     /// Clears selection and selects only contextSlot (regular click without modifiers).

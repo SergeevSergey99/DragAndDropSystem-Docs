@@ -2,11 +2,11 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Interaction;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Tests.Core
+namespace UDND.Tests.Core
 {
     [TestFixture]
     public class InputEventRouterTests

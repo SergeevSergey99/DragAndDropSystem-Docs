@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     public interface IUniqueInventoryStrategy
     {

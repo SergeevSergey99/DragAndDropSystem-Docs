@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using UniversalDragAndDrop.Rules;
+using UDND.Rules;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Optional async pre-commit validation for transfer-level domain logic.

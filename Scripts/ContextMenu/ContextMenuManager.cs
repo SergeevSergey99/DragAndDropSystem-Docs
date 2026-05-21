@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using CodeUtils;
 using UnityEngine;
-using UniversalDragAndDrop.Inventories;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.ContextMenu
+namespace UDND.ContextMenu
 {
     /// <summary>
     /// Singleton context menu manager.

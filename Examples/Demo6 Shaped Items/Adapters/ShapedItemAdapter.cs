@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Examples.ShapedItems
+namespace UDND.Examples.ShapedItems
 {
     public sealed class ShapedItemAdapter : IItemAdapter, IItemFootprintProvider
     {

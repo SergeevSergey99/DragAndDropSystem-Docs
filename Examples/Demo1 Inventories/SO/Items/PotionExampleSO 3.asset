@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 376413b5555d4e86b9d1802cb8e29e40, type: 3}
   m_Name: PotionExampleSO 3
-  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UniversalDragAndDrop.Examples.ItemExampleSO
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::UDND.Examples.ItemExampleSO
   <ItemName>k__BackingField: Potion
   <Icon>k__BackingField: {fileID: 21300000, guid: 931310fa2ba61554f8462b4c313e9511, type: 3}
   <itemType>k__BackingField: Consumable

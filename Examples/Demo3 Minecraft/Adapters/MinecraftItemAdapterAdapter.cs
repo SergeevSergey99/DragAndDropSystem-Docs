@@ -1,7 +1,7 @@
 using UnityEngine;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Examples.Minecraft
+namespace UDND.Examples.Minecraft
 {
     /// <summary>
     /// Adapter for MinecraftItemSO.

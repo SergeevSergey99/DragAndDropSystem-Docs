@@ -1,9 +1,9 @@
-using UniversalDragAndDrop.Examples.Trading.Data;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Rules;
+using UDND.Examples.Trading.Data;
+using UDND.Core;
+using UDND.Inventories;
+using UDND.Rules;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
     /// <summary>
     /// Static helpers for trading operations.

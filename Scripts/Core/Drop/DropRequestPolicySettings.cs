@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UniversalDragAndDrop.Tools.Inspector;
+using UDND.Tools.Inspector;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     [Serializable]
     public sealed class DropRequestPolicySettings

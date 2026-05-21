@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Rules;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Examples.Containers
+namespace UDND.Examples.Containers
 {
     public class ContainerInventoryDataBinding : ListInventoryDataBinding<IContainerizeItemInstance, ContainerItemAdapterAdapter>
     {

@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Generic execution result for input and inventory actions.

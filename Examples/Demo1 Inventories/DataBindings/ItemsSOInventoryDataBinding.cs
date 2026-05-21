@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Examples.General;
-using UniversalDragAndDrop.Tools.Inspector;
-using UniversalDragAndDrop.Rules;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Examples.General;
+using UDND.Tools.Inspector;
+using UDND.Rules;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Examples.General
+namespace UDND.Examples.General
 {
     /// <summary>
     /// Universal DataBinding for ItemExampleSO and ItemExampleWith3DSO

@@ -18,7 +18,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 8490480544799785030
-      type: {class: ItemTypeExampleFilterRule, ns: UniversalDragAndDrop.Examples.General, asm: UniversalDragAndDrop.Examples}
+      type: {class: ItemTypeExampleFilterRule, ns: UDND.Examples.General, asm: UDND.Examples}
       data:
         _allowedTypes:
         - Consumable

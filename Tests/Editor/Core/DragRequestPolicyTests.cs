@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 
-namespace UniversalDragAndDrop.Tests.Core
+namespace UDND.Tests.Core
 {
     [TestFixture]
     public class DragRequestPolicyTests

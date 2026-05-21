@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Inventories;
+using UDND.Core;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Tests
+namespace UDND.Tests
 {
     /// <summary>
     /// Fluent helper that assembles a DragContext from an already-populated inventory,
@@ -23,7 +23,7 @@ namespace UniversalDragAndDrop.Tests
         private readonly IInventory _source;
         private readonly List<DragEntry> _entries = new List<DragEntry>();
         private IInventory _targetInventory;
-        private UniversalDragAndDrop.Slots.BaseSlot _targetSlot;
+        private UDND.Slots.BaseSlot _targetSlot;
 
         private DragContextBuilder(IInventory source)
         {
@@ -70,7 +70,7 @@ namespace UniversalDragAndDrop.Tests
         /// <summary>
         /// Slot-specific drop: target slot inside target inventory.
         /// </summary>
-        public DragContextBuilder ToTargetSlot(UniversalDragAndDrop.Slots.BaseSlot targetSlot, IInventory targetInventory)
+        public DragContextBuilder ToTargetSlot(UDND.Slots.BaseSlot targetSlot, IInventory targetInventory)
         {
             _targetSlot = targetSlot;
             _targetInventory = targetInventory;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Rules
+namespace UDND.Rules
 {
     [CreateAssetMenu(menuName = "DragAndDrop/Rules/Slot Rule Preset")]
     public class SlotRulePreset : RulePreset<ISlotRule> { }

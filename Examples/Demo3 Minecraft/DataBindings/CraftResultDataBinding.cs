@@ -1,8 +1,8 @@
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Rules;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Rules;
 
-namespace UniversalDragAndDrop.Examples.Minecraft
+namespace UDND.Examples.Minecraft
 {
     /// <summary>
     /// DataBinding for the crafting result slot.

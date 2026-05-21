@@ -1,9 +1,9 @@
 {
-  "name": "UniversalDragAndDrop.Examples.Minecraft.Editor",
-  "rootNamespace": "UniversalDragAndDrop.Examples.Minecraft",
+  "name": "UDND.Examples.Minecraft.Editor",
+  "rootNamespace": "UDND.Examples.Minecraft",
   "references": [
-    "UniversalDragAndDrop.Editor",
-    "UniversalDragAndDrop.Examples"
+    "UDND.Editor",
+    "UDND.Examples"
   ],
   "includePlatforms": [
     "Editor"

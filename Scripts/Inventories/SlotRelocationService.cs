@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     /// <summary>
     /// Attempts to repack items in an inventory to free a suitable slot

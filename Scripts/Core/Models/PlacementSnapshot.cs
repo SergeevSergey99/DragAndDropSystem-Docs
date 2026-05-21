@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Slots;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Immutable placement state captured for shaped transfers, events, and drop results.

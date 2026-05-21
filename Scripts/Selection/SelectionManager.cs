@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using CodeUtils;
 using UnityEngine;
-using UniversalDragAndDrop.Inventories;
-using UniversalDragAndDrop.Slots;
+using UDND.Inventories;
+using UDND.Slots;
 
-namespace UniversalDragAndDrop.Selection
+namespace UDND.Selection
 {
     /// <summary>
     /// Singleton that manages slot selection state.

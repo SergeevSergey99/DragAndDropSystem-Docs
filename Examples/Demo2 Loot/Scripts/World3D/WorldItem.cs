@@ -1,7 +1,7 @@
-using UniversalDragAndDrop.Examples;
+using UDND.Examples;
 using UnityEngine;
 
-namespace UniversalDragAndDrop.Examples.Loot
+namespace UDND.Examples.Loot
 {
     /// <summary>
     /// Component for items dropped into the 3D world

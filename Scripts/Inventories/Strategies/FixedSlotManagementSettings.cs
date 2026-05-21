@@ -1,6 +1,6 @@
 using System;
 
-namespace UniversalDragAndDrop.Inventories
+namespace UDND.Inventories
 {
     [Serializable]
     public sealed class FixedSlotManagementSettings : SlotManagementSettingsBase

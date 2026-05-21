@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UniversalDragAndDrop.Core;
+using UDND.Core;
 using UnityEngine.Serialization;
 
-namespace UniversalDragAndDrop.Examples.Trading
+namespace UDND.Examples.Trading
 {
 
     /// <summary>

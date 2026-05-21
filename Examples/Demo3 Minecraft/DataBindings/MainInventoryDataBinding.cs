@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using UniversalDragAndDrop.DataBinding;
+using UDND.DataBinding;
 
-namespace UniversalDragAndDrop.Examples.Minecraft
+namespace UDND.Examples.Minecraft
 {
     public class MainInventoryDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapterAdapter>
     {

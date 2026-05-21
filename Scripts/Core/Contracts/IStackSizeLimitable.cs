@@ -1,4 +1,4 @@
-namespace UniversalDragAndDrop.Core
+namespace UDND.Core
 {
     /// <summary>
     /// Optional interface for items that define their own stack limit.

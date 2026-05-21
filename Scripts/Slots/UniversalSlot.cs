@@ -1,11 +1,11 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.Interaction;
-using UniversalDragAndDrop.Inventories;
+using UDND.Core;
+using UDND.Interaction;
+using UDND.Inventories;
 
-namespace UniversalDragAndDrop.Slots
+namespace UDND.Slots
 {
     /// <summary>
     /// Universal slot with a visual layer based on Image + Text.

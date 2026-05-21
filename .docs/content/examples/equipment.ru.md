@@ -77,10 +77,10 @@ flowchart LR
 ## Базовый шаблон
 
 ```csharp
-using UniversalDragAndDrop.Core;
-using UniversalDragAndDrop.DataBinding;
-using UniversalDragAndDrop.Rules;
-using UniversalDragAndDrop.Slots;
+using UDND.Core;
+using UDND.DataBinding;
+using UDND.Rules;
+using UDND.Slots;
 
 public class EquipmentBinding : MappedSlotInventoryDataBinding<ItemSO, ItemSOAdapter>
 {
