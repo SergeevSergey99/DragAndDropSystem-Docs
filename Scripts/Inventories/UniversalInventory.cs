@@ -249,8 +249,7 @@ namespace UDND.Inventories
                 new[] { baseSlot.Index },
                 baseSlot,
                 new[] { baseSlot },
-                new[] { Vector2Int.zero },
-                RectPlacementShape.One);
+                coveredOffsets: new[] { Vector2Int.zero });
         }
 
         /// <summary>

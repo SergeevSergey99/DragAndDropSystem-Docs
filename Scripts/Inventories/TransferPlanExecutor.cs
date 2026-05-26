@@ -1053,8 +1053,7 @@ namespace UDND.Inventories
                     new[] { resolvedSlot.Index },
                     resolvedSlot,
                     new[] { resolvedSlot },
-                    new[] { Vector2Int.zero },
-                    RectPlacementShape.One)
+                    coveredOffsets: new[] { Vector2Int.zero })
                 : null;
         }
 

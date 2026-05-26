@@ -17,12 +17,10 @@ namespace UDND.Core
             IReadOnlyList<int> coveredIndices = null,
             BaseSlot anchorBaseSlot = null,
             IReadOnlyList<BaseSlot> coveredBaseSlots = null,
-            IReadOnlyList<Vector2Int> coveredOffsets = null,
-            IPlacementShape shape = null)
+            IReadOnlyList<Vector2Int> coveredOffsets = null)
         {
             AnchorIndex = anchorIndex;
             Orientation = orientation;
-            Shape = shape;
             CoveredIndices = Copy(coveredIndices);
             CoveredOffsets = Copy(coveredOffsets);
             BoundingSize = boundingSize.x > 0 && boundingSize.y > 0 ? boundingSize : Vector2Int.one;
@@ -32,7 +30,6 @@ namespace UDND.Core
 
         public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
-        public IPlacementShape Shape { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
         public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
         public Vector2Int BoundingSize { get; }
@@ -54,8 +51,7 @@ namespace UDND.Core
                 placement.CoveredIndices,
                 slotResolver?.Invoke(placement.AnchorIndex),
                 ResolveSlots(placement.CoveredIndices, slotResolver),
-                ResolveOffsets(placement.Shape, placement.Orientation),
-                placement.Shape);
+                ResolveOffsets(placement.Shape, placement.Orientation));
         }
 
         private static IReadOnlyList<Vector2Int> ResolveOffsets(
