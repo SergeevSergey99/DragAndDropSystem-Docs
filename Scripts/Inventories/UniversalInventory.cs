@@ -1258,7 +1258,7 @@ namespace UDND.Inventories
                 _slots.RemoveAt(_slots.Count - 1);
                 if (slot?.Transform != null)
                 {
-                    Destroy(slot.Transform.gameObject);
+                    DestroySlotObject(slot.Transform.gameObject);
                 }
             }
 
@@ -1411,7 +1411,7 @@ namespace UDND.Inventories
                 if (baseSlot?.Transform != null)
                 {
                     baseSlot.Transform.gameObject.SetActive(false);
-                    Destroy(baseSlot.Transform.gameObject);
+                    DestroySlotObject(baseSlot.Transform.gameObject);
                 }
             }
 
@@ -1815,11 +1815,22 @@ namespace UDND.Inventories
 
             if (slotTransform != null)
             {
-                Destroy(slotTransform.gameObject);
+                DestroySlotObject(slotTransform.gameObject);
             }
 
             Extensions.DragAndDropLog($"<color=magenta>[{name}] Removed slot {index}. New count: {_slots.Count}</color>");
             return true;
+        }
+
+        private static void DestroySlotObject(GameObject slotObject)
+        {
+            if (slotObject == null)
+                return;
+
+            if (Application.isPlaying)
+                Destroy(slotObject);
+            else
+                DestroyImmediate(slotObject);
         }
 
         private int CountFreeSlots()

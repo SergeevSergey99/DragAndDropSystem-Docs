@@ -152,26 +152,26 @@ namespace UDND.Tests.Inventories
         public void DynamicSlotRemoval_RecreatesShiftedPlacementsWithoutMutatingOldReference()
         {
             var inventory = new InventoryBuilder()
-                .WithFixedSlots(2)
+                .WithFixedSlots(1)
                 .WithSlotManagementSettings(new DynamicSlotManagementSettings())
                 .Build();
 
             try
             {
                 var stack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
-                Assert.IsTrue(inventory.TryAddStack(stack, targetSlotIndex: 1));
-                var originalPlacement = inventory.GetPlacementAt(1);
+                Assert.IsTrue(inventory.TryAddStack(stack, targetSlotIndex: 2));
+                var originalPlacement = inventory.GetPlacementAt(2);
                 Assert.IsNotNull(originalPlacement);
-                Assert.AreEqual(1, originalPlacement.AnchorIndex);
+                Assert.AreEqual(2, originalPlacement.AnchorIndex);
 
                 var emptySlot = inventory.GetSlot(0);
                 inventory.HandleSlotEmptied(emptySlot);
 
-                Assert.AreEqual(1, originalPlacement.AnchorIndex);
-                var shiftedPlacement = inventory.GetPlacementAt(0);
+                Assert.AreEqual(2, originalPlacement.AnchorIndex);
+                var shiftedPlacement = inventory.GetPlacementAt(1);
                 Assert.IsNotNull(shiftedPlacement);
                 Assert.AreNotSame(originalPlacement, shiftedPlacement);
-                Assert.AreEqual(0, shiftedPlacement.AnchorIndex);
+                Assert.AreEqual(1, shiftedPlacement.AnchorIndex);
                 Assert.AreSame(originalPlacement.Stack.PrimaryAdapter, shiftedPlacement.Stack.PrimaryAdapter);
             }
             finally
