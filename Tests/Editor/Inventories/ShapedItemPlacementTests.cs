@@ -283,6 +283,71 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void PlacementShapeUtility_Resolve_PrefersShapeProviderOverFootprintProvider()
+        {
+            var adapter = new ShapeAndFootprintAdapter("hybrid", new RectPlacementShape(3, 1), new Footprint(2, 2));
+
+            var shape = PlacementShapeUtility.Resolve(adapter);
+
+            Assert.AreSame(adapter.PlacementShape, shape);
+            Assert.AreEqual(new Vector2Int(3, 1), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
+        }
+
+        [Test]
+        public void PlacementShapeUtility_Resolve_FallsBackToFootprintProvider()
+        {
+            var adapter = new FootprintAdapter("bag", 2, 3);
+
+            var shape = PlacementShapeUtility.Resolve(adapter);
+
+            Assert.IsInstanceOf<RectPlacementShape>(shape);
+            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
+            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot90));
+        }
+
+        [Test]
+        public void RectPlacementShape_GetOffsets_ReturnsCachedOrientationLists()
+        {
+            var shape = new RectPlacementShape(2, 3);
+
+            Assert.AreSame(
+                shape.GetOffsets(PlacementOrientation.Rot0),
+                shape.GetOffsets(PlacementOrientation.Rot0));
+            Assert.AreSame(
+                shape.GetOffsets(PlacementOrientation.Rot90),
+                shape.GetOffsets(PlacementOrientation.Rot90));
+        }
+
+        [Test]
+        public void TryPlace_WithExplicitPlacementShape_UsesShapeOffsets()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var shape = new TestPlacementShape(
+                    new Vector2Int(0, 0),
+                    new Vector2Int(1, 0),
+                    new Vector2Int(0, 1));
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
+
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot0, shape), out var placement));
+
+                Assert.AreSame(shape, placement.Shape);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3 }, placement.CoveredIndices);
+                Assert.AreSame(placement, inventory.GetPlacementAt(3));
+                Assert.IsNull(inventory.GetPlacementAt(4));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void DragEntry_FromCoveredCell_CapturesPlacementSnapshot()
         {
             var inventory = new InventoryBuilder()
@@ -1470,6 +1535,36 @@ namespace UDND.Tests.Inventories
             public string DisplayName { get; }
             public Sprite Icon => null;
             public Footprint Footprint { get; }
+        }
+
+        private sealed class ShapeAndFootprintAdapter : IItemAdapter, IItemPlacementShapeProvider, IItemFootprintProvider
+        {
+            public ShapeAndFootprintAdapter(string itemId, IPlacementShape placementShape, Footprint footprint)
+            {
+                ItemId = itemId;
+                DisplayName = itemId;
+                PlacementShape = placementShape;
+                Footprint = footprint;
+            }
+
+            public string ItemId { get; }
+            public string DisplayName { get; }
+            public Sprite Icon => null;
+            public IPlacementShape PlacementShape { get; }
+            public Footprint Footprint { get; }
+        }
+
+        private sealed class TestPlacementShape : IPlacementShape
+        {
+            private readonly IReadOnlyList<Vector2Int> _offsets;
+
+            public TestPlacementShape(params Vector2Int[] offsets)
+            {
+                _offsets = Array.AsReadOnly(offsets ?? Array.Empty<Vector2Int>());
+            }
+
+            public IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation) => _offsets;
+            public bool SupportsOrientation(PlacementOrientation orientation) => true;
         }
     }
 }

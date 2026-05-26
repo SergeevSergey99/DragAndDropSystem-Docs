@@ -87,12 +87,15 @@ namespace UDND.Core
                 return shapeProvider.PlacementShape;
 
             if (adapter is IItemFootprintProvider footprintProvider)
-            {
-                var footprint = footprintProvider.Footprint.Normalized();
-                return new RectPlacementShape(footprint.Width, footprint.Height);
-            }
+                return FromFootprint(footprintProvider.Footprint);
 
             return RectPlacementShape.One;
+        }
+
+        public static IPlacementShape FromFootprint(Footprint footprint)
+        {
+            footprint = footprint.Normalized();
+            return new RectPlacementShape(footprint.Width, footprint.Height);
         }
 
         public static bool IsSingleCell(IPlacementShape shape, PlacementOrientation orientation)

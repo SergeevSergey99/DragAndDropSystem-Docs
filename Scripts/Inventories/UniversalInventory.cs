@@ -927,13 +927,13 @@ namespace UDND.Inventories
 
             if (!_useGridTopology &&
                 _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-                !request.Footprint.IsSingleCell)
+                !PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation))
                 return false;
 
-            if (!request.Footprint.IsSingleCell && request.Stack.Count > 1)
+            if (!PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation) && request.Stack.Count > 1)
                 return false;
 
-            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
+            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Shape, request.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return false;
 
@@ -953,13 +953,13 @@ namespace UDND.Inventories
             if (!CanPlaceInitialized(request))
                 return false;
 
-            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Footprint, request.Orientation);
+            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Shape, request.Orientation);
             var anchorCell = IndexToCell(request.AnchorIndex);
             placement = new Placement(
                 anchorCell,
                 request.AnchorIndex,
                 request.Orientation,
-                request.Footprint,
+                request.Shape,
                 request.Stack,
                 coveredIndices);
 
@@ -1014,44 +1014,24 @@ namespace UDND.Inventories
             Footprint footprint,
             PlacementOrientation orientation)
         {
-            if (_useGridTopology)
-                return BuildGridCoveredCells(anchorIndex, footprint, orientation);
-
-            return anchorIndex >= 0 && anchorIndex < _slots.Count
-                ? new[] { anchorIndex }
-                : Array.Empty<int>();
+            return BuildCoveredCells(
+                anchorIndex,
+                PlacementShapeUtility.FromFootprint(footprint),
+                orientation);
         }
 
-        private IReadOnlyList<int> BuildGridCoveredCells(
+        private IReadOnlyList<int> BuildCoveredCells(
             int anchorIndex,
-            Footprint footprint,
+            IPlacementShape shape,
             PlacementOrientation orientation)
         {
-            var topology = _gridTopology.Normalized();
-            if (!topology.IsValidIndex(anchorIndex))
-                return Array.Empty<int>();
-
-            var anchorCell = topology.ToCell(anchorIndex);
-            var size = footprint.GetSize(orientation);
-            var result = new List<int>(size.x * size.y);
-
-            for (int y = 0; y < size.y; y++)
-            {
-                for (int x = 0; x < size.x; x++)
-                {
-                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
-                    if (!topology.Contains(cell))
-                        return Array.Empty<int>();
-
-                    int index = topology.ToIndex(cell);
-                    if (index < 0 || index >= _slots.Count)
-                        return Array.Empty<int>();
-
-                    result.Add(index);
-                }
-            }
-
-            return result;
+            return PlacementCellUtility.GetCoveredIndices(
+                anchorIndex,
+                shape,
+                orientation,
+                _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
+                _slots.Count,
+                PlacementBoundsMode.RequireAllInBounds);
         }
 
         private IReadOnlyList<int> GetPreviewCoveredCells(
@@ -1059,30 +1039,13 @@ namespace UDND.Inventories
             Footprint footprint,
             PlacementOrientation orientation)
         {
-            if (!_useGridTopology)
-                return TryGetIndexForCell(anchorCell, out int anchorIndex)
-                    ? GetCoveredCells(anchorIndex, footprint, orientation)
-                    : Array.Empty<int>();
-
-            var topology = _gridTopology.Normalized();
-            var size = footprint.GetSize(orientation);
-            var result = new List<int>(size.x * size.y);
-
-            for (int y = 0; y < size.y; y++)
-            {
-                for (int x = 0; x < size.x; x++)
-                {
-                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
-                    if (!topology.Contains(cell))
-                        continue;
-
-                    int index = topology.ToIndex(cell);
-                    if (index >= 0 && index < _slots.Count)
-                        result.Add(index);
-                }
-            }
-
-            return result;
+            return PlacementCellUtility.GetCoveredIndices(
+                anchorCell,
+                PlacementShapeUtility.FromFootprint(footprint),
+                orientation,
+                _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
+                _slots.Count,
+                PlacementBoundsMode.IncludeOnlyInBounds);
         }
 
         private Vector2Int IndexToCell(int index)
@@ -1365,15 +1328,15 @@ namespace UDND.Inventories
 
             if (!_useGridTopology &&
                 _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-                !request.Footprint.IsSingleCell)
+                !PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation))
                 return false;
 
-            if (!request.Footprint.IsSingleCell && request.Stack.Count > 1)
+            if (!PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation) && request.Stack.Count > 1)
                 return false;
 
             var coveredIndices = BuildSnapshotCoveredCells(
                 request.AnchorIndex,
-                request.Footprint,
+                request.Shape,
                 request.Orientation,
                 desiredSlotCount);
 
@@ -1395,45 +1358,26 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             int desiredSlotCount)
         {
-            if (_useGridTopology)
-                return BuildSnapshotGridCoveredCells(anchorIndex, footprint, orientation, desiredSlotCount);
-
-            return anchorIndex >= 0 && anchorIndex < desiredSlotCount
-                ? new[] { anchorIndex }
-                : Array.Empty<int>();
+            return BuildSnapshotCoveredCells(
+                anchorIndex,
+                PlacementShapeUtility.FromFootprint(footprint),
+                orientation,
+                desiredSlotCount);
         }
 
-        private IReadOnlyList<int> BuildSnapshotGridCoveredCells(
+        private IReadOnlyList<int> BuildSnapshotCoveredCells(
             int anchorIndex,
-            Footprint footprint,
+            IPlacementShape shape,
             PlacementOrientation orientation,
             int desiredSlotCount)
         {
-            var topology = _gridTopology.Normalized();
-            if (!topology.IsValidIndex(anchorIndex) || anchorIndex >= desiredSlotCount)
-                return Array.Empty<int>();
-
-            var anchorCell = topology.ToCell(anchorIndex);
-            var size = footprint.GetSize(orientation);
-            var result = new List<int>(size.x * size.y);
-
-            for (int y = 0; y < size.y; y++)
-            {
-                for (int x = 0; x < size.x; x++)
-                {
-                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
-                    if (!topology.Contains(cell))
-                        return Array.Empty<int>();
-
-                    int index = topology.ToIndex(cell);
-                    if (index < 0 || index >= desiredSlotCount)
-                        return Array.Empty<int>();
-
-                    result.Add(index);
-                }
-            }
-
-            return result;
+            return PlacementCellUtility.GetCoveredIndices(
+                anchorIndex,
+                shape,
+                orientation,
+                _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
+                desiredSlotCount,
+                PlacementBoundsMode.RequireAllInBounds);
         }
 
         private void LogSnapshotRestoreFailure(InventoryPlacementState placementState)

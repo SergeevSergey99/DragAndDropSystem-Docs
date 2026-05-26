@@ -100,18 +100,45 @@ namespace UDND.Core
             int anchorIndex,
             PlacementOrientation orientation = PlacementOrientation.Rot0,
             Footprint? footprint = null)
+            : this(
+                stack,
+                anchorIndex,
+                orientation,
+                footprint.HasValue
+                    ? PlacementShapeUtility.FromFootprint(footprint.Value)
+                    : PlacementShapeUtility.Resolve(stack?.PrimaryAdapter))
+        {
+        }
+
+        public PlacementRequest(
+            ItemStack stack,
+            int anchorIndex,
+            PlacementOrientation orientation,
+            IPlacementShape shape)
         {
             Stack = stack;
             AnchorIndex = anchorIndex;
             Orientation = orientation;
-            Footprint = footprint.HasValue
-                ? footprint.Value.Normalized()
+            Shape = shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
+            Footprint = Shape is RectPlacementShape rectShape
+                ? new Footprint(rectShape.Width, rectShape.Height)
                 : UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter);
         }
+
+        public static PlacementRequest For(
+            ItemStack stack,
+            int anchorIndex,
+            PlacementOrientation orientation = PlacementOrientation.Rot0)
+            => new PlacementRequest(
+                stack,
+                anchorIndex,
+                orientation,
+                PlacementShapeUtility.Resolve(stack?.PrimaryAdapter));
 
         public ItemStack Stack { get; }
         public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
+        public IPlacementShape Shape { get; }
         public Footprint Footprint { get; }
     }
 
@@ -127,10 +154,50 @@ namespace UDND.Core
             Footprint footprint,
             ItemStack stack,
             IReadOnlyList<int> coveredIndices)
+            : this(
+                anchorCell,
+                anchorIndex,
+                orientation,
+                PlacementShapeUtility.FromFootprint(footprint),
+                footprint,
+                stack,
+                coveredIndices)
+        {
+        }
+
+        public Placement(
+            Vector2Int anchorCell,
+            int anchorIndex,
+            PlacementOrientation orientation,
+            IPlacementShape shape,
+            ItemStack stack,
+            IReadOnlyList<int> coveredIndices)
+            : this(
+                anchorCell,
+                anchorIndex,
+                orientation,
+                shape,
+                shape is RectPlacementShape rectShape
+                    ? new Footprint(rectShape.Width, rectShape.Height)
+                    : UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter),
+                stack,
+                coveredIndices)
+        {
+        }
+
+        private Placement(
+            Vector2Int anchorCell,
+            int anchorIndex,
+            PlacementOrientation orientation,
+            IPlacementShape shape,
+            Footprint footprint,
+            ItemStack stack,
+            IReadOnlyList<int> coveredIndices)
         {
             AnchorCell = anchorCell;
             AnchorIndex = anchorIndex;
             Orientation = orientation;
+            Shape = shape ?? PlacementShapeUtility.FromFootprint(footprint);
             Footprint = footprint.Normalized();
             MutableStack = stack?.CreateCopy() ?? ItemStack.Empty();
             SetCoveredIndices(coveredIndices, anchorIndex);
@@ -139,6 +206,7 @@ namespace UDND.Core
         public Vector2Int AnchorCell { get; private set; }
         public int AnchorIndex { get; private set; }
         public PlacementOrientation Orientation { get; }
+        public IPlacementShape Shape { get; }
         public Footprint Footprint { get; }
         /// <summary>Read-only view of the inventory-owned stack.</summary>
         public IReadOnlyItemStack Stack => MutableStack;
