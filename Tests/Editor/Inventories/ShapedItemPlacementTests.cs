@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using NUnit.Framework;
@@ -178,6 +180,106 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(new Vector2Int(3, 2), footprint.GetSize(PlacementOrientation.Rot90));
             Assert.AreEqual(new Vector2Int(2, 3), footprint.GetSize(PlacementOrientation.Rot180));
             Assert.AreEqual(new Vector2Int(3, 2), footprint.GetSize(PlacementOrientation.Rot270));
+        }
+
+        [Test]
+        public void PlacementCellUtility_RectGridRequireAllInBounds_MatchesLegacyCoveredCells()
+        {
+            var topologies = new[]
+            {
+                new GridTopology(1, 1),
+                new GridTopology(2, 2),
+                new GridTopology(3, 2),
+                new GridTopology(5, 4)
+            };
+            var footprints = new[]
+            {
+                new Footprint(1, 1),
+                new Footprint(2, 1),
+                new Footprint(1, 2),
+                new Footprint(2, 2),
+                new Footprint(3, 2)
+            };
+            var orientations = new[]
+            {
+                PlacementOrientation.Rot0,
+                PlacementOrientation.Rot90,
+                PlacementOrientation.Rot180,
+                PlacementOrientation.Rot270
+            };
+
+            foreach (var topology in topologies)
+            {
+                int slotCount = topology.CellCount;
+                for (int anchorIndex = -1; anchorIndex <= slotCount; anchorIndex++)
+                {
+                    foreach (var footprint in footprints)
+                    {
+                        foreach (var orientation in orientations)
+                        {
+                            var expected = LegacyRequireAllCoveredCells(anchorIndex, footprint, orientation, topology, slotCount);
+                            var actual = PlacementCellUtility.GetCoveredIndices(
+                                anchorIndex,
+                                new RectPlacementShape(footprint.Width, footprint.Height),
+                                orientation,
+                                topology,
+                                slotCount,
+                                PlacementBoundsMode.RequireAllInBounds);
+
+                            CollectionAssert.AreEqual(expected, actual);
+                        }
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void PlacementCellUtility_RectGridIncludeOnlyInBounds_MatchesLegacyPreviewCells()
+        {
+            var topology = new GridTopology(3, 2);
+            int slotCount = topology.CellCount;
+            var anchors = new[]
+            {
+                new Vector2Int(-1, 0),
+                new Vector2Int(0, -1),
+                new Vector2Int(0, 0),
+                new Vector2Int(1, 0),
+                new Vector2Int(2, 1),
+                new Vector2Int(3, 1)
+            };
+            var footprints = new[]
+            {
+                new Footprint(1, 1),
+                new Footprint(2, 2),
+                new Footprint(3, 2)
+            };
+            var orientations = new[]
+            {
+                PlacementOrientation.Rot0,
+                PlacementOrientation.Rot90,
+                PlacementOrientation.Rot180,
+                PlacementOrientation.Rot270
+            };
+
+            foreach (var anchorCell in anchors)
+            {
+                foreach (var footprint in footprints)
+                {
+                    foreach (var orientation in orientations)
+                    {
+                        var expected = LegacyPreviewCoveredCells(anchorCell, footprint, orientation, topology, slotCount);
+                        var actual = PlacementCellUtility.GetCoveredIndices(
+                            anchorCell,
+                            new RectPlacementShape(footprint.Width, footprint.Height),
+                            orientation,
+                            topology,
+                            slotCount,
+                            PlacementBoundsMode.IncludeOnlyInBounds);
+
+                        CollectionAssert.AreEqual(expected, actual);
+                    }
+                }
+            }
         }
 
         [Test]
@@ -1256,6 +1358,68 @@ namespace UDND.Tests.Inventories
                 InventoryBuilder.Destroy(source);
                 InventoryBuilder.Destroy(target);
             }
+        }
+
+        private static IReadOnlyList<int> LegacyRequireAllCoveredCells(
+            int anchorIndex,
+            Footprint footprint,
+            PlacementOrientation orientation,
+            GridTopology topology,
+            int slotCount)
+        {
+            topology = topology.Normalized();
+            if (!topology.IsValidIndex(anchorIndex))
+                return Array.Empty<int>();
+
+            var anchorCell = topology.ToCell(anchorIndex);
+            var size = footprint.GetSize(orientation);
+            var result = new List<int>(size.x * size.y);
+
+            for (int y = 0; y < size.y; y++)
+            {
+                for (int x = 0; x < size.x; x++)
+                {
+                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
+                    if (!topology.Contains(cell))
+                        return Array.Empty<int>();
+
+                    int index = topology.ToIndex(cell);
+                    if (index < 0 || index >= slotCount)
+                        return Array.Empty<int>();
+
+                    result.Add(index);
+                }
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyList<int> LegacyPreviewCoveredCells(
+            Vector2Int anchorCell,
+            Footprint footprint,
+            PlacementOrientation orientation,
+            GridTopology topology,
+            int slotCount)
+        {
+            topology = topology.Normalized();
+            var size = footprint.GetSize(orientation);
+            var result = new List<int>(size.x * size.y);
+
+            for (int y = 0; y < size.y; y++)
+            {
+                for (int x = 0; x < size.x; x++)
+                {
+                    var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
+                    if (!topology.Contains(cell))
+                        continue;
+
+                    int index = topology.ToIndex(cell);
+                    if (index >= 0 && index < slotCount)
+                        result.Add(index);
+                }
+            }
+
+            return result;
         }
 
         private static PlannedEntryTransfer InvokeTryPlanSwapAgainstTarget(
