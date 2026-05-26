@@ -44,15 +44,13 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             Vector2Int boundingSize,
             IReadOnlyList<int> coveredIndices = null,
-            IReadOnlyList<Vector2Int> coveredOffsets = null,
-            IPlacementShape shape = null)
+            IReadOnlyList<Vector2Int> coveredOffsets = null)
         {
             AnchorIndex = anchorIndex;
             Adapters = adapters == null || adapters.Count == 0
                 ? System.Array.Empty<IItemAdapter>()
                 : Copy(adapters);
             Orientation = orientation;
-            Shape = shape;
             CoveredIndices = coveredIndices == null || coveredIndices.Count == 0
                 ? System.Array.Empty<int>()
                 : Copy(coveredIndices);
@@ -65,7 +63,6 @@ namespace UDND.Inventories
         public int AnchorIndex { get; }
         public IReadOnlyList<IItemAdapter> Adapters { get; }
         public PlacementOrientation Orientation { get; }
-        public IPlacementShape Shape { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
         public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
         public Vector2Int BoundingSize { get; }

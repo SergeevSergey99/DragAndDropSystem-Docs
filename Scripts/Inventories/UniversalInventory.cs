@@ -1195,8 +1195,7 @@ namespace UDND.Inventories
                     placement.Orientation,
                     placement.BoundingSize,
                     placement.CoveredIndices,
-                    ResolvePlacementOffsets(placement),
-                    PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation)));
+                    ResolvePlacementOffsets(placement)));
             }
 
             return new InventorySnapshot(_slots.Count, placementSnapshot);
