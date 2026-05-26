@@ -24,6 +24,10 @@ This plan does not immediately:
 - rewrite transfer planner/executor;
 - redesign stack strategies;
 - implement full hex UI/drop preview.
+- split drag-target resolution out of `IPlacementInventory`;
+- remove shaped placement methods from `IInventoryStrategy`;
+- extract snapshot codec out of `UniversalInventory`;
+- solve `ISlotStackStore` compatibility for external inventory implementations.
 
 ## Core Principle
 
@@ -69,31 +73,41 @@ public interface IInventoryTopology
 {
     int CellCount { get; }
     bool Contains(Vector2Int cell);
-    int ToIndex(Vector2Int cell);
+    bool TryToIndex(Vector2Int cell, out int index);
     Vector2Int ToCell(int index);
     bool IsValidIndex(int index);
 }
 ```
 
+`TryToIndex` owns the bounds check. Callers should not compute an index for cells
+outside the topology's valid domain. This keeps rectangular and future hex
+topologies on the same contract and avoids relying on undefined sentinel indices.
+
 Initial implementations:
 
-- `SlotTopology`: one-dimensional slot layout. Non-1x1 shapes collapse to the anchor slot according to inventory policy.
+- `SlotTopology`: one-dimensional slot layout. It maps slot indices to logical cells but does not decide whether shaped items collapse.
 - `RectGridTopology`: current row-major rectangular grid.
 - `HexTopology`: future implementation using `Vector2Int` as axial-like logical coordinates.
 
 Do not put Unity UI concerns in topology. It is geometry/indexing only.
+
+Shape collapse is not a topology concern. For slot-style inventories,
+`PlacementStore` applies the inventory's `SlotShapedItemPolicy` before covered
+cell enumeration. With collapse enabled, any non-1x1 shape resolves to the
+anchor slot only. Without this rule, a 2x1 shape in a slot inventory would
+incorrectly occupy adjacent slots just because its offsets are `(0,0)` and
+`(1,0)`.
 
 ## PlacementStore Scope
 
 Move these runtime fields from `UniversalInventory`:
 
 - `_cellToPlacement`;
-- `_placements`;
-- `_placementStateInitialized`.
+- `_placements`.
 
 Move these responsibilities:
 
-- placement initialization/reset/clear;
+- placement reset/clear;
 - `CanPlace`;
 - `TryPlace`;
 - `GetPlacementAt`;
@@ -120,9 +134,7 @@ public sealed class PlacementStore
 {
     public IReadOnlyCollection<Placement> Placements { get; }
 
-    public void EnsureInitialized();
     public void Reset();
-    public void ClearInitialized();
 
     public bool CanPlace(PlacementRequest request, Placement ignoredPlacement = null);
     public bool TryPlace(PlacementRequest request, out Placement placement);
@@ -154,9 +166,14 @@ public readonly struct PlacementStoreSettings
 {
     public IInventoryTopology Topology { get; }
     public SlotShapedItemPolicy SlotShapedItemPolicy { get; }
-    public Func<int> SlotCountProvider { get; }
 }
 ```
+
+`PlacementStore` is plain C# and should be valid immediately after construction.
+Do not copy the existing lazy-init pattern (`EnsurePlacementStateInitialized`,
+`ClearInitializedPlacementState`) into the store. If topology or policy changes,
+construct a new store or call `Reset()` with explicit replacement wiring in the
+owning component.
 
 ## Compatibility Strategy
 
@@ -195,6 +212,14 @@ HexInventory
 ```
 
 Avoid inheritance-heavy design initially. Prefer composition so components can share `PlacementStore`, snapshot codec, and transfer-facing adapters.
+
+`SlotInventory` would differ from `UniversalInventory` primarily by serialized
+surface and inspector UX, not by runtime placement behavior. Do not create a
+second slot placement implementation.
+
+`GridInventory` is optional. Decide whether it is useful only after
+`UniversalInventory` is fully delegated to `PlacementStore`. If it only mirrors
+`UniversalInventory` with fewer fields, defer it.
 
 ## Shape Compatibility
 
@@ -237,7 +262,7 @@ Keep current `GridTopology` as the serialized value type for rectangular grids, 
 
 Create `PlacementStore` with fields and no behavioral change.
 
-Initially copy logic from `UniversalInventory`, then wire tests directly against store for:
+Initially move logic from `UniversalInventory`, then wire tests directly against store for:
 
 - single-cell placement;
 - rectangular grid placement;
@@ -282,9 +307,12 @@ Do not move UI highlight state into store.
 
 ### 6. Introduce optional specialized GridInventory
 
-Only after `UniversalInventory` is green with `PlacementStore`.
+Decision point only after `UniversalInventory` is green with `PlacementStore`.
 
 `GridInventory` should initially be a thin component/facade, not a second implementation of placement logic.
+
+Skip this step if `UniversalInventory + RectGridTopology` already gives a clean
+scene-facing API.
 
 ### 7. Add HexTopology prototype
 
@@ -316,6 +344,8 @@ UniversalInventory integration tests:
 - existing shaped placement tests remain green;
 - snapshot restore still atomic;
 - dynamic slot removal still shifts placements;
+- active drag during dynamic slot removal does not crash and either re-resolves
+  placement state or cancels cleanly;
 - drop preview still reports in-bounds cells;
 - overlay still renders rectangular and non-rect placements.
 
@@ -333,6 +363,11 @@ Future topology tests:
 - Do not introduce `GridInventory` until `UniversalInventory` delegates to the store.
 - Do not move Unity object lifecycle into store.
 - Do not serialize runtime store state.
+- Treat `Placement` references as short-lived runtime references. After slot
+  removal and placement recreation, old references are orphaned and must not be
+  used as stable identity.
+- UI/drag hot paths that compare `Placement` references should re-resolve from
+  inventory state when possible, or tolerate orphaned references.
 
 ## Expected End State
 
