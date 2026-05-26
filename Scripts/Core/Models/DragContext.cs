@@ -15,9 +15,10 @@ namespace UDND.Core
         public IInventory SourceInventory { get; }
         public Placement SourcePlacement { get; }
         public Vector2Int GrabOffset { get; }
+        public IPlacementShape Shape { get; }
         public Footprint Footprint { get; }
         public PlacementOrientation Orientation { get; }
-        public bool IsShaped => !Footprint.IsSingleCell;
+        public bool IsShaped => !PlacementShapeUtility.IsSingleCell(Shape, Orientation);
 
         public DragEntry(
             ItemStack stack,
@@ -38,7 +39,8 @@ namespace UDND.Core
                 stackStore.TryGetPlacementAt(sourceBaseSlot, out var resolvedPlacement))
                 SourcePlacement = resolvedPlacement;
 
-            Footprint = SourcePlacement?.Footprint ?? UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter);
+            Shape = SourcePlacement?.Shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
+            Footprint = SourcePlacement?.Footprint ?? ResolveCompatibilityFootprint(Shape, stack?.PrimaryAdapter);
             var sourceOrientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
             Orientation = orientation ?? sourceOrientation;
 
@@ -48,7 +50,7 @@ namespace UDND.Core
                     : Vector2Int.zero);
             GrabOffset = grabOffset.HasValue
                 ? resolvedGrabOffset
-                : RotateGrabOffset(resolvedGrabOffset, Footprint, sourceOrientation, Orientation);
+                : RotateGrabOffset(resolvedGrabOffset, Shape, sourceOrientation, Orientation);
         }
 
         public DragEntry WithOrientation(PlacementOrientation orientation)
@@ -57,18 +59,26 @@ namespace UDND.Core
                 SourceBaseSlot,
                 SourceInventory,
                 SourcePlacement,
-                RotateGrabOffset(GrabOffset, Footprint, Orientation, orientation),
+                RotateGrabOffset(GrabOffset, Shape, Orientation, orientation),
                 orientation);
+
+        private static Footprint ResolveCompatibilityFootprint(IPlacementShape shape, IItemAdapter itemAdapter)
+        {
+            if (shape is RectPlacementShape rectShape)
+                return new Footprint(rectShape.Width, rectShape.Height);
+
+            return UDND.Core.Footprint.Resolve(itemAdapter);
+        }
 
         private static Vector2Int RotateGrabOffset(
             Vector2Int grabOffset,
-            Footprint footprint,
+            IPlacementShape shape,
             PlacementOrientation from,
             PlacementOrientation to)
         {
             int turns = ((int)to - (int)from + 4) % 4;
             var offset = grabOffset;
-            var size = footprint.GetSize(from);
+            var size = PlacementShapeUtility.GetBoundingSize(shape, from);
 
             for (int i = 0; i < turns; i++)
             {

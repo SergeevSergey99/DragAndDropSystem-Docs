@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 using UDND.Core;
 using UDND.Rules;
 using UDND.Slots;
@@ -1001,7 +1002,7 @@ namespace UDND.Inventories
                 ?? new PlannedPlacementAllocation(
                     operation.RequestedBaseSlot?.Index ?? -1,
                     operation.Orientation,
-                    Footprint.Resolve(operation.TransferStack.PrimaryAdapter),
+                    PlacementShapeUtility.Resolve(operation.TransferStack.PrimaryAdapter),
                     operation.TransferAmount);
 
             var executionContext = new ShapedPlacementExecutionContext(
@@ -1050,7 +1051,9 @@ namespace UDND.Inventories
                     Footprint.One,
                     new[] { resolvedSlot.Index },
                     resolvedSlot,
-                    new[] { resolvedSlot })
+                    new[] { resolvedSlot },
+                    new[] { Vector2Int.zero },
+                    Vector2Int.one)
                 : null;
         }
 

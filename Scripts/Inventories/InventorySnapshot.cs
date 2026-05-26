@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UDND.Core;
 
 namespace UDND.Inventories
@@ -42,7 +43,9 @@ namespace UDND.Inventories
             IReadOnlyList<IItemAdapter> adapters,
             PlacementOrientation orientation,
             Footprint footprint,
-            IReadOnlyList<int> coveredIndices = null)
+            IReadOnlyList<int> coveredIndices = null,
+            IReadOnlyList<Vector2Int> coveredOffsets = null,
+            Vector2Int? boundingSize = null)
         {
             AnchorIndex = anchorIndex;
             Adapters = adapters == null || adapters.Count == 0
@@ -53,6 +56,10 @@ namespace UDND.Inventories
             CoveredIndices = coveredIndices == null || coveredIndices.Count == 0
                 ? System.Array.Empty<int>()
                 : Copy(coveredIndices);
+            CoveredOffsets = coveredOffsets == null || coveredOffsets.Count == 0
+                ? System.Array.Empty<Vector2Int>()
+                : Copy(coveredOffsets);
+            BoundingSize = boundingSize ?? Footprint.GetSize(orientation);
         }
 
         public int AnchorIndex { get; }
@@ -60,6 +67,8 @@ namespace UDND.Inventories
         public PlacementOrientation Orientation { get; }
         public Footprint Footprint { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
+        public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
+        public Vector2Int BoundingSize { get; }
         public bool IsEmpty => Adapters == null || Adapters.Count <= 0;
 
         private static T[] Copy<T>(IReadOnlyList<T> items)

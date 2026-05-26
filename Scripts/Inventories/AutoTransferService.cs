@@ -103,7 +103,9 @@ namespace UDND.Inventories
                         targetInventory,
                         sourceItem,
                         out var targetItem) &&
-                    !Footprint.Resolve(targetItem).IsSingleCell)
+                    !PlacementShapeUtility.IsSingleCell(
+                        PlacementShapeUtility.Resolve(targetItem),
+                        entry.Orientation))
                     return true;
             }
 

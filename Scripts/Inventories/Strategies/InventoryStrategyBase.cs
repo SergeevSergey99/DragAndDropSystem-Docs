@@ -115,7 +115,7 @@ namespace UDND.Inventories
 
         public virtual ShapedPlacementPlanResult TryPlanShapedPlacement(ShapedPlacementPlanContext context)
         {
-            if (context.Footprint.IsSingleCell)
+            if (PlacementShapeUtility.IsSingleCell(context.Shape, context.Orientation))
                 return ShapedPlacementPlanResult.NotApplicable();
 
             if (context.TargetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue)
@@ -155,14 +155,14 @@ namespace UDND.Inventories
                 previewStack,
                 anchorIndex,
                 context.Orientation,
-                context.Footprint);
+                context.Shape);
             if (!targetPlacementInventory.CanPlace(placementRequest, ignoredPlacement))
                 return ShapedPlacementPlanResult.Rejected("Target grid cells are not available");
 
             return ShapedPlacementPlanResult.Planned(new PlannedPlacementAllocation(
                 anchorIndex,
                 context.Orientation,
-                context.Footprint,
+                context.Shape,
                 context.RequestedAmount));
         }
 
@@ -175,10 +175,8 @@ namespace UDND.Inventories
                 return ShapedPlacementExecutionResult.NotApplicable();
 
             var allocation = context.Allocation;
-            var footprint = allocation.Footprint;
-            if (footprint.IsSingleCell || footprint.Equals(default(Footprint)))
-                footprint = Footprint.Resolve(context.TransferStack.PrimaryAdapter);
-            if (footprint.IsSingleCell)
+            var shape = allocation.Shape ?? PlacementShapeUtility.Resolve(context.TransferStack.PrimaryAdapter);
+            if (PlacementShapeUtility.IsSingleCell(shape, allocation.Orientation))
                 return ShapedPlacementExecutionResult.NotApplicable();
 
             if (context.TransferStack.Count > 1 || context.TransferAmount != context.TransferStack.Count)
@@ -197,7 +195,7 @@ namespace UDND.Inventories
                 return ShapedPlacementExecutionResult.Failed("Anchor slot not found");
 
             bool wasEmpty = resolvedAnchorSlot.IsEmpty;
-            var request = new PlacementRequest(placedStack, anchorIndex, allocation.Orientation, footprint);
+            var request = new PlacementRequest(placedStack, anchorIndex, allocation.Orientation, shape);
 
             if (!targetPlacementInventory.TryPlace(request, out _))
                 return ShapedPlacementExecutionResult.Failed("Inventory rejected shaped placement");
@@ -226,7 +224,7 @@ namespace UDND.Inventories
         /// </summary>
         protected static int GetMaxStackSize(IItemAdapter itemAdapter, int defaultMaxStackSize, bool allowItemOverride)
         {
-            if (!Footprint.Resolve(itemAdapter).IsSingleCell)
+            if (!PlacementShapeUtility.IsSingleCell(PlacementShapeUtility.Resolve(itemAdapter), PlacementOrientation.Rot0))
                 return 1;
 
             if (allowItemOverride && itemAdapter is IStackSizeLimitable limitable)

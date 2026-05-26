@@ -271,7 +271,7 @@ namespace UDND
         private static bool TrySetPlacementDraggedState(DragEntry entry, bool isDragging, HashSet<BaseSlot> processedSlots)
         {
             if (entry.SourcePlacement == null ||
-                entry.SourcePlacement.Footprint.IsSingleCell ||
+                PlacementShapeUtility.IsSingleCell(entry.SourcePlacement.Shape, entry.SourcePlacement.Orientation) ||
                 entry.SourceInventory is not UniversalInventory inventory)
                 return false;
 

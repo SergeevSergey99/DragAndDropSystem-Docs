@@ -348,6 +348,79 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void PlacementSnapshot_FromPlacement_CapturesShapeOffsetsAndBounds()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var shape = new TestPlacementShape(
+                    new Vector2Int(0, 0),
+                    new Vector2Int(1, 0),
+                    new Vector2Int(0, 1));
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
+
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot0, shape), out var placement));
+
+                var snapshot = PlacementSnapshot.FromPlacement(placement, inventory.GetSlot);
+
+                CollectionAssert.AreEqual(shape.GetOffsets(PlacementOrientation.Rot0), snapshot.CoveredOffsets);
+                Assert.AreEqual(new Vector2Int(2, 2), snapshot.BoundingSize);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void TryRestoreSnapshot_WithCoveredOffsets_RestoresNonRectShape()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
+                var snapshot = new InventorySnapshot(
+                    6,
+                    new System.Collections.Generic.List<InventoryPlacementState>
+                    {
+                        new InventoryPlacementState(
+                            0,
+                            stack.Adapters,
+                            PlacementOrientation.Rot0,
+                            Footprint.One,
+                            new[] { 0, 1, 3 },
+                            new[]
+                            {
+                                new Vector2Int(0, 0),
+                                new Vector2Int(1, 0),
+                                new Vector2Int(0, 1)
+                            },
+                            new Vector2Int(2, 2))
+                    });
+
+                Assert.IsTrue(inventory.TryRestoreSnapshot(snapshot, logFailures: false));
+
+                var restoredPlacement = inventory.GetPlacementAt(0);
+                Assert.IsNotNull(restoredPlacement);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3 }, restoredPlacement.CoveredIndices);
+                Assert.AreSame(restoredPlacement, inventory.GetPlacementAt(3));
+                Assert.IsNull(inventory.GetPlacementAt(4));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void DragEntry_FromCoveredCell_CapturesPlacementSnapshot()
         {
             var inventory = new InventoryBuilder()

@@ -79,6 +79,37 @@ namespace UDND.Core
         }
     }
 
+    public sealed class OffsetPlacementShape : IPlacementShape
+    {
+        private readonly IReadOnlyList<Vector2Int> _offsets;
+        private readonly PlacementOrientation _supportedOrientation;
+
+        public OffsetPlacementShape(
+            IReadOnlyList<Vector2Int> offsets,
+            PlacementOrientation supportedOrientation = PlacementOrientation.Rot0)
+        {
+            _offsets = CopyOffsets(offsets);
+            _supportedOrientation = supportedOrientation;
+        }
+
+        public IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation)
+            => SupportsOrientation(orientation) ? _offsets : Array.Empty<Vector2Int>();
+
+        public bool SupportsOrientation(PlacementOrientation orientation)
+            => orientation == _supportedOrientation;
+
+        private static IReadOnlyList<Vector2Int> CopyOffsets(IReadOnlyList<Vector2Int> offsets)
+        {
+            if (offsets == null || offsets.Count == 0)
+                return Array.AsReadOnly(new[] { Vector2Int.zero });
+
+            var copy = new Vector2Int[offsets.Count];
+            for (int i = 0; i < offsets.Count; i++)
+                copy[i] = offsets[i];
+            return Array.AsReadOnly(copy);
+        }
+    }
+
     public static class PlacementShapeUtility
     {
         public static IPlacementShape Resolve(IItemAdapter adapter)

@@ -18,12 +18,60 @@ namespace UDND.Inventories
             Footprint footprint,
             int requestedAmount,
             PlacementOrientation orientation)
+            : this(
+                dragContext,
+                entry,
+                targetInventory,
+                targetBaseSlotHint,
+                targetItemAdapter,
+                PlacementShapeUtility.FromFootprint(footprint),
+                footprint,
+                requestedAmount,
+                orientation)
+        {
+        }
+
+        public ShapedPlacementPlanContext(
+            DragContext dragContext,
+            DragEntry entry,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlotHint,
+            IItemAdapter targetItemAdapter,
+            IPlacementShape shape,
+            int requestedAmount,
+            PlacementOrientation orientation)
+            : this(
+                dragContext,
+                entry,
+                targetInventory,
+                targetBaseSlotHint,
+                targetItemAdapter,
+                shape,
+                shape is RectPlacementShape rectShape
+                    ? new Footprint(rectShape.Width, rectShape.Height)
+                    : Footprint.Resolve(targetItemAdapter),
+                requestedAmount,
+                orientation)
+        {
+        }
+
+        private ShapedPlacementPlanContext(
+            DragContext dragContext,
+            DragEntry entry,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlotHint,
+            IItemAdapter targetItemAdapter,
+            IPlacementShape shape,
+            Footprint footprint,
+            int requestedAmount,
+            PlacementOrientation orientation)
         {
             DragContext = dragContext;
             Entry = entry;
             TargetInventory = targetInventory;
             TargetBaseSlotHint = targetBaseSlotHint;
             TargetItemAdapter = targetItemAdapter;
+            Shape = shape ?? PlacementShapeUtility.FromFootprint(footprint);
             Footprint = footprint;
             RequestedAmount = requestedAmount;
             Orientation = orientation;
@@ -34,6 +82,7 @@ namespace UDND.Inventories
         public IInventory TargetInventory { get; }
         public BaseSlot TargetBaseSlotHint { get; }
         public IItemAdapter TargetItemAdapter { get; }
+        public IPlacementShape Shape { get; }
         public Footprint Footprint { get; }
         public int RequestedAmount { get; }
         public PlacementOrientation Orientation { get; }

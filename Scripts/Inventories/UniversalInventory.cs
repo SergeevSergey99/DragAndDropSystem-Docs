@@ -248,7 +248,9 @@ namespace UDND.Inventories
                 Footprint.One,
                 new[] { baseSlot.Index },
                 baseSlot,
-                new[] { baseSlot });
+                new[] { baseSlot },
+                new[] { Vector2Int.zero },
+                Vector2Int.one);
         }
 
         /// <summary>
@@ -658,8 +660,11 @@ namespace UDND.Inventories
                     out var targetItem))
                 return false;
 
-            var footprint = Footprint.Resolve(targetItem);
-            if (!_useGridTopology || footprint.IsSingleCell)
+            var shape = PlacementShapeUtility.Resolve(targetItem);
+            var footprint = shape is RectPlacementShape rectShape
+                ? new Footprint(rectShape.Width, rectShape.Height)
+                : entry.Footprint;
+            if (!_useGridTopology || PlacementShapeUtility.IsSingleCell(shape, entry.Orientation))
             {
                 previewSlots = new[] { targetBaseSlot };
                 canPlace = true;
@@ -676,7 +681,7 @@ namespace UDND.Inventories
                 return true;
 
             var hasValidAnchor = TryGetIndexForCell(anchorCell, out int anchorIndex);
-            var coveredIndices = GetPreviewCoveredCells(anchorCell, footprint, entry.Orientation);
+            var coveredIndices = GetPreviewCoveredCells(anchorCell, shape, entry.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return true;
 
@@ -707,7 +712,7 @@ namespace UDND.Inventories
                 ? entry.SourcePlacement
                 : null;
             canPlace = CanPlace(
-                new PlacementRequest(previewStack, anchorIndex, entry.Orientation, footprint),
+                new PlacementRequest(previewStack, anchorIndex, entry.Orientation, shape),
                 ignoredPlacement);
             return true;
         }
@@ -823,7 +828,7 @@ namespace UDND.Inventories
                 stack,
                 baseSlot.Index,
                 PlacementOrientation.Rot0,
-                Footprint.Resolve(stack.PrimaryAdapter));
+                PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
             if (existingPlacement != null)
                 UnregisterPlacement(existingPlacement);
@@ -1039,9 +1044,20 @@ namespace UDND.Inventories
             Footprint footprint,
             PlacementOrientation orientation)
         {
-            return PlacementCellUtility.GetCoveredIndices(
+            return GetPreviewCoveredCells(
                 anchorCell,
                 PlacementShapeUtility.FromFootprint(footprint),
+                orientation);
+        }
+
+        private IReadOnlyList<int> GetPreviewCoveredCells(
+            Vector2Int anchorCell,
+            IPlacementShape shape,
+            PlacementOrientation orientation)
+        {
+            return PlacementCellUtility.GetCoveredIndices(
+                anchorCell,
+                shape,
                 orientation,
                 _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
                 _slots.Count,
@@ -1067,7 +1083,7 @@ namespace UDND.Inventories
                 int anchorIndex = placement.AnchorIndex > removedIndex
                     ? placement.AnchorIndex - 1
                     : placement.AnchorIndex;
-                var covered = BuildCoveredCells(anchorIndex, placement.Footprint, placement.Orientation);
+                var covered = BuildCoveredCells(anchorIndex, placement.Shape, placement.Orientation);
                 placement.MoveAnchor(IndexToCell(anchorIndex), anchorIndex, covered);
                 for (int c = 0; c < placement.CoveredIndices.Count; c++)
                     _cellToPlacement[placement.CoveredIndices[c]] = placement;
@@ -1203,10 +1219,20 @@ namespace UDND.Inventories
                     placement.MutableStack.Adapters,
                     placement.Orientation,
                     placement.Footprint,
-                    placement.CoveredIndices));
+                    placement.CoveredIndices,
+                    ResolvePlacementOffsets(placement),
+                    PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation)));
             }
 
             return new InventorySnapshot(_slots.Count, placementSnapshot);
+        }
+
+        private static IReadOnlyList<Vector2Int> ResolvePlacementOffsets(Placement placement)
+        {
+            if (placement?.Shape == null || !placement.Shape.SupportsOrientation(placement.Orientation))
+                return Array.Empty<Vector2Int>();
+
+            return placement.Shape.GetOffsets(placement.Orientation);
         }
 
         public void RestoreSnapshot(InventorySnapshot snapshot)
@@ -1298,11 +1324,15 @@ namespace UDND.Inventories
                     return false;
                 }
 
+                var shape = placementState.CoveredOffsets != null && placementState.CoveredOffsets.Count > 0
+                    ? new OffsetPlacementShape(placementState.CoveredOffsets, placementState.Orientation)
+                    : PlacementShapeUtility.FromFootprint(placementState.Footprint);
+
                 var request = new PlacementRequest(
                     restoredStack,
                     placementState.AnchorIndex,
                     placementState.Orientation,
-                    placementState.Footprint);
+                    shape);
 
                 if (!CanPlaceSnapshotRequest(request, desiredSlotCount, occupiedCells))
                 {
@@ -1658,16 +1688,17 @@ namespace UDND.Inventories
             if (itemAdapter == null || count <= 0)
                 return false;
 
-            var footprint = Footprint.Resolve(itemAdapter);
-            if (_useGridTopology && !footprint.IsSingleCell)
+            var shape = PlacementShapeUtility.Resolve(itemAdapter);
+            bool isSingleCell = PlacementShapeUtility.IsSingleCell(shape, PlacementOrientation.Rot0);
+            if (_useGridTopology && !isSingleCell)
                 return false;
 
             if (!_useGridTopology &&
                 _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-                !footprint.IsSingleCell)
+                !isSingleCell)
                 return false;
 
-            return footprint.IsSingleCell || count <= 1;
+            return isSingleCell || count <= 1;
         }
 
         /// <summary>

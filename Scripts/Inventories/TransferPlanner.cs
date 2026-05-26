@@ -50,15 +50,48 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             Footprint footprint,
             int amount)
+            : this(
+                anchorIndex,
+                orientation,
+                PlacementShapeUtility.FromFootprint(footprint),
+                footprint,
+                amount)
+        {
+        }
+
+        public PlannedPlacementAllocation(
+            int anchorIndex,
+            PlacementOrientation orientation,
+            IPlacementShape shape,
+            int amount)
+            : this(
+                anchorIndex,
+                orientation,
+                shape,
+                shape is RectPlacementShape rectShape
+                    ? new Footprint(rectShape.Width, rectShape.Height)
+                    : Footprint.One,
+                amount)
+        {
+        }
+
+        private PlannedPlacementAllocation(
+            int anchorIndex,
+            PlacementOrientation orientation,
+            IPlacementShape shape,
+            Footprint footprint,
+            int amount)
         {
             AnchorIndex = anchorIndex;
             Orientation = orientation;
+            Shape = shape ?? PlacementShapeUtility.FromFootprint(footprint);
             Footprint = footprint.Normalized();
             Amount = amount;
         }
 
         public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
+        public IPlacementShape Shape { get; }
         public Footprint Footprint { get; }
         public int Amount { get; }
     }
@@ -320,8 +353,8 @@ namespace UDND.Inventories
                 return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target inventory rejected itemAdapter conversion");
             }
 
-            var targetFootprint = Footprint.Resolve(targetItem);
-            if (!targetFootprint.IsSingleCell)
+            var targetShape = PlacementShapeUtility.Resolve(targetItem);
+            if (!PlacementShapeUtility.IsSingleCell(targetShape, entry.Orientation))
             {
                 if (requested != 1)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item transfer requires a single item");
@@ -345,7 +378,7 @@ namespace UDND.Inventories
                     globalRules,
                     requested,
                     targetItem,
-                    targetFootprint,
+                    targetShape,
                     out var shapedPlacementPlan))
                 return shapedPlacementPlan;
 
@@ -490,7 +523,7 @@ namespace UDND.Inventories
             GlobalRuleValidator globalRules,
             int requested,
             IItemAdapter targetItem,
-            Footprint footprint,
+            IPlacementShape shape,
             out PlannedEntryTransfer plan)
         {
             plan = null;
@@ -504,7 +537,7 @@ namespace UDND.Inventories
                 targetInventory,
                 targetBaseSlotHint,
                 targetItem,
-                footprint,
+                shape,
                 requested,
                 entry.Orientation);
 
@@ -563,7 +596,7 @@ namespace UDND.Inventories
             out PlannedEntryTransfer plan)
         {
             plan = null;
-            if (!Footprint.Resolve(targetItem).IsSingleCell)
+            if (!PlacementShapeUtility.IsSingleCell(PlacementShapeUtility.Resolve(targetItem), entry.Orientation))
                 return false;
 
             if (!isFirstEntry ||
@@ -1153,9 +1186,11 @@ namespace UDND.Inventories
             // Shaped items aren't supported by swap in Phase 1–3 (TryCommitSwapViaPlacement
             // doesn't preserve footprint geometry on either side). Defensive guard so a
             // custom resolver/strategy can't accidentally route a shaped entry here.
-            if (!Footprint.Resolve(entry.Stack.PrimaryAdapter).IsSingleCell)
+            if (!PlacementShapeUtility.IsSingleCell(entry.Shape, entry.Orientation))
                 return null;
-            if (!Footprint.Resolve(swapTargetBaseSlot.Stack.PrimaryAdapter).IsSingleCell)
+            if (!PlacementShapeUtility.IsSingleCell(
+                    PlacementShapeUtility.Resolve(swapTargetBaseSlot.Stack.PrimaryAdapter),
+                    PlacementOrientation.Rot0))
                 return null;
 
             if (!ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceStackBefore))

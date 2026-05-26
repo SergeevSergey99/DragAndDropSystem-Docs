@@ -3,18 +3,23 @@ using UDND.Core;
 
 namespace UDND.Examples.ShapedItems
 {
-    public sealed class ShapedItemAdapter : IItemAdapter, IItemFootprintProvider
+    public sealed class ShapedItemAdapter : IItemAdapter, IItemPlacementShapeProvider, IItemFootprintProvider
     {
         public readonly ShapedItemExampleSO item;
+        private readonly IPlacementShape _placementShape;
 
         public ShapedItemAdapter(ShapedItemExampleSO item)
         {
             this.item = item;
+            _placementShape = item != null
+                ? PlacementShapeUtility.FromFootprint(item.Footprint)
+                : RectPlacementShape.One;
         }
 
-        public string ItemId => item.GetInstanceID().ToString();
+        public string ItemId => item != null ? item.GetInstanceID().ToString() : "missing-shaped-item";
         public Sprite Icon => item != null ? item.Icon : null;
         public string DisplayName => item != null ? item.ItemName : "Missing shaped item";
+        public IPlacementShape PlacementShape => _placementShape;
         public Footprint Footprint => item != null ? item.Footprint : Footprint.One;
     }
 }

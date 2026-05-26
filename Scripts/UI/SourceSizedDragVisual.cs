@@ -88,7 +88,7 @@ namespace UDND.UI
         {
             if (_useShapedPlacementBounds &&
                 entry.SourcePlacement != null &&
-                !entry.SourcePlacement.Footprint.IsSingleCell &&
+                !PlacementShapeUtility.IsSingleCell(entry.SourcePlacement.Shape, entry.SourcePlacement.Orientation) &&
                 entry.SourceInventory is UniversalInventory inventory &&
                 TryGetPlacementSize(inventory, entry.SourcePlacement, out var placementSize))
             {

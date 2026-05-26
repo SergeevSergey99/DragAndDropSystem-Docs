@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UDND.Slots;
 
 namespace UDND.Core
@@ -15,12 +16,16 @@ namespace UDND.Core
             Footprint footprint,
             IReadOnlyList<int> coveredIndices = null,
             BaseSlot anchorBaseSlot = null,
-            IReadOnlyList<BaseSlot> coveredBaseSlots = null)
+            IReadOnlyList<BaseSlot> coveredBaseSlots = null,
+            IReadOnlyList<Vector2Int> coveredOffsets = null,
+            Vector2Int? boundingSize = null)
         {
             AnchorIndex = anchorIndex;
             Orientation = orientation;
             Footprint = footprint.Normalized();
             CoveredIndices = Copy(coveredIndices);
+            CoveredOffsets = Copy(coveredOffsets);
+            BoundingSize = boundingSize ?? Footprint.GetSize(orientation);
             AnchorBaseSlot = anchorBaseSlot;
             CoveredBaseSlots = Copy(coveredBaseSlots);
         }
@@ -29,6 +34,8 @@ namespace UDND.Core
         public PlacementOrientation Orientation { get; }
         public Footprint Footprint { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
+        public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
+        public Vector2Int BoundingSize { get; }
         public BaseSlot AnchorBaseSlot { get; }
         public IReadOnlyList<BaseSlot> CoveredBaseSlots { get; }
         public bool HasCoveredCells => CoveredIndices.Count > 0;
@@ -46,7 +53,19 @@ namespace UDND.Core
                 placement.Footprint,
                 placement.CoveredIndices,
                 slotResolver?.Invoke(placement.AnchorIndex),
-                ResolveSlots(placement.CoveredIndices, slotResolver));
+                ResolveSlots(placement.CoveredIndices, slotResolver),
+                ResolveOffsets(placement.Shape, placement.Orientation),
+                PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation));
+        }
+
+        private static IReadOnlyList<Vector2Int> ResolveOffsets(
+            IPlacementShape shape,
+            PlacementOrientation orientation)
+        {
+            if (shape == null || !shape.SupportsOrientation(orientation))
+                return Array.Empty<Vector2Int>();
+
+            return Copy(shape.GetOffsets(orientation));
         }
 
         private static IReadOnlyList<BaseSlot> ResolveSlots(

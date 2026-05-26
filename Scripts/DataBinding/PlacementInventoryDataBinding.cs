@@ -118,7 +118,7 @@ namespace UDND.DataBinding
                     stack,
                     targetSlotIndex,
                     placement.Orientation,
-                    Footprint.Resolve(stack.PrimaryAdapter));
+                    PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
                 if (!Inventory.TryPlace(request))
                     OnPlacementReloadFailed(placement, stack.PrimaryAdapter);
@@ -139,7 +139,7 @@ namespace UDND.DataBinding
                 stack,
                 Math.Max(0, placement.AnchorIndex),
                 placement.Orientation,
-                Footprint.Resolve(stack.PrimaryAdapter));
+                PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
             if (!Inventory.TryPlace(request))
                 OnPlacementReloadFailed(placement, stack.PrimaryAdapter);
