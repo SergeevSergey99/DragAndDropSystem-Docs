@@ -1051,16 +1051,33 @@ namespace UDND.Inventories
             if (!_placementStateInitialized || removedIndex < 0)
                 return;
 
-            _cellToPlacement.Clear();
+            var shiftedPlacements = new List<Placement>(_placements.Count);
             foreach (var placement in _placements)
             {
+                if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
+                    continue;
+
                 int anchorIndex = placement.AnchorIndex > removedIndex
                     ? placement.AnchorIndex - 1
                     : placement.AnchorIndex;
                 var covered = BuildCoveredCells(anchorIndex, placement.Shape, placement.Orientation);
-                placement.MoveAnchor(IndexToCell(anchorIndex), anchorIndex, covered);
-                for (int c = 0; c < placement.CoveredIndices.Count; c++)
-                    _cellToPlacement[placement.CoveredIndices[c]] = placement;
+                if (covered == null || covered.Count == 0)
+                    continue;
+
+                shiftedPlacements.Add(new Placement(
+                    IndexToCell(anchorIndex),
+                    anchorIndex,
+                    placement.Orientation,
+                    placement.Shape,
+                    placement.MutableStack,
+                    covered));
+            }
+
+            _cellToPlacement.Clear();
+            _placements.Clear();
+            for (int i = 0; i < shiftedPlacements.Count; i++)
+            {
+                RegisterPlacement(shiftedPlacements[i]);
             }
         }
 

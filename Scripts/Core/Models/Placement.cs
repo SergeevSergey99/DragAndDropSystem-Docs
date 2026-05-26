@@ -103,8 +103,8 @@ namespace UDND.Core
             SetCoveredIndices(coveredIndices, anchorIndex);
         }
 
-        public Vector2Int AnchorCell { get; private set; }
-        public int AnchorIndex { get; private set; }
+        public Vector2Int AnchorCell { get; }
+        public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
         public IPlacementShape Shape { get; }
         public Vector2Int BoundingSize { get; }
@@ -112,13 +112,6 @@ namespace UDND.Core
         public IReadOnlyItemStack Stack => MutableStack;
         internal ItemStack MutableStack { get; }
         public IReadOnlyList<int> CoveredIndices => _coveredIndicesView;
-
-        internal void MoveAnchor(Vector2Int anchorCell, int anchorIndex, IReadOnlyList<int> coveredIndices)
-        {
-            AnchorCell = anchorCell;
-            AnchorIndex = anchorIndex;
-            SetCoveredIndices(coveredIndices, anchorIndex);
-        }
 
         private void SetCoveredIndices(IReadOnlyList<int> coveredIndices, int fallbackAnchorIndex)
         {

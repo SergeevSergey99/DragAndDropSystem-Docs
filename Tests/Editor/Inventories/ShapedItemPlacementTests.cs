@@ -149,6 +149,38 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void DynamicSlotRemoval_RecreatesShiftedPlacementsWithoutMutatingOldReference()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(2)
+                .WithSlotManagementSettings(new DynamicSlotManagementSettings())
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
+                Assert.IsTrue(inventory.TryAddStack(stack, targetSlotIndex: 1));
+                var originalPlacement = inventory.GetPlacementAt(1);
+                Assert.IsNotNull(originalPlacement);
+                Assert.AreEqual(1, originalPlacement.AnchorIndex);
+
+                var emptySlot = inventory.GetSlot(0);
+                inventory.HandleSlotEmptied(emptySlot);
+
+                Assert.AreEqual(1, originalPlacement.AnchorIndex);
+                var shiftedPlacement = inventory.GetPlacementAt(0);
+                Assert.IsNotNull(shiftedPlacement);
+                Assert.AreNotSame(originalPlacement, shiftedPlacement);
+                Assert.AreEqual(0, shiftedPlacement.AnchorIndex);
+                Assert.AreSame(originalPlacement.Stack.PrimaryAdapter, shiftedPlacement.Stack.PrimaryAdapter);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void TryPlace_WithGridTopology_CoversShapeSizeCells()
         {
             var inventory = new InventoryBuilder()
