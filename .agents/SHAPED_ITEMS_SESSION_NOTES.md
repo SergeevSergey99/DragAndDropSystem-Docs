@@ -11,17 +11,17 @@ Date: 2026-05-11
 - Added shaped rotation support:
   - Drag entries carry `Orientation`.
   - Rotation actions can switch between `Rot0`, `Rot90`, `Rot180`, and `Rot270`.
-  - Drop planning/execution respects rotated footprint size and rotated grab offset.
+  - Drop planning/execution respects rotated shape bounds and rotated grab offset.
   - Fixed edge cases where rotated items failed to drop over their own source cells.
 
 - Introduced configurable shaped placement anchoring:
   - Added anchor strategy API.
   - Current strategies include rotated grab offset, source grab offset, and target-slot anchoring.
-  - This makes cursor-to-footprint behavior project-configurable instead of hardcoded around one anchor slot.
+  - This makes cursor-to-shape behavior project-configurable instead of hardcoded around one anchor slot.
 
 - Completed placement metadata propagation:
   - Events and transfer results now carry `PlacementSnapshot`.
-  - Metadata includes anchor index, anchor slot, covered indices, covered slots, orientation, and footprint.
+  - Metadata includes anchor index, anchor slot, covered indices, covered slots, orientation, covered offsets, and bounding size.
   - Added target/source resolved slot helpers for data binding semantics.
 
 - Improved snapshot safety:
@@ -79,6 +79,6 @@ Date: 2026-05-11
    - Add examples for custom shaped anchor strategy and custom shaped placement strategy.
 
 6. Decide future support for full shape masks.
-   - Current footprint occupancy is rectangular.
+   - Current rectangular shape occupancy uses RectPlacementShape.
    - `Rot0`/`Rot180` and `Rot90`/`Rot270` are equivalent for rectangular occupancy, though visuals can differ.
    - Non-rectangular masks will require 4-way rotation-aware covered-cell generation.

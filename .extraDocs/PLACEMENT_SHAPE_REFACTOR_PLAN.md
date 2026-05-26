@@ -6,13 +6,13 @@ Last Updated: 2026-05-26
 
 ## Scope
 
-This epic replaces rectangle-only `Footprint` as the core placement shape model with an offsets-based shape API.
+This epic replaces rectangle-only placement sizing as the core placement shape model with an offsets-based shape API.
 
 In scope:
 
 - Add shape/offsets model for rectangular shapes, masks, and future topology-specific shapes.
 - Add a single covered-cell calculation path.
-- Keep compatibility with `IItemFootprintProvider` during migration.
+- Remove the old rectangle-size compatibility API before release.
 - Prepare placement geometry for future hex-like topologies while continuing to use `Vector2Int`.
 
 Out of scope:
@@ -51,18 +51,12 @@ Use `PlacementShapeUtility.GetBoundingSize(shape, orientation)` so non-rectangul
 - `GetOffsets(orientation)` should return a cached immutable/read-only list for the same shape and orientation.
 - Unsupported orientation means placement is invalid for that orientation.
 
-## Compatibility
-
-Keep the existing `IItemFootprintProvider` during migration.
+## Shape Resolution
 
 Resolution order:
 
 1. `IItemPlacementShapeProvider.PlacementShape`
-2. `IItemFootprintProvider.Footprint` converted to `RectPlacementShape`
-3. `RectPlacementShape.One`
-
-`Footprint` remains available until all internal call sites are moved.
-After the migration, mark `Footprint` obsolete instead of removing it immediately.
+2. `RectPlacementShape.One`
 
 ## Snapshot Rule
 
@@ -86,7 +80,7 @@ Snapshots should store POCO/runtime-safe data:
 6. Update planner, executor, data binding, overlay, and Demo6 to resolve shapes through `PlacementShapeUtility`.
 7. Update `PlacementSnapshot` with covered offsets and bounding size.
 8. Add tests for provider priority, fallback, unsupported orientation, cached offsets, and snapshot metadata.
-9. Mark `Footprint` obsolete after all internal code uses shape APIs.
+9. Remove the old rectangle-size API and expose bounding data through `Vector2Int BoundingSize`.
 
 ## Expected Final Flow
 
