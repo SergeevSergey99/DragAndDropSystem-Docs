@@ -125,24 +125,103 @@ namespace UDND.UI
                     continue;
                 }
 
-                if (!TryGetPlacementRect(placement, root, out var rect))
-                {
-                    continue;
-                }
+                var renderState = ResolveRenderState(placement);
+                bool rendered = IsRectangularPlacement(placement)
+                    ? TryRenderPlacementBounds(placement, root, renderState)
+                    : TryRenderPlacementCells(placement, root, renderState);
 
-                var item = CreateItem(root, placement);
-                var itemRect = item.RectTransform;
-                itemRect.anchorMin = new Vector2(0.5f, 0.5f);
-                itemRect.anchorMax = new Vector2(0.5f, 0.5f);
-                itemRect.pivot = new Vector2(0.5f, 0.5f);
-                itemRect.anchoredPosition = rect.center;
-                itemRect.sizeDelta = GetPreRotatedSize(rect.size, placement.Orientation);
-                itemRect.localEulerAngles = new Vector3(0f, 0f, -90f * (int)placement.Orientation);
-                item.transform.SetAsLastSibling();
-                item.Render(placement, ResolveRenderState(placement), _color);
-                _activeItems.Add(item);
+                if (!rendered)
+                    continue;
+
                 _renderedPlacements.Add(placement);
             }
+        }
+
+        private bool TryRenderPlacementBounds(
+            Placement placement,
+            RectTransform root,
+            PlacementOverlayRenderState renderState)
+        {
+            if (!TryGetPlacementRect(placement, root, out var rect))
+                return false;
+
+            var item = CreateItem(root, placement);
+            ApplyItemRect(
+                item.RectTransform,
+                rect.center,
+                GetPreRotatedSize(rect.size, placement.Orientation),
+                -90f * (int)placement.Orientation);
+            item.transform.SetAsLastSibling();
+            item.Render(placement, renderState, _color);
+            _activeItems.Add(item);
+            return true;
+        }
+
+        private bool TryRenderPlacementCells(
+            Placement placement,
+            RectTransform root,
+            PlacementOverlayRenderState renderState)
+        {
+            bool renderedAny = false;
+            for (int i = 0; i < placement.CoveredIndices.Count; i++)
+            {
+                var slot = _inventory.GetSlot(placement.CoveredIndices[i]);
+                if (!TryGetSlotRect(slot, root, out var rect))
+                    continue;
+
+                var item = CreateItem(root, placement);
+                ApplyItemRect(item.RectTransform, rect.center, rect.size, 0f);
+                item.transform.SetAsLastSibling();
+                item.Render(placement, renderState, _color);
+                _activeItems.Add(item);
+                renderedAny = true;
+            }
+
+            return renderedAny;
+        }
+
+        private static void ApplyItemRect(
+            RectTransform itemRect,
+            Vector2 anchoredPosition,
+            Vector2 size,
+            float zRotation)
+        {
+            itemRect.anchorMin = new Vector2(0.5f, 0.5f);
+            itemRect.anchorMax = new Vector2(0.5f, 0.5f);
+            itemRect.pivot = new Vector2(0.5f, 0.5f);
+            itemRect.anchoredPosition = anchoredPosition;
+            itemRect.sizeDelta = size;
+            itemRect.localEulerAngles = new Vector3(0f, 0f, zRotation);
+        }
+
+        private static bool IsRectangularPlacement(Placement placement)
+        {
+            if (placement?.Shape == null || !placement.Shape.SupportsOrientation(placement.Orientation))
+                return true;
+
+            var offsets = placement.Shape.GetOffsets(placement.Orientation);
+            if (offsets == null || offsets.Count == 0)
+                return true;
+
+            var bounds = PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation);
+            int area = bounds.x * bounds.y;
+            if (area <= 0 || offsets.Count != area)
+                return false;
+
+            var occupiedOffsets = new HashSet<Vector2Int>(offsets);
+            if (occupiedOffsets.Count != area)
+                return false;
+
+            for (int y = 0; y < bounds.y; y++)
+            {
+                for (int x = 0; x < bounds.x; x++)
+                {
+                    if (!occupiedOffsets.Contains(new Vector2Int(x, y)))
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         private static Vector2 GetPreRotatedSize(Vector2 targetSize, PlacementOrientation orientation)
@@ -290,6 +369,25 @@ namespace UDND.UI
 
             if (!hasPoint)
                 return false;
+
+            rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            return rect.width > 0f && rect.height > 0f;
+        }
+
+        private bool TryGetSlotRect(BaseSlot slot, RectTransform root, out Rect rect)
+        {
+            rect = default;
+            if (!TryGetSlotWorldCorners(slot))
+                return false;
+
+            var min = (Vector2)root.InverseTransformPoint(_corners[0]);
+            var max = min;
+            for (int i = 1; i < _corners.Length; i++)
+            {
+                var localPoint = (Vector2)root.InverseTransformPoint(_corners[i]);
+                min = Vector2.Min(min, localPoint);
+                max = Vector2.Max(max, localPoint);
+            }
 
             rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             return rect.width > 0f && rect.height > 0f;
