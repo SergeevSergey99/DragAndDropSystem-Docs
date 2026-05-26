@@ -13,26 +13,26 @@ namespace UDND.Core
         public PlacementSnapshot(
             int anchorIndex,
             PlacementOrientation orientation,
-            Footprint footprint,
+            Vector2Int boundingSize,
             IReadOnlyList<int> coveredIndices = null,
             BaseSlot anchorBaseSlot = null,
             IReadOnlyList<BaseSlot> coveredBaseSlots = null,
             IReadOnlyList<Vector2Int> coveredOffsets = null,
-            Vector2Int? boundingSize = null)
+            IPlacementShape shape = null)
         {
             AnchorIndex = anchorIndex;
             Orientation = orientation;
-            Footprint = footprint.Normalized();
+            Shape = shape;
             CoveredIndices = Copy(coveredIndices);
             CoveredOffsets = Copy(coveredOffsets);
-            BoundingSize = boundingSize ?? Footprint.GetSize(orientation);
+            BoundingSize = boundingSize.x > 0 && boundingSize.y > 0 ? boundingSize : Vector2Int.one;
             AnchorBaseSlot = anchorBaseSlot;
             CoveredBaseSlots = Copy(coveredBaseSlots);
         }
 
         public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
-        public Footprint Footprint { get; }
+        public IPlacementShape Shape { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
         public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
         public Vector2Int BoundingSize { get; }
@@ -50,12 +50,12 @@ namespace UDND.Core
             return new PlacementSnapshot(
                 placement.AnchorIndex,
                 placement.Orientation,
-                placement.Footprint,
+                PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation),
                 placement.CoveredIndices,
                 slotResolver?.Invoke(placement.AnchorIndex),
                 ResolveSlots(placement.CoveredIndices, slotResolver),
                 ResolveOffsets(placement.Shape, placement.Orientation),
-                PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation));
+                placement.Shape);
         }
 
         private static IReadOnlyList<Vector2Int> ResolveOffsets(

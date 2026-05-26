@@ -48,51 +48,20 @@ namespace UDND.Inventories
         public PlannedPlacementAllocation(
             int anchorIndex,
             PlacementOrientation orientation,
-            Footprint footprint,
-            int amount)
-            : this(
-                anchorIndex,
-                orientation,
-                PlacementShapeUtility.FromFootprint(footprint),
-                footprint,
-                amount)
-        {
-        }
-
-        public PlannedPlacementAllocation(
-            int anchorIndex,
-            PlacementOrientation orientation,
             IPlacementShape shape,
-            int amount)
-            : this(
-                anchorIndex,
-                orientation,
-                shape,
-                shape is RectPlacementShape rectShape
-                    ? new Footprint(rectShape.Width, rectShape.Height)
-                    : Footprint.One,
-                amount)
-        {
-        }
-
-        private PlannedPlacementAllocation(
-            int anchorIndex,
-            PlacementOrientation orientation,
-            IPlacementShape shape,
-            Footprint footprint,
             int amount)
         {
             AnchorIndex = anchorIndex;
             Orientation = orientation;
-            Shape = shape ?? PlacementShapeUtility.FromFootprint(footprint);
-            Footprint = footprint.Normalized();
+            Shape = shape ?? RectPlacementShape.One;
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, orientation);
             Amount = amount;
         }
 
         public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
         public IPlacementShape Shape { get; }
-        public Footprint Footprint { get; }
+        public Vector2Int BoundingSize { get; }
         public int Amount { get; }
     }
 

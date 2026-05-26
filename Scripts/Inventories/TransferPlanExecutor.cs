@@ -39,11 +39,12 @@ namespace UDND.Inventories
         public BaseSlot AnchorSlot => TargetPlacementSnapshot?.AnchorBaseSlot ?? TargetBaseSlot;
         public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
         public IReadOnlyList<int> CoveredIndices => TargetPlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
+        public IReadOnlyList<Vector2Int> CoveredOffsets => TargetPlacementSnapshot?.CoveredOffsets ?? Array.Empty<Vector2Int>();
         public int AnchorIndex => TargetPlacementSnapshot != null && TargetPlacementSnapshot.AnchorIndex >= 0
             ? TargetPlacementSnapshot.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
         public PlacementOrientation Orientation => TargetPlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => TargetPlacementSnapshot?.Footprint ?? Footprint.One;
+        public Vector2Int BoundingSize => TargetPlacementSnapshot?.BoundingSize ?? Vector2Int.one;
     }
 
     public sealed class TransferExecutionSummary
@@ -1048,12 +1049,12 @@ namespace UDND.Inventories
                 ? new PlacementSnapshot(
                     resolvedSlot.Index,
                     PlacementOrientation.Rot0,
-                    Footprint.One,
+                    Vector2Int.one,
                     new[] { resolvedSlot.Index },
                     resolvedSlot,
                     new[] { resolvedSlot },
                     new[] { Vector2Int.zero },
-                    Vector2Int.one)
+                    RectPlacementShape.One)
                 : null;
         }
 

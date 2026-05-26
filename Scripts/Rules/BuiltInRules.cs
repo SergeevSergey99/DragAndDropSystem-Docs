@@ -40,7 +40,7 @@ namespace UDND.Rules
                     context.TargetBaseSlot,
                     context,
                     entry,
-                    entry.Footprint,
+                    entry.Shape,
                     entry.Stack?.PrimaryAdapter,
                     out _,
                     out int anchorIndex))

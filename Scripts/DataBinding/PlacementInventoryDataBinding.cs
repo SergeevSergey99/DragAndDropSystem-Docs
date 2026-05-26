@@ -51,9 +51,10 @@ namespace UDND.DataBinding
         public int Count => Stack.Count;
         public int AnchorIndex => EventContext?.AnchorIndex ?? -1;
         public PlacementOrientation Orientation => EventContext?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => EventContext?.Footprint ?? Footprint.One;
+        public Vector2Int BoundingSize => EventContext?.BoundingSize ?? Vector2Int.one;
         public PlacementSnapshot PlacementSnapshot => EventContext?.PlacementSnapshot;
         public IReadOnlyList<int> CoveredIndices => EventContext?.CoveredIndices ?? Array.Empty<int>();
+        public IReadOnlyList<Vector2Int> CoveredOffsets => EventContext?.CoveredOffsets ?? Array.Empty<Vector2Int>();
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UDND.Inventories;
 using UDND.Slots;
 
@@ -91,11 +92,12 @@ namespace UDND.Core
         public BaseSlot AnchorSlot => PlacementSnapshot?.AnchorBaseSlot ?? TargetBaseSlot;
         public IReadOnlyList<BaseSlot> CoveredSlots => PlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
         public IReadOnlyList<int> CoveredIndices => PlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
+        public IReadOnlyList<Vector2Int> CoveredOffsets => PlacementSnapshot?.CoveredOffsets ?? Array.Empty<Vector2Int>();
         public int AnchorIndex => PlacementSnapshot != null && PlacementSnapshot.AnchorIndex >= 0
             ? PlacementSnapshot.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
         public PlacementOrientation Orientation => PlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => PlacementSnapshot?.Footprint ?? Footprint.One;
+        public Vector2Int BoundingSize => PlacementSnapshot?.BoundingSize ?? Vector2Int.one;
 
         /// <summary>
         /// Create a successful drop result

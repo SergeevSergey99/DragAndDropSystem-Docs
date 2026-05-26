@@ -20,7 +20,7 @@ namespace UDND.Inventories
         Placement GetPlacementAt(int cellIndex);
         IReadOnlyList<int> GetCoveredCells(
             int anchorIndex,
-            Footprint footprint,
+            IPlacementShape shape,
             PlacementOrientation orientation = PlacementOrientation.Rot0);
 
         Vector2Int GetCellForIndex(int index);
@@ -31,7 +31,7 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot,
             DragContext context,
             DragEntry entry,
-            Footprint footprint,
+            IPlacementShape shape,
             IItemAdapter targetItemAdapter,
             out Vector2Int anchorCell);
 
@@ -39,7 +39,7 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot,
             DragContext context,
             DragEntry entry,
-            Footprint footprint,
+            IPlacementShape shape,
             IItemAdapter targetItemAdapter,
             out Vector2Int anchorCell,
             out int anchorIndex);

@@ -1,5 +1,6 @@
 using UDND.Core;
 using UDND.Slots;
+using UnityEngine;
 
 namespace UDND.Inventories
 {
@@ -15,54 +16,7 @@ namespace UDND.Inventories
             IInventory targetInventory,
             BaseSlot targetBaseSlotHint,
             IItemAdapter targetItemAdapter,
-            Footprint footprint,
-            int requestedAmount,
-            PlacementOrientation orientation)
-            : this(
-                dragContext,
-                entry,
-                targetInventory,
-                targetBaseSlotHint,
-                targetItemAdapter,
-                PlacementShapeUtility.FromFootprint(footprint),
-                footprint,
-                requestedAmount,
-                orientation)
-        {
-        }
-
-        public ShapedPlacementPlanContext(
-            DragContext dragContext,
-            DragEntry entry,
-            IInventory targetInventory,
-            BaseSlot targetBaseSlotHint,
-            IItemAdapter targetItemAdapter,
             IPlacementShape shape,
-            int requestedAmount,
-            PlacementOrientation orientation)
-            : this(
-                dragContext,
-                entry,
-                targetInventory,
-                targetBaseSlotHint,
-                targetItemAdapter,
-                shape,
-                shape is RectPlacementShape rectShape
-                    ? new Footprint(rectShape.Width, rectShape.Height)
-                    : Footprint.Resolve(targetItemAdapter),
-                requestedAmount,
-                orientation)
-        {
-        }
-
-        private ShapedPlacementPlanContext(
-            DragContext dragContext,
-            DragEntry entry,
-            IInventory targetInventory,
-            BaseSlot targetBaseSlotHint,
-            IItemAdapter targetItemAdapter,
-            IPlacementShape shape,
-            Footprint footprint,
             int requestedAmount,
             PlacementOrientation orientation)
         {
@@ -71,8 +25,8 @@ namespace UDND.Inventories
             TargetInventory = targetInventory;
             TargetBaseSlotHint = targetBaseSlotHint;
             TargetItemAdapter = targetItemAdapter;
-            Shape = shape ?? PlacementShapeUtility.FromFootprint(footprint);
-            Footprint = footprint;
+            Shape = shape ?? PlacementShapeUtility.Resolve(targetItemAdapter);
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, orientation);
             RequestedAmount = requestedAmount;
             Orientation = orientation;
         }
@@ -83,7 +37,7 @@ namespace UDND.Inventories
         public BaseSlot TargetBaseSlotHint { get; }
         public IItemAdapter TargetItemAdapter { get; }
         public IPlacementShape Shape { get; }
-        public Footprint Footprint { get; }
+        public Vector2Int BoundingSize { get; }
         public int RequestedAmount { get; }
         public PlacementOrientation Orientation { get; }
     }

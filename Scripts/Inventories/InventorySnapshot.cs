@@ -42,30 +42,30 @@ namespace UDND.Inventories
             int anchorIndex,
             IReadOnlyList<IItemAdapter> adapters,
             PlacementOrientation orientation,
-            Footprint footprint,
+            Vector2Int boundingSize,
             IReadOnlyList<int> coveredIndices = null,
             IReadOnlyList<Vector2Int> coveredOffsets = null,
-            Vector2Int? boundingSize = null)
+            IPlacementShape shape = null)
         {
             AnchorIndex = anchorIndex;
             Adapters = adapters == null || adapters.Count == 0
                 ? System.Array.Empty<IItemAdapter>()
                 : Copy(adapters);
             Orientation = orientation;
-            Footprint = footprint.Normalized();
+            Shape = shape;
             CoveredIndices = coveredIndices == null || coveredIndices.Count == 0
                 ? System.Array.Empty<int>()
                 : Copy(coveredIndices);
             CoveredOffsets = coveredOffsets == null || coveredOffsets.Count == 0
                 ? System.Array.Empty<Vector2Int>()
                 : Copy(coveredOffsets);
-            BoundingSize = boundingSize ?? Footprint.GetSize(orientation);
+            BoundingSize = boundingSize.x > 0 && boundingSize.y > 0 ? boundingSize : Vector2Int.one;
         }
 
         public int AnchorIndex { get; }
         public IReadOnlyList<IItemAdapter> Adapters { get; }
         public PlacementOrientation Orientation { get; }
-        public Footprint Footprint { get; }
+        public IPlacementShape Shape { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
         public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
         public Vector2Int BoundingSize { get; }

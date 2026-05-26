@@ -13,7 +13,8 @@ namespace UDND.Examples.ShapedItems
 
         public string ItemName => string.IsNullOrEmpty(_itemName) ? name : _itemName;
         public Sprite Icon => _icon;
-        public Footprint Footprint => new Footprint(_width, _height);
+        public Vector2Int ShapeSize => new Vector2Int(_width, _height);
+        public IPlacementShape PlacementShape => new RectPlacementShape(_width, _height);
 
         private void OnValidate()
         {

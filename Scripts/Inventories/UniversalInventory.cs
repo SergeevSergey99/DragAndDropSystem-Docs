@@ -245,12 +245,12 @@ namespace UDND.Inventories
             return new PlacementSnapshot(
                 baseSlot.Index,
                 PlacementOrientation.Rot0,
-                Footprint.One,
+                Vector2Int.one,
                 new[] { baseSlot.Index },
                 baseSlot,
                 new[] { baseSlot },
                 new[] { Vector2Int.zero },
-                Vector2Int.one);
+                RectPlacementShape.One);
         }
 
         /// <summary>
@@ -529,11 +529,11 @@ namespace UDND.Inventories
 
         public IReadOnlyList<int> GetCoveredCells(
             int anchorIndex,
-            Footprint footprint,
+            IPlacementShape shape,
             PlacementOrientation orientation = PlacementOrientation.Rot0)
         {
             EnsurePlacementStateInitialized();
-            return BuildCoveredCells(anchorIndex, footprint, orientation);
+            return BuildCoveredCells(anchorIndex, shape, orientation);
         }
 
         public Vector2Int GetCellForIndex(int index)
@@ -580,7 +580,7 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot,
             DragContext context,
             DragEntry entry,
-            Footprint footprint,
+            IPlacementShape shape,
             IItemAdapter targetItemAdapter,
             out Vector2Int anchorCell)
         {
@@ -593,7 +593,7 @@ namespace UDND.Inventories
                 targetBaseSlot,
                 context,
                 entry,
-                footprint,
+                shape,
                 entry.Orientation,
                 targetItemAdapter);
             return ResolveShapedPlacementAnchorStrategy().TryResolveAnchorCell(strategyContext, out anchorCell);
@@ -603,7 +603,7 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot,
             DragContext context,
             DragEntry entry,
-            Footprint footprint,
+            IPlacementShape shape,
             IItemAdapter targetItemAdapter,
             out Vector2Int anchorCell,
             out int anchorIndex)
@@ -613,7 +613,7 @@ namespace UDND.Inventories
                     targetBaseSlot,
                     context,
                     entry,
-                    footprint,
+                    shape,
                     targetItemAdapter,
                     out anchorCell))
                 return false;
@@ -661,9 +661,6 @@ namespace UDND.Inventories
                 return false;
 
             var shape = PlacementShapeUtility.Resolve(targetItem);
-            var footprint = shape is RectPlacementShape rectShape
-                ? new Footprint(rectShape.Width, rectShape.Height)
-                : entry.Footprint;
             if (!_useGridTopology || PlacementShapeUtility.IsSingleCell(shape, entry.Orientation))
             {
                 previewSlots = new[] { targetBaseSlot };
@@ -675,7 +672,7 @@ namespace UDND.Inventories
                     targetBaseSlot,
                     context,
                     entry,
-                    footprint,
+                    shape,
                     targetItem,
                     out var anchorCell))
                 return true;
@@ -1016,17 +1013,6 @@ namespace UDND.Inventories
 
         private IReadOnlyList<int> BuildCoveredCells(
             int anchorIndex,
-            Footprint footprint,
-            PlacementOrientation orientation)
-        {
-            return BuildCoveredCells(
-                anchorIndex,
-                PlacementShapeUtility.FromFootprint(footprint),
-                orientation);
-        }
-
-        private IReadOnlyList<int> BuildCoveredCells(
-            int anchorIndex,
             IPlacementShape shape,
             PlacementOrientation orientation)
         {
@@ -1037,17 +1023,6 @@ namespace UDND.Inventories
                 _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
                 _slots.Count,
                 PlacementBoundsMode.RequireAllInBounds);
-        }
-
-        private IReadOnlyList<int> GetPreviewCoveredCells(
-            Vector2Int anchorCell,
-            Footprint footprint,
-            PlacementOrientation orientation)
-        {
-            return GetPreviewCoveredCells(
-                anchorCell,
-                PlacementShapeUtility.FromFootprint(footprint),
-                orientation);
         }
 
         private IReadOnlyList<int> GetPreviewCoveredCells(
@@ -1218,7 +1193,7 @@ namespace UDND.Inventories
                     placement.AnchorIndex,
                     placement.MutableStack.Adapters,
                     placement.Orientation,
-                    placement.Footprint,
+                    placement.BoundingSize,
                     placement.CoveredIndices,
                     ResolvePlacementOffsets(placement),
                     PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation)));
@@ -1285,7 +1260,7 @@ namespace UDND.Inventories
                     if (logFailures)
                     {
                         Debug.LogError(
-                            $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {request.AnchorIndex} ({request.Footprint}, {request.Orientation}).",
+                            $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {request.AnchorIndex} ({request.BoundingSize}, {request.Orientation}).",
                             this);
                     }
 
@@ -1326,7 +1301,7 @@ namespace UDND.Inventories
 
                 var shape = placementState.CoveredOffsets != null && placementState.CoveredOffsets.Count > 0
                     ? new OffsetPlacementShape(placementState.CoveredOffsets, placementState.Orientation)
-                    : PlacementShapeUtility.FromFootprint(placementState.Footprint);
+                    : PlacementShapeUtility.FromRectSize(placementState.BoundingSize);
 
                 var request = new PlacementRequest(
                     restoredStack,
@@ -1384,19 +1359,6 @@ namespace UDND.Inventories
 
         private IReadOnlyList<int> BuildSnapshotCoveredCells(
             int anchorIndex,
-            Footprint footprint,
-            PlacementOrientation orientation,
-            int desiredSlotCount)
-        {
-            return BuildSnapshotCoveredCells(
-                anchorIndex,
-                PlacementShapeUtility.FromFootprint(footprint),
-                orientation,
-                desiredSlotCount);
-        }
-
-        private IReadOnlyList<int> BuildSnapshotCoveredCells(
-            int anchorIndex,
             IPlacementShape shape,
             PlacementOrientation orientation,
             int desiredSlotCount)
@@ -1413,7 +1375,7 @@ namespace UDND.Inventories
         private void LogSnapshotRestoreFailure(InventoryPlacementState placementState)
         {
             Debug.LogError(
-                $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {placementState.AnchorIndex} ({placementState.Footprint}, {placementState.Orientation}).",
+                $"[{nameof(UniversalInventory)}] Failed to restore placement at anchor {placementState.AnchorIndex} ({placementState.BoundingSize}, {placementState.Orientation}).",
                 this);
         }
 
@@ -1680,10 +1642,10 @@ namespace UDND.Inventories
 
         private bool CanAcceptStackByPlacementPolicy(ItemStack stack)
         {
-            return stack != null && !stack.IsEmpty && CanAcceptFootprint(stack.PrimaryAdapter, stack.Count);
+            return stack != null && !stack.IsEmpty && CanAcceptShape(stack.PrimaryAdapter, stack.Count);
         }
 
-        private bool CanAcceptFootprint(IItemAdapter itemAdapter, int count)
+        private bool CanAcceptShape(IItemAdapter itemAdapter, int count)
         {
             if (itemAdapter == null || count <= 0)
                 return false;
@@ -1719,7 +1681,7 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanAcceptFootprint(request.ItemAdapter, request.DesiredCount))
+            if (!CanAcceptShape(request.ItemAdapter, request.DesiredCount))
                 return false;
 
             bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
@@ -1740,7 +1702,7 @@ namespace UDND.Inventories
                 return 0;
 
             EnsureStrategyInitialized();
-            if (!CanAcceptFootprint(request.ItemAdapter, request.DesiredCount))
+            if (!CanAcceptShape(request.ItemAdapter, request.DesiredCount))
                 return 0;
 
             bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);

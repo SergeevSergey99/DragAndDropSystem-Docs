@@ -132,7 +132,7 @@ namespace UDND.Inventories
                     context.TargetBaseSlotHint,
                     context.DragContext,
                     context.Entry,
-                    context.Footprint,
+                    context.Shape,
                     context.TargetItemAdapter,
                     out _,
                     out int anchorIndex))

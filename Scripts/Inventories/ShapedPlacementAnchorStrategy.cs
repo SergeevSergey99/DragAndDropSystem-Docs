@@ -12,7 +12,7 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot,
             DragContext dragContext,
             DragEntry entry,
-            Footprint footprint,
+            IPlacementShape shape,
             PlacementOrientation orientation,
             IItemAdapter targetItemAdapter)
         {
@@ -20,7 +20,7 @@ namespace UDND.Inventories
             TargetBaseSlot = targetBaseSlot;
             DragContext = dragContext;
             Entry = entry;
-            Footprint = footprint;
+            Shape = shape ?? PlacementShapeUtility.Resolve(targetItemAdapter);
             Orientation = orientation;
             TargetItemAdapter = targetItemAdapter;
         }
@@ -29,7 +29,8 @@ namespace UDND.Inventories
         public BaseSlot TargetBaseSlot { get; }
         public DragContext DragContext { get; }
         public DragEntry Entry { get; }
-        public Footprint Footprint { get; }
+        public IPlacementShape Shape { get; }
+        public Vector2Int BoundingSize => PlacementShapeUtility.GetBoundingSize(Shape, Orientation);
         public PlacementOrientation Orientation { get; }
         public IItemAdapter TargetItemAdapter { get; }
 

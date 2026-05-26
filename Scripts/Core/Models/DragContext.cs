@@ -16,7 +16,7 @@ namespace UDND.Core
         public Placement SourcePlacement { get; }
         public Vector2Int GrabOffset { get; }
         public IPlacementShape Shape { get; }
-        public Footprint Footprint { get; }
+        public Vector2Int BoundingSize { get; }
         public PlacementOrientation Orientation { get; }
         public bool IsShaped => !PlacementShapeUtility.IsSingleCell(Shape, Orientation);
 
@@ -40,9 +40,9 @@ namespace UDND.Core
                 SourcePlacement = resolvedPlacement;
 
             Shape = SourcePlacement?.Shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
-            Footprint = SourcePlacement?.Footprint ?? ResolveCompatibilityFootprint(Shape, stack?.PrimaryAdapter);
             var sourceOrientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
             Orientation = orientation ?? sourceOrientation;
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, Orientation);
 
             var resolvedGrabOffset = grabOffset
                 ?? (stackStore != null
@@ -61,14 +61,6 @@ namespace UDND.Core
                 SourcePlacement,
                 RotateGrabOffset(GrabOffset, Shape, Orientation, orientation),
                 orientation);
-
-        private static Footprint ResolveCompatibilityFootprint(IPlacementShape shape, IItemAdapter itemAdapter)
-        {
-            if (shape is RectPlacementShape rectShape)
-                return new Footprint(rectShape.Width, rectShape.Height);
-
-            return UDND.Core.Footprint.Resolve(itemAdapter);
-        }
 
         private static Vector2Int RotateGrabOffset(
             Vector2Int grabOffset,

@@ -119,7 +119,6 @@ namespace UDND.UI
             foreach (var placement in placements)
             {
                 if (placement == null ||
-                    //placement.Footprint.IsSingleCell ||
                     placement.Stack == null ||
                     placement.Stack.IsEmpty)
                 {

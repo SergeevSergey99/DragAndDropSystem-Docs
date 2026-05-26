@@ -3,7 +3,7 @@ using UDND.Core;
 
 namespace UDND.Examples.ShapedItems
 {
-    public sealed class ShapedItemAdapter : IItemAdapter, IItemPlacementShapeProvider, IItemFootprintProvider
+    public sealed class ShapedItemAdapter : IItemAdapter, IItemPlacementShapeProvider
     {
         public readonly ShapedItemExampleSO item;
         private readonly IPlacementShape _placementShape;
@@ -12,7 +12,7 @@ namespace UDND.Examples.ShapedItems
         {
             this.item = item;
             _placementShape = item != null
-                ? PlacementShapeUtility.FromFootprint(item.Footprint)
+                ? item.PlacementShape
                 : RectPlacementShape.One;
         }
 
@@ -20,6 +20,5 @@ namespace UDND.Examples.ShapedItems
         public Sprite Icon => item != null ? item.Icon : null;
         public string DisplayName => item != null ? item.ItemName : "Missing shaped item";
         public IPlacementShape PlacementShape => _placementShape;
-        public Footprint Footprint => item != null ? item.Footprint : Footprint.One;
     }
 }

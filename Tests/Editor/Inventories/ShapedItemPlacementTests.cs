@@ -52,7 +52,7 @@ namespace UDND.Tests.Inventories
             Assert.IsNull(context.PlacementSnapshot);
             Assert.AreEqual(-1, context.AnchorIndex);
             Assert.AreEqual(PlacementOrientation.Rot0, context.Orientation);
-            Assert.AreEqual(Footprint.One, context.Footprint);
+            Assert.AreEqual(Vector2Int.one, context.BoundingSize);
             Assert.IsEmpty(context.CoveredIndices);
             Assert.IsEmpty(context.CoveredBaseSlots);
         }
@@ -72,7 +72,7 @@ namespace UDND.Tests.Inventories
                 var snapshot = new PlacementSnapshot(
                     targetSlot.Index,
                     PlacementOrientation.Rot0,
-                    Footprint.One,
+                    Vector2Int.one,
                     anchorBaseSlot: targetSlot);
 
                 var sourceOnlyContext = new InventoryItemEventContext(stack, sourceBaseSlot: sourceSlot);
@@ -103,7 +103,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
                 var coveredSlot = inventory.GetSlot(3);
@@ -135,7 +135,7 @@ namespace UDND.Tests.Inventories
                 inventory.GetSlot(1).SetStack(blocker);
 
                 var anchorSlot = inventory.GetSlot(0);
-                Assert.IsFalse(inventory.TrySetStackForSlot(anchorSlot, ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2))));
+                Assert.IsFalse(inventory.TrySetStackForSlot(anchorSlot, ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2))));
 
                 Assert.AreEqual(original.PrimaryAdapter, inventory.GetSlot(0).Stack.PrimaryAdapter);
                 Assert.AreEqual(blocker.PrimaryAdapter, inventory.GetSlot(1).Stack.PrimaryAdapter);
@@ -149,7 +149,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryPlace_WithGridTopology_CoversFootprintCells()
+        public void TryPlace_WithGridTopology_CoversShapeSizeCells()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -158,7 +158,7 @@ namespace UDND.Tests.Inventories
             try
             {
                 EnableGrid(inventory, 3, 2);
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
 
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
@@ -172,14 +172,14 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void Footprint_GetSize_SupportsFourOrientations()
+        public void RectPlacementShape_GetBoundingSize_SupportsFourOrientations()
         {
-            var footprint = new Footprint(2, 3);
+            var shape = new RectPlacementShape(2, 3);
 
-            Assert.AreEqual(new Vector2Int(2, 3), footprint.GetSize(PlacementOrientation.Rot0));
-            Assert.AreEqual(new Vector2Int(3, 2), footprint.GetSize(PlacementOrientation.Rot90));
-            Assert.AreEqual(new Vector2Int(2, 3), footprint.GetSize(PlacementOrientation.Rot180));
-            Assert.AreEqual(new Vector2Int(3, 2), footprint.GetSize(PlacementOrientation.Rot270));
+            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
+            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot90));
+            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot180));
+            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot270));
         }
 
         [Test]
@@ -192,13 +192,13 @@ namespace UDND.Tests.Inventories
                 new GridTopology(3, 2),
                 new GridTopology(5, 4)
             };
-            var footprints = new[]
+            var sizes = new[]
             {
-                new Footprint(1, 1),
-                new Footprint(2, 1),
-                new Footprint(1, 2),
-                new Footprint(2, 2),
-                new Footprint(3, 2)
+                new Vector2Int(1, 1),
+                new Vector2Int(2, 1),
+                new Vector2Int(1, 2),
+                new Vector2Int(2, 2),
+                new Vector2Int(3, 2)
             };
             var orientations = new[]
             {
@@ -213,14 +213,14 @@ namespace UDND.Tests.Inventories
                 int slotCount = topology.CellCount;
                 for (int anchorIndex = -1; anchorIndex <= slotCount; anchorIndex++)
                 {
-                    foreach (var footprint in footprints)
+                    foreach (var size in sizes)
                     {
                         foreach (var orientation in orientations)
                         {
-                            var expected = LegacyRequireAllCoveredCells(anchorIndex, footprint, orientation, topology, slotCount);
+                            var expected = LegacyRequireAllCoveredCells(anchorIndex, size, orientation, topology, slotCount);
                             var actual = PlacementCellUtility.GetCoveredIndices(
                                 anchorIndex,
-                                new RectPlacementShape(footprint.Width, footprint.Height),
+                                new RectPlacementShape(size.x, size.y),
                                 orientation,
                                 topology,
                                 slotCount,
@@ -247,11 +247,11 @@ namespace UDND.Tests.Inventories
                 new Vector2Int(2, 1),
                 new Vector2Int(3, 1)
             };
-            var footprints = new[]
+            var sizes = new[]
             {
-                new Footprint(1, 1),
-                new Footprint(2, 2),
-                new Footprint(3, 2)
+                new Vector2Int(1, 1),
+                new Vector2Int(2, 2),
+                new Vector2Int(3, 2)
             };
             var orientations = new[]
             {
@@ -263,14 +263,14 @@ namespace UDND.Tests.Inventories
 
             foreach (var anchorCell in anchors)
             {
-                foreach (var footprint in footprints)
+                foreach (var size in sizes)
                 {
                     foreach (var orientation in orientations)
                     {
-                        var expected = LegacyPreviewCoveredCells(anchorCell, footprint, orientation, topology, slotCount);
+                        var expected = LegacyPreviewCoveredCells(anchorCell, size, orientation, topology, slotCount);
                         var actual = PlacementCellUtility.GetCoveredIndices(
                             anchorCell,
-                            new RectPlacementShape(footprint.Width, footprint.Height),
+                            new RectPlacementShape(size.x, size.y),
                             orientation,
                             topology,
                             slotCount,
@@ -283,9 +283,9 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void PlacementShapeUtility_Resolve_PrefersShapeProviderOverFootprintProvider()
+        public void PlacementShapeUtility_Resolve_UsesShapeProvider()
         {
-            var adapter = new ShapeAndFootprintAdapter("hybrid", new RectPlacementShape(3, 1), new Footprint(2, 2));
+            var adapter = new ShapeAdapter("hybrid", 3, 1);
 
             var shape = PlacementShapeUtility.Resolve(adapter);
 
@@ -294,15 +294,14 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void PlacementShapeUtility_Resolve_FallsBackToFootprintProvider()
+        public void PlacementShapeUtility_Resolve_FallsBackToSingleCell()
         {
-            var adapter = new FootprintAdapter("bag", 2, 3);
+            var adapter = new FakeItemAdapter("bag");
 
             var shape = PlacementShapeUtility.Resolve(adapter);
 
             Assert.IsInstanceOf<RectPlacementShape>(shape);
-            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
-            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot90));
+            Assert.AreEqual(Vector2Int.one, PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
         }
 
         [Test]
@@ -340,6 +339,27 @@ namespace UDND.Tests.Inventories
                 CollectionAssert.AreEqual(new[] { 0, 1, 3 }, placement.CoveredIndices);
                 Assert.AreSame(placement, inventory.GetPlacementAt(3));
                 Assert.IsNull(inventory.GetPlacementAt(4));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void CanPlace_WithUnsupportedShapeOrientation_ReturnsFalse()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
+                .Build();
+
+            try
+            {
+                var shape = new SingleOrientationShape(PlacementOrientation.Rot0, Vector2Int.zero, new Vector2Int(1, 0));
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
+
+                Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90, shape)));
             }
             finally
             {
@@ -395,15 +415,14 @@ namespace UDND.Tests.Inventories
                             0,
                             stack.Adapters,
                             PlacementOrientation.Rot0,
-                            Footprint.One,
+                            new Vector2Int(2, 2),
                             new[] { 0, 1, 3 },
                             new[]
                             {
                                 new Vector2Int(0, 0),
                                 new Vector2Int(1, 0),
                                 new Vector2Int(0, 1)
-                            },
-                            new Vector2Int(2, 2))
+                            })
                     });
 
                 Assert.IsTrue(inventory.TryRestoreSnapshot(snapshot, logFailures: false));
@@ -430,7 +449,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
                 var coveredSlot = inventory.GetSlot(4);
@@ -438,7 +457,7 @@ namespace UDND.Tests.Inventories
 
                 Assert.AreSame(placement, entry.SourcePlacement);
                 Assert.AreEqual(new Vector2Int(1, 1), entry.GrabOffset);
-                Assert.AreEqual(new Footprint(2, 2), entry.Footprint);
+                Assert.AreEqual(new Vector2Int(2, 2), entry.BoundingSize);
                 Assert.AreEqual(PlacementOrientation.Rot0, entry.Orientation);
             }
             finally
@@ -457,7 +476,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
                 var entry = new DragEntry(stack.CreateCopy(), inventory.GetSlot(1), inventory, placement);
@@ -482,7 +501,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
                 var entry = new DragEntry(
@@ -515,7 +534,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(4);
@@ -551,7 +570,7 @@ namespace UDND.Tests.Inventories
             try
             {
                 inventory.SetShapedPlacementAnchorStrategy(new SourceGrabOffsetAnchorStrategy());
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = inventory.GetSlot(4);
@@ -577,7 +596,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void DropPreview_WhenFootprintLeavesGrid_ShowsInBoundsCells()
+        public void DropPreview_WhenShapeSizeLeavesGrid_ShowsInBoundsCells()
         {
             var source = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -590,7 +609,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(0);
@@ -616,7 +635,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void DropPreview_WhenFootprintLeavesGridLeft_ShowsInBoundsCells()
+        public void DropPreview_WhenShapeSizeLeavesGridLeft_ShowsInBoundsCells()
         {
             var source = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -629,7 +648,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(1);
@@ -655,7 +674,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void DropPreview_WhenFootprintLeavesGridUp_ShowsInBoundsCells()
+        public void DropPreview_WhenShapeSizeLeavesGridUp_ShowsInBoundsCells()
         {
             var source = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -668,7 +687,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(3);
@@ -709,7 +728,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(0);
@@ -751,7 +770,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(4);
@@ -774,7 +793,7 @@ namespace UDND.Tests.Inventories
                 var allocation = plan.Entries[0].PlacementAllocation.Value;
                 Assert.AreEqual(4, allocation.AnchorIndex);
                 Assert.AreEqual(PlacementOrientation.Rot0, allocation.Orientation);
-                Assert.AreEqual(new Footprint(2, 2), allocation.Footprint);
+                Assert.AreEqual(new Vector2Int(2, 2), allocation.BoundingSize);
                 Assert.AreEqual(1, allocation.Amount);
             }
             finally
@@ -787,10 +806,10 @@ namespace UDND.Tests.Inventories
         [Test]
         public void DragContext_ShapedBatchAndStackedShapedEntries_AreDetected()
         {
-            var shapedStack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+            var shapedStack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
             var stackedShapedStack = ItemStackBuilder.Of(
-                new FootprintAdapter("crate", 2, 1),
-                new FootprintAdapter("crate", 2, 1));
+                new ShapeAdapter("crate", 2, 1),
+                new ShapeAdapter("crate", 2, 1));
 
             var batchContext = new DragContext(new[]
             {
@@ -820,7 +839,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var service = new AutoTransferService();
@@ -849,8 +868,8 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
-                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
+                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
 
                 Assert.AreEqual(1, inventory.GetSlot(0).Stack.Count);
                 Assert.AreEqual(1, inventory.GetSlot(1).Stack.Count);
@@ -873,8 +892,8 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
-                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
+                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
 
                 var sourceSlot = source.GetSlot(0);
                 var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
@@ -910,7 +929,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = source.GetSlot(4);
@@ -952,7 +971,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 InventoryItemEventContext removedContext = null;
@@ -971,7 +990,7 @@ namespace UDND.Tests.Inventories
 
                 Assert.AreEqual(4, summary.DropResult.AnchorIndex);
                 Assert.AreEqual(PlacementOrientation.Rot0, summary.DropResult.Orientation);
-                Assert.AreEqual(new Footprint(2, 2), summary.DropResult.Footprint);
+                Assert.AreEqual(new Vector2Int(2, 2), summary.DropResult.BoundingSize);
                 CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, summary.DropResult.CoveredIndices);
                 CollectionAssert.AreEqual(
                     new[] { 4, 5, 7, 8 },
@@ -986,7 +1005,7 @@ namespace UDND.Tests.Inventories
                 Assert.IsNotNull(removedContext);
                 Assert.AreEqual(0, removedContext.AnchorIndex);
                 Assert.AreEqual(PlacementOrientation.Rot0, removedContext.Orientation);
-                Assert.AreEqual(new Footprint(2, 2), removedContext.Footprint);
+                Assert.AreEqual(new Vector2Int(2, 2), removedContext.BoundingSize);
                 CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, removedContext.CoveredIndices);
                 CollectionAssert.AreEqual(
                     new[] { 0, 1, 3, 4 },
@@ -996,7 +1015,7 @@ namespace UDND.Tests.Inventories
                 Assert.AreEqual(4, addedContext.AnchorIndex);
                 Assert.AreSame(target.GetSlot(4), addedContext.AnchorBaseSlot);
                 Assert.AreEqual(PlacementOrientation.Rot0, addedContext.Orientation);
-                Assert.AreEqual(new Footprint(2, 2), addedContext.Footprint);
+                Assert.AreEqual(new Vector2Int(2, 2), addedContext.BoundingSize);
                 CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, addedContext.CoveredIndices);
                 CollectionAssert.AreEqual(
                     new[] { 4, 5, 7, 8 },
@@ -1019,7 +1038,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0)));
 
                 var dragSlot = inventory.GetSlot(4);
@@ -1053,7 +1072,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90)));
 
                 var dragSlot = inventory.GetSlot(3);
@@ -1089,7 +1108,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("blade", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90)));
 
                 var dragSlot = inventory.GetSlot(3);
@@ -1118,7 +1137,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void CanPlace_RejectsOverlapAndOutOfBoundsFootprints()
+        public void CanPlace_RejectsOverlapAndOutOfBoundsShapeSizes()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -1127,13 +1146,13 @@ namespace UDND.Tests.Inventories
             try
             {
                 EnableGrid(inventory, 3, 2);
-                var shapedStack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var shapedStack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(shapedStack, 0)));
 
                 var overlappingStack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
                 Assert.IsFalse(inventory.CanPlace(new PlacementRequest(overlappingStack, 1)));
 
-                var outOfBoundsStack = ItemStackBuilder.Of(new FootprintAdapter("shield", 2, 2));
+                var outOfBoundsStack = ItemStackBuilder.Of(new ShapeAdapter("shield", 2, 2));
                 Assert.IsFalse(inventory.CanPlace(new PlacementRequest(outOfBoundsStack, 2)));
             }
             finally
@@ -1153,8 +1172,8 @@ namespace UDND.Tests.Inventories
             {
                 EnableGrid(inventory, 3, 2);
                 var stack = ItemStackBuilder.Of(
-                    new FootprintAdapter("bag", 2, 1),
-                    new FootprintAdapter("bag", 2, 1));
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1));
 
                 Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0)));
                 Assert.IsFalse(inventory.TryAddStack(stack));
@@ -1176,7 +1195,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
 
                 Assert.IsFalse(inventory.TryAddStack(stack));
                 Assert.AreEqual(1, stack.Count);
@@ -1197,7 +1216,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
 
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
@@ -1221,7 +1240,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
 
                 Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0)));
                 Assert.IsFalse(inventory.TryPlace(new PlacementRequest(stack, 0)));
@@ -1295,7 +1314,7 @@ namespace UDND.Tests.Inventories
             try
             {
                 EnableGrid(inventory, 3, 2);
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 2));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var originalPlacement));
 
                 var snapshot = inventory.CaptureSnapshot();
@@ -1303,7 +1322,7 @@ namespace UDND.Tests.Inventories
                 Assert.AreEqual(1, snapshot.Placements.Count);
                 Assert.AreEqual(0, snapshot.Placements[0].AnchorIndex);
                 Assert.AreEqual(PlacementOrientation.Rot0, snapshot.Placements[0].Orientation);
-                Assert.AreEqual(new Footprint(2, 2), snapshot.Placements[0].Footprint);
+                Assert.AreEqual(new Vector2Int(2, 2), snapshot.Placements[0].BoundingSize);
                 CollectionAssert.AreEqual(originalPlacement.CoveredIndices, snapshot.Placements[0].CoveredIndices);
 
                 Assert.IsTrue(inventory.RemovePlacementAt(0));
@@ -1329,7 +1348,7 @@ namespace UDND.Tests.Inventories
                     0,
                     adapters,
                     PlacementOrientation.Rot0,
-                    Footprint.One,
+                    Vector2Int.one,
                     new[] { 0 })
             };
 
@@ -1351,7 +1370,7 @@ namespace UDND.Tests.Inventories
             try
             {
                 EnableGrid(inventory, 1, 1);
-                var stack = ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
                 var snapshot = new InventorySnapshot(
                     1,
                     new System.Collections.Generic.List<InventoryPlacementState>
@@ -1360,7 +1379,7 @@ namespace UDND.Tests.Inventories
                             0,
                             stack.Adapters,
                             PlacementOrientation.Rot0,
-                            new Footprint(2, 1),
+                            new Vector2Int(2, 1),
                             new[] { 0, 1 })
                     });
 
@@ -1397,13 +1416,13 @@ namespace UDND.Tests.Inventories
                             0,
                             firstSnapshotStack.Adapters,
                             PlacementOrientation.Rot0,
-                            Footprint.One,
+                            Vector2Int.one,
                             new[] { 0 }),
                         new InventoryPlacementState(
                             0,
                             overlappingSnapshotStack.Adapters,
                             PlacementOrientation.Rot0,
-                            Footprint.One,
+                            Vector2Int.one,
                             new[] { 0 })
                     });
 
@@ -1432,7 +1451,7 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
                 Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
 
                 var sourceSlot = source.GetSlot(0);
@@ -1472,7 +1491,7 @@ namespace UDND.Tests.Inventories
             try
             {
                 Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
-                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FootprintAdapter("bag", 2, 1))));
+                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
 
                 var sourceSlot = source.GetSlot(0);
                 var targetSlot = target.GetSlot(0);
@@ -1500,7 +1519,7 @@ namespace UDND.Tests.Inventories
 
         private static IReadOnlyList<int> LegacyRequireAllCoveredCells(
             int anchorIndex,
-            Footprint footprint,
+            Vector2Int size,
             PlacementOrientation orientation,
             GridTopology topology,
             int slotCount)
@@ -1510,12 +1529,12 @@ namespace UDND.Tests.Inventories
                 return Array.Empty<int>();
 
             var anchorCell = topology.ToCell(anchorIndex);
-            var size = footprint.GetSize(orientation);
-            var result = new List<int>(size.x * size.y);
+            var orientedSize = GetOrientedSize(size, orientation);
+            var result = new List<int>(orientedSize.x * orientedSize.y);
 
-            for (int y = 0; y < size.y; y++)
+            for (int y = 0; y < orientedSize.y; y++)
             {
-                for (int x = 0; x < size.x; x++)
+                for (int x = 0; x < orientedSize.x; x++)
                 {
                     var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
                     if (!topology.Contains(cell))
@@ -1534,18 +1553,18 @@ namespace UDND.Tests.Inventories
 
         private static IReadOnlyList<int> LegacyPreviewCoveredCells(
             Vector2Int anchorCell,
-            Footprint footprint,
+            Vector2Int size,
             PlacementOrientation orientation,
             GridTopology topology,
             int slotCount)
         {
             topology = topology.Normalized();
-            var size = footprint.GetSize(orientation);
-            var result = new List<int>(size.x * size.y);
+            var orientedSize = GetOrientedSize(size, orientation);
+            var result = new List<int>(orientedSize.x * orientedSize.y);
 
-            for (int y = 0; y < size.y; y++)
+            for (int y = 0; y < orientedSize.y; y++)
             {
-                for (int x = 0; x < size.x; x++)
+                for (int x = 0; x < orientedSize.x; x++)
                 {
                     var cell = new Vector2Int(anchorCell.x + x, anchorCell.y + y);
                     if (!topology.Contains(cell))
@@ -1559,6 +1578,11 @@ namespace UDND.Tests.Inventories
 
             return result;
         }
+
+        private static Vector2Int GetOrientedSize(Vector2Int size, PlacementOrientation orientation)
+            => orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
+                ? new Vector2Int(size.y, size.x)
+                : size;
 
         private static PlannedEntryTransfer InvokeTryPlanSwapAgainstTarget(
             TransferPlanner planner,
@@ -1595,36 +1619,19 @@ namespace UDND.Tests.Inventories
             field.SetValue(target, value);
         }
 
-        private sealed class FootprintAdapter : IItemAdapter, IItemFootprintProvider
+        private sealed class ShapeAdapter : IItemAdapter, IItemPlacementShapeProvider
         {
-            public FootprintAdapter(string itemId, int width, int height)
+            public ShapeAdapter(string itemId, int width, int height)
             {
                 ItemId = itemId;
                 DisplayName = itemId;
-                Footprint = new Footprint(width, height);
-            }
-
-            public string ItemId { get; }
-            public string DisplayName { get; }
-            public Sprite Icon => null;
-            public Footprint Footprint { get; }
-        }
-
-        private sealed class ShapeAndFootprintAdapter : IItemAdapter, IItemPlacementShapeProvider, IItemFootprintProvider
-        {
-            public ShapeAndFootprintAdapter(string itemId, IPlacementShape placementShape, Footprint footprint)
-            {
-                ItemId = itemId;
-                DisplayName = itemId;
-                PlacementShape = placementShape;
-                Footprint = footprint;
+                PlacementShape = new RectPlacementShape(width, height);
             }
 
             public string ItemId { get; }
             public string DisplayName { get; }
             public Sprite Icon => null;
             public IPlacementShape PlacementShape { get; }
-            public Footprint Footprint { get; }
         }
 
         private sealed class TestPlacementShape : IPlacementShape
@@ -1638,6 +1645,24 @@ namespace UDND.Tests.Inventories
 
             public IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation) => _offsets;
             public bool SupportsOrientation(PlacementOrientation orientation) => true;
+        }
+
+        private sealed class SingleOrientationShape : IPlacementShape
+        {
+            private readonly IReadOnlyList<Vector2Int> _offsets;
+            private readonly PlacementOrientation _supportedOrientation;
+
+            public SingleOrientationShape(PlacementOrientation supportedOrientation, params Vector2Int[] offsets)
+            {
+                _supportedOrientation = supportedOrientation;
+                _offsets = Array.AsReadOnly(offsets ?? Array.Empty<Vector2Int>());
+            }
+
+            public IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation)
+                => SupportsOrientation(orientation) ? _offsets : Array.Empty<Vector2Int>();
+
+            public bool SupportsOrientation(PlacementOrientation orientation)
+                => orientation == _supportedOrientation;
         }
     }
 }

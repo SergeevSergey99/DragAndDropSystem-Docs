@@ -427,7 +427,11 @@ namespace UDND
             for (int i = 0; i < _currentContext.Entries.Count; i++)
             {
                 var entry = _currentContext.Entries[i];
-                rotatedEntries.Add(entry.WithOrientation(RotateOrientation(entry.Orientation, normalizedTurns)));
+                var orientation = RotateOrientation(entry.Orientation, normalizedTurns);
+                if (entry.Shape != null && !entry.Shape.SupportsOrientation(orientation))
+                    return false;
+
+                rotatedEntries.Add(entry.WithOrientation(orientation));
             }
 
             _currentContext = _currentContext.WithEntries(rotatedEntries);

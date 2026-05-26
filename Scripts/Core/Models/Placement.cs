@@ -4,50 +4,6 @@ using UnityEngine;
 
 namespace UDND.Core
 {
-    public interface IItemFootprintProvider
-    {
-        Footprint Footprint { get; }
-    }
-
-    [Serializable]
-    public struct Footprint : IEquatable<Footprint>
-    {
-        [SerializeField] private int _width;
-        [SerializeField] private int _height;
-
-        public Footprint(int width, int height)
-        {
-            _width = Math.Max(1, width);
-            _height = Math.Max(1, height);
-        }
-
-        public int Width => Math.Max(1, _width);
-        public int Height => Math.Max(1, _height);
-        public bool IsSingleCell => Width == 1 && Height == 1;
-
-        public static Footprint One => new Footprint(1, 1);
-
-        public static Footprint Resolve(IItemAdapter itemAdapter)
-        {
-            if (itemAdapter is IItemFootprintProvider provider)
-                return provider.Footprint.Normalized();
-
-            return One;
-        }
-
-        public Footprint Normalized() => new Footprint(Width, Height);
-
-        public Vector2Int GetSize(PlacementOrientation orientation)
-            => orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
-                ? new Vector2Int(Height, Width)
-                : new Vector2Int(Width, Height);
-
-        public bool Equals(Footprint other) => Width == other.Width && Height == other.Height;
-        public override bool Equals(object obj) => obj is Footprint other && Equals(other);
-        public override int GetHashCode() => (Width * 397) ^ Height;
-        public override string ToString() => $"{Width}x{Height}";
-    }
-
     public enum PlacementOrientation : byte
     {
         Rot0 = 0,
@@ -99,30 +55,13 @@ namespace UDND.Core
             ItemStack stack,
             int anchorIndex,
             PlacementOrientation orientation = PlacementOrientation.Rot0,
-            Footprint? footprint = null)
-            : this(
-                stack,
-                anchorIndex,
-                orientation,
-                footprint.HasValue
-                    ? PlacementShapeUtility.FromFootprint(footprint.Value)
-                    : PlacementShapeUtility.Resolve(stack?.PrimaryAdapter))
-        {
-        }
-
-        public PlacementRequest(
-            ItemStack stack,
-            int anchorIndex,
-            PlacementOrientation orientation,
-            IPlacementShape shape)
+            IPlacementShape shape = null)
         {
             Stack = stack;
             AnchorIndex = anchorIndex;
             Orientation = orientation;
             Shape = shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
-            Footprint = Shape is RectPlacementShape rectShape
-                ? new Footprint(rectShape.Width, rectShape.Height)
-                : UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter);
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, orientation);
         }
 
         public static PlacementRequest For(
@@ -139,7 +78,7 @@ namespace UDND.Core
         public int AnchorIndex { get; }
         public PlacementOrientation Orientation { get; }
         public IPlacementShape Shape { get; }
-        public Footprint Footprint { get; }
+        public Vector2Int BoundingSize { get; }
     }
 
     public sealed class Placement
@@ -151,54 +90,15 @@ namespace UDND.Core
             Vector2Int anchorCell,
             int anchorIndex,
             PlacementOrientation orientation,
-            Footprint footprint,
-            ItemStack stack,
-            IReadOnlyList<int> coveredIndices)
-            : this(
-                anchorCell,
-                anchorIndex,
-                orientation,
-                PlacementShapeUtility.FromFootprint(footprint),
-                footprint,
-                stack,
-                coveredIndices)
-        {
-        }
-
-        public Placement(
-            Vector2Int anchorCell,
-            int anchorIndex,
-            PlacementOrientation orientation,
             IPlacementShape shape,
-            ItemStack stack,
-            IReadOnlyList<int> coveredIndices)
-            : this(
-                anchorCell,
-                anchorIndex,
-                orientation,
-                shape,
-                shape is RectPlacementShape rectShape
-                    ? new Footprint(rectShape.Width, rectShape.Height)
-                    : UDND.Core.Footprint.Resolve(stack?.PrimaryAdapter),
-                stack,
-                coveredIndices)
-        {
-        }
-
-        private Placement(
-            Vector2Int anchorCell,
-            int anchorIndex,
-            PlacementOrientation orientation,
-            IPlacementShape shape,
-            Footprint footprint,
             ItemStack stack,
             IReadOnlyList<int> coveredIndices)
         {
             AnchorCell = anchorCell;
             AnchorIndex = anchorIndex;
             Orientation = orientation;
-            Shape = shape ?? PlacementShapeUtility.FromFootprint(footprint);
-            Footprint = footprint.Normalized();
+            Shape = shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, orientation);
             MutableStack = stack?.CreateCopy() ?? ItemStack.Empty();
             SetCoveredIndices(coveredIndices, anchorIndex);
         }
@@ -207,7 +107,7 @@ namespace UDND.Core
         public int AnchorIndex { get; private set; }
         public PlacementOrientation Orientation { get; }
         public IPlacementShape Shape { get; }
-        public Footprint Footprint { get; }
+        public Vector2Int BoundingSize { get; }
         /// <summary>Read-only view of the inventory-owned stack.</summary>
         public IReadOnlyItemStack Stack => MutableStack;
         internal ItemStack MutableStack { get; }

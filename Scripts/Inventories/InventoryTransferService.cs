@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UDND.Core;
 using UDND.Slots;
 
@@ -93,10 +94,11 @@ namespace UDND.Inventories
         public BaseSlot AnchorSlot => TargetPlacementSnapshot?.AnchorBaseSlot ?? TargetBaseSlot;
         public IReadOnlyList<BaseSlot> CoveredSlots => TargetPlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
         public IReadOnlyList<int> CoveredIndices => TargetPlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
+        public IReadOnlyList<Vector2Int> CoveredOffsets => TargetPlacementSnapshot?.CoveredOffsets ?? Array.Empty<Vector2Int>();
         public int AnchorIndex => TargetPlacementSnapshot != null && TargetPlacementSnapshot.AnchorIndex >= 0
             ? TargetPlacementSnapshot.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
         public PlacementOrientation Orientation => TargetPlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
-        public Footprint Footprint => TargetPlacementSnapshot?.Footprint ?? Footprint.One;
+        public Vector2Int BoundingSize => TargetPlacementSnapshot?.BoundingSize ?? Vector2Int.one;
     }
 }
