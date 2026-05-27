@@ -118,6 +118,9 @@ namespace UDND.Inventories
             if (!Topology.IsValidIndex(anchorIndex))
                 return EmptyIndices;
 
+            if (IsRejectedShapedSlotPlacement(shape, orientation))
+                return EmptyIndices;
+
             if (ShouldCollapseToAnchor(shape, orientation))
                 return new[] { anchorIndex };
 
@@ -135,6 +138,9 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             PlacementBoundsMode boundsMode)
         {
+            if (IsRejectedShapedSlotPlacement(shape, orientation))
+                return EmptyIndices;
+
             if (ShouldCollapseToAnchor(shape, orientation))
             {
                 return Topology.TryToIndex(anchorCell, out int anchorIndex)

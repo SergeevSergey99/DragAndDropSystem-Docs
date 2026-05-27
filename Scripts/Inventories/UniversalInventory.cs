@@ -923,6 +923,15 @@ namespace UDND.Inventories
             return new PlacementStoreSettings(topology, _slotShapedItemPolicy);
         }
 
+        private PlacementStoreSettings CreatePlacementStoreSettings(GridTopology normalizedGrid, int slotCount)
+        {
+            slotCount = Mathf.Max(0, slotCount);
+            IInventoryTopology topology = _useGridTopology
+                ? (IInventoryTopology)new SlotCountLimitedTopology(new RectGridTopology(normalizedGrid), slotCount)
+                : new SlotTopology(slotCount);
+            return new PlacementStoreSettings(topology, _slotShapedItemPolicy);
+        }
+
         private void ResetPlacementState()
         {
             EnsurePlacementStore().Reset();
@@ -1185,7 +1194,8 @@ namespace UDND.Inventories
             if (snapshot?.Placements == null)
                 return true;
 
-            var occupiedCells = new HashSet<int>();
+            var snapshotStore = new PlacementStore(
+                CreatePlacementStoreSettings(_gridTopology.Normalized(), desiredSlotCount));
             for (int i = 0; i < snapshot.Placements.Count; i++)
             {
                 var placementState = snapshot.Placements[i];
@@ -1210,7 +1220,7 @@ namespace UDND.Inventories
                     placementState.Orientation,
                     shape);
 
-                if (!CanPlaceSnapshotRequest(request, desiredSlotCount, occupiedCells))
+                if (!snapshotStore.TryPlace(request, out _))
                 {
                     if (logFailures)
                         LogSnapshotRestoreFailure(placementState);
@@ -1222,55 +1232,6 @@ namespace UDND.Inventories
             }
 
             return true;
-        }
-
-        private bool CanPlaceSnapshotRequest(
-            PlacementRequest request,
-            int desiredSlotCount,
-            HashSet<int> occupiedCells)
-        {
-            if (request.Stack == null || request.Stack.IsEmpty)
-                return false;
-
-            if (!_useGridTopology &&
-                _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-                !PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation))
-                return false;
-
-            if (!PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation) && request.Stack.Count > 1)
-                return false;
-
-            var coveredIndices = BuildSnapshotCoveredCells(
-                request.AnchorIndex,
-                request.Shape,
-                request.Orientation,
-                desiredSlotCount);
-
-            if (coveredIndices == null || coveredIndices.Count == 0)
-                return false;
-
-            for (int i = 0; i < coveredIndices.Count; i++)
-            {
-                if (!occupiedCells.Add(coveredIndices[i]))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private IReadOnlyList<int> BuildSnapshotCoveredCells(
-            int anchorIndex,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            int desiredSlotCount)
-        {
-            return PlacementCellUtility.GetCoveredIndices(
-                anchorIndex,
-                shape,
-                orientation,
-                _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
-                desiredSlotCount,
-                PlacementBoundsMode.RequireAllInBounds);
         }
 
         private void LogSnapshotRestoreFailure(InventoryPlacementState placementState)

@@ -404,6 +404,62 @@ namespace UDND.Tests.Inventories
 
             Assert.IsFalse(store.CanPlace(new PlacementRequest(stack, 1)));
             Assert.IsFalse(store.TryPlace(new PlacementRequest(stack, 1), out _));
+            Assert.IsEmpty(store.GetCoveredIndices(
+                1,
+                PlacementShapeUtility.Resolve(stack.PrimaryAdapter),
+                PlacementOrientation.Rot0,
+                PlacementBoundsMode.RequireAllInBounds));
+        }
+
+        [Test]
+        public void PlacementStore_RectGrid_RejectsOutOfBoundsAndUnsupportedOrientation()
+        {
+            var store = new PlacementStore(new PlacementStoreSettings(new RectGridTopology(2, 2)));
+            var outOfBoundsStack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+            var unsupportedShape = new SingleOrientationShape(PlacementOrientation.Rot0, Vector2Int.zero);
+            var unsupportedStack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
+
+            Assert.IsFalse(store.TryPlace(new PlacementRequest(outOfBoundsStack, 3), out _));
+            Assert.IsFalse(store.TryPlace(
+                new PlacementRequest(
+                    unsupportedStack,
+                    0,
+                    PlacementOrientation.Rot90,
+                    unsupportedShape),
+                out _));
+        }
+
+        [Test]
+        public void PlacementStore_Remove_UnregistersAllCoveredCells()
+        {
+            var store = new PlacementStore(new PlacementStoreSettings(new RectGridTopology(3, 2)));
+            var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+            Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 0), out var placement));
+
+            Assert.IsTrue(store.Remove(placement));
+
+            Assert.IsNull(store.GetAt(0));
+            Assert.IsNull(store.GetAt(1));
+            Assert.IsNull(store.GetAt(3));
+            Assert.IsNull(store.GetAt(4));
+        }
+
+        [Test]
+        public void PlacementStore_ShiftAfterSlotRemoved_RecreatesPlacements()
+        {
+            var store = new PlacementStore(new PlacementStoreSettings(new SlotTopology(3)));
+            var stack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
+            Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 2), out var originalPlacement));
+
+            store.ShiftAfterSlotRemoved(0);
+
+            Assert.AreEqual(2, originalPlacement.AnchorIndex);
+            Assert.IsNull(store.GetAt(2));
+            var shiftedPlacement = store.GetAt(1);
+            Assert.IsNotNull(shiftedPlacement);
+            Assert.AreNotSame(originalPlacement, shiftedPlacement);
+            Assert.AreEqual(1, shiftedPlacement.AnchorIndex);
+            Assert.AreSame(originalPlacement.Stack.PrimaryAdapter, shiftedPlacement.Stack.PrimaryAdapter);
         }
 
         [Test]
