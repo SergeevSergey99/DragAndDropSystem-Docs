@@ -893,6 +893,49 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void DropPreview_WithNonRectShape_UsesPlacementStoreOffsets()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var shape = new TestPlacementShape(
+                    new Vector2Int(0, 0),
+                    new Vector2Int(1, 0),
+                    new Vector2Int(0, 1));
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("tool", shape));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                Assert.IsTrue(target.TryGetDropPreviewSlots(
+                    target.GetSlot(1),
+                    context,
+                    out var previewSlots,
+                    out bool canPlace));
+
+                Assert.IsTrue(canPlace);
+                CollectionAssert.AreEqual(
+                    new[] { 1, 2, 4 },
+                    previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedGridToGrid_UsesDragEntryOrientation()
         {
             var source = new InventoryBuilder()
@@ -1802,10 +1845,15 @@ namespace UDND.Tests.Inventories
         private sealed class ShapeAdapter : IItemAdapter, IItemPlacementShapeProvider
         {
             public ShapeAdapter(string itemId, int width, int height)
+                : this(itemId, new RectPlacementShape(width, height))
+            {
+            }
+
+            public ShapeAdapter(string itemId, IPlacementShape placementShape)
             {
                 ItemId = itemId;
                 DisplayName = itemId;
-                PlacementShape = new RectPlacementShape(width, height);
+                PlacementShape = placementShape;
             }
 
             public string ItemId { get; }
