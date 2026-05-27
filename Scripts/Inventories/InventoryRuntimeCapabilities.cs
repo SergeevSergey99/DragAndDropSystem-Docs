@@ -4,9 +4,16 @@ using UDND.Slots;
 
 namespace UDND.Inventories
 {
-    public interface IInventoryRuleProvider
+    public interface IInventoryRuleEvaluator
     {
         InventoryRuleValidator RuleValidator { get; }
+
+        bool CanAcceptByRules(
+            BaseSlot baseSlot,
+            IItemAdapter itemAdapter,
+            int previewCount,
+            InventoryAcceptanceRequest request = null,
+            bool allowForeignSlot = false);
     }
 
     public interface IDragAmountStepProvider
@@ -18,16 +25,6 @@ namespace UDND.Inventories
     {
         bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot);
         bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot);
-    }
-
-    public interface IInventoryAcceptanceRuleEvaluator
-    {
-        bool CanAcceptByRules(
-            BaseSlot baseSlot,
-            IItemAdapter itemAdapter,
-            int previewCount,
-            InventoryAcceptanceRequest request = null,
-            bool allowForeignSlot = false);
     }
 
     public interface IDynamicSlotLifecycle

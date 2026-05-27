@@ -173,9 +173,9 @@ namespace UDND
                     return false;
                 }
 
-                if (entry.SourceInventory is IInventoryRuleProvider ruleProvider)
+                if (entry.SourceInventory is IInventoryRuleEvaluator ruleEvaluator)
                 {
-                    var inventoryResult = ruleProvider.RuleValidator.ValidateStartDrag(_currentContext, entry);
+                    var inventoryResult = ruleEvaluator.RuleValidator.ValidateStartDrag(_currentContext, entry);
                     if (!inventoryResult.IsValid)
                     {
                         Extensions.DragAndDropLog($"Cannot start batch drag: {inventoryResult.FailureReason}");

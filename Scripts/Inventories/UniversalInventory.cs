@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore, IInventoryRuleProvider, IDragAmountStepProvider, IOccupiedSlotDropHandler, IInventoryAcceptanceRuleEvaluator, IDynamicSlotLifecycle, IInventoryEventSink
+    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]

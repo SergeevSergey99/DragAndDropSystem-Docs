@@ -266,7 +266,7 @@ namespace UDND.Inventories
             if (baseSlot == null || itemAdapter == null || previewCount <= 0)
                 return false;
 
-            if (baseSlot.Inventory is IInventoryAcceptanceRuleEvaluator ruleEvaluator)
+            if (baseSlot.Inventory is IInventoryRuleEvaluator ruleEvaluator)
                 return ruleEvaluator.CanAcceptByRules(baseSlot, itemAdapter, previewCount, request);
 
             return true;
@@ -299,12 +299,12 @@ namespace UDND.Inventories
             if (itemAdapter == null || previewCount <= 0)
                 return false;
 
-            IInventoryAcceptanceRuleEvaluator ruleEvaluator = request?.TargetInventory as IInventoryAcceptanceRuleEvaluator;
+            IInventoryRuleEvaluator ruleEvaluator = request?.TargetInventory as IInventoryRuleEvaluator;
             if (ruleEvaluator == null)
             {
                 foreach (var slot in slots)
                 {
-                    ruleEvaluator = slot?.Inventory as IInventoryAcceptanceRuleEvaluator;
+                    ruleEvaluator = slot?.Inventory as IInventoryRuleEvaluator;
                     if (ruleEvaluator != null)
                         break;
                 }

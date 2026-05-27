@@ -27,9 +27,9 @@ namespace UDND.Rules
                     return globalStartResult;
             }
 
-            if (entry.SourceInventory is IInventoryRuleProvider sourceRuleProvider)
+            if (entry.SourceInventory is IInventoryRuleEvaluator sourceRuleEvaluator)
             {
-                var sourceResult = sourceRuleProvider.RuleValidator.ValidateStartDrag(context, entry);
+                var sourceResult = sourceRuleEvaluator.RuleValidator.ValidateStartDrag(context, entry);
                 if (!sourceResult.IsValid)
                     return sourceResult;
             }
@@ -63,9 +63,9 @@ namespace UDND.Rules
                     return globalDropResult;
             }
 
-            if (context.TargetInventory is IInventoryRuleProvider targetRuleProvider)
+            if (context.TargetInventory is IInventoryRuleEvaluator targetRuleEvaluator)
             {
-                var inventoryDropResult = targetRuleProvider.RuleValidator.ValidateDrop(context, entry);
+                var inventoryDropResult = targetRuleEvaluator.RuleValidator.ValidateDrop(context, entry);
                 if (!inventoryDropResult.IsValid)
                     return inventoryDropResult;
             }
