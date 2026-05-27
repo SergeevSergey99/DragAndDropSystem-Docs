@@ -26,11 +26,9 @@ namespace UDND.Core
                 return EmptyIndices;
 
             if (!grid.HasValue)
-                return anchorIndex < slotCount
-                    ? new[] { anchorIndex }
-                    : EmptyIndices;
+                return GetCollapsedAnchorIndex(anchorIndex, slotCount);
 
-            var topology = grid.Value.Normalized();
+            var topology = new RectGridTopology(grid.Value);
             if (!topology.IsValidIndex(anchorIndex))
                 return EmptyIndices;
 
@@ -57,17 +55,51 @@ namespace UDND.Core
             if (!grid.HasValue)
             {
                 int anchorIndex = anchorCell.y == 0 ? anchorCell.x : -1;
-                return anchorIndex >= 0 && anchorIndex < slotCount
-                    ? new[] { anchorIndex }
-                    : EmptyIndices;
+                return GetCollapsedAnchorIndex(anchorIndex, slotCount);
             }
 
             return GetCoveredIndices(
                 anchorCell,
                 shape,
                 orientation,
-                grid.Value.Normalized(),
+                new RectGridTopology(grid.Value),
                 slotCount,
+                boundsMode);
+        }
+
+        public static IReadOnlyList<int> GetCoveredIndices(
+            int anchorIndex,
+            IPlacementShape shape,
+            PlacementOrientation orientation,
+            IInventoryTopology topology,
+            PlacementBoundsMode boundsMode)
+        {
+            if (topology == null || !topology.IsValidIndex(anchorIndex))
+                return EmptyIndices;
+
+            return GetCoveredIndices(
+                topology.ToCell(anchorIndex),
+                shape,
+                orientation,
+                topology,
+                boundsMode);
+        }
+
+        public static IReadOnlyList<int> GetCoveredIndices(
+            Vector2Int anchorCell,
+            IPlacementShape shape,
+            PlacementOrientation orientation,
+            IInventoryTopology topology,
+            PlacementBoundsMode boundsMode)
+        {
+            if (topology == null || topology.CellCount <= 0)
+                return EmptyIndices;
+
+            return GetCoveredIndicesCore(
+                anchorCell,
+                shape,
+                orientation,
+                topology,
                 boundsMode);
         }
 
@@ -75,8 +107,26 @@ namespace UDND.Core
             Vector2Int anchorCell,
             IPlacementShape shape,
             PlacementOrientation orientation,
-            GridTopology topology,
+            IInventoryTopology topology,
             int slotCount,
+            PlacementBoundsMode boundsMode)
+        {
+            if (topology == null || slotCount <= 0)
+                return EmptyIndices;
+
+            return GetCoveredIndicesCore(
+                anchorCell,
+                shape,
+                orientation,
+                new SlotCountLimitedTopology(topology, slotCount),
+                boundsMode);
+        }
+
+        private static IReadOnlyList<int> GetCoveredIndicesCore(
+            Vector2Int anchorCell,
+            IPlacementShape shape,
+            PlacementOrientation orientation,
+            IInventoryTopology topology,
             PlacementBoundsMode boundsMode)
         {
             if (shape == null)
@@ -93,16 +143,7 @@ namespace UDND.Core
             for (int i = 0; i < offsets.Count; i++)
             {
                 var cell = anchorCell + offsets[i];
-                if (!topology.Contains(cell))
-                {
-                    if (boundsMode == PlacementBoundsMode.RequireAllInBounds)
-                        return EmptyIndices;
-
-                    continue;
-                }
-
-                int index = topology.ToIndex(cell);
-                if (index < 0 || index >= slotCount)
+                if (!topology.TryToIndex(cell, out int index))
                 {
                     if (boundsMode == PlacementBoundsMode.RequireAllInBounds)
                         return EmptyIndices;
@@ -114,6 +155,47 @@ namespace UDND.Core
             }
 
             return result.Count > 0 ? result : EmptyIndices;
+        }
+
+        private static IReadOnlyList<int> GetCollapsedAnchorIndex(int anchorIndex, int slotCount)
+        {
+            return anchorIndex >= 0 && anchorIndex < slotCount
+                ? new[] { anchorIndex }
+                : EmptyIndices;
+        }
+
+        private sealed class SlotCountLimitedTopology : IInventoryTopology
+        {
+            private readonly IInventoryTopology _inner;
+            private readonly int _slotCount;
+
+            public SlotCountLimitedTopology(IInventoryTopology inner, int slotCount)
+            {
+                _inner = inner;
+                _slotCount = Math.Max(0, slotCount);
+            }
+
+            public int CellCount => Math.Min(_inner.CellCount, _slotCount);
+
+            public bool Contains(Vector2Int cell)
+                => TryToIndex(cell, out _);
+
+            public bool TryToIndex(Vector2Int cell, out int index)
+            {
+                if (!_inner.TryToIndex(cell, out index) || index < 0 || index >= _slotCount)
+                {
+                    index = -1;
+                    return false;
+                }
+
+                return true;
+            }
+
+            public Vector2Int ToCell(int index)
+                => _inner.ToCell(index);
+
+            public bool IsValidIndex(int index)
+                => index >= 0 && index < _slotCount && _inner.IsValidIndex(index);
         }
     }
 }

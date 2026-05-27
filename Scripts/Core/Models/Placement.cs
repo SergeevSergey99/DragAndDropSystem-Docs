@@ -43,6 +43,18 @@ namespace UDND.Core
         public bool Contains(Vector2Int cell)
             => cell.x >= 0 && cell.y >= 0 && cell.x < Columns && cell.y < Rows;
 
+        public bool TryToIndex(Vector2Int cell, out int index)
+        {
+            if (!Contains(cell))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = ToIndex(cell);
+            return true;
+        }
+
         public bool Equals(GridTopology other) => Columns == other.Columns && Rows == other.Rows;
         public override bool Equals(object obj) => obj is GridTopology other && Equals(other);
         public override int GetHashCode() => (Columns * 397) ^ Rows;

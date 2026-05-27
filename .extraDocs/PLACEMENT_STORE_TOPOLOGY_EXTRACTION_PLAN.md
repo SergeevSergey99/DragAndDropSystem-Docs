@@ -352,7 +352,8 @@ UniversalInventory integration tests:
 Future topology tests:
 
 - `RectGridTopology` parity with existing `GridTopology`;
-- `SlotTopology` collapses shapes to anchor;
+- `SlotTopology` one-dimensional index/cell conversion;
+- `PlacementStore` slot policy collapses shapes to anchor;
 - `HexTopology` coordinate/index round-trip.
 
 ## Risk Controls

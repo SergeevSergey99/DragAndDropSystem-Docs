@@ -315,6 +315,98 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void RectGridTopology_TryToIndex_MatchesGridTopology()
+        {
+            var grid = new GridTopology(3, 2);
+            IInventoryTopology topology = new RectGridTopology(grid);
+
+            for (int index = 0; index < grid.CellCount; index++)
+            {
+                var cell = grid.ToCell(index);
+
+                Assert.IsTrue(topology.TryToIndex(cell, out int resolvedIndex));
+                Assert.AreEqual(index, resolvedIndex);
+                Assert.AreEqual(cell, topology.ToCell(index));
+            }
+
+            Assert.IsFalse(topology.TryToIndex(new Vector2Int(-1, 0), out _));
+            Assert.IsFalse(topology.TryToIndex(new Vector2Int(3, 0), out _));
+            Assert.IsFalse(topology.TryToIndex(new Vector2Int(0, 2), out _));
+        }
+
+        [Test]
+        public void SlotTopology_TryToIndex_UsesOneDimensionalCells()
+        {
+            IInventoryTopology topology = new SlotTopology(3);
+
+            Assert.IsTrue(topology.TryToIndex(new Vector2Int(0, 0), out int firstIndex));
+            Assert.AreEqual(0, firstIndex);
+            Assert.IsTrue(topology.TryToIndex(new Vector2Int(2, 0), out int lastIndex));
+            Assert.AreEqual(2, lastIndex);
+            Assert.IsFalse(topology.TryToIndex(new Vector2Int(3, 0), out _));
+            Assert.IsFalse(topology.TryToIndex(new Vector2Int(0, 1), out _));
+        }
+
+        [Test]
+        public void PlacementCellUtility_WithTopology_UsesTopologyBounds()
+        {
+            IInventoryTopology topology = new RectGridTopology(3, 2);
+            var shape = new TestPlacementShape(
+                new Vector2Int(0, 0),
+                new Vector2Int(1, 0),
+                new Vector2Int(0, 1));
+
+            var covered = PlacementCellUtility.GetCoveredIndices(
+                0,
+                shape,
+                PlacementOrientation.Rot0,
+                topology,
+                PlacementBoundsMode.RequireAllInBounds);
+
+            CollectionAssert.AreEqual(new[] { 0, 1, 3 }, covered);
+        }
+
+        [Test]
+        public void PlacementStore_RectGrid_RegistersAllCoveredCells()
+        {
+            var store = new PlacementStore(new PlacementStoreSettings(new RectGridTopology(3, 2)));
+            var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+
+            Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 0), out var placement));
+
+            CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, placement.CoveredIndices);
+            Assert.AreSame(placement, store.GetAt(4));
+            Assert.IsFalse(store.CanPlace(new PlacementRequest(ItemStackBuilder.Of(new FakeItemAdapter("gem")), 4)));
+        }
+
+        [Test]
+        public void PlacementStore_SlotTopology_CollapsesShapedPlacementToAnchor()
+        {
+            var store = new PlacementStore(new PlacementStoreSettings(
+                new SlotTopology(4),
+                SlotShapedItemPolicy.Accept));
+            var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+
+            Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 1), out var placement));
+
+            CollectionAssert.AreEqual(new[] { 1 }, placement.CoveredIndices);
+            Assert.AreSame(placement, store.GetAt(1));
+            Assert.IsNull(store.GetAt(2));
+        }
+
+        [Test]
+        public void PlacementStore_SlotTopology_RejectsShapedPlacementWhenPolicyRejects()
+        {
+            var store = new PlacementStore(new PlacementStoreSettings(
+                new SlotTopology(4),
+                SlotShapedItemPolicy.Reject));
+            var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+
+            Assert.IsFalse(store.CanPlace(new PlacementRequest(stack, 1)));
+            Assert.IsFalse(store.TryPlace(new PlacementRequest(stack, 1), out _));
+        }
+
+        [Test]
         public void PlacementShapeUtility_Resolve_UsesShapeProvider()
         {
             var adapter = new ShapeAdapter("hybrid", 3, 1);
