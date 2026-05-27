@@ -25,7 +25,7 @@ namespace UDND.Inventories
 
         private readonly Dictionary<int, Placement> _cellToPlacement = new Dictionary<int, Placement>();
         private readonly HashSet<Placement> _placements = new HashSet<Placement>();
-        private PlacementStoreSettings _settings;
+        private readonly PlacementStoreSettings _settings;
 
         public PlacementStore(PlacementStoreSettings settings)
         {
@@ -135,11 +135,12 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             PlacementBoundsMode boundsMode)
         {
-            if (!Topology.TryToIndex(anchorCell, out int anchorIndex))
-                return EmptyIndices;
-
             if (ShouldCollapseToAnchor(shape, orientation))
-                return new[] { anchorIndex };
+            {
+                return Topology.TryToIndex(anchorCell, out int anchorIndex)
+                    ? new[] { anchorIndex }
+                    : EmptyIndices;
+            }
 
             return PlacementCellUtility.GetCoveredIndices(
                 anchorCell,

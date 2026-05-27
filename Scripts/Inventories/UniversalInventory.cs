@@ -78,21 +78,15 @@ namespace UDND.Inventories
         private BaseSlot _lastInteractedBaseSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
         
-        private readonly Dictionary<int, Placement> _cellToPlacement = new Dictionary<int, Placement>();
-        private readonly HashSet<Placement> _placements = new HashSet<Placement>();
+        private PlacementStore _placementStore;
+        private bool _placementStoreUsesGrid;
+        private GridTopology _placementStoreGridTopology;
+        private SlotShapedItemPolicy _placementStoreSlotPolicy;
         private readonly List<BaseSlot> _dropPreviewSlots = new List<BaseSlot>();
-        private bool _placementStateInitialized;
 
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
-        public IReadOnlyCollection<Placement> Placements
-        {
-            get
-            {
-                EnsurePlacementStateInitialized();
-                return _placements;
-            }
-        }
+        public IReadOnlyCollection<Placement> Placements => EnsurePlacementStore().Placements;
 
         public GridTopology? Grid => _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null;
         public SlotShapedItemPolicy ShapedItemPolicy => _slotShapedItemPolicy;
@@ -237,8 +231,7 @@ namespace UDND.Inventories
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return null;
 
-            EnsurePlacementStateInitialized();
-            var placement = GetPlacementAtInitialized(baseSlot.Index);
+            var placement = EnsurePlacementStore().GetAt(baseSlot.Index);
             if (placement != null)
                 return PlacementSnapshot.FromPlacement(placement, GetSlot);
 
@@ -444,7 +437,7 @@ namespace UDND.Inventories
             if (_slots.Count == 0)
                 InitializeSlots();
 
-            EnsurePlacementStateInitialized();
+            EnsurePlacementStore();
             InitializeStrategy();
 
             if (Application.isPlaying && DataBinding != null)
@@ -468,7 +461,7 @@ namespace UDND.Inventories
 
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy not initialized, initializing now...</color>");
             InitializeSlots();
-            EnsurePlacementStateInitialized();
+            EnsurePlacementStore();
             InitializeStrategy();
             EnsureFreeSlots();
             UpdateAllVisuals();
@@ -522,8 +515,7 @@ namespace UDND.Inventories
 
         public Placement GetPlacementAt(int cellIndex)
         {
-            EnsurePlacementStateInitialized();
-            return GetPlacementAtInitialized(cellIndex);
+            return EnsurePlacementStore().GetAt(cellIndex);
         }
 
         public IReadOnlyList<int> GetCoveredCells(
@@ -531,7 +523,6 @@ namespace UDND.Inventories
             IPlacementShape shape,
             PlacementOrientation orientation = PlacementOrientation.Rot0)
         {
-            EnsurePlacementStateInitialized();
             return BuildCoveredCells(anchorIndex, shape, orientation);
         }
 
@@ -544,22 +535,7 @@ namespace UDND.Inventories
         public bool TryGetIndexForCell(Vector2Int cell, out int index)
         {
             EnsurePlacementSettings();
-
-            if (_useGridTopology)
-            {
-                var topology = _gridTopology.Normalized();
-                if (!topology.Contains(cell))
-                {
-                    index = -1;
-                    return false;
-                }
-
-                index = topology.ToIndex(cell);
-                return index >= 0 && index < _slots.Count;
-            }
-
-            index = cell.y == 0 ? cell.x : -1;
-            return index >= 0 && index < _slots.Count;
+            return EnsurePlacementStore().Topology.TryToIndex(cell, out index);
         }
 
         public Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot)
@@ -622,14 +598,12 @@ namespace UDND.Inventories
 
         public bool CanPlace(PlacementRequest request)
         {
-            EnsurePlacementStateInitialized();
-            return CanPlaceInitialized(request);
+            return EnsurePlacementStore().CanPlace(request);
         }
 
         public bool CanPlace(PlacementRequest request, Placement ignoredPlacement)
         {
-            EnsurePlacementStateInitialized();
-            return CanPlaceInitialized(request, ignoredPlacement);
+            return EnsurePlacementStore().CanPlace(request, ignoredPlacement);
         }
 
         public bool TryGetDropPreviewSlots(
@@ -750,8 +724,7 @@ namespace UDND.Inventories
 
         public bool TryPlace(PlacementRequest request, out Placement placement)
         {
-            EnsurePlacementStateInitialized();
-            return TryPlaceInitialized(request, out placement);
+            return EnsurePlacementStore().TryPlace(request, out placement);
         }
 
         public bool RemovePlacement(Placement placement)
@@ -759,8 +732,7 @@ namespace UDND.Inventories
             if (placement == null)
                 return false;
 
-            EnsurePlacementStateInitialized();
-            return UnregisterPlacement(placement);
+            return EnsurePlacementStore().Remove(placement);
         }
 
         public bool RemovePlacementAt(BaseSlot baseSlot)
@@ -773,9 +745,7 @@ namespace UDND.Inventories
 
         public bool RemovePlacementAt(int cellIndex)
         {
-            EnsurePlacementStateInitialized();
-            var placement = GetPlacementAtInitialized(cellIndex);
-            return placement != null && UnregisterPlacement(placement);
+            return EnsurePlacementStore().RemoveAt(cellIndex);
         }
 
         public bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack)
@@ -784,8 +754,7 @@ namespace UDND.Inventories
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
 
-            EnsurePlacementStateInitialized();
-            stack = GetPlacementAtInitialized(baseSlot.Index)?.Stack ?? ItemStack.Empty();
+            stack = EnsurePlacementStore().GetAt(baseSlot.Index)?.Stack ?? ItemStack.Empty();
             return true;
         }
 
@@ -795,8 +764,7 @@ namespace UDND.Inventories
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
 
-            EnsurePlacementStateInitialized();
-            stack = GetPlacementAtInitialized(baseSlot.Index)?.MutableStack ?? ItemStack.Empty();
+            stack = EnsurePlacementStore().GetAt(baseSlot.Index)?.MutableStack ?? ItemStack.Empty();
             return true;
         }
 
@@ -805,14 +773,13 @@ namespace UDND.Inventories
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
 
-            EnsurePlacementStateInitialized();
-
-            var existingPlacement = GetPlacementAtInitialized(baseSlot.Index);
+            var placementStore = EnsurePlacementStore();
+            var existingPlacement = placementStore.GetAt(baseSlot.Index);
 
             if (stack == null || stack.IsEmpty)
             {
                 if (existingPlacement != null)
-                    UnregisterPlacement(existingPlacement);
+                    placementStore.Remove(existingPlacement);
 
                 return true;
             }
@@ -826,13 +793,23 @@ namespace UDND.Inventories
                 PlacementOrientation.Rot0,
                 PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
-            if (existingPlacement != null)
-                UnregisterPlacement(existingPlacement);
+            if (existingPlacement != null && !placementStore.CanPlace(request, existingPlacement))
+                return false;
 
-            if (!TryPlaceInitialized(request, out _))
+            if (existingPlacement != null)
+                placementStore.Remove(existingPlacement);
+
+            if (!placementStore.TryPlace(request, out _))
             {
                 if (existingPlacement != null)
-                    RegisterPlacement(existingPlacement);
+                {
+                    var rollbackRequest = new PlacementRequest(
+                        existingPlacement.MutableStack,
+                        existingPlacement.AnchorIndex,
+                        existingPlacement.Orientation,
+                        existingPlacement.Shape);
+                    placementStore.TryPlace(rollbackRequest, out _);
+                }
 
                 return false;
             }
@@ -898,116 +875,62 @@ namespace UDND.Inventories
             return true;
         }
 
-        private void EnsurePlacementStateInitialized()
+        private PlacementStore EnsurePlacementStore()
         {
-            if (_placementStateInitialized)
-                return;
+            var normalizedGrid = _gridTopology.Normalized();
+            bool settingsChanged =
+                _placementStore == null ||
+                _placementStoreUsesGrid != _useGridTopology ||
+                !_placementStoreGridTopology.Equals(normalizedGrid) ||
+                _placementStoreSlotPolicy != _slotShapedItemPolicy;
 
-            _cellToPlacement.Clear();
-            _placementStateInitialized = true;
+            if (!settingsChanged)
+                return _placementStore;
+
+            var previousPlacements = _placementStore?.Placements != null
+                ? _placementStore.Placements.ToList()
+                : null;
+            _placementStore = new PlacementStore(CreatePlacementStoreSettings(normalizedGrid));
+            _placementStoreUsesGrid = _useGridTopology;
+            _placementStoreGridTopology = normalizedGrid;
+            _placementStoreSlotPolicy = _slotShapedItemPolicy;
+
+            if (previousPlacements != null)
+            {
+                for (int i = 0; i < previousPlacements.Count; i++)
+                {
+                    var placement = previousPlacements[i];
+                    if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
+                        continue;
+
+                    var request = new PlacementRequest(
+                        placement.MutableStack,
+                        placement.AnchorIndex,
+                        placement.Orientation,
+                        placement.Shape);
+                    _placementStore.TryPlace(request, out _);
+                }
+            }
+
+            return _placementStore;
+        }
+
+        private PlacementStoreSettings CreatePlacementStoreSettings(GridTopology normalizedGrid)
+        {
+            IInventoryTopology topology = _useGridTopology
+                ? (IInventoryTopology)new SlotCountLimitedTopology(new RectGridTopology(normalizedGrid), () => _slots?.Count ?? 0)
+                : new SlotTopology(() => _slots?.Count ?? 0);
+            return new PlacementStoreSettings(topology, _slotShapedItemPolicy);
         }
 
         private void ResetPlacementState()
         {
-            _cellToPlacement.Clear();
-            _placements.Clear();
-            _placementStateInitialized = false;
+            EnsurePlacementStore().Reset();
         }
 
         private void ClearInitializedPlacementState()
         {
-            _cellToPlacement.Clear();
-            _placements.Clear();
-            _placementStateInitialized = true;
-        }
-
-        private bool CanPlaceInitialized(PlacementRequest request, Placement ignoredPlacement = null)
-        {
-            if (request.Stack == null || request.Stack.IsEmpty)
-                return false;
-
-            if (!_useGridTopology &&
-                _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-                !PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation))
-                return false;
-
-            if (!PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation) && request.Stack.Count > 1)
-                return false;
-
-            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Shape, request.Orientation);
-            if (coveredIndices == null || coveredIndices.Count == 0)
-                return false;
-
-            for (int i = 0; i < coveredIndices.Count; i++)
-            {
-                if (_cellToPlacement.TryGetValue(coveredIndices[i], out var existing) &&
-                    !ReferenceEquals(existing, ignoredPlacement))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private bool TryPlaceInitialized(PlacementRequest request, out Placement placement)
-        {
-            placement = null;
-            if (!CanPlaceInitialized(request))
-                return false;
-
-            var coveredIndices = BuildCoveredCells(request.AnchorIndex, request.Shape, request.Orientation);
-            var anchorCell = IndexToCell(request.AnchorIndex);
-            placement = new Placement(
-                anchorCell,
-                request.AnchorIndex,
-                request.Orientation,
-                request.Shape,
-                request.Stack,
-                coveredIndices);
-
-            RegisterPlacement(placement);
-            return true;
-        }
-
-        private Placement GetPlacementAtInitialized(int cellIndex)
-        {
-            return _cellToPlacement.TryGetValue(cellIndex, out var placement) ? placement : null;
-        }
-
-        private bool RemovePlacementAtInitialized(int cellIndex)
-        {
-            var placement = GetPlacementAtInitialized(cellIndex);
-            return placement != null && UnregisterPlacement(placement);
-        }
-
-        private void RegisterPlacement(Placement placement)
-        {
-            if (placement == null)
-                return;
-
-            _placements.Add(placement);
-            for (int i = 0; i < placement.CoveredIndices.Count; i++)
-                _cellToPlacement[placement.CoveredIndices[i]] = placement;
-        }
-
-        private bool UnregisterPlacement(Placement placement)
-        {
-            if (placement == null)
-                return false;
-
-            bool removed = false;
-            for (int i = 0; i < placement.CoveredIndices.Count; i++)
-            {
-                int cellIndex = placement.CoveredIndices[i];
-                if (_cellToPlacement.TryGetValue(cellIndex, out var existing) &&
-                    ReferenceEquals(existing, placement))
-                {
-                    _cellToPlacement.Remove(cellIndex);
-                    removed = true;
-                }
-            }
-
-            _placements.Remove(placement);
-            return removed;
+            EnsurePlacementStore().Reset();
         }
 
         private IReadOnlyList<int> BuildCoveredCells(
@@ -1015,12 +938,10 @@ namespace UDND.Inventories
             IPlacementShape shape,
             PlacementOrientation orientation)
         {
-            return PlacementCellUtility.GetCoveredIndices(
+            return EnsurePlacementStore().GetCoveredIndices(
                 anchorIndex,
                 shape,
                 orientation,
-                _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
-                _slots.Count,
                 PlacementBoundsMode.RequireAllInBounds);
         }
 
@@ -1029,56 +950,21 @@ namespace UDND.Inventories
             IPlacementShape shape,
             PlacementOrientation orientation)
         {
-            return PlacementCellUtility.GetCoveredIndices(
+            return EnsurePlacementStore().GetCoveredIndices(
                 anchorCell,
                 shape,
                 orientation,
-                _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null,
-                _slots.Count,
                 PlacementBoundsMode.IncludeOnlyInBounds);
         }
 
         private Vector2Int IndexToCell(int index)
         {
-            if (_useGridTopology)
-                return _gridTopology.Normalized().ToCell(index);
-
-            return new Vector2Int(index, 0);
+            return EnsurePlacementStore().Topology.ToCell(index);
         }
 
         private void ShiftPlacementIndicesAfterSlotRemoved(int removedIndex)
         {
-            if (!_placementStateInitialized || removedIndex < 0)
-                return;
-
-            var shiftedPlacements = new List<Placement>(_placements.Count);
-            foreach (var placement in _placements)
-            {
-                if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
-                    continue;
-
-                int anchorIndex = placement.AnchorIndex > removedIndex
-                    ? placement.AnchorIndex - 1
-                    : placement.AnchorIndex;
-                var covered = BuildCoveredCells(anchorIndex, placement.Shape, placement.Orientation);
-                if (covered == null || covered.Count == 0)
-                    continue;
-
-                shiftedPlacements.Add(new Placement(
-                    IndexToCell(anchorIndex),
-                    anchorIndex,
-                    placement.Orientation,
-                    placement.Shape,
-                    placement.MutableStack,
-                    covered));
-            }
-
-            _cellToPlacement.Clear();
-            _placements.Clear();
-            for (int i = 0; i < shiftedPlacements.Count; i++)
-            {
-                RegisterPlacement(shiftedPlacements[i]);
-            }
+            EnsurePlacementStore().ShiftAfterSlotRemoved(removedIndex);
         }
 
         /// <summary>
@@ -1197,10 +1083,10 @@ namespace UDND.Inventories
 
         public InventorySnapshot CaptureSnapshot()
         {
-            EnsurePlacementStateInitialized();
+            var placementStore = EnsurePlacementStore();
 
-            var placementSnapshot = new List<InventoryPlacementState>(_placements.Count);
-            foreach (var placement in _placements)
+            var placementSnapshot = new List<InventoryPlacementState>(placementStore.Placements.Count);
+            foreach (var placement in placementStore.Placements)
             {
                 if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
                     continue;
@@ -1421,7 +1307,7 @@ namespace UDND.Inventories
             for (int i = 0; i < slotCount; i++)
                 CreateSlot();
 
-            EnsurePlacementStateInitialized();
+            EnsurePlacementStore();
             UpdateAllVisuals();
         }
 

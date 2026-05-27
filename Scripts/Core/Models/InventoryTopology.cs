@@ -14,12 +14,24 @@ namespace UDND.Core
 
     public readonly struct SlotTopology : IInventoryTopology, IEquatable<SlotTopology>
     {
+        private readonly int _slotCount;
+        private readonly Func<int> _slotCountProvider;
+
         public SlotTopology(int slotCount)
         {
-            CellCount = Math.Max(0, slotCount);
+            _slotCount = Math.Max(0, slotCount);
+            _slotCountProvider = null;
         }
 
-        public int CellCount { get; }
+        public SlotTopology(Func<int> slotCountProvider)
+        {
+            _slotCount = 0;
+            _slotCountProvider = slotCountProvider;
+        }
+
+        public int CellCount => _slotCountProvider != null
+            ? Math.Max(0, _slotCountProvider())
+            : _slotCount;
 
         public bool Contains(Vector2Int cell)
             => cell.y == 0 && cell.x >= 0 && cell.x < CellCount;
@@ -106,5 +118,46 @@ namespace UDND.Core
 
         public override string ToString()
             => _grid.ToString();
+    }
+
+    public sealed class SlotCountLimitedTopology : IInventoryTopology
+    {
+        private readonly IInventoryTopology _inner;
+        private readonly Func<int> _slotCountProvider;
+
+        public SlotCountLimitedTopology(IInventoryTopology inner, int slotCount)
+            : this(inner, () => slotCount)
+        {
+        }
+
+        public SlotCountLimitedTopology(IInventoryTopology inner, Func<int> slotCountProvider)
+        {
+            _inner = inner ?? new SlotTopology(0);
+            _slotCountProvider = slotCountProvider ?? (() => _inner.CellCount);
+        }
+
+        public int CellCount => Math.Min(_inner.CellCount, CurrentSlotCount);
+
+        public bool Contains(Vector2Int cell)
+            => TryToIndex(cell, out _);
+
+        public bool TryToIndex(Vector2Int cell, out int index)
+        {
+            if (!_inner.TryToIndex(cell, out index) || index < 0 || index >= CurrentSlotCount)
+            {
+                index = -1;
+                return false;
+            }
+
+            return true;
+        }
+
+        public Vector2Int ToCell(int index)
+            => _inner.ToCell(index);
+
+        public bool IsValidIndex(int index)
+            => index >= 0 && index < CurrentSlotCount && _inner.IsValidIndex(index);
+
+        private int CurrentSlotCount => Math.Max(0, _slotCountProvider());
     }
 }

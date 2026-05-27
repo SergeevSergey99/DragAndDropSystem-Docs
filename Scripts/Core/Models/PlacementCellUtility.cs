@@ -164,38 +164,5 @@ namespace UDND.Core
                 : EmptyIndices;
         }
 
-        private sealed class SlotCountLimitedTopology : IInventoryTopology
-        {
-            private readonly IInventoryTopology _inner;
-            private readonly int _slotCount;
-
-            public SlotCountLimitedTopology(IInventoryTopology inner, int slotCount)
-            {
-                _inner = inner;
-                _slotCount = Math.Max(0, slotCount);
-            }
-
-            public int CellCount => Math.Min(_inner.CellCount, _slotCount);
-
-            public bool Contains(Vector2Int cell)
-                => TryToIndex(cell, out _);
-
-            public bool TryToIndex(Vector2Int cell, out int index)
-            {
-                if (!_inner.TryToIndex(cell, out index) || index < 0 || index >= _slotCount)
-                {
-                    index = -1;
-                    return false;
-                }
-
-                return true;
-            }
-
-            public Vector2Int ToCell(int index)
-                => _inner.ToCell(index);
-
-            public bool IsValidIndex(int index)
-                => index >= 0 && index < _slotCount && _inner.IsValidIndex(index);
-        }
     }
 }
