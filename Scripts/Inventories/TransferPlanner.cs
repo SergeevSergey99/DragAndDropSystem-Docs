@@ -571,8 +571,8 @@ namespace UDND.Inventories
             if (!isFirstEntry ||
                 targetBaseSlotHint == null ||
                 targetBaseSlotHint.IsEmpty ||
-                targetInventory is not UniversalInventory occupiedUni ||
-                !occupiedUni.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
+                targetInventory is not IOccupiedSlotDropHandler occupiedDropHandler ||
+                !occupiedDropHandler.CheckOccupiedSlotDrop(entry, targetBaseSlotHint))
                 return false;
 
             plan = new PlannedEntryTransfer(
@@ -648,9 +648,9 @@ namespace UDND.Inventories
 
         private static int ApplySourceStepToAmount(DragEntry entry, int amount)
         {
-            if (amount <= 0 || entry.SourceInventory is not UniversalInventory sourceUni)
+            if (amount <= 0 || entry.SourceInventory is not IDragAmountStepProvider sourceStepProvider)
                 return amount;
-            int step = sourceUni.DragAmountStep;
+            int step = sourceStepProvider.DragAmountStep;
             return step > 1 ? (amount / step) * step : amount;
         }
 
@@ -666,10 +666,10 @@ namespace UDND.Inventories
             if (plannedAmount <= 0)
                 return plannedAmount;
 
-            if (entry.SourceInventory is not UniversalInventory sourceUni)
+            if (entry.SourceInventory is not IDragAmountStepProvider sourceStepProvider)
                 return plannedAmount;
 
-            int step = sourceUni.DragAmountStep;
+            int step = sourceStepProvider.DragAmountStep;
             if (step <= 1)
                 return plannedAmount;
 

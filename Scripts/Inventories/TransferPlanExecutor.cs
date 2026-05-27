@@ -179,8 +179,8 @@ namespace UDND.Inventories
 
                 if (plannedEntry.RequiresOccupiedHandler)
                 {
-                    if (plan.TargetInventory is UniversalInventory occupiedUni
-                        && occupiedUni.ExecuteOccupiedSlotDrop(plannedEntry.Entry, plannedEntry.OccupiedTargetBaseSlot))
+                    if (plan.TargetInventory is IOccupiedSlotDropHandler occupiedDropHandler
+                        && occupiedDropHandler.ExecuteOccupiedSlotDrop(plannedEntry.Entry, plannedEntry.OccupiedTargetBaseSlot))
                     {
                         succeededEntries++;
                         entryTransferred = plannedEntry.RequestedAmount;
@@ -609,12 +609,14 @@ namespace UDND.Inventories
             swapDomainContexts[0].MarkCommitted(targetSlot, swapData.TargetStackAfter.PrimaryAdapter, swapData.TargetStackAfter.Count);
             swapDomainContexts[1].MarkCommitted(sourceSlot, swapData.SourceStackAfter.PrimaryAdapter, swapData.SourceStackAfter.Count);
 
-            var targetUniversal = targetInventory as UniversalInventory;
-            var sourceUniversal = sourceInventory as UniversalInventory;
+            var targetEventSink = targetInventory as IInventoryEventSink;
+            var sourceEventSink = sourceInventory as IInventoryEventSink;
             var swapOutcome = new PendingSwapOutcome(
                 swapContext,
-                targetUniversal,
-                sourceUniversal,
+                targetInventory,
+                sourceInventory,
+                targetEventSink,
+                sourceEventSink,
                 targetSlot,
                 sourceSlot,
                 swapResult,
@@ -1067,21 +1069,22 @@ namespace UDND.Inventories
                 if (outcome.SourceItemAdapter == null || outcome.TargetItemAdapter == null || outcome.Amount <= 0)
                     continue;
 
-                if (outcome.SourceInventory is UniversalInventory sourceUniversal)
+                if (outcome.SourceInventory is IInventoryEventSink sourceEventSink)
                 {
-                    sourceUniversal.EmitItemRemoved(
+                    sourceEventSink.EmitItemRemoved(
                         outcome.SourceRemovedStack,
                         outcome.SourceBaseSlot?.Index ?? -1,
                         outcome.TargetInventory,
                         outcome.SourceBaseSlot,
                         outcome.TargetBaseSlot,
                         outcome.SourcePlacementSnapshot);
-                    sourceUniversal.HandleSlotEmptied(outcome.SourceBaseSlot);
+                    if (outcome.SourceInventory is IDynamicSlotLifecycle dynamicSlotLifecycle)
+                        dynamicSlotLifecycle.HandleSlotEmptied(outcome.SourceBaseSlot);
                 }
 
-                if (outcome.TargetInventory is UniversalInventory targetUniversal && outcome.TargetBaseSlot != null)
+                if (outcome.TargetInventory is IInventoryEventSink targetEventSink && outcome.TargetBaseSlot != null)
                 {
-                    targetUniversal.EmitItemAdded(
+                    targetEventSink.EmitItemAdded(
                         outcome.TransferredStack,
                         outcome.TargetBaseSlot.Index,
                         outcome.SourceInventory,
@@ -1099,18 +1102,18 @@ namespace UDND.Inventories
 
             foreach (var outcome in outcomes)
             {
-                if (outcome.TargetInventory != null &&
+                if (outcome.TargetEventSink != null &&
                     outcome.SwapResult.TargetStackBefore != null &&
                     !outcome.SwapResult.TargetStackBefore.IsEmpty)
                 {
-                    outcome.TargetInventory.EmitItemRemoved(
+                    outcome.TargetEventSink.EmitItemRemoved(
                         outcome.SwapResult.TargetStackBefore,
                         outcome.TargetBaseSlot.Index,
                         outcome.SourceInventory,
                         outcome.TargetBaseSlot,
                         outcome.SourceBaseSlot);
 
-                    outcome.TargetInventory.EmitItemAdded(
+                    outcome.TargetEventSink.EmitItemAdded(
                         outcome.SwapResult.TargetStackAfter,
                         outcome.TargetBaseSlot.Index,
                         outcome.SourceInventory,
@@ -1118,18 +1121,18 @@ namespace UDND.Inventories
                         outcome.TargetBaseSlot);
                 }
 
-                if (outcome.SourceInventory != null &&
+                if (outcome.SourceEventSink != null &&
                     outcome.SwapResult.SourceStackBefore != null &&
                     !outcome.SwapResult.SourceStackBefore.IsEmpty)
                 {
-                    outcome.SourceInventory.EmitItemRemoved(
+                    outcome.SourceEventSink.EmitItemRemoved(
                         outcome.SwapResult.SourceStackBefore,
                         outcome.SourceBaseSlot.Index,
                         outcome.TargetInventory,
                         outcome.SourceBaseSlot,
                         outcome.TargetBaseSlot);
 
-                    outcome.SourceInventory.EmitItemAdded(
+                    outcome.SourceEventSink.EmitItemAdded(
                         outcome.SwapResult.SourceStackAfter,
                         outcome.SourceBaseSlot.Index,
                         outcome.TargetInventory,
@@ -1208,8 +1211,10 @@ namespace UDND.Inventories
         {
             public PendingSwapOutcome(
                 InventorySwapContext swapContext,
-                UniversalInventory targetInventory,
-                UniversalInventory sourceInventory,
+                IInventory targetInventory,
+                IInventory sourceInventory,
+                IInventoryEventSink targetEventSink,
+                IInventoryEventSink sourceEventSink,
                 BaseSlot targetBaseSlot,
                 BaseSlot sourceBaseSlot,
                 SwapOperationResult swapResult,
@@ -1218,6 +1223,8 @@ namespace UDND.Inventories
                 SwapContext = swapContext;
                 TargetInventory = targetInventory;
                 SourceInventory = sourceInventory;
+                TargetEventSink = targetEventSink;
+                SourceEventSink = sourceEventSink;
                 TargetBaseSlot = targetBaseSlot;
                 SourceBaseSlot = sourceBaseSlot;
                 SwapResult = swapResult;
@@ -1225,8 +1232,10 @@ namespace UDND.Inventories
             }
 
             public InventorySwapContext SwapContext { get; }
-            public UniversalInventory TargetInventory { get; }
-            public UniversalInventory SourceInventory { get; }
+            public IInventory TargetInventory { get; }
+            public IInventory SourceInventory { get; }
+            public IInventoryEventSink TargetEventSink { get; }
+            public IInventoryEventSink SourceEventSink { get; }
             public BaseSlot TargetBaseSlot { get; }
             public BaseSlot SourceBaseSlot { get; }
             public SwapOperationResult SwapResult { get; }

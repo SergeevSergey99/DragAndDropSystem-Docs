@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore
+    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore, IInventoryRuleProvider, IDragAmountStepProvider, IOccupiedSlotDropHandler, IInventoryAcceptanceRuleEvaluator, IDynamicSlotLifecycle, IInventoryEventSink
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -143,10 +143,10 @@ namespace UDND.Inventories
         
         public InventoryDataBindingBase DataBinding { get; private set; }
 
-        internal bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
             => DataBinding != null && DataBinding.CheckOccupiedSlotDrop(entry, occupiedBaseSlot);
 
-        internal bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
             => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedBaseSlot);
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace UDND.Inventories
         /// </summary>
         public event Action<InventorySwapContext> OnSwapCompleted;
 
-        internal void EmitItemAdded(
+        public void EmitItemAdded(
             ItemStack stack,
             int slotIndex,
             IInventory sourceInventory,
@@ -204,7 +204,7 @@ namespace UDND.Inventories
             OnItemAdded?.Invoke(context);
         }
 
-        internal void EmitItemRemoved(
+        public void EmitItemRemoved(
             ItemStack stack,
             int slotIndex,
             IInventory targetInventory,
@@ -267,12 +267,12 @@ namespace UDND.Inventories
             return removed;
         }
 
-        internal void EmitSwapAttempting(InventorySwapContext context)
+        public void EmitSwapAttempting(InventorySwapContext context)
         {
             OnSwapAttempting?.Invoke(context);
         }
 
-        internal void EmitSwapCompleted(InventorySwapContext context)
+        public void EmitSwapCompleted(InventorySwapContext context)
         {
             OnSwapCompleted?.Invoke(context);
         }
@@ -1036,7 +1036,7 @@ namespace UDND.Inventories
             return _placementStrategy.TryAddQuite(_slots, stack, targetSlotIndex);
         }
 
-        internal bool CanAcceptByRules(
+        public bool CanAcceptByRules(
             BaseSlot baseSlot,
             IItemAdapter itemAdapter,
             int previewCount,

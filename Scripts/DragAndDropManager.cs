@@ -173,9 +173,9 @@ namespace UDND
                     return false;
                 }
 
-                if (entry.SourceInventory is UniversalInventory universalInventory)
+                if (entry.SourceInventory is IInventoryRuleProvider ruleProvider)
                 {
-                    var inventoryResult = universalInventory.RuleValidator.ValidateStartDrag(_currentContext, entry);
+                    var inventoryResult = ruleProvider.RuleValidator.ValidateStartDrag(_currentContext, entry);
                     if (!inventoryResult.IsValid)
                     {
                         Extensions.DragAndDropLog($"Cannot start batch drag: {inventoryResult.FailureReason}");
@@ -272,12 +272,12 @@ namespace UDND
         {
             if (entry.SourcePlacement == null ||
                 PlacementShapeUtility.IsSingleCell(entry.SourcePlacement.Shape, entry.SourcePlacement.Orientation) ||
-                entry.SourceInventory is not UniversalInventory inventory)
+                entry.SourceInventory == null)
                 return false;
 
             for (int i = 0; i < entry.SourcePlacement.CoveredIndices.Count; i++)
             {
-                var slot = inventory.GetSlot(entry.SourcePlacement.CoveredIndices[i]);
+                var slot = entry.SourceInventory.GetSlot(entry.SourcePlacement.CoveredIndices[i]);
                 if (slot != null && processedSlots.Add(slot))
                     slot.SetDraggedFrom(isDragging);
             }
@@ -622,10 +622,7 @@ namespace UDND
             if (!requested.HasValue || !requested.Value.Amount.HasValue)
                 return baseSlot.Inventory.GetDragAmount(baseSlot);
 
-            if (baseSlot.Inventory is UniversalInventory universal)
-                return universal.GetDragAmount(baseSlot, requested.Value.Amount.Value, requested.Value.CustomAmount);
-
-            return baseSlot.Inventory.GetDragAmount(baseSlot);
+            return baseSlot.Inventory.GetDragAmount(baseSlot, requested.Value.Amount.Value, requested.Value.CustomAmount);
         }
 
         /// <summary>
@@ -669,15 +666,16 @@ namespace UDND
             if (dragContext == null)
                 return;
 
-            var inventories = new HashSet<UniversalInventory>();
-            if (dragContext.TargetInventory is UniversalInventory targetInventory)
-                inventories.Add(targetInventory);
+            var inventories = new HashSet<IInventory>();
+            if (dragContext.TargetInventory != null)
+                inventories.Add(dragContext.TargetInventory);
 
             if (dragContext.Entries != null)
             {
                 for (int i = 0; i < dragContext.Entries.Count; i++)
                 {
-                    if (dragContext.Entries[i].SourceInventory is UniversalInventory sourceInventory)
+                    var sourceInventory = dragContext.Entries[i].SourceInventory;
+                    if (sourceInventory != null)
                         inventories.Add(sourceInventory);
                 }
             }
@@ -792,11 +790,11 @@ namespace UDND
             for (int i = 0; i < context.Entries.Count; i++)
             {
                 var entry = context.Entries[i];
-                if (entry.SourceInventory is UniversalInventory sourceUniversal &&
+                if (entry.SourceInventory is IDynamicSlotLifecycle dynamicSlotLifecycle &&
                     entry.SourceBaseSlot != null &&
                     entry.SourceBaseSlot.IsEmpty)
                 {
-                    sourceUniversal.HandleSlotEmptied(entry.SourceBaseSlot);
+                    dynamicSlotLifecycle.HandleSlotEmptied(entry.SourceBaseSlot);
                 }
             }
         }
@@ -901,8 +899,8 @@ namespace UDND
         public bool RaiseSwapAttempting(InventorySwapContext context)
         {
             // Inventory-scoped events (specific) — fire on both participating inventories
-            var source = context.SourceInventory as UniversalInventory;
-            var target = context.TargetInventory as UniversalInventory;
+            var source = context.SourceInventory as IInventoryEventSink;
+            var target = context.TargetInventory as IInventoryEventSink;
 
             source?.EmitSwapAttempting(context);
             if (target != null && !ReferenceEquals(target, source))
@@ -917,8 +915,8 @@ namespace UDND
         public void RaiseSwapCompleted(InventorySwapContext context)
         {
             // Inventory-scoped events (specific)
-            var source = context.SourceInventory as UniversalInventory;
-            var target = context.TargetInventory as UniversalInventory;
+            var source = context.SourceInventory as IInventoryEventSink;
+            var target = context.TargetInventory as IInventoryEventSink;
 
             source?.EmitSwapCompleted(context);
             if (target != null && !ReferenceEquals(target, source))

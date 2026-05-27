@@ -266,8 +266,8 @@ namespace UDND.Inventories
             if (baseSlot == null || itemAdapter == null || previewCount <= 0)
                 return false;
 
-            if (baseSlot.Inventory is UniversalInventory inventory)
-                return inventory.CanAcceptByRules(baseSlot, itemAdapter, previewCount, request);
+            if (baseSlot.Inventory is IInventoryAcceptanceRuleEvaluator ruleEvaluator)
+                return ruleEvaluator.CanAcceptByRules(baseSlot, itemAdapter, previewCount, request);
 
             return true;
         }
@@ -299,19 +299,19 @@ namespace UDND.Inventories
             if (itemAdapter == null || previewCount <= 0)
                 return false;
 
-            UniversalInventory inventory = request?.TargetInventory as UniversalInventory;
-            if (inventory == null)
+            IInventoryAcceptanceRuleEvaluator ruleEvaluator = request?.TargetInventory as IInventoryAcceptanceRuleEvaluator;
+            if (ruleEvaluator == null)
             {
                 foreach (var slot in slots)
                 {
-                    inventory = slot?.Inventory as UniversalInventory;
-                    if (inventory != null)
+                    ruleEvaluator = slot?.Inventory as IInventoryAcceptanceRuleEvaluator;
+                    if (ruleEvaluator != null)
                         break;
                 }
             }
 
-            if (inventory != null)
-                return inventory.CanAcceptByRules(baseSlotPrefab, itemAdapter, previewCount, request, allowForeignSlot: true);
+            if (ruleEvaluator != null)
+                return ruleEvaluator.CanAcceptByRules(baseSlotPrefab, itemAdapter, previewCount, request, allowForeignSlot: true);
 
             if (baseSlotPrefab?.SlotRuleValidator == null)
                 return true;
