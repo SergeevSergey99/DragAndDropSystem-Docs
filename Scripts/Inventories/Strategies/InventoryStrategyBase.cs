@@ -118,7 +118,9 @@ namespace UDND.Inventories
             if (PlacementShapeUtility.IsSingleCell(context.Shape, context.Orientation))
                 return ShapedPlacementPlanResult.NotApplicable();
 
-            if (context.TargetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue)
+            if (context.TargetInventory is not IPlacementInventory targetPlacementInventory ||
+                context.TargetInventory is not IShapedDragTargetResolver dragTargetResolver ||
+                !targetPlacementInventory.Grid.HasValue)
                 return ShapedPlacementPlanResult.NotApplicable();
 
             if (context.RequestedAmount != 1)
@@ -128,7 +130,7 @@ namespace UDND.Inventories
                 !ReferenceEquals(context.TargetBaseSlotHint.Inventory, context.TargetInventory))
                 return ShapedPlacementPlanResult.Rejected("Shaped grid placement requires a target cell");
 
-            if (!targetPlacementInventory.TryResolveShapedPlacementAnchor(
+            if (!dragTargetResolver.TryResolveShapedPlacementAnchor(
                     context.TargetBaseSlotHint,
                     context.DragContext,
                     context.Entry,
@@ -168,7 +170,8 @@ namespace UDND.Inventories
 
         public virtual ShapedPlacementExecutionResult TryExecuteShapedPlacement(ShapedPlacementExecutionContext context)
         {
-            if (context.TargetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue)
+            if (context.TargetInventory is not IPlacementInventory targetPlacementInventory ||
+                !targetPlacementInventory.Grid.HasValue)
                 return ShapedPlacementExecutionResult.NotApplicable();
 
             if (context.TransferStack == null || context.TransferStack.IsEmpty)

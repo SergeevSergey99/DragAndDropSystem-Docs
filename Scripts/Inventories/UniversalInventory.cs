@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore
+    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, ISlotStackStore
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -1093,31 +1093,7 @@ namespace UDND.Inventories
         public InventorySnapshot CaptureSnapshot()
         {
             var placementStore = EnsurePlacementStore();
-
-            var placementSnapshot = new List<InventoryPlacementState>(placementStore.Placements.Count);
-            foreach (var placement in placementStore.Placements)
-            {
-                if (placement == null || placement.MutableStack == null || placement.MutableStack.IsEmpty)
-                    continue;
-
-                placementSnapshot.Add(new InventoryPlacementState(
-                    placement.AnchorIndex,
-                    placement.MutableStack.Adapters,
-                    placement.Orientation,
-                    placement.BoundingSize,
-                    placement.CoveredIndices,
-                    ResolvePlacementOffsets(placement)));
-            }
-
-            return new InventorySnapshot(_slots.Count, placementSnapshot);
-        }
-
-        private static IReadOnlyList<Vector2Int> ResolvePlacementOffsets(Placement placement)
-        {
-            if (placement?.Shape == null || !placement.Shape.SupportsOrientation(placement.Orientation))
-                return Array.Empty<Vector2Int>();
-
-            return placement.Shape.GetOffsets(placement.Orientation);
+            return PlacementSnapshotCodec.Capture(_slots.Count, placementStore.Placements);
         }
 
         public void RestoreSnapshot(InventorySnapshot snapshot)
@@ -1131,8 +1107,18 @@ namespace UDND.Inventories
                 return false;
 
             int desiredCount = snapshot.SlotCount;
-            if (!TryBuildSnapshotPlacementRequests(snapshot, desiredCount, out var placementRequests, logFailures))
+            var placementStoreSettings = CreatePlacementStoreSettings(_gridTopology.Normalized(), desiredCount);
+            if (!PlacementSnapshotCodec.TryBuildPlacementRequests(
+                    snapshot,
+                    placementStoreSettings,
+                    out var placementRequests,
+                    out var failedPlacement))
+            {
+                if (logFailures)
+                    LogSnapshotRestoreFailure(failedPlacement);
+
                 return false;
+            }
 
             if (_slots == null)
             {
@@ -1181,56 +1167,6 @@ namespace UDND.Inventories
             }
 
             UpdateAllVisuals();
-            return true;
-        }
-
-        private bool TryBuildSnapshotPlacementRequests(
-            InventorySnapshot snapshot,
-            int desiredSlotCount,
-            out List<PlacementRequest> requests,
-            bool logFailures)
-        {
-            requests = new List<PlacementRequest>(snapshot?.Placements?.Count ?? 0);
-            if (snapshot?.Placements == null)
-                return true;
-
-            var snapshotStore = new PlacementStore(
-                CreatePlacementStoreSettings(_gridTopology.Normalized(), desiredSlotCount));
-            for (int i = 0; i < snapshot.Placements.Count; i++)
-            {
-                var placementState = snapshot.Placements[i];
-                if (placementState.IsEmpty)
-                    continue;
-
-                if (!ItemStack.TryCreate(placementState.Adapters, out var restoredStack))
-                {
-                    if (logFailures)
-                        LogSnapshotRestoreFailure(placementState);
-
-                    return false;
-                }
-
-                var shape = placementState.CoveredOffsets != null && placementState.CoveredOffsets.Count > 0
-                    ? new OffsetPlacementShape(placementState.CoveredOffsets, placementState.Orientation)
-                    : PlacementShapeUtility.FromRectSize(placementState.BoundingSize);
-
-                var request = new PlacementRequest(
-                    restoredStack,
-                    placementState.AnchorIndex,
-                    placementState.Orientation,
-                    shape);
-
-                if (!snapshotStore.TryPlace(request, out _))
-                {
-                    if (logFailures)
-                        LogSnapshotRestoreFailure(placementState);
-
-                    return false;
-                }
-
-                requests.Add(request);
-            }
-
             return true;
         }
 

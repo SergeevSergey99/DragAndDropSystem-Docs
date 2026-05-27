@@ -14,7 +14,6 @@ namespace UDND.Inventories
         GridTopology? Grid { get; }
         SlotShapedItemPolicy ShapedItemPolicy { get; }
         IPlacementStrategy PlacementStrategy { get; }
-        IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy { get; }
 
         Placement GetPlacementAt(BaseSlot baseSlot);
         Placement GetPlacementAt(int cellIndex);
@@ -25,7 +24,24 @@ namespace UDND.Inventories
 
         Vector2Int GetCellForIndex(int index);
         bool TryGetIndexForCell(Vector2Int cell, out int index);
-        Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot);
+
+        bool CanPlace(PlacementRequest request);
+        bool CanPlace(PlacementRequest request, Placement ignoredPlacement);
+        bool TryPlace(PlacementRequest request);
+        bool TryPlace(PlacementRequest request, out Placement placement);
+        bool RemovePlacement(Placement placement);
+        bool RemovePlacementAt(BaseSlot baseSlot);
+        bool RemovePlacementAt(int cellIndex);
+    }
+
+    /// <summary>
+    /// Optional target-side contract for resolving shaped drag/drop anchors.
+    /// Kept separate from <see cref="IPlacementInventory"/> so placement storage implementations
+    /// do not have to know about DragContext/DragEntry unless they participate in UI drag targeting.
+    /// </summary>
+    public interface IShapedDragTargetResolver
+    {
+        IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy { get; }
 
         bool TryResolveShapedPlacementAnchorCell(
             BaseSlot targetBaseSlot,
@@ -43,13 +59,5 @@ namespace UDND.Inventories
             IItemAdapter targetItemAdapter,
             out Vector2Int anchorCell,
             out int anchorIndex);
-
-        bool CanPlace(PlacementRequest request);
-        bool CanPlace(PlacementRequest request, Placement ignoredPlacement);
-        bool TryPlace(PlacementRequest request);
-        bool TryPlace(PlacementRequest request, out Placement placement);
-        bool RemovePlacement(Placement placement);
-        bool RemovePlacementAt(BaseSlot baseSlot);
-        bool RemovePlacementAt(int cellIndex);
     }
 }

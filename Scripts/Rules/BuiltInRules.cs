@@ -31,12 +31,12 @@ namespace UDND.Rules
             if (!entry.IsShaped ||
                 entry.SourcePlacement == null ||
                 context.TargetBaseSlot == null ||
-                entry.SourceInventory is not UniversalInventory inventory ||
-                !ReferenceEquals(context.TargetInventory, inventory) ||
-                !ReferenceEquals(context.TargetBaseSlot.Inventory, inventory))
+                context.TargetInventory is not IShapedDragTargetResolver dragTargetResolver ||
+                !ReferenceEquals(context.TargetInventory, entry.SourceInventory) ||
+                !ReferenceEquals(context.TargetBaseSlot.Inventory, context.TargetInventory))
                 return false;
 
-            if (!inventory.TryResolveShapedPlacementAnchor(
+            if (!dragTargetResolver.TryResolveShapedPlacementAnchor(
                     context.TargetBaseSlot,
                     context,
                     entry,
