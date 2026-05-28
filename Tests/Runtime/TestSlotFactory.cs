@@ -120,6 +120,20 @@ namespace UDND.Tests
                 SlotOperationContext operationContext = null)
                 => TrySetStackForSlot(targetBaseSlot, stack);
 
+            public int RemoveItemsFromSlot(
+                BaseSlot sourceBaseSlot,
+                ItemStack stackToRemove,
+                IInventory targetInventory = null,
+                BaseSlot targetBaseSlot = null)
+            {
+                if (stackToRemove == null || stackToRemove.IsEmpty)
+                    return 0;
+
+                return TryRemoveFromSlot(sourceBaseSlot, stackToRemove.Adapters, out int removed)
+                    ? removed
+                    : 0;
+            }
+
             public int GetAcceptableCount(InventoryAcceptanceRequest request)
                 => request?.DesiredCount ?? 0;
 

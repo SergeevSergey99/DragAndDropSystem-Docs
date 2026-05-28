@@ -216,9 +216,9 @@ namespace UDND.Core
                 }
 
                 // Auto source removal
-                if (RemoveFromSource && sourceSlot?.Inventory is UniversalInventory sourceUniversal)
+                if (RemoveFromSource && sourceSlot?.Inventory != null)
                 {
-                    int removed = sourceUniversal.RemoveItemsFromSlot(sourceSlot, freshStack);
+                    int removed = sourceSlot.Inventory.RemoveItemsFromSlot(sourceSlot, freshStack);
                     Extensions.DragAndDropLog(
                         $"<color=green>[{GetType().Name}] Removed {removed} items from source slot {sourceSlot.Index}</color>");
                 }

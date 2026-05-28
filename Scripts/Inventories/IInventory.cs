@@ -61,6 +61,16 @@ namespace UDND.Inventories
             SlotOperationContext operationContext = null);
 
         /// <summary>
+        /// Remove items from a source slot and emit the inventory's normal removal side effects.
+        /// Used by external drop processors that do not go through TransferPlanExecutor.
+        /// </summary>
+        int RemoveItemsFromSlot(
+            BaseSlot sourceBaseSlot,
+            ItemStack stackToRemove,
+            IInventory targetInventory = null,
+            BaseSlot targetBaseSlot = null);
+
+        /// <summary>
         /// Get the number of items the inventory can accept
         /// in the context of a specific drag/drop operation.
         /// </summary>

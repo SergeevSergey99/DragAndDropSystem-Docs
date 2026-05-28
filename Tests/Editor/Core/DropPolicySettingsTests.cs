@@ -17,12 +17,6 @@ namespace UDND.Tests.Core
         // ---------- Defaults ----------
 
         [Test]
-        public void Defaults_AllowMergeOnDrop_True()
-        {
-            Assert.IsTrue(_settings.AllowMergeOnDrop);
-        }
-
-        [Test]
         public void Resolve_NullRequest_UsesDefaultResolverAndAllowPartial()
         {
             var resolved = _settings.Resolve(null, context: null);

@@ -94,8 +94,6 @@ namespace UDND.Inventories
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         public Transform SlotContainer => _slotContainer;
-        internal bool AllowMergeOnDrop => _dropPolicy != null && _dropPolicy.AllowMergeOnDrop;
-
         public IInventoryStrategy Strategy
         {
             get
@@ -251,7 +249,7 @@ namespace UDND.Inventories
         /// that do not go through TransferPlanExecutor.
         /// </summary>
         /// <returns>Number of removed items, or 0 if nothing was removed</returns>
-        internal int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
+        public int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
         {
             if (sourceBaseSlot == null || stackToRemove == null || stackToRemove.IsEmpty)
                 return 0;
@@ -396,8 +394,6 @@ namespace UDND.Inventories
             EnsureSlotManagementSettings();
             EnsurePlacementSettings();
 
-            _inventoryStrategy.BindInventory(this);
-            _slotManagementSettings.BindInventory(this);
             IInventoryStrategy baseStrategy = _inventoryStrategy;
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
 
@@ -476,7 +472,6 @@ namespace UDND.Inventories
                 _inventoryStrategy?.CaptureConfigurationJson(),
                 _slotManagementSettings?.GetType().AssemblyQualifiedName,
                 _slotManagementSettings?.CaptureConfigurationJson(),
-                _dropPolicy.AllowMergeOnDrop,
                 _useGridTopology,
                 _gridTopology.Normalized().ToString(),
                 _slotShapedItemPolicy.ToString());

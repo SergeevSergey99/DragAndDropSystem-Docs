@@ -47,7 +47,6 @@ namespace UDND.Tests.Inventories
         [Test]
         public void TryAdd_OccupiedTargetSameType_MergesWhenAllowed()
         {
-            // AllowMergeOnDrop defaults to true when _inventory is null
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(1);
             _slots[0].SetStack(ItemStackBuilder.Unique(3, "gem"));

@@ -15,7 +15,7 @@ namespace UDND.Inventories
         private int _minFreeSlots = 1;
 
         public override IInventoryStrategy WrapRuntimeStrategy(
-            UniversalInventory inventory,
+            IInventory inventory,
             IInventoryStrategy baseStrategy,
             Func<BaseSlot> createSlot,
             Func<List<BaseSlot>> getSlots,
@@ -24,17 +24,17 @@ namespace UDND.Inventories
             return new DynamicSlotDecorator(baseStrategy, createSlot, _maxSlots, _minFreeSlots, getSlots, ensureFreeSlots);
         }
 
-        public override bool CanCreateNewSlot(UniversalInventory inventory, int currentSlotCount)
+        public override bool CanCreateNewSlot(IInventory inventory, int currentSlotCount)
         {
             return currentSlotCount < _maxSlots;
         }
 
-        public override int GetPotentialNewSlots(UniversalInventory inventory, int currentSlotCount)
+        public override int GetPotentialNewSlots(IInventory inventory, int currentSlotCount)
         {
             return Mathf.Max(0, _maxSlots - currentSlotCount);
         }
 
-        public override void EnsureFreeSlots(UniversalInventory inventory, int initialSlotCount, Func<int> countFreeSlots, Func<BaseSlot> createSlot)
+        public override void EnsureFreeSlots(IInventory inventory, int initialSlotCount, Func<int> countFreeSlots, Func<BaseSlot> createSlot)
         {
             if (countFreeSlots == null || createSlot == null)
                 return;
@@ -47,7 +47,7 @@ namespace UDND.Inventories
             }
         }
 
-        public override bool CanRemoveAnotherSlot(UniversalInventory inventory, int currentSlotCount, int initialSlotCount, int freeSlotCount)
+        public override bool CanRemoveAnotherSlot(IInventory inventory, int currentSlotCount, int initialSlotCount, int freeSlotCount)
         {
             if (currentSlotCount <= initialSlotCount)
                 return false;
@@ -56,7 +56,7 @@ namespace UDND.Inventories
         }
 
         public override void HandleSlotEmptied(
-            UniversalInventory inventory,
+            IInventory inventory,
             BaseSlot preferredBaseSlot,
             int currentSlotCount,
             int initialSlotCount,

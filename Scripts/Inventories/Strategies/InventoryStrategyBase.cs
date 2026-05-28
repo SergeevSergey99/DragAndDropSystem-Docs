@@ -21,17 +21,11 @@ namespace UDND.Inventories
         [ShowIf(nameof(ShowCustomDragAmount))]
         private int _customDragAmount = 1;
 
-        [NonSerialized] protected UniversalInventory _inventory;
         private static bool _warnedMissingStackStoreForMerge;
         private static bool _warnedMissingStackStoreForRemove;
 
         private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmount.Custom;
         protected virtual bool ShowDragAmountSettings => true;
-
-        public virtual void BindInventory(UniversalInventory inventory)
-        {
-            _inventory = inventory;
-        }
 
         /// <summary>
         /// Set the stack limit at runtime (for example, from DataBinding).

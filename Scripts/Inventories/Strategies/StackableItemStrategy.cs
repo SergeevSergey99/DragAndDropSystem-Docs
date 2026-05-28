@@ -14,8 +14,6 @@ namespace UDND.Inventories
     [Serializable]
     public class StackableItemStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy
     {
-        private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
-
         public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)
@@ -151,22 +149,6 @@ namespace UDND.Inventories
                     return false;
 
                 return TryMergeIntoSlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
-            }
-
-            if (AllowMergeOnDrop)
-            {
-                foreach (var slot in slots)
-                {
-                    if (slot == targetBaseSlot || slot.IsEmpty || !slot.Stack.CanStack(stack.PrimaryAdapter))
-                        continue;
-
-                    int canFit = Math.Max(0, maxSize - slot.Stack.Count);
-                    int toAdd = Math.Min(stack.Count, canFit);
-                    if (toAdd <= 0 || !PassesRules(slot, stack.PrimaryAdapter, toAdd))
-                        continue;
-
-                    return TryMergeIntoSlot(stack, slot, maxSize, ensureFreeSlots, operationContext);
-                }
             }
 
             if (!PassesRules(targetBaseSlot, stack.PrimaryAdapter, Math.Min(stack.Count, maxSize)))

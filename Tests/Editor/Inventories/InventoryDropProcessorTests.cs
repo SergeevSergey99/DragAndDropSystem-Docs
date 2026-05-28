@@ -249,13 +249,6 @@ namespace UDND.Tests.Inventories
         [Test]
         public void ProcessDrop_FindAlternative_EmptyFirst_OccupiedTarget_GoesToEmptyNotMerge()
         {
-            // StackableItemStrategy.TryAddToSlot has an AllowMergeOnDrop fallback that will
-            // re-route any drop to an existing mergeable stack regardless of the planner's
-            // chosen allocation. To test the planner's EmptyFirst alternative strategy
-            // faithfully, we must disable that execution-time fallback.
-            var settings = new DropPolicySettings();
-            SetPrivateField(settings, "_allowMergeOnDrop", false);
-
             _source = new InventoryBuilder()
                 .WithStrategy(new StackableItemStrategy())
                 .WithMaxStackSize(10)
@@ -265,7 +258,6 @@ namespace UDND.Tests.Inventories
                 .WithStrategy(new StackableItemStrategy())
                 .WithMaxStackSize(10)
                 .WithFixedSlots(3)
-                .WithDropPolicy(settings)
                 .Build();
 
             // target[0] = other type (blocks direct drop), target[1] = same type (merge candidate),

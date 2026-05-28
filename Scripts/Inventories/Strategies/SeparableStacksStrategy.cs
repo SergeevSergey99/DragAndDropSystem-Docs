@@ -9,15 +9,13 @@ namespace UDND.Inventories
     /// Heroes of Might & Magic style strategy
     /// Items can stack but do NOT merge automatically
     /// Multiple stacks of the same item can exist in different slots
-    /// Merge happens only on explicit drop onto the same item (if allowMergeOnDrop = true)
+    /// Merge happens only on explicit drop onto the same item.
     /// Supports the strategy default limit and,
     /// when allowItemOverride = true, per-item stack limits via IStackSizeLimitable
     /// </summary>
     [Serializable]
     public class SeparableStacksStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy, ISeparableStacksInventoryStrategy
     {
-        private bool AllowMergeOnDrop => _inventory == null || _inventory.AllowMergeOnDrop;
-
         private int GetMaxStackSize(IItemAdapter itemAdapter) =>
             GetMaxStackSize(itemAdapter, DefaultMaxStackSize, AllowItemStackOverride);
 
@@ -48,8 +46,8 @@ namespace UDND.Inventories
                         remaining -= toPlace;
                     }
                 }
-                // If the slot contains the SAME item and merge is allowed, merge with limit handling
-                else if (AllowMergeOnDrop && targetSlot.Stack.CanStack(stack.PrimaryAdapter))
+                // If the slot contains the same item, merge with limit handling
+                else if (targetSlot.Stack.CanStack(stack.PrimaryAdapter))
                 {
                     int canFit = Math.Max(0, maxSize - targetSlot.Stack.Count);
                     int toAdd = Math.Min(remaining, canFit);
@@ -61,7 +59,7 @@ namespace UDND.Inventories
                         remaining -= added;
                     }
                 }
-                // Otherwise we cannot add (slot is occupied by another item or merge is disabled)
+                // Otherwise we cannot add (slot is occupied by another item)
             }
             else
             {
@@ -148,7 +146,7 @@ namespace UDND.Inventories
             if (baseSlot.IsEmpty)
                 return true;
 
-            if (!AllowMergeOnDrop || baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
+            if (baseSlot.Stack == null || !baseSlot.Stack.CanStack(itemAdapter))
                 return false;
 
             // A slot is suitable for merge only if it has free space
@@ -165,7 +163,7 @@ namespace UDND.Inventories
 
             if (!targetBaseSlot.IsEmpty)
             {
-                if (!AllowMergeOnDrop || !targetBaseSlot.Stack.CanStack(stack.PrimaryAdapter))
+                if (!targetBaseSlot.Stack.CanStack(stack.PrimaryAdapter))
                     return false;
 
                 int canFit = Math.Max(0, maxSize - targetBaseSlot.Stack.Count);
@@ -209,7 +207,7 @@ namespace UDND.Inventories
                     return true;
                 }
 
-                if (AllowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item))
+                if (!slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                     if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))
@@ -239,7 +237,7 @@ namespace UDND.Inventories
                 {
                     totalCapacity += maxSize;
                 }
-                else if (AllowMergeOnDrop && !slot.IsEmpty && slot.Stack.CanStack(item))
+                else if (!slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                     if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))

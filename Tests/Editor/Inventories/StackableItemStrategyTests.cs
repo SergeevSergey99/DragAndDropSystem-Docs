@@ -221,21 +221,18 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryAddToSlot_EmptyTarget_MergesIntoExistingPartialStackFirst()
+        public void TryAddToSlot_EmptyTarget_UsesRequestedSlot()
         {
-            // Default AllowMergeOnDrop (inventory is null → true) diverts the drop
-            // to an existing partial stack of the same item before creating a new pile.
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(2);
             _slots[0].SetStack(ItemStackBuilder.Unique(4, "gem"));
-            // _slots[1] empty — this is the drop target
             var stack = ItemStackBuilder.Unique(3, "gem");
 
             bool placed = _strategy.TryAddToSlot(_slots, stack, _slots[1], null, new SlotOperationContext());
 
             Assert.IsTrue(placed);
-            Assert.AreEqual(7, _slots[0].Stack.Count, "Existing partial stack grew");
-            Assert.IsTrue(_slots[1].IsEmpty, "Empty target left empty because of merge redirection");
+            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing partial stack must stay untouched");
+            Assert.AreEqual(3, _slots[1].Stack.Count, "Explicit empty target receives the new stack");
         }
 
         // ---------- CanAcceptItem ----------
