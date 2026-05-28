@@ -5,7 +5,7 @@ namespace UDND.Inventories
     /// <summary>
     /// Strategy for managing inventory slots
     /// </summary>
-    public interface IInventoryStrategy : IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
+    public interface IInventoryStrategy
     {
         /// <summary>
         /// Set the stack limit at runtime.

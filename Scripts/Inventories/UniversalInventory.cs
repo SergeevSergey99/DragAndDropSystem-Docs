@@ -416,11 +416,18 @@ namespace UDND.Inventories
         /// </summary>
         public void SetStrategy(IInventoryStrategy strategy)
         {
+            if (strategy == null)
+                throw new ArgumentNullException(nameof(strategy));
+
             _strategy = strategy;
-            _placementStrategy = strategy;
-            _acceptanceStrategy = strategy;
-            _dragPolicy = strategy;
-            _queryStrategy = strategy;
+            _placementStrategy = strategy as IPlacementStrategy
+                ?? throw new ArgumentException("Inventory strategy must implement IPlacementStrategy.", nameof(strategy));
+            _acceptanceStrategy = strategy as IAcceptanceStrategy
+                ?? throw new ArgumentException("Inventory strategy must implement IAcceptanceStrategy.", nameof(strategy));
+            _dragPolicy = strategy as IDragPolicy
+                ?? throw new ArgumentException("Inventory strategy must implement IDragPolicy.", nameof(strategy));
+            _queryStrategy = strategy as IInventoryQueryStrategy
+                ?? throw new ArgumentException("Inventory strategy must implement IInventoryQueryStrategy.", nameof(strategy));
             _appliedStrategyConfiguration = CaptureStrategyConfiguration();
         }
 

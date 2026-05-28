@@ -9,9 +9,13 @@ namespace UDND.Inventories
     /// Decorator for dynamic slot creation
     /// Wraps any strategy (Unique or Stackable) and adds automatic slot creation
     /// </summary>
-    public class DynamicSlotDecorator : IInventoryStrategy
+    public class DynamicSlotDecorator : IInventoryStrategy, IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
     {
         private readonly IInventoryStrategy _baseStrategy;
+        private readonly IPlacementStrategy _placementStrategy;
+        private readonly IAcceptanceStrategy _acceptanceStrategy;
+        private readonly IDragPolicy _dragPolicy;
+        private readonly IInventoryQueryStrategy _queryStrategy;
         private readonly System.Func<BaseSlot> _createSlotFunc;
         private readonly int _maxSlots;
         private readonly int _maxFreeSlots;
@@ -26,7 +30,15 @@ namespace UDND.Inventories
             System.Func<List<BaseSlot>> getSlotsFunc = null,
             System.Action ensureFreeSlotsFunc = null)
         {
-            _baseStrategy = baseStrategy;
+            _baseStrategy = baseStrategy ?? throw new System.ArgumentNullException(nameof(baseStrategy));
+            _placementStrategy = baseStrategy as IPlacementStrategy
+                ?? throw new System.ArgumentException("Base strategy must implement IPlacementStrategy.", nameof(baseStrategy));
+            _acceptanceStrategy = baseStrategy as IAcceptanceStrategy
+                ?? throw new System.ArgumentException("Base strategy must implement IAcceptanceStrategy.", nameof(baseStrategy));
+            _dragPolicy = baseStrategy as IDragPolicy
+                ?? throw new System.ArgumentException("Base strategy must implement IDragPolicy.", nameof(baseStrategy));
+            _queryStrategy = baseStrategy as IInventoryQueryStrategy
+                ?? throw new System.ArgumentException("Base strategy must implement IInventoryQueryStrategy.", nameof(baseStrategy));
             _createSlotFunc = createSlotFunc;
             _maxSlots = maxSlots;
             _maxFreeSlots = maxFreeSlots;
@@ -59,7 +71,7 @@ namespace UDND.Inventories
                 }
 
                 // Try to add into the target slot
-                bool added = _baseStrategy.TryAdd(slots, stack, targetIndex, skipRules);
+                bool added = _placementStrategy.TryAdd(slots, stack, targetIndex, skipRules);
 
                 // Ensure the minimum number of free slots after adding
                 if (added && stack.IsEmpty)
@@ -74,7 +86,7 @@ namespace UDND.Inventories
             // In this mode we ALWAYS create slots if needed (regardless of maxFreeSlots)
 
             // First try adding into existing slots
-            bool initialAdded = _baseStrategy.TryAdd(slots, stack, -1, skipRules);
+            bool initialAdded = _placementStrategy.TryAdd(slots, stack, -1, skipRules);
 
             // If everything does not fit, create new slots and continue
             if (!stack.IsEmpty && slots.Count < _maxSlots)
@@ -92,7 +104,7 @@ namespace UDND.Inventories
                     Extensions.DragAndDropLog($"<color=green>[DynamicSlots] Created slot {slots.Count - 1} for remaining items</color>");
 
                     // Try to add into the new slot
-                    _baseStrategy.TryAdd(slots, stack, slots.Count - 1, skipRules);
+                    _placementStrategy.TryAdd(slots, stack, slots.Count - 1, skipRules);
                 }
 
                 Extensions.DragAndDropLog($"<color=cyan>[DynamicSlots] Created {createdSlots} new slots, {stack.Count} items still remaining</color>");
@@ -110,7 +122,7 @@ namespace UDND.Inventories
 
         public bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
         {
-            bool removed = _baseStrategy.TryRemove(slots, itemAdapter, count, sourceIndex);
+            bool removed = _placementStrategy.TryRemove(slots, itemAdapter, count, sourceIndex);
 
             // Ensure the minimum number of free slots after removal
             if (removed)
@@ -123,34 +135,34 @@ namespace UDND.Inventories
 
         public int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.GetItemCount(slots, itemAdapter);
+            return _queryStrategy.GetItemCount(slots, itemAdapter);
         }
 
         public bool Contains(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.Contains(slots, itemAdapter);
+            return _queryStrategy.Contains(slots, itemAdapter);
         }
 
         public int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
         {
-            return _baseStrategy.ResolveDragAmount(stackCount, dragAmount, customDragAmount);
+            return _dragPolicy.ResolveDragAmount(stackCount, dragAmount, customDragAmount);
         }
 
         public bool RequiresStrategyPlacement(ItemStack stack)
         {
-            return _baseStrategy.RequiresStrategyPlacement(stack);
+            return _placementStrategy.RequiresStrategyPlacement(stack);
         }
 
-        public bool UsesPerItemSlotPlanning => _baseStrategy.UsesPerItemSlotPlanning;
+        public bool UsesPerItemSlotPlanning => _placementStrategy.UsesPerItemSlotPlanning;
 
         public bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
-            return _baseStrategy.CanUseAlternativeSlot(baseSlot, itemAdapter);
+            return _placementStrategy.CanUseAlternativeSlot(baseSlot, itemAdapter);
         }
 
         public bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {
-            return _baseStrategy.TryAddToSlot(slots, stack, targetBaseSlot, ensureFreeSlots, operationContext);
+            return _placementStrategy.TryAddToSlot(slots, stack, targetBaseSlot, ensureFreeSlots, operationContext);
         }
 
         public int GetMaxStackSizeForItem(IItemAdapter itemAdapter)
@@ -160,12 +172,12 @@ namespace UDND.Inventories
 
         public bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
         {
-            return _baseStrategy.CanAcceptItem(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
+            return _acceptanceStrategy.CanAcceptItem(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
         }
 
         public int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
-            return _baseStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
+            return _acceptanceStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
         }
 
         public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)

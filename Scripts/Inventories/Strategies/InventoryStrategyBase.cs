@@ -11,7 +11,7 @@ namespace UDND.Inventories
     /// Base strategy with shared methods
     /// </summary>
     [Serializable]
-    public abstract class InventoryStrategyBase : IInventoryStrategy
+    public abstract class InventoryStrategyBase : IInventoryStrategy, IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
     {
         [SerializeField, LabelText("Drag Amount"), Tooltip("How many items to take when dragging from a stack.")]
         [ShowIf(nameof(ShowDragAmountSettings))]
