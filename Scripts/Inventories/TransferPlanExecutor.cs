@@ -993,10 +993,6 @@ namespace UDND.Inventories
                 operation.TransferStack.IsEmpty)
                 return false;
 
-            var strategy = targetPlacementInventory.PlacementStrategy;
-            if (strategy == null)
-                return false;
-
             var allocation = operation.PlacementAllocation
                 ?? new PlannedPlacementAllocation(
                     operation.RequestedBaseSlot?.Index ?? -1,
@@ -1004,32 +1000,53 @@ namespace UDND.Inventories
                     PlacementShapeUtility.Resolve(operation.TransferStack.PrimaryAdapter),
                     operation.TransferAmount);
 
-            var executionContext = new ShapedPlacementExecutionContext(
-                operation.TargetInventory,
-                operation.TransferStack,
-                operation.TransferAmount,
-                allocation,
-                operation.Orientation,
-                operation.OperationContext);
+            if (!targetPlacementInventory.Grid.HasValue)
+                return false;
 
-            var result = strategy.TryExecuteShapedPlacement(executionContext);
-            switch (result.Outcome)
+            var shape = allocation.Shape ?? PlacementShapeUtility.Resolve(operation.TransferStack.PrimaryAdapter);
+            if (PlacementShapeUtility.IsSingleCell(shape, allocation.Orientation))
+                return false;
+
+            if (operation.TransferStack.Count > 1 || operation.TransferAmount != operation.TransferStack.Count)
             {
-                case ShapedPlacementExecutionOutcome.Placed:
-                    operation.OperationContext?.RecordResult(
-                        result.ResolvedAnchorSlot,
-                        result.TargetWasEmpty,
-                        result.PlacedAmount);
-                    return operation.TransferStack.IsEmpty;
-
-                case ShapedPlacementExecutionOutcome.Failed:
-                    Extensions.DragAndDropLog($"<color=red>[TransferPlanExecutor] Shaped placement failed: {result.FailureReason}</color>");
-                    return false;
-
-                case ShapedPlacementExecutionOutcome.NotApplicable:
-                default:
-                    return false;
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Shaped placement requires a single item</color>");
+                return false;
             }
+
+            var placedStack = operation.TransferStack.CreateCopy(operation.TransferAmount);
+            if (placedStack == null || placedStack.IsEmpty)
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Failed to copy stack for shaped placement</color>");
+                return false;
+            }
+
+            int anchorIndex = allocation.AnchorIndex;
+            if (anchorIndex < 0)
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Invalid shaped placement anchor</color>");
+                return false;
+            }
+
+            var resolvedAnchorSlot = targetPlacementInventory.GetSlot(anchorIndex);
+            if (resolvedAnchorSlot == null)
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Anchor slot not found</color>");
+                return false;
+            }
+
+            bool wasEmpty = resolvedAnchorSlot.IsEmpty;
+            var request = new PlacementRequest(placedStack, anchorIndex, allocation.Orientation, shape);
+
+            if (!targetPlacementInventory.TryPlace(request, out _))
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Inventory rejected shaped placement</color>");
+                return false;
+            }
+
+            operation.TransferStack.RemoveFromStack(placedStack.Count);
+            targetPlacementInventory.UpdateAllVisuals();
+            operation.OperationContext?.RecordResult(resolvedAnchorSlot, wasEmpty, placedStack.Count);
+            return operation.TransferStack.IsEmpty;
         }
 
         private static PlacementSnapshot ResolvePlacementSnapshot(

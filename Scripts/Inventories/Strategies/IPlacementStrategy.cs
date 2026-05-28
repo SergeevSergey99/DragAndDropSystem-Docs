@@ -16,19 +16,5 @@ namespace UDND.Inventories
         bool RequiresStrategyPlacement(ItemStack stack);
         bool UsesPerItemSlotPlanning { get; }
         bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter);
-
-        /// <summary>
-        /// Plan placement for a multi-cell (shaped) item against the target inventory.
-        /// Strategies return <see cref="ShapedPlacementPlanOutcome.NotApplicable"/> for the
-        /// 1×1 case so the planner falls back to slot-allocation logic.
-        /// </summary>
-        ShapedPlacementPlanResult TryPlanShapedPlacement(ShapedPlacementPlanContext context);
-
-        /// <summary>
-        /// Apply a previously planned shaped placement to the target inventory.
-        /// Strategies return <see cref="ShapedPlacementExecutionOutcome.NotApplicable"/> for the
-        /// 1×1 case so the executor falls back to slot-based placement.
-        /// </summary>
-        ShapedPlacementExecutionResult TryExecuteShapedPlacement(ShapedPlacementExecutionContext context);
     }
 }

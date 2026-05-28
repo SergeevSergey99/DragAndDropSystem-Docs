@@ -337,7 +337,7 @@ namespace UDND.Inventories
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item drops onto occupied slots are not supported");
             }
 
-            if (TryPlanShapedPlacementViaStrategy(
+            if (TryPlanShapedPlacement(
                     context,
                     entry,
                     policy,
@@ -482,7 +482,7 @@ namespace UDND.Inventories
             return new PlannedEntryTransfer(entry, requested, plannedAmount, allocations, previewTargetItemAdapter: targetItem);
         }
 
-        private bool TryPlanShapedPlacementViaStrategy(
+        private bool TryPlanShapedPlacement(
             DragContext context,
             DragEntry entry,
             ResolvedDropPolicy policy,
@@ -496,63 +496,97 @@ namespace UDND.Inventories
             out PlannedEntryTransfer plan)
         {
             plan = null;
-            var strategy = ResolvePlacementStrategy(targetInventory);
-            if (strategy == null)
+            if (PlacementShapeUtility.IsSingleCell(shape, entry.Orientation))
                 return false;
 
-            var planContext = new ShapedPlacementPlanContext(
+            if (targetInventory is not IPlacementInventory targetPlacementInventory ||
+                targetInventory is not IShapedDragTargetResolver dragTargetResolver ||
+                !targetPlacementInventory.Grid.HasValue)
+                return false;
+
+            if (requested != 1)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped grid placement requires a single item");
+                return true;
+            }
+
+            if (targetBaseSlotHint == null ||
+                !ReferenceEquals(targetBaseSlotHint.Inventory, targetInventory))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped grid placement requires a target cell");
+                return true;
+            }
+
+            if (!dragTargetResolver.TryResolveShapedPlacementAnchor(
+                    targetBaseSlotHint,
+                    context,
+                    entry,
+                    shape,
+                    targetItem,
+                    out _,
+                    out int anchorIndex))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item anchor is outside the target grid");
+                return true;
+            }
+
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                targetInventory,
+                targetItem,
+                requested,
+                context,
+                entry);
+            var previewStack = acceptanceRequest.CreatePreviewStack(requested, targetItem);
+            if (previewStack == null)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Failed to create shaped placement preview");
+                return true;
+            }
+
+            var ignoredPlacement = ReferenceEquals(targetInventory, entry.SourceInventory)
+                ? entry.SourcePlacement
+                : null;
+            var placementRequest = new PlacementRequest(
+                previewStack,
+                anchorIndex,
+                entry.Orientation,
+                shape);
+            if (!targetPlacementInventory.CanPlace(placementRequest, ignoredPlacement))
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target grid cells are not available");
+                return true;
+            }
+
+            var operation = new EntryPlanningOperation(
                 context,
                 entry,
+                policy,
                 targetInventory,
                 targetBaseSlotHint,
+                preferHint: true,
+                virtualSlots,
+                globalRules,
                 targetItem,
-                shape,
                 requested,
-                entry.Orientation);
-
-            var shapedResult = strategy.TryPlanShapedPlacement(planContext);
-            switch (shapedResult.Outcome)
+                acceptableByInventory: requested);
+            if (!IsCandidateAllowedByRules(operation, targetBaseSlotHint, requested))
             {
-                case ShapedPlacementPlanOutcome.NotApplicable:
-                    return false;
-
-                case ShapedPlacementPlanOutcome.Rejected:
-                    plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, shapedResult.FailureReason);
-                    return true;
-
-                case ShapedPlacementPlanOutcome.Planned:
-                {
-                    var operation = new EntryPlanningOperation(
-                        context,
-                        entry,
-                        policy,
-                        targetInventory,
-                        targetBaseSlotHint,
-                        preferHint: true,
-                        virtualSlots,
-                        globalRules,
-                        targetItem,
-                        requested,
-                        acceptableByInventory: requested);
-                    if (!IsCandidateAllowedByRules(operation, targetBaseSlotHint, requested))
-                    {
-                        plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target rules rejected shaped placement");
-                        return true;
-                    }
-
-                    plan = new PlannedEntryTransfer(
-                        entry,
-                        requested,
-                        requested,
-                        EmptyAllocations,
-                        previewTargetItemAdapter: targetItem,
-                        placementAllocation: shapedResult.Allocation);
-                    return true;
-                }
-
-                default:
-                    return false;
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target rules rejected shaped placement");
+                return true;
             }
+
+            plan = new PlannedEntryTransfer(
+                entry,
+                requested,
+                requested,
+                EmptyAllocations,
+                previewTargetItemAdapter: targetItem,
+                placementAllocation: new PlannedPlacementAllocation(
+                    anchorIndex,
+                    entry.Orientation,
+                    shape,
+                    requested));
+            return true;
         }
 
         private static bool TryPlanOccupiedSlotHandler(
