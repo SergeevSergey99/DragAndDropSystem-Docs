@@ -33,10 +33,9 @@ namespace UDND.Core
             SourceInventory = sourceInventory;
             SourcePlacement = sourcePlacement;
 
-            var stackStore = sourceInventory as ISlotStackStore
-                ?? sourceBaseSlot?.Inventory as ISlotStackStore;
-            if (SourcePlacement == null && stackStore != null && sourceBaseSlot != null &&
-                stackStore.TryGetPlacementAt(sourceBaseSlot, out var resolvedPlacement))
+            var sourceStore = sourceInventory ?? sourceBaseSlot?.Inventory;
+            if (SourcePlacement == null && sourceStore != null && sourceBaseSlot != null &&
+                sourceStore.TryGetPlacementAt(sourceBaseSlot, out var resolvedPlacement))
                 SourcePlacement = resolvedPlacement;
 
             Shape = SourcePlacement?.Shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
@@ -45,8 +44,8 @@ namespace UDND.Core
             BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, Orientation);
 
             var resolvedGrabOffset = grabOffset
-                ?? (stackStore != null
-                    ? stackStore.GetGrabOffset(SourcePlacement, sourceBaseSlot)
+                ?? (sourceStore != null
+                    ? sourceStore.GetGrabOffset(SourcePlacement, sourceBaseSlot)
                     : Vector2Int.zero);
             GrabOffset = grabOffset.HasValue
                 ? resolvedGrabOffset

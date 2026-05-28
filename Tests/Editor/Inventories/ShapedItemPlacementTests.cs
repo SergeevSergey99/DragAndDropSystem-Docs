@@ -283,15 +283,12 @@ namespace UDND.Tests.Inventories
                         foreach (var orientation in orientations)
                         {
                             var expected = LegacyRequireAllCoveredCells(anchorIndex, size, orientation, topology, slotCount);
-#pragma warning disable CS0618
                             var actual = PlacementCellUtility.GetCoveredIndices(
                                 anchorIndex,
                                 new RectPlacementShape(size.x, size.y),
                                 orientation,
-                                topology,
-                                slotCount,
+                                new RectGridTopology(topology),
                                 PlacementBoundsMode.RequireAllInBounds);
-#pragma warning restore CS0618
 
                             CollectionAssert.AreEqual(expected, actual);
                         }
@@ -335,15 +332,12 @@ namespace UDND.Tests.Inventories
                     foreach (var orientation in orientations)
                     {
                         var expected = LegacyPreviewCoveredCells(anchorCell, size, orientation, topology, slotCount);
-#pragma warning disable CS0618
                         var actual = PlacementCellUtility.GetCoveredIndices(
                             anchorCell,
                             new RectPlacementShape(size.x, size.y),
                             orientation,
-                            topology,
-                            slotCount,
+                            new RectGridTopology(topology),
                             PlacementBoundsMode.IncludeOnlyInBounds);
-#pragma warning restore CS0618
 
                         CollectionAssert.AreEqual(expected, actual);
                     }

@@ -8,7 +8,7 @@ namespace UDND.Inventories
     /// <summary>
     /// Base inventory interface
     /// </summary>
-    public interface IInventory
+    public interface IInventory : ISlotStackStore
     {
         /// <summary>
         /// All inventory slots

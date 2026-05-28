@@ -10,7 +10,7 @@ namespace UDND.Tests
     /// <summary>
     /// Creates lists of BaseSlot-backed GameObjects for strategy-level tests.
     /// Always call Dispose in [TearDown] to avoid leaking GameObjects between tests.
-    /// By default slots are backed by a minimal ISlotStackStore test inventory so
+    /// By default slots are backed by a minimal IInventory stack store so
     /// strategy tests exercise the same mutation boundary as runtime inventories.
     /// </summary>
     public static class TestSlotFactory
@@ -52,7 +52,7 @@ namespace UDND.Tests
                 Object.DestroyImmediate(slot.gameObject);
         }
 
-        private sealed class TestInventoryStore : IInventory, ISlotStackStore
+        private sealed class TestInventoryStore : IInventory
         {
             private readonly List<BaseSlot> _slots;
             private readonly List<ItemStack> _stacks = new List<ItemStack>();

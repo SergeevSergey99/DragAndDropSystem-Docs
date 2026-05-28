@@ -21,9 +21,6 @@ namespace UDND.Inventories
         [ShowIf(nameof(ShowCustomDragAmount))]
         private int _customDragAmount = 1;
 
-        private static bool _warnedMissingStackStoreForMerge;
-        private static bool _warnedMissingStackStoreForRemove;
-
         private bool ShowCustomDragAmount => ShowDragAmountSettings && _dragAmount == DragAmount.Custom;
         protected virtual bool ShowDragAmountSettings => true;
 
@@ -39,7 +36,7 @@ namespace UDND.Inventories
             return itemAdapter == null ? 0 : int.MaxValue;
         }
 
-        public bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
+        public bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
         public abstract bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         public abstract bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
@@ -245,21 +242,14 @@ namespace UDND.Inventories
             if (movedStack.IsEmpty)
                 return false;
 
-            var stackStore = baseSlot.Inventory as ISlotStackStore;
-            if (stackStore == null)
+            if (baseSlot.Inventory == null)
             {
-                if (!_warnedMissingStackStoreForMerge)
-                {
-                    Debug.LogWarning("[InventoryStrategyBase] Cannot merge into slot: inventory does not implement ISlotStackStore.");
-                    _warnedMissingStackStoreForMerge = true;
-                }
-
                 stack.TryAddToStack(movedStack);
                 return false;
             }
 
             int before = baseSlot.Stack.Count;
-            if (!stackStore.TryAddToSlotStack(baseSlot, movedStack))
+            if (!baseSlot.Inventory.TryAddToSlotStack(baseSlot, movedStack))
             {
                 stack.TryAddToStack(movedStack);
                 return false;
@@ -283,15 +273,9 @@ namespace UDND.Inventories
             if (baseSlot == null || amount <= 0)
                 return 0;
 
-            if (baseSlot.Inventory is ISlotStackStore stackStore &&
-                stackStore.TrySplitFromSlot(baseSlot, amount, out var removedStack))
+            if (baseSlot.Inventory != null &&
+                baseSlot.Inventory.TrySplitFromSlot(baseSlot, amount, out var removedStack))
                 return removedStack.Count;
-
-            if (baseSlot.Inventory is not ISlotStackStore && !_warnedMissingStackStoreForRemove)
-            {
-                Debug.LogWarning("[InventoryStrategyBase] Cannot remove from slot: inventory does not implement ISlotStackStore.");
-                _warnedMissingStackStoreForRemove = true;
-            }
 
             return 0;
         }

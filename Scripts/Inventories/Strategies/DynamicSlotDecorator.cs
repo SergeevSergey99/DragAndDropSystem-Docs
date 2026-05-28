@@ -46,7 +46,7 @@ namespace UDND.Inventories
             _ensureFreeSlotsFunc = ensureFreeSlotsFunc;
         }
 
-        public bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
+        public bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
 
         public bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {

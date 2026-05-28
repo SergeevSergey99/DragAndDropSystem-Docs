@@ -24,8 +24,8 @@ namespace UDND.Slots
         {
             get
             {
-                if (Inventory is ISlotStackStore stackStore &&
-                    stackStore.TryGetStackForSlot(this, out var placementStack))
+                if (Inventory != null &&
+                    Inventory.TryGetStackForSlot(this, out var placementStack))
                     return placementStack ?? ItemStack.Empty();
 
                 return ItemStack.Empty();
@@ -62,31 +62,31 @@ namespace UDND.Slots
 
         public virtual void SetStack(ItemStack stack)
         {
-            if (Inventory is ISlotStackStore stackStore)
+            if (Inventory != null)
             {
-                if (!stackStore.TrySetStackForSlot(this, stack ?? ItemStack.Empty()))
+                if (!Inventory.TrySetStackForSlot(this, stack ?? ItemStack.Empty()))
                     Debug.LogWarning($"[{name}] SetStack failed for placement-backed slot {Index}");
 
                 UpdateVisuals();
                 return;
             }
 
-            Debug.LogWarning($"[{name}] SetStack ignored: BaseSlot requires ISlotStackStore-backed storage.");
+            Debug.LogWarning($"[{name}] SetStack ignored: BaseSlot requires an inventory-backed stack store.");
             UpdateVisuals();
         }
 
         public virtual void Clear()
         {
-            if (Inventory is ISlotStackStore stackStore)
+            if (Inventory != null)
             {
-                if (!stackStore.TryClearSlot(this))
+                if (!Inventory.TryClearSlot(this))
                     Debug.LogWarning($"[{name}] Clear failed for placement-backed slot {Index}");
 
                 UpdateVisuals();
                 return;
             }
 
-            Debug.LogWarning($"[{name}] Clear ignored: BaseSlot requires ISlotStackStore-backed storage.");
+            Debug.LogWarning($"[{name}] Clear ignored: BaseSlot requires an inventory-backed stack store.");
             UpdateVisuals();
         }
         

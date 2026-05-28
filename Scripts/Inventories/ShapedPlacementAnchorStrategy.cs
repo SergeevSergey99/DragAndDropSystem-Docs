@@ -44,9 +44,9 @@ namespace UDND.Inventories
             {
                 if (Entry.SourcePlacement != null &&
                     Entry.SourceBaseSlot != null &&
-                    Entry.SourceInventory is ISlotStackStore sourceInventory)
+                    Entry.SourceInventory != null)
                 {
-                    return sourceInventory.GetGrabOffset(Entry.SourcePlacement, Entry.SourceBaseSlot);
+                    return Entry.SourceInventory.GetGrabOffset(Entry.SourcePlacement, Entry.SourceBaseSlot);
                 }
 
                 return Entry.GrabOffset;

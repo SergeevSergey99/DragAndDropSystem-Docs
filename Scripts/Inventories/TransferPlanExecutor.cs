@@ -787,8 +787,7 @@ namespace UDND.Inventories
 
             var sourceSnapshotProvider = sourceInventory as IInventorySnapshotProvider;
             var targetSnapshotProvider = targetInventory as IInventorySnapshotProvider;
-            var sourceStackStore = sourceInventory as ISlotStackStore
-                ?? sourceSlot?.Inventory as ISlotStackStore;
+            var sourceStackStore = sourceInventory ?? sourceSlot?.Inventory;
 
             var sourceInventorySnapshot = sourceSnapshotProvider?.CaptureSnapshot();
             var targetInventorySnapshot = targetSnapshotProvider?.CaptureSnapshot();
@@ -1044,7 +1043,6 @@ namespace UDND.Inventories
             }
 
             operation.TransferStack.RemoveFromStack(placedStack.Count);
-            targetPlacementInventory.UpdateAllVisuals();
             operation.OperationContext?.RecordResult(resolvedAnchorSlot, wasEmpty, placedStack.Count);
             return operation.TransferStack.IsEmpty;
         }

@@ -14,61 +14,6 @@ namespace UDND.Core
     {
         private static readonly IReadOnlyList<int> EmptyIndices = Array.Empty<int>();
 
-        [Obsolete("Use the IInventoryTopology overload or PlacementStore.GetCoveredIndices.")]
-        public static IReadOnlyList<int> GetCoveredIndices(
-            int anchorIndex,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            GridTopology? grid,
-            int slotCount,
-            PlacementBoundsMode boundsMode)
-        {
-            if (slotCount <= 0 || anchorIndex < 0)
-                return EmptyIndices;
-
-            if (!grid.HasValue)
-                return GetCollapsedAnchorIndex(anchorIndex, slotCount);
-
-            var topology = new RectGridTopology(grid.Value);
-            if (!topology.IsValidIndex(anchorIndex))
-                return EmptyIndices;
-
-            return GetCoveredIndices(
-                topology.ToCell(anchorIndex),
-                shape,
-                orientation,
-                topology,
-                slotCount,
-                boundsMode);
-        }
-
-        [Obsolete("Use the IInventoryTopology overload or PlacementStore.GetCoveredIndices.")]
-        public static IReadOnlyList<int> GetCoveredIndices(
-            Vector2Int anchorCell,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            GridTopology? grid,
-            int slotCount,
-            PlacementBoundsMode boundsMode)
-        {
-            if (slotCount <= 0)
-                return EmptyIndices;
-
-            if (!grid.HasValue)
-            {
-                int anchorIndex = anchorCell.y == 0 ? anchorCell.x : -1;
-                return GetCollapsedAnchorIndex(anchorIndex, slotCount);
-            }
-
-            return GetCoveredIndices(
-                anchorCell,
-                shape,
-                orientation,
-                new RectGridTopology(grid.Value),
-                slotCount,
-                boundsMode);
-        }
-
         public static IReadOnlyList<int> GetCoveredIndices(
             int anchorIndex,
             IPlacementShape shape,
@@ -105,25 +50,6 @@ namespace UDND.Core
                 boundsMode);
         }
 
-        private static IReadOnlyList<int> GetCoveredIndices(
-            Vector2Int anchorCell,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            IInventoryTopology topology,
-            int slotCount,
-            PlacementBoundsMode boundsMode)
-        {
-            if (topology == null || slotCount <= 0)
-                return EmptyIndices;
-
-            return GetCoveredIndicesCore(
-                anchorCell,
-                shape,
-                orientation,
-                new SlotCountLimitedTopology(topology, slotCount),
-                boundsMode);
-        }
-
         private static IReadOnlyList<int> GetCoveredIndicesCore(
             Vector2Int anchorCell,
             IPlacementShape shape,
@@ -157,13 +83,6 @@ namespace UDND.Core
             }
 
             return result.Count > 0 ? result : EmptyIndices;
-        }
-
-        private static IReadOnlyList<int> GetCollapsedAnchorIndex(int anchorIndex, int slotCount)
-        {
-            return anchorIndex >= 0 && anchorIndex < slotCount
-                ? new[] { anchorIndex }
-                : EmptyIndices;
         }
 
     }

@@ -9,7 +9,7 @@ namespace UDND.Inventories
     /// </summary>
     public interface IPlacementStrategy
     {
-        bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex);
+        bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex);
         bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
         bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);

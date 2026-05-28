@@ -170,8 +170,8 @@ namespace UDND.Inventories
             if (sourceStack == null || sourceStack.IsEmpty)
                 return false;
 
-            var sourceStore = sourceBaseSlot.Inventory as ISlotStackStore;
-            var destinationStore = destinationBaseSlot.Inventory as ISlotStackStore;
+            var sourceStore = sourceBaseSlot.Inventory;
+            var destinationStore = destinationBaseSlot.Inventory;
             if (sourceStore == null || destinationStore == null)
                 return false;
 
