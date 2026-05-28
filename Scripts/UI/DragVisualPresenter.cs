@@ -20,7 +20,7 @@ namespace UDND.UI
         [SerializeField, Min(0f)] private float _batchVisualScaleStep = 0.08f;
 
         private readonly Dictionary<MonoBehaviour, List<VisualInstance>> _visualPool = new Dictionary<MonoBehaviour, List<VisualInstance>>();
-        private readonly Dictionary<UniversalInventory, InventoryDragVisualBinder> _bindersByInventory = new Dictionary<UniversalInventory, InventoryDragVisualBinder>();
+        private readonly Dictionary<IInventory, InventoryDragVisualBinder> _bindersByInventory = new Dictionary<IInventory, InventoryDragVisualBinder>();
 
         private readonly List<ActiveVisual> _activeVisuals = new List<ActiveVisual>();
         private bool _subscribed;
@@ -69,8 +69,8 @@ namespace UDND.UI
 
         public MonoBehaviour ResolveVisualPrefab(IInventory inventory)
         {
-            if (inventory is UniversalInventory universalInventory &&
-                _bindersByInventory.TryGetValue(universalInventory, out var binder) &&
+            if (inventory != null &&
+                _bindersByInventory.TryGetValue(inventory, out var binder) &&
                 binder != null &&
                 binder.DragVisualPrefab != null)
             {

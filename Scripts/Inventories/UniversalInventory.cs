@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink
+    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteractionSurface
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -1202,7 +1202,7 @@ namespace UDND.Inventories
             return items;
         }
 
-        internal void NotifyPointerEnter(BaseSlot baseSlot)
+        public void NotifyPointerEnter(BaseSlot baseSlot)
         {
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return;
@@ -1210,7 +1210,7 @@ namespace UDND.Inventories
             _pointerHoveredBaseSlot = baseSlot;
         }
 
-        internal void NotifyPointerExit(BaseSlot baseSlot)
+        public void NotifyPointerExit(BaseSlot baseSlot)
         {
             if (_pointerHoveredBaseSlot == baseSlot)
             {
@@ -1218,7 +1218,7 @@ namespace UDND.Inventories
             }
         }
 
-        internal void NotifySlotInteracted(BaseSlot baseSlot)
+        public void NotifySlotInteracted(BaseSlot baseSlot)
         {
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return;

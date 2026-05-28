@@ -38,7 +38,7 @@ namespace UDND.Interaction
 
         public RuntimeInteractionSnapshot(
             InteractionInputKind inputKind,
-            UniversalInventory inventory,
+            IInventory inventory,
             BaseSlot activeSlot,
             BaseSlot focusedSlot,
             BaseSlot hoveredSlot,
@@ -76,7 +76,7 @@ namespace UDND.Interaction
         public InteractionInputKind InputKind { get; }
 
         // Inventory currently being routed. May be null for global/default-profile input.
-        public UniversalInventory Inventory { get; }
+        public IInventory Inventory { get; }
 
         // Slot chosen as the concrete action target for this execution.
         public BaseSlot ActiveSlot { get; }

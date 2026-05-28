@@ -39,7 +39,7 @@ namespace UDND.Selection
                 : ActionResult.Failed("Failed to start multi drag");
         }
 
-        private List<BaseSlot> BuildSourceSlots(UniversalInventory inventory, BaseSlot activeSlot)
+        private List<BaseSlot> BuildSourceSlots(IInventory inventory, BaseSlot activeSlot)
         {
             var result = new List<BaseSlot>();
 
@@ -66,7 +66,7 @@ namespace UDND.Selection
             return result;
         }
 
-        private bool IsEligible(BaseSlot baseSlot, UniversalInventory inventory)
+        private bool IsEligible(BaseSlot baseSlot, IInventory inventory)
         {
             if (baseSlot == null || baseSlot.IsEmpty || !baseSlot.IsInteractable)
                 return false;

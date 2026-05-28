@@ -89,8 +89,8 @@ namespace UDND.UI
             if (_useShapedPlacementBounds &&
                 entry.SourcePlacement != null &&
                 !PlacementShapeUtility.IsSingleCell(entry.SourcePlacement.Shape, entry.SourcePlacement.Orientation) &&
-                entry.SourceInventory is UniversalInventory inventory &&
-                TryGetPlacementSize(inventory, entry.SourcePlacement, out var placementSize))
+                entry.SourceInventory != null &&
+                TryGetPlacementSize(entry.SourceInventory, entry.SourcePlacement, out var placementSize))
             {
                 return placementSize;
             }
@@ -117,7 +117,7 @@ namespace UDND.UI
                 _iconImage.rectTransform.localEulerAngles = new Vector3(0f, 0f, -90f * (int)orientation);
         }
 
-        private bool TryGetPlacementSize(UniversalInventory inventory, Placement placement, out Vector2 size)
+        private bool TryGetPlacementSize(IInventory inventory, Placement placement, out Vector2 size)
         {
             size = default;
             bool hasPoint = false;

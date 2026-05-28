@@ -73,9 +73,9 @@ namespace UDND.Interaction
                 DragAndDropManager.AutoCreateInstance.PopDropTarget(this);
             }
 
-            if (baseSlot.Inventory is UniversalInventory universalInventory)
+            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback)
             {
-                universalInventory.NotifyPointerExit(baseSlot);
+                interactionFeedback.NotifyPointerExit(baseSlot);
             }
 
             if (IsHovering)
@@ -85,9 +85,9 @@ namespace UDND.Interaction
         public override void OnPointerEnter(PointerEventData eventData)
         {
             base.OnPointerEnter(eventData);
-            if (baseSlot?.Inventory is UniversalInventory universalInventory)
+            if (baseSlot?.Inventory is IInventoryInteractionSurface interactionFeedback)
             {
-                universalInventory.NotifyPointerEnter(baseSlot);
+                interactionFeedback.NotifyPointerEnter(baseSlot);
             }
 
             TryRaiseHoverEnter(eventData);
@@ -97,9 +97,9 @@ namespace UDND.Interaction
         public override void OnPointerExit(PointerEventData eventData)
         {
             base.OnPointerExit(eventData);
-            if (baseSlot?.Inventory is UniversalInventory universalInventory)
+            if (baseSlot?.Inventory is IInventoryInteractionSurface interactionFeedback)
             {
-                universalInventory.NotifyPointerExit(baseSlot);
+                interactionFeedback.NotifyPointerExit(baseSlot);
             }
 
             TryRaiseHoverExit(eventData);
@@ -124,9 +124,9 @@ namespace UDND.Interaction
                 return;
             }
 
-            if (baseSlot.Inventory is UniversalInventory universalInventory)
+            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback)
             {
-                universalInventory.NotifySlotInteracted(baseSlot);
+                interactionFeedback.NotifySlotInteracted(baseSlot);
             }
 
             InputEventRouter.AutoCreateInstance.RoutePointerDown(this, eventData);
@@ -192,8 +192,8 @@ namespace UDND.Interaction
             if (baseSlot == null)
                 return;
 
-            if (baseSlot.Inventory is UniversalInventory universalInventory &&
-                universalInventory.ShowDropPreview(baseSlot, DragAndDropManager.AutoCreateInstance.CurrentContext))
+            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback &&
+                interactionFeedback.ShowDropPreview(baseSlot, DragAndDropManager.AutoCreateInstance.CurrentContext))
                 return;
 
             baseSlot.Highlight(true);
@@ -204,8 +204,8 @@ namespace UDND.Interaction
             if (baseSlot == null)
                 return;
 
-            if (baseSlot.Inventory is UniversalInventory universalInventory)
-                universalInventory.ClearDropPreview();
+            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback)
+                interactionFeedback.ClearDropPreview();
 
             baseSlot.Highlight(false);
         }

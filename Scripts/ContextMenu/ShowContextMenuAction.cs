@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UDND.Core;
 using UDND.Interaction;
+using UDND.Inventories;
+using UDND.Slots;
 
 namespace UDND.ContextMenu
 {
@@ -24,21 +26,23 @@ namespace UDND.ContextMenu
             if (ContextMenuManager.AutoCreateInstance.IsOpen)
                 return true;
 
-            return snapshot?.Inventory != null
+            if (snapshot?.Inventory is not UniversalInventory inventory)
+                return false;
+
+            return inventory != null
                    && (ContextMenuManager.AutoCreateInstance.DefaultPreset != null
-                       || snapshot.Inventory.GetComponent<ContextMenuBinder>() != null);
+                       || inventory.GetComponent<ContextMenuBinder>() != null);
         }
 
         public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
-            var inventory = snapshot?.Inventory;
-            if (inventory == null)
+            if (snapshot?.Inventory is not UniversalInventory inventory)
             {
                 ContextMenuManager.AutoCreateInstance.Hide();
-                return ActionResult.Failed("Inventory is null");
+                return ActionResult.Failed("Context menu requires UniversalInventory");
             }
             
-            var slot = snapshot.ActiveSlot ?? inventory.ResolveAutoTransferSlot();
+            var slot = snapshot.ActiveSlot ?? ResolveAutoTransferSlot(inventory);
 
             var ctx = new ContextMenuContext
             {
@@ -59,6 +63,13 @@ namespace UDND.ContextMenu
 
             ContextMenuManager.AutoCreateInstance.Show(entries, ctx);
             return ActionResult.Succeeded();
+        }
+
+        private static BaseSlot ResolveAutoTransferSlot(IInventory inventory)
+        {
+            return inventory is IInventoryInteractionSurface interactionSurface
+                ? interactionSurface.ResolveAutoTransferSlot()
+                : null;
         }
     }
 }

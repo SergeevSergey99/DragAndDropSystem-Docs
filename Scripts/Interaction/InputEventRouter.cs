@@ -35,17 +35,17 @@ namespace UDND.Interaction
 #endif
 
         // Dictionary for overriding bindings for a specific inventory (for example, different UIs or operating modes)
-        private readonly Dictionary<UniversalInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
+        private readonly Dictionary<IInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
         // Dictionary storing runtime state for each inventory (hovered slot, focus source, pressed buttons, etc.)
-        private readonly Dictionary<UniversalInventory, RuntimeState> _runtimeStateByInventory = new();
+        private readonly Dictionary<IInventory, RuntimeState> _runtimeStateByInventory = new();
 #if UDND_INPUT_SYSTEM
         // Dictionary storing InputAction subscriptions per inventory so they can be unsubscribed when needed
-        private readonly Dictionary<UniversalInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
+        private readonly Dictionary<IInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
         // InputAction subscriptions from the default profile (global, routed into _activeInventory)
         private readonly List<InputActionSubscription> _defaultProfileSubscriptions = new();
 #endif
         // The last inventory the user explicitly interacted with. Used only for inventory-scoped quick actions.
-        private UniversalInventory _activeInventory;
+        private IInventory _activeInventory;
 
         // Set used to deduplicate action invocations within a frame and prevent double execution from multiple events (for example, PointerDown + InputAction)
         private readonly HashSet<IntentDedupKey> _handledThisFrame = new();
@@ -57,14 +57,14 @@ namespace UDND.Interaction
         private readonly float[] _globalPressTime = new float[3];
         private readonly Vector2[] _globalPressPosition = new Vector2[3];
         // Temporary list used to remove invalid (destroyed) inventories from dictionaries
-        private readonly List<UniversalInventory> _staleInventories = new List<UniversalInventory>();
+        private readonly List<IInventory> _staleInventories = new List<IInventory>();
 
         // Hold drag settings and state
         [Header("Hold Drag")]
         [SerializeField, Tooltip("Progressive hold-drag settings. Null = feature disabled.")]
         private HoldDragSettings _holdDragSettings;
 
-        private UniversalInventory _holdCountInventory;
+        private IInventory _holdCountInventory;
         private BaseSlot _holdCountBaseSlot;
         private int _holdCountLastAmount = -1;
 
@@ -149,11 +149,14 @@ namespace UDND.Interaction
 
 #if UDND_INPUT_SYSTEM
         public bool TryRouteInventoryAction(
-            UniversalInventory inventory,
+            IInventory inventory,
             InventoryActionBase action,
             InputAction.CallbackContext callbackContext)
         {
             if (inventory == null || action == null)
+                return false;
+
+            if (inventory is not UniversalInventory universalInventory)
                 return false;
 
             var key = new IntentDedupKey((int)callbackContext.phase, inventory, action);
@@ -163,19 +166,19 @@ namespace UDND.Interaction
             var state = GetOrCreateState(inventory);
             var activeSlot = state.FocusedSlot
                              ?? state.HoveredSlot
-                             ?? inventory.ResolveAutoTransferSlot();
-            if (!action.CanExecute(inventory, activeSlot))
+                             ?? ResolveAutoTransferSlot(inventory);
+            if (!action.CanExecute(universalInventory, activeSlot))
             {
                 return true;
             }
 
-            _ = action.Execute(inventory, activeSlot);
+            _ = action.Execute(universalInventory, activeSlot);
 
             return true;
         }
 #endif
 
-        public FocusSource ResolveActiveFocusSource(UniversalInventory inventory)
+        public FocusSource ResolveActiveFocusSource(IInventory inventory)
         {
             if (inventory == null)
                 return FocusSource.None;
@@ -201,10 +204,10 @@ namespace UDND.Interaction
             return true;
         }
 
-        public bool IsInventoryActive(UniversalInventory inventory)
+        public bool IsInventoryActive(IInventory inventory)
             => inventory != null && ReferenceEquals(_activeInventory, inventory);
 
-        public BaseSlot ResolveQuickActionSlot(UniversalInventory inventory, bool requireActiveInventory = true)
+        public BaseSlot ResolveQuickActionSlot(IInventory inventory, bool requireActiveInventory = true)
         {
             if (inventory == null)
                 return null;
@@ -215,7 +218,7 @@ namespace UDND.Interaction
             var state = GetOrCreateState(inventory);
             return state.FocusedSlot
                    ?? state.HoveredSlot
-                   ?? inventory.ResolveAutoTransferSlot();
+                   ?? ResolveAutoTransferSlot(inventory);
         }
 
         public void RoutePointerEnter(SlotInputAdapter adapter, PointerEventData eventData)
@@ -575,7 +578,7 @@ namespace UDND.Interaction
         }
 
 #if UDND_INPUT_SYSTEM
-        private void HandleExtraInputAction(UniversalInventory inventory, InputAction.CallbackContext context)
+        private void HandleExtraInputAction(IInventory inventory, InputAction.CallbackContext context)
         {
             if (inventory == null)
                 return;
@@ -716,7 +719,7 @@ namespace UDND.Interaction
             _defaultProfileSubscriptions.Clear();
         }
 
-        private void RebindExtraInputActions(UniversalInventory inventory, InventoryExtraInteractionBinder binder)
+        private void RebindExtraInputActions(IInventory inventory, InventoryExtraInteractionBinder binder)
         {
             UnbindExtraInputActions(inventory);
 
@@ -755,7 +758,7 @@ namespace UDND.Interaction
             }
         }
 
-        private void UnbindExtraInputActions(UniversalInventory inventory)
+        private void UnbindExtraInputActions(IInventory inventory)
         {
             if (inventory == null)
                 return;
@@ -787,7 +790,7 @@ namespace UDND.Interaction
         }
 #endif
 
-        private IReadOnlyList<PointerBinding> ResolvePointerBindings(UniversalInventory inventory)
+        private IReadOnlyList<PointerBinding> ResolvePointerBindings(IInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
@@ -799,7 +802,7 @@ namespace UDND.Interaction
                 : Array.Empty<PointerBinding>();
         }
 
-        private IReadOnlyList<KeyBinding> ResolveKeyBindings(UniversalInventory inventory)
+        private IReadOnlyList<KeyBinding> ResolveKeyBindings(IInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
@@ -811,7 +814,7 @@ namespace UDND.Interaction
                 : Array.Empty<KeyBinding>();
         }
 
-        private IReadOnlyList<LegacyInputActionBinding> ResolveLegacyInputActionBindings(UniversalInventory inventory)
+        private IReadOnlyList<LegacyInputActionBinding> ResolveLegacyInputActionBindings(IInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
@@ -824,7 +827,7 @@ namespace UDND.Interaction
         }
 
         private bool TryMarkKeyboardLikeActionHandled(
-            UniversalInventory inventory,
+            IInventory inventory,
             SlotInteractionAction action,
             KeyTriggerPhase triggerPhase)
         {
@@ -850,7 +853,7 @@ namespace UDND.Interaction
             }
         }
 
-        private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(UniversalInventory inventory)
+        private IReadOnlyList<InputActionBinding> ResolveInputActionBindings(IInventory inventory)
         {
             if (inventory != null && _overridesByInventory.TryGetValue(inventory, out var overrideBinder) && overrideBinder != null)
             {
@@ -863,14 +866,14 @@ namespace UDND.Interaction
         }
 #endif
 
-        public float GetPressedTime(UniversalInventory inventory)
+        public float GetPressedTime(IInventory inventory)
         {
             if (inventory != null && _runtimeStateByInventory.TryGetValue(inventory, out var state))
                 return state.PressedTime;
             return -1f;
         }
 
-        public float GetHoldDuration(UniversalInventory inventory)
+        public float GetHoldDuration(IInventory inventory)
         {
             float pressedTime = GetPressedTime(inventory);
             return pressedTime >= 0f ? Mathf.Max(0f, Time.unscaledTime - pressedTime) : 0f;
@@ -879,7 +882,7 @@ namespace UDND.Interaction
         /// <summary>
         /// Start hold counting. Called from StartHoldCountAction (Down phase).
         /// </summary>
-        public void BeginHoldCount(UniversalInventory inventory, BaseSlot baseSlot)
+        public void BeginHoldCount(IInventory inventory, BaseSlot baseSlot)
         {
             if (_holdDragSettings == null || baseSlot == null || baseSlot.IsEmpty)
                 return;
@@ -948,7 +951,7 @@ namespace UDND.Interaction
             state.PressedPosition = Vector2.zero;
         }
 
-        private RuntimeState GetOrCreateState(UniversalInventory inventory)
+        private RuntimeState GetOrCreateState(IInventory inventory)
         {
             if (!_runtimeStateByInventory.TryGetValue(inventory, out var state) || state == null)
             {
@@ -959,13 +962,13 @@ namespace UDND.Interaction
             return state;
         }
 
-        private void MarkInventoryActive(UniversalInventory inventory)
+        private void MarkInventoryActive(IInventory inventory)
         {
             if (inventory != null)
                 _activeInventory = inventory;
         }
 
-        private void TryClearActiveInventory(UniversalInventory inventory)
+        private void TryClearActiveInventory(IInventory inventory)
         {
             if (!ReferenceEquals(_activeInventory, inventory))
                 return;
@@ -988,20 +991,20 @@ namespace UDND.Interaction
 
             foreach (var kv in _runtimeStateByInventory)
             {
-                if (kv.Key == null)
+                if (!IsInventoryAlive(kv.Key))
                     _staleInventories.Add(kv.Key);
             }
 
             foreach (var kv in _overridesByInventory)
             {
-                if (kv.Key == null && !_staleInventories.Contains(kv.Key))
+                if (!IsInventoryAlive(kv.Key) && !_staleInventories.Contains(kv.Key))
                     _staleInventories.Add(kv.Key);
             }
 
 #if UDND_INPUT_SYSTEM
             foreach (var kv in _actionSubscriptionsByInventory)
             {
-                if (kv.Key == null && !_staleInventories.Contains(kv.Key))
+                if (!IsInventoryAlive(kv.Key) && !_staleInventories.Contains(kv.Key))
                     _staleInventories.Add(kv.Key);
             }
 #endif
@@ -1009,7 +1012,7 @@ namespace UDND.Interaction
             for (int i = 0; i < _staleInventories.Count; i++)
             {
                 var stale = _staleInventories[i];
-                if (stale != null)
+                if (IsInventoryAlive(stale))
                     continue;
 
                 _runtimeStateByInventory.Remove(stale);
@@ -1031,7 +1034,7 @@ namespace UDND.Interaction
 
         private RuntimeInteractionSnapshot BuildInteractionSnapshot(
             InteractionInputKind inputKind,
-            UniversalInventory inventory,
+            IInventory inventory,
             SlotInputAdapter adapter,
             PointerEventData pointerEventData,
             PointerTriggerPhase? pointerPhase,
@@ -1077,18 +1080,13 @@ namespace UDND.Interaction
                 selection: SelectionManager.IsInstanceExist ? SelectionManager.AutoCreateInstance.CurrentContext : SelectionContext.Empty);
         }
 
-        private bool TryGetInventory(SlotInputAdapter adapter, out UniversalInventory inventory)
+        private bool TryGetInventory(SlotInputAdapter adapter, out IInventory inventory)
         {
-            inventory = null;
-            if (adapter?.BaseSlot?.Inventory is UniversalInventory universalInventory)
-            {
-                inventory = universalInventory;
-                return true;
-            }
-            return false;
+            inventory = adapter?.BaseSlot?.Inventory;
+            return inventory != null;
         }
 
-        private bool TryResolveInventoryForPointerUp(SlotInputAdapter adapter, out UniversalInventory inventory)
+        private bool TryResolveInventoryForPointerUp(SlotInputAdapter adapter, out IInventory inventory)
         {
             if (TryGetInventory(adapter, out inventory))
                 return true;
@@ -1099,7 +1097,7 @@ namespace UDND.Interaction
             var context = DragAndDropManager.AutoCreateInstance.CurrentContext;
             if (context != null && context.Entries.Count > 0)
             {
-                inventory = context.Entries[0].SourceInventory as UniversalInventory;
+                inventory = context.Entries[0].SourceInventory;
                 return inventory != null;
             }
 
@@ -1169,7 +1167,7 @@ namespace UDND.Interaction
             ClearPressedState(state);
         }
 
-        private bool TryResolveInventoryForGlobalPointerUp(out UniversalInventory inventory)
+        private bool TryResolveInventoryForGlobalPointerUp(out IInventory inventory)
         {
             inventory = null;
 
@@ -1179,7 +1177,7 @@ namespace UDND.Interaction
             var context = DragAndDropManager.AutoCreateInstance.CurrentContext;
             if (context != null && context.Entries.Count > 0)
             {
-                inventory = context.Entries[0].SourceInventory as UniversalInventory;
+                inventory = context.Entries[0].SourceInventory;
                 return inventory != null;
             }
 
@@ -1538,7 +1536,7 @@ namespace UDND.Interaction
 
         private Selectable FindBestFocusTarget()
         {
-            if (_activeInventory != null && _activeInventory.isActiveAndEnabled)
+            if (IsInventoryActiveAndEnabled(_activeInventory))
             {
                 var target = FindFirstActiveNavigationTarget(_activeInventory);
                 if (target != null)
@@ -1559,8 +1557,11 @@ namespace UDND.Interaction
             return null;
         }
 
-        private static Selectable FindFirstActiveNavigationTarget(UniversalInventory inventory)
+        private static Selectable FindFirstActiveNavigationTarget(IInventory inventory)
         {
+            if (inventory is not MonoBehaviour inventoryComponent)
+                return null;
+
             var slots = inventory.Slots;
             for (int i = 0; i < slots.Count; i++)
             {
@@ -1570,11 +1571,31 @@ namespace UDND.Interaction
                     return adapter;
             }
 
-            var dropArea = inventory.GetComponentInChildren<InventoryDropArea>(includeInactive: false);
+            var dropArea = inventoryComponent.GetComponentInChildren<InventoryDropArea>(includeInactive: false);
             if (dropArea != null && dropArea.isActiveAndEnabled)
                 return dropArea;
 
             return null;
+        }
+
+        private static BaseSlot ResolveAutoTransferSlot(IInventory inventory)
+        {
+            return inventory is IInventoryInteractionSurface interactionSurface
+                ? interactionSurface.ResolveAutoTransferSlot()
+                : null;
+        }
+
+        private static bool IsInventoryAlive(IInventory inventory)
+        {
+            if (inventory == null)
+                return false;
+
+            return inventory is not UnityEngine.Object unityObject || unityObject != null;
+        }
+
+        private static bool IsInventoryActiveAndEnabled(IInventory inventory)
+        {
+            return inventory is MonoBehaviour monoBehaviour && monoBehaviour.isActiveAndEnabled;
         }
 
 #if UDND_INPUT_SYSTEM

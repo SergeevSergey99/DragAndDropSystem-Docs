@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UDND.Core;
 using UDND.Inventories;
+using UDND.Slots;
 
 namespace UDND.Interaction
 {
@@ -162,8 +163,11 @@ namespace UDND.Interaction
             if (_sceneAction == null || snapshot?.Inventory == null)
                 return false;
 
-            var slot = snapshot.ActiveSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
-            return _sceneAction.CanExecute(snapshot.Inventory, slot);
+            if (snapshot.Inventory is not UniversalInventory universalInventory)
+                return false;
+
+            var slot = snapshot.ActiveSlot ?? ResolveAutoTransferSlot(snapshot.Inventory);
+            return _sceneAction.CanExecute(universalInventory, slot);
         }
 
         public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
@@ -171,11 +175,21 @@ namespace UDND.Interaction
             if (_sceneAction == null || snapshot?.Inventory == null)
                 return ActionResult.Failed("Inventory action is not configured");
 
-            var slot = snapshot.ActiveSlot ?? snapshot.Inventory.ResolveAutoTransferSlot();
-            if (!_sceneAction.CanExecute(snapshot.Inventory, slot))
+            if (snapshot.Inventory is not UniversalInventory universalInventory)
+                return ActionResult.Failed("Inventory action requires UniversalInventory");
+
+            var slot = snapshot.ActiveSlot ?? ResolveAutoTransferSlot(snapshot.Inventory);
+            if (!_sceneAction.CanExecute(universalInventory, slot))
                 return ActionResult.Failed("Inventory action cannot execute");
 
-            return _sceneAction.Execute(snapshot.Inventory, slot);
+            return _sceneAction.Execute(universalInventory, slot);
+        }
+
+        private static BaseSlot ResolveAutoTransferSlot(IInventory inventory)
+        {
+            return inventory is IInventoryInteractionSurface interactionSurface
+                ? interactionSurface.ResolveAutoTransferSlot()
+                : null;
         }
     }
 }
