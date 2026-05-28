@@ -82,7 +82,7 @@ namespace UDND.Inventories
         private bool _placementStoreUsesGrid;
         private GridTopology _placementStoreGridTopology;
         private SlotShapedItemPolicy _placementStoreSlotPolicy;
-        private readonly List<BaseSlot> _dropPreviewSlots = new List<BaseSlot>();
+        private DropPreviewController _dropPreviewController;
 
         public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
         public int SlotCount => _slots.Count;
@@ -614,109 +614,18 @@ namespace UDND.Inventories
             out IReadOnlyList<BaseSlot> previewSlots,
             out bool canPlace)
         {
-            previewSlots = Array.Empty<BaseSlot>();
-            canPlace = false;
-
-            if (targetBaseSlot == null ||
-                !ReferenceEquals(targetBaseSlot.Inventory, this) ||
-                context == null ||
-                context.Entries == null ||
-                context.Entries.Count == 0)
-                return false;
-
-            var entry = context.Entries[0];
-            if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.PrimaryAdapter == null)
-                return false;
-
-            if (!TransferItemConversionUtility.TryResolveTargetItem(
-                    entry.SourceInventory,
-                    this,
-                    entry.Stack.PrimaryAdapter,
-                    out var targetItem))
-                return false;
-
-            var shape = PlacementShapeUtility.Resolve(targetItem);
-            if (!_useGridTopology || PlacementShapeUtility.IsSingleCell(shape, entry.Orientation))
-            {
-                previewSlots = new[] { targetBaseSlot };
-                canPlace = true;
-                return true;
-            }
-
-            if (!TryResolveShapedPlacementAnchorCell(
-                    targetBaseSlot,
-                    context,
-                    entry,
-                    shape,
-                    targetItem,
-                    out var anchorCell))
-                return true;
-
-            var hasValidAnchor = TryGetIndexForCell(anchorCell, out int anchorIndex);
-            var coveredIndices = GetPreviewCoveredCells(anchorCell, shape, entry.Orientation);
-            if (coveredIndices == null || coveredIndices.Count == 0)
-                return true;
-
-            var slots = new List<BaseSlot>(coveredIndices.Count);
-            for (int i = 0; i < coveredIndices.Count; i++)
-            {
-                var slot = GetSlot(coveredIndices[i]);
-                if (slot != null)
-                    slots.Add(slot);
-            }
-
-            previewSlots = slots;
-
-            var acceptanceRequest = new InventoryAcceptanceRequest(
-                this,
-                targetItem,
-                entry.Stack.Count,
-                context,
-                entry);
-            var previewStack = acceptanceRequest.CreatePreviewStack(entry.Stack.Count, targetItem);
-            if (previewStack == null)
-                return true;
-
-            if (!hasValidAnchor)
-                return true;
-
-            var ignoredPlacement = ReferenceEquals(entry.SourceInventory, this)
-                ? entry.SourcePlacement
-                : null;
-            canPlace = CanPlace(
-                new PlacementRequest(previewStack, anchorIndex, entry.Orientation, shape),
-                ignoredPlacement);
-            return true;
+            return EnsureDropPreviewController()
+                .TryGetDropPreviewSlots(targetBaseSlot, context, out previewSlots, out canPlace);
         }
 
         public bool ShowDropPreview(BaseSlot targetBaseSlot, DragContext context)
         {
-            ClearDropPreview();
-
-            if (!TryGetDropPreviewSlots(targetBaseSlot, context, out var previewSlots, out _) ||
-                previewSlots == null ||
-                previewSlots.Count == 0)
-                return false;
-
-            for (int i = 0; i < previewSlots.Count; i++)
-            {
-                var slot = previewSlots[i];
-                if (slot == null)
-                    continue;
-
-                slot.Highlight(true);
-                _dropPreviewSlots.Add(slot);
-            }
-
-            return _dropPreviewSlots.Count > 0;
+            return EnsureDropPreviewController().ShowDropPreview(targetBaseSlot, context);
         }
 
         public void ClearDropPreview()
         {
-            for (int i = 0; i < _dropPreviewSlots.Count; i++)
-                _dropPreviewSlots[i]?.Highlight(false);
-
-            _dropPreviewSlots.Clear();
+            EnsureDropPreviewController().ClearDropPreview();
         }
 
         public bool TryPlace(PlacementRequest request)
@@ -929,6 +838,14 @@ namespace UDND.Inventories
             return _placementStore;
         }
 
+        private DropPreviewController EnsureDropPreviewController()
+        {
+            return _dropPreviewController ??= new DropPreviewController(
+                this,
+                this,
+                EnsurePlacementStore);
+        }
+
         private PlacementStoreSettings CreatePlacementStoreSettings(GridTopology normalizedGrid)
         {
             IInventoryTopology topology = _useGridTopology
@@ -966,18 +883,6 @@ namespace UDND.Inventories
                 shape,
                 orientation,
                 PlacementBoundsMode.RequireAllInBounds);
-        }
-
-        private IReadOnlyList<int> GetPreviewCoveredCells(
-            Vector2Int anchorCell,
-            IPlacementShape shape,
-            PlacementOrientation orientation)
-        {
-            return EnsurePlacementStore().GetCoveredIndices(
-                anchorCell,
-                shape,
-                orientation,
-                PlacementBoundsMode.IncludeOnlyInBounds);
         }
 
         private Vector2Int IndexToCell(int index)
