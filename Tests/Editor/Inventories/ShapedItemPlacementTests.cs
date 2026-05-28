@@ -181,6 +181,39 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void DynamicSlotRemoval_DuringActiveShapedDrag_CancelDoesNotThrow()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(1)
+                .WithSlotManagementSettings(new DynamicSlotManagementSettings())
+                .Build();
+            UDND.DragAndDropManager manager = null;
+
+            try
+            {
+                var shapedStack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryAddStack(shapedStack, targetSlotIndex: 2));
+
+                manager = UDND.DragAndDropManager.AutoCreateInstance;
+                Assert.IsTrue(manager.StartDrag(inventory.GetSlot(2)));
+                Assert.IsNotNull(manager.CurrentContext);
+                Assert.IsNotNull(manager.CurrentContext.Entries[0].SourcePlacement);
+
+                inventory.HandleSlotEmptied(inventory.GetSlot(0));
+
+                Assert.DoesNotThrow(() => manager.CancelDrag());
+                Assert.IsNull(manager.CurrentContext);
+                Assert.IsFalse(inventory.GetSlot(1).IsDraggedFromVisualState);
+            }
+            finally
+            {
+                if (manager != null)
+                    UnityEngine.Object.DestroyImmediate(manager.gameObject);
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void TryPlace_WithGridTopology_CoversShapeSizeCells()
         {
             var inventory = new InventoryBuilder()
@@ -250,6 +283,7 @@ namespace UDND.Tests.Inventories
                         foreach (var orientation in orientations)
                         {
                             var expected = LegacyRequireAllCoveredCells(anchorIndex, size, orientation, topology, slotCount);
+#pragma warning disable CS0618
                             var actual = PlacementCellUtility.GetCoveredIndices(
                                 anchorIndex,
                                 new RectPlacementShape(size.x, size.y),
@@ -257,6 +291,7 @@ namespace UDND.Tests.Inventories
                                 topology,
                                 slotCount,
                                 PlacementBoundsMode.RequireAllInBounds);
+#pragma warning restore CS0618
 
                             CollectionAssert.AreEqual(expected, actual);
                         }
@@ -300,6 +335,7 @@ namespace UDND.Tests.Inventories
                     foreach (var orientation in orientations)
                     {
                         var expected = LegacyPreviewCoveredCells(anchorCell, size, orientation, topology, slotCount);
+#pragma warning disable CS0618
                         var actual = PlacementCellUtility.GetCoveredIndices(
                             anchorCell,
                             new RectPlacementShape(size.x, size.y),
@@ -307,6 +343,7 @@ namespace UDND.Tests.Inventories
                             topology,
                             slotCount,
                             PlacementBoundsMode.IncludeOnlyInBounds);
+#pragma warning restore CS0618
 
                         CollectionAssert.AreEqual(expected, actual);
                     }

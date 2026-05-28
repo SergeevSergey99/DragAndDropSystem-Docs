@@ -892,6 +892,7 @@ namespace UDND.Inventories
 
             if (previousPlacements != null)
             {
+                int droppedPlacements = 0;
                 for (int i = 0; i < previousPlacements.Count; i++)
                 {
                     var placement = previousPlacements[i];
@@ -903,7 +904,18 @@ namespace UDND.Inventories
                         placement.AnchorIndex,
                         placement.Orientation,
                         placement.Shape);
-                    _placementStore.TryPlace(request, out _);
+                    if (!_placementStore.TryPlace(request, out _))
+                    {
+                        droppedPlacements++;
+                        Debug.LogWarning(
+                            $"[{name}] Dropped placement at anchor {placement.AnchorIndex} ({placement.BoundingSize}, {placement.Orientation}) after placement store settings changed.");
+                    }
+                }
+
+                if (droppedPlacements > 0)
+                {
+                    Debug.LogWarning(
+                        $"[{name}] Dropped {droppedPlacements} placement(s) while rebuilding placement store. Check grid topology, slot count, and shaped item policy settings.");
                 }
             }
 

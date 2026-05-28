@@ -14,6 +14,7 @@ namespace UDND.Core
     {
         private static readonly IReadOnlyList<int> EmptyIndices = Array.Empty<int>();
 
+        [Obsolete("Use the IInventoryTopology overload or PlacementStore.GetCoveredIndices.")]
         public static IReadOnlyList<int> GetCoveredIndices(
             int anchorIndex,
             IPlacementShape shape,
@@ -41,6 +42,7 @@ namespace UDND.Core
                 boundsMode);
         }
 
+        [Obsolete("Use the IInventoryTopology overload or PlacementStore.GetCoveredIndices.")]
         public static IReadOnlyList<int> GetCoveredIndices(
             Vector2Int anchorCell,
             IPlacementShape shape,

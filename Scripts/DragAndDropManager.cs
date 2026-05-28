@@ -270,19 +270,33 @@ namespace UDND
 
         private static bool TrySetPlacementDraggedState(DragEntry entry, bool isDragging, HashSet<BaseSlot> processedSlots)
         {
-            if (entry.SourcePlacement == null ||
-                PlacementShapeUtility.IsSingleCell(entry.SourcePlacement.Shape, entry.SourcePlacement.Orientation) ||
+            var placement = ResolveCurrentSourcePlacement(entry);
+            if (placement == null ||
+                PlacementShapeUtility.IsSingleCell(placement.Shape, placement.Orientation) ||
                 entry.SourceInventory == null)
                 return false;
 
-            for (int i = 0; i < entry.SourcePlacement.CoveredIndices.Count; i++)
+            for (int i = 0; i < placement.CoveredIndices.Count; i++)
             {
-                var slot = entry.SourceInventory.GetSlot(entry.SourcePlacement.CoveredIndices[i]);
+                var slot = entry.SourceInventory.GetSlot(placement.CoveredIndices[i]);
                 if (slot != null && processedSlots.Add(slot))
                     slot.SetDraggedFrom(isDragging);
             }
 
             return true;
+        }
+
+        private static Placement ResolveCurrentSourcePlacement(DragEntry entry)
+        {
+            if (entry.SourceInventory is IPlacementInventory placementInventory &&
+                entry.SourceBaseSlot != null)
+            {
+                var currentPlacement = placementInventory.GetPlacementAt(entry.SourceBaseSlot);
+                if (currentPlacement != null)
+                    return currentPlacement;
+            }
+
+            return entry.SourcePlacement;
         }
 
         /// <summary>

@@ -93,6 +93,13 @@ namespace UDND.Core
         public Vector2Int BoundingSize { get; }
     }
 
+    /// <summary>
+    /// Runtime placement record owned by an inventory.
+    /// Placement references are short-lived: operations that rebuild occupancy,
+    /// such as dynamic slot removal, may orphan old instances and create
+    /// replacement placements. Re-resolve through the owning inventory when
+    /// current identity matters.
+    /// </summary>
     public sealed class Placement
     {
         private int[] _coveredIndices;
