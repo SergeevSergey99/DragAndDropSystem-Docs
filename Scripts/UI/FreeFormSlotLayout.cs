@@ -2,6 +2,7 @@ using UnityEngine;
 using UDND.Core;
 using UDND.Inventories;
 using UDND.Slots;
+using UDND.Tools;
 
 namespace UDND.UI
 {
@@ -19,7 +20,7 @@ namespace UDND.UI
     ///
     /// <b>Persistence (extension):</b>
     /// To persist slot positions, normalized coordinates can be stored
-    /// (anchoredPosition / containerSize) in the data model (for example, in IItemAdapter or a separate map).
+    /// (localPosition / containerSize) in the data model (for example, in IItemAdapter or a separate map).
     /// On ReloadUI, call <see cref="ArrangeAllSlots"/> or restore positions manually:
     /// <code>
     /// foreach (var slot in inventory.Slots)
@@ -69,6 +70,8 @@ namespace UDND.UI
         private void OnEnable()
         {
             CacheContainerRect();
+            if (_inventory == null)
+                return;
 
             _inventory.OnSlotCreated += HandleSlotCreated;
             DragAndDropManager.OnDropAttempting += HandleDropAttempting;
@@ -78,7 +81,9 @@ namespace UDND.UI
 
         private void OnDisable()
         {
-            _inventory.OnSlotCreated -= HandleSlotCreated;
+            if (_inventory != null)
+                _inventory.OnSlotCreated -= HandleSlotCreated;
+
             DragAndDropManager.OnDropAttempting -= HandleDropAttempting;
             DragAndDropManager.OnDropCompleted -= HandleDropEnded;
             DragAndDropManager.OnDragCancelled -= HandleDropEnded;
@@ -124,12 +129,13 @@ namespace UDND.UI
             if (slotRect == null || _containerRect == null)
                 return;
 
+            var targetCamera = ResolveUiCamera();
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    _containerRect, screenPos, _uiCamera, out var localPos))
+                    _containerRect, screenPos, targetCamera, out var localPos))
                 return;
 
             localPos = ResolveOverlap(ClampToBounds(localPos, slotRect), slotRect);
-            slotRect.anchoredPosition = localPos;
+            SetSlotLocalPosition(slotRect, localPos);
         }
 
         // ══════════════════════════════════════════════════════════
@@ -157,8 +163,8 @@ namespace UDND.UI
             int columns = Mathf.Max(1, Mathf.FloorToInt(bounds.width / cellW));
 
             // Offset from the top-left corner
-            float startX = -bounds.width * 0.5f + slotSize.x * 0.5f;
-            float startY = bounds.height * 0.5f - slotSize.y * 0.5f;
+            float startX = bounds.xMin + slotSize.x * 0.5f;
+            float startY = bounds.yMax - slotSize.y * 0.5f;
 
             for (int i = 0; i < slots.Count; i++)
             {
@@ -169,7 +175,7 @@ namespace UDND.UI
                 int col = i % columns;
                 int row = i / columns;
                 var pos = new Vector2(startX + col * cellW, startY - row * cellH);
-                slotRect.anchoredPosition = ClampToBounds(pos, slotRect);
+                SetSlotLocalPosition(slotRect, ClampToBounds(pos, slotRect));
             }
         }
 
@@ -189,11 +195,11 @@ namespace UDND.UI
 
             int col = index % columns;
             int row = index / columns;
-            float startX = -bounds.width * 0.5f + slotSize.x * 0.5f;
-            float startY = bounds.height * 0.5f - slotSize.y * 0.5f;
+            float startX = bounds.xMin + slotSize.x * 0.5f;
+            float startY = bounds.yMax - slotSize.y * 0.5f;
 
             var pos = new Vector2(startX + col * cellW, startY - row * cellH);
-            slotRect.anchoredPosition = ClampToBounds(pos, slotRect);
+            SetSlotLocalPosition(slotRect, ClampToBounds(pos, slotRect));
         }
 
         // ══════════════════════════════════════════════════════════
@@ -206,17 +212,14 @@ namespace UDND.UI
             var slotSize = slotRect.rect.size;
             var pivot = slotRect.pivot;
 
-            // Calculate the valid range so the slot remains fully inside bounds
-            float halfW = bounds.width * 0.5f;
-            float halfH = bounds.height * 0.5f;
-            float minX = -halfW + slotSize.x * pivot.x;
-            float maxX = halfW - slotSize.x * (1f - pivot.x);
-            float minY = -halfH + slotSize.y * pivot.y;
-            float maxY = halfH - slotSize.y * (1f - pivot.y);
+            float minX = bounds.xMin + slotSize.x * pivot.x;
+            float maxX = bounds.xMax - slotSize.x * (1f - pivot.x);
+            float minY = bounds.yMin + slotSize.y * pivot.y;
+            float maxY = bounds.yMax - slotSize.y * (1f - pivot.y);
 
             return new Vector2(
-                Mathf.Clamp(localPos.x, minX, maxX),
-                Mathf.Clamp(localPos.y, minY, maxY));
+                ClampAxis(localPos.x, minX, maxX),
+                ClampAxis(localPos.y, minY, maxY));
         }
 
         // ══════════════════════════════════════════════════════════
@@ -275,7 +278,7 @@ namespace UDND.UI
 
         private bool IntersectsAnySlot(Vector2 candidatePos, RectTransform slotRect)
         {
-            var candidateRect = GetAnchoredRect(candidatePos, slotRect);
+            var candidateRect = GetLocalRect(candidatePos, slotRect);
 
             var slots = _inventory.Slots;
             for (int i = 0; i < slots.Count; i++)
@@ -284,18 +287,18 @@ namespace UDND.UI
                 if (existingRect == null || ReferenceEquals(existingRect, slotRect))
                     continue;
 
-                if (candidateRect.Overlaps(GetAnchoredRect(existingRect.anchoredPosition, existingRect)))
+                if (candidateRect.Overlaps(GetLocalRect(GetSlotLocalPosition(existingRect), existingRect)))
                     return true;
             }
 
             return false;
         }
 
-        private static Rect GetAnchoredRect(Vector2 anchoredPosition, RectTransform rectTransform)
+        private static Rect GetLocalRect(Vector2 localPosition, RectTransform rectTransform)
         {
             var size = rectTransform.rect.size;
             var pivot = rectTransform.pivot;
-            var min = anchoredPosition - Vector2.Scale(size, pivot);
+            var min = localPosition - Vector2.Scale(size, pivot);
             return new Rect(min, size);
         }
 
@@ -313,7 +316,7 @@ namespace UDND.UI
             if (slotRect == null)
                 return;
 
-            slotRect.anchoredPosition = ResolveOverlap(ClampToBounds(localPosition, slotRect), slotRect);
+            SetSlotLocalPosition(slotRect, ResolveOverlap(ClampToBounds(localPosition, slotRect), slotRect));
         }
 
         /// <summary>
@@ -327,10 +330,10 @@ namespace UDND.UI
                 return Vector2.zero;
 
             var bounds = GetBoundsRect();
-            var pos = slotRect.anchoredPosition;
+            var pos = GetSlotLocalPosition(slotRect);
             return new Vector2(
-                Mathf.InverseLerp(-bounds.width * 0.5f, bounds.width * 0.5f, pos.x),
-                Mathf.InverseLerp(-bounds.height * 0.5f, bounds.height * 0.5f, pos.y));
+                Mathf.InverseLerp(bounds.xMin, bounds.xMax, pos.x),
+                Mathf.InverseLerp(bounds.yMin, bounds.yMax, pos.y));
         }
 
         /// <summary>
@@ -343,14 +346,27 @@ namespace UDND.UI
 
             var bounds = GetBoundsRect();
             return new Vector2(
-                Mathf.Lerp(-bounds.width * 0.5f, bounds.width * 0.5f, normalized.x),
-                Mathf.Lerp(-bounds.height * 0.5f, bounds.height * 0.5f, normalized.y));
+                Mathf.Lerp(bounds.xMin, bounds.xMax, normalized.x),
+                Mathf.Lerp(bounds.yMin, bounds.yMax, normalized.y));
         }
 
         private Rect GetBoundsRect()
         {
-            var rt = _boundsOverride != null ? _boundsOverride : _containerRect;
-            return rt != null ? rt.rect : new Rect(0, 0, 100, 100);
+            if (_containerRect == null)
+                return new Rect(0, 0, 100, 100);
+
+            if (_boundsOverride == null || _boundsOverride == _containerRect)
+                return _containerRect.rect;
+
+            Extensions.GetRectBoundsInParent(
+                _boundsOverride,
+                _containerRect,
+                Extensions.GetCanvasCamera(_boundsOverride),
+                ResolveUiCamera(),
+                out var minLocal,
+                out var maxLocal);
+
+            return Rect.MinMaxRect(minLocal.x, minLocal.y, maxLocal.x, maxLocal.y);
         }
 
         private void CacheContainerRect()
@@ -364,5 +380,25 @@ namespace UDND.UI
             var rt = baseSlot?.Transform as RectTransform;
             return rt != null ? rt.rect.size : new Vector2(64, 64);
         }
+
+        private Camera ResolveUiCamera()
+            => _uiCamera != null ? _uiCamera : Extensions.GetCanvasCamera(_containerRect);
+
+        private static Vector2 GetSlotLocalPosition(RectTransform slotRect)
+            => slotRect != null ? (Vector2)slotRect.localPosition : Vector2.zero;
+
+        private static void SetSlotLocalPosition(RectTransform slotRect, Vector2 localPosition)
+        {
+            if (slotRect == null)
+                return;
+
+            var position = slotRect.localPosition;
+            position.x = localPosition.x;
+            position.y = localPosition.y;
+            slotRect.localPosition = position;
+        }
+
+        private static float ClampAxis(float value, float min, float max)
+            => min <= max ? Mathf.Clamp(value, min, max) : (min + max) * 0.5f;
     }
 }
