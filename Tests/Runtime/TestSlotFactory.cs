@@ -89,6 +89,12 @@ namespace UDND.Tests
                 return false;
             }
 
+            public bool TryAddStackQuiet(ItemStack stack, int targetSlotIndex = -1)
+            {
+                // For testing purposes, treat quiet add the same as normal add since we don't have rules or events to worry about}
+                return TryAddStack(stack, targetSlotIndex);
+            }
+
             public bool Contains(IItemAdapter itemAdapter)
             {
                 if (itemAdapter == null)
