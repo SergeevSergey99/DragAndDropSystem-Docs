@@ -64,6 +64,14 @@ plugins:
             Reference: Referencia
             More: Más
 
+# Version switcher (mike). The dropdown appears next to the language selector.
+# Versions are deployed to the gh-pages branch via `mike deploy`; see VERSIONING.md.
+extra:
+  version:
+    provider: mike
+    alias: true
+    default: latest
+
 nav:
   - Home:
     - index.md
