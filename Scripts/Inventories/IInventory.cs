@@ -32,6 +32,10 @@ namespace UDND.Inventories
         bool TryAddStack(ItemStack stack, int targetSlotIndex = -1);
 
         /// <summary>
+        /// Try to add a stack without triggering side effects or events.
+        /// </summary>
+        bool TryAddStackQuiet(ItemStack stack, int targetSlotIndex = -1);
+        /// <summary>
         /// Check whether the inventory contains an item
         /// </summary>
         bool Contains(IItemAdapter itemAdapter);
