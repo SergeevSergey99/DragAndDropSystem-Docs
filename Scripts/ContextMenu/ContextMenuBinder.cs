@@ -27,7 +27,7 @@ namespace UDND.ContextMenu
         [SerializeField, Tooltip("Scene menu entries for an empty slot. Works only if Override Empty Slot Scene Entries is enabled.")]
         private List<ContextMenuSceneEntryBase> _emptySlotSceneEntries = new();
 
-        public UniversalInventory Inventory => _inventory;
+        public IInventory Inventory => _inventory;
 
         private void OnEnable()
         {
@@ -51,13 +51,14 @@ namespace UDND.ContextMenu
         {
             var result = new List<IContextMenuEntry>();
 
-            var preset = context.BaseSlot.IsEmpty 
+            bool isEmptySlot = context.BaseSlot == null || context.BaseSlot.IsEmpty;
+            var preset = isEmptySlot
                 ? _emptySlotPreset 
                 : _preset;
             
             if (_useGlobalPresets)
             {
-                var globalPreset = context.BaseSlot.IsEmpty
+                var globalPreset = isEmptySlot
                     ? ContextMenuManager.AutoCreateInstance.DefaultEmptySlotPreset
                     : ContextMenuManager.AutoCreateInstance.DefaultPreset;
 
@@ -72,7 +73,7 @@ namespace UDND.ContextMenu
                 result.AddRange(preset.Entries.Where(entry => entry != null));
             }
 
-            var sceneEntries = context.BaseSlot.IsEmpty
+            var sceneEntries = isEmptySlot
                 ? _emptySlotSceneEntries
                 : _sceneEntries;
 

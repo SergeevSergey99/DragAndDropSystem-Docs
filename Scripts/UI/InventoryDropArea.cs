@@ -31,7 +31,7 @@ namespace UDND.UI
 
         private BaseSlot _foundBaseSlot;
 
-        public UniversalInventory Inventory => _inventory;
+        public IInventory Inventory => _inventory;
 
 #if UNITY_EDITOR
         // ══════════════════════════════════════════════════════════

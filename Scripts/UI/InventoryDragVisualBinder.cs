@@ -9,7 +9,7 @@ namespace UDND.UI
         [SerializeField] private UniversalInventory _inventory;
         [SerializeField] private MonoBehaviour _dragVisualPrefab;
 
-        public IInventory Inventory => _inventory != null ? _inventory : null;
+        public IInventory Inventory => _inventory;
         public MonoBehaviour DragVisualPrefab => _dragVisualPrefab;
 
         private void Awake()

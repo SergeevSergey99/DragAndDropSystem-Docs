@@ -20,8 +20,8 @@ namespace UDND.ContextMenu
         [SerializeField] private ContextMenuPreset _defaultEmptySlotPreset;
 
         private readonly Dictionary<ContextMenuViewBase, ContextMenuViewBase> _viewCache = new();
-        private readonly Dictionary<UniversalInventory, InventoryContextMenuViewBinder> _viewBindersByInventory = new();
-        private readonly Dictionary<UniversalInventory, ContextMenuBinder> _contextBindersByInventory = new();
+        private readonly Dictionary<IInventory, InventoryContextMenuViewBinder> _viewBindersByInventory = new();
+        private readonly Dictionary<IInventory, ContextMenuBinder> _contextBindersByInventory = new();
         
         private ContextMenuViewBase _activeView;
 
@@ -76,7 +76,7 @@ namespace UDND.ContextMenu
             if(_contextBindersByInventory.TryGetValue(context.Inventory, out var binder))
                 return binder.GetEntries(context);
                 
-            if  (context.BaseSlot.IsEmpty)
+            if (context.BaseSlot == null || context.BaseSlot.IsEmpty)
                 return _defaultEmptySlotPreset != null ? new List<IContextMenuEntry>(_defaultEmptySlotPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
             return _defaultPreset != null ? new List<IContextMenuEntry>(_defaultPreset.Entries.Where(entry => entry != null)) : new List<IContextMenuEntry>();
         }
@@ -134,7 +134,7 @@ namespace UDND.ContextMenu
             OnClosed?.Invoke();
         }
 
-        private ContextMenuViewBase ResolveView(UniversalInventory inventory)
+        private ContextMenuViewBase ResolveView(IInventory inventory)
         {
             var prefab = ResolveViewPrefab(inventory);
             if (prefab != null)
@@ -143,7 +143,7 @@ namespace UDND.ContextMenu
             return null;
         }
 
-        private ContextMenuViewBase ResolveViewPrefab(UniversalInventory inventory)
+        private ContextMenuViewBase ResolveViewPrefab(IInventory inventory)
         {
             if (inventory != null &&
                 _viewBindersByInventory.TryGetValue(inventory, out var binder) &&

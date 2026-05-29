@@ -23,12 +23,12 @@ namespace UDND.Inventories
         /// <param name="activeBaseSlot">Active slot (under the cursor or the last interacted one)</param>
         /// <param name="logWarnings">Whether to write warnings to the console</param>
         /// <returns>Action execution result</returns>
-        public abstract ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot);
+        public abstract ActionResult Execute(IInventory inventory, BaseSlot activeBaseSlot);
 
         /// <summary>
         /// Whether the action can be executed (pre-check before execution)
         /// </summary>
-        public virtual bool CanExecute(UniversalInventory inventory, BaseSlot activeBaseSlot)
+        public virtual bool CanExecute(IInventory inventory, BaseSlot activeBaseSlot)
         {
             return inventory != null;
         }

@@ -14,7 +14,7 @@ namespace UDND.Filter
         public readonly BaseSlot Slot;
 
         /// <summary>Inventory that owns the slot.</summary>
-        public readonly UniversalInventory Inventory;
+        public readonly IInventory Inventory;
 
         /// <summary>All slots in the inventory (for cross-slot logic like "first unique only").</summary>
         public readonly IReadOnlyList<BaseSlot> AllSlots;
@@ -22,7 +22,7 @@ namespace UDND.Filter
         /// <summary>Index of <see cref="Slot"/> within <see cref="AllSlots"/>.</summary>
         public readonly int SlotIndex;
 
-        public FilterContext(BaseSlot slot, UniversalInventory inventory, IReadOnlyList<BaseSlot> allSlots, int slotIndex)
+        public FilterContext(BaseSlot slot, IInventory inventory, IReadOnlyList<BaseSlot> allSlots, int slotIndex)
         {
             Slot = slot;
             Inventory = inventory;

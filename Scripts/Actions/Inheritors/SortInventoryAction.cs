@@ -23,7 +23,7 @@ namespace UDND.Inventories
 
         public override string DisplayName => "Sort Inventory";
 
-        public override ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot)
+        public override ActionResult Execute(IInventory inventory, BaseSlot activeBaseSlot)
         {
             if (inventory == null)
                 return ActionResult.Failed("Inventory is null");
@@ -33,7 +33,7 @@ namespace UDND.Inventories
                 : ActionResult.Failed("No items to sort");
         }
 
-        public override bool CanExecute(UniversalInventory inventory, BaseSlot activeBaseSlot)
+        public override bool CanExecute(IInventory inventory, BaseSlot activeBaseSlot)
         {
             if (!base.CanExecute(inventory, activeBaseSlot))
                 return false;
@@ -51,7 +51,7 @@ namespace UDND.Inventories
         /// <summary>
         /// Sort the inventory using an <see cref="ISlotSorter"/>.
         /// </summary>
-        public static bool TrySortInventory(UniversalInventory inventory, ISlotSorter sorter, bool ascending)
+        public static bool TrySortInventory(IInventory inventory, ISlotSorter sorter, bool ascending)
         {
             if (inventory == null || sorter == null)
                 return false;

@@ -24,7 +24,7 @@ namespace UDND.Inventories
 
         public override string DisplayName => "Auto Transfer";
 
-        public override ActionResult Execute(UniversalInventory inventory, BaseSlot activeBaseSlot)
+        public override ActionResult Execute(IInventory inventory, BaseSlot activeBaseSlot)
         {
             var dragManager = DragAndDropManager.AutoCreateInstance;
             if (dragManager == null || dragManager.IsDragging)
@@ -43,7 +43,7 @@ namespace UDND.Inventories
                 if (ReferenceEquals(targetInventory, inventory))
                     continue;
 
-                if (targetInventory == null || !targetInventory.isActiveAndEnabled)
+                if (targetInventory == null || !IsInventoryActiveAndEnabled(targetInventory))
                     continue;
 
                 var success = dragManager.TryAutoTransfer(
@@ -54,7 +54,7 @@ namespace UDND.Inventories
                 if (success)
                 {
                     if (activeBaseSlot != null)
-                        inventory.NotifySlotInteracted(activeBaseSlot);
+                        NotifySlotInteracted(inventory, activeBaseSlot);
                     
                     if (SelectionManager.IsInstanceExist)
                         SelectionManager.AutoCreateInstance.Clear();
@@ -65,7 +65,7 @@ namespace UDND.Inventories
             return ActionResult.Failed("Auto transfer failed for all targets");
         }
 
-        public override bool CanExecute(UniversalInventory inventory, BaseSlot activeBaseSlot)
+        public override bool CanExecute(IInventory inventory, BaseSlot activeBaseSlot)
         {
             if (!base.CanExecute(inventory, activeBaseSlot))
                 return false;
@@ -86,9 +86,9 @@ namespace UDND.Inventories
             return targets.Count > 0;
         }
 
-        private List<UniversalInventory> ResolveTargets(UniversalInventory owner)
+        private List<IInventory> ResolveTargets(IInventory owner)
         {
-            var result = new List<UniversalInventory>();
+            var result = new List<IInventory>();
 
             if (_targetInventories != null && _targetInventories.inventories != null)
             {
@@ -104,7 +104,7 @@ namespace UDND.Inventories
             return result;
         }
 
-        private List<BaseSlot> ResolveSourceSlots(UniversalInventory inventory)
+        private List<BaseSlot> ResolveSourceSlots(IInventory inventory)
         {
             var result = new List<BaseSlot>();
 
@@ -138,7 +138,7 @@ namespace UDND.Inventories
             return result;
         }
 
-        private bool HasSelectionSources(UniversalInventory inventory)
+        private bool HasSelectionSources(IInventory inventory)
         {
             if (!_useSelectionForBatch || !SelectionManager.IsInstanceExist)
                 return false;
@@ -160,7 +160,7 @@ namespace UDND.Inventories
             return false;
         }
 
-        private BaseSlot ResolveContextSourceSlot(UniversalInventory inventory)
+        private BaseSlot ResolveContextSourceSlot(IInventory inventory)
         {
             var contextSlot = InputEventRouter.IsInstanceExist
                 ? InputEventRouter.AutoCreateInstance.ResolveQuickActionSlot(inventory, requireActiveInventory: true)
@@ -170,6 +170,17 @@ namespace UDND.Inventories
                 return contextSlot;
 
             return null;
+        }
+
+        private static void NotifySlotInteracted(IInventory inventory, BaseSlot baseSlot)
+        {
+            if (inventory is IInventoryInteractionSurface interactionSurface)
+                interactionSurface.NotifySlotInteracted(baseSlot);
+        }
+
+        private static bool IsInventoryActiveAndEnabled(IInventory inventory)
+        {
+            return inventory is MonoBehaviour monoBehaviour && monoBehaviour.isActiveAndEnabled;
         }
     }
 }

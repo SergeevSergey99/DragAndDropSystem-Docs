@@ -33,7 +33,7 @@ namespace UDND.Interaction
 
         private bool _runtimeDirty = true;
 
-        public UniversalInventory Inventory => _inventory;
+        public IInventory Inventory => _inventory;
 
         public IReadOnlyList<PointerBinding> PointerBindingsResolved
         {

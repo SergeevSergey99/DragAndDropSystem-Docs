@@ -156,9 +156,6 @@ namespace UDND.Interaction
             if (inventory == null || action == null)
                 return false;
 
-            if (inventory is not UniversalInventory universalInventory)
-                return false;
-
             var key = new IntentDedupKey((int)callbackContext.phase, inventory, action);
             if (!_handledThisFrame.Add(key))
                 return true;
@@ -167,12 +164,12 @@ namespace UDND.Interaction
             var activeSlot = state.FocusedSlot
                              ?? state.HoveredSlot
                              ?? ResolveAutoTransferSlot(inventory);
-            if (!action.CanExecute(universalInventory, activeSlot))
+            if (!action.CanExecute(inventory, activeSlot))
             {
                 return true;
             }
 
-            _ = action.Execute(universalInventory, activeSlot);
+            _ = action.Execute(inventory, activeSlot);
 
             return true;
         }

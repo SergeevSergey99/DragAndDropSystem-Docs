@@ -1,6 +1,7 @@
 using UnityEngine;
 using UDND.Core;
 using UDND.Interaction;
+using UDND.Inventories;
 using UDND.Slots;
 
 namespace UDND.ContextMenu
@@ -8,7 +9,7 @@ namespace UDND.ContextMenu
     public struct ContextMenuContext
     {
         /// <summary>Inventory on which the menu was opened.</summary>
-        public Inventories.UniversalInventory Inventory;
+        public IInventory Inventory;
 
         /// <summary>Slot that was clicked (can be null).</summary>
         public BaseSlot BaseSlot;

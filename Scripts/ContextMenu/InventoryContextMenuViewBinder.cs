@@ -9,7 +9,7 @@ namespace UDND.ContextMenu
         [SerializeField] private UniversalInventory _inventory;
         [SerializeField] private ContextMenuViewBase _viewPrefab;
 
-        public UniversalInventory Inventory => _inventory;
+        public IInventory Inventory => _inventory;
         public ContextMenuViewBase ViewPrefab => _viewPrefab;
 
         private void OnEnable()

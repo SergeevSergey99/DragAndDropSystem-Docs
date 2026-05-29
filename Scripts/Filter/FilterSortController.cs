@@ -42,7 +42,7 @@ namespace UDND.Filter
         private readonly Dictionary<BaseSlot, int> _slotIndexCache = new Dictionary<BaseSlot, int>();
         private FilterSortPreset _activePreset;
 
-        public UniversalInventory Inventory => _inventory;
+        public IInventory Inventory => _inventory;
         public bool IsFilterActive => _isFilterActive;
         public int VisibleSlotCount => _visibleSlotCount;
         public FilterDisplayMode DisplayMode => _filterDisplayMode;

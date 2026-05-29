@@ -163,11 +163,8 @@ namespace UDND.Interaction
             if (_sceneAction == null || snapshot?.Inventory == null)
                 return false;
 
-            if (snapshot.Inventory is not UniversalInventory universalInventory)
-                return false;
-
             var slot = snapshot.ActiveSlot ?? ResolveAutoTransferSlot(snapshot.Inventory);
-            return _sceneAction.CanExecute(universalInventory, slot);
+            return _sceneAction.CanExecute(snapshot.Inventory, slot);
         }
 
         public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
@@ -175,14 +172,11 @@ namespace UDND.Interaction
             if (_sceneAction == null || snapshot?.Inventory == null)
                 return ActionResult.Failed("Inventory action is not configured");
 
-            if (snapshot.Inventory is not UniversalInventory universalInventory)
-                return ActionResult.Failed("Inventory action requires UniversalInventory");
-
             var slot = snapshot.ActiveSlot ?? ResolveAutoTransferSlot(snapshot.Inventory);
-            if (!_sceneAction.CanExecute(universalInventory, slot))
+            if (!_sceneAction.CanExecute(snapshot.Inventory, slot))
                 return ActionResult.Failed("Inventory action cannot execute");
 
-            return _sceneAction.Execute(universalInventory, slot);
+            return _sceneAction.Execute(snapshot.Inventory, slot);
         }
 
         private static BaseSlot ResolveAutoTransferSlot(IInventory inventory)

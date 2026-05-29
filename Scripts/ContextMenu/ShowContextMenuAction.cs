@@ -26,20 +26,22 @@ namespace UDND.ContextMenu
             if (ContextMenuManager.AutoCreateInstance.IsOpen)
                 return true;
 
-            if (snapshot?.Inventory is not UniversalInventory inventory)
+            var inventory = snapshot?.Inventory;
+            if (inventory == null)
                 return false;
 
             return inventory != null
                    && (ContextMenuManager.AutoCreateInstance.DefaultPreset != null
-                       || inventory.GetComponent<ContextMenuBinder>() != null);
+                       || TryGetContextMenuBinder(inventory, out _));
         }
 
         public override ActionResult Execute(RuntimeInteractionSnapshot snapshot)
         {
-            if (snapshot?.Inventory is not UniversalInventory inventory)
+            var inventory = snapshot?.Inventory;
+            if (inventory == null)
             {
                 ContextMenuManager.AutoCreateInstance.Hide();
-                return ActionResult.Failed("Context menu requires UniversalInventory");
+                return ActionResult.Failed("Inventory is null");
             }
             
             var slot = snapshot.ActiveSlot ?? ResolveAutoTransferSlot(inventory);
@@ -63,6 +65,16 @@ namespace UDND.ContextMenu
 
             ContextMenuManager.AutoCreateInstance.Show(entries, ctx);
             return ActionResult.Succeeded();
+        }
+
+        private static bool TryGetContextMenuBinder(IInventory inventory, out ContextMenuBinder binder)
+        {
+            binder = null;
+            if (inventory is not Component component)
+                return false;
+
+            binder = component.GetComponent<ContextMenuBinder>();
+            return binder != null;
         }
 
         private static BaseSlot ResolveAutoTransferSlot(IInventory inventory)
