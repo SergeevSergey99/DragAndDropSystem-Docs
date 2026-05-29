@@ -307,9 +307,7 @@ function Slide8() {
       <PageTag n={8}/>
 
       <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', padding:'0 120px', textAlign:'center'}}>
-        <div className="mono" style={{fontSize:15, letterSpacing:'0.3em', color:'var(--accent)', textTransform:'uppercase', marginBottom:30, fontWeight:600}}>
-          Available on the Unity Asset Store
-        </div>
+
         <h1 style={{fontSize:120, fontWeight:800, margin:0, letterSpacing:'-0.035em', lineHeight:0.95, maxWidth:1400, textWrap:'balance'}}>
           Build your inventory around your data model.
         </h1>
@@ -327,19 +325,8 @@ function Slide8() {
         </div>
 
         <div style={{marginTop:70, display:'flex', alignItems:'center', gap:32}}>
-          <div style={{
-            padding:'20px 40px',
-            background:'var(--accent)', color:'var(--ink)',
-            borderRadius:999, fontSize:22, fontWeight:700,
-            letterSpacing:'-0.01em',
-            display:'flex', alignItems:'center', gap:14,
-            boxShadow:'0 20px 40px -10px rgba(245,165,36,0.4)',
-          }}>
-            Get on Asset Store
-            <Arrow size={22} color="var(--ink)"/>
-          </div>
           <div style={{fontSize:17, color:'var(--muted)'}}>
-            Unity 2022.3+ · supports additional integration with <span className="mono" style={{color:'var(--text)'}}>Input System</span> and <span className="mono" style={{color:'var(--text)'}}>Odin Inspector</span>
+            Supports additional integration with <span className="mono" style={{color:'var(--text)'}}>Input System</span> and <span className="mono" style={{color:'var(--text)'}}>Odin Inspector</span>
           </div>
         </div>
       </div>

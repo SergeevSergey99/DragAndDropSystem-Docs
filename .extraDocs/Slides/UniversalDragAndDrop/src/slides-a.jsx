@@ -22,10 +22,7 @@ function Slide1() {
     <SlideFrame className="bg-grid" style={{padding:0, overflow:'hidden'}}>
       
       {/* Left big text panel */}
-      <div style={{position:'absolute', left:120, top:0, bottom:0, width:900, display:'flex', flexDirection:'column', justifyContent:'center', zIndex:3}}>
-        <div className="mono" style={{fontSize:16, letterSpacing:'0.3em', color:'var(--accent)', textTransform:'uppercase', marginBottom:26, fontWeight:600}}>
-          Unity Asset
-        </div>
+      <div style={{position:'absolute', left:170, top:0, bottom:0, width:900, display:'flex', flexDirection:'column', justifyContent:'center', zIndex:3}}>
         <h1 style={{fontSize:130, fontWeight:800, margin:0, letterSpacing:'-0.035em', lineHeight:0.95, textWrap:'balance'}}>
           Universal<br/>Drag<span style={{color:'var(--accent)'}}>&</span>Drop
         </h1>
@@ -42,7 +39,7 @@ function Slide1() {
       </div>
 
       {/* Right: two inventories with drag-line */}
-      <div style={{position:'absolute', right:160, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
+      <div style={{position:'absolute', right:-40, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
         <div style={{position:'relative', transform:'rotate(-6deg)', transformOrigin:'center'}}>
           <Panel title="Backpack" style={{marginRight:240, marginBottom:200}}>
             <Grid cols={4} rows={3} cells={leftGrid} size={92} dragFrom={2}/>
