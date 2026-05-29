@@ -7,7 +7,7 @@ namespace UDND.Interaction
     [DisallowMultipleComponent]
     public class InventoryExtraInteractionBinder : MonoBehaviour
     {
-        [SerializeField] private UniversalInventory _inventory;
+        [SerializeField] private BaseInventory _inventory;
 
         [Header("Profile")]
         [SerializeField] private bool _useGlobalBindingsProfile = true;
@@ -93,7 +93,7 @@ namespace UDND.Interaction
         private void Awake()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
         }
 
         private void OnEnable()

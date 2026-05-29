@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : MonoBehaviour, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction
+    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -84,8 +84,8 @@ namespace UDND.Inventories
         private SlotShapedItemPolicy _placementStoreSlotPolicy;
         private DropPreviewController _dropPreviewController;
 
-        public IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
-        public int SlotCount => _slots.Count;
+        public override IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
+        public override int SlotCount => _slots.Count;
         public IReadOnlyCollection<Placement> Placements => EnsurePlacementStore().Placements;
 
         public GridTopology? Grid => _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null;
@@ -93,7 +93,7 @@ namespace UDND.Inventories
         public IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy => ResolveShapedPlacementAnchorStrategy();
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
-        public Transform SlotContainer => _slotContainer;
+        public override Transform SlotContainer => _slotContainer;
         public IInventoryStrategy Strategy
         {
             get
@@ -139,7 +139,7 @@ namespace UDND.Inventories
             }
         }
         
-        public InventoryDataBindingBase DataBinding { get; private set; }
+        public override InventoryDataBindingBase DataBinding { get; protected set; }
 
         public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
             => DataBinding != null && DataBinding.CheckOccupiedSlotDrop(entry, occupiedBaseSlot);
@@ -151,34 +151,34 @@ namespace UDND.Inventories
         /// Event raised when a new slot is created (after Instantiate + Initialize).
         /// Used by FreeFormSlotLayout to position dynamically created slots.
         /// </summary>
-        public event Action<BaseSlot> OnSlotCreated;
+        public override event Action<BaseSlot> OnSlotCreated;
 
         /// <summary>
         /// Event raised when an item is added to this inventory
         /// </summary>
-        public event Action<InventoryItemEventContext> OnItemAdded;
+        public override event Action<InventoryItemEventContext> OnItemAdded;
 
         /// <summary>
         /// Event raised when an item is removed from this inventory
         /// </summary>
-        public event Action<InventoryItemEventContext> OnItemRemoved;
+        public override event Action<InventoryItemEventContext> OnItemRemoved;
 
         /// <summary>
         /// Event raised when inventory content is refreshed in bulk (for example, after DataBinding.ReloadUI).
         /// Useful when items are changed via quiet APIs and item-level events are suppressed.
         /// </summary>
-        public event Action OnContentRefreshed;
+        public override event Action OnContentRefreshed;
 
         /// <summary>
         /// Event raised when an item swap affecting this inventory is attempted.
         /// A subscriber can cancel the swap via context.Cancel = true.
         /// </summary>
-        public event Action<InventorySwapContext> OnSwapAttempting;
+        public override event Action<InventorySwapContext> OnSwapAttempting;
 
         /// <summary>
         /// Event raised when an item swap affecting this inventory completes successfully.
         /// </summary>
-        public event Action<InventorySwapContext> OnSwapCompleted;
+        public override event Action<InventorySwapContext> OnSwapCompleted;
 
         public void EmitItemAdded(
             ItemStack stack,
@@ -249,7 +249,7 @@ namespace UDND.Inventories
         /// that do not go through TransferPlanExecutor.
         /// </summary>
         /// <returns>Number of removed items, or 0 if nothing was removed</returns>
-        public int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
+        public override int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
         {
             if (sourceBaseSlot == null || stackToRemove == null || stackToRemove.IsEmpty)
                 return 0;
@@ -275,7 +275,7 @@ namespace UDND.Inventories
             OnSwapCompleted?.Invoke(context);
         }
 
-        public void NotifyContentRefreshed()
+        public override void NotifyContentRefreshed()
         {
             OnContentRefreshed?.Invoke();
         }
@@ -285,7 +285,7 @@ namespace UDND.Inventories
             EnsureStrategyInitialized();
         }
 
-        public void Initialize(InventoryDataBindingBase inventoryDataBindingBase)
+        public override void Initialize(InventoryDataBindingBase inventoryDataBindingBase)
         {
             DataBinding = inventoryDataBindingBase;
             EnsureStrategyInitialized();
@@ -500,7 +500,7 @@ namespace UDND.Inventories
             _ruleValidator.RemoveRule(rule);
         }
 
-        public BaseSlot GetSlot(int index)
+        public override BaseSlot GetSlot(int index)
         {
             if (index >= 0 && index < _slots.Count)
                 return _slots[index];
@@ -540,7 +540,7 @@ namespace UDND.Inventories
             return EnsurePlacementStore().Topology.TryToIndex(cell, out index);
         }
 
-        public Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot)
+        public override Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot)
         {
             if (placement == null || baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return Vector2Int.zero;
@@ -659,7 +659,7 @@ namespace UDND.Inventories
             return EnsurePlacementStore().RemoveAt(cellIndex);
         }
 
-        public bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack)
+        public override bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack)
         {
             stack = null;
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
@@ -679,7 +679,7 @@ namespace UDND.Inventories
             return true;
         }
 
-        public bool TrySetStackForSlot(BaseSlot baseSlot, ItemStack stack)
+        public override bool TrySetStackForSlot(BaseSlot baseSlot, ItemStack stack)
         {
             if (baseSlot == null || !ReferenceEquals(baseSlot.Inventory, this))
                 return false;
@@ -728,16 +728,16 @@ namespace UDND.Inventories
             return true;
         }
 
-        public bool TryClearSlot(BaseSlot baseSlot)
+        public override bool TryClearSlot(BaseSlot baseSlot)
             => TrySetStackForSlot(baseSlot, ItemStack.Empty());
 
-        public bool TryGetPlacementAt(BaseSlot baseSlot, out Placement placement)
+        public override bool TryGetPlacementAt(BaseSlot baseSlot, out Placement placement)
         {
             placement = GetPlacementAt(baseSlot);
             return placement != null;
         }
 
-        public bool TrySplitFromSlot(BaseSlot baseSlot, int amount, out ItemStack splitStack)
+        public override bool TrySplitFromSlot(BaseSlot baseSlot, int amount, out ItemStack splitStack)
         {
             splitStack = ItemStack.Empty();
             if (!TryGetMutableStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
@@ -754,7 +754,7 @@ namespace UDND.Inventories
             return true;
         }
 
-        public bool TryAddToSlotStack(BaseSlot baseSlot, ItemStack stack)
+        public override bool TryAddToSlotStack(BaseSlot baseSlot, ItemStack stack)
         {
             if (baseSlot == null || stack == null || stack.IsEmpty)
                 return false;
@@ -769,7 +769,7 @@ namespace UDND.Inventories
             return added;
         }
 
-        public bool TryRemoveFromSlot(BaseSlot baseSlot, IReadOnlyList<IItemAdapter> adapters, out int removed)
+        public override bool TryRemoveFromSlot(BaseSlot baseSlot, IReadOnlyList<IItemAdapter> adapters, out int removed)
         {
             removed = 0;
             if (!TryGetMutableStackForSlot(baseSlot, out var stack) || stack == null || stack.IsEmpty)
@@ -899,14 +899,14 @@ namespace UDND.Inventories
         /// Set the stack limit at runtime (for example, from DataBinding).
         /// maxStackSize = 0 means unlimited.
         /// </summary>
-        public void SetMaxStackSize(int maxStackSize, bool allowItemOverride = false)
+        public override void SetMaxStackSize(int maxStackSize, bool allowItemOverride = false)
         {
             EnsureInventoryStrategySettings();
             _inventoryStrategy.SetMaxStackSize(maxStackSize, allowItemOverride);
             _strategy?.SetMaxStackSize(maxStackSize, allowItemOverride);
         }
 
-        public bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
+        public override bool TryAddStack(ItemStack stack, int targetSlotIndex = -1)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -943,7 +943,7 @@ namespace UDND.Inventories
             return success;
         }
 
-        internal bool TryAddStackQuiet(ItemStack stack, int targetSlotIndex = -1)
+        public override bool TryAddStackQuiet(ItemStack stack, int targetSlotIndex = -1)
         {
             if (stack == null || stack.IsEmpty)
                 return false;
@@ -1096,7 +1096,7 @@ namespace UDND.Inventories
                 this);
         }
 
-        public void ReInitSlots(int slotCount)
+        public override void ReInitSlots(int slotCount)
         {
             slotCount = Mathf.Max(0, slotCount);
             _initialSlotCount = slotCount;
@@ -1127,9 +1127,9 @@ namespace UDND.Inventories
             UpdateAllVisuals();
         }
 
-        public bool Contains(IItemAdapter itemAdapter) => _queryStrategy.Contains(_slots, itemAdapter);
+        public override bool Contains(IItemAdapter itemAdapter) => _queryStrategy.Contains(_slots, itemAdapter);
         
-        public void UpdateAllVisuals()
+        public override void UpdateAllVisuals()
         {
             foreach (var slot in _slots)
             {
@@ -1140,7 +1140,7 @@ namespace UDND.Inventories
         /// <summary>
         /// Clear the entire inventory
         /// </summary>
-        public void ClearAll()
+        public override void ClearAll()
         {
             EnsureStrategyInitialized();
 
@@ -1258,7 +1258,7 @@ namespace UDND.Inventories
         /// Get the number of items to drag from a slot.
         /// Without parameters it uses inventory settings, with parameters it uses the provided overrides.
         /// </summary>
-        public int GetDragAmount(BaseSlot baseSlot, DragAmount? overrideAmount = null, int? overrideCustom = null)
+        public override int GetDragAmount(BaseSlot baseSlot, DragAmount? overrideAmount = null, int? overrideCustom = null)
         {
             if (baseSlot == null || baseSlot.IsEmpty)
                 return 0;
@@ -1295,7 +1295,7 @@ namespace UDND.Inventories
         /// Round drag amount to a multiple of step.
         /// step &lt;= 1 means no rounding.
         /// </summary>
-        public void SetDragAmountStep(int step, DragAmountStepRounding rounding = DragAmountStepRounding.Floor)
+        public override void SetDragAmountStep(int step, DragAmountStepRounding rounding = DragAmountStepRounding.Floor)
         {
             _dragAmountStep = step;
             _dragAmountStepRounding = rounding;
@@ -1319,7 +1319,7 @@ namespace UDND.Inventories
         /// <param name="targetBaseSlot">Target slot</param>
         /// <param name="sourceInventory">Source inventory (for events)</param>
         /// <param name="sourceSlotIndex">Source slot index (for events)</param>
-        public bool TryAddToSlot(
+        public override bool TryAddToSlot(
             ItemStack stack,
             BaseSlot targetBaseSlot,
             IInventory sourceInventory = null,
@@ -1390,7 +1390,7 @@ namespace UDND.Inventories
         /// <summary>
         /// Check whether the inventory can accept an item in the context of the current drag/drop operation.
         /// </summary>
-        public bool CanAcceptItem(InventoryAcceptanceRequest request, out BaseSlot suggestedBaseSlot)
+        public override bool CanAcceptItem(InventoryAcceptanceRequest request, out BaseSlot suggestedBaseSlot)
         {
             suggestedBaseSlot = null;
 
@@ -1413,7 +1413,7 @@ namespace UDND.Inventories
             return canAccept;
         }
         
-        public int GetAcceptableCount(InventoryAcceptanceRequest request)
+        public override int GetAcceptableCount(InventoryAcceptanceRequest request)
         {
             if (request?.ItemAdapter == null || request.DesiredCount <= 0)
                 return 0;

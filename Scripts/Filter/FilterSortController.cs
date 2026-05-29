@@ -16,7 +16,7 @@ namespace UDND.Filter
     public class FilterSortController : MonoBehaviour
     {
         [SerializeField, Required]
-        private UniversalInventory _inventory;
+        private BaseInventory _inventory;
 
         [Header("Filter Settings")]
         [SerializeField, Tooltip("How filtered-out slots are displayed")]
@@ -57,7 +57,7 @@ namespace UDND.Filter
         private void Awake()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
         }
 
         private void OnEnable()

@@ -6,7 +6,7 @@ namespace UDND.UI
     [DisallowMultipleComponent]
     public class InventoryDragVisualBinder : MonoBehaviour
     {
-        [SerializeField] private UniversalInventory _inventory;
+        [SerializeField] private BaseInventory _inventory;
         [SerializeField] private MonoBehaviour _dragVisualPrefab;
 
         public IInventory Inventory => _inventory;
@@ -15,13 +15,13 @@ namespace UDND.UI
         private void Awake()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
         }
 
         private void OnEnable()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
 
             DragVisualPresenter.AutoCreateInstance.RegisterBinder(this);
         }

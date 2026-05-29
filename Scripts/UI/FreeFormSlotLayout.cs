@@ -11,7 +11,7 @@ namespace UDND.UI
     ///
     /// <b>Usage:</b>
     /// <list type="number">
-    /// <item>Add it to the same GameObject as UniversalInventory (or assign explicitly).</item>
+    /// <item>Add it to the same GameObject as BaseInventory (or assign explicitly).</item>
     /// <item>Slot Management = Dynamic, Max Free Slots = 0.</item>
     /// <item>Do NOT put a LayoutGroup on the slot container (_slotContainer).</item>
     /// <item>An InventoryDropArea should be present nearby (standard one, unchanged).</item>
@@ -30,13 +30,12 @@ namespace UDND.UI
     /// }
     /// </code>
     /// </summary>
-    [RequireComponent(typeof(UniversalInventory))]
     [AddComponentMenu("DragAndDrop/Examples/Free Form Slot Layout")]
     public class FreeFormSlotLayout : MonoBehaviour
     {
         [Header("References")]
         [SerializeField, Tooltip("Inventory. If not assigned, taken from the same GameObject.")]
-        private UniversalInventory _inventory;
+        private BaseInventory _inventory;
 
         [SerializeField, Tooltip("UI camera. Null for Screen Space - Overlay Canvas.")]
         private Camera _uiCamera;
@@ -64,7 +63,7 @@ namespace UDND.UI
         private void Awake()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
         }
 
         private void OnEnable()

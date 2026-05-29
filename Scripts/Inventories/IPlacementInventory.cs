@@ -14,6 +14,7 @@ namespace UDND.Inventories
         GridTopology? Grid { get; }
         SlotShapedItemPolicy ShapedItemPolicy { get; }
         IPlacementStrategy PlacementStrategy { get; }
+        IReadOnlyCollection<Placement> Placements { get; }
 
         Placement GetPlacementAt(BaseSlot baseSlot);
         Placement GetPlacementAt(int cellIndex);

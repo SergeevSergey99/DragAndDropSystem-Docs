@@ -9,6 +9,6 @@ namespace UDND.Core
     [Serializable]
     public class InventoryList
     {
-        public List<UniversalInventory> inventories = new List<UniversalInventory>();
+        public List<BaseInventory> inventories = new List<BaseInventory>();
     }
 }

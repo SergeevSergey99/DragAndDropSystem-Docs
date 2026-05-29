@@ -16,7 +16,7 @@ namespace UDND.UI
     public class InventoryDropArea : DropAreaBase
     {
         [SerializeField, Tooltip("Inventory bound to this area")]
-        private UniversalInventory _inventory;
+        private BaseInventory _inventory;
 
         [Header("Visual Feedback")]
         [SerializeField, Tooltip("Highlight the area on hover (if it can accept the item)")]
@@ -42,7 +42,7 @@ namespace UDND.UI
         {
             base.OnValidate();
             if (_inventory == null)
-                _inventory = GetComponentInParent<UniversalInventory>();
+                _inventory = GetComponentInParent<BaseInventory>();
         }
 #endif
 

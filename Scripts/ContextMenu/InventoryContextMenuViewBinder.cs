@@ -6,7 +6,7 @@ namespace UDND.ContextMenu
     [DisallowMultipleComponent]
     public class InventoryContextMenuViewBinder : MonoBehaviour
     {
-        [SerializeField] private UniversalInventory _inventory;
+        [SerializeField] private BaseInventory _inventory;
         [SerializeField] private ContextMenuViewBase _viewPrefab;
 
         public IInventory Inventory => _inventory;
@@ -15,7 +15,7 @@ namespace UDND.ContextMenu
         private void OnEnable()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
 
             ContextMenuManager.AutoCreateInstance.RegisterViewBinder(this);
         }

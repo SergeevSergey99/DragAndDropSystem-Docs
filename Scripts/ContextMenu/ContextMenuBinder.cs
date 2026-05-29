@@ -7,12 +7,12 @@ namespace UDND.ContextMenu
 {
     /// <summary>
     /// Binds context menu presets to a specific inventory.
-    /// Add it to the same GameObject as <see cref="UniversalInventory"/>.
+    /// Add it to the same GameObject as <see cref="BaseInventory"/>.
     /// </summary>
     [DisallowMultipleComponent]
     public class ContextMenuBinder : MonoBehaviour
     {
-        [SerializeField] private UniversalInventory _inventory;
+        [SerializeField] private BaseInventory _inventory;
 
         [SerializeField] private bool _useGlobalPresets = true;
         [SerializeField, Tooltip("Menu entries for a non-empty slot.")]
@@ -32,7 +32,7 @@ namespace UDND.ContextMenu
         private void OnEnable()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
             
             ContextMenuManager.Instance.RegisterBinder(this);
         }

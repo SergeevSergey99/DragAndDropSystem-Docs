@@ -20,7 +20,7 @@ namespace UDND.DataBinding
     {
         [Header("UI Reference")]
         [SerializeField, Tooltip("Inventory UI representation")]
-        protected UniversalInventory _inventory;
+        protected BaseInventory _inventory;
 
         /*
         [FoldoutGroup("Rules", false)]
@@ -303,7 +303,7 @@ namespace UDND.DataBinding
 
         #region Public API
 
-        public UniversalInventory Inventory => _inventory;
+        public BaseInventory Inventory => _inventory;
 
         /// <summary>
         /// Force UI synchronization (can be called from external code)

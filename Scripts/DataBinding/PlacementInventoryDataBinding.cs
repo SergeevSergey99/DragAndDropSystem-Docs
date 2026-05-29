@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UDND.Core;
+using UDND.Inventories;
 
 namespace UDND.DataBinding
 {
@@ -76,12 +77,15 @@ namespace UDND.DataBinding
             if (placements == null || Inventory == null)
                 return;
 
+            if (Inventory is not IPlacementInventory placementInventory)
+                return;
+
             foreach (var placement in placements)
             {
-                if (Inventory.Grid.HasValue)
-                    ReloadGridPlacement(placement);
+                if (placementInventory.Grid.HasValue)
+                    ReloadGridPlacement(placement, placementInventory);
                 else
-                    ReloadSlotPlacement(placement);
+                    ReloadSlotPlacement(placement, placementInventory);
             }
 
             Inventory.UpdateAllVisuals();
@@ -109,7 +113,7 @@ namespace UDND.DataBinding
                 adapter));
         }
 
-        private void ReloadSlotPlacement(PlacementData<TData> placement)
+        private void ReloadSlotPlacement(PlacementData<TData> placement, IPlacementInventory placementInventory)
         {
             int count = Math.Max(1, placement.Count);
             int targetSlotIndex = placement.AnchorIndex >= 0 ? placement.AnchorIndex : -1;
@@ -121,7 +125,7 @@ namespace UDND.DataBinding
                     placement.Orientation,
                     PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
-                if (!Inventory.TryPlace(request))
+                if (!placementInventory.TryPlace(request))
                     OnPlacementReloadFailed(placement, stack.PrimaryAdapter);
 
                 return;
@@ -130,7 +134,7 @@ namespace UDND.DataBinding
             AddToUIQuiet(() => CreateAdapter(placement.Item), count, targetSlotIndex);
         }
 
-        private void ReloadGridPlacement(PlacementData<TData> placement)
+        private void ReloadGridPlacement(PlacementData<TData> placement, IPlacementInventory placementInventory)
         {
             int count = Math.Max(1, placement.Count);
             if (!TryCreateStack(placement.Item, count, out var stack))
@@ -142,7 +146,7 @@ namespace UDND.DataBinding
                 placement.Orientation,
                 PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
-            if (!Inventory.TryPlace(request))
+            if (!placementInventory.TryPlace(request))
                 OnPlacementReloadFailed(placement, stack.PrimaryAdapter);
         }
 

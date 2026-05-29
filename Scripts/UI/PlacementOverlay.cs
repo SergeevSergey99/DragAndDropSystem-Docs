@@ -12,7 +12,7 @@ namespace UDND.UI
     //[DefaultExecutionOrder(1000)]
     public sealed class PlacementOverlay : MonoBehaviour
     {
-        [SerializeField] private UniversalInventory _inventory;
+        [SerializeField] private BaseInventory _inventory;
         [SerializeField] private RectTransform _overlayRoot;
         [SerializeField] private PlacementOverlayItem _itemPrefab;
         [SerializeField] private Color _color = Color.white;
@@ -37,7 +37,7 @@ namespace UDND.UI
         private void OnEnable()
         {
             if (_inventory == null)
-                _inventory = GetComponent<UniversalInventory>();
+                _inventory = GetComponent<BaseInventory>();
 
             if (_inventory != null)
             {
@@ -108,14 +108,16 @@ namespace UDND.UI
             ReleaseAllActiveItems();
             _renderedPlacements.Clear();
 
-            if (_inventory == null || !_inventory.Grid.HasValue)
+            if (_inventory == null ||
+                _inventory is not IPlacementInventory placementInventory ||
+                !placementInventory.Grid.HasValue)
                 return;
 
             var root = ResolveOverlayRoot();
             if (root == null)
                 return;
 
-            var placements = _inventory.Placements;
+            var placements = placementInventory.Placements;
             foreach (var placement in placements)
             {
                 if (placement == null ||

@@ -11,7 +11,7 @@ namespace UDND.Selection
     [System.Serializable]
     public class SelectAllOperation : SelectionOperationBase
     {
-        [SerializeField] private UniversalInventory _inventory;
+        [SerializeField] private BaseInventory _inventory;
         [SerializeField, Tooltip("Clear the existing selection first")]
         private bool _clearFirst = true;
 
