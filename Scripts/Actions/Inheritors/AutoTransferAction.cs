@@ -174,7 +174,7 @@ namespace UDND.Inventories
 
         private static void NotifySlotInteracted(IInventory inventory, BaseSlot baseSlot)
         {
-            if (inventory is IInventoryInteractionSurface interactionSurface)
+            if (inventory is IInventoryInteraction interactionSurface)
                 interactionSurface.NotifySlotInteracted(baseSlot);
         }
 

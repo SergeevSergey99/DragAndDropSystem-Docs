@@ -73,7 +73,7 @@ namespace UDND.Interaction
                 DragAndDropManager.AutoCreateInstance.PopDropTarget(this);
             }
 
-            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback)
+            if (baseSlot.Inventory is IInventoryInteraction interactionFeedback)
             {
                 interactionFeedback.NotifyPointerExit(baseSlot);
             }
@@ -85,7 +85,7 @@ namespace UDND.Interaction
         public override void OnPointerEnter(PointerEventData eventData)
         {
             base.OnPointerEnter(eventData);
-            if (baseSlot?.Inventory is IInventoryInteractionSurface interactionFeedback)
+            if (baseSlot?.Inventory is IInventoryInteraction interactionFeedback)
             {
                 interactionFeedback.NotifyPointerEnter(baseSlot);
             }
@@ -97,7 +97,7 @@ namespace UDND.Interaction
         public override void OnPointerExit(PointerEventData eventData)
         {
             base.OnPointerExit(eventData);
-            if (baseSlot?.Inventory is IInventoryInteractionSurface interactionFeedback)
+            if (baseSlot?.Inventory is IInventoryInteraction interactionFeedback)
             {
                 interactionFeedback.NotifyPointerExit(baseSlot);
             }
@@ -124,7 +124,7 @@ namespace UDND.Interaction
                 return;
             }
 
-            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback)
+            if (baseSlot.Inventory is IInventoryInteraction interactionFeedback)
             {
                 interactionFeedback.NotifySlotInteracted(baseSlot);
             }
@@ -192,7 +192,7 @@ namespace UDND.Interaction
             if (baseSlot == null)
                 return;
 
-            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback &&
+            if (baseSlot.Inventory is IInventoryInteraction interactionFeedback &&
                 interactionFeedback.ShowDropPreview(baseSlot, DragAndDropManager.AutoCreateInstance.CurrentContext))
                 return;
 
@@ -204,7 +204,7 @@ namespace UDND.Interaction
             if (baseSlot == null)
                 return;
 
-            if (baseSlot.Inventory is IInventoryInteractionSurface interactionFeedback)
+            if (baseSlot.Inventory is IInventoryInteraction interactionFeedback)
                 interactionFeedback.ClearDropPreview();
 
             baseSlot.Highlight(false);

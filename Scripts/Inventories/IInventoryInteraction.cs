@@ -8,7 +8,7 @@ namespace UDND.Inventories
     /// Optional UI-facing inventory contract for pointer state and drop preview feedback.
     /// Keeps slot adapters and drag visuals independent from concrete inventory components.
     /// </summary>
-    public interface IInventoryInteractionSurface
+    public interface IInventoryInteraction
     {
         void NotifyPointerEnter(BaseSlot baseSlot);
         void NotifyPointerExit(BaseSlot baseSlot);

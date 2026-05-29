@@ -79,7 +79,7 @@ namespace UDND.ContextMenu
 
         private static BaseSlot ResolveAutoTransferSlot(IInventory inventory)
         {
-            return inventory is IInventoryInteractionSurface interactionSurface
+            return inventory is IInventoryInteraction interactionSurface
                 ? interactionSurface.ResolveAutoTransferSlot()
                 : null;
         }
