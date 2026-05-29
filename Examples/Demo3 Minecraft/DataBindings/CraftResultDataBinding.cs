@@ -14,7 +14,7 @@ namespace UDND.Examples.Minecraft
     /// but their sum is guaranteed to be a multiple (the planner ensures this via DragAmountStep).
     ///
     /// Scene setup:
-    /// - UniversalInventory with 1 slot
+    /// - Inventory UI with 1 slot
     /// - DO NOT add InventoryDropArea (incoming drops are forbidden)
     /// - Assign this component
     /// </summary>

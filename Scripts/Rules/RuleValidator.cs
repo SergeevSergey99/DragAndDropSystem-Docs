@@ -198,7 +198,7 @@ namespace UDND.Rules
     }
 
     /// <summary>
-    /// Validator for inventory rules (used in UniversalInventory)
+    /// Validator for inventory rules.
     /// </summary>
     [Serializable]
     public class InventoryRuleValidator : RuleValidator<IInventoryRule>

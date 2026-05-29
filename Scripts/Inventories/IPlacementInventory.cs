@@ -7,7 +7,7 @@ namespace UDND.Inventories
 {
     /// <summary>
     /// Optional inventory contract for grid/shaped placement support.
-    /// Code that needs placement semantics should depend on this interface instead of UniversalInventory.
+    /// Code that needs placement semantics should depend on this interface instead of a concrete inventory component.
     /// </summary>
     public interface IPlacementInventory : IInventory
     {

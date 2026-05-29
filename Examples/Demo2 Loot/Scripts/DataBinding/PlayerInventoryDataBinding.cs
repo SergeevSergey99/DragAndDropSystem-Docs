@@ -9,7 +9,7 @@ namespace UDND.Examples.Loot
 {
     /// <summary>
     /// DataBinding for the player inventory.
-    /// Connects PlayerInventoryData (data) with UniversalInventory (UI).
+    /// Connects PlayerInventoryData (data) with the inventory UI.
     /// Preserves item positions in slots.
     /// </summary>
     public class PlayerInventoryDataBinding : SlotIndexedInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>

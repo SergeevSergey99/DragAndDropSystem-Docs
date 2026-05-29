@@ -11,7 +11,7 @@ using UDND.Tools.Inspector;
 namespace UDND.DataBinding
 {
     /// <summary>
-    /// Base class that connects UniversalInventory (UI) with external data (for example, GameManager)
+    /// Base class that connects an inventory UI with external data (for example, GameManager)
     /// Uses the Adapter pattern for two-way synchronization:
     /// - UI changes -> external data (through OnItemAddedToUI / OnItemRemovedFromUI)
     /// - External data -> UI (through SyncToUI)
@@ -151,7 +151,7 @@ namespace UDND.DataBinding
         }
 
         /// <summary>
-        /// Called directly by UniversalInventory when an item is added.
+        /// Called directly by the inventory when an item is added.
         /// </summary>
         internal void HandleItemAdded(InventoryItemEventContext context)
         {
@@ -162,7 +162,7 @@ namespace UDND.DataBinding
         }
 
         /// <summary>
-        /// Called directly by UniversalInventory when an item is removed.
+        /// Called directly by the inventory when an item is removed.
         /// </summary>
         internal void HandleItemRemoved(InventoryItemEventContext context)
         {

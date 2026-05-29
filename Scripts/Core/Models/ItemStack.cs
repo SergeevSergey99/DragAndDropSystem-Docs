@@ -27,7 +27,7 @@ namespace UDND.Core
     /// <summary>
     /// Universal wrapper for an item with an amount
     /// Works with any type implementing IItemAdapter
-    /// Stack limits are defined through Max Stack Size in UniversalInventory
+    /// Stack limits are defined through the inventory's max stack size settings.
     /// or through IStackSizeLimitable on a specific item
     /// if allowItemStackOverride is enabled in the inventory
     /// </summary>

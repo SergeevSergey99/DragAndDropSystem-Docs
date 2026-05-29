@@ -6733,7 +6733,6 @@ MonoBehaviour:
   _dropPolicy:
     _blockedTargetResolver:
       rid: 8757923508012974082
-    _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
   _slots:
@@ -17639,7 +17638,6 @@ MonoBehaviour:
   _dropPolicy:
     _blockedTargetResolver:
       rid: 8757923508012974082
-    _allowMergeOnDrop: 1
     _allowPartial: 1
     _batchMode: 1
   _slots:

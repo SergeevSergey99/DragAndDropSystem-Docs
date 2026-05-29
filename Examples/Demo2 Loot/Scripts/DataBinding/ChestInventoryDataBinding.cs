@@ -7,7 +7,7 @@ namespace UDND.Examples.Loot
 {
     /// <summary>
     /// DataBinding for the chest inventory.
-    /// Connects Chest (data) with UniversalInventory (UI).
+    /// Connects Chest (data) with the inventory UI.
     /// Bound dynamically through BindToChest().
     /// </summary>
     public class ChestInventoryDataBinding : ListInventoryDataBinding<ItemExampleWith3DSO, ItemAdapterSoWith3DAdapter>
