@@ -890,19 +890,21 @@ namespace UDND.Inventories
                 targetWasEmpty = wasEmptyBefore;
             }
 
-            // Unresolved-target guard.
-            // A deferred/strategy placement (null target slot) re-adds the split stack via
-            // TryAddStack(-1), which reuses the FIRST empty slot. When source and target are the
-            // same inventory the source slot was just emptied by TrySplitFromSlot, so it is that
-            // first empty slot and the item lands right back where it started: the net runtime
-            // state equals the pre-split snapshot, TryResolveSlotChange finds no change, and
-            // resolvedSlot stays null (or resolves to the source slot itself). Reporting this as a
-            // successful transfer would emit an unbalanced EmitItemRemoved without a matching
-            // EmitItemAdded (TargetBaseSlot == null), silently dropping the item from index-keyed
-            // data bindings while the runtime still shows it in place. The invariant is general:
-            // if items were "added" but we cannot name the target slot, a balanced add/remove
-            // pair is impossible, so we must not report success.
-            if (resolvedSlot == null || ReferenceEquals(resolvedSlot, sourceSlot))
+            // Unresolved-target guard (deferred/strategy placement only).
+            // This path is reached only when the plan had no explicit target slot
+            // (allocation.BaseSlot == null) and the item was placed via TryAddStack(-1), which
+            // reuses the FIRST empty slot. When source and target are the same inventory the
+            // source slot was just emptied by TrySplitFromSlot, so it is that first empty slot and
+            // the item lands right back where it started: the net runtime state equals the
+            // pre-split snapshot, TryResolveSlotChange finds no change, and resolvedSlot stays null
+            // (or resolves to the source slot itself). Reporting this as a successful transfer
+            // would emit an unbalanced EmitItemRemoved without a matching EmitItemAdded
+            // (TargetBaseSlot == null), silently dropping the item from index-keyed data bindings
+            // while the runtime still shows it in place. The invariant is general: if items were
+            // "added" but we cannot name the target slot, a balanced add/remove pair is impossible,
+            // so we must not report success. Gated on targetSlot == null so explicit-slot and
+            // shaped placements (which keep their anchor as the target) are never affected.
+            if (targetSlot == null && (resolvedSlot == null || ReferenceEquals(resolvedSlot, sourceSlot)))
             {
                 if (ReferenceEquals(sourceInventory, targetInventory))
                 {
