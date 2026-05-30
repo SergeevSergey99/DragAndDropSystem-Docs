@@ -890,6 +890,38 @@ namespace UDND.Inventories
                 targetWasEmpty = wasEmptyBefore;
             }
 
+            // Unresolved-target guard.
+            // A deferred/strategy placement (null target slot) re-adds the split stack via
+            // TryAddStack(-1), which reuses the FIRST empty slot. When source and target are the
+            // same inventory the source slot was just emptied by TrySplitFromSlot, so it is that
+            // first empty slot and the item lands right back where it started: the net runtime
+            // state equals the pre-split snapshot, TryResolveSlotChange finds no change, and
+            // resolvedSlot stays null (or resolves to the source slot itself). Reporting this as a
+            // successful transfer would emit an unbalanced EmitItemRemoved without a matching
+            // EmitItemAdded (TargetBaseSlot == null), silently dropping the item from index-keyed
+            // data bindings while the runtime still shows it in place. The invariant is general:
+            // if items were "added" but we cannot name the target slot, a balanced add/remove
+            // pair is impossible, so we must not report success.
+            if (resolvedSlot == null || ReferenceEquals(resolvedSlot, sourceSlot))
+            {
+                if (ReferenceEquals(sourceInventory, targetInventory))
+                {
+                    // Same inventory: the item is already back in the source slot. Pure no-op —
+                    // emit nothing and report no transfer.
+                    Extensions.DragAndDropLog("<color=yellow>[TransferPlanExecutor] Same-inventory placement resolved back to the source slot; treating as no-op</color>");
+                    sourceSlot.UpdateVisuals();
+                    return false;
+                }
+
+                // Cross-inventory: the item really left the source but the target slot is unknown,
+                // so we cannot emit a consistent event pair. Roll back both sides to avoid a
+                // half-applied state / data loss.
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Cross-inventory placement could not resolve a target slot; rolling back</color>");
+                InventorySnapshotUtility.RestoreInventorySnapshot(sourceInventory, sourceSnapshotProvider, sourceInventorySnapshot);
+                InventorySnapshotUtility.RestoreInventorySnapshot(targetInventory, targetSnapshotProvider, targetInventorySnapshot);
+                return false;
+            }
+
             // Capture the adapters that were actually transferred.
             // For single-slot placement (Stackable), take them from the resolved slot (adapters were appended at the end).
             // For multi-slot distribution (Unique), the resolved slot contains only 1 item,
