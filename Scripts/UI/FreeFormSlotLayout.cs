@@ -75,7 +75,6 @@ namespace UDND.UI
         private void OnEnable()
         {
             CacheContainerRect();
-            Debug.Log($"[FreeForm-DIAG] OnEnable on '{name}': inventory={(_inventory != null ? _inventory.name : "NULL")}, type={(_inventory != null ? _inventory.GetType().Name : "-")}");
             if (_inventory == null)
                 return;
 
@@ -109,31 +108,17 @@ namespace UDND.UI
             _dragSourceCountBefore = 0;
             _dragAmount = 0;
 
-            if (context == null || context.Entries.Count == 0)
-            {
-                Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': SKIP — context null or no entries");
+            if (context == null || context.IsBatchDrag || context.Entries.Count == 0)
                 return;
-            }
-            if (context.IsBatchDrag)
-            {
-                Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': SKIP — IsBatchDrag (entries={context.Entries.Count})");
-                return;
-            }
 
             var entry = context.Entries[0];
             var sourceSlot = entry.SourceBaseSlot;
-            string srcInvHash = sourceSlot?.Inventory != null ? sourceSlot.Inventory.GetHashCode().ToString() : "null";
-            Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': sourceSlot={(sourceSlot != null ? sourceSlot.Index.ToString() : "null")}, sourceStack={(sourceSlot?.Stack != null ? sourceSlot.Stack.Count.ToString() : "null")}, sourceInv(hash)={srcInvHash}, myInv(hash)={_inventory.GetHashCode()}, entryStack={entry.Stack?.Count.ToString() ?? "null"}");
             if (sourceSlot == null || sourceSlot.Stack == null || !ReferenceEquals(sourceSlot.Inventory, _inventory))
-            {
-                Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': not from this inventory — sourceNull={sourceSlot == null}, stackNull={sourceSlot?.Stack == null}, invMismatch={(sourceSlot != null && !ReferenceEquals(sourceSlot.Inventory, _inventory))}");
                 return;
-            }
 
             _dragSourceBaseSlot = sourceSlot;
             _dragSourceCountBefore = sourceSlot.Stack.Count;
             _dragAmount = entry.Stack?.Count ?? 0;
-            Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': CAPTURED source slot {sourceSlot.Index}, countBefore={_dragSourceCountBefore}, dragAmount={_dragAmount}");
         }
 
         private void HandleDropAttempting(DragContext context)
@@ -185,13 +170,12 @@ namespace UDND.UI
                 return;
 
             int amountInSourceNow = sourceSlot.Stack?.Count ?? 0;
+            if (amountInSourceNow != _dragSourceCountBefore)
+                return;
+
             Vector2 releaseScreenPos = Input.mousePosition;
             bool inArea = IsScreenPointInArea(releaseScreenPos);
             bool overSlot = inArea && IsScreenPointOverExistingSlot(releaseScreenPos, sourceSlot);
-            Debug.Log($"[FreeForm-DIAG] Relocate on '{name}': src={sourceSlot.Index}, countBefore={_dragSourceCountBefore}, countNow={amountInSourceNow}, dragAmount={_dragAmount}, inArea={inArea}, overOtherSlot={overSlot}, pos={releaseScreenPos}");
-
-            if (amountInSourceNow != _dragSourceCountBefore)
-                return;
 
             // The item must have been released over this inventory's free-form area, on empty space.
             // Dropping onto another existing slot is left to the pipeline (merge / swap).
