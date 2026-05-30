@@ -1,6 +1,6 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## Core Manual Tests
 
@@ -36,6 +36,9 @@
 ### Drop Targets
 - [ ] slot target (`SlotInputAdapter`) uses same pipeline
 - [ ] area target (`InventoryDropArea`) uses same pipeline
+- [ ] same-inventory area drop excludes source slot and does not merge back into source
+- [ ] dynamic same-inventory area drop creates a new target slot when existing slots cannot accept
+- [ ] `FreeFormSlotLayout` positions newly created slots at drop point without owning stack mutation
 - [ ] manager fallback handler path behaves identically
 
 ### Demo Flows
@@ -51,5 +54,6 @@ After transfer/swap changes always re-check:
 - [ ] `TransferPlanExecutor` atomic rollback
 - [ ] `InventoryAcceptanceRequest` path for area-drop and planner preview
 - [ ] `InventoryDropProcessor` effective policy resolution
-- [ ] same-inventory `FindAlternative` leaves item in place
+- [ ] same-inventory slot-target fallback does not reshuffle unrelated slots
+- [ ] same-inventory area-drop full-stack and partial-stack paths create/move into valid target slots
 - [ ] no compile errors due to delegate/nullability syntax on Unity C# profile

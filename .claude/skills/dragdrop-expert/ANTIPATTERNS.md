@@ -2,7 +2,7 @@
 
 Comprehensive catalog of anti-patterns and how to avoid them.
 
-**Last Updated**: 2026-03-29
+**Last Updated**: 2026-05-30
 
 ## Anti-Pattern #1: Adding Locks Instead of Checking DragContext
 
@@ -229,6 +229,26 @@ protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupi
 If `CanHandleOccupiedSlotDrop` returns false, the pipeline continues normally (swap, findAlternative, reject) according to `BlockedTargetBehavior` — no behavior is lost.
 
 **Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` and `Scripts/Inventories/TransferPlanner.cs`.
+
+---
+
+## Anti-Pattern #14: Making Drop Targets Depend on Layouts
+
+**Problem**: Making `InventoryDropArea` branch on a concrete layout component such as `FreeFormSlotLayout`.
+
+**Why It's Bad**:
+- couples transfer target resolution to visual layout
+- makes future layouts require drop-area edits
+- encourages layout code to split stacks, create items, or emit inventory events
+- bypasses planner/executor rollback and event ordering guarantees
+
+**Solution**:
+- layout components move UI transforms only
+- transfer semantics stay in `TransferPlanner` / `TransferPlanExecutor`
+- dynamic target slot creation goes through generic runtime capabilities such as `IDynamicSlotLifecycle`
+- `FreeFormSlotLayout` reacts to `OnSlotCreated` and positions the created slot at the pending drop point
+
+**Check**: `Scripts/UI/InventoryDropArea.cs`, `Scripts/UI/FreeFormSlotLayout.cs`, `Scripts/Inventories/TransferPlanExecutor.cs`.
 
 ---
 

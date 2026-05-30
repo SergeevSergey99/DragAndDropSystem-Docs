@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## Manual Drop Flow
 
@@ -35,6 +35,7 @@ Output:
   - allocation entry (slot allocations)
   - occupied handler entry (`RequiresOccupiedHandler`) — checked before swap
   - swap entry (`RequiresSwap`)
+- same-inventory area drops exclude the source slot from candidate search
 
 Internal helper objects:
 - `EntryPlanningOperation`
@@ -55,6 +56,7 @@ Normal transfer execution uses:
 - `InventoryTransferRequest`
 - `TargetPlacementOperation`
 - `AlternativeSlotSearchOperation`
+- `IDynamicSlotLifecycle.TryCreateSlot(...)` when a same-inventory area drop needs a new dynamic target slot
 
 `InventoryTransferResult` carries both:
 - `SourceItem`
@@ -131,9 +133,30 @@ Virtual hooks in `InventoryDataBindingBase`:
 
 Note: swap uses event subscriptions because two inventories participate.
 
-## Same-Inventory FindAlternative Rule
+## Same-Inventory Area Drop
 
-If source and target inventory are the same, `FindAlternative` does not redistribute items across other slots of that inventory. The operation either uses the explicit target slot or leaves the item in place.
+For an area drop with no explicit target slot and the same source/target inventory:
+
+```text
+InventoryDropArea.TryBuildValidationContext()
+  → if suggested slot == source slot, clear target slot hint
+
+TransferPlanner.PlanEntry()
+  → exclude source slot from same-inventory area-drop candidates
+  → if existing slots cannot accept, allow deferred placement when capacity exists
+
+TransferPlanExecutor.TryAddToTargetInventory()
+  → TryAddToNewDynamicSlotForSameInventoryAreaDrop()
+      → IDynamicSlotLifecycle.TryCreateSlot(out targetSlot)
+      → targetInventory.TryAddToSlot(..., targetSlot, ...)
+      → normal result/event dispatch
+
+FreeFormSlotLayout
+  → observes OnSlotCreated
+  → positions the newly created slot at the pending drop point
+```
+
+This keeps layout code out of item mutation while still allowing free-form same-inventory split/move into a new slot.
 
 ## Event Safety Principle
 

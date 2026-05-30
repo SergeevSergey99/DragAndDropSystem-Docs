@@ -4,8 +4,8 @@ description: Architecture reference for UniversalDragAndDrop with policy-driven 
 ---
 # DragDrop Architecture
 
-**Version**: 2.3
-**Last Updated**: 2026-05-01
+**Version**: 2.4
+**Last Updated**: 2026-05-30
 
 ## Architectural Baseline
 
@@ -15,6 +15,7 @@ Transfer architecture is centered on:
 - `TransferPlanExecutor` (state mutation + rollback)
 - `InventoryAcceptanceRequest` (context-aware preview request)
 - `TransferItemConversionUtility` (preview conversion helper)
+- runtime capabilities such as `IDynamicSlotLifecycle` (dynamic slot creation/removal without UI coupling)
 
 ## Core Documents
 
@@ -35,3 +36,4 @@ Transfer architecture is centered on:
 7. Keep `TryAddToSlot` as pure mutation with no internal event emission.
 8. Keep preview conversion target-aware and non-mutating before planning/execution.
 9. Keep slot-domain code on `BaseSlot`; `ISlot` is only for filter/sorter contracts.
+10. Keep layout components out of transfer semantics; layouts may react to slot lifecycle events but must not own item mutation.

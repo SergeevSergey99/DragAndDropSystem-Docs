@@ -4,8 +4,8 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-05-01
-**Version**: 2.2
+**Last Updated**: 2026-05-30
+**Version**: 2.3
 
 ## Expert Baseline
 
@@ -15,6 +15,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 4. Keep swap in main execution pipeline, not parallel legacy branches.
 5. Preserve rollback safety and deferred events in atomic mode.
 6. Preserve target-aware preview conversion and acceptance requests before execution.
+7. Keep UI layout concerns separate from transfer semantics; do not make drop targets depend on layout implementations.
 
 ## Review Priorities
 
@@ -23,6 +24,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - Preview correctness (`InventoryAcceptanceRequest`, target-side conversion).
 - Executor atomic rollback correctness.
 - Bidirectional rule checks for swap.
+- Same-inventory area-drop behavior: source slot is excluded, dynamic inventories create a new target slot during execution.
 - No duplicate or premature event emission.
 
 ## Critical Files

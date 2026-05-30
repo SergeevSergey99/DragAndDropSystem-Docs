@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## DragAndDropManager
 
@@ -62,6 +62,7 @@ Responsibilities:
 - inventory acceptance preview via `InventoryAcceptanceRequest`
 - virtual-slot allocation for batch operations
 - rule-aware target candidate selection
+- source-slot exclusion for same-inventory area drops
 - checking occupied-slot handler hook before swap/findAlternative: `RequiresOccupiedHandler` + `OccupiedTargetSlot`
 - planning swap entries (`RequiresSwap` + `SwapTargetSlot`)
 
@@ -81,6 +82,7 @@ Location: `Scripts/Inventories/TransferPlanExecutor.cs`
 Responsibilities:
 - execute plan entries in sequence
 - run normal transfers through internal execution helpers
+- create explicit dynamic target slots for same-inventory area drops via `IDynamicSlotLifecycle.TryCreateSlot(...)`
 - run occupied-handler branch: `ExecuteOccupiedSlotDrop` on target inventory → DataBinding owns full mutation
 - run swap branch with bidirectional rule validation
 - support atomic rollback through snapshots
@@ -119,12 +121,25 @@ Responsibilities:
 Notes:
 - `TryAddToSlot` is pure mutation, no events emitted internally
 - events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()`
-- dynamic slot creation is still split between strategy wrapping (`DynamicSlotDecorator`)
-  and inventory-level slot lifecycle methods such as `EnsureFreeSlots()` / `HandleSlotEmptied()`
+- dynamic slot behavior is split between strategy wrapping (`DynamicSlotDecorator`) and
+  `IDynamicSlotLifecycle` (`TryCreateSlot` / `HandleSlotEmptied`)
 - current `ItemStack` model is instance-aware: it stores a representative `PrimaryAdapter`
   plus `IReadOnlyList<IItemAdapter> Adapters`; `Count` is derived from adapter list length
 - type checks/casts in rules, bindings, tooltips, and visuals should use `PrimaryAdapter`
   (or `ItemAdapter`, which is kept as an alias for compatibility)
+
+## FreeFormSlotLayout
+
+Location: `Scripts/UI/FreeFormSlotLayout.cs`
+
+Responsibilities:
+- position dynamically created UI slots at the current drop point
+- provide auto-layout/restoration helpers for free-form slot containers
+- clamp positions against container or bounds override
+
+Boundary:
+- does not own item transfer, split, merge, or event emission
+- reacts to `UniversalInventory.OnSlotCreated`; transfer semantics stay in planner/executor
 
 ## Acceptance Preview
 

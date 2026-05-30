@@ -2,7 +2,7 @@
 
 Detailed documentation of current inventory strategies.
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## Strategy Hierarchy
 
@@ -125,7 +125,9 @@ How it works:
 
 Important current detail:
 - `DynamicSlotDecorator` is creation-oriented
-- trimming/removing excess empty slots still happens in `UniversalInventory.HandleSlotEmptied()` and `TrimExcessFreeSlots()`
+- generic add still creates slots while items remain
+- same-inventory area drops can create an explicit target slot through `IDynamicSlotLifecycle.TryCreateSlot(...)`
+- trimming/removing excess empty slots still happens through `IDynamicSlotLifecycle.HandleSlotEmptied(...)`
 
 ## Strategy Selection in UniversalInventory
 
@@ -147,6 +149,7 @@ Current runtime delegation from `UniversalInventory`:
 - preview acceptance → `CanAcceptItem(...)` / `GetAcceptableCount(...)`
 - planning hint → `UsesPerItemSlotPlanning`
 - read-only queries → `Contains(...)` / `GetItemCount(...)`
+- dynamic slot lifecycle → `TryCreateSlot(...)` / `HandleSlotEmptied(...)`
 
 ## TryAdd and skipRules
 

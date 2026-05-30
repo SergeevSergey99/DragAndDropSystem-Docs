@@ -2,7 +2,7 @@
 
 Complete guide for extending the system and optimization strategies.
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## Extension Points
 
@@ -114,6 +114,26 @@ Complete guide for extending the system and optimization strategies.
 - Item preview (3D model preview)
 
 **Check Implementation**: `Scripts/UI/DefaultDragVisual.cs`, `Scripts/UI/FancyDragVisual.cs` for examples.
+
+---
+
+### Custom Layout
+
+**Purpose**: Position inventory slot views without changing transfer semantics.
+
+**Location**: `Scripts/UI/FreeFormSlotLayout.cs`
+
+**Rules**:
+1. Treat layout as UI-only: move `RectTransform`s, not item stacks.
+2. React to slot lifecycle events such as `OnSlotCreated`.
+3. Leave stack split/merge/move and events to `TransferPlanner` / `TransferPlanExecutor`.
+4. Do not make `InventoryDropArea` depend on a specific layout implementation.
+5. If a layout needs new target slots, add a generic runtime capability instead of calling the layout from the drop target.
+
+**Current pattern**:
+- same-inventory area drops are resolved in the pipeline
+- dynamic slot creation goes through `IDynamicSlotLifecycle.TryCreateSlot(...)`
+- `FreeFormSlotLayout` positions the created slot at the pending drop point
 
 ---
 

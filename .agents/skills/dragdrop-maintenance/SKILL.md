@@ -7,7 +7,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 **Purpose**: Keep Claude skills synchronized with codebase changes
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 **When to use this skill**:
 - After implementing major architectural changes
@@ -143,10 +143,12 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 - `Scripts/Inventories/InventoryTransferService.cs` - Transfer request/result models
 - `Scripts/Inventories/TransferPlanExecutor.cs` - Execution, rollback, and event dispatch
 - `Scripts/Inventories/TransferPlanner.cs` - Planning and acceptance flow
+- `Scripts/Inventories/InventoryRuntimeCapabilities.cs` - Runtime capabilities such as dynamic slot lifecycle
 - `Scripts/DataBinding/InventoryDataBindingBase.cs` - DataBinding base (direct notifications, sync, conversion)
 - `Scripts/DataBinding/ListInventoryDataBinding.cs` - Template for list-based DataBindings
 - `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` - Template for slot-mapped DataBindings
 - `Scripts/Slots/BaseSlot.cs` - Slot base class
+- `Scripts/UI/FreeFormSlotLayout.cs` - Free-form slot positioning; layout only, no item mutation
 - `Scripts/Rules/` - Rule system files
 
 ---

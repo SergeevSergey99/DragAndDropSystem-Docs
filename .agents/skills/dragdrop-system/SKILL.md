@@ -4,8 +4,8 @@ description: Quick reference for Unity Drag & Drop Inventory System with policy/
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 2.4
-**Last Updated**: 2026-05-01
+**Version**: 2.5
+**Last Updated**: 2026-05-30
 
 ## System Overview
 
@@ -42,6 +42,8 @@ Main benefits:
   - input routing and modality state
 - `InventoryDropArea` (`Scripts/UI/InventoryDropArea.cs`)
   - area-drop entry point that builds preview requests
+- `IDynamicSlotLifecycle` (`Scripts/Inventories/InventoryRuntimeCapabilities.cs`)
+  - capability for runtime slot creation/removal used by transfer execution
 
 ## Policy Model
 
@@ -61,6 +63,7 @@ Main fields:
 - area-drops and planner preview resolve target-side item before capacity checks
 - `InventoryAcceptanceRequest` lets strategies validate concrete candidate slots
 - mapped-slot bindings no longer need ad-hoc preview guards in feature code
+- same-inventory area drops exclude the source slot as a candidate; dynamic inventories may create a new target slot during execution
 
 ## Operation References
 

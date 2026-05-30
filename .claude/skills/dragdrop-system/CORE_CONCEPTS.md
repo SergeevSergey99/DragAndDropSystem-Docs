@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -52,6 +52,7 @@ Current policy layers:
 
 - mutation layer
 - executes normal allocations through internal placement helpers
+- can create a new dynamic target slot for same-inventory area drops via `IDynamicSlotLifecycle.TryCreateSlot(...)`
 - executes swap branch when planned
 - supports rollback in `Atomic` mode
 - emits transfer/swap events only after successful completion
@@ -117,7 +118,8 @@ Responsibilities:
 - return `DropResult`
 
 Current note:
-- same-inventory `FindAlternative` is intentionally treated as no-op fallback; items stay in place instead of being reshuffled across the same inventory
+- same-inventory slot-target fallback still avoids reshuffling unrelated slots
+- same-inventory area drops exclude the source slot; dynamic inventories can create a new target slot so split/move operations do not fall back into the source
 
 ## 10. Input Layers Are Separated
 
@@ -127,3 +129,13 @@ Input responsibilities are split:
 - `SlotInputAdapter` / `InventoryDropArea`
 
 This keeps modality detection out of transfer and slot-domain logic.
+
+## 11. Dynamic Slot Lifecycle
+
+`Scripts/Inventories/InventoryRuntimeCapabilities.cs`
+
+`IDynamicSlotLifecycle` is the runtime capability for dynamic slot creation/removal:
+- `TryCreateSlot(out BaseSlot)` lets the executor create an explicit target slot when a plan needs a new slot.
+- `HandleSlotEmptied(BaseSlot)` trims excess empty slots after committed removals.
+
+Layout components such as `FreeFormSlotLayout` do not mutate stacks. They react to `OnSlotCreated` and position newly created slot transforms.

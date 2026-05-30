@@ -1,6 +1,6 @@
 # Operations
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## Manual Drag & Drop (Pipeline)
 
@@ -55,7 +55,8 @@ This is operation-scoped. It does not mutate inventory defaults.
    - `Reject` -> fail
    - `Swap` -> plan swap
    - `FindAlternative` -> ask strategy for alternative slots
-5. Same-inventory `FindAlternative` does not reshuffle items across other slots
+5. Same-inventory slot-target fallback does not reshuffle unrelated slots
+6. Same-inventory area drop excludes the source slot; if the target inventory is dynamic, execution can create a new target slot
 
 ## Swap Flow (Current)
 
@@ -72,6 +73,18 @@ Area-drop and planning preview use:
 - `InventoryAcceptanceRequest`
 
 This keeps slot-specific rules and mapped-slot bindings consistent between hover preview and final execution.
+
+## Same-Inventory Area Drop
+
+For drops onto an inventory area with no explicit target slot:
+
+1. `InventoryDropArea` still builds normal preview context.
+2. If preview suggests the source slot for a same-inventory drop, the slot hint is cleared.
+3. `TransferPlanner` excludes the source slot from same-inventory area-drop candidates.
+4. `TransferPlanExecutor` can ask `IDynamicSlotLifecycle.TryCreateSlot(...)` for a new target slot.
+5. Normal `TryAddToSlot` / split / event dispatch handles the mutation.
+
+This keeps layout components out of transfer semantics. `FreeFormSlotLayout` only positions dynamically created slots through `OnSlotCreated`.
 
 ## Auto-Transfer (Quick Click / Actions)
 

@@ -1,6 +1,6 @@
 # Future Refactoring Roadmap
 
-**Last Updated**: 2026-03-23
+**Last Updated**: 2026-05-30
 
 This document collects architecture changes discussed during the recent refactoring pass.
 It focuses on future work, why it is needed, and how it can be implemented incrementally
@@ -509,6 +509,12 @@ What changed:
 
 That is a lot of responsibilities for one class.
 
+Current state:
+- transfer-facing dynamic lifecycle is already exposed through `IDynamicSlotLifecycle`
+- `TryCreateSlot(out BaseSlot)` is used by `TransferPlanExecutor` for same-inventory area drops that need a new target slot
+- `HandleSlotEmptied(BaseSlot)` is used after committed removals for trimming/cleanup
+- extraction to a controller is still optional and internal
+
 ### Important Note
 
 This does **not** mean `UniversalInventory` should stop being the inventory abstraction.
@@ -538,6 +544,7 @@ public sealed class DynamicSlotController
 - creation/removal rules for dynamic slots
 - prefab-based slot lifecycle
 - min/max free slot maintenance
+- implementation behind `IDynamicSlotLifecycle`
 
 ### When To Do This
 

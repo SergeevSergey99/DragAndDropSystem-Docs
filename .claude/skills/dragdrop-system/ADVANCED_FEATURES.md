@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-05-30
 
 ## Quick Click Auto-Transfer
 
@@ -65,6 +65,18 @@ Example: Demo5 Containers — `PlayerContainerInventoryDataBinding` uses this to
 - implemented via `TransferPlanExecutor` + snapshot providers
 - prevents partial side effects for atomic policy
 - uses deferred event dispatch so DataBinding and subscribers see only committed outcomes
+
+## Free-Form Dynamic Slots
+
+`FreeFormSlotLayout` is a layout component, not a transfer handler:
+- it records the pending drop screen position
+- it positions newly created slots through `OnSlotCreated`
+- it should not split stacks, create items, or emit inventory events
+
+Same-inventory area drops are handled by the core pipeline:
+- planner excludes the source slot from candidate search
+- executor can create a dynamic target slot via `IDynamicSlotLifecycle.TryCreateSlot(...)`
+- normal split/move/event dispatch then applies
 
 ## Swap Callbacks for Integrations
 
