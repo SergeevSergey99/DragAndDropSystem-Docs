@@ -54,6 +54,13 @@ namespace UDND
         public bool HasActiveDropTarget => _currentProcessor != null || _dropTargetStack.Count > 0;
         public bool HasActiveSlotDropTarget => _activeDropTarget?.GetTargetSlot() != null;
 
+        /// <summary>
+        /// Drop target currently under the pointer/focus (the one that will receive the drop).
+        /// Remains valid through OnDropAttempting/OnDropCompleted and is cleared by EndDrag.
+        /// Lets listeners (for example FreeFormSlotLayout) detect which area received the drop.
+        /// </summary>
+        public IDropTarget ActiveDropTarget => _activeDropTarget;
+
         // Exposed for IDropProcessor implementations
         public GlobalRuleValidator GlobalRules => _globalRules;
 

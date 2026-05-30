@@ -57,6 +57,11 @@ namespace UDND.UI
         private Vector2 _pendingDropScreenPosition;
         private bool _hasPendingDropPosition;
 
+        // Source captured at drop time, used for same-inventory relocation.
+        private BaseSlot _dragSourceBaseSlot;
+        private int _dragSourceCountBefore;
+        private int _dragAmount;
+
         // ══════════════════════════════════════════════════════════
         //  Lifecycle
         // ══════════════════════════════════════════════════════════
@@ -70,13 +75,15 @@ namespace UDND.UI
         private void OnEnable()
         {
             CacheContainerRect();
+            Debug.Log($"[FreeForm-DIAG] OnEnable on '{name}': inventory={(_inventory != null ? _inventory.name : "NULL")}, type={(_inventory != null ? _inventory.GetType().Name : "-")}");
             if (_inventory == null)
                 return;
 
             _inventory.OnSlotCreated += HandleSlotCreated;
+            DragAndDropManager.OnDragStarted += HandleDragStarted;
             DragAndDropManager.OnDropAttempting += HandleDropAttempting;
-            DragAndDropManager.OnDropCompleted += HandleDropEnded;
-            DragAndDropManager.OnDragCancelled += HandleDropEnded;
+            DragAndDropManager.OnDropCompleted += HandleDropCompleted;
+            DragAndDropManager.OnDragCancelled += HandleDragCancelled;
         }
 
         private void OnDisable()
@@ -84,24 +91,162 @@ namespace UDND.UI
             if (_inventory != null)
                 _inventory.OnSlotCreated -= HandleSlotCreated;
 
+            DragAndDropManager.OnDragStarted -= HandleDragStarted;
             DragAndDropManager.OnDropAttempting -= HandleDropAttempting;
-            DragAndDropManager.OnDropCompleted -= HandleDropEnded;
-            DragAndDropManager.OnDragCancelled -= HandleDropEnded;
+            DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
+            DragAndDropManager.OnDragCancelled -= HandleDragCancelled;
         }
 
         // ══════════════════════════════════════════════════════════
         //  Event handlers
         // ══════════════════════════════════════════════════════════
 
+        private void HandleDragStarted(DragContext context)
+        {
+            // Capture the source at drag start (authoritative: fires once in StartDrag for every drag).
+            // The source slot still holds its full stack here; the actual split happens later during ProcessDrop.
+            _dragSourceBaseSlot = null;
+            _dragSourceCountBefore = 0;
+            _dragAmount = 0;
+
+            if (context == null || context.Entries.Count == 0)
+            {
+                Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': SKIP — context null or no entries");
+                return;
+            }
+            if (context.IsBatchDrag)
+            {
+                Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': SKIP — IsBatchDrag (entries={context.Entries.Count})");
+                return;
+            }
+
+            var entry = context.Entries[0];
+            var sourceSlot = entry.SourceBaseSlot;
+            string srcInvHash = sourceSlot?.Inventory != null ? sourceSlot.Inventory.GetHashCode().ToString() : "null";
+            Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': sourceSlot={(sourceSlot != null ? sourceSlot.Index.ToString() : "null")}, sourceStack={(sourceSlot?.Stack != null ? sourceSlot.Stack.Count.ToString() : "null")}, sourceInv(hash)={srcInvHash}, myInv(hash)={_inventory.GetHashCode()}, entryStack={entry.Stack?.Count.ToString() ?? "null"}");
+            if (sourceSlot == null || sourceSlot.Stack == null || !ReferenceEquals(sourceSlot.Inventory, _inventory))
+            {
+                Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': not from this inventory — sourceNull={sourceSlot == null}, stackNull={sourceSlot?.Stack == null}, invMismatch={(sourceSlot != null && !ReferenceEquals(sourceSlot.Inventory, _inventory))}");
+                return;
+            }
+
+            _dragSourceBaseSlot = sourceSlot;
+            _dragSourceCountBefore = sourceSlot.Stack.Count;
+            _dragAmount = entry.Stack?.Count ?? 0;
+            Debug.Log($"[FreeForm-DIAG] DragStarted on '{name}': CAPTURED source slot {sourceSlot.Index}, countBefore={_dragSourceCountBefore}, dragAmount={_dragAmount}");
+        }
+
         private void HandleDropAttempting(DragContext context)
         {
+            // Only remember where the pointer is at drop time; the source was captured at drag start.
             _pendingDropScreenPosition = Input.mousePosition;
             _hasPendingDropPosition = true;
         }
 
-        private void HandleDropEnded(DragContext context)
+        private void HandleDropCompleted(DragContext context)
+        {
+            // A same-inventory drop is handled here too: the transfer pipeline either rejects it
+            // (drop cancelled) or no-ops it (item returns to its source slot), because it has no
+            // concept of free-form positions. We detect that and relocate to the drop point.
+            TryFreeFormRelocate();
+            ResetDropState();
+        }
+
+        private void HandleDragCancelled(DragContext context)
+        {
+            // Same-inventory free-form drops are frequently rejected by the pipeline (no empty slot,
+            // duplicate-item rule, etc.) and arrive here as a cancel — this is the common move case.
+            TryFreeFormRelocate();
+            ResetDropState();
+        }
+
+        private void ResetDropState()
         {
             _hasPendingDropPosition = false;
+            _dragSourceBaseSlot = null;
+            _dragSourceCountBefore = 0;
+            _dragAmount = 0;
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  Same-inventory relocation (free-form move / partial split)
+        // ══════════════════════════════════════════════════════════
+
+        private void TryFreeFormRelocate()
+        {
+            var sourceSlot = _dragSourceBaseSlot;
+
+            // Only relocate an item that started in this inventory and is still in its source slot
+            // (i.e. the pipeline rejected or no-op'd the drop). If items actually left the source,
+            // the pipeline already placed them elsewhere — don't touch them.
+            if (sourceSlot == null || !ReferenceEquals(sourceSlot.Inventory, _inventory))
+                return;
+            if (_dragAmount <= 0 || _dragSourceCountBefore <= 0)
+                return;
+
+            int amountInSourceNow = sourceSlot.Stack?.Count ?? 0;
+            Vector2 releaseScreenPos = Input.mousePosition;
+            bool inArea = IsScreenPointInArea(releaseScreenPos);
+            bool overSlot = inArea && IsScreenPointOverExistingSlot(releaseScreenPos, sourceSlot);
+            Debug.Log($"[FreeForm-DIAG] Relocate on '{name}': src={sourceSlot.Index}, countBefore={_dragSourceCountBefore}, countNow={amountInSourceNow}, dragAmount={_dragAmount}, inArea={inArea}, overOtherSlot={overSlot}, pos={releaseScreenPos}");
+
+            if (amountInSourceNow != _dragSourceCountBefore)
+                return;
+
+            // The item must have been released over this inventory's free-form area, on empty space.
+            // Dropping onto another existing slot is left to the pipeline (merge / swap).
+            if (!inArea || overSlot)
+                return;
+
+            // HandleSlotCreated (used for the partial-split's new slot) reads this position.
+            _pendingDropScreenPosition = releaseScreenPos;
+            _hasPendingDropPosition = true;
+
+            if (_dragAmount >= amountInSourceNow)
+            {
+                // Full-stack move: reposition the existing slot to the drop point.
+                if (!sourceSlot.IsEmpty)
+                    PositionSlotAtScreenPoint(sourceSlot, releaseScreenPos);
+                return;
+            }
+
+            // Partial move: split the dragged amount into a new slot (positioned via OnSlotCreated).
+            if (_inventory is UniversalInventory universalInventory)
+                universalInventory.TrySplitIntoNewSlot(sourceSlot, _dragAmount, out _);
+        }
+
+        private bool IsScreenPointInArea(Vector2 screenPos)
+        {
+            var areaRect = _boundsOverride != null ? _boundsOverride : _containerRect;
+            return areaRect != null
+                && RectTransformUtility.RectangleContainsScreenPoint(areaRect, screenPos, ResolveUiCamera());
+        }
+
+        private bool IsScreenPointOverExistingSlot(Vector2 screenPos, BaseSlot ignoredBaseSlot)
+        {
+            if (_containerRect == null || _inventory == null)
+                return false;
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _containerRect, screenPos, ResolveUiCamera(), out var localPoint))
+                return false;
+
+            var slots = _inventory.Slots;
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null || ReferenceEquals(slot, ignoredBaseSlot))
+                    continue;
+
+                var slotRect = slot.Transform as RectTransform;
+                if (slotRect == null)
+                    continue;
+
+                if (GetLocalRect(GetSlotLocalPosition(slotRect), slotRect).Contains(localPoint))
+                    return true;
+            }
+
+            return false;
         }
 
         private void HandleSlotCreated(BaseSlot baseSlot)

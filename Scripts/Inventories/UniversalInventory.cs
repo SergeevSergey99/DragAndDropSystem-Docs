@@ -754,6 +754,58 @@ namespace UDND.Inventories
             return true;
         }
 
+        /// <summary>
+        /// Split <paramref name="amount"/> items out of <paramref name="sourceBaseSlot"/> into a brand new slot,
+        /// without merging back into the source or any existing stack.
+        /// Intended for free-form layouts where a partial drop should become a separate stack
+        /// at the drop point (the new slot fires <see cref="OnSlotCreated"/> so a layout can position it).
+        /// A full-stack move should reposition the existing slot instead of calling this.
+        /// </summary>
+        /// <returns>True if a new slot was created and filled with the split portion.</returns>
+        public bool TrySplitIntoNewSlot(BaseSlot sourceBaseSlot, int amount, out BaseSlot newBaseSlot)
+        {
+            newBaseSlot = null;
+
+            if (sourceBaseSlot == null || !ReferenceEquals(sourceBaseSlot.Inventory, this) || amount <= 0)
+                return false;
+
+            EnsureStrategyInitialized();
+
+            // Partial split only: leave at least one item in the source slot.
+            if (sourceBaseSlot.IsEmpty || sourceBaseSlot.Stack == null || sourceBaseSlot.Stack.Count <= amount)
+                return false;
+
+            if (!TrySplitFromSlot(sourceBaseSlot, amount, out var splitStack) || splitStack == null || splitStack.IsEmpty)
+                return false;
+
+            // Keep a copy for events: TrySetStackForSlot takes ownership of splitStack.
+            var movedStackForEvents = splitStack.CreateCopy();
+
+            var createdSlot = CreateSlot();
+            if (createdSlot == null || !TrySetStackForSlot(createdSlot, splitStack))
+            {
+                // Roll back: return the split portion to the source slot.
+                if (!TryAddToSlotStack(sourceBaseSlot, splitStack))
+                    TrySetStackForSlot(sourceBaseSlot, splitStack);
+                sourceBaseSlot.UpdateVisuals();
+
+                if (createdSlot != null && createdSlot.IsEmpty)
+                    TryRemoveSlot(createdSlot);
+
+                return false;
+            }
+
+            createdSlot.UpdateVisuals();
+            sourceBaseSlot.UpdateVisuals();
+
+            // Report as a slot-to-slot move within this inventory (mirrors TransferPlanExecutor events).
+            EmitItemRemoved(movedStackForEvents, sourceBaseSlot.Index, this, sourceBaseSlot, createdSlot);
+            EmitItemAdded(movedStackForEvents, createdSlot.Index, this, sourceBaseSlot, createdSlot);
+
+            newBaseSlot = createdSlot;
+            return true;
+        }
+
         public override bool TryAddToSlotStack(BaseSlot baseSlot, ItemStack stack)
         {
             if (baseSlot == null || stack == null || stack.IsEmpty)
