@@ -12,24 +12,12 @@ namespace UDND.UI
     ///
     /// <b>Usage:</b>
     /// <list type="number">
-    /// <item>Add it to the same GameObject as BaseInventory (or assign explicitly).</item>
+    /// <item>Add it to the slot container GameObject of BaseInventory (or assign explicitly).</item>
     /// <item>Slot Management = Dynamic, Max Free Slots = 0.</item>
     /// <item>Do NOT put a LayoutGroup on the slot container (_slotContainer).</item>
     /// <item>An InventoryDropArea should be present nearby (standard one, unchanged).</item>
     /// </list>
     ///
-    /// <b>Persistence (extension):</b>
-    /// To persist slot positions, normalized coordinates can be stored
-    /// (localPosition / containerSize) in the data model (for example, in IItemAdapter or a separate map).
-    /// On ReloadUI, call <see cref="ArrangeAllSlots"/> or restore positions manually:
-    /// <code>
-    /// foreach (var slot in inventory.Slots)
-    /// {
-    ///     var normalizedPos = myModel.GetSlotPosition(slot.Index);
-    ///     var localPos = NormalizedToLocal(normalizedPos);
-    ///     SetSlotPosition(slot, localPos);
-    /// }
-    /// </code>
     /// </summary>
     [AddComponentMenu("DragAndDrop/Examples/Free Form Slot Layout")]
     public class FreeFormSlotLayout : MonoBehaviour
@@ -41,17 +29,9 @@ namespace UDND.UI
         [SerializeField, Tooltip("UI camera. Null for Screen Space - Overlay Canvas.")]
         private Camera _uiCamera;
 
-        [Header("Auto Layout (for ReloadUI / initialization)")]
-        [SerializeField, Tooltip("Minimum spacing between slots during automatic placement.")]
-        private float _slotSpacing = 8f;
-
         [Header("Bounds")]
         [SerializeField, Tooltip("Area restricting slot positions. Null uses the slot container RectTransform.")]
         private RectTransform _boundsOverride;
-
-        // ══════════════════════════════════════════════════════════
-        //  State
-        // ══════════════════════════════════════════════════════════
 
         private RectTransform _containerRect;
         private Vector2 _pendingDropScreenPosition;
@@ -61,10 +41,6 @@ namespace UDND.UI
         private BaseSlot _dragSourceBaseSlot;
         private int _dragSourceCountBefore;
         private int _dragAmount;
-
-        // ══════════════════════════════════════════════════════════
-        //  Lifecycle
-        // ══════════════════════════════════════════════════════════
 
         private void Awake()
         {
@@ -95,10 +71,6 @@ namespace UDND.UI
             DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
             DragAndDropManager.OnDragCancelled -= HandleDragCancelled;
         }
-
-        // ══════════════════════════════════════════════════════════
-        //  Event handlers
-        // ══════════════════════════════════════════════════════════
 
         private void HandleDragStarted(DragContext context)
         {
@@ -152,10 +124,6 @@ namespace UDND.UI
             _dragSourceCountBefore = 0;
             _dragAmount = 0;
         }
-
-        // ══════════════════════════════════════════════════════════
-        //  Same-inventory relocation (free-form move / partial split)
-        // ══════════════════════════════════════════════════════════
 
         private void TryFreeFormRelocate()
         {
@@ -248,10 +216,6 @@ namespace UDND.UI
             }
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  Drop positioning
-        // ══════════════════════════════════════════════════════════
-
         private void PositionSlotAtScreenPoint(BaseSlot baseSlot, Vector2 screenPos)
         {
             var slotRect = baseSlot.Transform as RectTransform;
@@ -267,47 +231,6 @@ namespace UDND.UI
             SetSlotLocalPosition(slotRect, localPos);
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  Auto layout (ReloadUI / initialization)
-        // ══════════════════════════════════════════════════════════
-
-        /// <summary>
-        /// Arrange all current inventory slots in a non-overlapping grid.
-        /// Call after ReloadUI or during initial load.
-        /// </summary>
-        public void ArrangeAllSlots()
-        {
-            if (_containerRect == null)
-                CacheContainerRect();
-
-            var slots = _inventory.Slots;
-            if (slots == null || slots.Count == 0)
-                return;
-
-            var slotSize = GetSlotSize(slots[0]);
-            var bounds = GetBoundsRect();
-            float cellW = slotSize.x + _slotSpacing;
-            float cellH = slotSize.y + _slotSpacing;
-
-            int columns = Mathf.Max(1, Mathf.FloorToInt(bounds.width / cellW));
-
-            // Offset from the top-left corner
-            float startX = bounds.xMin + slotSize.x * 0.5f;
-            float startY = bounds.yMax - slotSize.y * 0.5f;
-
-            for (int i = 0; i < slots.Count; i++)
-            {
-                var slotRect = slots[i].Transform as RectTransform;
-                if (slotRect == null)
-                    continue;
-
-                int col = i % columns;
-                int row = i / columns;
-                var pos = new Vector2(startX + col * cellW, startY - row * cellH);
-                SetSlotLocalPosition(slotRect, ClampToBounds(pos, slotRect));
-            }
-        }
-
         private void PositionSlotInAutoLayout(BaseSlot baseSlot)
         {
             var slotRect = baseSlot.Transform as RectTransform;
@@ -316,8 +239,8 @@ namespace UDND.UI
 
             var slotSize = GetSlotSize(baseSlot);
             var bounds = GetBoundsRect();
-            float cellW = slotSize.x + _slotSpacing;
-            float cellH = slotSize.y + _slotSpacing;
+            float cellW = slotSize.x;
+            float cellH = slotSize.y;
 
             int columns = Mathf.Max(1, Mathf.FloorToInt(bounds.width / cellW));
             int index = baseSlot.Index;
@@ -330,10 +253,6 @@ namespace UDND.UI
             var pos = new Vector2(startX + col * cellW, startY - row * cellH);
             SetSlotLocalPosition(slotRect, ClampToBounds(pos, slotRect));
         }
-
-        // ══════════════════════════════════════════════════════════
-        //  Bounds clamping
-        // ══════════════════════════════════════════════════════════
 
         private Vector2 ClampToBounds(Vector2 localPos, RectTransform slotRect)
         {
@@ -351,10 +270,6 @@ namespace UDND.UI
                 ClampAxis(localPos.y, minY, maxY));
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  Overlap avoidance
-        // ══════════════════════════════════════════════════════════
-
         private Vector2 ResolveOverlap(Vector2 desiredPos, RectTransform slotRect)
         {
             if (_inventory == null)
@@ -364,8 +279,8 @@ namespace UDND.UI
                 return desiredPos;
 
             var slotSize = slotRect.rect.size;
-            float stepX = Mathf.Max(1f, slotSize.x + _slotSpacing);
-            float stepY = Mathf.Max(1f, slotSize.y + _slotSpacing);
+            float stepX = Mathf.Max(1f, slotSize.x);
+            float stepY = Mathf.Max(1f, slotSize.y);
 
             int maxRadius = Mathf.Max(8, _inventory.Slots.Count + 2);
             Vector2 bestPosition = desiredPos;
@@ -429,54 +344,6 @@ namespace UDND.UI
             var pivot = rectTransform.pivot;
             var min = localPosition - Vector2.Scale(size, pivot);
             return new Rect(min, size);
-        }
-
-        // ══════════════════════════════════════════════════════════
-        //  Helpers
-        // ══════════════════════════════════════════════════════════
-
-        /// <summary>
-        /// Set slot position in the container's local coordinates.
-        /// Useful for manual position restoration from persistence.
-        /// </summary>
-        public void SetSlotPosition(BaseSlot baseSlot, Vector2 localPosition)
-        {
-            var slotRect = baseSlot?.Transform as RectTransform;
-            if (slotRect == null)
-                return;
-
-            SetSlotLocalPosition(slotRect, ResolveOverlap(ClampToBounds(localPosition, slotRect), slotRect));
-        }
-
-        /// <summary>
-        /// Get the slot's normalized position (0..1, 0..1) relative to the container.
-        /// Useful for persistence, preserving position independently of container size.
-        /// </summary>
-        public Vector2 GetNormalizedPosition(BaseSlot baseSlot)
-        {
-            var slotRect = baseSlot?.Transform as RectTransform;
-            if (slotRect == null || _containerRect == null)
-                return Vector2.zero;
-
-            var bounds = GetBoundsRect();
-            var pos = GetSlotLocalPosition(slotRect);
-            return new Vector2(
-                Mathf.InverseLerp(bounds.xMin, bounds.xMax, pos.x),
-                Mathf.InverseLerp(bounds.yMin, bounds.yMax, pos.y));
-        }
-
-        /// <summary>
-        /// Convert a normalized position (0..1) back into local coordinates.
-        /// </summary>
-        public Vector2 NormalizedToLocal(Vector2 normalized)
-        {
-            if (_containerRect == null)
-                CacheContainerRect();
-
-            var bounds = GetBoundsRect();
-            return new Vector2(
-                Mathf.Lerp(bounds.xMin, bounds.xMax, normalized.x),
-                Mathf.Lerp(bounds.yMin, bounds.yMax, normalized.y));
         }
 
         private Rect GetBoundsRect()
