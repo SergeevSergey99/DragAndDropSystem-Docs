@@ -43,7 +43,7 @@ namespace UDND.Interaction
             BaseSlot focusedSlot,
             BaseSlot hoveredSlot,
             BaseSlot pressedSlot,
-            InventoryDropArea dropArea,
+            DropAreaBase dropArea,
             FocusSource activeFocusSource,
             PointerEventData pointerEventData,
             PointerTriggerPhase? pointerPhase,
@@ -91,7 +91,7 @@ namespace UDND.Interaction
         public BaseSlot PressedSlot { get; }
 
         // Focused drop area target when execution is happening outside a slot.
-        public InventoryDropArea DropArea { get; }
+        public DropAreaBase DropArea { get; }
 
         // Last active focus source tracked by the router.
         public FocusSource ActiveFocusSource { get; }

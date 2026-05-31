@@ -36,8 +36,8 @@ namespace UDND.Interaction
 
         // Dictionary for overriding bindings for a specific inventory (for example, different UIs or operating modes)
         private readonly Dictionary<IInventory, InventoryExtraInteractionBinder> _overridesByInventory = new();
-        // Dictionary storing runtime state for each inventory (hovered slot, focus source, pressed buttons, etc.)
-        private readonly Dictionary<IInventory, RuntimeState> _runtimeStateByInventory = new();
+        // Current runtime input state. Each field tracks its owning inventory where needed.
+        private readonly RuntimeState _runtimeState = new();
 #if UDND_INPUT_SYSTEM
         // Dictionary storing InputAction subscriptions per inventory so they can be unsubscribed when needed
         private readonly Dictionary<IInventory, List<InputActionSubscription>> _actionSubscriptionsByInventory = new ();
@@ -160,9 +160,8 @@ namespace UDND.Interaction
             if (!_handledThisFrame.Add(key))
                 return true;
 
-            var state = GetOrCreateState(inventory);
-            var activeSlot = state.FocusedSlot
-                             ?? state.HoveredSlot
+            var activeSlot = _runtimeState.GetFocusedSlot(inventory)
+                             ?? _runtimeState.GetHoveredSlot(inventory)
                              ?? ResolveAutoTransferSlot(inventory);
             if (!action.CanExecute(inventory, activeSlot))
             {
@@ -180,9 +179,9 @@ namespace UDND.Interaction
             if (inventory == null)
                 return FocusSource.None;
 
-            var state = GetOrCreateState(inventory);
-            if (state.ActiveFocusSource != FocusSource.None)
-                return state.ActiveFocusSource;
+            var focusSource = _runtimeState.GetActiveFocusSource(inventory);
+            if (focusSource != FocusSource.None)
+                return focusSource;
 
             return FocusSource.Gamepad;
         }
@@ -212,9 +211,8 @@ namespace UDND.Interaction
             if (requireActiveInventory && !IsInventoryActive(inventory))
                 return null;
 
-            var state = GetOrCreateState(inventory);
-            return state.FocusedSlot
-                   ?? state.HoveredSlot
+            return _runtimeState.GetFocusedSlot(inventory)
+                   ?? _runtimeState.GetHoveredSlot(inventory)
                    ?? ResolveAutoTransferSlot(inventory);
         }
 
@@ -224,10 +222,7 @@ namespace UDND.Interaction
                 return;
 
             MarkInventoryActive(inventory);
-            var state = GetOrCreateState(inventory);
-            state.HoveredAdapter = adapter;
-            state.HoveredSlot = adapter.BaseSlot;
-            state.ActiveFocusSource = FocusSource.Mouse;
+            _runtimeState.SetHovered(inventory, adapter);
 
             if (DragAndDropManager.AutoCreateInstance.IsDragging && adapter.BaseSlot.IsInteractable)
                 DragAndDropManager.AutoCreateInstance.PushDropTarget(adapter);
@@ -238,15 +233,7 @@ namespace UDND.Interaction
             if (!TryGetInventory(adapter, out var inventory) || adapter?.BaseSlot == null)
                 return;
 
-            var state = GetOrCreateState(inventory);
-            if (ReferenceEquals(state.HoveredSlot, adapter.BaseSlot))
-            {
-                state.HoveredAdapter = null;
-                state.HoveredSlot = null;
-
-                if (state.FocusedSlot == null)
-                    state.ActiveFocusSource = FocusSource.None;
-            }
+            _runtimeState.ClearHovered(inventory, adapter.BaseSlot);
 
             TryClearActiveInventory(inventory);
 
@@ -267,16 +254,10 @@ namespace UDND.Interaction
             }
 
             MarkInventoryActive(inventory);
-            var state = GetOrCreateState(inventory);
             // Mouse press is transient. Do not store it as FocusedSlot:
             // key quick-actions must use the current hover/navigation focus, not an old drag source.
-            state.HoveredAdapter = adapter;
-            state.HoveredSlot = adapter.BaseSlot;
-            state.ActiveFocusSource = FocusSource.Mouse;
-            state.PressedAdapter = adapter;
-            state.PressedButton = eventData.button;
-            state.PressedTime = Time.unscaledTime;
-            state.PressedPosition = eventData.position;
+            _runtimeState.SetHovered(inventory, adapter);
+            _runtimeState.SetPressed(inventory, adapter, eventData.button, Time.unscaledTime, eventData.position);
 
             // PointerDown should allow regular slot actions (selection, inventory ops)
             // and drag start actions. Drag completion/cancel is processed on PointerUp.
@@ -303,10 +284,9 @@ namespace UDND.Interaction
             if (!TryResolveInventoryForPointerUp(adapter, out var inventory))
                 return;
 
-            var state = GetOrCreateState(inventory);
-            bool releaseOfPressedButton = state.PressedAdapter == adapter && state.PressedButton == eventData.button;
+            bool releaseOfPressedButton = _runtimeState.IsPressed(inventory, adapter, eventData.button);
             bool isDraggingNow = DragAndDropManager.AutoCreateInstance.IsDragging;
-            bool shouldProcess = (releaseOfPressedButton && state.PressedAdapter != null) || isDraggingNow;
+            bool shouldProcess = releaseOfPressedButton || isDraggingNow;
 
             if (shouldProcess)
             {
@@ -324,10 +304,10 @@ namespace UDND.Interaction
                         nativeInputContext: null);
                     ExecutePointerBindings(upSnapshot);
                 }
-                else if (releaseOfPressedButton && state.PressedAdapter != null)
+                else if (releaseOfPressedButton)
                 {
                     bool handledClick = false;
-                    if (TryResolveClickPhase(state, eventData, out var clickPhase))
+                    if (TryResolveClickPhase(inventory, eventData, out var clickPhase))
                     {
                         var clickSnapshot = BuildInteractionSnapshot(
                             InteractionInputKind.Pointer,
@@ -371,8 +351,7 @@ namespace UDND.Interaction
                 }
             }
 
-            if (state.PressedButton == eventData.button)
-                ClearPressedState(state);
+            _runtimeState.ClearPressed(inventory, eventData.button);
         }
 
         public void RouteBeginDrag(SlotInputAdapter adapter, PointerEventData eventData)
@@ -403,10 +382,7 @@ namespace UDND.Interaction
                 return;
 
             MarkInventoryActive(inventory);
-            var state = GetOrCreateState(inventory);
-            state.FocusedAdapter = adapter;
-            state.FocusedSlot = adapter.BaseSlot;
-            state.ActiveFocusSource = source;
+            _runtimeState.SetFocused(inventory, adapter, source);
 
             if (DragAndDropManager.AutoCreateInstance.IsDragging && adapter.BaseSlot.IsInteractable)
                 DragAndDropManager.AutoCreateInstance.PushDropTarget(adapter);
@@ -419,9 +395,7 @@ namespace UDND.Interaction
 
             var inventory = dropArea.Inventory;
             MarkInventoryActive(inventory);
-            var state = GetOrCreateState(inventory);
-            state.FocusedDropArea = dropArea;
-            state.ActiveFocusSource = source;
+            _runtimeState.SetFocusedDropArea(inventory, dropArea, source);
 
             if (DragAndDropManager.AutoCreateInstance.IsDragging)
                 dropArea.TryActivateAsFocusedTarget();
@@ -432,13 +406,7 @@ namespace UDND.Interaction
             if (!TryGetInventory(adapter, out var inventory) || adapter?.BaseSlot == null)
                 return;
 
-            var state = GetOrCreateState(inventory);
-            if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedSlot, adapter.BaseSlot))
-            {
-                state.FocusedAdapter = null;
-                state.FocusedSlot = null;
-                state.ActiveFocusSource = FocusSource.None;
-            }
+            _runtimeState.ClearFocused(inventory, adapter.BaseSlot, source);
 
             TryClearActiveInventory(inventory);
 
@@ -452,13 +420,7 @@ namespace UDND.Interaction
                 return;
 
             var inventory = dropArea.Inventory;
-            var state = GetOrCreateState(inventory);
-            if (state.ActiveFocusSource == source && ReferenceEquals(state.FocusedDropArea, dropArea))
-            {
-                state.FocusedDropArea = null;
-                if (state.FocusedSlot == null)
-                    state.ActiveFocusSource = FocusSource.None;
-            }
+            _runtimeState.ClearFocusedDropArea(inventory, dropArea, source);
 
             TryClearActiveInventory(inventory);
 
@@ -586,11 +548,10 @@ namespace UDND.Interaction
             if (!ReferenceEquals(inventory, _activeInventory))
                 return;
 
-            var state = GetOrCreateState(inventory);
-            var adapter = state.FocusedAdapter
-                          ?? ResolveAdapterFromSlot(state.FocusedSlot)
-                          ?? state.HoveredAdapter
-                          ?? ResolveAdapterFromSlot(state.HoveredSlot);
+            var adapter = _runtimeState.GetFocusedAdapter(inventory)
+                          ?? ResolveAdapterFromSlot(_runtimeState.GetFocusedSlot(inventory))
+                          ?? _runtimeState.GetHoveredAdapter(inventory)
+                          ?? ResolveAdapterFromSlot(_runtimeState.GetHoveredSlot(inventory));
 
             var interactionSnapshot = BuildInteractionSnapshot(
                 InteractionInputKind.InputAction,
@@ -865,9 +826,7 @@ namespace UDND.Interaction
 
         public float GetPressedTime(IInventory inventory)
         {
-            if (inventory != null && _runtimeStateByInventory.TryGetValue(inventory, out var state))
-                return state.PressedTime;
-            return -1f;
+            return _runtimeState.GetPressedTime(inventory);
         }
 
         public float GetHoldDuration(IInventory inventory)
@@ -937,28 +896,6 @@ namespace UDND.Interaction
             OnHoldPreviewEnded?.Invoke();
         }
 
-        private static void ClearPressedState(RuntimeState state)
-        {
-            if (state == null)
-                return;
-
-            state.PressedAdapter = null;
-            state.PressedButton = PointerEventData.InputButton.Left;
-            state.PressedTime = -1f;
-            state.PressedPosition = Vector2.zero;
-        }
-
-        private RuntimeState GetOrCreateState(IInventory inventory)
-        {
-            if (!_runtimeStateByInventory.TryGetValue(inventory, out var state) || state == null)
-            {
-                state = new RuntimeState();
-                _runtimeStateByInventory[inventory] = state;
-            }
-
-            return state;
-        }
-
         private void MarkInventoryActive(IInventory inventory)
         {
             if (inventory != null)
@@ -970,27 +907,25 @@ namespace UDND.Interaction
             if (!ReferenceEquals(_activeInventory, inventory))
                 return;
 
-            var state = GetOrCreateState(inventory);
-            if (state.HoveredSlot == null && state.FocusedSlot == null && state.FocusedDropArea == null)
+            if (!_runtimeState.HasNavigationState(inventory))
                 _activeInventory = null;
         }
 
         private void CleanupStaleInventories()
         {
-            if (_runtimeStateByInventory.Count == 0 && _overridesByInventory.Count == 0
+            if (_overridesByInventory.Count == 0
 #if UDND_INPUT_SYSTEM
                 && _actionSubscriptionsByInventory.Count == 0
 #endif
                )
+            {
+                _runtimeState.ClearStaleInventories(IsInventoryAlive);
+                if (!IsInventoryAlive(_activeInventory))
+                    _activeInventory = null;
                 return;
+            }
 
             _staleInventories.Clear();
-
-            foreach (var kv in _runtimeStateByInventory)
-            {
-                if (!IsInventoryAlive(kv.Key))
-                    _staleInventories.Add(kv.Key);
-            }
 
             foreach (var kv in _overridesByInventory)
             {
@@ -1012,7 +947,6 @@ namespace UDND.Interaction
                 if (IsInventoryAlive(stale))
                     continue;
 
-                _runtimeStateByInventory.Remove(stale);
                 _overridesByInventory.Remove(stale);
 #if UDND_INPUT_SYSTEM
                 _actionSubscriptionsByInventory.Remove(stale);
@@ -1021,6 +955,10 @@ namespace UDND.Interaction
                 if (ReferenceEquals(_activeInventory, stale))
                     _activeInventory = null;
             }
+
+            _runtimeState.ClearStaleInventories(IsInventoryAlive);
+            if (!IsInventoryAlive(_activeInventory))
+                _activeInventory = null;
         }
 
         private static SlotInputAdapter ResolveAdapterFromSlot(BaseSlot baseSlot)
@@ -1039,34 +977,33 @@ namespace UDND.Interaction
             TriggerPhaseEnum? inputActionPhase,
             object nativeInputContext)
         {
-            RuntimeState state = inventory != null ? GetOrCreateState(inventory) : null;
             bool allowSlotFallback = inputKind != InteractionInputKind.Pointer || adapter != null;
 
             var resolvedAdapter = adapter;
             if (resolvedAdapter == null && allowSlotFallback)
             {
-                resolvedAdapter = state?.FocusedAdapter
-                                  ?? ResolveAdapterFromSlot(state?.FocusedSlot)
-                                  ?? state?.HoveredAdapter
-                                  ?? ResolveAdapterFromSlot(state?.HoveredSlot);
+                resolvedAdapter = _runtimeState.GetFocusedAdapter(inventory)
+                                  ?? ResolveAdapterFromSlot(_runtimeState.GetFocusedSlot(inventory))
+                                  ?? _runtimeState.GetHoveredAdapter(inventory)
+                                  ?? ResolveAdapterFromSlot(_runtimeState.GetHoveredSlot(inventory));
             }
 
             var resolvedBaseSlot = resolvedAdapter?.BaseSlot;
             if (resolvedBaseSlot == null && allowSlotFallback)
             {
-                resolvedBaseSlot = state?.FocusedSlot
-                                   ?? state?.HoveredSlot;
+                resolvedBaseSlot = _runtimeState.GetFocusedSlot(inventory)
+                                   ?? _runtimeState.GetHoveredSlot(inventory);
             }
 
             return new RuntimeInteractionSnapshot(
                 inputKind: inputKind,
                 inventory: inventory,
                 activeSlot: resolvedBaseSlot,
-                focusedSlot: state?.FocusedSlot,
-                hoveredSlot: state?.HoveredSlot,
-                pressedSlot: state?.PressedAdapter?.BaseSlot,
-                dropArea: state?.FocusedDropArea,
-                activeFocusSource: state?.ActiveFocusSource ?? FocusSource.None,
+                focusedSlot: _runtimeState.GetFocusedSlot(inventory),
+                hoveredSlot: _runtimeState.GetHoveredSlot(inventory),
+                pressedSlot: _runtimeState.GetPressedSlot(inventory),
+                dropArea: _runtimeState.GetFocusedDropArea(inventory),
+                activeFocusSource: _runtimeState.GetActiveFocusSource(inventory),
                 pointerEventData: pointerEventData,
                 pointerPhase: pointerPhase,
                 keyPhase: keyPhase,
@@ -1101,19 +1038,19 @@ namespace UDND.Interaction
             return false;
         }
 
-        private bool TryResolveClickPhase(RuntimeState state, PointerEventData eventData, out PointerTriggerPhase phase)
+        private bool TryResolveClickPhase(IInventory inventory, PointerEventData eventData, out PointerTriggerPhase phase)
         {
             phase = PointerTriggerPhase.Click;
-            if (state == null || eventData == null)
+            if (inventory == null || eventData == null || !_runtimeState.HasPressed(inventory))
                 return false;
 
-            var pressPosition = state.PressedPosition;
+            var pressPosition = _runtimeState.PressedPosition;
             float sqrDistance = (eventData.position - pressPosition).sqrMagnitude;
             float sqrTolerance = _clickMoveTolerancePixels * _clickMoveTolerancePixels;
             if (sqrDistance > sqrTolerance)
                 return false;
 
-            float pressDuration = Mathf.Max(0f, Time.unscaledTime - state.PressedTime);
+            float pressDuration = Mathf.Max(0f, Time.unscaledTime - _runtimeState.PressedTime);
             phase = pressDuration >= _longClickThresholdSeconds
                 ? PointerTriggerPhase.ClickLong
                 : PointerTriggerPhase.ClickShort;
@@ -1142,12 +1079,11 @@ namespace UDND.Interaction
             if (!TryResolveInventoryForGlobalPointerUp(out var inventory))
                 return;
 
-            var state = GetOrCreateState(inventory);
-            var adapter = state.PressedAdapter
-                          ?? state.FocusedAdapter
-                          ?? ResolveAdapterFromSlot(state.FocusedSlot)
-                          ?? state.HoveredAdapter
-                          ?? ResolveAdapterFromSlot(state.HoveredSlot);
+            var adapter = _runtimeState.GetPressedAdapter(inventory)
+                          ?? _runtimeState.GetFocusedAdapter(inventory)
+                          ?? ResolveAdapterFromSlot(_runtimeState.GetFocusedSlot(inventory))
+                          ?? _runtimeState.GetHoveredAdapter(inventory)
+                          ?? ResolveAdapterFromSlot(_runtimeState.GetHoveredSlot(inventory));
             var eventData = new PointerEventData(EventSystem.current) { button = button };
 
             _pointerUpHandledThisFrame.Add(button);
@@ -1161,7 +1097,7 @@ namespace UDND.Interaction
                 inputActionPhase: null,
                 nativeInputContext: null);
             ExecutePointerBindings(interactionSnapshot);
-            ClearPressedState(state);
+            _runtimeState.ClearPressed(inventory, button);
         }
 
         private bool TryResolveInventoryForGlobalPointerUp(out IInventory inventory)
@@ -1388,8 +1324,7 @@ namespace UDND.Interaction
                 ExecutePointerBindings(upSnapshot);
             }
 
-            if (_activeInventory != null && _runtimeStateByInventory.TryGetValue(_activeInventory, out var state))
-                ClearPressedState(state);
+            _runtimeState.ClearPressed(_activeInventory, inputButton);
         }
 #else
         private void TrackGlobalPressStateLegacy()
@@ -1508,8 +1443,7 @@ namespace UDND.Interaction
                 ExecutePointerBindings(upSnapshot);
             }
 
-            if (_activeInventory != null && _runtimeStateByInventory.TryGetValue(_activeInventory, out var state))
-                ClearPressedState(state);
+            _runtimeState.ClearPressed(_activeInventory, inputButton);
         }
 #endif
 
@@ -1613,16 +1547,198 @@ namespace UDND.Interaction
 
         private sealed class RuntimeState
         {
-            public BaseSlot FocusedSlot;
-            public SlotInputAdapter FocusedAdapter;
-            public InventoryDropArea FocusedDropArea;
-            public BaseSlot HoveredSlot;
-            public SlotInputAdapter HoveredAdapter;
-            public FocusSource ActiveFocusSource;
-            public SlotInputAdapter PressedAdapter;
+            private IInventory _focusedInventory;
+            private BaseSlot _focusedSlot;
+            private SlotInputAdapter _focusedAdapter;
+            private FocusSource _focusedSource;
+            private IInventory _focusedDropAreaInventory;
+            private InventoryDropArea _focusedDropArea;
+            private FocusSource _focusedDropAreaSource;
+            private IInventory _hoveredInventory;
+            private BaseSlot _hoveredSlot;
+            private SlotInputAdapter _hoveredAdapter;
+            private IInventory _pressedInventory;
+            private SlotInputAdapter _pressedAdapter;
+
             public PointerEventData.InputButton PressedButton;
             public float PressedTime = -1f;
             public Vector2 PressedPosition;
+
+            public void SetHovered(IInventory inventory, SlotInputAdapter adapter)
+            {
+                _hoveredInventory = inventory;
+                _hoveredAdapter = adapter;
+                _hoveredSlot = adapter != null ? adapter.BaseSlot : null;
+            }
+
+            public void ClearHovered(IInventory inventory, BaseSlot slot)
+            {
+                if (!ReferenceEquals(_hoveredInventory, inventory) || !ReferenceEquals(_hoveredSlot, slot))
+                    return;
+
+                _hoveredInventory = null;
+                _hoveredAdapter = null;
+                _hoveredSlot = null;
+            }
+
+            public void SetFocused(IInventory inventory, SlotInputAdapter adapter, FocusSource source)
+            {
+                _focusedInventory = inventory;
+                _focusedAdapter = adapter;
+                _focusedSlot = adapter != null ? adapter.BaseSlot : null;
+                _focusedSource = source;
+            }
+
+            public void ClearFocused(IInventory inventory, BaseSlot slot, FocusSource source)
+            {
+                if (!ReferenceEquals(_focusedInventory, inventory)
+                    || !ReferenceEquals(_focusedSlot, slot)
+                    || _focusedSource != source)
+                {
+                    return;
+                }
+
+                _focusedInventory = null;
+                _focusedAdapter = null;
+                _focusedSlot = null;
+                _focusedSource = FocusSource.None;
+            }
+
+            public void SetFocusedDropArea(IInventory inventory, InventoryDropArea dropArea, FocusSource source)
+            {
+                _focusedDropAreaInventory = inventory;
+                _focusedDropArea = dropArea;
+                _focusedDropAreaSource = source;
+            }
+
+            public void ClearFocusedDropArea(IInventory inventory, InventoryDropArea dropArea, FocusSource source)
+            {
+                if (!ReferenceEquals(_focusedDropAreaInventory, inventory)
+                    || !ReferenceEquals(_focusedDropArea, dropArea)
+                    || _focusedDropAreaSource != source)
+                {
+                    return;
+                }
+
+                _focusedDropAreaInventory = null;
+                _focusedDropArea = null;
+                _focusedDropAreaSource = FocusSource.None;
+            }
+
+            public void SetPressed(
+                IInventory inventory,
+                SlotInputAdapter adapter,
+                PointerEventData.InputButton button,
+                float time,
+                Vector2 position)
+            {
+                _pressedInventory = inventory;
+                _pressedAdapter = adapter;
+                PressedButton = button;
+                PressedTime = time;
+                PressedPosition = position;
+            }
+
+            public void ClearPressed(IInventory inventory, PointerEventData.InputButton button)
+            {
+                if (!ReferenceEquals(_pressedInventory, inventory) || PressedButton != button)
+                    return;
+
+                _pressedInventory = null;
+                _pressedAdapter = null;
+                PressedButton = PointerEventData.InputButton.Left;
+                PressedTime = -1f;
+                PressedPosition = Vector2.zero;
+            }
+
+            public bool IsPressed(IInventory inventory, SlotInputAdapter adapter, PointerEventData.InputButton button)
+            {
+                return ReferenceEquals(_pressedInventory, inventory)
+                       && ReferenceEquals(_pressedAdapter, adapter)
+                       && PressedButton == button;
+            }
+
+            public bool HasPressed(IInventory inventory)
+                => ReferenceEquals(_pressedInventory, inventory) && _pressedAdapter != null;
+
+            public float GetPressedTime(IInventory inventory)
+                => ReferenceEquals(_pressedInventory, inventory) ? PressedTime : -1f;
+
+            public BaseSlot GetFocusedSlot(IInventory inventory)
+                => ReferenceEquals(_focusedInventory, inventory) ? _focusedSlot : null;
+
+            public SlotInputAdapter GetFocusedAdapter(IInventory inventory)
+                => ReferenceEquals(_focusedInventory, inventory) ? _focusedAdapter : null;
+
+            public InventoryDropArea GetFocusedDropArea(IInventory inventory)
+                => ReferenceEquals(_focusedDropAreaInventory, inventory) ? _focusedDropArea : null;
+
+            public BaseSlot GetHoveredSlot(IInventory inventory)
+                => ReferenceEquals(_hoveredInventory, inventory) ? _hoveredSlot : null;
+
+            public SlotInputAdapter GetHoveredAdapter(IInventory inventory)
+                => ReferenceEquals(_hoveredInventory, inventory) ? _hoveredAdapter : null;
+
+            public BaseSlot GetPressedSlot(IInventory inventory)
+                => ReferenceEquals(_pressedInventory, inventory) ? _pressedAdapter?.BaseSlot : null;
+
+            public SlotInputAdapter GetPressedAdapter(IInventory inventory)
+                => ReferenceEquals(_pressedInventory, inventory) ? _pressedAdapter : null;
+
+            public FocusSource GetActiveFocusSource(IInventory inventory)
+            {
+                if (ReferenceEquals(_hoveredInventory, inventory))
+                    return FocusSource.Mouse;
+
+                if (ReferenceEquals(_focusedInventory, inventory))
+                    return _focusedSource;
+
+                if (ReferenceEquals(_focusedDropAreaInventory, inventory))
+                    return _focusedDropAreaSource;
+
+                return FocusSource.None;
+            }
+
+            public bool HasNavigationState(IInventory inventory)
+            {
+                return ReferenceEquals(_hoveredInventory, inventory)
+                       || ReferenceEquals(_focusedInventory, inventory)
+                       || ReferenceEquals(_focusedDropAreaInventory, inventory);
+            }
+
+            public void ClearStaleInventories(Func<IInventory, bool> isInventoryAlive)
+            {
+                if (!isInventoryAlive(_hoveredInventory))
+                {
+                    _hoveredInventory = null;
+                    _hoveredAdapter = null;
+                    _hoveredSlot = null;
+                }
+
+                if (!isInventoryAlive(_focusedInventory))
+                {
+                    _focusedInventory = null;
+                    _focusedAdapter = null;
+                    _focusedSlot = null;
+                    _focusedSource = FocusSource.None;
+                }
+
+                if (!isInventoryAlive(_focusedDropAreaInventory))
+                {
+                    _focusedDropAreaInventory = null;
+                    _focusedDropArea = null;
+                    _focusedDropAreaSource = FocusSource.None;
+                }
+
+                if (!isInventoryAlive(_pressedInventory))
+                {
+                    _pressedInventory = null;
+                    _pressedAdapter = null;
+                    PressedButton = PointerEventData.InputButton.Left;
+                    PressedTime = -1f;
+                    PressedPosition = Vector2.zero;
+                }
+            }
         }
 
         private readonly struct IntentDedupKey : IEquatable<IntentDedupKey>

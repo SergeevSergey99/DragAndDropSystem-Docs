@@ -616,8 +616,7 @@ namespace UDND
                 }
                 else if (_currentProcessor.CanAcceptDrop(splitContext))
                 {
-                    var result = _currentProcessor.ProcessDrop(splitContext);
-                    success = result.Success;
+                    success = _currentProcessor.ProcessDrop(splitContext).Success;
                 }
 
                 if (!success)

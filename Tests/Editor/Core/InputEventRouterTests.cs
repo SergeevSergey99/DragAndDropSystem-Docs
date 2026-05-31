@@ -15,6 +15,7 @@ namespace UDND.Tests.Core
         private GameObject _routerObject;
         private InputEventRouter _router;
         private UniversalInventory _inventory;
+        private UniversalInventory _secondaryInventory;
 
         [SetUp]
         public void SetUp()
@@ -35,6 +36,7 @@ namespace UDND.Tests.Core
         public void TearDown()
         {
             InventoryBuilder.Destroy(_inventory);
+            InventoryBuilder.Destroy(_secondaryInventory);
             if (DragAndDropManager.IsInstanceExist)
                 Object.DestroyImmediate(DragAndDropManager.Instance.gameObject);
             if (_routerObject != null)
@@ -61,6 +63,54 @@ namespace UDND.Tests.Core
                 hoveredAdapter.BaseSlot,
                 _router.ResolveQuickActionSlot(_inventory),
                 "Quick actions must use the current hovered slot, not a stale mouse-down drag source.");
+        }
+
+        [Test]
+        public void RuntimeState_ScopesFocusAndHoverToOwningInventory()
+        {
+            _secondaryInventory = new InventoryBuilder()
+                .WithFixedSlots(2)
+                .WithName("InputRouterSecondaryInventory")
+                .Build();
+
+            var focusedAdapter = AddInputAdapter(_inventory.GetSlot(0));
+            var hoveredAdapter = AddInputAdapter(_secondaryInventory.GetSlot(0));
+            var eventData = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left
+            };
+
+            _router.RouteFocusEnter(focusedAdapter, FocusSource.Gamepad);
+            _router.RoutePointerEnter(hoveredAdapter, eventData);
+
+            Assert.AreSame(focusedAdapter.BaseSlot, _router.ResolveQuickActionSlot(_inventory, requireActiveInventory: false));
+            Assert.AreSame(hoveredAdapter.BaseSlot, _router.ResolveQuickActionSlot(_secondaryInventory, requireActiveInventory: false));
+            Assert.AreEqual(FocusSource.Gamepad, _router.ResolveActiveFocusSource(_inventory));
+            Assert.AreEqual(FocusSource.Mouse, _router.ResolveActiveFocusSource(_secondaryInventory));
+        }
+
+        [Test]
+        public void RuntimeState_KeepsPressedInventoryWhenHoverMovesToAnotherInventory()
+        {
+            _secondaryInventory = new InventoryBuilder()
+                .WithFixedSlots(2)
+                .WithName("InputRouterSecondaryInventory")
+                .Build();
+
+            var sourceAdapter = AddInputAdapter(_inventory.GetSlot(0));
+            var targetAdapter = AddInputAdapter(_secondaryInventory.GetSlot(0));
+            var eventData = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = Vector2.zero
+            };
+
+            _router.RoutePointerDown(sourceAdapter, eventData);
+            _router.RoutePointerEnter(targetAdapter, eventData);
+
+            Assert.GreaterOrEqual(_router.GetPressedTime(_inventory), 0f);
+            Assert.AreEqual(-1f, _router.GetPressedTime(_secondaryInventory));
+            Assert.AreSame(targetAdapter.BaseSlot, _router.ResolveQuickActionSlot(_secondaryInventory));
         }
 
         [Test]
