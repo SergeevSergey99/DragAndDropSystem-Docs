@@ -19,7 +19,6 @@ namespace UDND.UI
     /// </list>
     ///
     /// </summary>
-    [AddComponentMenu("DragAndDrop/Examples/Free Form Slot Layout")]
     public class FreeFormSlotLayout : MonoBehaviour
     {
         [Header("References")]
