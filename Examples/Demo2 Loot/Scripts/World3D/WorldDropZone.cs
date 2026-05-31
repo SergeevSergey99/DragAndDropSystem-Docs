@@ -41,11 +41,8 @@ namespace UDND.Examples.Loot
             return true;
         }
 
-        protected override bool ProcessEntry(ItemStack stack, DragEntry entry)
+        protected override void OnProcessedEntry(ItemStack stack, DragEntry entry)
         {
-            if (stack == null || stack.IsEmpty || stack.Adapters == null || stack.Adapters.Count == 0)
-                return false;
-
             Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
 
             for (int i = 0; i < stack.Adapters.Count; i++)
@@ -54,7 +51,7 @@ namespace UDND.Examples.Loot
                 if (itemAdapter is not ItemAdapterSoWith3DAdapter adapter || adapter.WorldPrefab == null)
                 {
                     Extensions.DragAndDropLog($"<color=red>[WorldDropZone] Adapter at index {i} has no world prefab</color>");
-                    return false;
+                    return;
                 }
 
                 var offset = Vector3.zero;
@@ -73,7 +70,6 @@ namespace UDND.Examples.Loot
             }
 
             Extensions.DragAndDropLog($"<color=green>[WorldDropZone] Spawned {stack.Count}x {stack.DisplayName} in world</color>");
-            return true;
         }
 
         protected override void OnHighlightChanged(bool highlighted, bool canAccept)

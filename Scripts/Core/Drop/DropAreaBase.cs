@@ -11,7 +11,7 @@ namespace UDND.Core
     /// <summary>
     /// Base class for drop areas/zones.
     /// Supports two patterns:
-    /// 1. Simple consumption: override CanAcceptEntry + ProcessEntry,
+    /// 1. Simple consumption: override CanAcceptEntry + OnProcessedEntry,
     ///    source removal is handled automatically.
     /// 2. Delegation: override GetDropProcessor() to return
     ///    your own IDropProcessor (for example, InventoryDropProcessor).
@@ -59,7 +59,7 @@ namespace UDND.Core
         /// </summary>
         /// <param name="stack">Fresh copy of the stack from the source slot</param>
         /// <param name="entry">Original drag entry</param>
-        protected virtual bool ProcessEntry(ItemStack stack, DragEntry entry) => false;
+        protected virtual void OnProcessedEntry(ItemStack stack, DragEntry entry){ }
 
         /// <summary>
         /// Called when highlight state changes.
@@ -73,7 +73,7 @@ namespace UDND.Core
         protected virtual void OnTargetDeactivated() { }
 
         /// <summary>
-        /// Whether to remove items from the source after ProcessEntry succeeds.
+        /// Whether to remove items from the source after OnProcessedEntry succeeds.
         /// Default: true (standard consumption).
         /// Override to false for copy/preview zones.
         /// </summary>
@@ -203,24 +203,13 @@ namespace UDND.Core
                 }
 
                 var freshStack = stack.CreateCopy();
-                if (freshStack == null || freshStack.IsEmpty)
-                {
-                    failedEntries++;
-                    continue;
-                }
-
-                if (!ProcessEntry(freshStack, entry))
-                {
-                    failedEntries++;
-                    continue;
-                }
 
                 // Auto source removal
                 if (RemoveFromSource && sourceSlot?.Inventory != null)
                 {
                     int removed = sourceSlot.Inventory.RemoveItemsFromSlot(sourceSlot, freshStack);
-                    Extensions.DragAndDropLog(
-                        $"<color=green>[{GetType().Name}] Removed {removed} items from source slot {sourceSlot.Index}</color>");
+                    Extensions.DragAndDropLog($"<color=green>[{GetType().Name}] Removed {removed} items from source slot {sourceSlot.Index}</color>");
+                    OnProcessedEntry(freshStack, entry);
                 }
 
                 totalProcessed += freshStack.Count;
