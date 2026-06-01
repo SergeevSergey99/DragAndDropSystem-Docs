@@ -36,6 +36,23 @@ Notes:
   distributed only as a demo asset for this package.
 
 
+
+Free icon set 24x24 by LittleSmith
+-----------------
+
+Included files:
+
+- Examples/2D/Icons/*.png
+
+Source:
+
+- https://littlesmith.itch.io/free-icon-set-24x24
+
+Notes:
+
+- These images are used as sample/demo item icons.
+
+
 Minecraft / Block-Crafting Demo Placeholder Art
 -----------------------------------------------
 
