@@ -35,9 +35,15 @@
 
 1. **Полный список кандидатов**, не «по одному представителю». Расширяемость важнее микрооптимизации;
    кэширование (пул списков на время drag-операции) — отдельной задачей потом.
+   **Один плоский список** годных слотов (НЕ два отдельных empty/stack) — каждый слот сам знает, пустой он
+   или нет, два списка только провоцируют путаницу. Политика при необходимости классифицирует слот сама по
+   `slot.IsEmpty` (а «тот же предмет» — по `slot.Stack.CanStack(request.ItemAdapter)`).
 2. **Дефолтная политика — «первый по индексу» везде** (`FirstSlotSelectionPolicy`).
-3. **Гейтинг create-new — доменная логика стратегии**, а не общее «оба списка пусты». Каждая стратегия сама
-   решает, допустим ли новый слот (см. §5).
+3. **`CanCreateNewSlot` — чистая capability**: «можно положить предмет в слот, который будет создан прямо
+   сейчас» (Dynamic `potentialNewSlots > 0` + `PrefabPassesRules` + домен стратегии разрешает свежий слот для
+   этого предмета). Флаг **НЕ гейтится на наличие пустых слотов** — может быть `true`, даже когда свободные
+   слоты есть. Использовать его или нет — решает `SelectionPolicy`. Доменное ограничение остаётся только там,
+   где оно есть по смыслу (Stackable one-per-ID: если предмет уже есть — свежий слот запрещён, см. §5).
 4. **Политика живёт на инициаторе** (`InventoryDropArea`), НЕ в `DropPolicySettings` инвентаря. Для обычного
    дропа на конкретный слот политика не нужна (цель задана явно). **Fallback на инвентаре не делаем** —
    просто хардкодим конкретный класс-фолбэк в коде, если до него дойдёт.
@@ -100,23 +106,24 @@ InventoryDropArea.TryBuildValidationContext   Scripts/UI/InventoryDropArea.cs:14
 
 ### 4.1 `SlotAcceptanceCandidates` — результат стратегии
 
+Один плоский список годных слотов (и пустые, и со стекуемым предметом — вперемешку, в порядке индекса) +
+capability-флаг создания нового слота.
+
 ```csharp
 public sealed class SlotAcceptanceCandidates
 {
-    public IReadOnlyList<BaseSlot> StackTargets { get; }  // слоты с тем же предметом и местом, прошли правила
-    public IReadOnlyList<BaseSlot> EmptyTargets { get; }  // пустые слоты, прошли правила
-    public bool CanCreateNewSlot { get; }                 // домен разрешает создать новый + PrefabPassesRules
-    public int  PotentialNewSlots { get; }                // сколько ещё можно создать (инфо/для будущего count)
+    public IReadOnlyList<BaseSlot> Slots { get; }  // ВСЕ годные слоты (empty И same-item-with-room), прошли правила
+    public bool CanCreateNewSlot { get; }          // capability: можно положить в слот, который будет создан сейчас
+    public int  PotentialNewSlots { get; }         // сколько ещё можно создать (инфо/для будущего count)
 
-    public bool HasAny =>
-        (StackTargets != null && StackTargets.Count > 0) ||
-        (EmptyTargets != null && EmptyTargets.Count > 0) ||
-        CanCreateNewSlot;
+    public bool HasAny => (Slots != null && Slots.Count > 0) || CanCreateNewSlot;
 
     // ctor + static Empty (пустой набор, ничего не годится)
 }
 ```
-Списки никогда не `null` (использовать пустой массив/`Array.Empty<BaseSlot>()` по умолчанию).
+`Slots` никогда не `null` (использовать `Array.Empty<BaseSlot>()` по умолчанию). В списке непустой слот гарантированно
+= «тот же предмет, есть место» (стратегия добавляет только прошедшие `CanStack` + `canFit>0` + правила), поэтому
+политике для классификации достаточно `slot.IsEmpty`.
 
 ### 4.2 `SlotSelection` — результат политики
 
@@ -148,20 +155,20 @@ public abstract class SlotSelectionPolicyBase
 [Serializable]
 public sealed class FirstSlotSelectionPolicy : SlotSelectionPolicyBase
 {
-    // Кандидат с наименьшим BaseSlot.Index среди StackTargets ∪ EmptyTargets.
-    // Если конкретных нет, но CanCreateNewSlot => SlotSelection.New().
+    // Кандидат с наименьшим BaseSlot.Index из списка.
+    // Если конкретных слотов нет, но CanCreateNewSlot => SlotSelection.New().
     // Иначе SlotSelection.None.
     public override SlotSelection Select(SlotAcceptanceCandidates c, InventoryAcceptanceRequest request)
     {
         BaseSlot best = null;
-        foreach (var s in c.StackTargets) if (best == null || s.Index < best.Index) best = s;
-        foreach (var s in c.EmptyTargets) if (best == null || s.Index < best.Index) best = s;
+        foreach (var s in c.Slots) if (best == null || s.Index < best.Index) best = s;
         if (best != null) return SlotSelection.Existing(best);
         return c.CanCreateNewSlot ? SlotSelection.New() : SlotSelection.None;
     }
 }
 ```
-`FirstSlotSelectionPolicy` — дефолт везде, сохраняет текущее «первый по индексу».
+`FirstSlotSelectionPolicy` — дефолт везде, сохраняет текущее «первый по индексу» и трактует create-new как
+последний вариант (только если конкретных слотов нет), хотя сам флаг может быть `true` при наличии пустых.
 
 ## 5. Изменения контракта стратегии
 
@@ -177,35 +184,41 @@ public sealed class FirstSlotSelectionPolicy : SlotSelectionPolicyBase
 
 ### 5.1 Реализации `GetSlotCandidates` по стратегиям
 
-Везде `EmptyTargets` фильтруются через `PassesRules(slot, item, Math.Min(desired, maxSize), request)`;
-`StackTargets` — через `PassesRules(slot, item, Math.Min(desired, canFit), request)` где `canFit > 0`.
+Все добавляемые слоты проходят правила: пустые — через `PassesRules(slot, item, Math.Min(desired, maxSize), request)`;
+непустые (стек) — через `PassesRules(slot, item, Math.Min(desired, canFit), request)` где `canFit = max(0, maxSize - count) > 0`.
 `item == null || desired <= 0` → `SlotAcceptanceCandidates.Empty`.
+`Slots` строится в порядке обхода `slots` (т.е. по индексу), пустые и стек-слоты идут вперемешку.
+
+Общая форма capability-флага:
+`CanCreateNewSlot = domainAllowsFreshSlot && canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, prefab, item, Math.Min(desired, maxSize), request)`,
+где `domainAllowsFreshSlot` зависит от стратегии (ниже). **Не** гейтить на пустоту `Slots`.
 
 **UniqueItemStrategy** (`previewCount` всегда 1, стеков нет):
-- `StackTargets` = всегда пуст.
-- `EmptyTargets` = все пустые, прошедшие `PassesRules(slot, item, 1, request)`.
-- `CanCreateNewSlot = EmptyTargets.Count == 0 && canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, prefab, item, 1, request)`.
+- `Slots` = все пустые, прошедшие `PassesRules(slot, item, 1, request)`.
+- `domainAllowsFreshSlot = true` (каждый предмет в своём слоте; свежий слот всегда легитимен).
+- `CanCreateNewSlot = canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, prefab, item, 1, request)`.
 
 **StackableItemStrategy** — семантика **one-per-ID** (один слот на вид предмета):
-- Определить «предмет уже есть»: существует непустой слот с `slot.Stack.CanStack(item)`.
+- Определить «предмет уже есть»: существует непустой слот с `slot.Stack.CanStack(item)` (ср. `FindSlotWithItem`).
 - Если предмет ЕСТЬ:
-  - `StackTargets` = `[тот слот]`, **только если** в нём есть место (`canFit = max(0, maxSize - count) > 0`)
-    и проходит `PassesRules`. Если места нет — `StackTargets` пуст.
-  - `EmptyTargets` = **пуст** (второй слот того же ID не предлагаем).
+  - `Slots` = `[тот слот]`, **только если** в нём есть место (`canFit > 0`) и проходит `PassesRules`; иначе пусто.
+  - `domainAllowsFreshSlot = false` (второй слот того же ID запрещён).
   - `CanCreateNewSlot = false`.
-  - (Следствие: предмет есть, но стек полон → набор пустой → отказ. Это **намеренно**, см. §6.)
+  - (Следствие: предмет есть, стек полон → `Slots` пуст и `CanCreateNewSlot=false` → отказ. **Намеренно**, см. §6.)
 - Если предмета НЕТ:
-  - `StackTargets` = пуст.
-  - `EmptyTargets` = все пустые, прошедшие `PassesRules(slot, item, Math.Min(desired, maxSize), request)`.
-  - `CanCreateNewSlot = EmptyTargets.Count == 0 && canCreateNewSlot && PrefabPassesRules(...)`.
+  - `Slots` = все пустые, прошедшие `PassesRules(slot, item, Math.Min(desired, maxSize), request)`.
+  - `domainAllowsFreshSlot = true`.
+  - `CanCreateNewSlot = canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(...)`.
+    **Может быть `true` одновременно с непустым `Slots`** (есть свободные слоты, и при этом Dynamic может
+    создать ещё один) — это нормально, выбор за политикой.
 - `maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride)`.
 
 **SeparableStacksStrategy** — несколько стеков одного предмета разрешены:
-- `StackTargets` = **все** непустые слоты с `CanStack(item)` и `canFit > 0`, прошедшие `PassesRules`.
-- `EmptyTargets` = все пустые, прошедшие `PassesRules`.
-- `CanCreateNewSlot = EmptyTargets.Count == 0 && canCreateNewSlot && PrefabPassesRules(...)`.
-  (Новый слот = ещё один пустой, поэтому не предлагаем, пока есть существующие пустые; при наличии стека,
-  но без пустых — предлагаем, чтобы prefer-empty/prefer-new политика могла спавнить.)
+- `Slots` = все непустые слоты с `CanStack(item)` и `canFit > 0` (прошедшие правила) **+** все пустые
+  (прошедшие правила), в порядке индекса.
+- `domainAllowsFreshSlot = true`.
+- `CanCreateNewSlot = canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(...)` (может быть `true`
+  и при наличии пустых/стеков — решает политика).
 - `maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride)`.
 
 ## 6. Поведенческие изменения (ОБЯЗАТЕЛЬНО зафиксировать)
