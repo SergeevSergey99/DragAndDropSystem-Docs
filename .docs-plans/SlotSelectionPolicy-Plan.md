@@ -11,10 +11,14 @@
 - **Стратегия = eligibility**: какие слоты годятся (список кандидатов) + capability «можно создать новый».
 - **Политика (`SlotSelectionPolicy`) = selection**: какой из кандидатов взять. Полиморфный класс, переопределяется на `InventoryDropArea`.
 
-Работа разбита на 3 фазы (можно остановиться после любой):
-- **Фаза 1 (СТАРТ, ноль регрессий):** рефактор выбора. Стратегии сохраняют текущую eligibility. Сразу даёт кастомные политики (First/Last/Random/ClosestToCursor/PreferStack/PreferEmpty) среди **существующих** слотов — планировщик их исполняет.
-- **Фаза 2 (forced-new, узкая):** intent «создать новый слот, даже если есть годные существующие». Нужна только для `SeparableStacks` + политика «новый стек» при `maxFreeSlots = 0`.
+Работа разбита на 3 фазы:
+- **Фаза 1 (СТАРТ, ноль регрессий):** вводит модель candidates/policy. Стратегии сохраняют текущую eligibility. Политики, выбирающие **существующий** слот (First/Last/Random/PreferStack/PreferEmpty), исполняются планировщиком. `SlotSelection.New()` имеет **сильную** семантику (force create new slot) уже в контракте, и его intent протаскивается до `InventoryDropProcessor`, но **исполняется только после Фазы 2**.
+- **Фаза 2 (forced-new):** planner+executor исполняют force-new intent через `TryCreateSlot` + `TryAddToSlot`. Нужна для `SeparableStacks` + политика «новый стек» при `maxFreeSlots = 0` (при `maxFreeSlots > 0` буфер пустых уже даёт эффект через выбор конкретного пустого слота в Фазе 1).
 - **Фаза 3 (one-per-ID, отдельный проект):** новый класс стратегии с inventory-aware размещением по всему пайплайну.
+
+> **Release gate = Фаза 1 + Фаза 2.** Фаза 1 в одиночку НЕ релизится как «кастомные политики выбора»: пока Фаза 2
+> не приземлилась, `New()`-форсирующая политика доходит до процессора, но планировщик её не исполнит (положит в
+> существующий слот). Фаза 1 — это модель + политики по существующим слотам; полноценная фича = 1+2.
 
 ---
 
@@ -93,12 +97,16 @@ public readonly struct SlotSelection
 {
     public bool Accepted { get; }
     public BaseSlot Slot { get; }   // конкретный слот, или null если CreateNew
-    public bool CreateNew { get; }  // true => создать новый (Slot == null). Фаза 1: исполняется как сейчас (fallback)
+    public bool CreateNew { get; }  // СИЛЬНАЯ семантика: "force create a new slot" (Slot == null).
     public static SlotSelection None => new(false, null, false);
     public static SlotSelection Existing(BaseSlot s) => new(true, s, false);
     public static SlotSelection New() => new(true, null, true);
 }
 ```
+> `CreateNew == true` означает именно «создать новый слот», а не «нет подсказки». Этот intent **обязан** дойти до
+> исполнения (Фаза 2: `TryCreateSlot` + `TryAddToSlot`). Запрещено молча трактовать `New()` как «area-drop без слота».
+> В Фазе 1 дефолт-политики возвращают `New()` только когда конкретных кандидатов нет (это совпадает с текущим
+> deferred-поведением и корректно); intent протаскивается до процессора, но планировщик исполнит его лишь в Фазе 2.
 
 **Политика:**
 ```csharp
@@ -120,7 +128,7 @@ public abstract class SlotSelectionPolicyBase
 
 `IAcceptanceStrategy` (`Strategies/IAcceptanceStrategy.cs`):
 - **Добавить** `SlotAcceptanceCandidates GetSlotCandidates(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);`
-- **Добавить** `SlotSelectionPolicyBase DefaultSlotSelectionPolicy { get; }` — дефолт-предпочтение стратегии (используется когда `request.SelectionPolicy == null`: программные вызовы и сохранение текущего поведения).
+- **Добавить** `SlotSelectionPolicyBase DefaultSlotSelectionPolicy { get; }` — дефолт-предпочтение стратегии (используется когда `request.SelectionPolicy == null`: программные вызовы и сохранение текущего поведения). Политики stateless → возвращать общий `static readonly` инстанс (ноль аллокаций), напр. `private static readonly SlotSelectionPolicyBase _default = new StackFirstSlotSelectionPolicy();`. Сами `FirstSlotSelectionPolicy`/`StackFirstSlotSelectionPolicy` тоже стоит держать `static readonly`-синглтонами для переиспользования.
 - **Убрать** `CanAcceptItem(... out suggestedBaseSlot)`. `GetAcceptableCount` — без изменений.
 
 `InventoryStrategyBase` (`:43`): убрать abstract `CanAcceptItem`, добавить abstract `GetSlotCandidates` и `DefaultSlotSelectionPolicy`.
@@ -130,6 +138,17 @@ public abstract class SlotSelectionPolicyBase
 ### 2.3 `GetSlotCandidates` по стратегиям (eligibility = текущая) + дефолт-политика
 
 Кандидаты собираются в порядке индекса; правила те же, что сейчас.
+
+**ОБЯЗАТЕЛЬНОЕ общее правило — исключать исходный слот при area-drop в тот же инвентарь.** Иначе area-drop внутри
+одного инвентаря может выбрать исходный слот как matching stack (особенно Stackable + `StackFirstSlotSelectionPolicy`).
+В цикле сбора кандидатов (во ВСЕХ трёх стратегиях):
+```csharp
+if (ReferenceEquals(request.SourceInventory, request.TargetInventory) &&
+    ReferenceEquals(slot, request.SourceBaseSlot))
+    continue;
+```
+(`request.SourceInventory`/`request.SourceBaseSlot` уже доступны на `InventoryAcceptanceRequest`, см.
+`InventoryAcceptanceRequest.cs:32-33`.) Покрыть тестом (см. §2.6).
 
 - **UniqueItemStrategy** — `DefaultSlotSelectionPolicy = FirstSlotSelectionPolicy`:
   - `Slots` = пустые, прошедшие `PassesRules(slot,item,1,request)`, `RemainingCapacity=1`, `IsEmpty=true`.
@@ -150,30 +169,47 @@ public abstract class SlotSelectionPolicyBase
 > конкретных кандидатов нет** → наблюдаемое поведение идентично текущему. Кастомная политика сможет переупорядочить
 > empty/stack через `candidate.IsEmpty`/`RemainingCapacity`.
 
-### 2.4 Применение политики
+### 2.4 Применение политики и сохранение intent
+
+Ключевой принцип: **не терять `SlotSelection`**. `CreateNew` обязан дойти до `InventoryDropProcessor` (исполнится в
+Фазе 2). Нельзя сводить выбор к одному `out BaseSlot`.
 
 - **`InventoryAcceptanceRequest`** (`Scripts/Inventories/InventoryAcceptanceRequest.cs`): добавить необязательное
   `SlotSelectionPolicyBase SelectionPolicy { get; }` + параметр ctor (default `null`).
-- **`UniversalInventory.CanAcceptItem`** (`:1445`):
+- **`UniversalInventory`**: добавить метод, отдающий полный результат:
   ```csharp
-  var candidates = _acceptanceStrategy.GetSlotCandidates(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
-  var policy = request.SelectionPolicy ?? _acceptanceStrategy.DefaultSlotSelectionPolicy;
-  var selection = policy.Select(candidates, request);
-  suggestedBaseSlot = selection.Slot;
-  return selection.Accepted;
+  public bool TrySelectDropSlot(InventoryAcceptanceRequest request, out SlotSelection selection)
+  {
+      // EnsureStrategyInitialized + CanAcceptShape как в CanAcceptItem
+      var candidates = _acceptanceStrategy.GetSlotCandidates(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
+      var policy = request.SelectionPolicy ?? _acceptanceStrategy.DefaultSlotSelectionPolicy;
+      selection = policy.Select(candidates, request);
+      return selection.Accepted;
+  }
   ```
-  Сохранить лог success/reject. Overload `CanAcceptItem(IItemAdapter,int,out slot)` (`:1439`) не трогаем —
-  строит request без политики → уйдёт в `DefaultSlotSelectionPolicy`.
+  `CanAcceptItem(request, out suggestedBaseSlot)` (`:1445`) делегирует: `var ok = TrySelectDropSlot(request, out var sel); suggestedBaseSlot = sel.Slot; return ok;` — сохраняем для обратной совместимости. Overload
+  `CanAcceptItem(IItemAdapter,int,out slot)` (`:1439`) не трогаем. Лог success/reject сохранить.
+  (Объявить `TrySelectDropSlot` в `BaseInventory`/интерфейсе инвентаря, чтобы `InventoryDropArea` мог звать через `IInventory`.)
 - **`InventoryDropArea`** (`Scripts/UI/InventoryDropArea.cs`):
-  - Поле (мимикрия под `DropPolicySettings.cs:10-11`):
+  - Поле политики (мимикрия под `DropPolicySettings.cs:10-11`):
     ```csharp
     [Header("Slot Selection")]
     [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel,
      Tooltip("Как выбрать слот при наведении на область (нет конкретного слота под курсором).")]
     private SlotSelectionPolicyBase _slotSelectionPolicy; // null => дефолт стратегии
     ```
-    (`ManagedReferencePicker`/`InlineProperty`/`HideLabel` из `UDND.Tools.Inspector`.)
-  - В `TryBuildValidationContext` (`:164`) передать `_slotSelectionPolicy` в новый параметр `SelectionPolicy` запроса.
+  - Хранить **весь `SlotSelection`**, а не только слот: заменить `private BaseSlot _foundBaseSlot;` на
+    `private SlotSelection _foundSelection;` (или добавить `private bool _forceCreateNewSlot;`).
+    `GetTargetSlot()` → `_foundSelection.Slot`; `OnTargetDeactivated` сбрасывает `_foundSelection = default`.
+  - В `TryBuildValidationContext` (`:164`) передать `_slotSelectionPolicy` в `SelectionPolicy` запроса и через
+    `inventory.TrySelectDropSlot(request, out _foundSelection)` получить полный результат (вместо `CanAcceptItem(out slot)`).
+  - `CreateDropProcessor(...)` должен передавать `forceCreateNewSlot: _foundSelection.CreateNew` в процессор.
+- **`InventoryDropProcessor`** (`Scripts/Inventories/InventoryDropProcessor.cs`): добавить ctor-параметр
+  `bool forceCreateNewSlot = false` и сохранить в поле. **Фаза 1:** только хранит (планировщик пока игнорирует).
+  **Фаза 2:** прокидывает в `TransferPlanner.BuildPlan` и исполняет (см. §3).
+
+> Так intent-путь готов уже в Фазе 1 (selection → область → процессор), а исполнение добавляется точечно в Фазе 2,
+> не переписывая снова UI-слой.
 
 ### 2.5 Чеклист файлов Фазы 1
 
@@ -188,14 +224,19 @@ public abstract class SlotSelectionPolicyBase
 - [ ] `Scripts/Inventories/Strategies/StackableItemStrategy.cs`
 - [ ] `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs`
 - [ ] `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs`
-- [ ] `Scripts/Inventories/UniversalInventory.cs`
-- [ ] `Scripts/UI/InventoryDropArea.cs`
+- [ ] `Scripts/Inventories/UniversalInventory.cs` (+ `TrySelectDropSlot`, `CanAcceptItem` делегирует)
+- [ ] `Scripts/Inventories/IInventory.cs` / `BaseInventory.cs` (объявить `TrySelectDropSlot`)
+- [ ] `Scripts/Inventories/InventoryDropProcessor.cs` (+ `forceCreateNewSlot` ctor-параметр, хранение)
+- [ ] `Scripts/UI/InventoryDropArea.cs` (поле политики, хранить `_foundSelection`, проброс `forceCreateNewSlot`)
 
 ### 2.6 Проверка Фазы 1
 
 - Компиляция Unity без ошибок; других вызовов стратегического `CanAcceptItem` нет (только `:1458`, `:175`).
 - Дефолт-политики воспроизводят текущее поведение: Unique/SeparableStacks — позиционно, Stackable — stack-first.
 - Демо `Examples/Demo1 Inventories/InventoriesDemo.unity`: дроп на `InventoryDropArea` для трёх стратегий ведёт себя как до рефактора.
+- **Тест исключения исходного слота:** area-drop в тот же инвентарь (Stackable + `StackFirstSlotSelectionPolicy`),
+  где исходный слот содержит тот же предмет, — кандидат НЕ должен указывать на `request.SourceBaseSlot` (предмет не
+  должен «выбираться сам в себя»). Проверить, что выбран другой стек/пустой/новый, а не источник.
 - Кастомная `LastSlotSelectionPolicy` (для ручной проверки): выбирает последний по индексу → планировщик кладёт туда.
 
 ---
@@ -207,8 +248,8 @@ public abstract class SlotSelectionPolicyBase
 эффект через выбор конкретного пустого слота (Фаза 1).
 
 **Механика (что менять):**
-1. `SlotSelection.New()` (CreateNew=true) при наличии конкретных кандидатов должен дойти до executor как «создать слот».
-2. Протащить флаг: `InventoryDropArea` (новое `_forceNewSlot` из результата политики) → `InventoryDropProcessor` (новый ctor-параметр) → `TransferPlanner.BuildPlan` (новый параметр) → `PlanEntry`.
+1. Intent уже доходит до `InventoryDropProcessor.forceCreateNewSlot` (плюмбинг сделан в Фазе 1, §2.4). Фаза 2 = исполнить его в planner+executor.
+2. Протащить флаг дальше: `InventoryDropProcessor` (хранимый `forceCreateNewSlot`) → `TransferPlanner.BuildPlan` (новый параметр) → `PlanEntry`.
 3. `PlanEntry`: если forceNewSlot — пропустить раскладку в существующие, вернуть `PlannedEntryTransfer` с новым флагом `RequiresNewSlot` + `PlannedSlotAllocation(null, amount)`.
 4. `TransferPlanExecutor`: в ветке null-allocation (`TryAddToTargetInventory`, `:1004`) при `RequiresNewSlot` — НЕ `TryAddStack(-1)` (он переиспользует первый пустой), а создать слот через новую capability и `TryAddToSlot(stack, newSlot)`.
 5. Новая capability на инвентаре: расширить `IDynamicSlotLifecycle` (`InventoryRuntimeCapabilities.cs:30`) методом `bool TryCreateSlot(out BaseSlot newSlot)`, открывающим приватный `UniversalInventory.CreateSlot()` (`:366`), с проверкой `_slotManagementSettings.CanCreateNewSlot`.
@@ -249,3 +290,8 @@ occupy multiple slots»), а сделать **новый класс страте
 4. `BlockedTargetResolver` не трогаем: SlotSelectionPolicy — фаза hover (до дропа, нет конкретного слота); BlockedTargetResolver — после отклонённой попытки дропа в слот.
 5. Фаза 1 — ноль регрессий: дефолт-политики воспроизводят текущее поведение (Stackable stack-first, остальные позиционно). Forced-new и one-per-ID — Фазы 2 и 3.
 6. one-per-ID — новый класс стратегии, не переопределение Stackable.
+7. `SlotSelection.New()` — **сильная семантика** (force create new slot) уже в контракте; intent протаскивается до `InventoryDropProcessor` в Фазе 1, исполняется в Фазе 2. Не схлопывать в «нет подсказки».
+8. **Release gate = Фаза 1 + Фаза 2** (Фаза 1 в одиночку не релизится как «кастомные политики выбора»).
+9. **Исключать исходный слот** при area-drop в тот же инвентарь (общее правило `GetSlotCandidates` + тест).
+10. `DefaultSlotSelectionPolicy` и сами политики — `static readonly`-синглтоны (stateless, ноль аллокаций).
+11. `ClosestToCursor` — лишь пример кастомной политики, не входит в план поставки.
