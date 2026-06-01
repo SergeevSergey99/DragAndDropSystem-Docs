@@ -11,8 +11,8 @@ namespace UDND.Inventories
         [SerializeField, Tooltip("Maximum number of slots.")]
         private int _maxSlots = 100;
 
-        [SerializeField, Tooltip("Minimum number of free slots. 0 = create only on TryAddItem, not while moving into specific slots.")]
-        private int _minFreeSlots = 1;
+        [SerializeField, Tooltip("Maximum number of free slots. 0 = create only on TryAddItem, not while moving into specific slots.")]
+        private int _maxFreeSlots = 0;
 
         public override IInventoryStrategy WrapRuntimeStrategy(
             IInventory inventory,
@@ -21,7 +21,7 @@ namespace UDND.Inventories
             Func<List<BaseSlot>> getSlots,
             Action ensureFreeSlots)
         {
-            return new DynamicSlotDecorator(baseStrategy, createSlot, _maxSlots, _minFreeSlots, getSlots, ensureFreeSlots);
+            return new DynamicSlotDecorator(baseStrategy, createSlot, _maxSlots, _maxFreeSlots, getSlots, ensureFreeSlots);
         }
 
         public override bool CanCreateNewSlot(IInventory inventory, int currentSlotCount)
@@ -40,7 +40,7 @@ namespace UDND.Inventories
                 return;
 
             int freeSlots = countFreeSlots();
-            int slotsToCreate = _minFreeSlots - freeSlots;
+            int slotsToCreate = _maxFreeSlots - freeSlots;
             for (int i = 0; i < slotsToCreate && inventory != null && inventory.SlotCount < _maxSlots; i++)
             {
                 createSlot();
@@ -52,7 +52,7 @@ namespace UDND.Inventories
             if (currentSlotCount <= initialSlotCount)
                 return false;
 
-            return freeSlotCount > _minFreeSlots;
+            return freeSlotCount > _maxFreeSlots;
         }
 
         public override void HandleSlotEmptied(
