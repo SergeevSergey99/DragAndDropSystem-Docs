@@ -107,8 +107,11 @@ public interface ISlot
 - **хранит копию стека**: `private ItemStack _stack` = `srcSlot.Stack?.CreateCopy() ?? ItemStack.Empty()` (полная копия
   `ItemStack` со списком адаптеров — `IReadOnlyItemStack.CreateCopy`, `ItemStack.cs:24`). **Чинит текущий баг**: сейчас
   хранится один `_itemAdapter`+`_count`, хотя в стеке давно список адаптеров (`Adapters`). `Stack => _stack`.
-- мутация (`Apply(item, amount)` → добавить в `_stack`; `MarkEmpty()` → `_stack = ItemStack.Empty()`) и ctor —
-  `internal` (доступны только внутри `UDND.Inventories`). Стратегия только читает.
+- мутаторы **переписать под список адаптеров** (сейчас они работают с одиночным `_itemAdapter`+`_count`):
+  `Apply(item, amount)` должен реально добавить `amount` адаптеров в `_stack` (через `ItemStack.TryAddToStack`/`TryCreate`
+  для пустого), а не инкрементить счётчик; `MarkEmpty()` → `_stack = ItemStack.Empty()`. Любые другие хелперы
+  (`CanAccept` и т.п.) — тоже актуализировать на `_stack`. Мутаторы и ctor — `internal` (только внутри
+  `UDND.Inventories`); стратегия лишь читает `Stack`.
 - eligibility/«Existing»-проверки — через `slot.Stack` (`IsEmpty`/`CanStack`/`Count`), а не отдельные поля.
 
 Маппинг выбранного `ISlot` → реальный `BaseSlot` (для аллокации/превью): на границе `ISlot` уже есть `BaseSlot`; в
@@ -273,7 +276,7 @@ blocked-resolver).
 **Unique и SeparableStacks**; **Stackable намеренно меняется на one-per-ID** (см. §2.8). Распределение/batch ordering
 становится policy-driven (нормализуется) — валидировать по демо.
 
-- **C1 — типы.** `ISlot`; `BaseSlot : ISlot`; `VirtualSlotState` → `ISlot` + копия `ItemStack` (фикс single-adapter), мутация internal; `SlotAcceptanceCandidate(s)`, `SlotSelection`, `SlotSelectionPolicyBase` + `First`/`StackFirst`. Чистые добавления/рефактор `VirtualSlotState`.
+- **C1 — типы.** `ISlot`; `BaseSlot : ISlot`; `VirtualSlotState` → `ISlot` + копия `ItemStack` (фикс single-adapter), **мутаторы (`Apply`/`MarkEmpty`/`CanAccept`) переписать под список адаптеров**, мутация internal; `SlotAcceptanceCandidate(s)`, `SlotSelection`, `SlotSelectionPolicyBase` + `First`/`StackFirst`. Чистые добавления/рефактор `VirtualSlotState`.
 - **C2 — eligibility.** В `IAcceptanceStrategy`/`InventoryStrategyBase`/3 стратегии/`DynamicSlotDecorator`: `GetSlotCandidates(IReadOnlyList<ISlot>...)` + `DefaultSlotSelectionPolicy = First`; убрать стратегический `CanAcceptItem`. Source-exclusion (по `Index`+`Inventory`). Unique/SeparableStacks — eligibility как сейчас; **Stackable.GetSlotCandidates сразу one-per-ID** (§2.2/§2.8). `UniversalInventory.CanAcceptItem` переписан на новый путь (`_slots` напрямую как `ISlot`). Build green. (До C8 placement-методы Stackable ещё мульти-слотовые — окно несогласованности, релиз атомарный.)
 - **C3 — проводка политики (без смены поведения).** `InventoryAcceptanceRequest.SelectionPolicy`; `InventoryDropArea` поле + хранит `SlotSelection`; `InventoryDropProcessor` + параметр политики; `AutoTransferService.ExecuteAsync` + параметр политики (точка авто-переноса); `BuildPlan` + параметр (пока планировщик использует дефолт внутри → поведение не меняется). Green.
 - **C4 — единый цикл аллокации (single + overflow).** Планировщик: распределение через `GetSlotCandidates(virtual)` + политика (2.4) вместо blocked-resolver-ordering. Дефолт воспроизводит текущее single-slot; multi-slot ordering нормализуется — сверить с демо.
