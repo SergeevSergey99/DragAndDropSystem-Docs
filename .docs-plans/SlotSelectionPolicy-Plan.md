@@ -9,7 +9,12 @@
 
 ## 0. Модель (TL;DR)
 
-Выбор слота — **один механизм** на всех путях:
+**Область применения.** Механизм вводится для случаев, когда **слот выбирает не игрок вручную**, а система: дроп в
+**область** инвентаря (надо просто добавить предмет), **автоматический перенос** (auto-transfer), batch и overflow.
+Когда игрок дропнул в **конкретный слот** — это остаётся explicit: первая попытка строго в этот слот, SelectionPolicy
+его не подменяет; если слот заблокирован — включается `BlockedTargetResolver` (§2.4, §2.6).
+
+Выбор слота (в этих «системных» случаях) — **один механизм** на всех путях:
 
 - **Стратегия = eligibility.** `GetSlotCandidates(slots, request, ...)` отдаёт классифицированных кандидатов
   (+ capability «создать новый»). Работает на **виртуальном** состоянии (`VirtualSlotState`): на границе UI реальные
@@ -153,6 +158,7 @@ public abstract class SlotSelectionPolicyBase
 - `InventoryDropArea`: + `[SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel] SlotSelectionPolicyBase _slotSelectionPolicy;` (null → дефолт стратегии). Передаёт политику в processor; **batch больше не пропускает выбор** (снять гейт `!IsBatchDrag`, см. C5).
 - `InventoryDropProcessor`: + ctor-параметр `SlotSelectionPolicyBase selectionPolicy` (и для forced-new — поведение через политику, отдельный bool не нужен). Прокидывает в `TransferPlanner.BuildPlan`.
 - `TransferPlanner.BuildPlan`: + параметр политики, использует в 2.4.
+- **`AutoTransferService`** (`Scripts/Inventories/AutoTransferService.cs:115`): строит `InventoryDropProcessor` с `targetBaseSlot: null` (`:130`) и идёт через тот же планировщик → передать `selectionPolicy` в ctor процессора. Добавить необязательный параметр `SlotSelectionPolicyBase` в `ExecuteAsync` (рядом с `requestedPolicy`); `null` → `DefaultSlotSelectionPolicy` стратегии. Это и есть точка проводки для **авто-переноса**.
 - `SlotSelection` — сильная семантика `New()` = «force create new slot» (не «нет подсказки»):
   ```csharp
   public readonly struct SlotSelection {
@@ -225,7 +231,7 @@ blocked-resolver).
 
 - **C1 — типы.** `SlotAcceptanceCandidate(s)`, `SlotSelection`, `SlotSelectionPolicyBase` + `First`/`StackFirst`. `VirtualSlotState` → public (read public, мутация internal). Чистые добавления.
 - **C2 — eligibility.** В `IAcceptanceStrategy`/`InventoryStrategyBase`/3 стратегии/`DynamicSlotDecorator`: `GetSlotCandidates(IReadOnlyList<VirtualSlotState>...)` + `DefaultSlotSelectionPolicy = First`; убрать стратегический `CanAcceptItem`. Source-exclusion. Unique/SeparableStacks — eligibility как сейчас; **Stackable.GetSlotCandidates сразу one-per-ID** (§2.2/§2.8). `UniversalInventory.CanAcceptItem` переписан на новый путь (обёртка `_slots`→`VirtualSlotState`). Build green. (До C8 placement-методы Stackable ещё мульти-слотовые — окно несогласованности, релиз атомарный.)
-- **C3 — проводка политики (без смены поведения).** `InventoryAcceptanceRequest.SelectionPolicy`; `InventoryDropArea` поле + хранит `SlotSelection`; `InventoryDropProcessor` + параметр политики; `BuildPlan` + параметр (пока планировщик использует дефолт внутри → поведение не меняется). Green.
+- **C3 — проводка политики (без смены поведения).** `InventoryAcceptanceRequest.SelectionPolicy`; `InventoryDropArea` поле + хранит `SlotSelection`; `InventoryDropProcessor` + параметр политики; `AutoTransferService.ExecuteAsync` + параметр политики (точка авто-переноса); `BuildPlan` + параметр (пока планировщик использует дефолт внутри → поведение не меняется). Green.
 - **C4 — единый цикл аллокации (single + overflow).** Планировщик: распределение через `GetSlotCandidates(virtual)` + политика (2.4) вместо blocked-resolver-ordering. Дефолт воспроизводит текущее single-slot; multi-slot ordering нормализуется — сверить с демо.
 - **C5 — batch.** Снять гейт `!IsBatchDrag` в `InventoryDropArea`; per-entry политика + перенос виртуального состояния между записями (из C4 почти бесплатно). Валидировать batch-дроп.
 - **C6 — сузить blocked-resolver.** Только explicit-blocked-target (occupied/rules) → alt/swap/reject; убрать из общего распределения. Проверить swap.
