@@ -127,13 +127,24 @@ public abstract class SlotSelectionPolicyBase
 
 ### 2.4 Планировщик — единый цикл аллокации через политику
 
-Вместо `EnumerateAlternativeVirtualSlots` (blocked-resolver) для распределения:
-- Для каждой записи (и single, и batch) планировщик в цикле: построить `ISlotView` поверх текущих
-  `VirtualSlotState` → `GetSlotCandidates` → `policy.Select` → если `Existing(slot)`: `Apply` в виртуальный слот,
-  добавить `PlannedSlotAllocation`, уменьшить `remaining`; если `New()`: добавить синтетический кандидат «новый
-  слот» (forced-new) → `PlannedSlotAllocation(null, amount)` + флаг `RequiresNewSlot`; если `None`: стоп.
-  Повторять, пока `remaining>0` и есть кандидаты. **Виртуальное состояние переносится между записями batch.**
-- Политика берётся из плана (см. 2.5). `null` → `DefaultSlotSelectionPolicy` стратегии.
+**Explicit drop остаётся explicit.** Если пользователь дропнул в конкретный слот (`targetBaseSlotHint != null`),
+**первая** попытка размещения — именно в этот слот. SelectionPolicy НЕ перекидывает explicit-дроп в другой слот
+(иначе, напр., `RandomSlotSelectionPolicy` сломает ручной дроп). Если hinted-слот заблокирован (занят другим
+предметом / отклонён правилами) — включается `BlockedTargetResolver` (alt/swap/reject, §2.6). Policy-driven цикл
+применяется к **area-drop** (нет hint) и к **overflow** (остаток после заполнения explicit-слота).
+
+Цикл распределения (заменяет blocked-resolver-ordering из `EnumerateAlternativeVirtualSlots`):
+- Подготовка: `remaining = amount`; `remainingPotentialNewSlots = potentialNewSlots`; `maxStackSize` от стратегии.
+- Если есть незаблокированный explicit hint — сначала аллокация в него, `remaining -= placed`.
+- Пока `remaining > 0`:
+  - построить `ISlotView` поверх текущих `VirtualSlotState`;
+  - `candidates = GetSlotCandidates(views, request, canCreateNewSlot && remainingPotentialNewSlots > 0, remainingPotentialNewSlots, prefab)`;
+  - `selection = policy.Select(candidates, request)`;
+  - **`Existing(slot)`**: `cap = slot.IsEmpty ? maxStackSize : (maxStackSize - count)`; `place = min(remaining, cap)`; `virtual.Apply(item, place)`; `allocations += PlannedSlotAllocation(slot, place)`; `remaining -= place`;
+  - **`New()`**: `place = min(remaining, maxStackSize)` — **новый слот имеет capacity = max stack, не «бесконечная дырка»**; `allocations += PlannedSlotAllocation(null, place){ RequiresNewSlot = true }`; `remainingPotentialNewSlots--`; (виртуально учесть новый слот заполненным на `place`);
+  - **`None`**: стоп.
+- **Виртуальное состояние И `remainingPotentialNewSlots` переносятся между записями batch** — нельзя запланировать больше новых слотов, чем dynamic-инвентарь реально создаст (`potentialNewSlots = max(0, maxSlots - count)`).
+- Политика из плана (см. 2.5); `null` → `DefaultSlotSelectionPolicy` стратегии.
 
 ### 2.5 Проводка политики (intent не теряется)
 
@@ -162,12 +173,14 @@ public abstract class SlotSelectionPolicyBase
 
 ### 2.7 forced-new (исполнение)
 
-- В плане синтетический «новый слот» → `PlannedSlotAllocation(null, amount)` + `RequiresNewSlot` на `PlannedEntryTransfer`.
-- Executor: в null-allocation ветке (`TransferPlanExecutor.cs:1004`) при `RequiresNewSlot` — НЕ `TryAddStack(-1)`
+- Флаг **на уровне allocation, не entry**: `PlannedSlotAllocation.RequiresNewSlot` (новое поле). Одна entry может
+  содержать аллокации и в существующие слоты, и в один/несколько новых — forced-new не смешивается с обычным
+  deferred/null. Признак forced-new = `BaseSlot == null && RequiresNewSlot`; обычный deferred = `BaseSlot == null && !RequiresNewSlot`.
+- Executor: в null-allocation ветке (`TransferPlanExecutor.cs:1004`) при `allocation.RequiresNewSlot` — НЕ `TryAddStack(-1)`
   (переиспользует первый пустой), а создать слот и положить в него: новая capability
   `IDynamicSlotLifecycle.TryCreateSlot(out BaseSlot newSlot)` (`InventoryRuntimeCapabilities.cs:30`), открывающая
   приватный `UniversalInventory.CreateSlot()` (`:366`) с проверкой `_slotManagementSettings.CanCreateNewSlot`, затем
-  `TryAddToSlot(stack, newSlot)`.
+  `TryAddToSlot(stack, newSlot)`. Amount allocation уже ограничен `maxStackSize` на этапе планирования (§2.4).
 - Откат: Atomic — снапшот восстанавливает кол-во слотов (`UniversalInventory.cs:1100-1115`); BestEffort —
   пустой созданный слот убирается через `HandleSlotEmptied`/trim. Не задеть «unresolved-target guard» (`:886-925`).
 
@@ -189,7 +202,7 @@ public abstract class SlotSelectionPolicyBase
 - `SlotSelection` (struct): `bool Accepted; BaseSlot Slot; bool CreateNew;` (см. 2.5)
 - `SlotSelectionPolicyBase` + `FirstSlotSelectionPolicy`, `StackFirstSlotSelectionPolicy`.
 - `IDynamicSlotLifecycle.TryCreateSlot(out BaseSlot)` (расширение).
-- `PlannedEntryTransfer.RequiresNewSlot` (новый флаг).
+- `PlannedSlotAllocation.RequiresNewSlot` (новый флаг — на уровне allocation, не entry).
 
 ---
 
@@ -236,3 +249,7 @@ public abstract class SlotSelectionPolicyBase
 8. one-per-ID — отдельный класс стратегии; enforce в `GetSlotCandidates` (видит всё виртуальное состояние) → `CanUseAlternativeSlot` для распределения менять не нужно.
 9. Релиз один, после всех коммитов; делим работу на коммиты C1..C9, каждый компилируется.
 10. `ClosestToCursor` — лишь пример кастомной политики, не входит в поставку.
+11. **Explicit drop остаётся explicit:** при `targetBaseSlotHint != null` первая попытка — в этот слот; policy не перекидывает; blocked-resolver только если слот заблокирован.
+12. **`RequiresNewSlot` — на уровне `PlannedSlotAllocation`**, не entry (одна entry = смесь existing + new; forced-new отличается от обычного deferred-null).
+13. **Виртуальный учёт новых слотов:** в цикле каждый `New()` уменьшает `remainingPotentialNewSlots`; перенос между записями batch — нельзя запланировать больше, чем dynamic создаст.
+14. **Новый слот имеет capacity = `maxStackSize`** (не «бесконечная дырка»): amount forced-new allocation = `min(remaining, maxStackSize)`.
