@@ -11,9 +11,9 @@
 
 Выбор слота — **один механизм** на всех путях:
 
-- **Стратегия = eligibility.** `GetSlotCandidates(slotViews, request, ...)` отдаёт классифицированных кандидатов
-  (+ capability «создать новый»). Работает и на **реальных** слотах (граница UI), и на **виртуальных** слотах
-  планировщика (через общий `ISlotView`).
+- **Стратегия = eligibility.** `GetSlotCandidates(slots, request, ...)` отдаёт классифицированных кандидатов
+  (+ capability «создать новый»). Работает на **виртуальном** состоянии (`VirtualSlotState`): на границе UI реальные
+  слоты оборачиваются в свежие `VirtualSlotState`, в планировщике — те же, что заполняются по ходу аллокации.
 - **`SlotSelectionPolicy` = selection.** Полиморфный класс. Выбирает один слот (или «создать новый») из кандидатов.
   **Планировщик зовёт политику на каждом шаге аллокации** и наполняет ею виртуальные слоты → этим автоматически
   покрываются single-drop, **batch** и overflow (распределение большого стека по нескольким слотам).
@@ -71,27 +71,23 @@ InventoryDropArea.TryBuildValidationContext            Scripts/UI/InventoryDropA
 
 ## 2. Целевая архитектура
 
-### 2.1 Общий вид слота `ISlotView` (новый публичный read-интерфейс)
+### 2.1 Виртуальное состояние слота — `VirtualSlotState` (без новых типов)
 
-`VirtualSlotState` — `internal`, а `IAcceptanceStrategy` публичный, поэтому `GetSlotCandidates` не может принимать
-`VirtualSlotState` напрямую. Вводим:
-```csharp
-public interface ISlotView
-{
-    BaseSlot Slot { get; }
-    bool IsEmpty { get; }
-    IItemAdapter ItemAdapter { get; }
-    int Count { get; }
-}
-```
-- `VirtualSlotState` реализует `ISlotView` (поля уже есть; `Slot => BaseSlot`).
-- Для границы UI — лёгкий адаптер над реальным `BaseSlot` (или просто оборачиваем реальные слоты в свежие
-  `VirtualSlotState`, как `BuildVirtualSlots`). Так eligibility-код один на оба случая.
+`GetSlotCandidates` должен читать **виртуальное** (гипотетическое) состояние, а не реальный `BaseSlot` (тот не меняется
+до исполнения; иначе overflow/batch выберут уже занятый слот повторно). Это состояние уже несёт существующий
+`VirtualSlotState` (`Scripts/Inventories/VirtualSlotState.cs`) — поля `BaseSlot/IsEmpty/ItemAdapter/Count` те же,
+что в `BaseSlot.Stack`, но отражают ход аллокации. Отдельный интерфейс не нужен.
+
+Изменение: сделать `VirtualSlotState` **public** с публичными read-полями; мутацию (`Apply`/`MarkEmpty`) и ctor
+оставить `internal` (доступны только внутри сборки `UDND.Inventories`: планировщик/инвентарь). Тогда публичный
+`IAcceptanceStrategy.GetSlotCandidates` может принимать `IReadOnlyList<VirtualSlotState>`. На границе UI реальные
+`_slots` оборачиваются в свежие `VirtualSlotState` (как `BuildVirtualSlots`, `TransferPlanner.cs:1102`) — там
+виртуального заполнения нет, просто снапшот. Стратегия только читает; `Apply` зовёт планировщик после выбора.
 
 ### 2.2 Стратегия = eligibility
 
 `IAcceptanceStrategy`:
-- **Добавить** `SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlotView> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);`
+- **Добавить** `SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<VirtualSlotState> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);`
 - **Добавить** `SlotSelectionPolicyBase DefaultSlotSelectionPolicy { get; }` (для `request.SelectionPolicy == null` и программных вызовов; сохраняет текущее поведение).
 - **Убрать** `CanAcceptItem(... out suggestedBaseSlot)`. `GetAcceptableCount` — без изменений.
 
@@ -99,7 +95,7 @@ public interface ISlotView
 исключать исходный слот при area-drop в тот же инвентарь:
 ```csharp
 if (ReferenceEquals(request.SourceInventory, request.TargetInventory) &&
-    ReferenceEquals(view.Slot, request.SourceBaseSlot))
+    ReferenceEquals(view.BaseSlot, request.SourceBaseSlot))
     continue;
 ```
 
@@ -137,7 +133,7 @@ public abstract class SlotSelectionPolicyBase
 - Подготовка: `remaining = amount`; `remainingPotentialNewSlots = potentialNewSlots`; `maxStackSize` от стратегии.
 - Если есть незаблокированный explicit hint — сначала аллокация в него, `remaining -= placed`.
 - Пока `remaining > 0`:
-  - построить `ISlotView` поверх текущих `VirtualSlotState`;
+  - взять текущие `VirtualSlotState` (их и наполняем по ходу);
   - `candidates = GetSlotCandidates(views, request, canCreateNewSlot && remainingPotentialNewSlots > 0, remainingPotentialNewSlots, prefab)`;
   - `selection = policy.Select(candidates, request)`;
   - **`Existing(slot)`**: `cap = slot.IsEmpty ? maxStackSize : (maxStackSize - count)`; `place = min(remaining, cap)`; `virtual.Apply(item, place)`; `allocations += PlannedSlotAllocation(slot, place)`; `remaining -= place`;
@@ -162,7 +158,7 @@ public abstract class SlotSelectionPolicyBase
   }
   ```
 - `UniversalInventory.CanAcceptItem(request, out suggested)` — оставить для обратной совместимости: обернуть `_slots`
-  в `ISlotView` → `GetSlotCandidates` → дефолт/`request.SelectionPolicy` → `selection.Slot`. (Главный путь выбора
+  в `VirtualSlotState` → `GetSlotCandidates` → дефолт/`request.SelectionPolicy` → `selection.Slot`. (Главный путь выбора
   теперь в планировщике; этот метод — для accept-проверки/превью и внешних вызовов.)
 
 ### 2.6 blocked-resolver — сузить роль
@@ -187,7 +183,7 @@ public abstract class SlotSelectionPolicyBase
 ### 2.8 one-per-ID (новый класс стратегии)
 
 Отдельный класс (`SingleSlotStackStrategy`), не переопределение Stackable. Под единой моделью enforce делается
-**прямо в `GetSlotCandidates`** (стратегия видит весь `ISlotView`-список): предмет уже есть в каком-то слоте →
+**прямо в `GetSlotCandidates`** (стратегия видит весь `VirtualSlotState`-список): предмет уже есть в каком-то слоте →
 кандидаты = только тот слот (если есть место), `CanCreateNewSlot=false`; предмета нет → пустые + new. Поскольку
 распределение теперь спрашивает `GetSlotCandidates` на каждом шаге, послотовый `CanUseAlternativeSlot` менять **не
 нужно** (он остаётся только для blocked-resolver). `GetAcceptableCount` — привести к той же семантике.
@@ -196,7 +192,7 @@ public abstract class SlotSelectionPolicyBase
 
 ## 3. Ключевые типы (сводка)
 
-- `ISlotView` (public) — общий вид слота; реализует `VirtualSlotState`.
+- `VirtualSlotState` → сделать **public** (read-поля public; `Apply`/`MarkEmpty`/ctor — `internal`).
 - `SlotAcceptanceCandidate` (struct): `BaseSlot Slot; int RemainingCapacity; bool IsEmpty;`
 - `SlotAcceptanceCandidates`: `IReadOnlyList<SlotAcceptanceCandidate> Slots; bool CanCreateNewSlot; int PotentialNewSlots; bool HasAny;`
 - `SlotSelection` (struct): `bool Accepted; BaseSlot Slot; bool CreateNew;` (см. 2.5)
@@ -211,8 +207,8 @@ public abstract class SlotSelectionPolicyBase
 Каждый коммит компилируется. Инвариант «зелёного дерева»: до C9 дефолт-политики сохраняют single-slot поведение;
 распределение/batch ordering становится policy-driven (нормализуется) — валидировать по демо.
 
-- **C1 — типы.** `ISlotView`, `SlotAcceptanceCandidate(s)`, `SlotSelection`, `SlotSelectionPolicyBase` + `First`/`StackFirst`. Чистые добавления.
-- **C2 — eligibility.** `VirtualSlotState : ISlotView`. В `IAcceptanceStrategy`/`InventoryStrategyBase`/3 стратегии/`DynamicSlotDecorator`: `GetSlotCandidates(ISlotView...)` + `DefaultSlotSelectionPolicy`; убрать стратегический `CanAcceptItem`. Source-exclusion. `UniversalInventory.CanAcceptItem` переписан на новый путь (обёртка `_slots`→`ISlotView`, дефолт-политика) — single-slot поведение сохранено. Build green.
+- **C1 — типы.** `SlotAcceptanceCandidate(s)`, `SlotSelection`, `SlotSelectionPolicyBase` + `First`/`StackFirst`. `VirtualSlotState` → public (read public, мутация internal). Чистые добавления.
+- **C2 — eligibility.** В `IAcceptanceStrategy`/`InventoryStrategyBase`/3 стратегии/`DynamicSlotDecorator`: `GetSlotCandidates(IReadOnlyList<VirtualSlotState>...)` + `DefaultSlotSelectionPolicy`; убрать стратегический `CanAcceptItem`. Source-exclusion. `UniversalInventory.CanAcceptItem` переписан на новый путь (обёртка `_slots`→`VirtualSlotState`, дефолт-политика) — single-slot поведение сохранено. Build green.
 - **C3 — проводка политики (без смены поведения).** `InventoryAcceptanceRequest.SelectionPolicy`; `InventoryDropArea` поле + хранит `SlotSelection`; `InventoryDropProcessor` + параметр политики; `BuildPlan` + параметр (пока планировщик использует дефолт внутри → поведение не меняется). Green.
 - **C4 — единый цикл аллокации (single + overflow).** Планировщик: распределение через `GetSlotCandidates(virtual)` + политика (2.4) вместо blocked-resolver-ordering. Дефолт воспроизводит текущее single-slot; multi-slot ordering нормализуется — сверить с демо.
 - **C5 — batch.** Снять гейт `!IsBatchDrag` в `InventoryDropArea`; per-entry политика + перенос виртуального состояния между записями (из C4 почти бесплатно). Валидировать batch-дроп.
@@ -230,7 +226,7 @@ public abstract class SlotSelectionPolicyBase
 - **Нормализация ordering при распределении.** Сейчас multi-slot распределение идёт через
   `EmptyFirstAlternativePlacementStrategy` (empty-first), а single-hint у Stackable — stack-first. Унификация делает
   ordering policy-driven; в части multi-slot краёв поведение может слегка измениться. Сверять с демо, документировать.
-- **`ISlotView` vs `internal VirtualSlotState`.** Следить за accessibility (интерфейс public, реализация internal — ок).
+- **`VirtualSlotState` → public.** Read-поля public, `Apply`/`MarkEmpty`/ctor — `internal` (мутация только внутри сборки). Следить, чтобы публичный `GetSlotCandidates` не выставил мутацию наружу.
 - **forced-new откат** (см. 2.7) и **unresolved-target guard** (`TransferPlanExecutor.cs:886-925`) — не сломать.
 - **Шейпы/placement-инвентари** (`IPlacementInventory`, shaped placement в `TransferPlanner.TryPlanShapedPlacement`)
   идут отдельной веткой планирования — единый цикл 2.4 их не трогает; проверить, что выбор слотов их не задевает.
