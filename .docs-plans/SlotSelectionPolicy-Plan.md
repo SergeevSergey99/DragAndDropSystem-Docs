@@ -86,12 +86,19 @@ InventoryDropArea.TryBuildValidationContext            Scripts/UI/InventoryDropA
 public interface ISlot
 {
     int Index { get; }
-    IReadOnlyItemStack Stack { get; }   // Stack==null||Stack.IsEmpty => пусто; Stack.CanStack(item); Stack.Count
+    IReadOnlyItemStack Stack { get; }       // Stack==null||Stack.IsEmpty => пусто; Stack.CanStack(item); Stack.Count
     IInventory Inventory { get; }
+    SlotRuleValidator SlotRuleValidator { get; }   // чтобы кандидат не оказался слотом, запрещённым правилами
 }
 ```
-- `BaseSlot` уже имеет `Index` (`int`), `Stack` (`IReadOnlyItemStack`), `Inventory` (`IInventory`) с теми же типами
-  (`Scripts/Slots/BaseSlot.cs:35,23,38`) → реализует `ISlot` **без изменений членов** (только `: ISlot`).
+- `BaseSlot` уже имеет `Index` (`int`), `Stack` (`IReadOnlyItemStack`), `Inventory` (`IInventory`),
+  `SlotRuleValidator` (`Scripts/Slots/BaseSlot.cs:35,23,38,17`) с теми же типами → реализует `ISlot` **без изменений
+  членов** (только `: ISlot`). `VirtualSlotState` возвращает `SlotRuleValidator` исходного слота (один инстанс).
+- **`GetSlotCandidates` ОБЯЗАН прогнать правила по каждому кандидату** (как сейчас `PassesRules`), иначе стратегия
+  может предложить слот, запрещённый для неё правилами. Реализационно: через `slot.SlotRuleValidator` +
+  `slot.Inventory as IInventoryRuleEvaluator`, либо привести `ISlot` к реальному `BaseSlot`
+  (`slot.Inventory.Slots[slot.Index]`) и вызвать существующий `PassesRules`. Правила проверяются на реальном слоте
+  (у виртуальной копии конфиг правил тот же).
 - **Граница UI** передаёт реальные `_slots` (они `ISlot`) в `GetSlotCandidates` напрямую — без обёртки/аллокаций.
 - **Планировщик** передаёт `VirtualSlotState` (тоже `ISlot`).
 
@@ -203,6 +210,17 @@ public abstract class SlotSelectionPolicyBase
 (занят другим предметом / отклонён правилами): альтернатива / swap / reject. Убрать его из общего распределения
 (его заменяет 2.4). Swap-резолв (`TryPlanSwap`, occupied-target) сохраняется в blocked-resolver.
 
+**Критично:** альтернативы resolver выбирает **только из набора, который вернул `GetSlotCandidates`** (он
+inventory-aware: уважает one-per-ID и правила), а НЕ из всех слотов инвентаря через per-slot `CanUseAlternativeSlot`.
+Сейчас `FindAlternativeBlockedTargetResolver.Resolve` (`Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs:48-53`)
+фильтрует все слоты через `CanUseAlternativeSlot` → это нарушает eligibility.
+- Пример: Stackable one-per-ID, Apple в слоте 0; дроп Apple на занятый Sword-слот → explicit заблокирован → resolver.
+  Старый `CanUseAlternativeSlot(emptySlot, apple)==true` выберет пустой слот и **нарушит one-per-ID**.
+- Фикс: `BlockedTargetResolutionContext` несёт **candidate-список из `GetSlotCandidates`** (минус заблокированный
+  explicit-слот); `IAlternativePlacementStrategy` лишь **упорядочивает** среди уже годных кандидатов (Merge/Empty-first).
+  `CanUseAlternativeSlot` перестаёт быть источником eligibility (можно убрать из этого пути либо оставить как
+  доп. ordering-хинт).
+
 ### 2.7 forced-new (исполнение)
 
 - Флаг **на уровне allocation, не entry**: `PlannedSlotAllocation.RequiresNewSlot` (новое поле). Одна entry может
@@ -238,7 +256,7 @@ blocked-resolver).
 
 ## 3. Ключевые типы (сводка)
 
-- `ISlot` (public): `int Index; IReadOnlyItemStack Stack; IInventory Inventory;` — реализуют `BaseSlot` (без изменений членов) и `VirtualSlotState`.
+- `ISlot` (public): `int Index; IReadOnlyItemStack Stack; IInventory Inventory; SlotRuleValidator SlotRuleValidator;` — реализуют `BaseSlot` (без изменений членов) и `VirtualSlotState`.
 - `VirtualSlotState` → реализует `ISlot`; хранит **копию `ItemStack`** (фикс single-adapter); `Apply`/`MarkEmpty`/ctor — `internal`.
 - `SlotAcceptanceCandidate` (struct): `ISlot Slot; int RemainingCapacity;` (пусто/тип — через `Slot.Stack`).
 - `SlotAcceptanceCandidates`: `IReadOnlyList<SlotAcceptanceCandidate> Slots; bool CanCreateNewSlot; int PotentialNewSlots; bool HasAny;`
@@ -260,10 +278,10 @@ blocked-resolver).
 - **C3 — проводка политики (без смены поведения).** `InventoryAcceptanceRequest.SelectionPolicy`; `InventoryDropArea` поле + хранит `SlotSelection`; `InventoryDropProcessor` + параметр политики; `AutoTransferService.ExecuteAsync` + параметр политики (точка авто-переноса); `BuildPlan` + параметр (пока планировщик использует дефолт внутри → поведение не меняется). Green.
 - **C4 — единый цикл аллокации (single + overflow).** Планировщик: распределение через `GetSlotCandidates(virtual)` + политика (2.4) вместо blocked-resolver-ordering. Дефолт воспроизводит текущее single-slot; multi-slot ordering нормализуется — сверить с демо.
 - **C5 — batch.** Снять гейт `!IsBatchDrag` в `InventoryDropArea`; per-entry политика + перенос виртуального состояния между записями (из C4 почти бесплатно). Валидировать batch-дроп.
-- **C6 — сузить blocked-resolver.** Только explicit-blocked-target (occupied/rules) → alt/swap/reject; убрать из общего распределения. Проверить swap.
+- **C6 — сузить blocked-resolver.** Только explicit-blocked-target (occupied/rules) → alt/swap/reject; убрать из общего распределения. **Альтернативы — только из `GetSlotCandidates`** (не per-slot `CanUseAlternativeSlot`): `BlockedTargetResolutionContext` несёт candidate-список, `IAlternativePlacementStrategy` лишь упорядочивает (см. §2.6, пример one-per-ID). Проверить swap.
 - **C7 — forced-new.** `SlotSelection.New()` → синтетический кандидат → `RequiresNewSlot` → executor `TryCreateSlot`+`TryAddToSlot`; `IDynamicSlotLifecycle.TryCreateSlot`. Откат (2.7).
 - **C8 — Stackable one-per-ID: placement-консистентность.** Привести к one-per-ID прямые методы Stackable: `GetAcceptableCount`, `TryAdd` (`StackableItemStrategy.cs:58-101`), `TryAddToSlot` (2.8). Обновить доку класса (была «multiple slots»). `GetSlotCandidates` уже one-per-ID (C2).
-- **C9 — тесты/демо/доки.** Тест source-exclusion; batch; forced-new при `maxFreeSlots=0`; one-per-ID (предмет есть → второй слот не создаётся). Демо `Examples/Demo1 Inventories/InventoriesDemo.unity`. Обновить скиллы (`dragdrop-architecture` и др.).
+- **C9 — тесты/демо/доки.** Тесты: source-exclusion; batch; forced-new при `maxFreeSlots=0`; one-per-ID (предмет есть → второй слот не создаётся); **rule-respect (кандидат не может быть запрещённым правилами слотом)**; **blocked-resolver one-per-ID** (Apple в слоте 0, дроп Apple на занятый Sword-слот → resolver НЕ выбирает пустой слот). Демо `Examples/Demo1 Inventories/InventoriesDemo.unity`. Обновить скиллы (`dragdrop-architecture` и др.).
 
 Релиз — после C9.
 
@@ -288,10 +306,10 @@ blocked-resolver).
 2. Политика — полиморфный `SlotSelectionPolicyBase` (не enum), на инициаторе (`InventoryDropArea`); fallback — `DefaultSlotSelectionPolicy` стратегии (`static readonly`-синглтоны).
 3. `CanCreateNewSlot` — чистая capability; порядок empty/stack/new решает политика.
 4. **SelectionPolicy — единый механизм:** заполняет виртуальные слоты в планировщике (single/batch/overflow).
-5. **blocked-resolver сужен** до «дроп в конкретный заблокированный слот» (occupied/rules) → alt/swap/reject.
+5. **blocked-resolver сужен** до «дроп в конкретный заблокированный слот» (occupied/rules) → alt/swap/reject. Альтернативы выбираются **только из `GetSlotCandidates`** (inventory-aware), не из всех слотов через `CanUseAlternativeSlot`.
 6. `SlotSelection.New()` — сильная семантика «force create new slot»; intent доходит до исполнения.
 7. **Исключать исходный слот** при area-drop в тот же инвентарь (общее правило + тест).
-8. **one-per-ID — это сам `StackableItemStrategy`** (НИКАКИХ новых классов; для нескольких стеков одного предмета — `SeparableStacks`). Намеренная смена поведения Stackable (была «multiple slots» + авто-merge). Enforce в `GetSlotCandidates` (видит всё виртуальное состояние) + placement-методы (`GetAcceptableCount`/`TryAdd`/`TryAddToSlot`) + обновить доку класса; `CanUseAlternativeSlot` для распределения менять не нужно.
+8. **one-per-ID — это сам `StackableItemStrategy`** (НИКАКИХ новых классов; для нескольких стеков одного предмета — `SeparableStacks`). Намеренная смена поведения Stackable (была «multiple slots» + авто-merge). Enforce в `GetSlotCandidates` (видит всё виртуальное состояние) + placement-методы (`GetAcceptableCount`/`TryAdd`/`TryAddToSlot`) + обновить доку класса. `CanUseAlternativeSlot` перестаёт быть источником eligibility — и в распределении, и в blocked-resolver eligibility = `GetSlotCandidates`.
 9. Релиз один, после всех коммитов; делим работу на коммиты C1..C9, каждый компилируется.
 10. `ClosestToCursor` — лишь пример кастомной политики, не входит в поставку.
 11. **Explicit drop остаётся explicit:** при `targetBaseSlotHint != null` первая попытка — в этот слот; policy не перекидывает; blocked-resolver только если слот заблокирован.
