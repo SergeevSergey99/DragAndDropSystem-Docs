@@ -6,10 +6,12 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Strategy: items are stackable (grouped by type)
-    /// One item type can occupy multiple slots
+    /// Strategy: items are stackable (grouped by type), one stack per item ID (one-per-ID).
+    /// If the item is already present in the inventory, only that slot accepts more of it.
+    /// If the item is absent, it is placed into a single empty slot (no overflow across slots).
+    /// For multi-slot overflow of the same item use <see cref="SeparableStacksStrategy"/>.
     /// Supports the strategy default limit and,
-    /// when allowItemOverride = true, per-item limits via IStackSizeLimitable
+    /// when allowItemOverride = true, per-item limits via IStackSizeLimitable.
     /// </summary>
     [Serializable]
     public class StackableItemStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy
@@ -57,11 +59,9 @@ namespace UDND.Inventories
             }
             else
             {
-                // First try filling existing stacks
+                // one-per-ID: if item already present, fill only that slot
                 foreach (var slot in slots)
                 {
-                    if (remaining <= 0) break;
-
                     if (!slot.IsEmpty && slot.Stack.CanStack(stack.PrimaryAdapter))
                     {
                         int canFit = Math.Max(0, maxSize - slot.Stack.Count);
@@ -73,16 +73,15 @@ namespace UDND.Inventories
 
                             remaining -= added;
                         }
+                        break; // one-per-ID: no other slots for this item
                     }
                 }
 
-                // Then create new stacks in empty slots
+                // item absent: place into one empty slot only
                 if (remaining > 0)
                 {
                     foreach (var slot in slots)
                     {
-                        if (remaining <= 0) break;
-
                         if (slot.IsEmpty)
                         {
                             int toPlace = Math.Min(remaining, maxSize);
@@ -95,6 +94,7 @@ namespace UDND.Inventories
                                 slot.SetStack(movedStack);
                                 remaining -= toPlace;
                             }
+                            break; // one-per-ID: one empty slot only
                         }
                     }
                 }
@@ -149,6 +149,14 @@ namespace UDND.Inventories
                     return false;
 
                 return TryMergeIntoSlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
+            }
+
+            // one-per-ID: reject if item already present in another slot
+            foreach (var slot in slots)
+            {
+                if (slot == targetBaseSlot) continue;
+                if (!slot.IsEmpty && slot.Stack.CanStack(stack.PrimaryAdapter))
+                    return false;
             }
 
             if (!PassesRules(targetBaseSlot, stack.PrimaryAdapter, Math.Min(stack.Count, maxSize)))
@@ -225,32 +233,32 @@ namespace UDND.Inventories
                 return 0;
 
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
-            int totalCapacity = 0;
 
+            // one-per-ID: if item already present, return only that slot's remaining capacity
             foreach (var slot in slots)
             {
                 if (!slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                     if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))
-                        totalCapacity += canFit;
+                        return Math.Min(canFit, desiredCount);
+                    return 0;
                 }
-                else if (slot.IsEmpty && PassesRules(slot, item, Math.Min(desiredCount, maxSize), request))
-                {
-                    totalCapacity += maxSize;
-                }
-
-                if (totalCapacity >= desiredCount)
-                    return desiredCount;
             }
 
-            if (canCreateNewSlot && totalCapacity < desiredCount)
+            // item absent: one empty slot
+            foreach (var slot in slots)
             {
-                if (PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request))
-                    totalCapacity = AddSlotCapacity(totalCapacity, maxSize, Math.Max(1, potentialNewSlots), desiredCount);
+                if (slot.IsEmpty && PassesRules(slot, item, Math.Min(desiredCount, maxSize), request))
+                    return Math.Min(maxSize, desiredCount);
             }
 
-            return Math.Min(totalCapacity, desiredCount);
+            // no existing or empty slot: new slot
+            if (canCreateNewSlot && potentialNewSlots > 0 &&
+                PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request))
+                return Math.Min(maxSize, desiredCount);
+
+            return 0;
         }
     }
 }
