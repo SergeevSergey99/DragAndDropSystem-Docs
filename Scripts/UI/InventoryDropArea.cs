@@ -160,36 +160,32 @@ namespace UDND.UI
             if (context == null || context.Entries.Count == 0)
                 return false;
 
-            BaseSlot suggestedBaseSlot = null;
+            var firstEntry = context.Entries[0];
+            var stack = firstEntry.Stack;
+            if (stack == null || stack.PrimaryAdapter == null)
+                return false;
 
-            if (!context.IsBatchDrag)
+            if (!TransferItemConversionUtility.TryResolveTargetItem(firstEntry.SourceInventory, _inventory, stack.PrimaryAdapter, out var targetPreviewItem))
+                return false;
+
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                _inventory,
+                targetPreviewItem,
+                stack.Count,
+                context,
+                firstEntry,
+                _slotSelectionPolicy);
+
+            bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out BaseSlot suggestedBaseSlot);
+            if (!canAccept)
             {
-                var stack = context.Entries[0].Stack;
-                if (stack == null || stack.PrimaryAdapter == null)
-                    return false;
-
-                if (!TransferItemConversionUtility.TryResolveTargetItem(context.Entries[0].SourceInventory, _inventory, stack.PrimaryAdapter, out var targetPreviewItem))
-                    return false;
-
-                var acceptanceRequest = new InventoryAcceptanceRequest(
-                    _inventory,
-                    targetPreviewItem,
-                    stack.Count,
-                    context,
-                    context.Entries[0],
-                    _slotSelectionPolicy);
-
-                bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out suggestedBaseSlot);
-                if (!canAccept)
-                {
-                    Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept itemAdapter in {_inventory.name}</color>");
-                    return false;
-                }
-
-                selection = suggestedBaseSlot != null
-                    ? SlotSelection.Existing(suggestedBaseSlot)
-                    : SlotSelection.New();
+                Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept itemAdapter in {_inventory.name}</color>");
+                return false;
             }
+
+            selection = suggestedBaseSlot != null
+                ? SlotSelection.Existing(suggestedBaseSlot)
+                : SlotSelection.New();
 
             validationContext = context.WithTarget(suggestedBaseSlot, _inventory);
             return true;
