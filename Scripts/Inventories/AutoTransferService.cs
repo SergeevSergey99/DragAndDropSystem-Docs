@@ -119,7 +119,8 @@ namespace UDND.Inventories
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
             CancellationToken cancellationToken,
-            DropRequestPolicy? requestedPolicy = null)
+            DropRequestPolicy? requestedPolicy = null,
+            SlotSelectionPolicyBase selectionPolicy = null)
         {
             if (context == null)
                 return (DropResult.Failed("Auto-transfer context is null"), null);
@@ -132,7 +133,8 @@ namespace UDND.Inventories
                 targetInventory: targetInventory,
                 globalRules: globalRules,
                 swapAttempting: swapAttempting,
-                swapCompleted: swapCompleted);
+                swapCompleted: swapCompleted,
+                selectionPolicy: selectionPolicy);
 
             if (!handler.CanAcceptDrop(context, requestedPolicy))
                 return (DropResult.Failed("Auto-transfer plan rejected"), null);

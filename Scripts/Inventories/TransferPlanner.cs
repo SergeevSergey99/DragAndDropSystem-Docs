@@ -188,7 +188,8 @@ namespace UDND.Inventories
             ResolvedDropPolicy policy,
             IInventory targetInventory,
             BaseSlot targetBaseSlotHint,
-            GlobalRuleValidator globalRules = null)
+            GlobalRuleValidator globalRules = null,
+            SlotSelectionPolicyBase selectionPolicy = null)
         {
             if (context == null || context.Entries == null || context.Entries.Count == 0)
             {

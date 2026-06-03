@@ -1459,7 +1459,7 @@ namespace UDND.Inventories
             IReadOnlyList<ISlot> slotsView = _slots;
             var candidates = _acceptanceStrategy.GetSlotCandidates(
                 slotsView, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
-            var policy = _acceptanceStrategy.DefaultSlotSelectionPolicy;
+            var policy = request.SelectionPolicy ?? _acceptanceStrategy.DefaultSlotSelectionPolicy;
             var selection = policy.Select(candidates, request);
 
             suggestedBaseSlot = selection.Slot as BaseSlot;

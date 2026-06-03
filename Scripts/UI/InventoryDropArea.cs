@@ -5,6 +5,7 @@ using UDND.Interaction;
 using UDND.Inventories;
 using UDND.Slots;
 using UDND.Tools;
+using UDND.Tools.Inspector;
 
 namespace UDND.UI
 {
@@ -29,7 +30,12 @@ namespace UDND.UI
         [SerializeField, Tooltip("Optional policy override for this drop zone. If disabled, the inventory policy is used.")]
         private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
 
-        private BaseSlot _foundBaseSlot;
+        [Header("Slot Selection Policy")]
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel,
+         Tooltip("How the system picks a target slot when no explicit slot is chosen. Null = strategy default.")]
+        private SlotSelectionPolicyBase _slotSelectionPolicy;
+
+        private SlotSelection _foundSelection;
 
         public IInventory Inventory => _inventory;
 
@@ -71,17 +77,18 @@ namespace UDND.UI
             if (DragManager == null || !DragManager.IsDragging || _inventory == null)
                 return false;
 
-            if (!TryResolveFocusedTargetSlot(out _foundBaseSlot))
+            if (!TryResolveFocusedTargetSlot(out _foundSelection))
                 return false;
 
             DragManager.PushDropTarget(this);
-            Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={_foundBaseSlot?.Index.ToString() ?? "AREA"}, inventory={_inventory.name}</color>");
+            var slotIndex = (_foundSelection.Slot as BaseSlot)?.Index.ToString() ?? (_foundSelection.CreateNew ? "NEW" : "AREA");
+            Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={slotIndex}, inventory={_inventory.name}</color>");
             return true;
         }
 
         protected override void OnTargetDeactivated()
         {
-            _foundBaseSlot = null;
+            _foundSelection = SlotSelection.None;
         }
 
         protected override void OnHighlightChanged(bool highlighted, bool canAccept)
@@ -95,11 +102,11 @@ namespace UDND.UI
         //  IDropTarget overrides (delegated processing)
         // ══════════════════════════════════════════════════════════
 
-        public override BaseSlot GetTargetSlot() => _foundBaseSlot;
+        public override BaseSlot GetTargetSlot() => _foundSelection.Slot as BaseSlot;
 
         public override IDropProcessor GetDropProcessor()
         {
-            return CreateDropProcessor(_foundBaseSlot);
+            return CreateDropProcessor(_foundSelection.Slot as BaseSlot);
         }
 
         // ══════════════════════════════════════════════════════════
@@ -122,21 +129,22 @@ namespace UDND.UI
                 DragManager?.GlobalRules,
                 boundOverride,
                 swapAttempting,
-                swapCompleted);
+                swapCompleted,
+                _slotSelectionPolicy);
         }
 
-        private bool TryResolveFocusedTargetSlot(out BaseSlot suggestedBaseSlot)
+        private bool TryResolveFocusedTargetSlot(out SlotSelection selection)
         {
-            suggestedBaseSlot = null;
+            selection = SlotSelection.None;
 
             var context = DragManager.CurrentContext;
             if (context == null || context.Entries.Count == 0)
                 return false;
 
-            if (!TryBuildValidationContext(context, out var validationContext, out suggestedBaseSlot))
+            if (!TryBuildValidationContext(context, out var validationContext, out selection))
                 return false;
 
-            var processor = CreateDropProcessor(suggestedBaseSlot);
+            var processor = CreateDropProcessor(selection.Slot as BaseSlot);
             bool canAccept = processor.CanAcceptDrop(validationContext);
             if (!canAccept)
                 Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Planner rejected drop in {_inventory.name}</color>");
@@ -144,13 +152,15 @@ namespace UDND.UI
             return canAccept;
         }
 
-        private bool TryBuildValidationContext(DragContext context, out DragContext validationContext, out BaseSlot suggestedBaseSlot)
+        private bool TryBuildValidationContext(DragContext context, out DragContext validationContext, out SlotSelection selection)
         {
             validationContext = null;
-            suggestedBaseSlot = null;
+            selection = SlotSelection.None;
 
             if (context == null || context.Entries.Count == 0)
                 return false;
+
+            BaseSlot suggestedBaseSlot = null;
 
             if (!context.IsBatchDrag)
             {
@@ -166,7 +176,8 @@ namespace UDND.UI
                     targetPreviewItem,
                     stack.Count,
                     context,
-                    context.Entries[0]);
+                    context.Entries[0],
+                    _slotSelectionPolicy);
 
                 bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out suggestedBaseSlot);
                 if (!canAccept)
@@ -174,6 +185,10 @@ namespace UDND.UI
                     Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept itemAdapter in {_inventory.name}</color>");
                     return false;
                 }
+
+                selection = suggestedBaseSlot != null
+                    ? SlotSelection.Existing(suggestedBaseSlot)
+                    : SlotSelection.New();
             }
 
             validationContext = context.WithTarget(suggestedBaseSlot, _inventory);

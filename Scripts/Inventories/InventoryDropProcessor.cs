@@ -22,6 +22,7 @@ namespace UDND.Inventories
         private readonly TransferPlanExecutor _executor;
         private readonly Func<InventorySwapContext, bool> _swapAttempting;
         private readonly Action<InventorySwapContext> _swapCompleted;
+        private readonly SlotSelectionPolicyBase _selectionPolicy;
         public TransferExecutionSummary LastExecutionSummary { get; private set; }
 
         /// <summary>
@@ -33,7 +34,8 @@ namespace UDND.Inventories
             GlobalRuleValidator globalRules,
             DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
-            Action<InventorySwapContext> swapCompleted = null)
+            Action<InventorySwapContext> swapCompleted = null,
+            SlotSelectionPolicyBase selectionPolicy = null)
         {
             _targetBaseSlot = targetBaseSlot;
             _targetInventory = targetInventory;
@@ -43,6 +45,7 @@ namespace UDND.Inventories
             _executor = new TransferPlanExecutor();
             _swapAttempting = swapAttempting;
             _swapCompleted = swapCompleted;
+            _selectionPolicy = selectionPolicy;
         }
 
         /// <summary>
@@ -53,8 +56,9 @@ namespace UDND.Inventories
             GlobalRuleValidator globalRules,
             DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
-            Action<InventorySwapContext> swapCompleted = null)
-            : this(null, targetInventory, globalRules, boundRequestOverride, swapAttempting, swapCompleted)
+            Action<InventorySwapContext> swapCompleted = null,
+            SlotSelectionPolicyBase selectionPolicy = null)
+            : this(null, targetInventory, globalRules, boundRequestOverride, swapAttempting, swapCompleted, selectionPolicy)
         {
         }
 
@@ -78,7 +82,8 @@ namespace UDND.Inventories
                 effectivePolicy,
                 _targetInventory,
                 _targetBaseSlot,
-                _globalRules);
+                _globalRules,
+                _selectionPolicy);
 
             if (!plan.IsValid)
             {
