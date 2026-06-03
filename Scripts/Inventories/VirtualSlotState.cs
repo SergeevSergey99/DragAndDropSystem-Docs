@@ -1,67 +1,60 @@
+using System.Linq;
 using UDND.Core;
+using UDND.Rules;
 using UDND.Slots;
 
 namespace UDND.Inventories
 {
-    internal sealed class VirtualSlotState
+    internal sealed class VirtualSlotState : ISlot
     {
-        private IItemAdapter _itemAdapter;
-        private int _count;
+        private ItemStack _stack;
 
-        public VirtualSlotState(BaseSlot baseSlot)
+        internal VirtualSlotState(BaseSlot baseSlot)
         {
             BaseSlot = baseSlot;
-            if (baseSlot == null || baseSlot.IsEmpty || baseSlot.Stack?.PrimaryAdapter == null)
-            {
-                _itemAdapter = null;
-                _count = 0;
-                return;
-            }
-
-            _itemAdapter = baseSlot.Stack.PrimaryAdapter;
-            _count = baseSlot.Stack.Count;
+            _stack = baseSlot?.Stack?.CreateCopy() ?? ItemStack.Empty();
         }
 
         public BaseSlot BaseSlot { get; }
-        public bool IsEmpty => _itemAdapter == null || _count <= 0;
-        public IItemAdapter ItemAdapter => _itemAdapter;
-        public int Count => _count;
 
-        public bool CanAccept(IItemAdapter itemAdapter, bool uniqueMode)
+        // ISlot
+        public int Index => BaseSlot?.Index ?? -1;
+        public IReadOnlyItemStack Stack => _stack;
+        public IInventory Inventory => BaseSlot?.Inventory;
+        public SlotRuleValidator SlotRuleValidator => BaseSlot?.SlotRuleValidator;
+
+        public bool IsEmpty => _stack == null || _stack.IsEmpty;
+        public int Count => _stack?.Count ?? 0;
+
+        internal bool CanAccept(IItemAdapter itemAdapter, bool uniqueMode)
         {
             if (BaseSlot == null || itemAdapter == null || !BaseSlot.IsInteractable)
                 return false;
 
             if (uniqueMode)
-                return IsEmpty;
+                return _stack.IsEmpty;
 
-            if (IsEmpty)
+            if (_stack.IsEmpty)
                 return true;
 
-            return _itemAdapter.ItemId == itemAdapter.ItemId
-                && _itemAdapter.GetType() == itemAdapter.GetType();
+            return _stack.CanStack(itemAdapter);
         }
 
-        public void MarkEmpty()
+        internal void MarkEmpty()
         {
-            _itemAdapter = null;
-            _count = 0;
+            _stack = ItemStack.Empty();
         }
 
-        public void Apply(IItemAdapter itemAdapter, int amount)
+        internal void Apply(IItemAdapter itemAdapter, int amount)
         {
             if (amount <= 0 || itemAdapter == null)
                 return;
 
-            if (IsEmpty)
-            {
-                _itemAdapter = itemAdapter;
-                _count = amount;
-            }
+            var batch = Enumerable.Repeat(itemAdapter, amount);
+            if (_stack.IsEmpty)
+                ItemStack.TryCreate(batch, out _stack);
             else
-            {
-                _count += amount;
-            }
+                _stack.TryAddToStack(batch);
         }
     }
 }

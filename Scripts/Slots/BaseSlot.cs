@@ -10,7 +10,7 @@ namespace UDND.Slots
     /// <summary>
     /// Base class for slots. Inherits from MonoBehaviour so it can be referenced in the Inspector.
     /// </summary>
-    public abstract class BaseSlot : MonoBehaviour
+    public abstract class BaseSlot : MonoBehaviour, ISlot
     {
         [field: InfoBox("Filtering rules for this specific slot. Leave empty for a slot without restrictions.")]
         [field: SerializeField, HideLabel, FoldoutGroup("Slot Rules", expanded: false)]
