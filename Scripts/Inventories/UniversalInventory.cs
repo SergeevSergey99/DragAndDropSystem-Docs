@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction
+    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction, IInventorySlotCreationCapacity
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -93,6 +93,11 @@ namespace UDND.Inventories
         public IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy => ResolveShapedPlacementAnchorStrategy();
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
+        bool IInventorySlotCreationCapacity.CanCreateNewSlot =>
+            _slotManagementSettings != null && _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
+        int IInventorySlotCreationCapacity.PotentialNewSlots =>
+            _slotManagementSettings?.GetPotentialNewSlots(this, _slots.Count) ?? 0;
+        BaseSlot IInventorySlotCreationCapacity.BaseSlotPrefab => baseSlotPrefab;
         public override Transform SlotContainer => _slotContainer;
         public IInventoryStrategy Strategy
         {

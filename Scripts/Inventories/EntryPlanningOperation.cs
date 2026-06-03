@@ -18,7 +18,8 @@ namespace UDND.Inventories
             GlobalRuleValidator globalRules,
             IItemAdapter targetItemAdapter,
             int requestedAmount,
-            int acceptableByInventory)
+            int acceptableByInventory,
+            SlotSelectionPolicyBase selectionPolicy = null)
         {
             Context = context;
             Entry = entry;
@@ -31,6 +32,7 @@ namespace UDND.Inventories
             TargetItemAdapter = targetItemAdapter;
             RequestedAmount = requestedAmount;
             AcceptableByInventory = acceptableByInventory;
+            SelectionPolicy = selectionPolicy;
         }
 
         public DragContext Context { get; }
@@ -44,5 +46,6 @@ namespace UDND.Inventories
         public IItemAdapter TargetItemAdapter { get; }
         public int RequestedAmount { get; }
         public int AcceptableByInventory { get; }
+        public SlotSelectionPolicyBase SelectionPolicy { get; }
     }
 }

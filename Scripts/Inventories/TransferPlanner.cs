@@ -244,7 +244,8 @@ namespace UDND.Inventories
                     targetBaseSlotHint,
                     isFirstEntry,
                     virtualSlots,
-                    globalRules);
+                    globalRules,
+                    selectionPolicy);
 
                 plannedEntries.Add(planned);
 
@@ -304,7 +305,8 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlotHint,
             bool isFirstEntry,
             IReadOnlyList<VirtualSlotState> virtualSlots,
-            GlobalRuleValidator globalRules)
+            GlobalRuleValidator globalRules,
+            SlotSelectionPolicyBase selectionPolicy = null)
         {
             if (entry.SourceInventory == null || entry.SourceBaseSlot == null || entry.Stack == null || entry.Stack.IsEmpty)
             {
@@ -405,7 +407,8 @@ namespace UDND.Inventories
                 globalRules,
                 targetItem,
                 requested,
-                acceptableByInventory);
+                acceptableByInventory,
+                selectionPolicy);
 
             // Inventory-area drop (no target slot) into dynamic inventory can start with 0 slots.
             // In this case actual slot is resolved during execution via TryAddStack/TryAddToSlot.
@@ -752,22 +755,18 @@ namespace UDND.Inventories
 
             var allocations = new List<PlannedSlotAllocation>();
             int remaining = totalToAllocate;
-            bool anyPlaced = false;
 
             if (operation.PreferHint && operation.TargetBaseSlotHint != null)
             {
                 var hinted = FindVirtualSlot(operation.TargetBaseSlotHint, operation.VirtualSlots);
                 int placedIntoHint = TryAllocateIntoSlot(operation, hinted, remaining, allocations, uniqueMode: false);
                 if (placedIntoHint > 0)
-                {
-                    anyPlaced = true;
                     remaining -= placedIntoHint;
-                }
 
                 if (remaining <= 0)
                     return allocations;
 
-                if (!anyPlaced && CanResolveSwapTargets(operation))
+                if (placedIntoHint == 0 && CanResolveSwapTargets(operation))
                     return EmptyAllocations;
 
                 if (!canSearchAlternatives)
@@ -777,18 +776,24 @@ namespace UDND.Inventories
             if (remaining <= 0 || !canSearchAlternatives)
                 return allocations;
 
-            BaseSlot excludeFromAlternatives = operation.PreferHint ? operation.TargetBaseSlotHint : null;
-            var candidates = EnumerateAlternativeVirtualSlots(operation, excludeFromAlternatives);
-            foreach (var candidate in candidates)
+            var strategy = ResolveAcceptanceStrategy(operation.TargetInventory);
+            if (strategy != null)
             {
-                int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
-                if (placed <= 0)
-                    continue;
-
-                anyPlaced = true;
-                remaining -= placed;
-                if (remaining <= 0)
-                    break;
+                AllocateViaCandidatesLoop(operation, strategy, allocations, ref remaining);
+            }
+            else
+            {
+                BaseSlot excludeFromAlternatives = operation.PreferHint ? operation.TargetBaseSlotHint : null;
+                var legacyCandidates = EnumerateAlternativeVirtualSlots(operation, excludeFromAlternatives);
+                foreach (var candidate in legacyCandidates)
+                {
+                    int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
+                    if (placed <= 0)
+                        continue;
+                    remaining -= placed;
+                    if (remaining <= 0)
+                        break;
+                }
             }
 
             return allocations;
@@ -829,14 +834,25 @@ namespace UDND.Inventories
             if (!canSearchAlternatives)
                 return allocations;
 
-            while (allocations.Count < desiredAmount)
-            {
-                var slot = FindNextAcceptingSlot(operation, 1, uniqueMode: true);
-                if (slot == null)
-                    break;
+            int remaining = desiredAmount - allocations.Count;
+            if (remaining <= 0)
+                return allocations;
 
-                slot.Apply(operation.TargetItemAdapter, 1);
-                allocations.Add(new PlannedSlotAllocation(slot.BaseSlot, 1));
+            var strategy = ResolveAcceptanceStrategy(operation.TargetInventory);
+            if (strategy != null)
+            {
+                AllocateViaCandidatesLoop(operation, strategy, allocations, ref remaining);
+            }
+            else
+            {
+                while (allocations.Count < desiredAmount)
+                {
+                    var slot = FindNextAcceptingSlot(operation, 1, uniqueMode: true);
+                    if (slot == null)
+                        break;
+                    slot.Apply(operation.TargetItemAdapter, 1);
+                    allocations.Add(new PlannedSlotAllocation(slot.BaseSlot, 1));
+                }
             }
 
             return allocations;
@@ -1114,6 +1130,79 @@ namespace UDND.Inventories
             return result;
         }
 
+        /// <summary>
+        /// Policy-driven allocation loop: calls GetSlotCandidates with virtual-slot views on each step,
+        /// selects via policy, allocates. Replaces EnumerateAlternativeVirtualSlots / FindNextAcceptingSlot.
+        /// </summary>
+        private void AllocateViaCandidatesLoop(
+            EntryPlanningOperation operation,
+            IAcceptanceStrategy strategy,
+            List<PlannedSlotAllocation> allocations,
+            ref int remaining)
+        {
+            var policy = operation.SelectionPolicy ?? strategy.DefaultSlotSelectionPolicy;
+            var slotCreation = operation.TargetInventory as IInventorySlotCreationCapacity;
+            bool canCreate = slotCreation?.CanCreateNewSlot ?? false;
+            int potentialNew = slotCreation?.PotentialNewSlots ?? 0;
+            BaseSlot prefab = slotCreation?.BaseSlotPrefab;
+
+            IReadOnlyList<ISlot> slotViews = operation.VirtualSlots;
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                operation.TargetInventory,
+                operation.TargetItemAdapter,
+                operation.RequestedAmount,
+                operation.Context,
+                operation.Entry,
+                operation.SelectionPolicy);
+
+            while (remaining > 0)
+            {
+                bool canCreateNow = canCreate && potentialNew > 0;
+                var candidates = strategy.GetSlotCandidates(slotViews, acceptanceRequest, canCreateNow, potentialNew, prefab);
+                var selection = policy.Select(candidates, acceptanceRequest);
+
+                if (!selection.Accepted)
+                    break;
+
+                if (selection.CreateNew)
+                {
+                    int maxStack = GetMaxStackSize(operation.TargetInventory, operation.TargetItemAdapter);
+                    if (maxStack <= 0) maxStack = remaining;
+                    int place = Min(remaining, maxStack);
+                    if (place <= 0) break;
+                    allocations.Add(new PlannedSlotAllocation(null, place));
+                    remaining -= place;
+                    potentialNew = potentialNew > 0 ? potentialNew - 1 : 0;
+                    continue;
+                }
+
+                int slotCapacity = GetCandidateCapacity(candidates, selection.Slot);
+                if (slotCapacity <= 0) break;
+
+                var virtualSlot = selection.Slot as VirtualSlotState;
+                if (virtualSlot == null) break;
+
+                int place2 = Min(remaining, slotCapacity);
+                if (!IsCandidateAllowedByRules(operation, virtualSlot.BaseSlot, place2))
+                    break;
+
+                virtualSlot.Apply(operation.TargetItemAdapter, place2);
+                allocations.Add(new PlannedSlotAllocation(virtualSlot.BaseSlot, place2));
+                remaining -= place2;
+            }
+        }
+
+        private static int GetCandidateCapacity(SlotAcceptanceCandidates candidates, ISlot slot)
+        {
+            if (candidates?.Slots == null) return 0;
+            foreach (var c in candidates.Slots)
+            {
+                if (ReferenceEquals(c.Slot, slot))
+                    return c.RemainingCapacity;
+            }
+            return 0;
+        }
+
         private static bool IsUniqueInventory(IInventory inventory) =>
             ResolvePlacementStrategy(inventory)?.UsesPerItemSlotPlanning == true;
 
@@ -1358,6 +1447,9 @@ namespace UDND.Inventories
             var placementInventory = inventory as IPlacementInventory;
             return placementInventory != null ? placementInventory.PlacementStrategy : null;
         }
+
+        private static IAcceptanceStrategy ResolveAcceptanceStrategy(IInventory inventory) =>
+            ResolvePlacementStrategy(inventory) as IAcceptanceStrategy;
 
         private static List<BaseSlot> GetInventorySlots(IInventory inventory)
         {

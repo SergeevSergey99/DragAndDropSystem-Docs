@@ -195,7 +195,8 @@ namespace UDND.Inventories
                 effectivePolicy,
                 _targetInventory,
                 _targetBaseSlot,
-                _globalRules);
+                _globalRules,
+                _selectionPolicy);
 
             if (plan == null || !plan.IsValid)
             {
