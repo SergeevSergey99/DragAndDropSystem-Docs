@@ -30,6 +30,12 @@ namespace UDND.Inventories
     public interface IDynamicSlotLifecycle
     {
         void HandleSlotEmptied(BaseSlot baseSlot);
+
+        /// <summary>
+        /// Creates a new slot if the inventory's slot management settings allow it.
+        /// Returns true and the new slot on success; false if creation is not permitted.
+        /// </summary>
+        bool TryCreateSlot(out BaseSlot newSlot);
     }
 
     public interface IInventoryEventSink

@@ -343,7 +343,7 @@ namespace UDND.Inventories
                             break;
                         }
 
-                        if (!TryExecuteTransfer(request, out var outcome) || outcome.Amount <= 0)
+                        if (!TryExecuteTransfer(request, out var outcome, requiresNewSlot: allocation.RequiresNewSlot) || outcome.Amount <= 0)
                         {
                             entryFailed = true;
                             break;
@@ -769,7 +769,8 @@ namespace UDND.Inventories
         private bool TryExecuteTransfer(
             InventoryTransferRequest request,
             out InventoryTransferResult result,
-            PlannedPlacementAllocation? placementAllocation = null)
+            PlannedPlacementAllocation? placementAllocation = null,
+            bool requiresNewSlot = false)
         {
             result = default;
 
@@ -839,7 +840,8 @@ namespace UDND.Inventories
                 request.Orientation,
                 targetInventorySnapshot,
                 operationContext,
-                placementAllocation);
+                placementAllocation,
+                requiresNewSlot);
 
             bool added = TryAddToTargetInventory(placementOperation);
             if (!added)
@@ -999,6 +1001,27 @@ namespace UDND.Inventories
                     }
 
                     return operation.TransferStack.IsEmpty;
+                }
+            }
+            else if (operation.RequiresNewSlot)
+            {
+                // Forced-new: create a dedicated slot instead of reusing the first empty one.
+                if (operation.TargetInventory is IDynamicSlotLifecycle lifecycle &&
+                    lifecycle.TryCreateSlot(out var newSlot) && newSlot != null)
+                {
+                    bool wasEmpty = newSlot.IsEmpty;
+                    if (operation.TargetInventory.TryAddToSlot(
+                            operation.TransferStack,
+                            newSlot,
+                            operation.SourceInventory,
+                            operation.SourceBaseSlot.Index,
+                            operation.OperationContext))
+                    {
+                        if (operation.OperationContext?.ResolvedBaseSlot == null)
+                            operation.OperationContext?.RecordResult(newSlot, wasEmpty, operation.TransferAmount);
+                        return operation.TransferStack.IsEmpty;
+                    }
+                    // Creation succeeded but placement failed; snapshot restore will trim the new slot.
                 }
             }
             else if (operation.TargetInventory.TryAddStack(operation.TransferStack, -1))

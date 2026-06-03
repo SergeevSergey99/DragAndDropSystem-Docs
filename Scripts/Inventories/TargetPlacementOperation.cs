@@ -15,7 +15,8 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             InventorySnapshot targetSnapshot,
             SlotOperationContext operationContext,
-            PlannedPlacementAllocation? placementAllocation = null)
+            PlannedPlacementAllocation? placementAllocation = null,
+            bool requiresNewSlot = false)
         {
             TargetInventory = targetInventory;
             RequestedBaseSlot = requestedBaseSlot;
@@ -27,6 +28,7 @@ namespace UDND.Inventories
             TargetSnapshot = targetSnapshot;
             OperationContext = operationContext;
             PlacementAllocation = placementAllocation;
+            RequiresNewSlot = requiresNewSlot;
         }
 
         public IInventory TargetInventory { get; }
@@ -39,6 +41,12 @@ namespace UDND.Inventories
         public InventorySnapshot TargetSnapshot { get; }
         public SlotOperationContext OperationContext { get; }
         public PlannedPlacementAllocation? PlacementAllocation { get; }
+
+        /// <summary>
+        /// When true and RequestedBaseSlot is null, executor must create a new slot
+        /// via IDynamicSlotLifecycle.TryCreateSlot rather than calling TryAddStack(-1).
+        /// </summary>
+        public bool RequiresNewSlot { get; }
 
         public IPlacementInventory AlternativeTargetInventory => TargetInventory as IPlacementInventory;
 

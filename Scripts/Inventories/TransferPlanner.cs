@@ -33,14 +33,22 @@ namespace UDND.Inventories
 
     public readonly struct PlannedSlotAllocation
     {
-        public PlannedSlotAllocation(BaseSlot baseSlot, int amount)
+        public PlannedSlotAllocation(BaseSlot baseSlot, int amount, bool requiresNewSlot = false)
         {
             BaseSlot = baseSlot;
             Amount = amount;
+            RequiresNewSlot = requiresNewSlot;
         }
 
         public BaseSlot BaseSlot { get; }
         public int Amount { get; }
+
+        /// <summary>
+        /// When true and BaseSlot is null, the executor must create a new slot
+        /// via IDynamicSlotLifecycle.TryCreateSlot before placing.
+        /// Distinguishes forced-new (policy-driven) from legacy deferred (TryAddStack(-1)).
+        /// </summary>
+        public bool RequiresNewSlot { get; }
     }
 
     public readonly struct PlannedPlacementAllocation
@@ -1181,7 +1189,7 @@ namespace UDND.Inventories
                     if (maxStack <= 0) maxStack = remaining;
                     int place = Min(remaining, maxStack);
                     if (place <= 0) break;
-                    allocations.Add(new PlannedSlotAllocation(null, place));
+                    allocations.Add(new PlannedSlotAllocation(null, place, requiresNewSlot: true));
                     remaining -= place;
                     potentialNew = potentialNew > 0 ? potentialNew - 1 : 0;
                     continue;

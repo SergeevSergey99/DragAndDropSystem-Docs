@@ -1545,6 +1545,18 @@ namespace UDND.Inventories
                 UpdateAllVisuals);
         }
 
+        bool IDynamicSlotLifecycle.TryCreateSlot(out BaseSlot newSlot)
+        {
+            EnsureSlotManagementSettings();
+            if (!_slotManagementSettings.CanCreateNewSlot(this, _slots.Count))
+            {
+                newSlot = null;
+                return false;
+            }
+            newSlot = CreateSlot();
+            return newSlot != null;
+        }
+
         private BaseSlot FindLastEmptySlot()
         {
             for (int i = _slots.Count - 1; i >= 0; i--)
