@@ -55,7 +55,8 @@ namespace UDND.Core
             List<BaseSlot> targetSlots,
             IItemAdapter targetItemAdapter,
             BaseSlot excludedAlternativeBaseSlot,
-            Func<BaseSlot, IItemAdapter, bool> canUseAlternativeSlot)
+            Func<BaseSlot, IItemAdapter, bool> canUseAlternativeSlot,
+            IReadOnlyList<ISlot> acceptanceCandidates = null)
         {
             DragContext = dragContext;
             DragEntry = dragEntry;
@@ -66,6 +67,7 @@ namespace UDND.Core
             TargetItemAdapter = targetItemAdapter;
             ExcludedAlternativeBaseSlot = excludedAlternativeBaseSlot;
             CanUseAlternativeSlot = canUseAlternativeSlot;
+            AcceptanceCandidates = acceptanceCandidates;
         }
 
         public DragContext DragContext { get; }
@@ -77,6 +79,12 @@ namespace UDND.Core
         public IItemAdapter TargetItemAdapter { get; }
         public BaseSlot ExcludedAlternativeBaseSlot { get; }
         public Func<BaseSlot, IItemAdapter, bool> CanUseAlternativeSlot { get; }
+
+        /// <summary>
+        /// Pre-computed eligible candidates from GetSlotCandidates (strategy-aware, respects rules and one-per-ID).
+        /// When present, FindAlternativeBlockedTargetResolver uses this list instead of per-slot CanUseAlternativeSlot.
+        /// </summary>
+        public IReadOnlyList<ISlot> AcceptanceCandidates { get; }
 
         public bool IsSameInventorySlotDrop =>
             HintedTargetBaseSlot != null &&

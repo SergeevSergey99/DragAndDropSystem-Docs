@@ -745,7 +745,6 @@ namespace UDND.Inventories
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForStrategyInventory(EntryPlanningOperation operation)
         {
-            bool canSearchAlternatives = CanSearchAlternativeSlots(operation);
             int totalToAllocate = operation.Policy.AllowPartial
                 ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                 : operation.RequestedAmount;
@@ -768,12 +767,9 @@ namespace UDND.Inventories
 
                 if (placedIntoHint == 0 && CanResolveSwapTargets(operation))
                     return EmptyAllocations;
-
-                if (!canSearchAlternatives)
-                    return allocations;
             }
 
-            if (remaining <= 0 || !canSearchAlternatives)
+            if (remaining <= 0)
                 return allocations;
 
             var strategy = ResolveAcceptanceStrategy(operation.TargetInventory);
@@ -783,16 +779,21 @@ namespace UDND.Inventories
             }
             else
             {
-                BaseSlot excludeFromAlternatives = operation.PreferHint ? operation.TargetBaseSlotHint : null;
-                var legacyCandidates = EnumerateAlternativeVirtualSlots(operation, excludeFromAlternatives);
-                foreach (var candidate in legacyCandidates)
+                // Legacy fallback: use blocked-resolver ordering for inventories without IAcceptanceStrategy.
+                bool canSearchAlternatives = CanSearchAlternativeSlots(operation);
+                if (canSearchAlternatives)
                 {
-                    int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
-                    if (placed <= 0)
-                        continue;
-                    remaining -= placed;
-                    if (remaining <= 0)
-                        break;
+                    BaseSlot excludeFromAlternatives = operation.PreferHint ? operation.TargetBaseSlotHint : null;
+                    var legacyCandidates = EnumerateAlternativeVirtualSlots(operation, excludeFromAlternatives);
+                    foreach (var candidate in legacyCandidates)
+                    {
+                        int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
+                        if (placed <= 0)
+                            continue;
+                        remaining -= placed;
+                        if (remaining <= 0)
+                            break;
+                    }
                 }
             }
 
@@ -801,7 +802,6 @@ namespace UDND.Inventories
 
         private IReadOnlyList<PlannedSlotAllocation> AllocateForUniqueInventory(EntryPlanningOperation operation)
         {
-            bool canSearchAlternatives = CanSearchAlternativeSlots(operation);
             int desiredAmount = operation.Policy.AllowPartial
                 ? Min(operation.RequestedAmount, operation.AcceptableByInventory)
                 : operation.RequestedAmount;
@@ -819,20 +819,7 @@ namespace UDND.Inventories
                     preferred.Apply(operation.TargetItemAdapter, 1);
                     allocations.Add(new PlannedSlotAllocation(preferred.BaseSlot, 1));
                 }
-                else if (!canSearchAlternatives)
-                {
-                    return EmptyAllocations;
-                }
             }
-
-            if (allocations.Count > 0 &&
-                operation.PreferHint &&
-                operation.TargetBaseSlotHint != null &&
-                !canSearchAlternatives)
-                return allocations;
-
-            if (!canSearchAlternatives)
-                return allocations;
 
             int remaining = desiredAmount - allocations.Count;
             if (remaining <= 0)
@@ -845,6 +832,7 @@ namespace UDND.Inventories
             }
             else
             {
+                // Legacy fallback: iterate virtual slots directly.
                 while (allocations.Count < desiredAmount)
                 {
                     var slot = FindNextAcceptingSlot(operation, 1, uniqueMode: true);
@@ -936,10 +924,9 @@ namespace UDND.Inventories
 
         private static bool CanUseDeferredPlacement(EntryPlanningOperation operation)
         {
-            if (operation.TargetBaseSlotHint == null)
-                return true;
-
-            return CanSearchAlternativeSlots(operation);
+            // Policy loop now handles alternatives for all paths; deferred is valid whenever
+            // AcceptableByInventory > 0 and no existing slots have capacity.
+            return true;
         }
 
         private bool HasCurrentSlotPlacementCapacity(EntryPlanningOperation operation)
@@ -1016,16 +1003,40 @@ namespace UDND.Inventories
             System.Func<BaseSlot, IItemAdapter, bool> canUseAlternativeSlot = placementStrategy != null
                 ? placementStrategy.CanUseAlternativeSlot
                 : null;
+
+            var inventorySlots = GetInventorySlots(targetInventory);
+
+            // Pre-compute strategy-aware candidate list so the resolver uses GetSlotCandidates
+            // eligibility (respects one-per-ID, slot rules) instead of per-slot CanUseAlternativeSlot.
+            IReadOnlyList<ISlot> acceptanceCandidates = null;
+            var acceptanceStrategy = placementStrategy as IAcceptanceStrategy;
+            if (acceptanceStrategy != null && inventorySlots != null)
+            {
+                IReadOnlyList<ISlot> slotsView = inventorySlots;
+                var candidateRequest = new InventoryAcceptanceRequest(
+                    targetInventory, targetItem, entry.Stack?.Count ?? 1, context, entry);
+                var candidateResult = acceptanceStrategy.GetSlotCandidates(
+                    slotsView, candidateRequest, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+                if (candidateResult?.Slots != null)
+                {
+                    var list = new List<ISlot>(candidateResult.Slots.Count);
+                    foreach (var c in candidateResult.Slots)
+                        list.Add(c.Slot);
+                    acceptanceCandidates = list;
+                }
+            }
+
             var resolutionContext = new BlockedTargetResolutionContext(
                 context,
                 entry,
                 targetInventory,
                 targetBaseSlotHint,
                 preferHint,
-                GetInventorySlots(targetInventory),
+                inventorySlots,
                 targetItem,
                 excludeBaseSlot,
-                canUseAlternativeSlot);
+                canUseAlternativeSlot,
+                acceptanceCandidates);
 
             return resolver.Resolve(resolutionContext) ?? BlockedTargetResolution.Reject();
         }
