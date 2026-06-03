@@ -60,10 +60,12 @@ namespace UDND.Inventories
             else
             {
                 // one-per-ID: if item already present, fill only that slot
+                bool itemAlreadyPresent = false;
                 foreach (var slot in slots)
                 {
                     if (!slot.IsEmpty && slot.Stack.CanStack(stack.PrimaryAdapter))
                     {
+                        itemAlreadyPresent = true;
                         int canFit = Math.Max(0, maxSize - slot.Stack.Count);
                         int toAdd = Math.Min(remaining, canFit);
                         if (toAdd > 0 && (skipRules || PassesRules(slot, stack.PrimaryAdapter, toAdd)))
@@ -78,7 +80,8 @@ namespace UDND.Inventories
                 }
 
                 // item absent: place into one empty slot only
-                if (remaining > 0)
+                // (if the item is already present, one-per-ID forbids opening a second stack)
+                if (!itemAlreadyPresent && remaining > 0)
                 {
                     foreach (var slot in slots)
                     {
@@ -191,20 +194,27 @@ namespace UDND.Inventories
 
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
-            // one-per-ID: if item already present, only offer that slot (no empties, no new)
+            // one-per-ID: if item already present, only that slot is eligible.
+            // Empty slots / new slots are never offered for an item that already exists —
+            // even when its stack is full or rules-blocked (no second stack of the same item).
             foreach (var slot in slots)
             {
                 if (IsSourceSlot(slot, request)) continue;
                 var stack = slot.Stack;
                 if (stack == null || stack.IsEmpty || !stack.CanStack(item)) continue;
+
                 int canFit = Math.Max(0, maxSize - stack.Count);
-                if (canFit <= 0) continue;
                 var baseSlot = ResolveBaseSlot(slot);
-                if (baseSlot == null) continue;
-                if (!PassesRules(baseSlot, item, Math.Min(desiredCount, canFit), request)) continue;
-                return new SlotAcceptanceCandidates(
-                    new List<SlotAcceptanceCandidate> { new SlotAcceptanceCandidate(slot, canFit) },
-                    false, 0);
+                if (canFit > 0 && baseSlot != null &&
+                    PassesRules(baseSlot, item, Math.Min(desiredCount, canFit), request))
+                {
+                    return new SlotAcceptanceCandidates(
+                        new List<SlotAcceptanceCandidate> { new SlotAcceptanceCandidate(slot, canFit) },
+                        false, 0);
+                }
+
+                // Present but full or rules-blocked: one-per-ID forbids a second stack.
+                return SlotAcceptanceCandidates.None;
             }
 
             // item absent: offer empty slots + possibly new

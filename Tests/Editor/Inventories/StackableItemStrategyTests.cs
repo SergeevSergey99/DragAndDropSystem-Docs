@@ -75,8 +75,9 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryAdd_NoTarget_FillsExistingStacksFirstThenEmptySlots()
+        public void TryAdd_NoTarget_ItemPresent_FillsOnlyThatSlot_NoSpill()
         {
+            // one-per-ID: an existing stack is topped up, but the overflow must NOT open a second stack.
             _strategy.SetMaxStackSize(4, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(3);
             _slots[0].SetStack(ItemStackBuilder.Unique(1, "gem")); // room for 3 more
@@ -86,11 +87,28 @@ namespace UDND.Tests.Inventories
 
             bool fullyPlaced = _strategy.TryAdd(_slots, stack, targetIndex: -1);
 
+            Assert.IsFalse(fullyPlaced, "Overflow cannot open a second gem stack under one-per-ID");
+            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing gem stack filled to max");
+            Assert.AreEqual("rock", _slots[1].Stack.ID, "Non-matching stack untouched");
+            Assert.IsTrue(_slots[2].IsEmpty, "No spill into a second slot for the same item");
+            Assert.AreEqual(3, stack.Count, "Overflow stays in the source stack");
+        }
+
+        [Test]
+        public void TryAdd_NoTarget_ItemAbsent_PlacesIntoSingleEmptySlot()
+        {
+            _strategy.SetMaxStackSize(4, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(3);
+            _slots[0].SetStack(ItemStackBuilder.Unique(3, "rock"));
+            // _slots[1], _slots[2] empty
+            var stack = ItemStackBuilder.Unique(3, "gem");
+
+            bool fullyPlaced = _strategy.TryAdd(_slots, stack, targetIndex: -1);
+
             Assert.IsTrue(fullyPlaced);
             Assert.IsTrue(stack.IsEmpty);
-            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing gem stack filled to max first");
-            Assert.AreEqual("rock", _slots[1].Stack.ID, "Non-matching stack untouched");
-            Assert.AreEqual(3, _slots[2].Stack.Count, "Remainder spills into empty slot");
+            Assert.AreEqual(3, _slots[1].Stack.Count, "Absent item placed into first empty slot");
+            Assert.IsTrue(_slots[2].IsEmpty, "Only one empty slot used");
         }
 
         [Test]
@@ -221,8 +239,9 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryAddToSlot_EmptyTarget_UsesRequestedSlot()
+        public void TryAddToSlot_EmptyTarget_ItemExistsElsewhere_RejectedByOnePerId()
         {
+            // one-per-ID: cannot open a second gem stack in an empty slot while gem already exists.
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(2);
             _slots[0].SetStack(ItemStackBuilder.Unique(4, "gem"));
@@ -230,9 +249,10 @@ namespace UDND.Tests.Inventories
 
             bool placed = _strategy.TryAddToSlot(_slots, stack, _slots[1], null, new SlotOperationContext());
 
-            Assert.IsTrue(placed);
-            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing partial stack must stay untouched");
-            Assert.AreEqual(3, _slots[1].Stack.Count, "Explicit empty target receives the new stack");
+            Assert.IsFalse(placed, "Second stack of the same item is forbidden under one-per-ID");
+            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing partial stack untouched");
+            Assert.IsTrue(_slots[1].IsEmpty, "Empty target left empty");
+            Assert.AreEqual(3, stack.Count, "Stack stays in source");
         }
 
         // ---------- GetSlotCandidates ----------
@@ -269,6 +289,23 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void CanAcceptItem_ItemPresentButFull_WithEmptySlot_RejectsSecondStack()
+        {
+            // one-per-ID: a full existing stack must NOT spill into an empty slot.
+            _strategy.SetMaxStackSize(2, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem")); // full
+            // _slots[1] empty
+            var request = MakeRequest("gem", 1);
+
+            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: null);
+            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+
+            Assert.IsFalse(candidates.HasAny, "Full existing stack + one-per-ID => no candidates, no new slot");
+            Assert.IsFalse(selection.Accepted);
+        }
+
+        [Test]
         public void CanAcceptItem_OnlyDifferentItems_SuggestsEmptySlot()
         {
             _strategy.SetMaxStackSize(5, allowItemOverride: false);
@@ -302,18 +339,33 @@ namespace UDND.Tests.Inventories
         // ---------- GetAcceptableCount ----------
 
         [Test]
-        public void GetAcceptableCount_SumsPartialAndEmptyCapacity_ClampedToDesired()
+        public void GetAcceptableCount_ItemPresent_OnlyThatSlotRemainder()
         {
+            // one-per-ID: capacity is the remainder of the single existing stack, no empty-slot sum.
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(3);
             _slots[0].SetStack(ItemStackBuilder.Unique(7, "gem"));  // room for 3
             _slots[1].SetStack(ItemStackBuilder.Unique(2, "rock")); // not counted
-            // _slots[2] empty — room for 10
+            // _slots[2] empty — must NOT be counted under one-per-ID
             var request = MakeRequest("gem", 20);
 
             int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
 
-            Assert.AreEqual(13, count);
+            Assert.AreEqual(3, count, "Only the existing gem slot's remaining capacity counts");
+        }
+
+        [Test]
+        public void GetAcceptableCount_ItemAbsent_SingleEmptySlotCapacity()
+        {
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(3);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "rock"));
+            // _slots[1], _slots[2] empty
+            var request = MakeRequest("gem", 20);
+
+            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+
+            Assert.AreEqual(10, count, "Absent item gets one empty slot's worth of capacity");
         }
 
         [Test]
@@ -329,8 +381,9 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void GetAcceptableCount_IncludesPotentialNewSlots()
+        public void GetAcceptableCount_ItemPresent_NewSlotsNotCounted()
         {
+            // one-per-ID: an existing stack disables new-slot capacity for the same item.
             _strategy.SetMaxStackSize(4, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(1);
             _slots[0].SetStack(ItemStackBuilder.Unique(3, "gem")); // room for 1
@@ -339,8 +392,21 @@ namespace UDND.Tests.Inventories
 
             int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
 
-            // 1 (partial) + 3 new slots * 4 max = 13, clamped to desired 10
-            Assert.AreEqual(10, count);
+            Assert.AreEqual(1, count, "Only the existing stack's remainder; no second stack via new slots");
+        }
+
+        [Test]
+        public void GetAcceptableCount_ItemAbsentNoEmpty_NewSlotCapacityCounted()
+        {
+            _strategy.SetMaxStackSize(4, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(1);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "rock")); // no empty, item absent
+            _prefab = TestSlotFactory.CreatePrefab();
+            var request = MakeRequest("gem", 10);
+
+            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
+
+            Assert.AreEqual(4, count, "Absent item with no empty slot uses one new slot's capacity");
         }
 
         [Test]
