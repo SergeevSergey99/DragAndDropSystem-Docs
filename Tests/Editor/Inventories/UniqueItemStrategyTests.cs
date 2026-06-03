@@ -173,7 +173,7 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(1, stack.Count);
         }
 
-        // ---------- CanAcceptItem ----------
+        // ---------- GetSlotCandidates ----------
 
         [Test]
         public void CanAcceptItem_HasEmptySlot_ReturnsTrueAndSuggestsIt()
@@ -182,10 +182,11 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(1, "a"));
             var request = MakeRequest("gem", 1);
 
-            bool can = _strategy.CanAcceptItem(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null, out var suggested);
+            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
 
-            Assert.IsTrue(can);
-            Assert.AreSame(_slots[1], suggested);
+            Assert.IsTrue(selection.Accepted);
+            Assert.AreSame(_slots[1], selection.Slot as BaseSlot);
         }
 
         [Test]
@@ -196,10 +197,11 @@ namespace UDND.Tests.Inventories
             _slots[1].SetStack(ItemStackBuilder.Unique(1, "b"));
             var request = MakeRequest("gem", 1);
 
-            bool can = _strategy.CanAcceptItem(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null, out var suggested);
+            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
 
-            Assert.IsFalse(can);
-            Assert.IsNull(suggested);
+            Assert.IsFalse(selection.Accepted);
+            Assert.IsNull(selection.Slot);
         }
 
         [Test]
@@ -210,10 +212,11 @@ namespace UDND.Tests.Inventories
             _prefab = TestSlotFactory.CreatePrefab();
             var request = MakeRequest("gem", 2);
 
-            bool can = _strategy.CanAcceptItem(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab, out var suggested);
+            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
+            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
 
-            Assert.IsTrue(can);
-            Assert.IsNull(suggested, "No existing slot can be suggested when only dynamic capacity matches");
+            Assert.IsTrue(selection.Accepted);
+            Assert.IsTrue(selection.CreateNew, "Only dynamic capacity available — must be a forced-new selection");
         }
 
         // ---------- GetAcceptableCount ----------
