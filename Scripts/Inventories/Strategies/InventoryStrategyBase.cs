@@ -40,7 +40,8 @@ namespace UDND.Inventories
         public abstract bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         public abstract bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
-        public abstract bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot);
+        public abstract SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
+        public virtual SlotSelectionPolicyBase DefaultSlotSelectionPolicy => FirstSlotSelectionPolicy.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
         public virtual int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter)
@@ -221,6 +222,56 @@ namespace UDND.Inventories
             var entry = context.Entries[0];
             return baseSlotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
         }
+
+        protected bool PrefabPassesRules(IReadOnlyList<ISlot> slots, BaseSlot baseSlotPrefab, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request)
+        {
+            if (itemAdapter == null || previewCount <= 0)
+                return false;
+
+            IInventoryRuleEvaluator ruleEvaluator = request?.TargetInventory as IInventoryRuleEvaluator;
+            if (ruleEvaluator == null)
+            {
+                foreach (var slot in slots)
+                {
+                    ruleEvaluator = slot?.Inventory as IInventoryRuleEvaluator;
+                    if (ruleEvaluator != null)
+                        break;
+                }
+            }
+
+            if (ruleEvaluator != null)
+                return ruleEvaluator.CanAcceptByRules(baseSlotPrefab, itemAdapter, previewCount, request, allowForeignSlot: true);
+
+            if (baseSlotPrefab?.SlotRuleValidator == null)
+                return true;
+
+            var context = request?.CreateValidationContext(baseSlotPrefab, previewCount, itemAdapter);
+            if (context == null)
+            {
+                if (!ItemStack.TryCreate(new[] { itemAdapter }, out var fallbackStack))
+                    return false;
+                context = new DragContext(fallbackStack, null, null, baseSlotPrefab, null);
+            }
+            var entry = context.Entries[0];
+            return baseSlotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
+        }
+
+        protected static BaseSlot ResolveBaseSlot(ISlot slot)
+        {
+            if (slot is BaseSlot b)
+                return b;
+            var inv = slot?.Inventory;
+            if (inv == null)
+                return null;
+            var slotList = inv.Slots;
+            int idx = slot.Index;
+            return idx >= 0 && idx < slotList.Count ? slotList[idx] : null;
+        }
+
+        protected static bool IsSourceSlot(ISlot slot, InventoryAcceptanceRequest request) =>
+            request?.SourceBaseSlot != null &&
+            ReferenceEquals(request.SourceInventory, slot.Inventory) &&
+            slot.Index == request.SourceBaseSlot.Index;
 
         protected static bool TryMergeIntoSlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
             => TryMergeIntoSlot(stack, baseSlot, maxStackSize, ensureFreeSlots, operationContext, out _);

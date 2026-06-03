@@ -170,10 +170,12 @@ namespace UDND.Inventories
             return _baseStrategy.GetMaxStackSizeForItem(itemAdapter);
         }
 
-        public bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
+        public SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
-            return _acceptanceStrategy.CanAcceptItem(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
+            return _acceptanceStrategy.GetSlotCandidates(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
         }
+
+        public SlotSelectionPolicyBase DefaultSlotSelectionPolicy => _acceptanceStrategy.DefaultSlotSelectionPolicy;
 
         public int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {

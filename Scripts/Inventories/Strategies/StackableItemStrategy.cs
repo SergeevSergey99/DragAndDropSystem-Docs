@@ -172,38 +172,49 @@ namespace UDND.Inventories
             return baseSlot.Stack.Count < maxSize;
         }
 
-        public override bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
+        public override SlotAcceptanceCandidates GetSlotCandidates(
+            IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request,
+            bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
-            suggestedBaseSlot = null;
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
             if (item == null || desiredCount <= 0)
-                return false;
+                return SlotAcceptanceCandidates.None;
 
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
+            // one-per-ID: if item already present, only offer that slot (no empties, no new)
             foreach (var slot in slots)
             {
-                if (!slot.IsEmpty && slot.Stack.CanStack(item))
-                {
-                    int canFit = Math.Max(0, maxSize - slot.Stack.Count);
-                    if (canFit > 0 && PassesRules(slot, item, Math.Min(desiredCount, canFit), request))
-                    {
-                        suggestedBaseSlot = slot;
-                        return true;
-                    }
-                }
-
-                if (slot.IsEmpty && suggestedBaseSlot == null && PassesRules(slot, item, Math.Min(desiredCount, maxSize), request))
-                {
-                    suggestedBaseSlot = slot;
-                }
+                if (IsSourceSlot(slot, request)) continue;
+                var stack = slot.Stack;
+                if (stack == null || stack.IsEmpty || !stack.CanStack(item)) continue;
+                int canFit = Math.Max(0, maxSize - stack.Count);
+                if (canFit <= 0) continue;
+                var baseSlot = ResolveBaseSlot(slot);
+                if (baseSlot == null) continue;
+                if (!PassesRules(baseSlot, item, Math.Min(desiredCount, canFit), request)) continue;
+                return new SlotAcceptanceCandidates(
+                    new List<SlotAcceptanceCandidate> { new SlotAcceptanceCandidate(slot, canFit) },
+                    false, 0);
             }
 
-            if (suggestedBaseSlot != null)
-                return true;
+            // item absent: offer empty slots + possibly new
+            var emptyCandidates = new List<SlotAcceptanceCandidate>();
+            foreach (var slot in slots)
+            {
+                if (IsSourceSlot(slot, request)) continue;
+                var stack = slot.Stack;
+                if (stack != null && !stack.IsEmpty) continue;
+                var baseSlot = ResolveBaseSlot(slot);
+                if (baseSlot == null) continue;
+                if (!PassesRules(baseSlot, item, Math.Min(desiredCount, maxSize), request)) continue;
+                emptyCandidates.Add(new SlotAcceptanceCandidate(slot, maxSize));
+            }
 
-            return canCreateNewSlot && PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request);
+            bool canCreate = canCreateNewSlot && potentialNewSlots > 0 &&
+                             PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request);
+            return new SlotAcceptanceCandidates(emptyCandidates, canCreate, canCreate ? potentialNewSlots : 0);
         }
 
         public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)

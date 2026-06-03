@@ -102,24 +102,29 @@ namespace UDND.Inventories
             return TryPlaceIntoEmptySlot(stack, targetBaseSlot, 1, ensureFreeSlots, operationContext);
         }
 
-        public override bool CanAcceptItem(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab, out BaseSlot suggestedBaseSlot)
+        public override SlotAcceptanceCandidates GetSlotCandidates(
+            IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request,
+            bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {
-            suggestedBaseSlot = null;
             var item = request?.ItemAdapter;
-            var desiredCount = request?.DesiredCount ?? 0;
-            if (item == null || desiredCount <= 0)
-                return false;
+            if (item == null || (request?.DesiredCount ?? 0) <= 0)
+                return SlotAcceptanceCandidates.None;
 
+            var candidates = new List<SlotAcceptanceCandidate>();
             foreach (var slot in slots)
             {
-                if (slot.IsEmpty && PassesRules(slot, item, 1, request))
-                {
-                    suggestedBaseSlot = slot;
-                    return true;
-                }
+                if (IsSourceSlot(slot, request)) continue;
+                var stack = slot.Stack;
+                if (stack != null && !stack.IsEmpty) continue;
+                var baseSlot = ResolveBaseSlot(slot);
+                if (baseSlot == null) continue;
+                if (!PassesRules(baseSlot, item, 1, request)) continue;
+                candidates.Add(new SlotAcceptanceCandidate(slot, 1));
             }
 
-            return canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, baseSlotPrefab, item, 1, request);
+            bool canCreate = canCreateNewSlot && potentialNewSlots > 0 &&
+                             PrefabPassesRules(slots, baseSlotPrefab, item, 1, request);
+            return new SlotAcceptanceCandidates(candidates, canCreate, canCreate ? potentialNewSlots : 0);
         }
 
         public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)

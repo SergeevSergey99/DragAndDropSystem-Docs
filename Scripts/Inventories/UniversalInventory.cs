@@ -1455,7 +1455,15 @@ namespace UDND.Inventories
 
             bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
             int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
-            bool canAccept = _acceptanceStrategy.CanAcceptItem(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab, out suggestedBaseSlot);
+
+            IReadOnlyList<ISlot> slotsView = _slots;
+            var candidates = _acceptanceStrategy.GetSlotCandidates(
+                slotsView, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
+            var policy = _acceptanceStrategy.DefaultSlotSelectionPolicy;
+            var selection = policy.Select(candidates, request);
+
+            suggestedBaseSlot = selection.Slot as BaseSlot;
+            bool canAccept = selection.Accepted;
 
             if (canAccept)
                 Extensions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
