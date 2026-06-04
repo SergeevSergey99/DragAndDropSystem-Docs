@@ -744,7 +744,7 @@ namespace UDND.Inventories
                 if (newAmount <= 0)
                     trimmed.RemoveAt(i);
                 else
-                    trimmed[i] = new PlannedSlotAllocation(trimmed[i].BaseSlot, newAmount);
+                    trimmed[i] = new PlannedSlotAllocation(trimmed[i].BaseSlot, newAmount, trimmed[i].RequiresNewSlot);
             }
 
             allocations = trimmed;
@@ -1165,7 +1165,10 @@ namespace UDND.Inventories
             int potentialNew = slotCreation?.PotentialNewSlots ?? 0;
             BaseSlot prefab = slotCreation?.BaseSlotPrefab;
 
-            IReadOnlyList<ISlot> slotViews = operation.VirtualSlots;
+            // Mutable working view: New() appends a synthetic virtual slot so the next
+            // GetSlotCandidates reflects the newly created slot (one-per-ID must not plan a
+            // second new slot for the same item; multi-stack strategies still may).
+            var slotViews = new List<ISlot>(operation.VirtualSlots);
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 operation.TargetInventory,
                 operation.TargetItemAdapter,
@@ -1192,6 +1195,12 @@ namespace UDND.Inventories
                     allocations.Add(new PlannedSlotAllocation(null, place, requiresNewSlot: true));
                     remaining -= place;
                     potentialNew = potentialNew > 0 ? potentialNew - 1 : 0;
+
+                    // Virtually account the created slot (no real BaseSlot yet) so the strategy
+                    // sees this item as already placed on the next iteration.
+                    var syntheticNewSlot = new VirtualSlotState(null);
+                    syntheticNewSlot.Apply(operation.TargetItemAdapter, place);
+                    slotViews.Add(syntheticNewSlot);
                     continue;
                 }
 

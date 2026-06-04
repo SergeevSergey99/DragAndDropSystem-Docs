@@ -29,7 +29,11 @@ namespace UDND.Inventories
             {
                 var targetSlot = slots[targetIndex];
 
-                // If the slot is empty, create a new stack
+                // If the slot is empty, create a new stack.
+                // NOTE: targeted placement (targetIndex >= 0) is intentionally NOT one-per-ID-guarded:
+                // it means "place into THIS explicit slot" and is the primitive DynamicSlotDecorator
+                // uses to fill freshly-created overflow slots. one-per-ID is enforced in the
+                // candidate/eligibility path (GetSlotCandidates) and in the bulk/targetless branches.
                 if (targetSlot.IsEmpty)
                 {
                     int toPlace = Math.Min(remaining, maxSize);
@@ -155,12 +159,8 @@ namespace UDND.Inventories
             }
 
             // one-per-ID: reject if item already present in another slot
-            foreach (var slot in slots)
-            {
-                if (slot == targetBaseSlot) continue;
-                if (!slot.IsEmpty && slot.Stack.CanStack(stack.PrimaryAdapter))
-                    return false;
-            }
+            if (ItemPresentInAnotherSlot(slots, targetBaseSlot, stack.PrimaryAdapter))
+                return false;
 
             if (!PassesRules(targetBaseSlot, stack.PrimaryAdapter, Math.Min(stack.Count, maxSize)))
                 return false;
@@ -244,9 +244,11 @@ namespace UDND.Inventories
 
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
-            // one-per-ID: if item already present, return only that slot's remaining capacity
+            // one-per-ID: if item already present, return only that slot's remaining capacity.
+            // Source slot is excluded (a same-inventory move frees it) to stay consistent with GetSlotCandidates.
             foreach (var slot in slots)
             {
+                if (IsSourceSlot(slot, request)) continue;
                 if (!slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
@@ -259,6 +261,7 @@ namespace UDND.Inventories
             // item absent: one empty slot
             foreach (var slot in slots)
             {
+                if (IsSourceSlot(slot, request)) continue;
                 if (slot.IsEmpty && PassesRules(slot, item, Math.Min(desiredCount, maxSize), request))
                     return Math.Min(maxSize, desiredCount);
             }
@@ -269,6 +272,26 @@ namespace UDND.Inventories
                 return Math.Min(maxSize, desiredCount);
 
             return 0;
+        }
+
+        /// <summary>
+        /// one-per-ID helper: true if a stack of the same item already exists in a slot other
+        /// than <paramref name="exclude"/>. Used to forbid opening a second stack of the same item.
+        /// </summary>
+        private static bool ItemPresentInAnotherSlot(List<BaseSlot> slots, BaseSlot exclude, IItemAdapter item)
+        {
+            if (slots == null || item == null)
+                return false;
+
+            foreach (var slot in slots)
+            {
+                if (slot == null || ReferenceEquals(slot, exclude))
+                    continue;
+                if (!slot.IsEmpty && slot.Stack.CanStack(item))
+                    return true;
+            }
+
+            return false;
         }
     }
 }
