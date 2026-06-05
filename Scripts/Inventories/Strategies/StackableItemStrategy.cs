@@ -6,9 +6,10 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Strategy: items are stackable (grouped by type), one stack per item ID (one-per-ID).
-    /// If the item is already present in the inventory, only that slot accepts more of it.
-    /// If the item is absent, it is placed into a single empty slot (no overflow across slots).
+    /// Strategy: items are stackable (grouped by type), one logical stack location per item ID (one-per-ID).
+    /// A logical location is a slot for normal inventories and a placement for shaped inventories.
+    /// If the item is already present in the inventory, only that location accepts more of it.
+    /// If the item is absent, it is placed into a single empty slot/placement (no overflow across locations).
     /// For multi-slot overflow of the same item use <see cref="SeparableStacksStrategy"/>.
     /// Supports the strategy default limit and,
     /// when allowItemOverride = true, per-item limits via IStackSizeLimitable.
@@ -63,10 +64,15 @@ namespace UDND.Inventories
             }
             else
             {
-                // one-per-ID: if item already present, fill only that slot
+                // one-per-ID: if item already exists in a logical stack location
+                // (slot or shaped placement), fill only that location.
                 bool itemAlreadyPresent = false;
+                HashSet<Placement> seenPlacements = null;
                 foreach (var slot in slots)
                 {
+                    if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
+                        continue;
+
                     if (!slot.IsEmpty && slot.Stack.CanStack(stack.PrimaryAdapter))
                     {
                         itemAlreadyPresent = true;
@@ -79,12 +85,12 @@ namespace UDND.Inventories
 
                             remaining -= added;
                         }
-                        break; // one-per-ID: no other slots for this item
+                        break; // one-per-ID: no other logical location for this item
                     }
                 }
 
-                // item absent: place into one empty slot only
-                // (if the item is already present, one-per-ID forbids opening a second stack)
+                // item absent: place into one empty slot only.
+                // If the item already exists, one-per-ID forbids opening a second logical location.
                 if (!itemAlreadyPresent && remaining > 0)
                 {
                     foreach (var slot in slots)
@@ -101,7 +107,7 @@ namespace UDND.Inventories
                                 slot.SetStack(movedStack);
                                 remaining -= toPlace;
                             }
-                            break; // one-per-ID: one empty slot only
+                            break; // one-per-ID: one empty logical location only
                         }
                     }
                 }
@@ -125,9 +131,13 @@ namespace UDND.Inventories
             }
 
             // Remove from all slots containing this item
+            HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {
                 if (remaining <= 0) break;
+
+                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
+                    continue;
 
                 if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
@@ -158,7 +168,7 @@ namespace UDND.Inventories
                 return TryMergeIntoSlot(stack, targetBaseSlot, maxSize, ensureFreeSlots, operationContext);
             }
 
-            // one-per-ID: reject if item already present in another slot
+            // one-per-ID: reject if item already exists in another logical location.
             if (ItemPresentInAnotherSlot(slots, targetBaseSlot, stack.PrimaryAdapter))
                 return false;
 
@@ -194,26 +204,29 @@ namespace UDND.Inventories
 
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
-            // one-per-ID: if item already present, only that slot is eligible.
+            // one-per-ID: if item already exists, only that logical location is eligible.
             // Empty slots / new slots are never offered for an item that already exists —
             // even when its stack is full or rules-blocked (no second stack of the same item).
+            HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {
                 if (IsSourceSlot(slot, request)) continue;
+                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements)) continue;
                 var stack = slot.Stack;
                 if (stack == null || stack.IsEmpty || !stack.CanStack(item)) continue;
 
                 int canFit = Math.Max(0, maxSize - stack.Count);
-                var baseSlot = ResolveBaseSlot(slot);
+                var logicalSlot = ResolveLogicalStackSlot(slot, slots);
+                var baseSlot = ResolveBaseSlot(logicalSlot);
                 if (canFit > 0 && baseSlot != null &&
                     PassesRules(baseSlot, item, Math.Min(desiredCount, canFit), request))
                 {
                     return new SlotAcceptanceCandidates(
-                        new List<SlotAcceptanceCandidate> { new SlotAcceptanceCandidate(slot, canFit) },
+                        new List<SlotAcceptanceCandidate> { new SlotAcceptanceCandidate(logicalSlot, canFit) },
                         false, 0);
                 }
 
-                // Present but full or rules-blocked: one-per-ID forbids a second stack.
+                // Present but full or rules-blocked: one-per-ID forbids a second logical location.
                 return SlotAcceptanceCandidates.None;
             }
 
@@ -244,11 +257,13 @@ namespace UDND.Inventories
 
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
-            // one-per-ID: if item already present, return only that slot's remaining capacity.
-            // Source slot is excluded (a same-inventory move frees it) to stay consistent with GetSlotCandidates.
+            // one-per-ID: if item already exists, return only that logical location's remaining capacity.
+            // The source logical location is excluded (a same-inventory move frees it) to stay consistent with GetSlotCandidates.
+            HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {
                 if (IsSourceSlot(slot, request)) continue;
+                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements)) continue;
                 if (!slot.IsEmpty && slot.Stack.CanStack(item))
                 {
                     int canFit = Math.Max(0, maxSize - slot.Stack.Count);
@@ -275,18 +290,29 @@ namespace UDND.Inventories
         }
 
         /// <summary>
-        /// one-per-ID helper: true if a stack of the same item already exists in a slot other
-        /// than <paramref name="exclude"/>. Used to forbid opening a second stack of the same item.
+        /// one-per-ID helper: true if a stack of the same item already exists in a logical
+        /// location other than <paramref name="exclude"/>. Shaped placements are counted once.
         /// </summary>
         private static bool ItemPresentInAnotherSlot(List<BaseSlot> slots, BaseSlot exclude, IItemAdapter item)
         {
             if (slots == null || item == null)
                 return false;
 
+            TryResolvePlacement(exclude, out var excludedPlacement);
+            HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {
                 if (slot == null || ReferenceEquals(slot, exclude))
                     continue;
+
+                if (excludedPlacement != null &&
+                    TryResolvePlacement(slot, out var slotPlacement) &&
+                    ReferenceEquals(slotPlacement, excludedPlacement))
+                    continue;
+
+                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
+                    continue;
+
                 if (!slot.IsEmpty && slot.Stack.CanStack(item))
                     return true;
             }

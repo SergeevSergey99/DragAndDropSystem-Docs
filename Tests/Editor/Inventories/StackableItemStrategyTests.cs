@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEngine;
 using UDND.Core;
 using UDND.Inventories;
 using UDND.Slots;
@@ -194,6 +195,32 @@ namespace UDND.Tests.Inventories
             Assert.IsFalse(removed);
         }
 
+        [Test]
+        public void Query_ShapedPlacement_CountsCoveredCellsOnce()
+        {
+            var inventory = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+                CollectionAssert.AreEqual(new[] { 0, 1, 2, 3 }, placement.CoveredIndices);
+
+                var slots = new List<BaseSlot>(inventory.Slots);
+
+                Assert.IsTrue(_strategy.Contains(slots, new FakeItemAdapter("bag")));
+                Assert.AreEqual(1, _strategy.GetItemCount(slots, new FakeItemAdapter("bag")));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         // ---------- TryAddToSlot ----------
 
         [Test]
@@ -336,6 +363,51 @@ namespace UDND.Tests.Inventories
             Assert.IsTrue(selection.CreateNew, "Only dynamic capacity available — must be a forced-new selection");
         }
 
+        [Test]
+        public void GetSlotCandidates_SameInventorySourcePlacement_ExcludesAllCoveredCells()
+        {
+            var inventory = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+                CollectionAssert.AreEqual(new[] { 0, 1 }, placement.CoveredIndices);
+
+                var sourceSlot = inventory.GetSlot(1);
+                var entry = new DragEntry(stack.CreateCopy(), sourceSlot, inventory, placement);
+                var context = new DragContext(new[] { entry });
+                var request = new InventoryAcceptanceRequest(
+                    inventory,
+                    stack.PrimaryAdapter,
+                    1,
+                    context,
+                    entry);
+
+                var candidates = _strategy.GetSlotCandidates(
+                    inventory.Slots,
+                    request,
+                    canCreateNewSlot: false,
+                    potentialNewSlots: 0,
+                    baseSlotPrefab: null);
+
+                Assert.IsTrue(candidates.HasAny, "The source placement must not make the item look already present.");
+                foreach (var candidate in candidates.Slots)
+                {
+                    Assert.AreNotEqual(0, candidate.Slot.Index);
+                    Assert.AreNotEqual(1, candidate.Slot.Index);
+                }
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         // ---------- GetAcceptableCount ----------
 
         [Test]
@@ -445,6 +517,21 @@ namespace UDND.Tests.Inventories
                 DisplayName = itemId;
                 MaxStackSize = maxStackSize;
             }
+        }
+
+        private sealed class ShapeAdapter : IItemAdapter, IItemPlacementShapeProvider
+        {
+            public ShapeAdapter(string itemId, int width, int height)
+            {
+                ItemId = itemId;
+                DisplayName = itemId;
+                PlacementShape = new RectPlacementShape(width, height);
+            }
+
+            public string ItemId { get; }
+            public string DisplayName { get; }
+            public Sprite Icon => null;
+            public IPlacementShape PlacementShape { get; }
         }
     }
 }

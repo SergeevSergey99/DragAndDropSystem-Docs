@@ -47,8 +47,12 @@ namespace UDND.Inventories
         public virtual int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
             int total = 0;
+            HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {
+                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
+                    continue;
+
                 if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
                     total += slot.Stack.Count;
@@ -59,8 +63,12 @@ namespace UDND.Inventories
 
         public virtual bool Contains(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
+            HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {
+                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
+                    continue;
+
                 if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
                 {
                     return true;
@@ -268,10 +276,74 @@ namespace UDND.Inventories
             return idx >= 0 && idx < slotList.Count ? slotList[idx] : null;
         }
 
-        protected static bool IsSourceSlot(ISlot slot, InventoryAcceptanceRequest request) =>
-            request?.SourceBaseSlot != null &&
-            ReferenceEquals(request.SourceInventory, slot.Inventory) &&
-            slot.Index == request.SourceBaseSlot.Index;
+        protected static bool IsSourceSlot(ISlot slot, InventoryAcceptanceRequest request)
+        {
+            if (slot == null || request?.SourceBaseSlot == null)
+                return false;
+
+            var baseSlot = ResolveBaseSlot(slot);
+            if (baseSlot == null || !ReferenceEquals(request.SourceInventory, baseSlot.Inventory))
+                return false;
+
+            if (baseSlot.Index == request.SourceBaseSlot.Index)
+                return true;
+
+            if (request.SourceInventory is IPlacementInventory placementInventory)
+            {
+                var sourcePlacement = placementInventory.GetPlacementAt(request.SourceBaseSlot);
+                if (sourcePlacement == null)
+                    return false;
+
+                var slotPlacement = placementInventory.GetPlacementAt(baseSlot);
+                return ReferenceEquals(sourcePlacement, slotPlacement);
+            }
+
+            return false;
+        }
+
+        protected static bool ShouldSkipDuplicatePlacementLocation(ISlot slot, ref HashSet<Placement> seenPlacements)
+        {
+            if (!TryResolvePlacement(slot, out var placement))
+                return false;
+
+            seenPlacements ??= new HashSet<Placement>();
+            return !seenPlacements.Add(placement);
+        }
+
+        protected static ISlot ResolveLogicalStackSlot(ISlot slot, IReadOnlyList<ISlot> slots)
+        {
+            if (!TryResolvePlacement(slot, out var placement))
+                return slot;
+
+            if (slot.Index == placement.AnchorIndex)
+                return slot;
+
+            var inventory = slot.Inventory;
+            if (inventory == null || slots == null)
+                return slot;
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var candidate = slots[i];
+                if (candidate != null &&
+                    candidate.Index == placement.AnchorIndex &&
+                    ReferenceEquals(candidate.Inventory, inventory))
+                    return candidate;
+            }
+
+            return slot;
+        }
+
+        protected static bool TryResolvePlacement(ISlot slot, out Placement placement)
+        {
+            placement = null;
+            var baseSlot = ResolveBaseSlot(slot);
+            if (baseSlot?.Inventory is not IPlacementInventory placementInventory)
+                return false;
+
+            placement = placementInventory.GetPlacementAt(baseSlot);
+            return placement != null;
+        }
 
         protected static bool TryMergeIntoSlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
             => TryMergeIntoSlot(stack, baseSlot, maxStackSize, ensureFreeSlots, operationContext, out _);
