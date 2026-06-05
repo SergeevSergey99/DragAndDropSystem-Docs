@@ -212,8 +212,9 @@ namespace UDND.Tests.Inventories
 
                 var slots = new List<BaseSlot>(inventory.Slots);
 
-                Assert.IsTrue(_strategy.Contains(slots, new FakeItemAdapter("bag")));
-                Assert.AreEqual(1, _strategy.GetItemCount(slots, new FakeItemAdapter("bag")));
+                var sameShapeItem = new ShapeAdapter("bag", 2, 2);
+                Assert.IsTrue(_strategy.Contains(slots, sameShapeItem));
+                Assert.AreEqual(1, _strategy.GetItemCount(slots, sameShapeItem));
             }
             finally
             {

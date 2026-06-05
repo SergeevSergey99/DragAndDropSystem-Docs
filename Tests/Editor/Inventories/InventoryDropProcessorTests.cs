@@ -112,12 +112,12 @@ namespace UDND.Tests.Inventories
         public void ProcessDrop_Stackable_WithLimit_MergesIntoPartial_AndSpillsIntoEmpty()
         {
             _source = new InventoryBuilder()
-                .WithStrategy(new StackableItemStrategy())
+                .WithStrategy(new SeparableStacksStrategy())
                 .WithMaxStackSize(5)
                 .WithFixedSlots(2)
                 .Build();
             _target = new InventoryBuilder()
-                .WithStrategy(new StackableItemStrategy())
+                .WithStrategy(new SeparableStacksStrategy())
                 .WithMaxStackSize(5)
                 .WithFixedSlots(3)
                 .Build();
@@ -250,12 +250,12 @@ namespace UDND.Tests.Inventories
         public void ProcessDrop_FindAlternative_EmptyFirst_OccupiedTarget_GoesToEmptyNotMerge()
         {
             _source = new InventoryBuilder()
-                .WithStrategy(new StackableItemStrategy())
+                .WithStrategy(new SeparableStacksStrategy())
                 .WithMaxStackSize(10)
                 .WithFixedSlots(1)
                 .Build();
             _target = new InventoryBuilder()
-                .WithStrategy(new StackableItemStrategy())
+                .WithStrategy(new SeparableStacksStrategy())
                 .WithMaxStackSize(10)
                 .WithFixedSlots(3)
                 .Build();

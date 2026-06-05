@@ -173,6 +173,7 @@ namespace UDND.Tests.Inventories
                 Assert.AreNotSame(originalPlacement, shiftedPlacement);
                 Assert.AreEqual(1, shiftedPlacement.AnchorIndex);
                 Assert.AreSame(originalPlacement.Stack.PrimaryAdapter, shiftedPlacement.Stack.PrimaryAdapter);
+                Assert.AreEqual(2, inventory.SlotCount, "Only the reported empty slot should be removed in one HandleSlotEmptied call");
             }
             finally
             {
@@ -1114,7 +1115,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void StackableSlotInventory_ShapedItemsDoNotMerge()
+        public void StackableSlotInventory_ShapedItemsUseOnePlacementPerId()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(2)
@@ -1123,10 +1124,10 @@ namespace UDND.Tests.Inventories
             try
             {
                 Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
-                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
+                Assert.IsFalse(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
 
                 Assert.AreEqual(1, inventory.GetSlot(0).Stack.Count);
-                Assert.AreEqual(1, inventory.GetSlot(1).Stack.Count);
+                Assert.IsTrue(inventory.GetSlot(1).IsEmpty);
             }
             finally
             {

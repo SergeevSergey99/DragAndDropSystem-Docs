@@ -58,8 +58,9 @@ namespace UDND.Inventories
             // MODE 1: targetIndex is specified (transfer into a specific slot)
             if (targetIndex >= 0)
             {
-                // If targetIndex is out of range, create slots up to it (only if maxFreeSlots > 0)
-                if (targetIndex >= slots.Count && _maxFreeSlots > 0 && slots.Count < _maxSlots)
+                // If targetIndex is out of range, create slots up to it.
+                // maxFreeSlots controls idle free-slot trimming/maintenance, not an explicit target request.
+                if (targetIndex >= slots.Count && slots.Count < _maxSlots)
                 {
                     while (slots.Count <= targetIndex && slots.Count < _maxSlots)
                     {

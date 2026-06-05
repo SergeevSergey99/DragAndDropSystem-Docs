@@ -775,6 +775,22 @@ namespace UDND.Inventories
 
                 if (placedIntoHint == 0 && CanResolveSwapTargets(operation))
                     return EmptyAllocations;
+
+                if (placedIntoHint == 0 && CanSearchAlternativeSlots(operation))
+                {
+                    foreach (var candidate in EnumerateAlternativeVirtualSlots(operation, operation.TargetBaseSlotHint))
+                    {
+                        int placed = TryAllocateIntoSlot(operation, candidate, remaining, allocations, uniqueMode: false);
+                        if (placed <= 0)
+                            continue;
+
+                        remaining -= placed;
+                        if (remaining <= 0)
+                            break;
+                    }
+
+                    return allocations;
+                }
             }
 
             if (remaining <= 0)

@@ -1583,14 +1583,13 @@ namespace UDND.Inventories
 
             var slotTransform = baseSlot.Transform;
             RemovePlacementAt(baseSlot);
-            _slots.RemoveAt(index);
+            ShiftPlacementIndicesAfterSlotRemoved(index);
 
+            _slots.RemoveAt(index);
             for (int i = index; i < _slots.Count; i++)
             {
                 _slots[i].SetInventoryIndex(i, this);
             }
-
-            ShiftPlacementIndicesAfterSlotRemoved(index);
 
             if (slotTransform != null)
             {

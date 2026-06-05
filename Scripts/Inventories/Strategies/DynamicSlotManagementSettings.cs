@@ -11,7 +11,7 @@ namespace UDND.Inventories
         [SerializeField, Tooltip("Maximum number of slots.")]
         private int _maxSlots = 100;
 
-        [SerializeField, Tooltip("Maximum number of free slots. 0 = create only on TryAddItem, not while moving into specific slots.")]
+        [SerializeField, Tooltip("Maximum number of maintained free slots. Explicit target-index adds can still create slots up to the requested index.")]
         private int _maxFreeSlots = 0;
 
         public override IInventoryStrategy WrapRuntimeStrategy(
@@ -65,7 +65,7 @@ namespace UDND.Inventories
             Func<BaseSlot, bool> tryRemoveSlot,
             Action updateAllVisuals)
         {
-            if (inventory == null || countFreeSlots == null || findLastEmptySlot == null || tryRemoveSlot == null)
+            if (inventory == null || countFreeSlots == null || tryRemoveSlot == null)
                 return;
 
             bool removedAny = false;
@@ -74,15 +74,6 @@ namespace UDND.Inventories
                 && CanRemoveAnotherSlot(inventory, currentSlotCount, initialSlotCount, countFreeSlots()))
             {
                 removedAny |= tryRemoveSlot(preferredBaseSlot);
-            }
-
-            while (CanRemoveAnotherSlot(inventory, inventory.SlotCount, initialSlotCount, countFreeSlots()))
-            {
-                BaseSlot slotToRemove = findLastEmptySlot();
-                if (slotToRemove == null || !tryRemoveSlot(slotToRemove))
-                    break;
-
-                removedAny = true;
             }
 
             if (removedAny)
