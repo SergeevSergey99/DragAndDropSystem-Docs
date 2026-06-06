@@ -1063,6 +1063,10 @@ namespace UDND.Inventories
             if (PlacementShapeUtility.IsSingleCell(shape, allocation.Orientation))
                 return false;
 
+            // C4 (ShapedStacking-Plan.md): merge into the EXISTING placement's stack (no new footprint).
+            if (allocation.MergeIntoExisting)
+                return TryMergeIntoExistingPlacement(operation, targetPlacementInventory, allocation);
+
             if (operation.TransferStack.Count > 1 || operation.TransferAmount != operation.TransferStack.Count)
             {
                 Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Shaped placement requires a single item</color>");
@@ -1101,6 +1105,46 @@ namespace UDND.Inventories
 
             operation.TransferStack.RemoveFromStack(placedStack.Count);
             operation.OperationContext?.RecordResult(resolvedAnchorSlot, wasEmpty, placedStack.Count);
+            return operation.TransferStack.IsEmpty;
+        }
+
+        private static bool TryMergeIntoExistingPlacement(
+            TargetPlacementOperation operation,
+            IPlacementInventory targetPlacementInventory,
+            PlannedPlacementAllocation allocation)
+        {
+            int anchorIndex = allocation.AnchorIndex;
+            if (anchorIndex < 0)
+                return false;
+
+            var anchorSlot = targetPlacementInventory.GetSlot(anchorIndex);
+            var existing = targetPlacementInventory.GetPlacementAt(anchorIndex);
+            if (anchorSlot == null || existing == null || existing.Stack == null || existing.Stack.IsEmpty)
+            {
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped merge failed: target placement not found</color>");
+                return false;
+            }
+
+            int toAdd = Math.Min(operation.TransferStack.Count, allocation.Amount);
+            if (toAdd <= 0)
+                return false;
+
+            var movedStack = operation.TransferStack.Split(toAdd);
+            if (movedStack == null || movedStack.IsEmpty)
+                return false;
+
+            int before = existing.Stack.Count;
+            if (!operation.TargetInventory.TryAddToSlotStack(anchorSlot, movedStack))
+            {
+                // Return the unmerged items to the transfer stack so the caller can roll back.
+                operation.TransferStack.TryAddToStack(movedStack);
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped merge failed: inventory rejected stack merge</color>");
+                return false;
+            }
+
+            int added = Math.Max(0, existing.Stack.Count - before);
+            anchorSlot.UpdateVisuals();
+            operation.OperationContext?.RecordResult(anchorSlot, false, added);
             return operation.TransferStack.IsEmpty;
         }
 

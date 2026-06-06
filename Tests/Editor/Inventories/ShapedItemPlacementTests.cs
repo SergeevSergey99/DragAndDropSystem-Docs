@@ -1139,6 +1139,149 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_ShapedGridToGrid_StackableSameId_AutoMergesIntoExistingPlacement()
+        {
+            // C3/C4 (ShapedStacking-Plan.md): Stackable shaped is one-per-ID with a real stack.
+            // Dropping a second same-id shaped item — even onto empty cells away from the existing
+            // placement — auto-merges into that single placement (count grows), no second placement.
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                // Drop onto cell 3 (away from the existing bag at {0,1}).
+                var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(1, summary.TransferredAmount);
+                Assert.IsNull(source.GetPlacementAt(0), "Source placement consumed");
+
+                var targetPlacement = target.GetPlacementAt(0);
+                Assert.IsNotNull(targetPlacement);
+                Assert.AreEqual(2, targetPlacement.Stack.Count, "Merged into the existing stack");
+                CollectionAssert.AreEqual(new[] { 0, 1 }, targetPlacement.CoveredIndices);
+                Assert.IsNull(target.GetPlacementAt(3), "one-per-ID: no second placement created");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridToGrid_StackableFullStack_Rejects()
+        {
+            // one-per-ID + full existing stack: a second same-id shaped item cannot open a new placement.
+            var strategy = new StackableItemStrategy();
+            strategy.SetMaxStackSize(1, allowItemOverride: false);
+
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(strategy).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsFalse(summary.Success, "Full one-per-ID stack must reject a second item");
+                Assert.AreEqual(1, source.GetSlot(0).Stack.Count, "Source untouched");
+                Assert.AreEqual(1, target.GetSlot(0).Stack.Count, "Target stack stays full at 1");
+                Assert.IsNull(target.GetPlacementAt(3), "No second placement");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridToGrid_SeparableOntoExisting_Merges()
+        {
+            // SeparableStacks: explicit drop ONTO an existing same-id placement merges into it.
+            var source = new InventoryBuilder().WithStrategy(new SeparableStacksStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(new SeparableStacksStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                // Drop ONTO the existing placement's anchor cell 0.
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                var targetPlacement = target.GetPlacementAt(0);
+                Assert.IsNotNull(targetPlacement);
+                Assert.AreEqual(2, targetPlacement.Stack.Count);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridToGrid_SeparableAwayFromExisting_CreatesSecondPlacement()
+        {
+            // SeparableStacks: dropping a same-id shaped item onto EMPTY cells creates a second
+            // separate placement (no auto-merge into the distant existing one).
+            var source = new InventoryBuilder().WithStrategy(new SeparableStacksStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(new SeparableStacksStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                // Drop onto empty cell 3 (away from {0,1}).
+                var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                var first = target.GetPlacementAt(0);
+                var second = target.GetPlacementAt(3);
+                Assert.IsNotNull(first);
+                Assert.IsNotNull(second);
+                Assert.AreNotSame(first, second, "Separable: a second distinct placement is created");
+                Assert.AreEqual(1, first.Stack.Count);
+                Assert.AreEqual(1, second.Stack.Count);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedSlotToOccupiedSlot_Rejects()
         {
             var source = new InventoryBuilder()

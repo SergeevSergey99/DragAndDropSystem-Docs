@@ -122,6 +122,15 @@
 - Тесты: добавить strategy-level проверки ёмкости shaped (Stackable/Separable). Меняются только результаты
   query/preview; пайплайн ещё создаёт новые размещения (merge в C3/C4).
 
+> **Статус C3+C4: СДЕЛАНЫ вместе** (один сквозной grid-merge — раздельно дают нерабочий промежуток).
+> Охват — **grid**. Не-grid drop-merge (дроп shaped на занятый слот slot-инвентаря) **отложен в C7**
+> (унификация топологии), поэтому `ProcessDrop_ShapedSlotToOccupiedSlot_Rejects` пока остаётся валиден и НЕ
+> переписывается. Ослабление охранника `requested != 1` перенесено в **C5** (там же включается drag count>1).
+> Реализация: флаг `PlannedPlacementAllocation.MergeIntoExisting`; `TransferPlanner.TryResolveShapedMergeTarget`
+> (Stackable=авто по `Placements`, Separable=по перекрытию `GetCoveredCells`, Unique=нет);
+> `TransferPlanExecutor.TryMergeIntoExistingPlacement` (через `TryAddToSlotStack` в anchor).
+> Тесты: 4 новых grid-кейса в `ShapedItemPlacementTests` (auto-merge away, full→reject, separable onto/away).
+
 ### C3 — Планирование shaped: merge vs new (one-per-ID & capacity aware)
 - Переписать `TransferPlanner.TryPlanShapedPlacement` (`:497-602`): перед геометрией спросить стратегию через
   candidate-механизм (или прямой query), **существует ли размещение этого ID и есть ли в нём место**:
