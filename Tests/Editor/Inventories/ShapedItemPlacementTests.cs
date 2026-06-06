@@ -1417,8 +1417,11 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void CanPlace_RejectsMultiCellStackWithMultipleItems()
+        public void CanPlace_AllowsMultiCellStack_GeometryIgnoresCount()
         {
+            // C1 (ShapedStacking-Plan.md): placement geometry is independent of stack quantity.
+            // A multi-cell footprint may carry a stack with count > 1; the count cap (max stack)
+            // is enforced by the strategy / planner, not by placement geometry.
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)
                 .Build();
@@ -1430,9 +1433,10 @@ namespace UDND.Tests.Inventories
                     new ShapeAdapter("bag", 2, 1),
                     new ShapeAdapter("bag", 2, 1));
 
-                Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0)));
-                Assert.IsFalse(inventory.TryAddStack(stack));
-                Assert.AreEqual(2, stack.Count);
+                Assert.IsTrue(inventory.CanPlace(new PlacementRequest(stack, 0)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+                Assert.AreEqual(2, placement.Stack.Count);
+                CollectionAssert.AreEqual(new[] { 0, 1 }, placement.CoveredIndices);
             }
             finally
             {

@@ -50,8 +50,9 @@ namespace UDND.Inventories
             if (IsRejectedShapedSlotPlacement(request.Shape, request.Orientation))
                 return false;
 
-            if (!PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation) && request.Stack.Count > 1)
-                return false;
+            // Geometry only: a placement is just a footprint over covered cells. Stack quantity
+            // (count == 1 vs count > 1) is governed by the strategy (GetMaxStackSize) and the
+            // planner/executor, not by placement geometry. See ShapedStacking-Plan.md (C1).
 
             var coveredIndices = GetCoveredIndices(
                 request.AnchorIndex,
