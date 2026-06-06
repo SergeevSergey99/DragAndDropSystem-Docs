@@ -1282,6 +1282,89 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_ShapedStack_MoveWholeStack_ToEmptyGrid()
+        {
+            // C5 (ShapedStacking-Plan.md): a shaped placement with count > 1 can be dragged and moved
+            // as a whole; the destination placement keeps the full count.
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                Assert.AreEqual(3, entry.Stack.Count);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(3, summary.TransferredAmount);
+                Assert.IsNull(source.GetPlacementAt(0), "Whole stack moved out of source");
+
+                var targetPlacement = target.GetPlacementAt(0);
+                Assert.IsNotNull(targetPlacement);
+                Assert.AreEqual(3, targetPlacement.Stack.Count);
+                CollectionAssert.AreEqual(new[] { 0, 1 }, targetPlacement.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedStack_SplitPartial_LeavesRemainderInSource()
+        {
+            // C5: dragging part of a shaped stack splits it — the dragged amount forms a new placement,
+            // the remainder stays in the source placement (same footprint).
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                // Simulate a split drag: grab only 2 of the 3.
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(2), dragSlot, source);
+                Assert.AreEqual(2, entry.Stack.Count);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(2, summary.TransferredAmount);
+
+                var sourcePlacement = source.GetPlacementAt(0);
+                Assert.IsNotNull(sourcePlacement);
+                Assert.AreEqual(1, sourcePlacement.Stack.Count, "Remainder stays in source");
+                CollectionAssert.AreEqual(new[] { 0, 1 }, sourcePlacement.CoveredIndices);
+
+                var targetPlacement = target.GetPlacementAt(3);
+                Assert.IsNotNull(targetPlacement);
+                Assert.AreEqual(2, targetPlacement.Stack.Count);
+                CollectionAssert.AreEqual(new[] { 3, 4 }, targetPlacement.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedSlotToOccupiedSlot_Rejects()
         {
             var source = new InventoryBuilder()

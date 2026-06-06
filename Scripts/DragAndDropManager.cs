@@ -221,12 +221,8 @@ namespace UDND
                 return false;
             }
 
-            if (context.HasStackedShapedEntries || HasStackedShapedSource(context))
-            {
-                failureReason = "Shaped items cannot be dragged as stacks";
-                return false;
-            }
-
+            // C5 (ShapedStacking-Plan.md): shaped items may now be dragged as stacks (count > 1) —
+            // move the whole stack or split part of it. Only batch drag still excludes shaped entries.
             if (context.IsBatchDrag && context.HasShapedEntries)
             {
                 failureReason = "Batch drag does not support shaped items";
@@ -234,27 +230,6 @@ namespace UDND
             }
 
             return true;
-        }
-
-        private static bool HasStackedShapedSource(DragContext context)
-        {
-            if (context?.Entries == null)
-                return false;
-
-            for (int i = 0; i < context.Entries.Count; i++)
-            {
-                var entry = context.Entries[i];
-                if (!entry.IsShaped)
-                    continue;
-
-                int sourceCount = entry.SourcePlacement?.Stack?.Count
-                    ?? entry.SourceBaseSlot?.Stack?.Count
-                    ?? 0;
-                if (sourceCount > 1)
-                    return true;
-            }
-
-            return false;
         }
 
         private static void SetDraggedState(IReadOnlyList<DragEntry> entries, bool isDragging)

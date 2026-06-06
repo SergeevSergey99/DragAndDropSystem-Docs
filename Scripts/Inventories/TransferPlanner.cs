@@ -345,9 +345,8 @@ namespace UDND.Inventories
             var targetShape = PlacementShapeUtility.Resolve(targetItem);
             if (!PlacementShapeUtility.IsSingleCell(targetShape, entry.Orientation))
             {
-                if (requested != 1)
-                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item transfer requires a single item");
-
+                // C5 (ShapedStacking-Plan.md): shaped stacks (count > 1) are supported on grid inventories
+                // (move whole / split / merge). The per-amount cap is applied in TryPlanShapedPlacement.
                 if (context.IsBatchDrag)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Batch transfer does not support shaped items");
 
@@ -525,12 +524,8 @@ namespace UDND.Inventories
                 !targetPlacementInventory.Grid.HasValue)
                 return false;
 
-            if (requested != 1)
-            {
-                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped grid placement requires a single item");
-                return true;
-            }
-
+            // C5 (ShapedStacking-Plan.md): shaped stacks (count > 1) are supported. The amount is capped
+            // per merge capacity / new-placement max stack below; partial honors policy.AllowPartial.
             if (targetBaseSlotHint == null ||
                 !ReferenceEquals(targetBaseSlotHint.Inventory, targetInventory))
             {
@@ -574,6 +569,12 @@ namespace UDND.Inventories
                 }
 
                 int mergeAmount = Min(requested, mergeCapacity);
+                if (mergeAmount < requested && !policy.AllowPartial)
+                {
+                    plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item cannot be merged fully");
+                    return true;
+                }
+
                 var mergeAnchorSlot = targetPlacementInventory.GetSlot(mergeTarget.AnchorIndex);
                 var mergeOperation = new EntryPlanningOperation(
                     context, entry, policy, targetInventory, mergeAnchorSlot, preferHint: true,
@@ -626,6 +627,20 @@ namespace UDND.Inventories
                 return true;
             }
 
+            int newPlacementMaxStack = GetMaxStackSize(targetInventory, targetItem);
+            if (newPlacementMaxStack <= 0) newPlacementMaxStack = int.MaxValue;
+            int placeAmount = Min(requested, newPlacementMaxStack);
+            if (placeAmount <= 0)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "No capacity for shaped placement");
+                return true;
+            }
+            if (placeAmount < requested && !policy.AllowPartial)
+            {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Entry cannot be placed fully");
+                return true;
+            }
+
             var operation = new EntryPlanningOperation(
                 context,
                 entry,
@@ -638,7 +653,7 @@ namespace UDND.Inventories
                 targetItem,
                 requested,
                 acceptableByInventory: requested);
-            if (!IsCandidateAllowedByRules(operation, targetBaseSlotHint, requested))
+            if (!IsCandidateAllowedByRules(operation, targetBaseSlotHint, placeAmount))
             {
                 plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target rules rejected shaped placement");
                 return true;
@@ -647,14 +662,14 @@ namespace UDND.Inventories
             plan = new PlannedEntryTransfer(
                 entry,
                 requested,
-                requested,
+                placeAmount,
                 EmptyAllocations,
                 previewTargetItemAdapter: targetItem,
                 placementAllocation: new PlannedPlacementAllocation(
                     anchorIndex,
                     entry.Orientation,
                     shape,
-                    requested));
+                    placeAmount));
             return true;
         }
 

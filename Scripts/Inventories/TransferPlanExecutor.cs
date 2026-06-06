@@ -1067,9 +1067,10 @@ namespace UDND.Inventories
             if (allocation.MergeIntoExisting)
                 return TryMergeIntoExistingPlacement(operation, targetPlacementInventory, allocation);
 
-            if (operation.TransferStack.Count > 1 || operation.TransferAmount != operation.TransferStack.Count)
+            // C5 (ShapedStacking-Plan.md): a new shaped placement may carry a stack (count > 1).
+            if (operation.TransferAmount != operation.TransferStack.Count)
             {
-                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: Shaped placement requires a single item</color>");
+                Extensions.DragAndDropLog("<color=red>[TransferPlanExecutor] Shaped placement failed: transfer amount mismatch</color>");
                 return false;
             }
 

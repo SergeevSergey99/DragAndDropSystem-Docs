@@ -158,6 +158,14 @@
   - `ProcessDrop_ShapedSlotToOccupiedSlot_Rejects` (`:1139`): развести на «другой ID → reject» (оставить) и новый
     кейс «тот же ID → merge».
 
+> **Статус C5: СДЕЛАН.** Снят запрет stacked-shaped drag в `DragAndDropManager.ValidateShapedDragScope`
+> (удалён `HasStackedShapedSource`; batch+shaped по-прежнему запрещён); сняты охранники `requested != 1`
+> (`TransferPlanner` внешний блок и `TryPlanShapedPlacement`) и `count > 1` в new-placement ветке исполнителя.
+> Ёмкость нового размещения капится `min(requested, maxStack)`, частичное — по `policy.AllowPartial` (и для merge,
+> и для new). Split течёт через существующий `ResolveDragCount`→`ResolveDragAmount` + `TrySplitFromSlot`
+> (сохраняет остаток в исходном размещении). Тесты: move-целиком и split в `ShapedItemPlacementTests`.
+> Охват — grid; не-grid count>1 через дроп остаётся за C7.
+
 ### C5 — Перетаскивание стека shaped (move + split)
 - Разрешить тащить размещение с `count>1`: `ResolveDragAmount` для shaped, `entry.Stack.Count>1`.
 - **Move целиком:** перенос всего стека одним футпринтом, count сохраняется.
