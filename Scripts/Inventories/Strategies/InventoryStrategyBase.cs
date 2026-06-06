@@ -131,9 +131,9 @@ namespace UDND.Inventories
         /// </summary>
         protected static int GetMaxStackSize(IItemAdapter itemAdapter, int defaultMaxStackSize, bool allowItemOverride)
         {
-            if (!PlacementShapeUtility.IsSingleCell(PlacementShapeUtility.Resolve(itemAdapter), PlacementOrientation.Rot0))
-                return 1;
-
+            // Shaped (multi-cell) items are no longer forced to a max stack of 1: a placement may carry
+            // a stack with count > 1, capped by the strategy limit just like single-cell items.
+            // See ShapedStacking-Plan.md (C2). Unique items stay count 1 via UniqueItemStrategy (literal 1).
             if (allowItemOverride && itemAdapter is IStackSizeLimitable limitable)
                 return Math.Max(1, limitable.MaxStackSize);
 

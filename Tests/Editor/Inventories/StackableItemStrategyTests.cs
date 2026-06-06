@@ -222,6 +222,40 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        [Test]
+        public void GetSlotCandidates_ShapedPlacementWithRoom_ReportsRemainingCapacity()
+        {
+            // C2 (ShapedStacking-Plan.md): a shaped item is no longer capped at 1. An existing shaped
+            // placement is a stackable one-per-ID location with capacity = maxStack - count; no second
+            // placement (and no new slot) is offered for an item that already exists.
+            var inventory = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                _strategy.SetMaxStackSize(5, allowItemOverride: false);
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
+                CollectionAssert.AreEqual(new[] { 0, 1 }, placement.CoveredIndices);
+
+                var request = new InventoryAcceptanceRequest(inventory, new ShapeAdapter("bag", 2, 1), 3);
+                var candidates = _strategy.GetSlotCandidates(
+                    inventory.Slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: null);
+
+                Assert.IsFalse(candidates.CanCreateNewSlot, "one-per-ID: no second placement for an existing item");
+                Assert.AreEqual(1, candidates.Slots.Count, "Only the existing placement's anchor is eligible");
+                Assert.AreEqual(0, candidates.Slots[0].Slot.Index, "Candidate is the placement anchor");
+                Assert.AreEqual(4, candidates.Slots[0].RemainingCapacity, "maxStack(5) - count(1)");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         // ---------- TryAddToSlot ----------
 
         [Test]

@@ -1117,6 +1117,9 @@ namespace UDND.Tests.Inventories
         [Test]
         public void StackableSlotInventory_ShapedItemsUseOnePlacementPerId()
         {
+            // C2 (ShapedStacking-Plan.md): Stackable shaped is one-placement-per-id with a real stack.
+            // A second identical shaped item merges into the existing placement (count grows) instead
+            // of opening a second placement.
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(2)
                 .Build();
@@ -1124,9 +1127,9 @@ namespace UDND.Tests.Inventories
             try
             {
                 Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
-                Assert.IsFalse(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
+                Assert.IsTrue(inventory.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
 
-                Assert.AreEqual(1, inventory.GetSlot(0).Stack.Count);
+                Assert.AreEqual(2, inventory.GetSlot(0).Stack.Count);
                 Assert.IsTrue(inventory.GetSlot(1).IsEmpty);
             }
             finally
