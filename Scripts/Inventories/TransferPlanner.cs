@@ -345,15 +345,12 @@ namespace UDND.Inventories
             var targetShape = PlacementShapeUtility.Resolve(targetItem);
             if (!PlacementShapeUtility.IsSingleCell(targetShape, entry.Orientation))
             {
-                // C5 (ShapedStacking-Plan.md): shaped stacks (count > 1) are supported on grid inventories
-                // (move whole / split / merge). The per-amount cap is applied in TryPlanShapedPlacement.
+                // C5/C7 (ShapedStacking-Plan.md): shaped stacks (count > 1) are supported. On grids the
+                // footprint/merge is handled by TryPlanShapedPlacement; on slot (collapse-to-anchor)
+                // inventories a shaped item occupies one cell and flows through the normal single-cell
+                // pipeline (merge onto an occupied same-id slot, swap/reject otherwise). Only batch is excluded.
                 if (context.IsBatchDrag)
                     return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Batch transfer does not support shaped items");
-
-                if ((targetInventory is not IPlacementInventory targetPlacementInventory || !targetPlacementInventory.Grid.HasValue) &&
-                    targetBaseSlotHint != null &&
-                    !targetBaseSlotHint.IsEmpty)
-                    return new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Shaped item drops onto occupied slots are not supported");
             }
 
             if (TryPlanShapedPlacement(

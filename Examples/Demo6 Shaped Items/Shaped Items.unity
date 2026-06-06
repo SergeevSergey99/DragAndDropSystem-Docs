@@ -15374,8 +15374,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf861f83d4b0454bb0d77279ea8b7a09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _inventory: {fileID: 2071954102}
-  _overlayRoot: {fileID: 1869537604}
+  _inventory: {fileID: 782000759}
+  _overlayRoot: {fileID: 1776293383}
   _itemPrefab: {fileID: 9055747231481220608, guid: 8ec015131e3dfc642903d080ddf795ca, type: 3}
   _color: {r: 1, g: 1, b: 1, a: 0.8235294}
 --- !u!1001 &1790860890
@@ -16091,7 +16091,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf861f83d4b0454bb0d77279ea8b7a09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _inventory: {fileID: 782000759}
+  _inventory: {fileID: 2071954102}
   _overlayRoot: {fileID: 1869537604}
   _itemPrefab: {fileID: 9055747231481220608, guid: 8ec015131e3dfc642903d080ddf795ca, type: 3}
   _color: {r: 1, g: 1, b: 1, a: 0.8235294}
@@ -17612,7 +17612,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _inventory: {fileID: 2071954102}
-  _placements: []
+  _placements:
+  - item: {fileID: 11400000, guid: 18f3714ce812bd640b59302cda84ad0a, type: 2}
+    anchorIndex: 0
+    orientation: 0
 --- !u!114 &2071954102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17629,7 +17632,7 @@ MonoBehaviour:
   baseSlotPrefab: {fileID: 360401508713574776, guid: 0136cb340a5be0c4581dbbe91c0a03f9, type: 3}
   _initialSlotCount: 64
   _inventoryStrategy:
-    rid: 8757923508012974084
+    rid: 8248672718681800749
   _slotManagementSettings:
     rid: 8757923508012974081
   _ruleValidator:
@@ -17715,6 +17718,13 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 8248672718681800749
+      type: {class: StackableItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data:
+        _dragAmount: 0
+        _customDragAmount: 1
+        _maxStackSize: 0
+        _allowItemStackOverride: 0
     - rid: 8757923508012974081
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
@@ -17727,11 +17737,6 @@ MonoBehaviour:
     - rid: 8757923508012974083
       type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
       data: 
-    - rid: 8757923508012974084
-      type: {class: UniqueItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
-      data:
-        _dragAmount: 0
-        _customDragAmount: 1
     - rid: 8757923584337772545
       type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 

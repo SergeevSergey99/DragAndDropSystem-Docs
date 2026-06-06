@@ -1434,7 +1434,10 @@ namespace UDND.Inventories
                 !isSingleCell)
                 return false;
 
-            return isSingleCell || count <= 1;
+            // C7 (ShapedStacking-Plan.md): on slot (collapse-to-anchor) inventories a shaped item occupies
+            // one cell, so it may carry a stack (count > 1) just like a single-cell item; the strategy caps
+            // the amount. Grid + multi-cell is still routed through the placement path (rejected above).
+            return true;
         }
 
         /// <summary>

@@ -184,7 +184,20 @@
 - Показ count на anchor-ячейке размещения (`Scripts/UI/PlacementOverlay.cs`, отображение количества слота).
   Убедиться, что covered-ячейки не дублируют цифру.
 
-### C7 — Унификация slot/grid через общую топологию (`IInventoryTopology`)
+> **Статус C7: СДЕЛАН в минимальном варианте** (по решению пользователя). Выяснилось, что топологическая
+> абстракция `IInventoryTopology` (`Core/Models/InventoryTopology.cs`) **уже чистая** и `PlacementStore` уже
+> работает поверх неё; полное удаление `_useGridTopology` — крупная чистка с малой отдачей, отложена. Гекс
+> расширяется новой реализацией `IInventoryTopology` + `IPlacementShape`-оффсетами **без правок пайплайна**.
+> Сделано только закрытие функционального пробела для **slot (collapse-to-anchor)** инвентарей: shaped там
+> занимает 1 ячейку и идёт обычным single-cell путём.
+> - `UniversalInventory.CanAcceptShape`: для не-grid разрешён shaped `count>1` (лимит держит стратегия);
+>   grid+multi-cell и Reject-policy по-прежнему отклоняются.
+> - `TransferPlanner.BuildPlanForEntry`: снят гард «shaped на занятый не-grid слот» → дроп на занятый same-id
+>   слот сливается через обычный pipeline (`TryAddToSlot`), different-id/без swap — reject.
+> - Тесты: `ProcessDrop_ShapedSlotToOccupiedSlot_Rejects` переписан в `…OccupiedSameId_Merges`; добавлены
+>   `…OccupiedDifferentId_Rejects` и `…ShapedStack_IntoEmptySlotInventory_KeepsCount`.
+
+### C7 — (исходный замысел — полная унификация; отложено) slot/grid через общую топологию (`IInventoryTopology`)
 - Свести shaped/stack логику к **единой ветке поверх абстракции топологии** `IInventoryTopology` (уже есть:
   `RectGridTopology`, `SlotTopology`; см. `ShapedItemPlacementTests` — `RectGridTopology(GridTopology)`,
   `SlotTopology(n)`). slot и grid — частные реализации одного интерфейса; планировщик/стор работают через топологию,

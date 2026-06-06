@@ -1365,14 +1365,12 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void ProcessDrop_ShapedSlotToOccupiedSlot_Rejects()
+        public void ProcessDrop_ShapedSlotToOccupiedSameId_Merges()
         {
-            var source = new InventoryBuilder()
-                .WithFixedSlots(1)
-                .Build();
-            var target = new InventoryBuilder()
-                .WithFixedSlots(1)
-                .Build();
+            // C7 (ShapedStacking-Plan.md): on a slot (collapse-to-anchor) inventory a shaped item occupies
+            // one cell, so dropping it onto an occupied same-id slot merges through the normal pipeline.
+            var source = new InventoryBuilder().WithFixedSlots(1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(1).Build();
 
             try
             {
@@ -1386,9 +1384,75 @@ namespace UDND.Tests.Inventories
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
                 var summary = processor.ProcessDropWithSummary(context);
 
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(source.GetSlot(0).IsEmpty, "Source consumed by merge");
+                Assert.AreEqual(2, target.GetSlot(0).Stack.Count, "Merged into the occupied same-id slot");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedSlotToOccupiedDifferentId_Rejects()
+        {
+            // Different item under a shaped drop is not mergeable and shaped is not swappable → reject.
+            var source = new InventoryBuilder().WithFixedSlots(1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
+                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("sword", 2, 1))));
+
+                var sourceSlot = source.GetSlot(0);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
                 Assert.IsFalse(summary.Success);
-                Assert.AreEqual(1, source.GetSlot(0).Stack.Count);
-                Assert.AreEqual(1, target.GetSlot(0).Stack.Count);
+                Assert.AreEqual("bag", source.GetSlot(0).Stack.ID, "Source untouched");
+                Assert.AreEqual("sword", target.GetSlot(0).Stack.ID, "Target untouched");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedStack_IntoEmptySlotInventory_KeepsCount()
+        {
+            // C7: a shaped stack (count > 1) can be dropped into a slot inventory; it occupies one cell
+            // and keeps its count.
+            var source = new InventoryBuilder().WithFixedSlots(1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1))));
+                Assert.AreEqual(3, source.GetSlot(0).Stack.Count);
+
+                var sourceSlot = source.GetSlot(0);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
+                Assert.AreEqual(3, entry.Stack.Count);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(3, summary.TransferredAmount);
+                Assert.IsTrue(source.GetSlot(0).IsEmpty);
+                Assert.AreEqual(3, target.GetSlot(0).Stack.Count);
             }
             finally
             {
