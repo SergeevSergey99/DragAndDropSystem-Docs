@@ -19,10 +19,20 @@ namespace UDND.UI
     public class PlacementOverlayItem : MonoBehaviour
     {
         [SerializeField] private Image _image;
+        [Header("Stack count (optional)")]
+        [SerializeField] private GameObject _countContainer;
+        [SerializeField] private Text _countText;
 
         public RectTransform RectTransform => transform as RectTransform;
         public Placement CurrentPlacement { get; private set; }
         public PlacementOverlayRenderState CurrentState { get; private set; }
+
+        /// <summary>
+        /// Whether this item displays the placement stack count. The overlay sets it so the count is
+        /// shown once per placement (on the anchor / spanning item), not on every covered cell.
+        /// See ShapedStacking-Plan.md (C6).
+        /// </summary>
+        public bool ShowStackCount { get; set; } = true;
 
         public void Render(Placement placement, PlacementOverlayRenderState state, Color fallbackColor)
         {
@@ -45,6 +55,8 @@ namespace UDND.UI
 
         protected virtual void RenderFilled(Placement placement, Color fallbackColor)
         {
+            RenderCount(placement);
+
             if (_image == null)
                 return;
 
@@ -57,6 +69,20 @@ namespace UDND.UI
         protected virtual void RenderFilledAndDraggedFrom(Placement placement, Color fallbackColor)
         {
             gameObject.SetActive(false);
+        }
+
+        /// <summary>Shows the placement stack count (when &gt; 1) on the count-bearing item only.</summary>
+        protected void RenderCount(Placement placement)
+        {
+            if (_countContainer == null)
+                return;
+
+            int count = placement?.Stack?.Count ?? 0;
+            bool shouldShow = ShowStackCount && count > 1;
+            _countContainer.SetActive(shouldShow);
+
+            if (shouldShow && _countText != null)
+                _countText.text = count.ToString();
         }
 
         protected virtual void RenderFilledAndDraggedTo(Placement placement, Color fallbackColor)

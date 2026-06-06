@@ -175,6 +175,11 @@
 - Снять/ослабить охранники, отвергавшие stacked-shaped drag (`DragContext.HasStackedShapedEntries` и его
   использования). Batch для shaped по-прежнему запрещён.
 
+> **Статус C6: СДЕЛАН (UI, без unit-тестов — проверка визуально в Unity).**
+> Count выводится на `PlacementOverlayItem` (новые опциональные `_countContainer`/`_countText` + свойство
+> `ShowStackCount`, сигнатура `Render` не изменена → сабклассы-префабы не ломаются). `PlacementOverlay` ставит
+> Префабы overlay без полей count просто не показывают число (поля опциональны).
+
 ### C6 — UI: отображение количества на shaped-размещении
 - Показ count на anchor-ячейке размещения (`Scripts/UI/PlacementOverlay.cs`, отображение количества слота).
   Убедиться, что covered-ячейки не дублируют цифру.

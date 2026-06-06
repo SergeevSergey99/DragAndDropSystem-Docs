@@ -154,6 +154,7 @@ namespace UDND.UI
                 GetPreRotatedSize(rect.size, placement.Orientation),
                 -90f * (int)placement.Orientation);
             item.transform.SetAsLastSibling();
+            item.ShowStackCount = true;
             item.Render(placement, renderState, _color);
             _activeItems.Add(item);
             return true;
@@ -174,6 +175,7 @@ namespace UDND.UI
                 var item = CreateItem(root, placement);
                 ApplyItemRect(item.RectTransform, rect.center, rect.size, 0f);
                 item.transform.SetAsLastSibling();
+                item.ShowStackCount = placement.CoveredIndices[i] == placement.AnchorIndex;
                 item.Render(placement, renderState, _color);
                 _activeItems.Add(item);
                 renderedAny = true;
