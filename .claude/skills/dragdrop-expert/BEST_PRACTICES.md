@@ -24,7 +24,9 @@ Complete guide for extending the system and optimization strategies.
 2. Override `TryAdd(slots, stack, targetIndex)` method
 3. Override `TryRemove(slots, item, count, sourceIndex)` method (optional)
 4. Override `TryAddToSlot(...)` if slot-target semantics differ
-5. Override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
+5. Override `GetSlotCandidates(...)` (slot eligibility) and, if needed, `DefaultSlotSelectionPolicy` and
+   `GetAcceptableCount(...)`; override `ResolveShapedMerge(...)` for shaped merge/new/reject policy.
+   (There is no strategy-level `CanAcceptItem` anymore — eligibility lives in `GetSlotCandidates`.)
 6. Override `ResolveDragAmount(...)` only if drag semantics differ
 7. Override `Contains(...)` / `GetItemCount(...)` only if query semantics differ
 8. Use `PassesRules(slot, item, count, request)` for rule validation

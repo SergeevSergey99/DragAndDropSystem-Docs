@@ -2,7 +2,7 @@
 
 Detailed documentation of current inventory strategies.
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-07 (one-per-ID + count>1 stacking, shaped stacking, policy-driven slot selection)
 
 ## Strategy Hierarchy
 
@@ -61,23 +61,28 @@ Use cases:
 
 ## StackableItemStrategy
 
-Behavior:
-- automatic merging of same items
-- can also place into empty slots
+Behavior (one-per-ID):
+- at most ONE logical stack location per item ID (a slot, or a placement for shaped items)
+- that stack may hold count > 1 (including shaped placements), capped by the strategy / per-item limit
+- auto-merge (default): a duplicate dropped anywhere consolidates into the existing stack
+- explicit-merge-only (private `_explicitMergeOnly`, inverted serialized field so default = auto-merge):
+  the stack grows only on an explicit drop onto it; a duplicate dropped elsewhere is rejected
+- for multiple separate stacks of the same item, use `SeparableStacksStrategy`
 
 Location:
 - `Scripts/Inventories/Strategies/StackableItemStrategy.cs`
 
 How it works:
-1. fill existing matching stacks
-2. create new stack in empty slot if needed
-3. validate each candidate through rules
-4. merge/split preserve actual adapter lists inside stacks
+1. `GetSlotCandidates`: item present → only its logical location (auto-merge); explicit-only → None
+2. item absent → empty slot (+ new slot capability)
+3. `TryAddToSlot` into an empty slot while the item exists: auto-merge → consolidate into the existing
+   stack; explicit-only → reject (this is what stops a duplicate from bouncing back on an empty-slot drop)
+4. validate each candidate through rules; merge/split preserve actual adapter lists inside stacks
 
-Current preview behavior:
-- uses `InventoryAcceptanceRequest`
-- validates merge candidates and empty candidates through real slot rules
-- when dynamic slots are allowed, prefab-slot rules are checked before reporting acceptable count
+Shaped placements:
+- the merge-vs-new/reject decision is owned by the strategy via `IAcceptanceStrategy.ResolveShapedMerge(...)`
+  (auto → merge into the single existing placement anywhere; explicit-only → merge only on footprint overlap,
+  else reject). The planner only asks and acts — it never reads strategy flags or sniffs strategy types.
 
 Use cases:
 - resources
@@ -87,16 +92,17 @@ Use cases:
 ## SeparableStacksStrategy
 
 Behavior:
-- multiple stacks of the same item are allowed
-- merge only on explicit drop when `_allowMergeOnDrop` is enabled
+- multiple stacks/placements of the same item are allowed
+- each stack (including a shaped placement) may hold count > 1, capped by the limit
+- merge only on explicit drop onto the same item; otherwise a new separate stack/placement is created
 
 Location:
 - `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs`
 
 How it works:
 - explicit drop to empty slot creates a new stack
-- explicit drop to same-item occupied slot merges only if `_allowMergeOnDrop`
-- programmatic add prefers creating a new stack instead of auto-merging all the time
+- explicit drop to a same-item occupied slot merges into it
+- shaped: `ResolveShapedMerge` merges only when the dropped footprint overlaps a same-item placement, else new
 - merge/split preserve actual adapter lists inside stacks
 
 Current preview behavior:
@@ -146,18 +152,43 @@ Configuration enums:
 Current runtime delegation from `UniversalInventory`:
 - drag amount → `ResolveDragAmount(...)`
 - target placement → `TryAddToSlot(...)`
-- preview acceptance → `CanAcceptItem(...)` / `GetAcceptableCount(...)`
+- slot eligibility (preview + planning) → `GetSlotCandidates(...)` + `DefaultSlotSelectionPolicy`
+- shaped merge decision → `ResolveShapedMerge(...)`
+- preview acceptance count → `GetAcceptableCount(...)`
 - planning hint → `UsesPerItemSlotPlanning`
 - read-only queries → `Contains(...)` / `GetItemCount(...)`
 - dynamic slot lifecycle → `TryCreateSlot(...)` / `HandleSlotEmptied(...)`
+
+> Note: `UniversalInventory.CanAcceptItem(request, out suggested)` still exists as a convenience, but it now
+> delegates to `GetSlotCandidates(...)` + the selection policy. There is no longer a strategy-level
+> `CanAcceptItem` — strategies expose eligibility via `GetSlotCandidates`.
+
+## Slot Selection (policy-driven)
+
+Slot selection is split into **eligibility** (strategy) and **selection** (policy):
+
+- `IAcceptanceStrategy.GetSlotCandidates(slots, request, canCreateNewSlot, potentialNewSlots, prefab)` returns
+  `SlotAcceptanceCandidates` (eligible `ISlot`s with `RemainingCapacity`, plus a `CanCreateNewSlot` capability).
+  Strategy rules / one-per-ID / source-slot exclusion are applied here. Works over `ISlot`, so it reads real
+  `BaseSlot`s at the UI boundary and `VirtualSlotState` copies inside the planner.
+- `SlotSelectionPolicyBase.Select(candidates, request)` picks one (`Existing` / `New` / `None`).
+  Shipped: `FirstSlotSelectionPolicy` (default), `StackFirstSlotSelectionPolicy`. The active policy is
+  `request.SelectionPolicy ?? strategy.DefaultSlotSelectionPolicy`.
+- The planner (`TransferPlanner`) runs this on each allocation step over `VirtualSlotState` (filled via `Apply`),
+  so single-drop, batch and overflow share the same mechanism. Shaped grid placement is a separate branch that
+  asks the strategy via `ResolveShapedMerge(...)` for merge-vs-new-vs-reject.
+- `BlockedTargetResolver` is narrowed to "explicit drop onto a blocked slot" (occupied/rules) → alternative / swap /
+  reject; its alternatives come from `GetSlotCandidates` (not per-slot `CanUseAlternativeSlot`).
+
+See `.docs-plans/SlotSelectionPolicy-Plan.md` and `.docs-plans/ShapedStacking-Plan.md`.
 
 ## TryAdd and skipRules
 
 `IPlacementStrategy.TryAdd` has a `skipRules` flag:
 
 ```csharp
-bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
-bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
+bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
+bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
 ```
 
 When `skipRules = true`, `PassesRules()` calls are bypassed for all candidate slots.
@@ -176,7 +207,8 @@ Recommended steps:
 2. override `TryAdd(slots, stack, targetIndex, skipRules = false)` — respect `skipRules` flag
 3. override `TryRemove(slots, item, count, sourceIndex)` as needed
 4. override `TryAddToSlot(...)` if slot-target semantics differ
-5. override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
+5. override `GetSlotCandidates(...)` (eligibility) and, if needed, `DefaultSlotSelectionPolicy` and
+   `GetAcceptableCount(...)`; override `ResolveShapedMerge(...)` for shaped merge/new/reject policy
 6. use `PassesRules(slot, item, count, request)` for validation — skip it when `skipRules` is true
 
 Typical use cases:

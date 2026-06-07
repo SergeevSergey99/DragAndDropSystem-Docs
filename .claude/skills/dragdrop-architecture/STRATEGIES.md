@@ -2,7 +2,7 @@
 
 Detailed documentation of current inventory strategies.
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-07 (one-per-ID + count>1 stacking, shaped stacking, policy-driven slot selection)
 
 ## Strategy Hierarchy
 
@@ -152,18 +152,43 @@ Configuration enums:
 Current runtime delegation from `UniversalInventory`:
 - drag amount → `ResolveDragAmount(...)`
 - target placement → `TryAddToSlot(...)`
-- preview acceptance → `CanAcceptItem(...)` / `GetAcceptableCount(...)`
+- slot eligibility (preview + planning) → `GetSlotCandidates(...)` + `DefaultSlotSelectionPolicy`
+- shaped merge decision → `ResolveShapedMerge(...)`
+- preview acceptance count → `GetAcceptableCount(...)`
 - planning hint → `UsesPerItemSlotPlanning`
 - read-only queries → `Contains(...)` / `GetItemCount(...)`
 - dynamic slot lifecycle → `TryCreateSlot(...)` / `HandleSlotEmptied(...)`
+
+> Note: `UniversalInventory.CanAcceptItem(request, out suggested)` still exists as a convenience, but it now
+> delegates to `GetSlotCandidates(...)` + the selection policy. There is no longer a strategy-level
+> `CanAcceptItem` — strategies expose eligibility via `GetSlotCandidates`.
+
+## Slot Selection (policy-driven)
+
+Slot selection is split into **eligibility** (strategy) and **selection** (policy):
+
+- `IAcceptanceStrategy.GetSlotCandidates(slots, request, canCreateNewSlot, potentialNewSlots, prefab)` returns
+  `SlotAcceptanceCandidates` (eligible `ISlot`s with `RemainingCapacity`, plus a `CanCreateNewSlot` capability).
+  Strategy rules / one-per-ID / source-slot exclusion are applied here. Works over `ISlot`, so it reads real
+  `BaseSlot`s at the UI boundary and `VirtualSlotState` copies inside the planner.
+- `SlotSelectionPolicyBase.Select(candidates, request)` picks one (`Existing` / `New` / `None`).
+  Shipped: `FirstSlotSelectionPolicy` (default), `StackFirstSlotSelectionPolicy`. The active policy is
+  `request.SelectionPolicy ?? strategy.DefaultSlotSelectionPolicy`.
+- The planner (`TransferPlanner`) runs this on each allocation step over `VirtualSlotState` (filled via `Apply`),
+  so single-drop, batch and overflow share the same mechanism. Shaped grid placement is a separate branch that
+  asks the strategy via `ResolveShapedMerge(...)` for merge-vs-new-vs-reject.
+- `BlockedTargetResolver` is narrowed to "explicit drop onto a blocked slot" (occupied/rules) → alternative / swap /
+  reject; its alternatives come from `GetSlotCandidates` (not per-slot `CanUseAlternativeSlot`).
+
+See `.docs-plans/SlotSelectionPolicy-Plan.md` and `.docs-plans/ShapedStacking-Plan.md`.
 
 ## TryAdd and skipRules
 
 `IPlacementStrategy.TryAdd` has a `skipRules` flag:
 
 ```csharp
-bool TryAdd(List<ISlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
-bool TryAddQuite(List<BaseSlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
+bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
+bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex); // shorthand: skipRules = true
 ```
 
 When `skipRules = true`, `PassesRules()` calls are bypassed for all candidate slots.
@@ -182,7 +207,8 @@ Recommended steps:
 2. override `TryAdd(slots, stack, targetIndex, skipRules = false)` — respect `skipRules` flag
 3. override `TryRemove(slots, item, count, sourceIndex)` as needed
 4. override `TryAddToSlot(...)` if slot-target semantics differ
-5. override `CanAcceptItem(...)` / `GetAcceptableCount(...)` if preview logic differs
+5. override `GetSlotCandidates(...)` (eligibility) and, if needed, `DefaultSlotSelectionPolicy` and
+   `GetAcceptableCount(...)`; override `ResolveShapedMerge(...)` for shaped merge/new/reject policy
 6. use `PassesRules(slot, item, count, request)` for validation — skip it when `skipRules` is true
 
 Typical use cases:

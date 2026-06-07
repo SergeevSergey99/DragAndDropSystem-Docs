@@ -15,6 +15,14 @@ Recent changes already moved the system in a better direction:
 - operation objects were extracted into dedicated files
 - Phase 1 has started: strategy capabilities are now split at the dependency level inside `UniversalInventory`
 
+> **Status update (superseded parts):** `IInventoryStrategy` is already split into capability interfaces
+> (`IPlacementStrategy`, `IAcceptanceStrategy`, `IDragPolicy`, `IInventoryQueryStrategy`). Slot selection was
+> implemented as **eligibility + policy**, NOT as the `CanAcceptItem(... out suggestedSlot)` shown in section 1
+> below: `IAcceptanceStrategy` now exposes `GetSlotCandidates(...)`, `DefaultSlotSelectionPolicy`,
+> `GetAcceptableCount(...)` and `ResolveShapedMerge(...)`; the planner picks slots via `SlotSelectionPolicyBase`.
+> Treat the section-1 acceptance interface below as a historical proposal — see `STRATEGIES.md` ("Slot Selection")
+> and `.docs-plans/SlotSelectionPolicy-Plan.md` / `ShapedStacking-Plan.md` for what shipped.
+
 Main remaining pressure points:
 - `IInventoryStrategy` is too wide
 - domain-specific workflows like trading still piggyback on `OnItemAdded` / `OnItemRemoved`
