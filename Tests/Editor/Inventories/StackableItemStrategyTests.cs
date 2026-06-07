@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UDND.Core;
@@ -27,6 +28,15 @@ namespace UDND.Tests.Inventories
             TestSlotFactory.Dispose(_prefab);
             _slots = null;
             _prefab = null;
+        }
+
+        // The auto-merge toggle is a private serialized field with no public accessor (config via inspector).
+        // Tests force explicit-merge-only via reflection.
+        private static void SetExplicitMergeOnly(StackableItemStrategy strategy)
+        {
+            typeof(StackableItemStrategy)
+                .GetField("_explicitMergeOnly", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(strategy, true);
         }
 
         // ---------- TryAdd with limit ----------
@@ -301,9 +311,10 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryAddToSlot_EmptyTarget_ItemExistsElsewhere_RejectedByOnePerId()
+        public void TryAddToSlot_EmptyTarget_ItemExistsElsewhere_AutoMergesIntoExistingStack()
         {
-            // one-per-ID: cannot open a second gem stack in an empty slot while gem already exists.
+            // Auto-merge ON (default): a duplicate dropped onto an empty slot consolidates into the existing
+            // stack instead of opening a second stack or bouncing back to the source.
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
             _slots = TestSlotFactory.CreateSlots(2);
             _slots[0].SetStack(ItemStackBuilder.Unique(4, "gem"));
@@ -311,8 +322,27 @@ namespace UDND.Tests.Inventories
 
             bool placed = _strategy.TryAddToSlot(_slots, stack, _slots[1], null, new SlotOperationContext());
 
-            Assert.IsFalse(placed, "Second stack of the same item is forbidden under one-per-ID");
-            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing partial stack untouched");
+            Assert.IsTrue(placed);
+            Assert.AreEqual(7, _slots[0].Stack.Count, "Merged into the existing stack");
+            Assert.IsTrue(_slots[1].IsEmpty, "Empty target stays empty (no second stack)");
+            Assert.IsTrue(stack.IsEmpty, "Source consumed");
+        }
+
+        [Test]
+        public void TryAddToSlot_EmptyTarget_ItemExistsElsewhere_ExplicitMergeOnly_Rejects()
+        {
+            // Explicit-merge-only: consolidation happens only on an explicit drop onto the stack, so a
+            // duplicate dropped onto an empty slot is rejected (strict one-per-ID).
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            SetExplicitMergeOnly(_strategy);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(4, "gem"));
+            var stack = ItemStackBuilder.Unique(3, "gem");
+
+            bool placed = _strategy.TryAddToSlot(_slots, stack, _slots[1], null, new SlotOperationContext());
+
+            Assert.IsFalse(placed, "Explicit-merge-only forbids consolidating via an empty slot");
+            Assert.AreEqual(4, _slots[0].Stack.Count, "Existing stack untouched");
             Assert.IsTrue(_slots[1].IsEmpty, "Empty target left empty");
             Assert.AreEqual(3, stack.Count, "Stack stays in source");
         }
@@ -441,6 +471,40 @@ namespace UDND.Tests.Inventories
             {
                 InventoryBuilder.Destroy(inventory);
             }
+        }
+
+        [Test]
+        public void GetSlotCandidates_AutoMergeOff_ItemPresent_ReturnsNone()
+        {
+            // C8: with auto-merge OFF, duplicates are not auto-consolidated via system distribution
+            // (area-drop / auto-transfer / overflow). The existing stack accepts more only via an explicit
+            // drop onto it (planner hint path), so GetSlotCandidates offers nothing here.
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            SetExplicitMergeOnly(_strategy);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
+            var request = MakeRequest("gem", 3);
+
+            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: null);
+
+            Assert.IsFalse(candidates.HasAny, "Auto-merge OFF must not auto-consolidate an existing stack");
+        }
+
+        [Test]
+        public void GetSlotCandidates_AutoMergeOff_ItemAbsent_StillOffersEmpty()
+        {
+            // Auto-merge OFF only changes duplicate handling; a first stack is still placed normally.
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            SetExplicitMergeOnly(_strategy);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "rock"));
+            var request = MakeRequest("gem", 1);
+
+            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+
+            Assert.IsTrue(selection.Accepted);
+            Assert.AreSame(_slots[1], selection.Slot as BaseSlot);
         }
 
         // ---------- GetAcceptableCount ----------

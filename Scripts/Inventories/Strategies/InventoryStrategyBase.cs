@@ -44,6 +44,13 @@ namespace UDND.Inventories
         public virtual SlotSelectionPolicyBase DefaultSlotSelectionPolicy => FirstSlotSelectionPolicy.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
+        // Base/Unique: shaped placements never merge — each item is its own placement (count 1).
+        // Stack-based strategies override this with their own merge policy.
+        public virtual ShapedMergeDecision ResolveShapedMerge(
+            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
+            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
+            => ShapedMergeDecision.CreateNew;
+
         public virtual int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter)
         {
             int total = 0;
@@ -343,6 +350,53 @@ namespace UDND.Inventories
 
             placement = placementInventory.GetPlacementAt(baseSlot);
             return placement != null;
+        }
+
+        /// <summary>Same item, not the drag source, not empty, can stack → a valid shaped merge candidate.</summary>
+        protected static bool IsMergeablePlacement(Placement placement, Placement sourcePlacement, IItemAdapter item)
+        {
+            return placement != null &&
+                   !ReferenceEquals(placement, sourcePlacement) &&
+                   placement.Stack != null &&
+                   !placement.Stack.IsEmpty &&
+                   placement.Stack.CanStack(item);
+        }
+
+        /// <summary>First existing placement of the same item (excluding the drag source), or null.</summary>
+        protected static Placement FindMergeableShapedPlacement(IPlacementInventory inventory, IItemAdapter item, Placement sourcePlacement)
+        {
+            if (inventory?.Placements == null)
+                return null;
+
+            foreach (var placement in inventory.Placements)
+            {
+                if (IsMergeablePlacement(placement, sourcePlacement, item))
+                    return placement;
+            }
+
+            return null;
+        }
+
+        /// <summary>Same-item placement overlapped by the dropped footprint (excluding the source), or null.</summary>
+        protected static Placement FindOverlappedShapedPlacement(
+            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
+            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
+        {
+            if (inventory == null)
+                return null;
+
+            var covered = inventory.GetCoveredCells(anchorIndex, shape, orientation);
+            if (covered == null)
+                return null;
+
+            for (int i = 0; i < covered.Count; i++)
+            {
+                var placement = inventory.GetPlacementAt(covered[i]);
+                if (IsMergeablePlacement(placement, sourcePlacement, item))
+                    return placement;
+            }
+
+            return null;
         }
 
         protected static bool TryMergeIntoSlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)

@@ -543,24 +543,32 @@ namespace UDND.Inventories
                 return true;
             }
 
-            // C3 (ShapedStacking-Plan.md): before planning a NEW placement, check whether this shaped
-            // item should merge into an EXISTING placement of the same id (strategy-driven):
-            //   - Stackable (one-per-ID): auto-merge into the single existing placement, wherever it is.
-            //   - SeparableStacks: merge only when the dropped footprint overlaps an existing same-id placement.
-            //   - Unique: never merge.
-            var sourcePlacementForMerge = ReferenceEquals(targetInventory, entry.SourceInventory)
+            // ShapedStacking-Plan.md (C3/C8): the STRATEGY owns the shaped merge policy (one-per-ID,
+            // auto vs explicit). The planner only asks and acts on the result — it knows nothing about
+            // strategy internals or toggles.
+            var acceptanceStrategy = ResolveAcceptanceStrategy(targetInventory);
+            var sourcePlacement = ReferenceEquals(targetInventory, entry.SourceInventory)
                 ? entry.SourcePlacement
                 : null;
-            if (TryResolveShapedMergeTarget(
-                    targetPlacementInventory, targetItem, anchorIndex, shape, entry.Orientation,
-                    sourcePlacementForMerge, out var mergeTarget))
+            var mergeDecision = acceptanceStrategy?.ResolveShapedMerge(
+                    targetPlacementInventory, targetItem, anchorIndex, shape, entry.Orientation, sourcePlacement)
+                ?? ShapedMergeDecision.CreateNew;
+
+            if (mergeDecision.Kind == ShapedMergeKind.Reject)
             {
+                plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Item already exists (one-per-ID); drop onto the existing stack to merge");
+                return true;
+            }
+
+            if (mergeDecision.Kind == ShapedMergeKind.MergeIntoExisting && mergeDecision.MergeTarget != null)
+            {
+                var mergeTarget = mergeDecision.MergeTarget;
                 int mergeMaxStack = GetMaxStackSize(targetInventory, targetItem);
                 if (mergeMaxStack <= 0) mergeMaxStack = int.MaxValue;
                 int mergeCapacity = mergeMaxStack - mergeTarget.Stack.Count;
                 if (mergeCapacity <= 0)
                 {
-                    // one-per-ID / target stack full: no second placement of the same shaped item.
+                    // target stack full: cannot accept more of this shaped item here.
                     plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Existing stack of this shaped item is full");
                     return true;
                 }
@@ -596,6 +604,8 @@ namespace UDND.Inventories
                         mergeIntoExisting: true));
                 return true;
             }
+
+            // mergeDecision.Kind == CreateNew → fall through to the new-placement geometry path below.
 
             var acceptanceRequest = new InventoryAcceptanceRequest(
                 targetInventory,
@@ -668,73 +678,6 @@ namespace UDND.Inventories
                     shape,
                     placeAmount));
             return true;
-        }
-
-        /// <summary>
-        /// Strategy-driven detection of an existing placement that a shaped drop should merge into
-        /// (instead of creating a new placement). See ShapedStacking-Plan.md (C3).
-        /// </summary>
-        private static bool TryResolveShapedMergeTarget(
-            IPlacementInventory placementInventory,
-            IItemAdapter targetItem,
-            int anchorIndex,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            Placement sourcePlacement,
-            out Placement mergeTarget)
-        {
-            mergeTarget = null;
-            if (placementInventory == null || targetItem == null)
-                return false;
-
-            var strategy = placementInventory.PlacementStrategy;
-            bool separable = strategy is ISeparableStacksInventoryStrategy;
-            bool stackBased = strategy is IStackBasedInventoryStrategy;
-
-            // Unique / non-stacking strategies never merge shaped placements.
-            if (!separable && !stackBased)
-                return false;
-
-            if (separable)
-            {
-                // Explicit merge: only when the dropped footprint overlaps an existing same-id placement.
-                var covered = placementInventory.GetCoveredCells(anchorIndex, shape, orientation);
-                if (covered != null)
-                {
-                    for (int i = 0; i < covered.Count; i++)
-                    {
-                        var pl = placementInventory.GetPlacementAt(covered[i]);
-                        if (IsMergeablePlacement(pl, sourcePlacement, targetItem))
-                        {
-                            mergeTarget = pl;
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-
-            // Stackable (one-per-ID): auto-merge into the single existing same-id placement, wherever it sits.
-            foreach (var pl in placementInventory.Placements)
-            {
-                if (IsMergeablePlacement(pl, sourcePlacement, targetItem))
-                {
-                    mergeTarget = pl;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool IsMergeablePlacement(Placement placement, Placement sourcePlacement, IItemAdapter targetItem)
-        {
-            return placement != null &&
-                   !ReferenceEquals(placement, sourcePlacement) &&
-                   placement.Stack != null &&
-                   !placement.Stack.IsEmpty &&
-                   placement.Stack.CanStack(targetItem);
         }
 
         private static bool TryPlanOccupiedSlotHandler(

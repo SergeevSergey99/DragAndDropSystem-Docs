@@ -183,6 +183,13 @@ namespace UDND.Inventories
             return _acceptanceStrategy.GetAcceptableCount(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
         }
 
+        public ShapedMergeDecision ResolveShapedMerge(
+            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
+            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
+        {
+            return _acceptanceStrategy.ResolveShapedMerge(inventory, item, anchorIndex, shape, orientation, sourcePlacement);
+        }
+
         public void SetMaxStackSize(int maxStackSize, bool allowItemOverride)
         {
             _baseStrategy.SetMaxStackSize(maxStackSize, allowItemOverride);

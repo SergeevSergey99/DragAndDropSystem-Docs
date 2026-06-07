@@ -19,6 +19,18 @@ namespace UDND.Inventories
         private int GetMaxStackSize(IItemAdapter itemAdapter) =>
             GetMaxStackSize(itemAdapter, DefaultMaxStackSize, AllowItemStackOverride);
 
+        // Separable: explicit merge only — a shaped drop merges only when its footprint overlaps an existing
+        // same-item placement; otherwise it creates a new, separate placement (multiple stacks allowed).
+        public override ShapedMergeDecision ResolveShapedMerge(
+            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
+            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
+        {
+            var overlapped = FindOverlappedShapedPlacement(inventory, item, anchorIndex, shape, orientation, sourcePlacement);
+            return overlapped != null
+                ? ShapedMergeDecision.Merge(overlapped)
+                : ShapedMergeDecision.CreateNew;
+        }
+
         public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
         {
             if (stack == null || stack.IsEmpty)

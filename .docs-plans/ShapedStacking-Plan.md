@@ -207,7 +207,38 @@
   гекс-координаты.
 - Убрать частные ветвления `_useGridTopology`/collapse там, где их заменяет топология.
 
-### C8 — Переключатель merge-режима у стратегии
+> **Статус C8: ПЕРЕДЕЛАН (после баг-репорта).** Баг: новый bool `_autoMergeStacks = true` на стратегии,
+> сериализованной через `[SerializeReference]`, десериализовался в `false` на уже существующих инвентарях
+> (инициализатор поля игнорируется для managed references) → «merge ON» по факту был OFF → дубликат
+> возвращался. Также `AutoMergeIntoExistingStack` на базе + чтение флага в планировщике — это был костыль.
+>
+> **Новая архитектура (без публичного флага, вся merge-логика в стратегии):**
+> - `StackableItemStrategy._explicitMergeOnly` — **приватное** сериализованное поле, **инвертированное**
+>   (default/unset = `false` = auto-merge ON → сериализационно-безопасно). Никаких public getter/setter.
+> - Merge-решение принимает **сама стратегия**: `IAcceptanceStrategy.ResolveShapedMerge(...) → ShapedMergeDecision`
+>   (`CreateNew` / `MergeIntoExisting(placement)` / `Reject`). База/Unique → CreateNew; Separable → overlap-or-new;
+>   Stackable → one-per-ID + (auto anywhere | explicit overlap | reject) по приватному полю. `DynamicSlotDecorator`
+>   пробрасывает. Планировщик только зовёт `ResolveShapedMerge` и действует — **не знает про флаги/типы стратегий**.
+> - Удалены planner-хелперы `TryResolveShapedMergeTarget`/`ForbidsSecondShapedPlacement`/`IsMergeablePlacement`
+>   (логика ушла в `InventoryStrategyBase` как protected-хелперы). Single-cell путь — `GetSlotCandidates` читает
+>   `_explicitMergeOnly` напрямую (внутри стратегии).
+> - Тесты ставят режим через reflection (`_explicitMergeOnly`), т.к. публичного API нет.
+>
+> --- старая (ошибочная) заметка ниже ---
+> **Статус C8: СДЕЛАН.** Переключатель — **только у `StackableItemStrategy`** (по решению пользователя):
+> `[SerializeField] _autoMergeStacks = true` + `AutoMergeStacks`/`SetAutoMergeStacks`. Базовый
+> `StackBasedInventoryStrategyBase.AutoMergeIntoExistingStack` (virtual, default `false` = explicit);
+> Stackable override → `_autoMergeStacks`; Separable наследует false (не трогаем).
+> - **ON (default):** текущее поведение — авто-консолидация дубликата в единственный стек где бы ни бросили.
+> - **OFF:** строгий one-per-ID — слияние только при явном дропе на сам стек; дубликат в пустое/area/auto-transfer → reject.
+> Реализация: `StackableItemStrategy.GetSlotCandidates` при OFF и существующем предмете → `None` (нет авто-консолидации
+> в system-distribution; явный hint-путь сливает); `TransferPlanner.TryResolveShapedMergeTarget` выбирает
+> «anywhere» (ON) vs «overlap-only» (OFF/Separable) по `AutoMergeIntoExistingStack`; добавлен гард
+> `ForbidsSecondShapedPlacement` — one-per-ID стратегия не открывает второе размещение при drop-away (OFF).
+> Тесты: unit `GetSlotCandidates_AutoMergeOff_*` (StackableItemStrategyTests) + grid `…AutoMergeOff_DropAway_Rejects`/
+> `…AutoMergeOff_DropOntoExisting_Merges` (ShapedItemPlacementTests). Существующие C3/C4 тесты (ON/Separable) сохранены.
+
+### C8 — Переключатель merge-режима у стратегии (исходный замысел)
 - Сериализуемая опция (напр. `AutoMergeStacks`) у `StackBasedInventoryStrategyBase`: авто-слияние vs только-явное,
   одинаково для shaped и одноклеточных. Defaults: Stackable=auto, SeparableStacks=explicit (поведение C1-C6
   сохраняется).

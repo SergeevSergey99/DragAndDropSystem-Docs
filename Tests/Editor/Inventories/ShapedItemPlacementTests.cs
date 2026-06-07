@@ -1365,6 +1365,73 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_ShapedGridToGrid_StackableAutoMergeOff_DropAway_Rejects()
+        {
+            // C8: Stackable with auto-merge OFF does not auto-consolidate. Dropping a duplicate away from
+            // the existing placement neither merges nor opens a second placement (strict one-per-ID) → reject.
+            var strategy = new StackableItemStrategy();
+            SetExplicitMergeOnly(strategy);
+
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(strategy).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsFalse(summary.Success, "Auto-merge OFF + drop away → reject");
+                Assert.IsNull(target.GetPlacementAt(3), "No second placement");
+                Assert.AreEqual(1, target.GetPlacementAt(0).Stack.Count, "Existing stack untouched");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridToGrid_StackableAutoMergeOff_DropOntoExisting_Merges()
+        {
+            // C8: even with auto-merge OFF, an explicit drop ONTO the existing placement merges.
+            var strategy = new StackableItemStrategy();
+            SetExplicitMergeOnly(strategy);
+
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(strategy).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                // Drop ONTO the existing placement's anchor cell 0 (footprint overlap).
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(2, target.GetPlacementAt(0).Stack.Count);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedSlotToOccupiedSameId_Merges()
         {
             // C7 (ShapedStacking-Plan.md): on a slot (collapse-to-anchor) inventory a shaped item occupies
@@ -2169,6 +2236,15 @@ namespace UDND.Tests.Inventories
             var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.IsNotNull(field, $"Field {fieldName} must exist");
             field.SetValue(target, value);
+        }
+
+        // The auto-merge toggle is a private serialized field with no public accessor (config via inspector).
+        // Tests force explicit-merge-only via reflection.
+        private static void SetExplicitMergeOnly(StackableItemStrategy strategy)
+        {
+            typeof(StackableItemStrategy)
+                .GetField("_explicitMergeOnly", BindingFlags.NonPublic | BindingFlags.Instance)
+                .SetValue(strategy, true);
         }
 
         private sealed class ShapeAdapter : IItemAdapter, IItemPlacementShapeProvider
