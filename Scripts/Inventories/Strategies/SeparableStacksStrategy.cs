@@ -6,10 +6,11 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Heroes of Might & Magic style strategy
-    /// Items can stack but do NOT merge automatically
-    /// Multiple stacks of the same item can exist in different slots
-    /// Merge happens only on explicit drop onto the same item.
+    /// Heroes of Might & Magic style strategy.
+    /// Items can stack but do NOT merge automatically. Multiple stacks of the same item can exist in different
+    /// slots/placements; each stack (including a shaped placement) may hold count &gt; 1, capped by the limit.
+    /// Merge happens only on an explicit drop onto the same item (for shaped items: when the dropped footprint
+    /// overlaps an existing same-item placement); otherwise a new separate stack/placement is created.
     /// Supports the strategy default limit and,
     /// when allowItemOverride = true, per-item stack limits via IStackSizeLimitable
     /// </summary>

@@ -61,23 +61,28 @@ Use cases:
 
 ## StackableItemStrategy
 
-Behavior:
-- automatic merging of same items
-- can also place into empty slots
+Behavior (one-per-ID):
+- at most ONE logical stack location per item ID (a slot, or a placement for shaped items)
+- that stack may hold count > 1 (including shaped placements), capped by the strategy / per-item limit
+- auto-merge (default): a duplicate dropped anywhere consolidates into the existing stack
+- explicit-merge-only (private `_explicitMergeOnly`, inverted serialized field so default = auto-merge):
+  the stack grows only on an explicit drop onto it; a duplicate dropped elsewhere is rejected
+- for multiple separate stacks of the same item, use `SeparableStacksStrategy`
 
 Location:
 - `Scripts/Inventories/Strategies/StackableItemStrategy.cs`
 
 How it works:
-1. fill existing matching stacks
-2. create new stack in empty slot if needed
-3. validate each candidate through rules
-4. merge/split preserve actual adapter lists inside stacks
+1. `GetSlotCandidates`: item present → only its logical location (auto-merge); explicit-only → None
+2. item absent → empty slot (+ new slot capability)
+3. `TryAddToSlot` into an empty slot while the item exists: auto-merge → consolidate into the existing
+   stack; explicit-only → reject (this is what stops a duplicate from bouncing back on an empty-slot drop)
+4. validate each candidate through rules; merge/split preserve actual adapter lists inside stacks
 
-Current preview behavior:
-- uses `InventoryAcceptanceRequest`
-- validates merge candidates and empty candidates through real slot rules
-- when dynamic slots are allowed, prefab-slot rules are checked before reporting acceptable count
+Shaped placements:
+- the merge-vs-new/reject decision is owned by the strategy via `IAcceptanceStrategy.ResolveShapedMerge(...)`
+  (auto → merge into the single existing placement anywhere; explicit-only → merge only on footprint overlap,
+  else reject). The planner only asks and acts — it never reads strategy flags or sniffs strategy types.
 
 Use cases:
 - resources
@@ -87,16 +92,17 @@ Use cases:
 ## SeparableStacksStrategy
 
 Behavior:
-- multiple stacks of the same item are allowed
-- merge only on explicit drop when `_allowMergeOnDrop` is enabled
+- multiple stacks/placements of the same item are allowed
+- each stack (including a shaped placement) may hold count > 1, capped by the limit
+- merge only on explicit drop onto the same item; otherwise a new separate stack/placement is created
 
 Location:
 - `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs`
 
 How it works:
 - explicit drop to empty slot creates a new stack
-- explicit drop to same-item occupied slot merges only if `_allowMergeOnDrop`
-- programmatic add prefers creating a new stack instead of auto-merging all the time
+- explicit drop to a same-item occupied slot merges into it
+- shaped: `ResolveShapedMerge` merges only when the dropped footprint overlaps a same-item placement, else new
 - merge/split preserve actual adapter lists inside stacks
 
 Current preview behavior:

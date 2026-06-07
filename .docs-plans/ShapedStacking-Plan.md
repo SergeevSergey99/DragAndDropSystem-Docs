@@ -243,6 +243,18 @@
   одинаково для shaped и одноклеточных. Defaults: Stackable=auto, SeparableStacks=explicit (поведение C1-C6
   сохраняется).
 
+> **Статус C9: в основном СДЕЛАН (код/доки); демо — за пользователем (нужен Unity).**
+> - Тесты: shaped merge/split/one-per-ID/auto-vs-explicit покрыты в `ShapedItemPlacementTests` и
+>   `StackableItemStrategyTests` по ходу C1–C8.
+> - Доки классов: `StackableItemStrategy` (one-per-ID + count>1 + auto/explicit toggle) и
+>   `SeparableStacksStrategy` (несколько стеков, count>1, explicit merge) обновлены.
+> - Скилл `dragdrop-architecture/STRATEGIES.md` актуализирован (убран несуществующий `_allowMergeOnDrop`;
+>   описаны one-per-ID, count>1, shaped, `ResolveShapedMerge` как strategy-owned решение).
+> - Побочно (вне shaped-stacking, всплыло на прогоне C9): фикс робастности `DragVisualPresenter` — пул визуалов
+>   (MonoSingleton) больше не отдаёт уничтоженные инстансы (само-восстановление + `IsAlive`-guard'ы).
+> - **Осталось пользователю:** прогон полного набора тестов + ручная проверка демо-сцен (grid/slot shaped stacking,
+>   merge ON/OFF, move/split) в Unity.
+
 ### C9 — Тесты / демо / доки / скиллы
 - Полный набор тестов shaped-стекинга по стратегиям; обновить доку классов стратегий, `dragdrop-architecture` и др.
   скиллы; проверить демо `Examples/Demo1 Inventories/InventoriesDemo.unity`.

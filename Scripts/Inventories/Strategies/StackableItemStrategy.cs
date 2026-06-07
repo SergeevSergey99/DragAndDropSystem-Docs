@@ -8,12 +8,16 @@ namespace UDND.Inventories
 {
     /// <summary>
     /// Strategy: items are stackable (grouped by type), one logical stack location per item ID (one-per-ID).
-    /// A logical location is a slot for normal inventories and a placement for shaped inventories.
-    /// If the item is already present in the inventory, only that location accepts more of it.
-    /// If the item is absent, it is placed into a single empty slot/placement (no overflow across locations).
-    /// For multi-slot overflow of the same item use <see cref="SeparableStacksStrategy"/>.
-    /// Supports the strategy default limit and,
-    /// when allowItemOverride = true, per-item limits via IStackSizeLimitable.
+    /// A logical location is a slot for normal inventories and a placement for shaped inventories; its stack may
+    /// hold more than one item (count &gt; 1), capped by the strategy / per-item limit — including shaped placements.
+    /// <para>
+    /// Auto-merge (default): a duplicate dropped anywhere (area-drop, auto-transfer, an empty slot, or a free grid
+    /// region) consolidates into the single existing stack. Explicit-merge-only (<c>_explicitMergeOnly</c>): the
+    /// stack grows only on an explicit drop directly onto it; a duplicate dropped elsewhere is rejected (no second
+    /// stack of the same item).
+    /// </para>
+    /// For multiple separate stacks of the same item use <see cref="SeparableStacksStrategy"/>.
+    /// Supports the strategy default limit and, when allowItemOverride = true, per-item limits via IStackSizeLimitable.
     /// </summary>
     [Serializable]
     public class StackableItemStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy
