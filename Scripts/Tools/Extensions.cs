@@ -6,13 +6,13 @@ namespace UDND.Tools
     {
         public static void DragAndDropLog(string message)
         {
-#if UNITY_EDITOR && UNIVERSAL_INVENTORY_LOG
+#if UNITY_EDITOR && UDND_LOG
             Debug.Log($"<color=cyan>[UDND]</color> {message}");
 #endif
         }
         public static void DragAndDropLogWarning(string message)
         {
-#if UNITY_EDITOR && UNIVERSAL_INVENTORY_LOG
+#if UNITY_EDITOR && UDND_LOG
             Debug.LogWarning($"<color=cyan>[UDND]</color> {message}");
 #endif
         }
