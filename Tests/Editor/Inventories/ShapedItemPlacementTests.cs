@@ -1365,6 +1365,78 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_ShapedStackIntoUniqueGrid_PlacesOnlyOne()
+        {
+            // Unique caps a shaped placement at count 1, even when a count > 1 stack is dropped in.
+            var source = new InventoryBuilder().WithStrategy(new StackableItemStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                Assert.AreEqual(3, entry.Stack.Count);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(1, summary.TransferredAmount, "Unique grid accepts exactly one");
+                Assert.AreEqual(1, target.GetPlacementAt(0).Stack.Count, "Unique never holds count > 1");
+                Assert.AreEqual(2, source.GetPlacementAt(0).Stack.Count, "Remainder stays in source (partial)");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedStack_MergePartial_RespectsMaxStack()
+        {
+            // AllowPartial: merging a count > 1 stack into an existing shaped stack stops at maxStack;
+            // the overflow is returned to the source.
+            var strategy = new StackableItemStrategy();
+            strategy.SetMaxStackSize(2, allowItemOverride: false);
+
+            var source = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(3, 2).Build();
+            var target = new InventoryBuilder().WithStrategy(strategy).WithFixedSlots(6).WithGridTopology(3, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(ItemStackBuilder.Of(
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1),
+                    new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+
+                var dragSlot = source.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context);
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual(1, summary.TransferredAmount, "Only the maxStack room (1) merges");
+                Assert.AreEqual(2, target.GetPlacementAt(0).Stack.Count, "Target filled to maxStack");
+                Assert.AreEqual(2, source.GetPlacementAt(0).Stack.Count, "Overflow returned to source");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedGridToGrid_StackableAutoMergeOff_DropAway_Rejects()
         {
             // C8: Stackable with auto-merge OFF does not auto-consolidate. Dropping a duplicate away from

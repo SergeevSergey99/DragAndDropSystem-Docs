@@ -17,6 +17,10 @@ namespace UDND.Inventories
         public override bool RequiresStrategyPlacement(ItemStack stack) => stack != null && !stack.IsEmpty && stack.Count > 1;
         public override bool UsesPerItemSlotPlanning => true;
 
+        // Unique items never stack: one per slot/placement (count 1), including shaped placements.
+        // Without this the planner would read int.MaxValue from the base and allow count > 1 on the shaped path.
+        public override int GetMaxStackSizeForItem(IItemAdapter itemAdapter) => itemAdapter == null ? 0 : 1;
+
         public override bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
             if (baseSlot == null || itemAdapter == null)
