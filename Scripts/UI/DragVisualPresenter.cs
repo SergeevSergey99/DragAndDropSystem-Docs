@@ -139,7 +139,7 @@ namespace UDND.UI
             for (int i = 0; i < _activeVisuals.Count; i++)
             {
                 var visual = _activeVisuals[i];
-                if (visual.Instance == null || visual.Index >= context.Entries.Count)
+                if (visual.Instance == null || !visual.Instance.IsAlive || visual.Index >= context.Entries.Count)
                     continue;
 
                 var entryPayload = new List<DragEntry>(1) { context.Entries[visual.Index] };
@@ -157,7 +157,7 @@ namespace UDND.UI
             for (int i = 0; i < _activeVisuals.Count; i++)
             {
                 var visual = _activeVisuals[i];
-                if (visual.Instance == null)
+                if (visual.Instance == null || !visual.Instance.IsAlive)
                     continue;
 
                 visual.Instance.View.Hide();
@@ -185,6 +185,17 @@ namespace UDND.UI
                     return null;
 
                 pool.Add(instance);
+            }
+
+            // The pool is owned by this singleton and persists across scene loads / teardown, so a pooled
+            // instance may already be destroyed. Re-instantiate stale entries — never hand out a dead visual.
+            if (pool[index] == null || !pool[index].IsAlive)
+            {
+                var replacement = InstantiateVisual(visualPrefab);
+                if (replacement == null)
+                    return null;
+
+                pool[index] = replacement;
             }
 
             return pool[index];
@@ -215,7 +226,7 @@ namespace UDND.UI
             for (int i = 0; i < total; i++)
             {
                 var activeVisual = _activeVisuals[i];
-                if (activeVisual.Instance == null)
+                if (activeVisual.Instance == null || !activeVisual.Instance.IsAlive)
                     continue;
 
                 Vector2 screenPosition = anchorScreenPosition + ResolveBatchOffset(activeVisual.Index, total);
@@ -315,6 +326,9 @@ namespace UDND.UI
             public IDragVisual View { get; }
             public Vector3 BaseScale { get; }
             public Transform Transform => Behaviour != null ? Behaviour.transform : null;
+
+            /// <summary>False once the underlying Unity object has been destroyed (Unity overloaded ==).</summary>
+            public bool IsAlive => Behaviour != null;
         }
 
         private readonly struct ActiveVisual
