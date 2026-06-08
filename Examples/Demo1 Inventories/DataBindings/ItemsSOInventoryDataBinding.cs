@@ -34,6 +34,7 @@ namespace UDND.Examples.General
         protected override void AddToData(ItemAdapterSoAdapter adapter) => items.Add(adapter.item);
         protected override void RemoveFromData(ItemAdapterSoAdapter adapter) => items.Remove(adapter.item);
 
+        public IReadOnlyList<ItemExampleSO> Items => items;
         /// <summary>
         /// EXAMPLE: Override of drag-start validation
         /// Custom logic can be added here, for example:
