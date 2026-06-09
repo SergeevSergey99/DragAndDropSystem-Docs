@@ -681,11 +681,19 @@ namespace UDND.Inventories
                 return false;
             }
 
-            // Capture snapshots for rollback
+            // Swap vacates both placements before re-placing the cross items, so a failure mid-way
+            // would lose data without rollback. Require snapshot capability up front rather than
+            // mutating an inventory we cannot restore.
             var sourceSnapshotProvider = sourceInventory as IInventorySnapshotProvider;
             var targetSnapshotProvider = targetInventory as IInventorySnapshotProvider;
-            var sourceSnapshot = sourceSnapshotProvider?.CaptureSnapshot();
-            var targetSnapshot = targetSnapshotProvider?.CaptureSnapshot();
+            if (sourceSnapshotProvider == null || targetSnapshotProvider == null)
+            {
+                failureReason = "Swap requires snapshot-capable inventories for atomic rollback";
+                return false;
+            }
+
+            var sourceSnapshot = sourceSnapshotProvider.CaptureSnapshot();
+            var targetSnapshot = targetSnapshotProvider.CaptureSnapshot();
 
             try
             {
@@ -701,10 +709,22 @@ namespace UDND.Inventories
                     return false;
                 }
 
+                // Capture the real footprints of the items being removed BEFORE mutating, so the
+                // item-removed events carry correct geometry (resolving lazily after the swap would
+                // read the incoming item's footprint instead).
+                var sourceRemovedSnapshot = PlacementSnapshot.FromPlacement(sourcePlacement, sourcePlacementInventory.GetSlot);
+                var targetRemovedSnapshot = PlacementSnapshot.FromPlacement(targetPlacement, targetPlacementInventory.GetSlot);
+
                 // Vacate both footprints first so the cross placements have room even when they
                 // overlap (same-inventory swap) or differ in size/shape.
-                sourcePlacementInventory.RemovePlacement(sourcePlacement);
-                targetPlacementInventory.RemovePlacement(targetPlacement);
+                if (!sourcePlacementInventory.RemovePlacement(sourcePlacement) ||
+                    !targetPlacementInventory.RemovePlacement(targetPlacement))
+                {
+                    failureReason = "Failed to vacate swap placements";
+                    RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                        targetInventory, targetSnapshotProvider, targetSnapshot);
+                    return false;
+                }
 
                 // Clone converted stacks for placement (placement copies from the stack).
                 var forwardStack = CloneStack(swapData.TargetStackAfter);
@@ -714,7 +734,7 @@ namespace UDND.Inventories
                 // honoring its own shape/orientation (footprint resolved by the target's topology).
                 var forwardRequest = new PlacementRequest(
                     forwardStack, swapData.ForwardAnchorIndex, swapData.ForwardOrientation, swapData.ForwardShape);
-                if (!targetPlacementInventory.TryPlace(forwardRequest, out _))
+                if (!targetPlacementInventory.TryPlace(forwardRequest, out var forwardPlacement))
                 {
                     failureReason = "Failed to place source items into target inventory";
                     RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
@@ -725,7 +745,7 @@ namespace UDND.Inventories
                 // Reverse: place the target item into the source inventory at the source anchor.
                 var reverseRequest = new PlacementRequest(
                     reverseStack, swapData.ReverseAnchorIndex, swapData.ReverseOrientation, swapData.ReverseShape);
-                if (!sourcePlacementInventory.TryPlace(reverseRequest, out _))
+                if (!sourcePlacementInventory.TryPlace(reverseRequest, out var reversePlacement))
                 {
                     failureReason = "Failed to place target items into source inventory";
                     RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
@@ -740,7 +760,11 @@ namespace UDND.Inventories
                     CloneStack(swapData.TargetStackBefore),
                     CloneStack(swapData.SourceStackBefore),
                     CloneStack(swapData.TargetStackAfter),
-                    CloneStack(swapData.SourceStackAfter));
+                    CloneStack(swapData.SourceStackAfter),
+                    targetRemovedSnapshot,
+                    sourceRemovedSnapshot,
+                    PlacementSnapshot.FromPlacement(forwardPlacement, targetPlacementInventory.GetSlot),
+                    PlacementSnapshot.FromPlacement(reversePlacement, sourcePlacementInventory.GetSlot));
                 return true;
             }
             catch (Exception ex)
@@ -1242,14 +1266,16 @@ namespace UDND.Inventories
                         outcome.TargetBaseSlot.Index,
                         outcome.SourceInventory,
                         outcome.TargetBaseSlot,
-                        outcome.SourceBaseSlot);
+                        outcome.SourceBaseSlot,
+                        outcome.SwapResult.TargetRemovedSnapshot);
 
                     targetEventSink.EmitItemAdded(
                         outcome.SwapResult.TargetStackAfter,
                         outcome.TargetBaseSlot.Index,
                         outcome.SourceInventory,
                         outcome.SourceBaseSlot,
-                        outcome.TargetBaseSlot);
+                        outcome.TargetBaseSlot,
+                        outcome.SwapResult.TargetAddedSnapshot);
                 }
 
                 if (outcome.SourceInventory is IInventoryEventSink sourceEventSink &&
@@ -1261,14 +1287,16 @@ namespace UDND.Inventories
                         outcome.SourceBaseSlot.Index,
                         outcome.TargetInventory,
                         outcome.SourceBaseSlot,
-                        outcome.TargetBaseSlot);
+                        outcome.TargetBaseSlot,
+                        outcome.SwapResult.SourceRemovedSnapshot);
 
                     sourceEventSink.EmitItemAdded(
                         outcome.SwapResult.SourceStackAfter,
                         outcome.SourceBaseSlot.Index,
                         outcome.TargetInventory,
                         outcome.TargetBaseSlot,
-                        outcome.SourceBaseSlot);
+                        outcome.SourceBaseSlot,
+                        outcome.SwapResult.SourceAddedSnapshot);
                 }
 
                 options?.SwapCompleted?.Invoke(outcome.SwapContext);

@@ -1507,6 +1507,20 @@ namespace UDND.Inventories
                     reverseRequest, sourcePlacement, sameInventory ? targetPlacement : null))
                 return null;
 
+            // Same-inventory swap: each side was validated against a board with BOTH placements
+            // vacated, so the two checks can pass while the resulting footprints overlap each other
+            // (e.g. a small item and a larger one whose new anchor extends back over the small one).
+            // The executor would then roll back at commit; reject up front instead.
+            if (sameInventory)
+            {
+                var forwardCells = targetPlacementInventory.GetCoveredCells(
+                    forwardAnchorIndex, forwardShape, forwardOrientation);
+                var reverseCells = sourcePlacementInventory.GetCoveredCells(
+                    reverseAnchorIndex, reverseShape, reverseOrientation);
+                if (CoveredCellsIntersect(forwardCells, reverseCells))
+                    return null;
+            }
+
             var swapData = new PlannedSwapData(
                 sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter,
                 forwardAnchorIndex, forwardOrientation, forwardShape,
@@ -1522,6 +1536,19 @@ namespace UDND.Inventories
                 swapTargetBaseSlot: swapTargetBaseSlot,
                 previewTargetItemAdapter: targetItem,
                 swapData: swapData);
+        }
+
+        private static bool CoveredCellsIntersect(IReadOnlyList<int> a, IReadOnlyList<int> b)
+        {
+            if (a == null || b == null || a.Count == 0 || b.Count == 0)
+                return false;
+
+            for (int i = 0; i < a.Count; i++)
+                for (int j = 0; j < b.Count; j++)
+                    if (a[i] == b[j])
+                        return true;
+
+            return false;
         }
 
         private bool IsCandidateAllowedByRules(

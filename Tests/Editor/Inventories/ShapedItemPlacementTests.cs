@@ -2264,6 +2264,48 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        [Test]
+        public void TryPlanSwapAgainstTarget_SameInventory_OverlappingResultFootprints_IsRejected()
+        {
+            // In one 4x1 grid: a 1x1 at cell 0 and a 3x1 anchored at cell 1 (covers 1,2,3).
+            // Each side fits when both are vacated, but the swapped footprints overlap (the 3x1 moving
+            // to anchor 0 would cover cell 1, where the 1x1 now sits), so the swap must be rejected
+            // up front rather than failing at commit.
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .WithGridTopology(4, 1)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new FakeItemAdapter("coin")), 0)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("rod", 3, 1)), 1)));
+
+                var sourceSlot = inventory.GetSlot(0);
+                var targetSlot = inventory.GetSlot(1);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, inventory);
+                var context = new DragContext(new[] { entry });
+
+                var planner = new TransferPlanner();
+                var planned = InvokeTryPlanSwapAgainstTarget(
+                    planner,
+                    context,
+                    entry,
+                    inventory,
+                    targetSlot,
+                    requested: 1,
+                    targetItem: entry.Stack.PrimaryAdapter);
+
+                Assert.IsNull(planned, "Overlapping same-inventory swap footprints must be rejected");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         private static IReadOnlyList<int> LegacyRequireAllCoveredCells(
             int anchorIndex,
             Vector2Int size,
