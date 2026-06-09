@@ -4,7 +4,7 @@ using CodeUtils;
 using UnityEngine;
 using UDND.Tools.Inspector;
 
-namespace UDND.Examples.Minecraft
+namespace UDND.Examples.Craft
 {
     public class CraftingManager : MonoSingleton<CraftingManager>
     {
@@ -34,14 +34,14 @@ namespace UDND.Examples.Minecraft
         /// <summary>Crafting table data changed (ingredients were consumed).</summary>
         public event Action OnCraftTableChanged;
         
-        public bool CanAddHotbarItem(MinecraftItemSO item, int count, int index) =>
+        public bool CanAddHotbarItem(CraftItemSO item, int count, int index) =>
             _hotbarItems[index] == null || (_hotbarItems[index].ItemSO == item && _hotbarItems[index].Count + count <= MaxItemsPerSlot);
-        public bool CanAddInventoryItem(MinecraftItemSO item, int count, int index) =>
+        public bool CanAddInventoryItem(CraftItemSO item, int count, int index) =>
             _inventoryItems[index] == null || (_inventoryItems[index].ItemSO == item && _inventoryItems[index].Count + count <= MaxItemsPerSlot);
-        public bool CanAddCraftTableItem(MinecraftItemSO item, int count, int index) =>
+        public bool CanAddCraftTableItem(CraftItemSO item, int count, int index) =>
             _craftTableItems[index] == null || (_craftTableItems[index].ItemSO == item && _craftTableItems[index].Count + count <= MaxItemsPerSlot);
         
-        public bool TryAddHotbarItem(MinecraftItemSO item, int count, int index)
+        public bool TryAddHotbarItem(CraftItemSO item, int count, int index)
         {
             if (!CanAddHotbarItem(item, count, index))
                 return false;
@@ -54,7 +54,7 @@ namespace UDND.Examples.Minecraft
             return true;
         }
 
-        public bool TryAddInventoryItem(MinecraftItemSO item, int count, int index)
+        public bool TryAddInventoryItem(CraftItemSO item, int count, int index)
         {
             if (!CanAddInventoryItem(item, count, index))
                 return false;
@@ -66,7 +66,7 @@ namespace UDND.Examples.Minecraft
             return true;
         }
 
-        public bool TryAddCraftTableItem(MinecraftItemSO item, int count, int index)
+        public bool TryAddCraftTableItem(CraftItemSO item, int count, int index)
         {
             if (!CanAddCraftTableItem(item, count, index))
                 return false;
@@ -79,28 +79,28 @@ namespace UDND.Examples.Minecraft
             return true;
         }
 
-        public bool CanRemoveHotbarItem(MinecraftItemSO item, int count, int index)
+        public bool CanRemoveHotbarItem(CraftItemSO item, int count, int index)
         {
             if (_hotbarItems[index] == null || _hotbarItems[index].ItemSO != item || _hotbarItems[index].Count < count)
                 return false;
             return true;
         }
 
-        public bool CanRemoveInventoryItem(MinecraftItemSO item, int count, int index)
+        public bool CanRemoveInventoryItem(CraftItemSO item, int count, int index)
         {
             if (_inventoryItems[index] == null || _inventoryItems[index].ItemSO != item || _inventoryItems[index].Count < count)
                 return false;
             return true;
         }
 
-        public bool CanRemoveCraftTableItem(MinecraftItemSO item, int count, int index)
+        public bool CanRemoveCraftTableItem(CraftItemSO item, int count, int index)
         {
             if (_craftTableItems[index] == null || _craftTableItems[index].ItemSO != item || _craftTableItems[index].Count < count)
                 return false;
             return true;
         }
         
-        public bool TryRemoveHotbarItem(MinecraftItemSO item, int count, int index)
+        public bool TryRemoveHotbarItem(CraftItemSO item, int count, int index)
         {
             if (!CanRemoveHotbarItem(item, count, index))
                 return false;
@@ -111,7 +111,7 @@ namespace UDND.Examples.Minecraft
             return true;
         }
 
-        public bool TryRemoveInventoryItem(MinecraftItemSO item, int count, int index)
+        public bool TryRemoveInventoryItem(CraftItemSO item, int count, int index)
         {
             if (!CanRemoveInventoryItem(item, count, index))
                 return false;
@@ -122,7 +122,7 @@ namespace UDND.Examples.Minecraft
             return true;
         }
 
-        public bool TryRemoveCraftTableItem(MinecraftItemSO item, int count, int index)
+        public bool TryRemoveCraftTableItem(CraftItemSO item, int count, int index)
         {
             if (!CanRemoveCraftTableItem(item, count, index))
                 return false;
@@ -140,7 +140,7 @@ namespace UDND.Examples.Minecraft
         /// </summary>
         public void RefreshCraftResult()
         {
-            var grid = new MinecraftItemSO[9];
+            var grid = new CraftItemSO[9];
             var counts = new int[9];
             for (int i = 0; i < 9; i++)
             {
@@ -179,7 +179,7 @@ namespace UDND.Examples.Minecraft
             if (craftsToConsume <= 0 || _currentRecipe == null)
                 return;
 
-            var grid = new MinecraftItemSO[9];
+            var grid = new CraftItemSO[9];
             for (int i = 0; i < 9; i++)
                 grid[i] = _craftTableItems[i]?.ItemSO;
 

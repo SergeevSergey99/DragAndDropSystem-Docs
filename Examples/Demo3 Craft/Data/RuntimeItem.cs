@@ -1,9 +1,9 @@
-﻿namespace UDND.Examples.Minecraft
+﻿namespace UDND.Examples.Craft
 {
     [System.Serializable]
     public class RuntimeItem
     {
-        public MinecraftItemSO ItemSO;
+        public CraftItemSO ItemSO;
         public int Count;
     }
 }

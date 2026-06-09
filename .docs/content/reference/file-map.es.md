@@ -346,21 +346,21 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 ---
 
-## Ejemplo: Demo3 Minecraft
+## Ejemplo: Demo3 Craft
 
 | File | Types | Rol |
 |---|---|---|
-| `Examples/Demo3 Minecraft/Data/MinecraftItemSO.cs` | `MinecraftItemSO` | Definición de item en ScriptableObject usada por la crafting demo. |
-| `Examples/Demo3 Minecraft/Data/RuntimeItem.cs` | `RuntimeItem` | Wrapper/model runtime del item usado por la demo donde hace falta. |
-| `Examples/Demo3 Minecraft/Adapters/MinecraftItemAdapterAdapter.cs` | `MinecraftItemAdapterAdapter` | Adapter que expone los items de la crafting demo a la UI del inventario. |
-| `Examples/Demo3 Minecraft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Definición serializada del patrón/grid de receta. |
-| `Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | Asset ScriptableObject de receta. |
-| `Examples/Demo3 Minecraft/Crafting/CraftingManager.cs` | `CraftingManager` | Controlador de dominio de la demo que evalúa recetas y mantiene el estado del resultado de craft. |
-| `Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs` | `MainInventoryDataBinding` | Binding del inventario principal del jugador. |
-| `Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs` | `HotbarDataBinding` | Binding del hotbar. |
-| `Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs` | `CraftTableDataBinding` | Binding de los slots de entrada de la crafting grid. |
-| `Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs` | `CraftResultDataBinding` | Binding orientado a lectura para el slot de salida del craft. |
-| `Examples/Demo3 Minecraft/Editor/CraftingRecipePatternPropertyDrawer.cs` | `CraftingRecipePatternPropertyDrawer` | Custom editor drawer para authoring de recipe patterns. |
+| `Examples/Demo3 Craft/Data/CraftItemSO.cs` | `CraftItemSO` | Definición de item en ScriptableObject usada por la crafting demo. |
+| `Examples/Demo3 Craft/Data/RuntimeItem.cs` | `RuntimeItem` | Wrapper/model runtime del item usado por la demo donde hace falta. |
+| `Examples/Demo3 Craft/Adapters/CraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Adapter que expone los items de la crafting demo a la UI del inventario. |
+| `Examples/Demo3 Craft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Definición serializada del patrón/grid de receta. |
+| `Examples/Demo3 Craft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | Asset ScriptableObject de receta. |
+| `Examples/Demo3 Craft/Crafting/CraftingManager.cs` | `CraftingManager` | Controlador de dominio de la demo que evalúa recetas y mantiene el estado del resultado de craft. |
+| `Examples/Demo3 Craft/DataBindings/MainInventoryDataBinding.cs` | `MainInventoryDataBinding` | Binding del inventario principal del jugador. |
+| `Examples/Demo3 Craft/DataBindings/HotbarDataBinding.cs` | `HotbarDataBinding` | Binding del hotbar. |
+| `Examples/Demo3 Craft/DataBindings/CraftTableDataBinding.cs` | `CraftTableDataBinding` | Binding de los slots de entrada de la crafting grid. |
+| `Examples/Demo3 Craft/DataBindings/CraftResultDataBinding.cs` | `CraftResultDataBinding` | Binding orientado a lectura para el slot de salida del craft. |
+| `Examples/Demo3 Craft/Editor/CraftingRecipePatternPropertyDrawer.cs` | `CraftingRecipePatternPropertyDrawer` | Custom editor drawer para authoring de recipe patterns. |
 
 ---
 

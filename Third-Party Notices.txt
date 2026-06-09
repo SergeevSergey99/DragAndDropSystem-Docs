@@ -53,7 +53,7 @@ Notes:
 - These images are used as sample/demo item icons.
 
 
-Minecraft / Block-Crafting Demo Placeholder Art
+Craft / Block-Crafting Demo Placeholder Art
 -----------------------------------------------
 
 Included files:
@@ -74,7 +74,7 @@ Included files:
 
 Related demo content:
 
-- Examples/Demo3 Minecraft/*
+- Examples/Demo3 Craft/*
 
 Owner / rights holder:
 

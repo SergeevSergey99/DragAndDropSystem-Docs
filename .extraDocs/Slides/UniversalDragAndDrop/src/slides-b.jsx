@@ -16,7 +16,7 @@ function Slide5() {
       </div>
     },
     {
-      n:'03', title:'Minecraft‑like', desc:'Slot‑indexed inventory, hotbar, and crafting flow.', col:'var(--accent-3)',
+      n:'03', title:'Craft‑like', desc:'Slot‑indexed inventory, hotbar, and crafting flow.', col:'var(--accent-3)',
       preview: <div style={{display:'flex', flexDirection:'column', gap:8}}>
         <Grid cols={3} rows={3} size={44} gap={4} cells={[{icon:'🪵'},{icon:'🪵'},null,{icon:'🪵'},{icon:'🪵'},null,null,null,null]}/>
       </div>

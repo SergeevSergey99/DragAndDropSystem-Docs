@@ -1726,27 +1726,27 @@ MonoBehaviour:
     - rid: -2
       type: {class: , ns: , asm: }
     - rid: 6676589208637538376
-      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      type: {class: RuntimeItem, ns: UDND.Examples.Craft, asm: UDND.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 14
     - rid: 6676589208637538377
-      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      type: {class: RuntimeItem, ns: UDND.Examples.Craft, asm: UDND.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 9
     - rid: 6676589208637538382
-      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      type: {class: RuntimeItem, ns: UDND.Examples.Craft, asm: UDND.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 60
     - rid: 8248672788823146508
-      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      type: {class: RuntimeItem, ns: UDND.Examples.Craft, asm: UDND.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: a4befa5b6ab93f540be7952443fbc67f, type: 2}
         Count: 42
     - rid: 8248672788823146509
-      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      type: {class: RuntimeItem, ns: UDND.Examples.Craft, asm: UDND.Examples}
       data:
         ItemSO: {fileID: 11400000, guid: a4befa5b6ab93f540be7952443fbc67f, type: 2}
         Count: 36

@@ -1,16 +1,16 @@
 using UnityEngine;
 using UDND.Core;
 
-namespace UDND.Examples.Minecraft
+namespace UDND.Examples.Craft
 {
     /// <summary>
-    /// Adapter for MinecraftItemSO.
+    /// Adapter for CraftItemSO.
     /// </summary>
-    public class MinecraftItemAdapterAdapter : IItemAdapter
+    public class CraftItemAdapterAdapter : IItemAdapter
     {
-        public readonly MinecraftItemSO ItemSO;
+        public readonly CraftItemSO ItemSO;
 
-        public MinecraftItemAdapterAdapter(MinecraftItemSO item)
+        public CraftItemAdapterAdapter(CraftItemSO item)
         {
             ItemSO = item;
         }

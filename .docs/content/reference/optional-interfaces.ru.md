@@ -163,7 +163,7 @@ public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
 
 Обычно это нужно для систем в стиле:
 
-- Minecraft: разные типы предметов имеют разные stack caps
+- Craft: разные типы предметов имеют разные stack caps
 - RPG: зелья стакаются по 20, стрелы по 999, оружие по 1
 - survival/crafting: контейнеры и инструменты не стакаются, ресурсы стакаются
 

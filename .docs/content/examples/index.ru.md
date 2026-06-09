@@ -59,7 +59,7 @@
 
 `Examples/Demo2 Loot/*`
 
-### [Demo3 Minecraft](demo3-minecraft.md)
+### [Demo3 Craft](demo3-Craft.md)
 
 Когда использовать:
 
@@ -74,7 +74,7 @@
 - `CraftingManager` как единый источник данных
 - `CraftResultDataBinding` как кастомный тип инвентаря для доставания результата
 
-`Examples/Demo3 Minecraft/*`
+`Examples/Demo3 Craft/*`
 
 ### [Demo4 Trading](demo4-trading.md)
 
@@ -116,7 +116,7 @@
 |---|---|
 | Базовый inventory list + простые hooks | [Demo1 Inventories](demo1-inventories.md) |
 | UI для сундука и связь с миром | [Demo2 Loot](demo2-loot.md) |
-| Сетка крафта и slot-indexed data | [Demo3 Minecraft](demo3-minecraft.md) |
+| Сетка крафта и slot-indexed data | [Demo3 Craft](demo3-Craft.md) |
 | Торговля, конвертация и золото | [Demo4 Trading](demo4-trading.md) |
 | Вложенные контейнеры и context menu | [Demo5 Containers](demo5-containers.md) |
 

@@ -59,7 +59,7 @@ Shows:
 
 `Examples/Demo2 Loot/*`
 
-### [Demo3 Minecraft](demo3-minecraft.md)
+### [Demo3 Craft](demo3-Craft.md)
 
 Use it for:
 
@@ -74,7 +74,7 @@ Shows:
 - `CraftingManager` as the domain source of truth
 - `CraftResultDataBinding` as a custom read-only output inventory
 
-`Examples/Demo3 Minecraft/*`
+`Examples/Demo3 Craft/*`
 
 ### [Demo4 Trading](demo4-trading.md)
 
@@ -116,7 +116,7 @@ Shows:
 |---|---|
 | Basic inventory list + simple hooks | [Demo1 Inventories](demo1-inventories.md) |
 | Chest UI and world interaction | [Demo2 Loot](demo2-loot.md) |
-| Crafting grid and slot-indexed data | [Demo3 Minecraft](demo3-minecraft.md) |
+| Crafting grid and slot-indexed data | [Demo3 Craft](demo3-Craft.md) |
 | Trading, conversion, and gold logic | [Demo4 Trading](demo4-trading.md) |
 | Nested containers and context menu | [Demo5 Containers](demo5-containers.md) |
 

@@ -1,6 +1,6 @@
 {
-  "name": "UDND.Examples.Minecraft.Editor",
-  "rootNamespace": "UDND.Examples.Minecraft",
+  "name": "UDND.Examples.Craft.Editor",
+  "rootNamespace": "UDND.Examples.Craft",
   "references": [
     "UDND.Editor",
     "UDND.Examples"

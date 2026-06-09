@@ -346,21 +346,21 @@
 
 ---
 
-## Пример: Demo3 Minecraft
+## Пример: Demo3 Craft
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Examples/Demo3 Minecraft/Data/MinecraftItemSO.cs` | `MinecraftItemSO` | ScriptableObject-описание предмета для crafting demo. |
-| `Examples/Demo3 Minecraft/Data/RuntimeItem.cs` | `RuntimeItem` | Runtime item wrapper/model, используемый в нужных местах примера. |
-| `Examples/Demo3 Minecraft/Adapters/MinecraftItemAdapterAdapter.cs` | `MinecraftItemAdapterAdapter` | Адаптер, представляющий предметы crafting demo в inventory UI. |
-| `Examples/Demo3 Minecraft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Сериализуемое описание recipe grid/pattern. |
-| `Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | ScriptableObject-рецепт. |
-| `Examples/Demo3 Minecraft/Crafting/CraftingManager.cs` | `CraftingManager` | Domain-controller примера, который вычисляет рецепты и хранит craft result state. |
-| `Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs` | `MainInventoryDataBinding` | Binding основного инвентаря игрока. |
-| `Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs` | `HotbarDataBinding` | Binding hotbar. |
-| `Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs` | `CraftTableDataBinding` | Binding входных слотов crafting grid. |
-| `Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs` | `CraftResultDataBinding` | Read-oriented binding для выходного craft slot. |
-| `Examples/Demo3 Minecraft/Editor/CraftingRecipePatternPropertyDrawer.cs` | `CraftingRecipePatternPropertyDrawer` | Custom editor drawer для удобного редактирования recipe pattern. |
+| `Examples/Demo3 Craft/Data/CraftItemSO.cs` | `CraftItemSO` | ScriptableObject-описание предмета для crafting demo. |
+| `Examples/Demo3 Craft/Data/RuntimeItem.cs` | `RuntimeItem` | Runtime item wrapper/model, используемый в нужных местах примера. |
+| `Examples/Demo3 Craft/Adapters/CraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Адаптер, представляющий предметы crafting demo в inventory UI. |
+| `Examples/Demo3 Craft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Сериализуемое описание recipe grid/pattern. |
+| `Examples/Demo3 Craft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | ScriptableObject-рецепт. |
+| `Examples/Demo3 Craft/Crafting/CraftingManager.cs` | `CraftingManager` | Domain-controller примера, который вычисляет рецепты и хранит craft result state. |
+| `Examples/Demo3 Craft/DataBindings/MainInventoryDataBinding.cs` | `MainInventoryDataBinding` | Binding основного инвентаря игрока. |
+| `Examples/Demo3 Craft/DataBindings/HotbarDataBinding.cs` | `HotbarDataBinding` | Binding hotbar. |
+| `Examples/Demo3 Craft/DataBindings/CraftTableDataBinding.cs` | `CraftTableDataBinding` | Binding входных слотов crafting grid. |
+| `Examples/Demo3 Craft/DataBindings/CraftResultDataBinding.cs` | `CraftResultDataBinding` | Read-oriented binding для выходного craft slot. |
+| `Examples/Demo3 Craft/Editor/CraftingRecipePatternPropertyDrawer.cs` | `CraftingRecipePatternPropertyDrawer` | Custom editor drawer для удобного редактирования recipe pattern. |
 
 ---
 

@@ -163,7 +163,7 @@ public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
 
 This is useful for systems such as:
 
-- Minecraft-style inventories where different item types have different stack caps
+- Craft-style inventories where different item types have different stack caps
 - RPG inventories where potions stack to 20, arrows to 999, weapons to 1
 - survival/crafting inventories where containers and tools do not stack but resources do
 

@@ -1,9 +1,9 @@
-﻿using UDND.Examples.Minecraft;
+﻿using UDND.Examples.Craft;
 using UDND.Tools.Inspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace UDND.Examples.Demo3_Minecraft.Editor
+namespace UDND.Examples.Demo3_Craft.Editor
 {
     
     [CustomPropertyDrawer(typeof(CraftingRecipePattern))]
@@ -59,7 +59,7 @@ namespace UDND.Examples.Demo3_Minecraft.Editor
                         fieldRect,
                         GUIContent.none,
                         element.objectReferenceValue,
-                        typeof(MinecraftItemSO),
+                        typeof(CraftItemSO),
                         false);
                     if (newValue != element.objectReferenceValue)
                     {

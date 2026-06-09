@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UDND.Tools.Inspector;
 
-namespace UDND.Examples.Minecraft
+namespace UDND.Examples.Craft
 {
     /// <summary>
     /// Crafting recipe. Supports shaped (position-aware, with offset) and shapeless (order does not matter) modes.
     /// 3x3 pattern: index = row * 3 + col. null = empty cell.
     /// </summary>
-    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Minecraft/Crafting Recipe")]
+    [CreateAssetMenu(menuName = "DragAndDrop/Examples/Craft/Crafting Recipe")]
     public class CraftingRecipeSO : ScriptableObject
     {
         [SerializeField]
@@ -18,17 +18,17 @@ namespace UDND.Examples.Minecraft
 
         [SerializeField] private bool _shapeless;
 
-        [SerializeField, PreviewField(72f)] private MinecraftItemSO _result;
+        [SerializeField, PreviewField(72f)] private CraftItemSO _result;
         [SerializeField, Range(1, 64)] private int _resultCount = 1;
 
-        public MinecraftItemSO Result => _result;
+        public CraftItemSO Result => _result;
         public int ResultCount => _resultCount;
 
         /// <summary>
         /// Check whether the grid contents match the recipe.
         /// gridItemIds is an array of 9 ItemIds (null = empty slot).
         /// </summary>
-        public bool Matches(MinecraftItemSO[] gridItemIds)
+        public bool Matches(CraftItemSO[] gridItemIds)
         {
             if (gridItemIds == null || gridItemIds.Length != 9 || _result == null)
                 return false;
@@ -37,7 +37,7 @@ namespace UDND.Examples.Minecraft
         }
         #region Shaped matching (with offset)
 
-        private bool MatchesShaped(MinecraftItemSO[] gridItemIds)
+        private bool MatchesShaped(CraftItemSO[] gridItemIds)
         {
             var patternIds = GetPatternItems();
 
@@ -62,7 +62,7 @@ namespace UDND.Examples.Minecraft
         /// <summary>
         /// Trim empty edge rows/columns and return the minimal rectangle.
         /// </summary>
-        private static void Normalize(MinecraftItemSO[] grid3x3, out MinecraftItemSO[] items, out int rows, out int cols)
+        private static void Normalize(CraftItemSO[] grid3x3, out CraftItemSO[] items, out int rows, out int cols)
         {
             int minR = 3, maxR = -1, minC = 3, maxC = -1;
             for (int i = 0; i < 9; i++)
@@ -79,7 +79,7 @@ namespace UDND.Examples.Minecraft
 
             if (maxR < 0)
             {
-                items = Array.Empty<MinecraftItemSO>();
+                items = Array.Empty<CraftItemSO>();
                 rows = 0;
                 cols = 0;
                 return;
@@ -87,7 +87,7 @@ namespace UDND.Examples.Minecraft
 
             rows = maxR - minR + 1;
             cols = maxC - minC + 1;
-            items = new MinecraftItemSO[rows * cols];
+            items = new CraftItemSO[rows * cols];
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     items[r * cols + c] = grid3x3[(minR + r) * 3 + (minC + c)];
@@ -97,13 +97,13 @@ namespace UDND.Examples.Minecraft
 
         #region Shapeless matching (order does not matter)
 
-        private bool MatchesShapeless(MinecraftItemSO[] gridItems)
+        private bool MatchesShapeless(CraftItemSO[] gridItems)
         {
-            var patternList = new List<MinecraftItemSO>();
+            var patternList = new List<CraftItemSO>();
             foreach (var item in GetPatternItems())
                 if (item != null) patternList.Add(item);
 
-            var gridList = new List<MinecraftItemSO>();
+            var gridList = new List<CraftItemSO>();
             foreach (var id in gridItems)
                 if (id != null) gridList.Add(id);
 
@@ -126,7 +126,7 @@ namespace UDND.Examples.Minecraft
         /// How many times this recipe can be crafted with the current ingredients.
         /// Call after Matches() == true.
         /// </summary>
-        public int ComputeMaxCrafts(MinecraftItemSO[] gridItems, int[] gridCounts)
+        public int ComputeMaxCrafts(CraftItemSO[] gridItems, int[] gridCounts)
         {
             if (gridItems == null || gridCounts == null || gridItems.Length != 9 || gridCounts.Length != 9)
                 return 0;
@@ -136,7 +136,7 @@ namespace UDND.Examples.Minecraft
                 : ComputeMaxCraftsShaped(gridItems, gridCounts);
         }
 
-        private int ComputeMaxCraftsShaped(MinecraftItemSO[] gridItems, int[] gridCounts)
+        private int ComputeMaxCraftsShaped(CraftItemSO[] gridItems, int[] gridCounts)
         {
             var patternItems = GetPatternItems();
             GetBoundingBox(patternItems, out int pMinR, out int pMinC);
@@ -163,10 +163,10 @@ namespace UDND.Examples.Minecraft
             return maxCrafts == int.MaxValue ? 0 : maxCrafts;
         }
 
-        private int ComputeMaxCraftsShapeless(MinecraftItemSO[] gridItems, int[] gridCounts)
+        private int ComputeMaxCraftsShapeless(CraftItemSO[] gridItems, int[] gridCounts)
         {
             // Collect pattern requirements: how many cells are needed for each item type
-            var patternReq = new Dictionary<MinecraftItemSO, int>();
+            var patternReq = new Dictionary<CraftItemSO, int>();
             var patternItems = GetPatternItems();
             for (int i = 0; i < 9; i++)
             {
@@ -177,7 +177,7 @@ namespace UDND.Examples.Minecraft
             }
 
             // Collect what is available in the grid: total quantity for each item type
-            var gridAvail = new Dictionary<MinecraftItemSO, int>();
+            var gridAvail = new Dictionary<CraftItemSO, int>();
             for (int i = 0; i < 9; i++)
             {
                 if (gridItems[i] == null || gridCounts[i] <= 0) continue;
@@ -201,14 +201,14 @@ namespace UDND.Examples.Minecraft
         /// Returns an array [9]: how many units to consume from each slot for ONE craft.
         /// Call only when Matches(gridItems) == true.
         /// </summary>
-        public int[] GetConsumeAmountsPerCraft(MinecraftItemSO[] gridItems)
+        public int[] GetConsumeAmountsPerCraft(CraftItemSO[] gridItems)
         {
             return _shapeless
                 ? GetConsumeAmountsShapeless(gridItems)
                 : GetConsumeAmountsShaped(gridItems);
         }
 
-        private int[] GetConsumeAmountsShaped(MinecraftItemSO[] gridItems)
+        private int[] GetConsumeAmountsShaped(CraftItemSO[] gridItems)
         {
             var result = new int[9];
             var patternItems = GetPatternItems();
@@ -229,7 +229,7 @@ namespace UDND.Examples.Minecraft
             return result;
         }
 
-        private static int[] GetConsumeAmountsShapeless(MinecraftItemSO[] gridItems)
+        private static int[] GetConsumeAmountsShapeless(CraftItemSO[] gridItems)
         {
             var result = new int[9];
             for (int i = 0; i < 9; i++)
@@ -238,7 +238,7 @@ namespace UDND.Examples.Minecraft
             return result;
         }
 
-        private static void GetBoundingBox(MinecraftItemSO[] grid3x3, out int minR, out int minC)
+        private static void GetBoundingBox(CraftItemSO[] grid3x3, out int minR, out int minC)
         {
             minR = 3;
             minC = 3;
@@ -253,9 +253,9 @@ namespace UDND.Examples.Minecraft
             }
         }
 
-        private MinecraftItemSO[] GetPatternItems()
+        private CraftItemSO[] GetPatternItems()
         {
-            var ids = new MinecraftItemSO[9];
+            var ids = new CraftItemSO[9];
             for (int i = 0; i < 9; i++)
                 ids[i] = _pattern.Get(i) != null ? _pattern.Get(i) : null;
             return ids;

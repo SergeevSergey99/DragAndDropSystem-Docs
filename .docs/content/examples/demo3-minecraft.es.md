@@ -1,4 +1,4 @@
-# Demo3 Minecraft
+# Demo3 Craft
 
 <div class="showcase-video">
     <iframe
@@ -9,7 +9,7 @@
     </iframe>
 </div>
 
-`Examples/Demo3 Minecraft/MinecraftDemo.unity`
+`Examples/Demo3 Craft/CraftDemo.unity`
 
 Esta es una muestra de inventario indexado por slot y crafting, donde la UI se sincroniza con arrays de dominio fijos en lugar de con una lista simple.
 

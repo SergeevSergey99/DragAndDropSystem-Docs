@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UDND.DataBinding;
 
-namespace UDND.Examples.Minecraft
+namespace UDND.Examples.Craft
 {
-    public class CraftTableDataBinding : SlotIndexedInventoryDataBinding<MinecraftItemSO, MinecraftItemAdapterAdapter>
+    public class CraftTableDataBinding : SlotIndexedInventoryDataBinding<CraftItemSO, CraftItemAdapterAdapter>
     {
-        protected override MinecraftItemAdapterAdapter CreateAdapter(MinecraftItemSO item) => new(item);
+        protected override CraftItemAdapterAdapter CreateAdapter(CraftItemSO item) => new(item);
 
-        protected override IEnumerable<(int index, MinecraftItemSO item, int count)> GetOccupiedSlots()
+        protected override IEnumerable<(int index, CraftItemSO item, int count)> GetOccupiedSlots()
         {
             for (int i = 0; i < CraftingManager.AutoCreateInstance.CraftTableItems.Count; i++)
             {
@@ -17,12 +17,12 @@ namespace UDND.Examples.Minecraft
             }
         }
 
-        protected override void AddToSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
+        protected override void AddToSlotData(int index, CraftItemAdapterAdapter adapterAdapter, int count)
         {
             CraftingManager.AutoCreateInstance.TryAddCraftTableItem(adapterAdapter.ItemSO, count, index);
         }
 
-        protected override void RemoveFromSlotData(int index, MinecraftItemAdapterAdapter adapterAdapter, int count)
+        protected override void RemoveFromSlotData(int index, CraftItemAdapterAdapter adapterAdapter, int count)
         {
             CraftingManager.AutoCreateInstance.TryRemoveCraftTableItem(adapterAdapter.ItemSO, count, index);
         }

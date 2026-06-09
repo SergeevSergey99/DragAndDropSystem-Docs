@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UDND.Examples.Minecraft
+namespace UDND.Examples.Craft
 {
     [Serializable]
     public class CraftingRecipePattern : ISerializationCallbackReceiver
@@ -9,20 +9,20 @@ namespace UDND.Examples.Minecraft
         public const int Size = 3;
         public const int CellCount = Size * Size;
 
-        [SerializeField] private MinecraftItemSO[] _cells = new MinecraftItemSO[CellCount];
+        [SerializeField] private CraftItemSO[] _cells = new CraftItemSO[CellCount];
 
-        public MinecraftItemSO Get(int index)
+        public CraftItemSO Get(int index)
         {
             EnsureCapacity();
             return index >= 0 && index < CellCount ? _cells[index] : null;
         }
 
-        public MinecraftItemSO Get(int row, int column)
+        public CraftItemSO Get(int row, int column)
         {
             return Get(row * Size + column);
         }
 
-        public void Set(int index, MinecraftItemSO item)
+        public void Set(int index, CraftItemSO item)
         {
             EnsureCapacity();
             if (index < 0 || index >= CellCount)

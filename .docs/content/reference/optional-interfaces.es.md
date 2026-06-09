@@ -163,7 +163,7 @@ public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
 
 Esto es útil para sistemas como:
 
-- inventarios estilo Minecraft donde distintos tipos de item tienen distintos límites de stack
+- inventarios estilo Craft donde distintos tipos de item tienen distintos límites de stack
 - inventarios RPG donde las pociones hacen stack hasta 20, las flechas hasta 999 y las armas hasta 1
 - inventarios de supervivencia/crafteo donde contenedores y herramientas no hacen stack pero los recursos sí
 

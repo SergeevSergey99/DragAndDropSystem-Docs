@@ -59,7 +59,7 @@ Muestra:
 
 `Examples/Demo2 Loot/*`
 
-### [Demo3 Minecraft](demo3-minecraft.md)
+### [Demo3 Craft](demo3-Craft.md)
 
 Úsala para:
 
@@ -74,7 +74,7 @@ Muestra:
 - `CraftingManager` como fuente de verdad del dominio
 - `CraftResultDataBinding` como inventario de salida personalizado de solo lectura
 
-`Examples/Demo3 Minecraft/*`
+`Examples/Demo3 Craft/*`
 
 ### [Demo4 Trading](demo4-trading.md)
 
@@ -116,7 +116,7 @@ Muestra:
 |---|---|
 | Lista básica de inventario + hooks simples | [Demo1 Inventories](demo1-inventories.md) |
 | UI de cofre e interacción con el mundo | [Demo2 Loot](demo2-loot.md) |
-| Crafting grid y datos indexados por slot | [Demo3 Minecraft](demo3-minecraft.md) |
+| Crafting grid y datos indexados por slot | [Demo3 Craft](demo3-Craft.md) |
 | Comercio, conversión y lógica de oro | [Demo4 Trading](demo4-trading.md) |
 | Contenedores anidados y menú contextual | [Demo5 Containers](demo5-containers.md) |
 

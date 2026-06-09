@@ -33,7 +33,7 @@ Because of that separation, the asset can work with:
 
 - `Demo1 Inventories`: basic list-based inventories
 - `Demo2 Loot`: chest interaction and world-to-UI flow
-- `Demo3 Minecraft`: slot-indexed inventory and crafting grid
+- `Demo3 Craft`: slot-indexed inventory and crafting grid
 - `Demo4 Trading`: trading, equipment slots, converters, and money checks
 - `Demo5 Containers`: nested inventories and container items
 

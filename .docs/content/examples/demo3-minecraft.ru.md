@@ -1,4 +1,4 @@
-# Demo3 Minecraft
+# Demo3 Craft
 
 <div class="showcase-video">
     <iframe
@@ -9,7 +9,7 @@
     </iframe>
 </div>
 
-`Examples/Demo3 Minecraft/MinecraftDemo.unity`
+`Examples/Demo3 Craft/CraftDemo.unity`
 
 Это пример slot-indexed inventory и крафта, где UI синхронизируется не со списком, а с фиксированными массивами доменных данных.
 
