@@ -88,12 +88,24 @@ namespace UDND.Inventories
             ItemStack sourceStackBefore,
             ItemStack targetStackBefore,
             ItemStack targetStackAfter,
-            ItemStack sourceStackAfter)
+            ItemStack sourceStackAfter,
+            int forwardAnchorIndex,
+            PlacementOrientation forwardOrientation,
+            IPlacementShape forwardShape,
+            int reverseAnchorIndex,
+            PlacementOrientation reverseOrientation,
+            IPlacementShape reverseShape)
         {
             SourceStackBefore = sourceStackBefore;
             TargetStackBefore = targetStackBefore;
             TargetStackAfter = targetStackAfter;
             SourceStackAfter = sourceStackAfter;
+            ForwardAnchorIndex = forwardAnchorIndex;
+            ForwardOrientation = forwardOrientation;
+            ForwardShape = forwardShape;
+            ReverseAnchorIndex = reverseAnchorIndex;
+            ReverseOrientation = reverseOrientation;
+            ReverseShape = reverseShape;
         }
 
         /// <summary>Clone of the source-slot stack before swap.</summary>
@@ -104,6 +116,16 @@ namespace UDND.Inventories
         public ItemStack TargetStackAfter { get; }
         /// <summary>Target stack converted for the source inventory (what will be placed into source).</summary>
         public ItemStack SourceStackAfter { get; }
+
+        // Forward direction: the source item lands in the target inventory at the target item's anchor.
+        public int ForwardAnchorIndex { get; }
+        public PlacementOrientation ForwardOrientation { get; }
+        public IPlacementShape ForwardShape { get; }
+
+        // Reverse direction: the target item lands in the source inventory at the source item's anchor.
+        public int ReverseAnchorIndex { get; }
+        public PlacementOrientation ReverseOrientation { get; }
+        public IPlacementShape ReverseShape { get; }
     }
 
     public sealed class PlannedEntryTransfer
@@ -629,6 +651,18 @@ namespace UDND.Inventories
                 shape);
             if (!targetPlacementInventory.CanPlace(placementRequest, ignoredPlacement))
             {
+                // Footprint blocked by an occupant. Defer to the placement-based swap, which is
+                // shape/topology-agnostic; it returns null unless the policy enables swapping and a
+                // single blocking item can be exchanged so the footprint fully clears.
+                var swapPlan = TryPlanSwap(
+                    context, entry, policy, targetInventory, targetBaseSlotHint, preferHint: true,
+                    globalRules, requested, targetItem);
+                if (swapPlan != null)
+                {
+                    plan = swapPlan;
+                    return true;
+                }
+
                 plan = new PlannedEntryTransfer(entry, requested, 0, EmptyAllocations, "Target grid cells are not available");
                 return true;
             }
@@ -1398,14 +1432,19 @@ namespace UDND.Inventories
             // Current swap implementation supports only full stack from source slot.
             if (sourceSlot.Stack.Count != entry.Stack.Count)
                 return null;
-            // Shaped items aren't supported by swap in Phase 1–3 (TryCommitSwapViaPlacement
-            // doesn't preserve footprint geometry on either side). Defensive guard so a
-            // custom resolver/strategy can't accidentally route a shaped entry here.
-            if (!PlacementShapeUtility.IsSingleCell(entry.Shape, entry.Orientation))
+
+            // Swap is placement-based and topology-agnostic: both items are exchanged through their
+            // owning placement stores, so footprint geometry is preserved on either side regardless
+            // of shape or topology (slot/grid/custom), including across inventories of different
+            // topologies. Both sides must therefore expose placement storage.
+            var sourcePlacementInventory = entry.SourceInventory as IPlacementInventory;
+            var targetPlacementInventory = targetInventory as IPlacementInventory;
+            if (sourcePlacementInventory == null || targetPlacementInventory == null)
                 return null;
-            if (!PlacementShapeUtility.IsSingleCell(
-                    PlacementShapeUtility.Resolve(swapTargetBaseSlot.Stack.PrimaryAdapter),
-                    PlacementOrientation.Rot0))
+
+            var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
+            var targetPlacement = targetPlacementInventory.GetPlacementAt(swapTargetBaseSlot);
+            if (sourcePlacement == null || targetPlacement == null)
                 return null;
 
             if (!ItemStack.TryCreate(sourceSlot.Stack.Adapters, out var sourceStackBefore))
@@ -1441,21 +1480,37 @@ namespace UDND.Inventories
             if (!sourceDrop.IsValid)
                 return null;
 
-            // Validate reverse placement capacity: can target items actually fit into source inventory?
-            // Source slot will be freed by the swap, so mark it empty in virtual state.
-            if (!ValidateSwapPlacementFeasibility(
-                    reverseDropContext, reverseDropEntry, entry.SourceInventory, sourceSlot,
-                    sourceStackAfter, globalRules))
+            // Placement geometry: the source item is exchanged into the target item's anchor and
+            // vice-versa. Footprints are computed by each inventory's own topology, so this works for
+            // any shape/topology combination (collapsing to one cell on slot topologies).
+            bool sameInventory = ReferenceEquals(entry.SourceInventory, targetInventory);
+            int forwardAnchorIndex = targetPlacement.AnchorIndex;
+            int reverseAnchorIndex = sourcePlacement.AnchorIndex;
+            var forwardOrientation = entry.Orientation;
+            var reverseOrientation = targetPlacement.Orientation;
+            var forwardShape = PlacementShapeUtility.Resolve(targetStackAfter.PrimaryAdapter);
+            var reverseShape = PlacementShapeUtility.Resolve(sourceStackAfter.PrimaryAdapter);
+
+            // Forward feasibility: can the source item fit at the target anchor once the target
+            // placement is vacated? (And the source placement too, when swapping within one inventory.)
+            var forwardRequest = new PlacementRequest(
+                targetStackAfter, forwardAnchorIndex, forwardOrientation, forwardShape);
+            if (!targetPlacementInventory.CanPlace(
+                    forwardRequest, targetPlacement, sameInventory ? sourcePlacement : null))
                 return null;
 
-            // Validate forward placement capacity: can source items fit into target inventory?
-            // Target slot will be freed by the swap.
-            if (!ValidateSwapPlacementFeasibility(
-                    sourceDropContext, sourceDropEntry, targetInventory, swapTargetBaseSlot,
-                    targetStackAfter, globalRules))
+            // Reverse feasibility: can the target item fit at the source anchor once the source
+            // placement is vacated? (And the target placement too, when swapping within one inventory.)
+            var reverseRequest = new PlacementRequest(
+                sourceStackAfter, reverseAnchorIndex, reverseOrientation, reverseShape);
+            if (!sourcePlacementInventory.CanPlace(
+                    reverseRequest, sourcePlacement, sameInventory ? targetPlacement : null))
                 return null;
 
-            var swapData = new PlannedSwapData(sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter);
+            var swapData = new PlannedSwapData(
+                sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter,
+                forwardAnchorIndex, forwardOrientation, forwardShape,
+                reverseAnchorIndex, reverseOrientation, reverseShape);
 
             return new PlannedEntryTransfer(
                 entry,
@@ -1467,62 +1522,6 @@ namespace UDND.Inventories
                 swapTargetBaseSlot: swapTargetBaseSlot,
                 previewTargetItemAdapter: targetItem,
                 swapData: swapData);
-        }
-
-        /// <summary>
-        /// Checks whether a stack can be placed into the inventory during a swap.
-        /// freedSlot will be freed by the swap, so it is marked as empty in virtual state.
-        /// </summary>
-        private bool ValidateSwapPlacementFeasibility(
-            DragContext dropContext,
-            DragEntry dropEntry,
-            IInventory inventory,
-            BaseSlot freedBaseSlot,
-            ItemStack convertedStack,
-            GlobalRuleValidator globalRules)
-        {
-            if (convertedStack == null || convertedStack.IsEmpty)
-                return false;
-
-            // Single item always fits into the freed slot (rules already validated above).
-            if (convertedStack.Count <= 1)
-                return true;
-
-            var virtualSlots = BuildVirtualSlots(inventory);
-            var freed = FindVirtualSlot(freedBaseSlot, virtualSlots);
-            if (freed != null)
-                freed.MarkEmpty();
-
-            bool isUnique = IsUniqueInventory(inventory);
-            var placementResolver = new FindAlternativeBlockedTargetResolver();
-            placementResolver.SetAlternativePlacementStrategy(new EmptyFirstAlternativePlacementStrategy());
-            var placementPolicy = new ResolvedDropPolicy(
-                placementResolver,
-                allowPartial: false,
-                BatchMode.BestEffort);
-
-            var operation = new EntryPlanningOperation(
-                dropContext,
-                dropEntry,
-                placementPolicy,
-                inventory,
-                freedBaseSlot,
-                preferHint: true,
-                virtualSlots,
-                globalRules,
-                convertedStack.PrimaryAdapter,
-                convertedStack.Count,
-                convertedStack.Count);
-
-            var allocations = isUnique
-                ? AllocateForUniqueInventory(operation)
-                : AllocateForStrategyInventory(operation);
-
-            int allocated = 0;
-            foreach (var a in allocations)
-                allocated += a.Amount;
-
-            return allocated >= convertedStack.Count;
         }
 
         private bool IsCandidateAllowedByRules(

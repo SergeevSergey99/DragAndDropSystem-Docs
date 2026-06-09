@@ -1530,9 +1530,10 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void ProcessDrop_ShapedSlotToOccupiedDifferentId_Rejects()
+        public void ProcessDrop_ShapedSlotToOccupiedDifferentId_Swaps()
         {
-            // Different item under a shaped drop is not mergeable and shaped is not swappable → reject.
+            // Different non-mergeable items in slot inventories now swap through the universal
+            // placement-based swap: each shaped item occupies one slot, so they exchange places.
             var source = new InventoryBuilder().WithFixedSlots(1).Build();
             var target = new InventoryBuilder().WithFixedSlots(1).Build();
 
@@ -1546,16 +1547,94 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
 
-                Assert.IsFalse(summary.Success);
-                Assert.AreEqual("bag", source.GetSlot(0).Stack.ID, "Source untouched");
-                Assert.AreEqual("sword", target.GetSlot(0).Stack.ID, "Target untouched");
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.AreEqual("sword", source.GetSlot(0).Stack.ID, "Source received the target item");
+                Assert.AreEqual("bag", target.GetSlot(0).Stack.ID, "Target received the source item");
             }
             finally
             {
                 InventoryBuilder.Destroy(source);
                 InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_ShapedGridSwap_DifferentFootprints_ExchangesPlacements()
+        {
+            // Universal swap on a grid: a 2x1 source item and a 1x1 target item exchange anchors,
+            // each footprint recomputed by the grid topology.
+            var source = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(2, 2).Build();
+            var target = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(2, 2).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new FakeItemAdapter("gem")), 0)));
+
+                var sourceSlot = source.GetSlot(0);
+                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                // Source now holds the 1x1 gem at anchor 0 (single cell).
+                Assert.AreEqual("gem", source.GetSlot(0).Stack.ID);
+                Assert.IsNull(source.GetPlacementAt(1), "Gem must not extend past its single cell");
+
+                // Target now holds the 2x1 blade at anchor 0 covering cells 0 and 1.
+                var bladePlacement = target.GetPlacementAt(0);
+                Assert.AreEqual("blade", bladePlacement.Stack.ID);
+                Assert.AreEqual(2, bladePlacement.CoveredIndices.Count, "Blade footprint recomputed by target grid");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_CrossTopologySwap_GridToSlot_ExchangesItems()
+        {
+            // Universal swap across different topologies: a multi-cell item from a grid inventory
+            // collapses to one slot in a slot inventory, and the slot item expands into the grid.
+            var grid = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(2, 2).Build();
+            var slot = new InventoryBuilder().WithFixedSlots(1).Build();
+
+            try
+            {
+                Assert.IsTrue(grid.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)), 0)));
+                Assert.IsTrue(slot.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
+
+                // Drag the slot's coin onto the grid's bag anchor.
+                var slotSourceSlot = slot.GetSlot(0);
+                var entry = new DragEntry(slotSourceSlot.Stack.CreateCopy(), slotSourceSlot, slot);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(grid.GetSlot(0), grid, new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+
+                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+
+                // Bag moved to the slot inventory, collapsed to one cell.
+                Assert.AreEqual("bag", slot.GetSlot(0).Stack.ID);
+
+                // Coin moved to the grid at anchor 0 as a single cell; cell 1 freed.
+                Assert.AreEqual("coin", grid.GetSlot(0).Stack.ID);
+                Assert.IsNull(grid.GetPlacementAt(1), "Coin occupies a single grid cell");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(grid);
+                InventoryBuilder.Destroy(slot);
             }
         }
 
@@ -2102,8 +2181,10 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryPlanSwapAgainstTarget_ShapedSourceItem_IsRejected()
+        public void TryPlanSwapAgainstTarget_ShapedSourceItem_ProducesSwapPlan()
         {
+            // A shaped source in a slot inventory occupies one slot, so it swaps with a single-cell
+            // target through the universal placement-based swap.
             var source = new InventoryBuilder()
                 .WithFixedSlots(1)
                 .Build();
@@ -2131,7 +2212,8 @@ namespace UDND.Tests.Inventories
                     requested: 1,
                     targetItem: entry.Stack.PrimaryAdapter);
 
-                Assert.IsNull(planned, "Shaped source must not produce a swap plan");
+                Assert.IsNotNull(planned, "Shaped source in a slot inventory must produce a swap plan");
+                Assert.IsTrue(planned.RequiresSwap);
             }
             finally
             {
@@ -2141,8 +2223,10 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryPlanSwapAgainstTarget_ShapedTargetItem_IsRejected()
+        public void TryPlanSwapAgainstTarget_ShapedTargetItem_ProducesSwapPlan()
         {
+            // A shaped target in a slot inventory occupies one slot, so it swaps with a single-cell
+            // source through the universal placement-based swap.
             var source = new InventoryBuilder()
                 .WithFixedSlots(1)
                 .Build();
@@ -2170,7 +2254,8 @@ namespace UDND.Tests.Inventories
                     requested: 1,
                     targetItem: entry.Stack.PrimaryAdapter);
 
-                Assert.IsNull(planned, "Shaped target must not be swapped");
+                Assert.IsNotNull(planned, "Shaped target in a slot inventory must produce a swap plan");
+                Assert.IsTrue(planned.RequiresSwap);
             }
             finally
             {

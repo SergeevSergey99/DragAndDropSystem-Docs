@@ -606,6 +606,11 @@ namespace UDND.Inventories
             return EnsurePlacementStore().CanPlace(request, ignoredPlacement);
         }
 
+        public bool CanPlace(PlacementRequest request, Placement ignoredA, Placement ignoredB)
+        {
+            return EnsurePlacementStore().CanPlace(request, ignoredA, ignoredB);
+        }
+
         public bool TryGetDropPreviewSlots(
             BaseSlot targetBaseSlot,
             DragContext context,

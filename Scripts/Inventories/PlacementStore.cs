@@ -28,6 +28,14 @@ namespace UDND.Inventories
         }
 
         public bool CanPlace(PlacementRequest request, Placement ignoredPlacement = null)
+            => CanPlace(request, ignoredPlacement, null);
+
+        /// <summary>
+        /// Geometry feasibility ignoring up to two placements. Both-ignored is needed by swaps:
+        /// a same-inventory swap vacates both the source and the target placement before the
+        /// incoming footprints are tested, so overlapping footprints must not block each other.
+        /// </summary>
+        public bool CanPlace(PlacementRequest request, Placement ignoredA, Placement ignoredB)
         {
             if (request.Stack == null || request.Stack.IsEmpty)
                 return false;
@@ -47,7 +55,8 @@ namespace UDND.Inventories
             for (int i = 0; i < coveredIndices.Count; i++)
             {
                 if (_cellToPlacement.TryGetValue(coveredIndices[i], out var existing) &&
-                    !ReferenceEquals(existing, ignoredPlacement))
+                    !ReferenceEquals(existing, ignoredA) &&
+                    !ReferenceEquals(existing, ignoredB))
                     return false;
             }
 

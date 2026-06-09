@@ -673,6 +673,14 @@ namespace UDND.Inventories
                 return false;
             }
 
+            var sourcePlacementInventory = sourceInventory as IPlacementInventory;
+            var targetPlacementInventory = targetInventory as IPlacementInventory;
+            if (sourcePlacementInventory == null || targetPlacementInventory == null)
+            {
+                failureReason = "Swap requires placement-capable inventories";
+                return false;
+            }
+
             // Capture snapshots for rollback
             var sourceSnapshotProvider = sourceInventory as IInventorySnapshotProvider;
             var targetSnapshotProvider = targetInventory as IInventorySnapshotProvider;
@@ -681,20 +689,32 @@ namespace UDND.Inventories
 
             try
             {
-                // Clear both slots
-                sourceBaseSlot.Clear();
-                targetBaseSlot.Clear();
+                // Re-resolve placements at commit time; references captured during planning may be
+                // stale (occupancy rebuilds can orphan them).
+                var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceBaseSlot);
+                var targetPlacement = targetPlacementInventory.GetPlacementAt(targetBaseSlot);
+                if (sourcePlacement == null || targetPlacement == null)
+                {
+                    failureReason = "Swap placements not found";
+                    RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                        targetInventory, targetSnapshotProvider, targetSnapshot);
+                    return false;
+                }
 
-                // Clone converted stacks for placement (placement consumes items from the stack)
+                // Vacate both footprints first so the cross placements have room even when they
+                // overlap (same-inventory swap) or differ in size/shape.
+                sourcePlacementInventory.RemovePlacement(sourcePlacement);
+                targetPlacementInventory.RemovePlacement(targetPlacement);
+
+                // Clone converted stacks for placement (placement copies from the stack).
                 var forwardStack = CloneStack(swapData.TargetStackAfter);
                 var reverseStack = CloneStack(swapData.SourceStackAfter);
 
-                // Forward: place source items into target inventory at target slot
-                targetInventory.TryAddToSlot(forwardStack, targetBaseSlot, sourceInventory, sourceBaseSlot.Index);
-                if (!forwardStack.IsEmpty)
-                    targetInventory.TryAddStack(forwardStack, -1);
-
-                if (!forwardStack.IsEmpty)
+                // Forward: place the source item into the target inventory at the target anchor,
+                // honoring its own shape/orientation (footprint resolved by the target's topology).
+                var forwardRequest = new PlacementRequest(
+                    forwardStack, swapData.ForwardAnchorIndex, swapData.ForwardOrientation, swapData.ForwardShape);
+                if (!targetPlacementInventory.TryPlace(forwardRequest, out _))
                 {
                     failureReason = "Failed to place source items into target inventory";
                     RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
@@ -702,12 +722,10 @@ namespace UDND.Inventories
                     return false;
                 }
 
-                // Reverse: place target items into source inventory at source slot (+ distribute)
-                sourceInventory.TryAddToSlot(reverseStack, sourceBaseSlot, targetInventory, targetBaseSlot.Index);
-                if (!reverseStack.IsEmpty)
-                    sourceInventory.TryAddStack(reverseStack, -1);
-
-                if (!reverseStack.IsEmpty)
+                // Reverse: place the target item into the source inventory at the source anchor.
+                var reverseRequest = new PlacementRequest(
+                    reverseStack, swapData.ReverseAnchorIndex, swapData.ReverseOrientation, swapData.ReverseShape);
+                if (!sourcePlacementInventory.TryPlace(reverseRequest, out _))
                 {
                     failureReason = "Failed to place target items into source inventory";
                     RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,

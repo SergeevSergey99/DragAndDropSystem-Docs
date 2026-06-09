@@ -27,6 +27,7 @@ namespace UDND.Inventories
 
         bool CanPlace(PlacementRequest request);
         bool CanPlace(PlacementRequest request, Placement ignoredPlacement);
+        bool CanPlace(PlacementRequest request, Placement ignoredA, Placement ignoredB);
         bool TryPlace(PlacementRequest request);
         bool TryPlace(PlacementRequest request, out Placement placement);
         bool RemovePlacement(Placement placement);
