@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0817796876da3f42b3c90ee179d074c, type: 3}
-  m_Name: Crafting_Table Recipe SO
+  m_Name: Shield Recipe SO
   m_EditorClassIdentifier: 
   _pattern:
     _cells:
