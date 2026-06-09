@@ -611,11 +611,10 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
-    _allowMergeOnDrop: 1
+    _blockedTargetResolver:
+      rid: 8248672788823146513
     _allowPartial: 1
     _batchMode: 1
-    _alternativePlacement: 0
   _slots:
   - {fileID: 536631251}
   - {fileID: 1808221728}
@@ -644,17 +643,28 @@ MonoBehaviour:
   - {fileID: 1268594637}
   - {fileID: 3958884}
   - {fileID: 2053306632}
-  _itemBehavior: 2
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 1
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _useGridTopology: 0
+  _gridTopology:
+    _columns: 1
+    _rows: 1
+  _slotShapedItemPolicy: 0
+  _shapedPlacementAnchorStrategy:
+    rid: 8248672788823146514
   references:
     version: 2
     RefIds:
+    - rid: 8248672788823146513
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8248672788823146515
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8248672788823146514
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
+    - rid: 8248672788823146515
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      data: 
     - rid: 8490480897462108191
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
@@ -1438,24 +1448,34 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
-    _allowMergeOnDrop: 1
+    _blockedTargetResolver:
+      rid: 8248672788823146516
     _allowPartial: 1
     _batchMode: 1
-    _alternativePlacement: 0
   _slots:
   - {fileID: 1477194708}
-  _itemBehavior: 1
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _useGridTopology: 0
+  _gridTopology:
+    _columns: 1
+    _rows: 1
+  _slotShapedItemPolicy: 0
+  _shapedPlacementAnchorStrategy:
+    rid: 8248672788823146517
   references:
     version: 2
     RefIds:
+    - rid: 8248672788823146516
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8248672788823146518
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8248672788823146517
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
+    - rid: 8248672788823146518
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      data: 
     - rid: 8490480897462108188
       type: {class: StackableItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
       data:
@@ -1463,6 +1483,7 @@ MonoBehaviour:
         _customDragAmount: 1
         _maxStackSize: 0
         _allowItemStackOverride: 0
+        _explicitMergeOnly: 0
     - rid: 8490480897462108189
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
@@ -1646,9 +1667,9 @@ MonoBehaviour:
   - rid: 6676589208637538377
   - rid: -2
   - rid: -2
+  - rid: 8248672788823146508
   - rid: -2
-  - rid: -2
-  - rid: -2
+  - rid: 8248672788823146509
   _inventoryItems:
   - rid: -2
   - rid: -2
@@ -1719,6 +1740,16 @@ MonoBehaviour:
       data:
         ItemSO: {fileID: 11400000, guid: d94f0dc5fccf13648a2bd4ad69472ee6, type: 2}
         Count: 60
+    - rid: 8248672788823146508
+      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      data:
+        ItemSO: {fileID: 11400000, guid: a4befa5b6ab93f540be7952443fbc67f, type: 2}
+        Count: 42
+    - rid: 8248672788823146509
+      type: {class: RuntimeItem, ns: UDND.Examples.Minecraft, asm: UDND.Examples}
+      data:
+        ItemSO: {fileID: 11400000, guid: a4befa5b6ab93f540be7952443fbc67f, type: 2}
+        Count: 36
 --- !u!1001 &455171187
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2833,11 +2864,10 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
-    _allowMergeOnDrop: 1
+    _blockedTargetResolver:
+      rid: 8248672788823146519
     _allowPartial: 1
     _batchMode: 1
-    _alternativePlacement: 0
   _slots:
   - {fileID: 1080494723}
   - {fileID: 1354955287}
@@ -2848,17 +2878,28 @@ MonoBehaviour:
   - {fileID: 1227678566}
   - {fileID: 1057926116}
   - {fileID: 1767866537}
-  _itemBehavior: 2
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 1
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _useGridTopology: 0
+  _gridTopology:
+    _columns: 1
+    _rows: 1
+  _slotShapedItemPolicy: 0
+  _shapedPlacementAnchorStrategy:
+    rid: 8248672788823146520
   references:
     version: 2
     RefIds:
+    - rid: 8248672788823146519
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8248672788823146521
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8248672788823146520
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
+    - rid: 8248672788823146521
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      data: 
     - rid: 8490480897462108186
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
@@ -7492,11 +7533,10 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTarget: 2
-    _allowMergeOnDrop: 1
+    _blockedTargetResolver:
+      rid: 8248672788823146510
     _allowPartial: 1
     _batchMode: 1
-    _alternativePlacement: 0
   _slots:
   - {fileID: 451792798}
   - {fileID: 1110553682}
@@ -7507,17 +7547,28 @@ MonoBehaviour:
   - {fileID: 623034292}
   - {fileID: 1254425740}
   - {fileID: 190943086}
-  _itemBehavior: 2
-  _dragAmount: 0
-  _customDragAmount: 1
-  _maxStackSize: 0
-  _allowItemStackOverride: 0
-  _slotManagement: 0
-  _maxDynamicSlots: 100
-  _maxFreeSlots: 1
+  _useGridTopology: 0
+  _gridTopology:
+    _columns: 1
+    _rows: 1
+  _slotShapedItemPolicy: 0
+  _shapedPlacementAnchorStrategy:
+    rid: 8248672788823146511
   references:
     version: 2
     RefIds:
+    - rid: 8248672788823146510
+      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
+      data:
+        _alternativePlacementStrategy:
+          rid: 8248672788823146512
+        _allowSameInventoryAlternativePlacement: 1
+    - rid: 8248672788823146511
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
+    - rid: 8248672788823146512
+      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      data: 
     - rid: 8490480897462108194
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
