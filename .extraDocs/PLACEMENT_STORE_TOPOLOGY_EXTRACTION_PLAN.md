@@ -164,13 +164,10 @@ public sealed class PlacementStore
 }
 ```
 
-The store should receive configuration through constructor or small immutable settings:
+The store receives its topology directly:
 
 ```csharp
-public readonly struct PlacementStoreSettings
-{
-    public IInventoryTopology Topology { get; }
-}
+var store = new PlacementStore(topology);
 ```
 
 `PlacementStore` is plain C# and should be valid immediately after construction.

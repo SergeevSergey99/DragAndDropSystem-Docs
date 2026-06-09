@@ -850,7 +850,7 @@ namespace UDND.Inventories
             var previousPlacements = _placementStore?.Placements != null
                 ? _placementStore.Placements.ToList()
                 : null;
-            _placementStore = new PlacementStore(CreatePlacementStoreSettings(normalizedGrid));
+            _placementStore = new PlacementStore(CreatePlacementTopology(normalizedGrid));
             _placementStoreUsesGrid = _useGridTopology;
             _placementStoreGridTopology = normalizedGrid;
 
@@ -894,21 +894,19 @@ namespace UDND.Inventories
                 EnsurePlacementStore);
         }
 
-        private PlacementStoreSettings CreatePlacementStoreSettings(GridTopology normalizedGrid)
+        private IInventoryTopology CreatePlacementTopology(GridTopology normalizedGrid)
         {
-            IInventoryTopology topology = _useGridTopology
+            return _useGridTopology
                 ? (IInventoryTopology)new SlotCountLimitedTopology(new RectGridTopology(normalizedGrid), () => _slots?.Count ?? 0)
                 : new SlotTopology(() => _slots?.Count ?? 0);
-            return new PlacementStoreSettings(topology);
         }
 
-        private PlacementStoreSettings CreatePlacementStoreSettings(GridTopology normalizedGrid, int slotCount)
+        private IInventoryTopology CreatePlacementTopology(GridTopology normalizedGrid, int slotCount)
         {
             slotCount = Mathf.Max(0, slotCount);
-            IInventoryTopology topology = _useGridTopology
+            return _useGridTopology
                 ? (IInventoryTopology)new SlotCountLimitedTopology(new RectGridTopology(normalizedGrid), slotCount)
                 : new SlotTopology(slotCount);
-            return new PlacementStoreSettings(topology);
         }
 
         private void ResetPlacementState()
@@ -1074,10 +1072,10 @@ namespace UDND.Inventories
                 return false;
 
             int desiredCount = snapshot.SlotCount;
-            var placementStoreSettings = CreatePlacementStoreSettings(_gridTopology.Normalized(), desiredCount);
+            var topology = CreatePlacementTopology(_gridTopology.Normalized(), desiredCount);
             if (!PlacementSnapshotCodec.TryBuildPlacementRequests(
                     snapshot,
-                    placementStoreSettings,
+                    topology,
                     out var placementRequests,
                     out var failedPlacement))
             {

@@ -415,7 +415,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void PlacementStore_RectGrid_RegistersAllCoveredCells()
         {
-            var store = new PlacementStore(new PlacementStoreSettings(new RectGridTopology(3, 2)));
+            var store = new PlacementStore(new RectGridTopology(3, 2));
             var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
 
             Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 0), out var placement));
@@ -428,7 +428,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void PlacementStore_SlotTopology_UsesOneSlotForShapedPlacement()
         {
-            var store = new PlacementStore(new PlacementStoreSettings(new SlotTopology(4)));
+            var store = new PlacementStore(new SlotTopology(4));
             var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
 
             Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 1), out var placement));
@@ -441,7 +441,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void PlacementStore_RectGrid_RejectsOutOfBoundsAndUnsupportedOrientation()
         {
-            var store = new PlacementStore(new PlacementStoreSettings(new RectGridTopology(2, 2)));
+            var store = new PlacementStore(new RectGridTopology(2, 2));
             var outOfBoundsStack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
             var unsupportedShape = new SingleOrientationShape(PlacementOrientation.Rot0, Vector2Int.zero);
             var unsupportedStack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
@@ -459,7 +459,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void PlacementStore_Remove_UnregistersAllCoveredCells()
         {
-            var store = new PlacementStore(new PlacementStoreSettings(new RectGridTopology(3, 2)));
+            var store = new PlacementStore(new RectGridTopology(3, 2));
             var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
             Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
@@ -474,7 +474,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void PlacementStore_ShiftAfterSlotRemoved_RecreatesPlacements()
         {
-            var store = new PlacementStore(new PlacementStoreSettings(new SlotTopology(3)));
+            var store = new PlacementStore(new SlotTopology(3));
             var stack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
             Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 2), out var originalPlacement));
 

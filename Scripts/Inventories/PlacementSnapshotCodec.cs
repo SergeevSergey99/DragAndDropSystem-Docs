@@ -32,7 +32,7 @@ namespace UDND.Inventories
 
         public static bool TryBuildPlacementRequests(
             InventorySnapshot snapshot,
-            PlacementStoreSettings placementStoreSettings,
+            IInventoryTopology topology,
             out List<PlacementRequest> requests,
             out InventoryPlacementState failedPlacement)
         {
@@ -41,7 +41,7 @@ namespace UDND.Inventories
             if (snapshot?.Placements == null)
                 return true;
 
-            var snapshotStore = new PlacementStore(placementStoreSettings);
+            var snapshotStore = new PlacementStore(topology);
             for (int i = 0; i < snapshot.Placements.Count; i++)
             {
                 var placementState = snapshot.Placements[i];

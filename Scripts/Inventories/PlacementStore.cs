@@ -5,31 +5,21 @@ using UnityEngine;
 
 namespace UDND.Inventories
 {
-    public readonly struct PlacementStoreSettings
-    {
-        public PlacementStoreSettings(IInventoryTopology topology)
-        {
-            Topology = topology ?? new SlotTopology(0);
-        }
-
-        public IInventoryTopology Topology { get; }
-    }
-
     public sealed class PlacementStore
     {
         private static readonly IReadOnlyList<int> EmptyIndices = Array.Empty<int>();
 
         private readonly Dictionary<int, Placement> _cellToPlacement = new Dictionary<int, Placement>();
         private readonly HashSet<Placement> _placements = new HashSet<Placement>();
-        private readonly PlacementStoreSettings _settings;
+        private readonly IInventoryTopology _topology;
 
-        public PlacementStore(PlacementStoreSettings settings)
+        public PlacementStore(IInventoryTopology topology)
         {
-            _settings = settings;
+            _topology = topology ?? new SlotTopology(0);
         }
 
         public IReadOnlyCollection<Placement> Placements => _placements;
-        public IInventoryTopology Topology => _settings.Topology;
+        public IInventoryTopology Topology => _topology;
 
         public void Reset()
         {
