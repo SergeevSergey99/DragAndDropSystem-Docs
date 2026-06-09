@@ -57,13 +57,7 @@ namespace UDND.Core
             IInventoryTopology topology,
             PlacementBoundsMode boundsMode)
         {
-            if (shape == null)
-                shape = RectPlacementShape.One;
-
-            if (!shape.SupportsOrientation(orientation))
-                return EmptyIndices;
-
-            var offsets = shape.GetOffsets(orientation);
+            var offsets = topology.GetPlacementOffsets(shape, orientation);
             if (offsets == null || offsets.Count == 0)
                 return EmptyIndices;
 

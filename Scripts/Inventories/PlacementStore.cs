@@ -7,16 +7,12 @@ namespace UDND.Inventories
 {
     public readonly struct PlacementStoreSettings
     {
-        public PlacementStoreSettings(
-            IInventoryTopology topology,
-            SlotShapedItemPolicy slotShapedItemPolicy = SlotShapedItemPolicy.Accept)
+        public PlacementStoreSettings(IInventoryTopology topology)
         {
             Topology = topology ?? new SlotTopology(0);
-            SlotShapedItemPolicy = slotShapedItemPolicy;
         }
 
         public IInventoryTopology Topology { get; }
-        public SlotShapedItemPolicy SlotShapedItemPolicy { get; }
     }
 
     public sealed class PlacementStore
@@ -34,7 +30,6 @@ namespace UDND.Inventories
 
         public IReadOnlyCollection<Placement> Placements => _placements;
         public IInventoryTopology Topology => _settings.Topology;
-        public SlotShapedItemPolicy SlotShapedItemPolicy => _settings.SlotShapedItemPolicy;
 
         public void Reset()
         {
@@ -45,9 +40,6 @@ namespace UDND.Inventories
         public bool CanPlace(PlacementRequest request, Placement ignoredPlacement = null)
         {
             if (request.Stack == null || request.Stack.IsEmpty)
-                return false;
-
-            if (IsRejectedShapedSlotPlacement(request.Shape, request.Orientation))
                 return false;
 
             // Geometry only: a placement is just a footprint over covered cells. Stack quantity
@@ -119,12 +111,6 @@ namespace UDND.Inventories
             if (!Topology.IsValidIndex(anchorIndex))
                 return EmptyIndices;
 
-            if (IsRejectedShapedSlotPlacement(shape, orientation))
-                return EmptyIndices;
-
-            if (ShouldCollapseToAnchor(shape, orientation))
-                return new[] { anchorIndex };
-
             return PlacementCellUtility.GetCoveredIndices(
                 anchorIndex,
                 shape,
@@ -139,16 +125,6 @@ namespace UDND.Inventories
             PlacementOrientation orientation,
             PlacementBoundsMode boundsMode)
         {
-            if (IsRejectedShapedSlotPlacement(shape, orientation))
-                return EmptyIndices;
-
-            if (ShouldCollapseToAnchor(shape, orientation))
-            {
-                return Topology.TryToIndex(anchorCell, out int anchorIndex)
-                    ? new[] { anchorIndex }
-                    : EmptyIndices;
-            }
-
             return PlacementCellUtility.GetCoveredIndices(
                 anchorCell,
                 shape,
@@ -223,15 +199,5 @@ namespace UDND.Inventories
             _placements.Remove(placement);
             return removed;
         }
-
-        private bool IsRejectedShapedSlotPlacement(IPlacementShape shape, PlacementOrientation orientation)
-            => Topology is SlotTopology &&
-               SlotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-               !PlacementShapeUtility.IsSingleCell(shape, orientation);
-
-        private bool ShouldCollapseToAnchor(IPlacementShape shape, PlacementOrientation orientation)
-            => Topology is SlotTopology &&
-               SlotShapedItemPolicy == SlotShapedItemPolicy.Accept &&
-               !PlacementShapeUtility.IsSingleCell(shape, orientation);
     }
 }

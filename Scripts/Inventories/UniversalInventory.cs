@@ -62,10 +62,6 @@ namespace UDND.Inventories
         private GridTopology _gridTopology = new GridTopology(1, 1);
 
         [FoldoutGroup("Placement")]
-        [SerializeField, Tooltip("Policy for shaped items in non-grid slot inventories.")]
-        private SlotShapedItemPolicy _slotShapedItemPolicy = SlotShapedItemPolicy.Accept;
-
-        [FoldoutGroup("Placement")]
         [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel, Tooltip("Controls how a hovered grid slot is converted to a shaped-item placement anchor.")]
         private ShapedPlacementAnchorStrategyBase _shapedPlacementAnchorStrategy = new RotatedGrabOffsetAnchorStrategy();
 
@@ -81,7 +77,6 @@ namespace UDND.Inventories
         private PlacementStore _placementStore;
         private bool _placementStoreUsesGrid;
         private GridTopology _placementStoreGridTopology;
-        private SlotShapedItemPolicy _placementStoreSlotPolicy;
         private DropPreviewController _dropPreviewController;
 
         public override IReadOnlyList<BaseSlot> Slots => _slots.AsReadOnly();
@@ -89,7 +84,6 @@ namespace UDND.Inventories
         public IReadOnlyCollection<Placement> Placements => EnsurePlacementStore().Placements;
 
         public GridTopology? Grid => _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null;
-        public SlotShapedItemPolicy ShapedItemPolicy => _slotShapedItemPolicy;
         public IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy => ResolveShapedPlacementAnchorStrategy();
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
@@ -485,8 +479,7 @@ namespace UDND.Inventories
                 _slotManagementSettings?.GetType().AssemblyQualifiedName,
                 _slotManagementSettings?.CaptureConfigurationJson(),
                 _useGridTopology,
-                _gridTopology.Normalized().ToString(),
-                _slotShapedItemPolicy.ToString());
+                _gridTopology.Normalized().ToString());
         }
 
         /// <summary>
@@ -849,8 +842,7 @@ namespace UDND.Inventories
             bool settingsChanged =
                 _placementStore == null ||
                 _placementStoreUsesGrid != _useGridTopology ||
-                !_placementStoreGridTopology.Equals(normalizedGrid) ||
-                _placementStoreSlotPolicy != _slotShapedItemPolicy;
+                !_placementStoreGridTopology.Equals(normalizedGrid);
 
             if (!settingsChanged)
                 return _placementStore;
@@ -861,7 +853,6 @@ namespace UDND.Inventories
             _placementStore = new PlacementStore(CreatePlacementStoreSettings(normalizedGrid));
             _placementStoreUsesGrid = _useGridTopology;
             _placementStoreGridTopology = normalizedGrid;
-            _placementStoreSlotPolicy = _slotShapedItemPolicy;
 
             if (previousPlacements != null)
             {
@@ -888,7 +879,7 @@ namespace UDND.Inventories
                 if (droppedPlacements > 0)
                 {
                     Debug.LogWarning(
-                        $"[{name}] Dropped {droppedPlacements} placement(s) while rebuilding placement store. Check grid topology, slot count, and shaped item policy settings.");
+                        $"[{name}] Dropped {droppedPlacements} placement(s) while rebuilding placement store. Check grid topology and slot count settings.");
                 }
             }
 
@@ -908,7 +899,7 @@ namespace UDND.Inventories
             IInventoryTopology topology = _useGridTopology
                 ? (IInventoryTopology)new SlotCountLimitedTopology(new RectGridTopology(normalizedGrid), () => _slots?.Count ?? 0)
                 : new SlotTopology(() => _slots?.Count ?? 0);
-            return new PlacementStoreSettings(topology, _slotShapedItemPolicy);
+            return new PlacementStoreSettings(topology);
         }
 
         private PlacementStoreSettings CreatePlacementStoreSettings(GridTopology normalizedGrid, int slotCount)
@@ -917,7 +908,7 @@ namespace UDND.Inventories
             IInventoryTopology topology = _useGridTopology
                 ? (IInventoryTopology)new SlotCountLimitedTopology(new RectGridTopology(normalizedGrid), slotCount)
                 : new SlotTopology(slotCount);
-            return new PlacementStoreSettings(topology, _slotShapedItemPolicy);
+            return new PlacementStoreSettings(topology);
         }
 
         private void ResetPlacementState()
@@ -969,7 +960,7 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanAcceptStackByPlacementPolicy(stack))
+            if (!CanUseLegacySlotPlacement(stack))
                 return false;
 
             Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
@@ -1006,7 +997,7 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanAcceptStackByPlacementPolicy(stack))
+            if (!CanUseLegacySlotPlacement(stack))
                 return false;
 
             return _placementStrategy.TryAddQuiet(_slots, stack, targetSlotIndex);
@@ -1387,7 +1378,7 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanAcceptStackByPlacementPolicy(stack))
+            if (!CanUseLegacySlotPlacement(stack))
                 return false;
 
             return _placementStrategy.TryAddToSlot(_slots, stack, targetBaseSlot, EnsureFreeSlots, operationContext);
@@ -1414,7 +1405,7 @@ namespace UDND.Inventories
             }
         }
 
-        private bool CanAcceptStackByPlacementPolicy(ItemStack stack)
+        private bool CanUseLegacySlotPlacement(ItemStack stack)
         {
             return stack != null && !stack.IsEmpty && CanAcceptShape(stack.PrimaryAdapter, stack.Count);
         }
@@ -1429,13 +1420,8 @@ namespace UDND.Inventories
             if (_useGridTopology && !isSingleCell)
                 return false;
 
-            if (!_useGridTopology &&
-                _slotShapedItemPolicy == SlotShapedItemPolicy.Reject &&
-                !isSingleCell)
-                return false;
-
-            // C7 (ShapedStacking-Plan.md): on slot (collapse-to-anchor) inventories a shaped item occupies
-            // one cell, so it may carry a stack (count > 1) just like a single-cell item; the strategy caps
+            // On slot inventories every item occupies one slot regardless of its spatial shape,
+            // so it may carry a stack (count > 1) just like a single-cell item; the strategy caps
             // the amount. Grid + multi-cell is still routed through the placement path (rejected above).
             return true;
         }

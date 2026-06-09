@@ -129,8 +129,8 @@ Snapshot/rollback всегда работает в терминах placement-т
 
 Переносы между grid- и slot-инвентарями работают по тем же контрактам:
 
-- **grid → slot.** `DragEntry` несёт footprint предмета через `SourcePlacement` / item adapter metadata. Целевой slot-инвентарь при `CanAccept`/`TryAdd` интерпретирует placement как 1-cell (своя политика occupancy). Footprint сохраняется как item-метаданные; если предмет позже перенесут обратно в grid, он снова развернётся.
-- **slot → grid.** Footprint резолвится из item adapter-а. Если предмет был collapsed в slot-инвентаре, при переносе обратно в grid он снова занимает свой реальный footprint. Только обычные non-shaped items имеют footprint `(1,1)`.
+- **grid → slot.** `DragEntry` несёт footprint предмета через `SourcePlacement` / item adapter metadata. Целевая slot topology интерпретирует любой item как один slot. Footprint сохраняется как item-метаданные; если предмет позже перенесут обратно в grid, он снова развернётся.
+- **slot → grid.** Footprint резолвится из item adapter-а. Slot topology не применяет пространственную форму к occupancy, но при переносе обратно в grid предмет снова занимает свой реальный footprint. Только обычные non-shaped items имеют footprint `(1,1)`.
 - **grid → grid (разные размеры).** Тот же планировщик, та же валидация по occupancy целевого инвентаря.
 
 Highlight рассчитывается как **view-query к target-инвентарю**, без глобального `if (shaped)`:
@@ -142,10 +142,10 @@ highlightSlots  = targetInventory.GetCoveredCells(candidateAnchor, footprint, or
 
 Slot-инвентарь возвращает `[pointerSlot]`. Grid возвращает covered cells. Source-инвентарь подсвечивает `entry.SourcePlacement`. Один и тот же код для обоих случаев.
 
-**Политика slot-инвентаря для shaped items** — параметр инвентаря:
-
-- `Accept` (по умолчанию) — принимает с collapse в 1 слот, footprint сохраняется в предмете.
-- `Reject` — отклоняет shaped items явной политикой.
+**Семантика slot-инвентаря для shaped items:** любой предмет занимает ровно один
+slot. Реальный footprint остаётся свойством item adapter-а и применяется
+пространственными topology. Если конкретный slot inventory не должен принимать
+shaped items, это выражается inventory/slot rules или acceptance strategy.
 - Альтернатива «занимать N последовательных слотов» намеренно не поддерживается; такой инвентарь надо моделировать как grid с шириной 1.
 
 ## Drag за любой covered cell
@@ -285,7 +285,7 @@ Cross-inventory grid ↔ slot должен работать после Phase 2 �
 | Slot management | Grid → только Fixed |
 | Shaped Count | Всегда 1 в Phase 1–3 |
 | Cross-inventory | Footprint — свойство предмета, occupancy — свойство инвентаря |
-| Slot inventory + shaped | Default Accept (collapse в 1 слот), опционально Reject |
+| Slot inventory + shaped | Занимает один slot; ограничения задаются rules/acceptance strategy |
 | Highlight | View-query `targetInventory.GetCoveredCells(...)` |
 | Visual | Отдельная `PlacementOverlay` панель, `raycastTarget=false` |
 | Swap / Batch / Auto-transfer для shaped | Reject через стандартный drop policy в Phase 1–3 |

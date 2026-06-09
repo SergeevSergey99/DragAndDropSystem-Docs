@@ -12,7 +12,6 @@ namespace UDND.Inventories
     public interface IPlacementInventory : IInventory
     {
         GridTopology? Grid { get; }
-        SlotShapedItemPolicy ShapedItemPolicy { get; }
         IPlacementStrategy PlacementStrategy { get; }
         IReadOnlyCollection<Placement> Placements { get; }
 

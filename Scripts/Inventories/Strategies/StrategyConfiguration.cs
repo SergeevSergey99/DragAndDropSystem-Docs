@@ -10,8 +10,7 @@ namespace UDND.Inventories
             string slotManagementType,
             string slotManagementJson,
             bool useGridTopology,
-            string gridTopology,
-            string slotShapedItemPolicy)
+            string gridTopology)
         {
             StrategyType = strategyType ?? string.Empty;
             StrategyJson = strategyJson ?? string.Empty;
@@ -19,7 +18,6 @@ namespace UDND.Inventories
             SlotManagementJson = slotManagementJson ?? string.Empty;
             UseGridTopology = useGridTopology;
             GridTopology = gridTopology ?? string.Empty;
-            SlotShapedItemPolicy = slotShapedItemPolicy ?? string.Empty;
         }
 
         public string StrategyType { get; }
@@ -28,7 +26,6 @@ namespace UDND.Inventories
         public string SlotManagementJson { get; }
         public bool UseGridTopology { get; }
         public string GridTopology { get; }
-        public string SlotShapedItemPolicy { get; }
 
         public bool Equals(StrategyConfiguration other)
         {
@@ -37,8 +34,7 @@ namespace UDND.Inventories
                 && SlotManagementType == other.SlotManagementType
                 && SlotManagementJson == other.SlotManagementJson
                 && UseGridTopology == other.UseGridTopology
-                && GridTopology == other.GridTopology
-                && SlotShapedItemPolicy == other.SlotShapedItemPolicy;
+                && GridTopology == other.GridTopology;
         }
 
         public override bool Equals(object obj) => obj is StrategyConfiguration other && Equals(other);
@@ -53,7 +49,6 @@ namespace UDND.Inventories
                 hash = (hash * 397) ^ SlotManagementJson.GetHashCode();
                 hash = (hash * 397) ^ UseGridTopology.GetHashCode();
                 hash = (hash * 397) ^ GridTopology.GetHashCode();
-                hash = (hash * 397) ^ SlotShapedItemPolicy.GetHashCode();
                 return hash;
             }
         }

@@ -38,7 +38,6 @@ public sealed class UniversalInventory : MonoBehaviour
 {
     [SerializeField] private bool _useGridTopology;
     [SerializeField] private GridTopology _gridTopology;
-    [SerializeField] private SlotShapedItemPolicy _slotShapedItemPolicy;
 
     private PlacementStore _placementStore;
     private IInventoryTopology _topology;
@@ -76,6 +75,9 @@ public interface IInventoryTopology
     bool TryToIndex(Vector2Int cell, out int index);
     Vector2Int ToCell(int index);
     bool IsValidIndex(int index);
+    IReadOnlyList<Vector2Int> GetPlacementOffsets(
+        IPlacementShape shape,
+        PlacementOrientation orientation);
 }
 ```
 
@@ -85,18 +87,21 @@ topologies on the same contract and avoids relying on undefined sentinel indices
 
 Initial implementations:
 
-- `SlotTopology`: one-dimensional slot layout. It maps slot indices to logical cells but does not decide whether shaped items collapse.
+- `SlotTopology`: one-dimensional slot layout. Every item occupies exactly one
+  logical slot, so placement offsets always resolve to the anchor.
 - `RectGridTopology`: current row-major rectangular grid.
 - `HexTopology`: future implementation using `Vector2Int` as axial-like logical coordinates.
 
 Do not put Unity UI concerns in topology. It is geometry/indexing only.
 
-Shape collapse is not a topology concern. For slot-style inventories,
-`PlacementStore` applies the inventory's `SlotShapedItemPolicy` before covered
-cell enumeration. With collapse enabled, any non-1x1 shape resolves to the
-anchor slot only. Without this rule, a 2x1 shape in a slot inventory would
-incorrectly occupy adjacent slots just because its offsets are `(0,0)` and
-`(1,0)`.
+Footprint projection belongs to topology semantics:
+
+- `SlotTopology` returns only `(0,0)` for any item shape;
+- `RectGridTopology` returns the real oriented shape offsets.
+
+`PlacementStore` consumes that projection uniformly and only checks bounds and
+occupancy. It does not branch on concrete topology types or apply a separate
+shaped-item policy.
 
 ## PlacementStore Scope
 
@@ -165,13 +170,12 @@ The store should receive configuration through constructor or small immutable se
 public readonly struct PlacementStoreSettings
 {
     public IInventoryTopology Topology { get; }
-    public SlotShapedItemPolicy SlotShapedItemPolicy { get; }
 }
 ```
 
 `PlacementStore` is plain C# and should be valid immediately after construction.
 Do not copy the existing lazy-init pattern (`EnsurePlacementStateInitialized`,
-`ClearInitializedPlacementState`) into the store. If topology or policy changes,
+`ClearInitializedPlacementState`) into the store. If topology changes,
 construct a new store or call `Reset()` with explicit replacement wiring in the
 owning component.
 
@@ -353,7 +357,7 @@ Future topology tests:
 
 - `RectGridTopology` parity with existing `GridTopology`;
 - `SlotTopology` one-dimensional index/cell conversion;
-- `PlacementStore` slot policy collapses shapes to anchor;
+- `SlotTopology` projects every item to its anchor slot;
 - `HexTopology` coordinate/index round-trip.
 
 ## Risk Controls

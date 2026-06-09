@@ -27,7 +27,8 @@
       "Bash(.venv/bin/pip freeze *)",
       "Bash(.venv/bin/python -c \"import mkdocs; print\\('mkdocs', mkdocs.__version__\\)\")",
       "Bash(.venv/bin/python -c \"import material; print\\('material ok'\\)\")",
-      "Bash(.venv/bin/python -c \"import mike; print\\('mike present'\\)\")"
+      "Bash(.venv/bin/python -c \"import mike; print\\('mike present'\\)\")",
+      "Bash(sort -t'|' -k2 -rn)"
     ],
     "deny": [],
     "ask": []

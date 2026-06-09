@@ -4,8 +4,8 @@ description: Architecture reference for UniversalDragAndDrop with policy-driven 
 ---
 # DragDrop Architecture
 
-**Version**: 2.4
-**Last Updated**: 2026-05-30
+**Version**: 2.5
+**Last Updated**: 2026-06-09
 
 ## Architectural Baseline
 
@@ -37,3 +37,5 @@ Transfer architecture is centered on:
 8. Keep preview conversion target-aware and non-mutating before planning/execution.
 9. Keep slot-domain code on `BaseSlot`; `ISlot` is only for filter/sorter contracts.
 10. Keep layout components out of transfer semantics; layouts may react to slot lifecycle events but must not own item mutation.
+11. Keep footprint projection topology-owned: `SlotTopology` maps every item to one anchor slot,
+    spatial topologies use oriented shape offsets, and `PlacementStore` only validates bounds/occupancy.

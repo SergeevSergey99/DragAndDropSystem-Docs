@@ -41,8 +41,8 @@
   if (!PlacementShapeUtility.IsSingleCell(request.Shape, request.Orientation) && request.Stack.Count > 1)
       return false;
   ```
-  Геометрический отказ любому multi-cell стеку с `Count>1`. Рядом — `IsRejectedShapedSlotPlacement`
-  (`SlotShapedItemPolicy.Reject`, оставляем) и `ShouldCollapseToAnchor` (slot-топология сводит covered к anchor).
+  Геометрический отказ любому multi-cell стеку с `Count>1`. Slot-топология теперь
+  сама проецирует любой предмет в один anchor slot; отдельные reject/collapse policy удалены.
 - **`InventoryStrategyBase.GetMaxStackSize`** (static, `Scripts/Inventories/Strategies/InventoryStrategyBase.cs:132-141`):
   ```csharp
   if (!PlacementShapeUtility.IsSingleCell(PlacementShapeUtility.Resolve(itemAdapter), PlacementOrientation.Rot0))
@@ -188,10 +188,10 @@
 > абстракция `IInventoryTopology` (`Core/Models/InventoryTopology.cs`) **уже чистая** и `PlacementStore` уже
 > работает поверх неё; полное удаление `_useGridTopology` — крупная чистка с малой отдачей, отложена. Гекс
 > расширяется новой реализацией `IInventoryTopology` + `IPlacementShape`-оффсетами **без правок пайплайна**.
-> Сделано только закрытие функционального пробела для **slot (collapse-to-anchor)** инвентарей: shaped там
+> Сделано только закрытие функционального пробела для **slot topology** инвентарей: shaped там
 > занимает 1 ячейку и идёт обычным single-cell путём.
 > - `UniversalInventory.CanAcceptShape`: для не-grid разрешён shaped `count>1` (лимит держит стратегия);
->   grid+multi-cell и Reject-policy по-прежнему отклоняются.
+>   grid+multi-cell маршрутизируется через placement pipeline.
 > - `TransferPlanner.BuildPlanForEntry`: снят гард «shaped на занятый не-grid слот» → дроп на занятый same-id
 >   слот сливается через обычный pipeline (`TryAddToSlot`), different-id/без swap — reject.
 > - Тесты: `ProcessDrop_ShapedSlotToOccupiedSlot_Rejects` переписан в `…OccupiedSameId_Merges`; добавлены

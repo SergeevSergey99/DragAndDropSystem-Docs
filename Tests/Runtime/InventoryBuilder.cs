@@ -31,7 +31,6 @@ namespace UDND.Tests
         private SlotManagementSettingsBase _slotManagementSettings = new FixedSlotManagementSettings();
         private bool _useGridTopology;
         private GridTopology _gridTopology = new GridTopology(1, 1);
-        private SlotShapedItemPolicy _slotShapedItemPolicy = SlotShapedItemPolicy.Accept;
         private string _name = "TestInventory";
 
         public InventoryBuilder WithStrategy(InventoryStrategyBase strategy)
@@ -77,12 +76,6 @@ namespace UDND.Tests
             return this;
         }
 
-        public InventoryBuilder WithSlotShapedItemPolicy(SlotShapedItemPolicy policy)
-        {
-            _slotShapedItemPolicy = policy;
-            return this;
-        }
-
         public InventoryBuilder WithName(string name)
         {
             _name = name ?? "TestInventory";
@@ -114,7 +107,6 @@ namespace UDND.Tests
             SetField(inventory, "_slotManagementSettings", _slotManagementSettings);
             SetField(inventory, "_useGridTopology", _useGridTopology);
             SetField(inventory, "_gridTopology", _gridTopology);
-            SetField(inventory, "_slotShapedItemPolicy", _slotShapedItemPolicy);
             if (_dropPolicy != null)
                 SetField(inventory, "_dropPolicy", _dropPolicy);
 

@@ -12,12 +12,6 @@ namespace UDND.Core
         Rot270 = 3
     }
 
-    public enum SlotShapedItemPolicy : byte
-    {
-        Accept = 0,
-        Reject = 1
-    }
-
     [Serializable]
     public struct GridTopology : IEquatable<GridTopology>
     {

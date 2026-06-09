@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UDND.Core
@@ -10,10 +11,16 @@ namespace UDND.Core
         bool TryToIndex(Vector2Int cell, out int index);
         Vector2Int ToCell(int index);
         bool IsValidIndex(int index);
+        IReadOnlyList<Vector2Int> GetPlacementOffsets(
+            IPlacementShape shape,
+            PlacementOrientation orientation);
     }
 
     public readonly struct SlotTopology : IInventoryTopology, IEquatable<SlotTopology>
     {
+        private static readonly IReadOnlyList<Vector2Int> AnchorOnlyOffsets =
+            Array.AsReadOnly(new[] { Vector2Int.zero });
+
         private readonly int _slotCount;
         private readonly Func<int> _slotCountProvider;
 
@@ -53,6 +60,11 @@ namespace UDND.Core
 
         public bool IsValidIndex(int index)
             => index >= 0 && index < CellCount;
+
+        public IReadOnlyList<Vector2Int> GetPlacementOffsets(
+            IPlacementShape shape,
+            PlacementOrientation orientation)
+            => AnchorOnlyOffsets;
 
         public bool Equals(SlotTopology other)
             => CellCount == other.CellCount;
@@ -107,6 +119,17 @@ namespace UDND.Core
         public bool IsValidIndex(int index)
             => _grid.IsValidIndex(index);
 
+        public IReadOnlyList<Vector2Int> GetPlacementOffsets(
+            IPlacementShape shape,
+            PlacementOrientation orientation)
+        {
+            shape ??= RectPlacementShape.One;
+            if (!shape.SupportsOrientation(orientation))
+                return Array.Empty<Vector2Int>();
+
+            return shape.GetOffsets(orientation) ?? Array.Empty<Vector2Int>();
+        }
+
         public bool Equals(RectGridTopology other)
             => _grid.Equals(other._grid);
 
@@ -157,6 +180,11 @@ namespace UDND.Core
 
         public bool IsValidIndex(int index)
             => index >= 0 && index < CurrentSlotCount && _inner.IsValidIndex(index);
+
+        public IReadOnlyList<Vector2Int> GetPlacementOffsets(
+            IPlacementShape shape,
+            PlacementOrientation orientation)
+            => _inner.GetPlacementOffsets(shape, orientation);
 
         private int CurrentSlotCount => Math.Max(0, _slotCountProvider());
     }

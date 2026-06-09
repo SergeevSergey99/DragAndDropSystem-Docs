@@ -380,6 +380,20 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void SlotTopology_GetPlacementOffsets_UsesAnchorForAnyShape()
+        {
+            IInventoryTopology topology = new SlotTopology(3);
+            var shape = new TestPlacementShape(
+                Vector2Int.zero,
+                Vector2Int.right,
+                Vector2Int.up);
+
+            var offsets = topology.GetPlacementOffsets(shape, PlacementOrientation.Rot90);
+
+            CollectionAssert.AreEqual(new[] { Vector2Int.zero }, offsets);
+        }
+
+        [Test]
         public void PlacementCellUtility_WithTopology_UsesTopologyBounds()
         {
             IInventoryTopology topology = new RectGridTopology(3, 2);
@@ -412,11 +426,9 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void PlacementStore_SlotTopology_CollapsesShapedPlacementToAnchor()
+        public void PlacementStore_SlotTopology_UsesOneSlotForShapedPlacement()
         {
-            var store = new PlacementStore(new PlacementStoreSettings(
-                new SlotTopology(4),
-                SlotShapedItemPolicy.Accept));
+            var store = new PlacementStore(new PlacementStoreSettings(new SlotTopology(4)));
             var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
 
             Assert.IsTrue(store.TryPlace(new PlacementRequest(stack, 1), out var placement));
@@ -424,23 +436,6 @@ namespace UDND.Tests.Inventories
             CollectionAssert.AreEqual(new[] { 1 }, placement.CoveredIndices);
             Assert.AreSame(placement, store.GetAt(1));
             Assert.IsNull(store.GetAt(2));
-        }
-
-        [Test]
-        public void PlacementStore_SlotTopology_RejectsShapedPlacementWhenPolicyRejects()
-        {
-            var store = new PlacementStore(new PlacementStoreSettings(
-                new SlotTopology(4),
-                SlotShapedItemPolicy.Reject));
-            var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
-
-            Assert.IsFalse(store.CanPlace(new PlacementRequest(stack, 1)));
-            Assert.IsFalse(store.TryPlace(new PlacementRequest(stack, 1), out _));
-            Assert.IsEmpty(store.GetCoveredIndices(
-                1,
-                PlacementShapeUtility.Resolve(stack.PrimaryAdapter),
-                PlacementOrientation.Rot0,
-                PlacementBoundsMode.RequireAllInBounds));
         }
 
         [Test]
@@ -1506,7 +1501,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void ProcessDrop_ShapedSlotToOccupiedSameId_Merges()
         {
-            // C7 (ShapedStacking-Plan.md): on a slot (collapse-to-anchor) inventory a shaped item occupies
+            // On a slot inventory a shaped item occupies
             // one cell, so dropping it onto an occupied same-id slot merges through the normal pipeline.
             var source = new InventoryBuilder().WithFixedSlots(1).Build();
             var target = new InventoryBuilder().WithFixedSlots(1).Build();
@@ -1567,7 +1562,7 @@ namespace UDND.Tests.Inventories
         [Test]
         public void ProcessDrop_ShapedStack_IntoEmptySlotInventory_KeepsCount()
         {
-            // C7: a shaped stack (count > 1) can be dropped into a slot inventory; it occupies one cell
+            // A shaped stack (count > 1) can be dropped into a slot inventory; it occupies one slot
             // and keeps its count.
             var source = new InventoryBuilder().WithFixedSlots(1).Build();
             var target = new InventoryBuilder().WithFixedSlots(2).Build();
@@ -1899,7 +1894,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void SlotInventory_DefaultPolicyAcceptsShapedAsSingleSlot()
+        public void SlotInventory_TreatsShapedItemAsSingleSlot()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(2)
@@ -1914,30 +1909,6 @@ namespace UDND.Tests.Inventories
                 CollectionAssert.AreEqual(new[] { 0 }, placement.CoveredIndices);
                 Assert.AreSame(placement, inventory.GetPlacementAt(0));
                 Assert.IsNull(inventory.GetPlacementAt(1));
-            }
-            finally
-            {
-                InventoryBuilder.Destroy(inventory);
-            }
-        }
-
-        [Test]
-        public void SlotInventory_RejectPolicyRejectsShapedItems()
-        {
-            var inventory = new InventoryBuilder()
-                .WithFixedSlots(2)
-                .WithSlotShapedItemPolicy(SlotShapedItemPolicy.Reject)
-                .Build();
-
-            try
-            {
-                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
-
-                Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0)));
-                Assert.IsFalse(inventory.TryPlace(new PlacementRequest(stack, 0)));
-                Assert.IsFalse(inventory.CanAcceptItem(stack.PrimaryAdapter, stack.Count, out _));
-                Assert.IsFalse(inventory.TryAddStack(stack));
-                Assert.AreEqual(1, stack.Count);
             }
             finally
             {

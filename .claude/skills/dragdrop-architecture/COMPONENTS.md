@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-09
 
 ## DragAndDropManager
 
@@ -127,6 +127,22 @@ Notes:
   plus `IReadOnlyList<IItemAdapter> Adapters`; `Count` is derived from adapter list length
 - type checks/casts in rules, bindings, tooltips, and visuals should use `PrimaryAdapter`
   (or `ItemAdapter`, which is kept as an alias for compatibility)
+
+## PlacementStore / InventoryTopology
+
+Locations:
+- `Scripts/Inventories/PlacementStore.cs`
+- `Scripts/Core/Models/InventoryTopology.cs`
+
+Responsibilities:
+- topology projects an item shape into placement offsets
+- `SlotTopology` always returns the anchor offset because every item occupies one slot
+- spatial topologies return the item's oriented shape offsets
+- `PlacementStore` checks bounds and occupancy using the topology projection
+
+Boundary:
+- item acceptance restrictions belong to rules or acceptance strategies
+- `PlacementStore` must not branch on concrete topology types
 
 ## FreeFormSlotLayout
 

@@ -6804,7 +6804,6 @@ MonoBehaviour:
   _gridTopology:
     _columns: 8
     _rows: 8
-  _slotShapedItemPolicy: 0
   _shapedPlacementAnchorStrategy:
     rid: 8757923584337772545
   references:
@@ -17712,7 +17711,6 @@ MonoBehaviour:
   _gridTopology:
     _columns: 8
     _rows: 8
-  _slotShapedItemPolicy: 0
   _shapedPlacementAnchorStrategy:
     rid: 8757923584337772545
   references:
