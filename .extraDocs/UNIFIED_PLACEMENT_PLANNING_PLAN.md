@@ -59,8 +59,9 @@
 - Shaped allocation исполняется через отдельный `TryAddToTargetPlacement`.
 - `PlannedPlacementAllocation` сейчас только один на entry, поэтому не покрывает распределение
   стека по нескольким placement.
-- Публичный `UniversalInventory.TrySwapSlots` все еще меняет `BaseSlot.Stack` напрямую и не должен
-  использоваться для shaped placement. Основной planner/executor pipeline этот метод уже не вызывает.
+- `UniversalInventory.TrySwapSlots` все еще меняет `BaseSlot.Stack` напрямую, но основной
+  planner/executor pipeline этот метод уже не вызывает и внутренних потребителей у него нет.
+  Поскольку публичного релиза еще не было, метод следует удалить без deprecation-периода.
 
 ---
 
@@ -202,6 +203,20 @@ capabilities.
 Для вызова без target hint используется deterministic scan anchors в strategy order. Это greedy
 оценка, а не поиск оптимальной упаковки. Такой контракт должен быть явно задокументирован.
 
+Acceptance является горячим preview-путем, поэтому общий алгоритм не означает обязательное создание
+полного `TransferPlan` и списков аллокаций. Нужен облегченный режим того же allocation service:
+
+- работает через reusable buffers/value types и не создает GC-нагрузку пропорционально числу
+  anchors на каждый hover;
+- может остановиться после достижения `DesiredCount`;
+- возвращает только count и первый допустимый target, если полные аллокации не запрошены;
+- кэширует как минимум shape/orientation offsets;
+- может кэшировать результат на время drag только при наличии надежной версии occupancy/rules и
+  обязан инвалидироваться при изменении target, orientation, converted item или inventory state.
+
+До миграции acceptance нужны baseline-профили на типичных и больших grid. Совпадение semantics с
+planner обязательно, но конкретная внутренняя форма результата и объем вычислений могут отличаться.
+
 ---
 
 ## 5. Что не требуется унифицировать
@@ -226,8 +241,13 @@ capabilities.
 
 - Зафиксировать существующее поведение slot/grid для stackable, separable, unique.
 - Добавить тесты для partial, same-inventory move, conversion и dynamic slot.
-- Добавить swap event snapshot test и тест direct API `TrySwapSlots`.
+- Добавить swap event snapshot test.
+- Удалить неиспользуемый `UniversalInventory.TrySwapSlots`: до первого релиза compatibility и
+  migration path для этого API не требуются.
 - Проверить внешних потребителей `PlannedSlotAllocation` и `PlannedPlacementAllocation`.
+- Зафиксировать точные observable результаты `CanAcceptItem` / `GetAcceptableCount`, включая shaped,
+  greedy order и suggested slot, чтобы изменение контракта было сознательным.
+- Снять baseline allocations/time для acceptance preview на малых и больших grid.
 
 ### Этап 1. Виртуальное placement-состояние
 
@@ -242,12 +262,28 @@ capabilities.
 - Сохранить strategy ordering и rules.
 - Добавить тесты: occupied hint, свободный регион, отсутствие региона, same-inventory source release.
 
+### Контрольная точка A: функциональный результат
+
+После этапов 0-2 остановиться и оценить:
+
+- shaped alternative placement и batch reservation дают требуемую пользовательскую пользу;
+- preview и execution не расходятся;
+- производительность приемлема;
+- дальнейшая консолидация действительно окупает риск.
+
+Этапы 0-2 являются основным рекомендуемым scope. Этапы 3-4 начинаются только при подтвержденной
+необходимости единого execution contract.
+
 ### Этап 3. Универсальная модель аллокаций
 
 - Расширить `PlannedPlacementAllocation` полями target/operation kind.
 - Перевести `PlannedEntryTransfer` на список аллокаций.
 - Добавить `NewDynamicSlot`.
 - Временно адаптировать старые slot allocations в новый формат.
+- Выполнить этап как отдельную структурную миграцию без одновременного изменения selection
+  semantics.
+- Отдельно проверить partial accounting, `TransferExecutionSummary`, `ExecutedTransferEntry`,
+  domain contexts и deferred add/remove events для нескольких аллокаций одного entry.
 
 ### Этап 4. Унифицированный executor
 
@@ -257,26 +293,36 @@ capabilities.
 - Сохранить snapshots, domain validation, conversion и deferred events.
 - Удалить shaped-only guard из `TryAddToTargetPlacement`.
 
-### Этап 5. Миграция single-cell planner
+### Контрольная точка B: решение о полной консолидации
+
+После этапов 3-4 сравнить сложность нового общего пути со стабильным single-cell путем. Последующие
+этапы не являются автоматически обязательными. Для каждого нужен отдельный аргумент: устранение
+реального behavioral drift, измеримое упрощение сопровождения или новая функциональность.
+
+### Опциональный этап 5. Миграция single-cell planner
 
 - Перевести strategy/unique allocation на общий аллокатор.
 - Использовать один planning state для всех entries одного плана.
 - После стабилизации удалить `PlannedSlotAllocation`, `VirtualSlotState` и старые executor branches,
   если они больше не нужны.
+- Не выполнять только ради буквального удаления веток: существующий single-cell fast path допустим,
+  пока он реализует те же transfer semantics и покрыт contract-тестами.
 
-### Этап 6. Унификация acceptance
+### Опциональный этап 6. Унификация acceptance
 
 - Перевести `GetAcceptableCount` и `CanAcceptItem` на dry-run общего аллокатора.
 - Удалить `CanAcceptShape` как routing guard.
 - Проверить, что preview capacity совпадает с реально построенным планом.
+- Использовать облегченный no-plan/no-list режим allocation service и подтвердить отсутствие
+  регрессии по baseline allocations/time.
+- Если общий dry-run слишком дорог, допускается специализированный preview fast path при общей
+  contract-тестовой матрице с planner.
 
-### Этап 7. Batch capabilities и зачистка
+### Опциональный этап 7. Batch capabilities и зачистка
 
 - Заменить shape-hardcode для batch явной capability стратегии.
 - Удалить оставшиеся semantic `IsSingleCell` branches из planner/executor/acceptance.
 - Оставить UI, rules и доказанные fast paths.
-- Либо удалить/сделать obsolete `UniversalInventory.TrySwapSlots`, либо направить его в безопасный
-  placement-based service.
 
 ### Этап 8. Документация
 
@@ -305,6 +351,10 @@ capabilities.
 - unknown anchor допустим только как `NewDynamicSlot`;
 - после создания слота executor обязан проверить topology и выполнить `TryPlace`;
 - rollback должен удалить созданный слот через восстановление snapshot;
+- создание/удаление слота может сдвигать индексы; rollback не должен оставлять index-keyed
+  DataBinding с ключами на уже другие logical slots;
+- characterization должен покрывать создание слота, rollback, повторное использование source slot
+  и последующую реиндексацию;
 - grid inventory продолжает запрещать dynamic slot management, пока не появится отдельная модель
   расширяемой spatial topology.
 
@@ -313,7 +363,9 @@ capabilities.
 - anchor scan имеет стоимость `O(anchorCount * footprintSize)`;
 - offsets shape/orientation можно кэшировать;
 - planning state должен обновлять occupancy инкрементально;
-- acceptance не должен строить Unity-объекты или мутировать inventory;
+- acceptance не должен строить Unity-объекты, мутировать inventory или аллоцировать коллекции на
+  каждый anchor/hover после прогрева;
+- до и после этапа 6 обязательны benchmark/Profiler сравнения на representative grid sizes;
 - backtracking не требуется в первой версии.
 
 ### Тестовая матрица
@@ -334,6 +386,15 @@ capabilities.
 
 ## 8. Критерии готовности
 
+### Основной scope: этапы 0-2
+
+- `PlacementPlanningState` корректно резервирует footprint нескольких planned operations.
+- Shaped alternative search использует strategy order, rules и виртуальную topology.
+- Preview, planner и executor согласованы для добавленных shaped-сценариев.
+- Нет регрессии acceptance/hover по baseline performance.
+
+### Полная консолидация, если одобрены этапы 3-7
+
 - Planner использует один topology-aware allocation service.
 - Все entries одного плана разделяют `PlacementPlanningState`.
 - Single-cell и shaped создают одинаковый тип списка аллокаций.
@@ -341,7 +402,7 @@ capabilities.
 - Acceptance capacity вычисляется dry-run того же аллокатора.
 - Executor выполняет create/merge через placement API для slot и grid topology.
 - Нет `IsSingleCell` branches, меняющих transfer semantics; UI/rules/fast paths разрешены.
-- Direct swap API не обходит placement invariants.
+- Неиспользуемый direct swap API удален; swap доступен только через placement-safe pipeline.
 - Все characterization и новые topology/batch/event тесты проходят.
 - Architecture skills и публичная документация соответствуют реализации.
 
