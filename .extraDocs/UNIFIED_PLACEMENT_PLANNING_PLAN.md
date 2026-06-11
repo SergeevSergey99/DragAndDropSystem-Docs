@@ -6,8 +6,8 @@
 
 При этом доступность места определяется не одним `CanPlace`, а сочетанием трех независимых проверок:
 
-1. стратегия определяет eligibility create/merge, capacity и фазы кандидатов; итоговый выбор —
-   за selection policy (4.4);
+1. стратегия определяет eligibility create/merge, capacity, естественный порядок и фазовые метки
+   кандидатов; итоговый способ обхода и выбор — за selection policy (4.4);
 2. rules проверяют конкретную операцию и целевой anchor;
 3. placement state проверяет топологию, границы и occupancy.
 
@@ -27,6 +27,10 @@
 > Ревью-итерация 3 (2026-06-11): семантика зависимостей entries в BestEffort (transitive skip),
 > `AllocationId`/`TargetReference` для всех Create, участие slot-инвентаря в session при
 > cross-topology swap.
+>
+> Ревью-итерация 4 (2026-06-11): per-entry execution transaction для BestEffort, условный
+> source-release для partial split, повторно перечисляемый candidate source для bit-for-bit
+> совместимости policies, стабильная ссылка на существующий placement отдельно от свободного anchor.
 
 ---
 
@@ -158,7 +162,7 @@ PlacementPlanningState
     CanPlace(request, ignoredPlacements)
     TryReserveCreate(allocation) -> AllocationId      // у ЛЮБОГО Create, вкл. известный anchor
     TryReserveMerge(target, amount)                   // target: TargetReference (4.2)
-    ReleaseSourcePlacement(placement)
+    TryReleaseSourcePlacement(placement)              // tentative; только кандидат на full move
     GetReservedAmount(target)                         // target: TargetReference (4.2)
 ```
 
@@ -192,8 +196,11 @@ max stack и stacking semantics — это зона стратегии. Remainin
 - использует ту же `IInventoryTopology`, что и runtime `PlacementStore`;
 - видит реальные placement и все ранее закоммиченные изменения session;
 - не мутирует inventory, slots и runtime `PlacementStore`;
-- для same-inventory move освобождает source footprint ровно один раз (повторный release внутри
-  одного entry — ошибка);
+- для same-inventory move может tentative-освободить source footprint ровно один раз, только если
+  dragged stack покрывает весь текущий source placement; повторный release внутри entry — ошибка;
+- перед `Commit` проверяет, что успешный entry действительно удалит source placement целиком.
+  Если после partial/`DragAmountStep` остается исходный stack, tentative release откатывается и
+  entry перепланируется один раз без освобождения source footprint;
 - поддерживает последовательный deterministic greedy planning для batch;
 - позволяет planner и acceptance использовать один и тот же алгоритм dry-run;
 - swap-планирование читает planning states обеих сторон через session, а не runtime occupancy.
@@ -213,7 +220,8 @@ PlannedPlacementAllocation
     Amount
 
 TargetReference
-    ExistingPlacement(anchorIndex)     // реальный placement / свободный anchor
+    KnownAnchor(anchorIndex)            // Create в свободном/освобожденном anchor
+    ExistingPlacement(existingId)       // Merge в реальный placement
     PlannedAllocation(allocationId)    // placement, создаваемый ранее в этом плане
     NewDynamicSlot                     // identity — AllocationId создающей аллокации
 ```
@@ -222,6 +230,9 @@ TargetReference
 
 - single-cell - обычный `Create`/`Merge` с footprint из одной ячейки;
 - shaped stack может иметь несколько аллокаций, если стратегия допускает несколько placement;
+- `ExistingPlacementId` — стабильная session-identity реального placement, назначенная при
+  инициализации planning state; это не raw anchor index. Executor поддерживает mapping
+  `ExistingPlacementId -> current placement`, поэтому slot lifecycle/reindex не меняет смысл плана;
 - merge в placement, запланированный предыдущим entry того же плана, ссылается на него через
   `TargetReference.PlannedAllocation`, а не по anchor;
 - `NewDynamicSlot` хранит намерение создать слот, потому что его реальный index появится только в
@@ -244,7 +255,7 @@ wrapper не требуется — тип удаляется сразу. Есл
 - max stack и remaining capacity (caps; учет уже запланированного — через аллокатор и
   `GetReservedAmount`);
 - one-per-ID и separable-stack semantics, включая учет planned placements;
-- фазовую структуру потока кандидатов (4.4) и default selection policy;
+- естественный deterministic order, фазовые метки кандидатов (4.4) и default selection policy;
 - допустимость создания dynamic slot.
 
 Rules отвечают за конкретный item, amount и target anchor. Rules проверяет **только аллокатор,
@@ -270,7 +281,7 @@ Rules отвечают за конкретный item, amount и target anchor. 
 ```text
 PlacementCandidate
     Kind: Merge | CreateAt | NewDynamicSlot
-    Target: TargetReference   (Merge: existing или PlannedAllocation; CreateAt: anchor)
+    Target: TargetReference   (Merge: ExistingPlacement/PlannedAllocation; CreateAt: KnownAnchor)
     Orientation
     Capacity             (cap стратегии минус текущее содержимое placement;
                           planned-резервы НЕ учтены — их вычитает аллокатор)
@@ -278,15 +289,16 @@ PlacementCandidate
 
 Владение порядком (разрешение текущей размазанности, см. 2.4):
 
-- **стратегия** определяет eligibility, capacity и **фазовую структуру** потока: кандидаты
-  отдаются ленивыми фазами (`Merge`, затем `CreateAt`, затем `NewDynamicSlot`); внутри
-  фазы порядок — deterministic enumeration (topology scan / порядок слотов);
-- **selection policy** определяет итоговый выбор: предпочтение между фазами и выбор внутри фазы.
-  Policy может short-circuit, но не может требовать полной материализации потока — буферизация
-  всех anchors запрещена;
-- текущее поведение выражается без потерь: `FirstSlotSelectionPolicy` = первый кандидат первой
-  непустой фазы; `StackFirstSlotSelectionPolicy` = предпочесть фазу `Merge` фазе
-  `CreateAt`. Бит-в-бит совместимость фиксируется contract-тестами;
+- **стратегия** предоставляет ленивый, повторно перечисляемый `PlacementCandidateSource`.
+  Кандидаты имеют фазовую метку (`Merge`, `CreateAt`, `NewDynamicSlot`), но естественный порядок
+  источника сохраняет текущую strategy/topology semantics, включая interleave merge и empty slots;
+- **selection policy** определяет способ обхода источника. `FirstSlotSelectionPolicy` берет первый
+  кандидат естественного потока. `StackFirstSlotSelectionPolicy` сначала перечисляет только
+  `Merge`, а при отсутствии результата повторно перечисляет `CreateAt`/`NewDynamicSlot`;
+- повторное ленивое перечисление допустимо, полная материализация и сортировка всех anchors
+  запрещены. Candidate source должен быть стабильным в пределах одной попытки allocation;
+- таким образом, пример `empty slot 0 + mergeable slot 1` остается bit-for-bit совместимым:
+  `FirstSlotSelectionPolicy` выбирает slot 0, `StackFirstSlotSelectionPolicy` — slot 1;
 - стратегия предоставляет default policy (как сейчас `DefaultSlotSelectionPolicy`);
   request-level override (`InventoryAcceptanceRequest.SelectionPolicy`) сохраняется;
 - rules в кандидатах не проверяются (4.3);
@@ -303,10 +315,11 @@ PlacementCandidate
 PlanEntry(entry, policy, target, hint, session):
     checkpoint = session.BeginEntry()
     1. resolve converted item, shape, orientation and requested amount
-    2. release source placement in its inventory's state for a same-inventory move
+    2. if dragged stack covers the full source placement:
+         - tentatively release source placement in its inventory's state
     3. if hinted target is occupied and an occupied-slot handler claims the drop:
          - plan OccupiedHandler operation (priority over swap and alternative search)
-    4. ask strategy for phased placement candidates (lazy stream, 4.4)
+    4. ask strategy for lazy placement candidate source (4.4)
     5. for each candidate chosen by selection policy:
          - capacity = candidate.Capacity - state.GetReservedAmount(target)
          - validate rules for concrete anchor and amount
@@ -317,7 +330,10 @@ PlanEntry(entry, policy, target, hint, session):
          - TryPlanSwap reading planning states of BOTH inventories via session
     7. apply AllowPartial, BatchMode and DragAmountStep semantics
        (trim уменьшает резервы до Commit — остаточная бронь не утекает)
-    8. entry accepted -> session.Commit(checkpoint)
+    8. if final amount leaves items in source placement and step 2 released it:
+         - session.Rollback(checkpoint)
+         - replan entry once with source footprint retained
+    9. entry accepted -> session.Commit(checkpoint)
        entry rejected -> session.Rollback(checkpoint)
 ```
 
@@ -339,16 +355,34 @@ Entry B может зависеть от entry A двумя способами:
 
 Оба вида известны на этапе планирования. Session строит граф зависимостей автоматически: явные —
 из `TargetReference`, геометрические — фиксацией пересечения резерва с released-регионом
-конкретного entry. План хранит для каждого entry набор entries, от которых он зависит.
+конкретного entry. Геометрическое ребро сохраняется только если tentative source-release A пережил
+проверку full-consumption и был закоммичен; partial split не освобождает регион и не создает такую
+зависимость. План хранит для каждого entry набор entries, от которых он зависит.
 
 Семантика выполнения:
 
 - **Atomic**: граф не используется — любой сбой откатывает весь план (как сейчас).
+- **BestEffort сохраняет атомарность отдельного entry.** Перед entry executor снимает snapshots
+  всех затрагиваемых им inventories в состоянии после предыдущих успешных entries и начинает
+  entry execution transaction. Domain validation и все allocations относятся к этой transaction.
+- Если хотя бы один участник entry не предоставляет rollback-capability
+  (`IInventorySnapshotProvider` либо эквивалентный transaction adapter), entry помечается failed
+  **до первой мутации**; его dependents затем пропускаются по обычному правилу. BestEffort не
+  разрешает «частично атомарный» fallback.
+- Если любая allocation, conversion, domain validation или commit-операция entry завершается
+  неуспешно, executor откатывает **весь entry**, включая уже выполненные allocations, созданные
+  dynamic slots, mapping `AllocationId -> placement`, provisional outcomes/domain contexts и
+  `ExecutedTransferEntry`. Частично выполненный failed entry запрещен.
 - **BestEffort**: если entry A падает на выполнении (domain validation, изменившееся
   runtime-состояние), все транзитивно зависимые от него entries **пропускаются**, а не
   исполняются на невалидных предпосылках (отсутствующий handle, занятая область).
 - Пропущенные entries попадают в `TransferExecutionSummary` с отдельной причиной
-  («dependency failed»), отличимой от собственного сбоя; deferred events для них не эмитятся.
+  («dependency failed»), отличимой от собственного сбоя; deferred events не эмитятся ни для
+  пропущенных, ни для откатившихся allocations failed entry.
+- Summary содержит per-entry результат, а не только aggregate counters:
+  `EntryExecutionStatus = Succeeded | Failed | SkippedDependency`, failure reason и ids
+  непосредственных failed dependencies. Aggregate `SucceededEntries`/`FailedEntries` сохраняются,
+  `SkippedEntries` добавляется отдельно и не маскируется под `FailedEntries`.
 - Перепланирование остатка плана на лету не входит в первую версию (как и backtracking, §5.5):
   пропуск детерминирован и дешев, replan-on-failure требует прогона планировщика посреди
   выполнения и отдельной модели консистентности.
@@ -482,22 +516,27 @@ baseline, фиксация решений. Они не означают «вер
 - Per-entry транзакции: `BeginEntry`/`Commit`/`Rollback` на уровне session.
 - Allocation handles: `TryReserveCreate -> AllocationId` для любого Create, merge и
   `GetReservedAmount` через `TargetReference`; id уникален в пределах session.
+- Назначать стабильный `ExistingPlacementId` каждому реальному placement при инициализации state;
+  `KnownAnchor` и `ExistingPlacement` являются разными target references.
 - Граф зависимостей (4.6): session фиксирует явные ссылки на `PlannedAllocation` и
   геометрические зависимости (резерв поверх released-региона другого entry).
 - Инициализировать состояния реальными placement.
 - Тесты: пересекающиеся footprint, rollback восстанавливает released source и снимает резервы,
   reserved amounts по real и planned targets, merge в planned placement, one-per-ID поверх
-  planned placements, граф зависимостей (явных и геометрических).
+  planned placements, tentative source-release и replan partial split без release, граф
+  зависимостей (явных и геометрических).
 - Пока не менять публичные планы и executor.
 
 ### Этап 2. Placement-candidate contract
 
-- Ввести `PlacementCandidate` и ленивый фазовый поток (4.4).
-- Закрепить владение порядком: стратегия — eligibility/capacity/фазы, selection policy — выбор;
-  default policy у стратегии, request-level override сохраняется.
+- Ввести `PlacementCandidate` и ленивый повторно перечисляемый `PlacementCandidateSource` (4.4).
+- Закрепить владение порядком: стратегия — eligibility/capacity/естественный порядок/фазовая
+  метка, selection policy — способ обхода и выбор; default policy у стратегии, request-level
+  override сохраняется.
 - Убрать проверку rules из кандидатов стратегий; rules проверяет только аллокатор.
 - Мигрировать built-in стратегии и policies; для slot-топологии поведение бит-в-бит прежнее.
-- Contract-тесты: порядок и выбор кандидатов прежние для всех built-in стратегий и policies.
+- Contract-тесты: порядок и выбор кандидатов прежние для всех built-in стратегий и policies,
+  включая `empty slot 0 + mergeable slot 1` для First/StackFirst.
 
 ### Этап 3. Универсальная модель аллокаций
 
@@ -508,27 +547,29 @@ baseline, фиксация решений. Они не означают «вер
 - Выполнить этап как отдельную структурную миграцию без одновременного изменения selection
   semantics.
 - Отдельно проверить partial accounting, `TransferExecutionSummary`, `ExecutedTransferEntry`,
-  domain contexts и deferred add/remove events для нескольких аллокаций одного entry.
+  domain contexts и deferred add/remove events для нескольких аллокаций одного entry;
+  добавить per-entry status и отдельный `SkippedEntries`.
 
 ### Этап 4. Grid vertical slice: единый planner + executor для grid-топологии
 
 - Все entries с target grid-топологии идут через единый аллокатор (4.5) — включая single-cell
   как footprint 1x1. Slot-инвентари не затронуты (инвариант раздела 3).
-- Shaped alternative search реализуется здесь, сразу на strategy-ordered фазовых кандидатах.
+- Shaped alternative search реализуется здесь через общий candidate source и selection policies.
 - Executor для grid: `Create` через `TryPlace`, `Merge` через placement stack; маппинг
-  `AllocationId -> placement`.
+  `AllocationId -> placement` и `ExistingPlacementId -> current placement`.
 - Cross-topology swap (grid-цель, slot-источник) планируется через session обеих сторон:
   slot-инвентарь получает `PlacementPlanningState` как участник (раздел 3); обычное планирование
   со slot-целью остается на старом pipeline до этапа 6.
 - Occupied-handler, swap fallback (через session), `DragAmountStep`, hint-only — для grid через
   единый путь (чеклист 4.7, пункты 4-7, 9).
-- Тесты: occupied hint, свободный регион, отсутствие региона, same-inventory source release,
-  смена ориентации, covered-cell drop.
+- Тесты: occupied hint, свободный регион, отсутствие региона, full same-inventory source release,
+  partial split без release, смена ориентации, covered-cell drop.
 
 ### Контрольная точка A (ревью-гейт)
 
 - grid-топология полностью на едином пути; preview и execution не расходятся;
-- shaped alternative search использует strategy order (фазы), rules и виртуальную topology;
+- shaped alternative search использует candidate source/selection policy, rules и виртуальную
+  topology;
 - производительность в пределах baseline;
 - зафиксированы решения по behavioral changes (occupied-handler для shaped, `FailureReason`,
   устранение утечки отклоненного entry).
@@ -539,12 +580,14 @@ baseline, фиксация решений. Они не означают «вер
   `PlacementPlanningSession`.
 - Смешанный batch (single-cell + shaped) работает без моста — один pipeline (раздел 3).
 - Ввести strategy capability для явного запрета multi-entry spatial planning (вместо guard).
-- Семантика зависимостей в BestEffort (4.6): execution-сбой entry транзитивно пропускает
-  зависимые entries; `TransferExecutionSummary` и события различают failed и skipped.
+- Семантика зависимостей в BestEffort (4.6): каждый entry исполняется транзакционно; execution-сбой
+  откатывает все его allocations и транзитивно пропускает зависимые entries;
+  `TransferExecutionSummary` и события различают succeeded/failed/skipped.
 - Тесты: смешанный batch, atomic и best-effort при частичной геометрической невместимости,
-  отклоненный entry не влияет на последующие (транзакции), execution-сбой entry пропускает
-  транзитивно зависимые, partial-учет по нескольким entries, ориентации per entry, swap внутри
-  batch с учетом резервов предыдущих entries.
+  отклоненный entry не влияет на последующие planning-транзакции, сбой второй allocation
+  откатывает первую allocation того же entry, execution-сбой entry пропускает транзитивно
+  зависимые, отсутствие rollback-capability дает fail-before-mutation, partial-учет по нескольким
+  entries, ориентации per entry, swap внутри batch с учетом резервов предыдущих entries.
 
 ### Этап 6. Миграция slot-топологии
 
@@ -601,6 +644,9 @@ baseline, фиксация решений. Они не означают «вер
 - `Rollback(checkpoint)` обязан восстанавливать released source placement и снимать все резервы
   entry — частичный откат недопустим;
 - source placement нельзя освобождать повторно при нескольких allocations одного entry;
+  committed release допустим только если entry удаляет source placement целиком;
+- partial split и `DragAmountStep`, оставляющие source stack, обязаны планироваться с занятым
+  source footprint; tentative release требует rollback + однократный replan без release;
 - covered-cell interaction должен резолвиться в логический placement/anchor;
 - conversion может изменить shape, поэтому geometry проверяется по converted adapter;
 - merge не создает новый footprint, но меняет reserved amount в planning state;
@@ -611,9 +657,14 @@ baseline, фиксация решений. Они не означают «вер
 - swap-планирование читает planning states обеих сторон через session, а не runtime occupancy;
 - executor обязан детерминированно сопоставлять `AllocationId` реальным placement/slot;
   несколько `NewDynamicSlot` в одном плане сопоставляются по handle, а не по порядку создания;
+- `KnownAnchor` и `ExistingPlacement` не взаимозаменяемы; существующий placement адресуется
+  стабильным `ExistingPlacementId`, а не индексом, который может измениться при slot lifecycle;
 - граф зависимостей обязан покрывать оба вида (явные `PlannedAllocation`-ссылки и геометрические
   через released-регион); пропуск зависимых в BestEffort — транзитивный, без ложных пропусков
   независимых entries;
+- BestEffort entry transaction откатывает все уже выполненные allocations и удаляет их
+  provisional outcomes/handles перед пропуском зависимых entries;
+- отсутствие rollback-capability у участника BestEffort entry обнаруживается до мутации;
 - atomic rollback и события должны сохранять placement snapshots;
 - маршрутизация переходного периода — по топологии (раздел 3): два виртуальных состояния одного
   инвентаря в одном плане запрещены.
@@ -622,10 +673,10 @@ baseline, фиксация решений. Они не означают «вер
 
 - удаление rules-проверок из кандидатов (4.3/4.4) меняет контракт `IAcceptanceStrategy`:
   кастомные стратегии, полагавшиеся на двойную проверку, должны быть найдены в audit этапа 0;
-- фазовый контракт (4.4) перераспределяет владение порядком между стратегией и policy;
+- candidate-source контракт (4.4) перераспределяет владение порядком между стратегией и policy;
   бит-в-бит совместимость built-in комбинаций фиксируется contract-тестами на этапе 2;
-- selection policy не может требовать материализации полного потока кандидатов — это часть
-  контракта, иначе grid-перфоманс деградирует;
+- candidate source обязан поддерживать стабильное повторное ленивое перечисление; selection policy
+  не может требовать материализации полного потока кандидатов, иначе grid-перфоманс деградирует;
 - occupied-handler для shaped — сознательный behavioral change, фиксируется на гейте A;
 - `RulesScope` acceptance — сознательное выравнивание с planner, текущие расхождения фиксируются
   characterization (этап 0).
@@ -648,7 +699,7 @@ baseline, фиксация решений. Они не означают «вер
 - offsets shape/orientation можно кэшировать;
 - planning state должен обновлять occupancy инкрементально; checkpoint/rollback не должны
   копировать полное состояние (журнал операций или undo-стек);
-- кандидаты перечисляются лениво фазами; eager-список на каждую итерацию аллокации запрещен (4.4);
+- кандидаты перечисляются лениво и повторно без eager-списка на каждую итерацию аллокации (4.4);
 - acceptance не должен строить Unity-объекты, мутировать inventory или аллоцировать коллекции на
   каждый anchor/вызов после прогрева;
 - result-кэш acceptance вне scope: только offsets-кэш и пересчет на UI-событие (4.8);
@@ -666,8 +717,11 @@ baseline, фиксация решений. Они не означают «вер
 - conversion с неизменной и измененной shape;
 - batch best-effort и atomic, включая смешанный single-cell + shaped batch;
 - отклоненный entry не оставляет следов в session (транзакции);
-- BestEffort: execution-сбой entry транзитивно пропускает зависимые, независимые выполняются,
-  summary различает failed/skipped;
+- full same-inventory move освобождает source footprint; partial split и rounded-down
+  `DragAmountStep` не освобождают;
+- BestEffort: сбой второй allocation откатывает первую allocation того же entry, затем транзитивно
+  пропускает зависимые; независимые выполняются, отсутствие snapshot дает fail-before-mutation,
+  summary различает succeeded/failed/skipped и содержит per-entry причины;
 - dynamic slot create/rollback;
 - drop на anchor и covered cell;
 - placement snapshots в add/remove/swap events;
@@ -685,7 +739,8 @@ baseline, фиксация решений. Они не означают «вер
   slot-топологии.
 - Grid-топология полностью на едином пути: single-cell и shaped создают одинаковый тип списка
   аллокаций.
-- Shaped alternative search использует фазовый strategy order, rules и виртуальную topology.
+- Shaped alternative search использует общий candidate source/selection policy, rules и
+  виртуальную topology.
 - Preview, planner и executor согласованы для grid-сценариев.
 - Нет регрессии acceptance/hover по baseline performance.
 
@@ -694,8 +749,8 @@ baseline, фиксация решений. Они не означают «вер
 - Planner использует один topology-aware allocation service; все entries одного плана разделяют
   `PlacementPlanningSession`.
 - Strategy, rules и geometry имеют раздельные обязанности; rules проверяются один раз.
-- Кандидаты — placement-кандидаты, отдаются ленивыми фазами; selection policies работают поверх
-  них; владение порядком однозначно.
+- Кандидаты — placement-кандидаты из повторно перечисляемого ленивого source; естественный порядок
+  принадлежит стратегии, способ обхода — selection policy.
 - Acceptance capacity вычисляется dry-run того же аллокатора через `PlacementPlanningRequest`
   с зафиксированным `RulesScope`.
 - Executor выполняет create/merge через placement API для slot и grid topology; planning handles
@@ -705,8 +760,8 @@ baseline, фиксация решений. Они не означают «вер
 - `VirtualSlotState`, `PlannedSlotAllocation` и `CanAcceptShape` удалены.
 - Неиспользуемый direct swap API удален; swap доступен только через placement-safe pipeline.
 - Batch ограничивается только явной strategy capability.
-- BestEffort выполняет независимые entries и детерминированно пропускает транзитивно зависимые
-  от упавших (4.6).
+- BestEffort атомарно откатывает упавший entry, выполняет независимые entries и детерминированно
+  пропускает транзитивно зависимые от упавших (4.6).
 - Все characterization и новые topology/batch/event тесты проходят, чеклист 4.7 покрыт
   contract-тестами.
 - Architecture skills и публичная документация соответствуют реализации.
