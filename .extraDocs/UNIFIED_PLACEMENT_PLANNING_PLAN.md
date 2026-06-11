@@ -221,7 +221,8 @@ PlacementCandidate
     Kind: MergeExisting | CreateAt | NewDynamicSlot
     AnchorIndex          (для NewDynamicSlot отсутствует)
     Orientation
-    Capacity             (cap стратегии без учета planned-резервов)
+    Capacity             (cap стратегии минус текущее содержимое placement;
+                          planned-резервы НЕ учтены — их вычитает аллокатор)
 ```
 
 Контракт:
@@ -251,7 +252,7 @@ PlanEntry(entry, policy, target, hint, planningState):
          - plan OccupiedHandler operation (priority over swap and alternative search)
     4. ask strategy for ordered placement candidates (lazy stream)
     5. for each candidate:
-         - capacity = strategy cap - existing count - planningState reserved amount
+         - capacity = candidate.Capacity - planningState.GetReservedAmount(placement)
          - validate rules for concrete anchor and amount
          - validate geometry through planningState
          - reserve merge or footprint in planningState
@@ -315,10 +316,17 @@ Acceptance является горячим preview-путем, поэтому о
   anchors на каждый hover;
 - может остановиться после достижения `DesiredCount`;
 - возвращает только count и первый допустимый target, если полные аллокации не запрошены;
-- кэширует как минимум shape/orientation offsets;
-- кэшировать **результат** на время drag можно только при наличии надежной версии occupancy/rules
-  (version counter на `PlacementStore`/инвентаре). Такой версии сейчас нет, и ее введение —
-  отдельная подзадача; до нее кэш ограничивается shape/offsets, а результат пересчитывается.
+- кэширует shape/orientation offsets; **result-кэш не входит в scope.** Acceptance вызывается
+  событийно (вход в зону, смена наведенной ячейки/ориентации, drop), а не per-frame, поэтому
+  пересчет на каждое событие — норма. Надежная инвалидация result-кэша невозможна в принципе:
+  occupancy версионируется тривиально, но rules — произвольный пользовательский код с внешними
+  входами, его не версионировать;
+- цена устаревшего acceptance-результата — неверная подсветка до следующего события: acceptance
+  advisory, на drop план строится заново и executor перевалидирует через `TryPlace` с atomic
+  rollback. Поэтому строгая инвалидация не является требованием корректности;
+- fallback, если baseline после этапа 8 покажет проблему на больших grid: occupancy-only counter
+  плюс задокументированное допущение «rules стабильны в пределах drag». Это сознательное решение
+  по результатам профайлера, не заранее.
 
 До миграции acceptance нужны baseline-профили на типичных и больших grid. Совпадение semantics с
 planner обязательно, но конкретная внутренняя форма результата и объем вычислений могут отличаться.
@@ -377,7 +385,10 @@ baseline, фиксация решений. Они не означают «вер
 - Перевести поиск альтернативного anchor для shaped на `PlacementPlanningState`
   (вместо runtime `CanPlace`).
 - Дать `TryPlanSwap` read-доступ к planning state для shaped-пути.
-- Сохранить strategy ordering и rules.
+- Порядок анкоров на этом этапе — deterministic topology scan (row-major) с merge-решениями
+  стратегии через `ResolveShapedMerge`. Полноценного strategy-ordered потока кандидатов для
+  shaped еще не существует (слотовый `GetSlotCandidates` его выразить не может) — он появляется
+  на этапе 4 и заменяет внутренности поиска. Rules проверяются как сейчас.
 - Добавить тесты: occupied hint, свободный регион, отсутствие региона, same-inventory source release.
 
 ### Этап 3. Batch + shaped
@@ -385,7 +396,10 @@ baseline, фиксация решений. Они не означают «вер
 - Снять `IsBatchDrag`-guard для shaped в `PlanEntry`; все entries одного плана разделяют один
   `PlacementPlanningState` per target inventory.
 - На grid-инвентарях перевести `VirtualSlotState` в view поверх `PlacementPlanningState`
-  (инвариант раздела 3): single-cell и shaped entries одного batch видят одни брони.
+  (инвариант раздела 3): single-cell и shaped entries одного batch видят одни брони. Это
+  временный мост, удаляемый на этапе 7 вместе с `VirtualSlotState`; если мост окажется
+  дороже ожидаемого, plan B — перенести этот этап после этапа 7, где общий planning state
+  делает batch+shaped почти бесплатным (ценой откладывания payoff).
 - Ввести strategy capability для явного запрета multi-entry spatial planning (вместо guard).
 - Тесты: смешанный batch (single-cell + shaped) на grid, atomic и best-effort при частичной
   геометрической невместимости, partial-учет по нескольким entries, ориентации per entry.
@@ -452,7 +466,10 @@ baseline, фиксация решений. Они не означают «вер
 
 ### Этап 9. Зачистка
 
-- Удалить оставшиеся semantic `IsSingleCell` branches из planner/executor/acceptance.
+- Удалить оставшиеся semantic `IsSingleCell` branches из planner/executor/acceptance и
+  `AutoTransferService` (shaped-guard в выборе режима auto-transfer). Визуальные проверки формы
+  (`DragAndDropManager.TrySetPlacementDraggedState`, `DropPreviewController`, drag visuals)
+  остаются — они UI по §5.1.
 - Убедиться, что batch ограничивается только явной capability, без shape-hardcode.
 - Оставить UI, rules и доказанные early-out fast paths внутри общего аллокатора.
 
@@ -478,6 +495,10 @@ baseline, фиксация решений. Они не означают «вер
 - merge не создает новый footprint, но меняет reserved amount в planning state;
 - same-inventory swap должен проверять совместимость двух результирующих footprint;
 - swap-планирование читает planning state, а не runtime occupancy;
+- `DragAmountStep`-округление выполняется после резервирования: остаточная бронь в planning
+  state либо явно освобождается, либо сознательно сохраняется как консервативная. Текущий
+  `VirtualSlotState` ведет себя именно консервативно (trim аллокаций не откатывает `Apply`) —
+  зафиксировать в characterization и принять решение явно, а не унаследовать молча;
 - atomic rollback и события должны сохранять placement snapshots;
 - два виртуальных состояния одного инвентаря в одном плане запрещены (инвариант раздела 3);
   на этапах 3-6 grid-инвентари работают через planning-state-backed view.
@@ -509,8 +530,7 @@ baseline, фиксация решений. Они не означают «вер
 - кандидаты перечисляются лениво; eager-список на каждую итерацию аллокации запрещен (4.4);
 - acceptance не должен строить Unity-объекты, мутировать inventory или аллоцировать коллекции на
   каждый anchor/hover после прогрева;
-- result-кэш acceptance требует version counter occupancy/rules — до его появления только
-  offsets-кэш (4.7);
+- result-кэш acceptance вне scope: только offsets-кэш и пересчет на UI-событие (4.7);
 - до и после этапа 8 обязательны benchmark/Profiler сравнения на representative grid sizes;
 - backtracking не требуется в первой версии.
 
@@ -565,4 +585,4 @@ baseline, фиксация решений. Они не означают «вер
 *Основные затрагиваемые области: `TransferPlanner`, `TransferPlanExecutor`, `PlacementStore`,
 `InventoryTopology`, `UniversalInventory`, `InventoryAcceptanceRequest`, `VirtualSlotState`,
 `InventoryStrategyBase`, `IAcceptanceStrategy`, `SlotAcceptanceCandidate`, `SlotSelectionPolicy`,
-concrete strategies и `Core/Drop/*AlternativePlacementStrategy`.*
+`AutoTransferService`, concrete strategies и `Core/Drop/*AlternativePlacementStrategy`.*
