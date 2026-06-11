@@ -17,6 +17,11 @@
 > batch+shaped и миграцию single-cell пути. Публичного релиза еще не было — это единственный
 > момент, когда двойной путь можно убрать без compatibility-обязательств. Контрольные точки —
 > ревью-гейты (пауза, characterization, перфоманс), а не точки вероятной остановки.
+>
+> Ревью-итерация 2 (2026-06-11): добавлены per-entry транзакции planning state,
+> multi-inventory `PlacementPlanningSession`, planning placement handles, уточнено владение
+> candidate order (фазовый контракт), переходная маршрутизация по **топологии** вместо моста
+> `VirtualSlotState -> PlacementPlanningState`, общий `PlacementPlanningRequest` для acceptance.
 
 ---
 
@@ -48,6 +53,9 @@
   `PlannedPlacementAllocation`.
 - В нескольких местах `IsSingleCell` выбирает не оптимизацию, а разные transfer semantics.
 - `VirtualSlotState` хранит только stack одного слота и не моделирует занятые footprint.
+- Виртуальное состояние не транзакционно: при отклонении entry (например,
+  `AllowPartial=false` после частичной аллокации) `Apply`-мутации `VirtualSlotState` не
+  откатываются — отклоненный entry оставляет фантомные резервы для последующих entries batch.
 - Shaped-путь проверяет feasibility через runtime `CanPlace`, поэтому batch+shaped сегодня
   запрещен жестким guard в `PlanEntry`, а не capability.
 
@@ -59,6 +67,8 @@
   топологию.
 - `CanAcceptShape` отдельно отсекает multi-cell для grid, потому что общий acceptance-путь пока не
   умеет планировать placement без заранее заданного anchor.
+- `GetAcceptableCount` не получает полный набор planner inputs: policy, global rules, конкретный
+  hint и blocked-target semantics в acceptance-контракт не входят.
 
 ### 2.3 Executor
 
@@ -82,8 +92,8 @@
   кандидата «создать placement с anchor A в ориентации O» в модели нет;
 - rules проверяются дважды: внутри стратегии (`PassesRules` в `GetSlotCandidates`) и в
   планировщике (`IsCandidateAllowedByRules`);
-- merge-first семантика размазана между порядком кандидатов стратегии и
-  `StackFirstSlotSelectionPolicy` — два источника порядка.
+- владение порядком размазано: стратегия возвращает кандидатов в порядке слотов, а
+  `StackFirstSlotSelectionPolicy` сама переупорядочивает, предпочитая занятый stack пустому слоту.
 
 Унификация обязана обобщить этот механизм (см. 4.4), иначе единый аллокатор упрется в слотовый
 контракт на полпути.
@@ -106,54 +116,75 @@
 Поэтому перед общей миграцией нужен виртуальный topology-aware state, который резервирует
 запланированные footprint и merge capacity.
 
-**Инвариант переходного периода:** пока `VirtualSlotState` и `PlacementPlanningState` сосуществуют
-(этапы 1-7), один план никогда не ведет два несинхронизированных виртуальных состояния одного
-инвентаря. Конкретно:
+**Инвариант переходного периода: маршрутизация по топологии, а не по форме.** Каждый инвентарь
+обслуживается ровно одним pipeline:
 
-- на slot-инвентарях до этапа 7 работает только `VirtualSlotState`;
-- на grid-инвентарях начиная с этапа 3 `VirtualSlotState` становится view поверх
-  `PlacementPlanningState`: чтение occupancy и `Apply` проксируются в резервы planning state,
-  поэтому single-cell и shaped entries одного batch видят одни и те же брони;
-- запрещено состояние, в котором slot-аллокация зарезервирована в одном представлении, а
-  shaped-поиск читает другое.
+- grid-топология переходит на унифицированный путь целиком — включая single-cell как footprint
+  1x1 — на этапе 4;
+- slot-топология остается на старом `VirtualSlotState`-пути до этапа 6;
+- два виртуальных состояния одного инвентаря в одном плане запрещены. Смешанный batch
+  (single-cell + shaped) на grid не требует моста между состояниями, потому что все его entries
+  идут через один pipeline.
 
 ---
 
 ## 4. Целевая архитектура
 
-### 4.1 `PlacementPlanningState`
+### 4.1 `PlacementPlanningSession` и `PlacementPlanningState`
 
-Внутренняя модель планировщика создается из текущих placement инвентаря и живет на протяжении
-построения всего `TransferPlan`.
-
-Минимальные операции:
+План затрагивает больше одного инвентаря: swap размещает предметы в обе стороны (текущий
+`TryPlanSwap` уже проверяет геометрию обеих сторон), batch может содержать разные source
+inventories, а same-inventory release живет в инвентаре источника. Поэтому виртуальное состояние
+ведется per inventory и собирается в session:
 
 ```text
-GetPlacementAt(cellOrAnchor)
-CanPlace(request, ignoredPlacements)
-TryReserveCreate(allocation)
-TryReserveMerge(allocation)
-ReleaseSourcePlacement(placement)
-GetReservedAmount(placement)
+PlacementPlanningSession
+    GetState(inventory) -> PlacementPlanningState     // лениво, по требованию
+    BeginEntry() -> checkpoint                        // охватывает все states session
+    Commit(checkpoint)
+    Rollback(checkpoint)
+
+PlacementPlanningState
+    GetPlacementAt(cellOrAnchor)                      // реальный или planned
+    CanPlace(request, ignoredPlacements)
+    TryReserveCreate(allocation) -> PlanningPlacementId
+    TryReserveMerge(target, amount)                   // target: Placement | PlanningPlacementId
+    ReleaseSourcePlacement(placement)
+    GetReservedAmount(target)                         // target: Placement | PlanningPlacementId
 ```
 
+**Per-entry транзакции.** Source placement освобождается до завершения планирования entry, а
+аллокации резервируются по ходу подбора кандидатов. Если entry в итоге отклоняется
+(`AllowPartial=false`, нет кандидатов, swap не сложился), `Rollback(checkpoint)` обязан убрать все
+следы: восстановить released source и снять резервы. Это заодно чинит существующую утечку
+`VirtualSlotState` (см. 2.1), при которой отклоненный entry оставляет фантомные резервы.
+
+**Planning placement handles.** `TryReserveCreate` возвращает стабильный `PlanningPlacementId`.
+Он нужен, потому что последующий entry того же плана должен уметь:
+
+- увидеть placement, запланированный предыдущим entry (`GetPlacementAt`);
+- merge-иться в него (`TryReserveMerge` по handle);
+- соблюдать one-per-ID с учетом planned placements;
+- ссылаться на еще не созданный dynamic slot, у которого нет anchor index до выполнения.
+
+Executor получает соответствие `PlanningPlacementId -> реальный placement/slot` по мере
+исполнения (для `NewDynamicSlot` — после создания слота). Handles заменяют сегодняшние synthetic
+virtual slots.
+
 `GetReservedAmount` сознательно заменяет `GetRemainingMergeCapacity`: planning state не знает про
-max stack и stacking semantics — это зона стратегии. Remaining merge capacity вычисляет аллокатор:
-`strategyCap(item) - placement.Stack.Count - planningState.GetReservedAmount(placement)`.
+max stack и stacking semantics — это зона стратегии. Remaining merge capacity вычисляет аллокатор
+(см. 4.5).
 
 Требования:
 
 - использует ту же `IInventoryTopology`, что и runtime `PlacementStore`;
-- видит реальные placement и все ранее запланированные изменения;
+- видит реальные placement и все ранее закоммиченные изменения session;
 - не мутирует inventory, slots и runtime `PlacementStore`;
-- для same-inventory move освобождает source footprint ровно один раз;
+- для same-inventory move освобождает source footprint ровно один раз (повторный release внутри
+  одного entry — ошибка);
 - поддерживает последовательный deterministic greedy planning для batch;
 - позволяет planner и acceptance использовать один и тот же алгоритм dry-run;
-- доступен на чтение swap-планированию: `TryPlanSwap` для entry N обязан учитывать резервы
-  entries 1..N-1, а не runtime-состояние.
-
-Необязательно сразу делать публичный интерфейс. На первом этапе это internal-модель. Сосуществование
-со старым virtual-slot view регулируется инвариантом из раздела 3.
+- swap-планирование читает planning states обеих сторон через session, а не runtime occupancy.
 
 ### 4.2 Универсальная аллокация
 
@@ -162,9 +193,10 @@ slot-аллокаций:
 
 ```text
 PlannedPlacementAllocation
-    TargetKind: ExistingAnchor | NewDynamicSlot
+    TargetKind: ExistingAnchor | PlannedPlacement | NewDynamicSlot
     OperationKind: Create | Merge
-    AnchorIndex
+    AnchorIndex          (ExistingAnchor; Create на известном grid-anchor)
+    PlanningPlacementId  (PlannedPlacement / NewDynamicSlot)
     Orientation
     Shape
     Amount
@@ -174,8 +206,10 @@ PlannedPlacementAllocation
 
 - single-cell - обычный `Create`/`Merge` с footprint из одной ячейки;
 - shaped stack может иметь несколько аллокаций, если стратегия допускает несколько placement;
+- merge в placement, запланированный предыдущим entry того же плана, ссылается на него по
+  `PlanningPlacementId`, а не по anchor;
 - `NewDynamicSlot` хранит намерение создать слот, потому что его реальный index появится только в
-  executor;
+  executor; идентичность до выполнения — `PlanningPlacementId`;
 - grid + dynamic slots пока запрещен существующей конфигурацией, поэтому unknown anchor нужен только
   slot topology;
 - swap и occupied-handler остаются отдельными типами planned operation, а не маскируются под
@@ -183,18 +217,18 @@ PlannedPlacementAllocation
 
 Перед удалением `PlannedSlotAllocation` нужно проверить его публичную доступность и внешних
 потребителей. Поскольку публичного релиза еще не было, внешних потребителей нет и compatibility
-wrapper не требуется — тип удаляется сразу. Если к моменту этапа 7 релиз уже состоится, тогда
+wrapper не требуется — тип удаляется сразу. Если к моменту этапа 6 релиз уже состоится, тогда
 оставить obsolete wrapper на один релиз.
 
 ### 4.3 Роли strategy, rules и geometry
 
 Стратегия отвечает за:
 
-- разрешение create/merge/reject;
+- разрешение create/merge/reject (eligibility);
 - max stack и remaining capacity (caps; учет уже запланированного — через аллокатор и
   `GetReservedAmount`);
-- one-per-ID и separable-stack semantics;
-- порядок кандидатов: hinted, merge-first, empty-first и другие policy;
+- one-per-ID и separable-stack semantics, включая учет planned placements;
+- фазовую структуру потока кандидатов (4.4) и default selection policy;
 - допустимость создания dynamic slot.
 
 Rules отвечают за конкретный item, amount и target anchor. Rules проверяет **только аллокатор,
@@ -206,7 +240,8 @@ Rules отвечают за конкретный item, amount и target anchor. 
 - проекцию shape через topology;
 - bounds;
 - occupancy;
-- резервирование planned footprint и учет reserved amounts.
+- резервирование planned footprint и учет reserved amounts;
+- транзакционность (checkpoint/rollback).
 
 Стратегия не должна самостоятельно реализовывать геометрию, а `CanPlace` не должен принимать
 решения о stacking или unique semantics.
@@ -220,23 +255,28 @@ Rules отвечают за конкретный item, amount и target anchor. 
 PlacementCandidate
     Kind: MergeExisting | CreateAt | NewDynamicSlot
     AnchorIndex          (для NewDynamicSlot отсутствует)
+    PlanningPlacementId  (для merge в planned placement)
     Orientation
     Capacity             (cap стратегии минус текущее содержимое placement;
                           planned-резервы НЕ учтены — их вычитает аллокатор)
 ```
 
-Контракт:
+Владение порядком (разрешение текущей размазанности, см. 2.4):
 
-- стратегия отдает **ленивый упорядоченный поток** кандидатов (struct enumerator или callback),
-  а не eager `List`: текущая перестройка полного списка на каждой итерации недопустима на grid
-  (`O(anchors * footprint)` на каждую аллокацию и каждый hover);
-- источник порядка один — стратегия; selection policy (`SlotSelectionPolicyBase` ->
-  placement-selection policy) остается pluggable extension point, но работает как выбор/фильтр
-  поверх потока, а не второй источник сортировки;
-- rules в кандидатах не проверяются (см. 4.3);
+- **стратегия** определяет eligibility, capacity и **фазовую структуру** потока: кандидаты
+  отдаются ленивыми фазами (`MergeExisting`, затем `CreateAt`, затем `NewDynamicSlot`); внутри
+  фазы порядок — deterministic enumeration (topology scan / порядок слотов);
+- **selection policy** определяет итоговый выбор: предпочтение между фазами и выбор внутри фазы.
+  Policy может short-circuit, но не может требовать полной материализации потока — буферизация
+  всех anchors запрещена;
+- текущее поведение выражается без потерь: `FirstSlotSelectionPolicy` = первый кандидат первой
+  непустой фазы; `StackFirstSlotSelectionPolicy` = предпочесть фазу `MergeExisting` фазе
+  `CreateAt`. Бит-в-бит совместимость фиксируется contract-тестами;
+- стратегия предоставляет default policy (как сейчас `DefaultSlotSelectionPolicy`);
+  request-level override (`InventoryAcceptanceRequest.SelectionPolicy`) сохраняется;
+- rules в кандидатах не проверяются (4.3);
 - геометрия проверяется лениво аллокатором через `PlacementPlanningState` только для реально
   рассмотренных кандидатов;
-- `SlotSelection.New()` отображается в `NewDynamicSlot`;
 - для slot-топологии кандидаты вырождаются в текущее поведение (anchor == slot index,
   единственная ориентация), что позволяет мигрировать стратегии без изменения semantics.
 
@@ -245,21 +285,25 @@ PlacementCandidate
 Целевой алгоритм:
 
 ```text
-PlanEntry(entry, policy, target, hint, planningState):
+PlanEntry(entry, policy, target, hint, session):
+    checkpoint = session.BeginEntry()
     1. resolve converted item, shape, orientation and requested amount
-    2. release source placement in planningState for a same-inventory move
+    2. release source placement in its inventory's state for a same-inventory move
     3. if hinted target is occupied and an occupied-slot handler claims the drop:
          - plan OccupiedHandler operation (priority over swap and alternative search)
-    4. ask strategy for ordered placement candidates (lazy stream)
-    5. for each candidate:
-         - capacity = candidate.Capacity - planningState.GetReservedAmount(placement)
+    4. ask strategy for phased placement candidates (lazy stream, 4.4)
+    5. for each candidate chosen by selection policy:
+         - capacity = candidate.Capacity - state.GetReservedAmount(target)
          - validate rules for concrete anchor and amount
-         - validate geometry through planningState
-         - reserve merge or footprint in planningState
+         - validate geometry through the planning state
+         - reserve merge or footprint (handle for created placements)
          - append PlannedPlacementAllocation
     6. if hinted target is blocked and policy requests Swap:
-         - TryPlanSwap reading planningState (not runtime occupancy)
+         - TryPlanSwap reading planning states of BOTH inventories via session
     7. apply AllowPartial, BatchMode and DragAmountStep semantics
+       (trim уменьшает резервы до Commit — остаточная бронь не утекает)
+    8. entry accepted -> session.Commit(checkpoint)
+       entry rejected -> session.Rollback(checkpoint)
 ```
 
 Аллокатор не ветвится по `IsSingleCell`. Отличия выражаются topology, candidate policy и strategy
@@ -269,12 +313,9 @@ capabilities.
 приоритетом, что сегодня на single-cell пути (сейчас shaped grid items до него не доходят — это
 behavioral change, его покрывает characterization этапа 0).
 
-Шаг 6 — не «та же строка, что сейчас»: swap-планирование получает read-доступ к
-`PlacementPlanningState`, иначе swap для entry N в batch проверяет устаревшее состояние.
-
 ### 4.6 Поведения, которые единый аллокатор обязан поглотить
 
-Главный риск миграции single-cell пути — не геометрия, а накопленные специальные поведения.
+Главный риск миграции существующих путей — не геометрия, а накопленные специальные поведения.
 Чеклист (каждое — отдельный characterization-тест до миграции и contract-тест после):
 
 1. deferred placement через `TryAddStack(-1)` для динамического инвентаря с нулем слотов
@@ -286,10 +327,13 @@ behavioral change, его покрывает characterization этапа 0).
 5. hint-only entries (`PlanHintOnlyEntry`), когда альтернативы недостижимы;
 6. приоритет occupied-slot handler над blocked-target поведением;
 7. swap fallback при `plannedAmount == 0`;
-8. синтетические virtual slots при планировании создания слотов (one-per-ID не должен
-   запланировать второй новый слот для того же item);
+8. one-per-ID учет placements, запланированных предыдущими entries того же плана
+   (сегодня — synthetic virtual slots; в целевой модели — planned placements c handle);
 9. исключение source slot/placement при same-inventory move;
 10. `EnsureFreeSlots` / potentialNewSlots accounting для dynamic инвентарей.
+
+Пункты 4-7 и 9 актуальны уже для grid vertical slice (этап 4); пункты 1-3, 8, 10 в полном объеме
+всплывают при миграции slot-топологии (этап 6).
 
 Single-cell fast path после миграции допустим **только как early-out внутри единого аллокатора**
 (footprint из одной ячейки), а не как параллельная семантическая ветка.
@@ -299,24 +343,35 @@ Single-cell fast path после миграции допустим **тольк�
 `GetAcceptableCount` не должен иметь отдельный упрощенный алгоритм упаковки shaped items.
 Иначе preview и реальный planner со временем разойдутся.
 
-Нужен общий internal allocation service:
+Сегодня acceptance не получает полный набор planner inputs (см. 2.2). «Тот же dry-run» требует
+общего запроса с явным режимом:
 
-- planner запрашивает аллокации и получает полный результат;
-- acceptance запускает тот же dry-run и возвращает сумму `Amount`;
-- `CanAcceptItem` берет первый реально допустимый existing anchor либо сообщает возможность
-  `NewDynamicSlot`.
+```text
+PlacementPlanningRequest
+    Mode: Plan | AcceptancePreview | CountOnly | FirstTargetOnly
+    item, amount, context/entry, target hint
+    policy (resolved), selection policy override
+    RulesScope: какие слои rules участвуют (slot rules, inventory rules, global rules)
+```
 
-Для вызова без target hint используется deterministic scan anchors в strategy order. Это greedy
-оценка, а не поиск оптимальной упаковки. Такой контракт должен быть явно задокументирован.
+- `Plan` — полный результат с аллокациями;
+- `AcceptancePreview` — та же логика, облегченный результат;
+- `CountOnly` — только суммарный `Amount`, ранний выход по `DesiredCount`;
+- `FirstTargetOnly` — первый допустимый existing anchor либо возможность `NewDynamicSlot`
+  (контракт `CanAcceptItem`);
+- `RulesScope` — обязательная часть контракта: без зафиксированного набора слоев rules preview и
+  planner дадут разные результаты по построению. Текущие расхождения (acceptance не видит global
+  rules) фиксируются characterization и устраняются сознательно.
+
+Для вызова без target hint используется deterministic scan anchors в порядке фаз стратегии. Это
+greedy оценка, а не поиск оптимальной упаковки. Такой контракт должен быть явно задокументирован.
 
 Acceptance является горячим preview-путем, поэтому общий алгоритм не означает обязательное создание
-полного `TransferPlan` и списков аллокаций. Нужен облегченный режим того же allocation service:
+полного `TransferPlan` и списков аллокаций. Требования к облегченным режимам:
 
-- работает через reusable buffers/value types и не создает GC-нагрузку пропорционально числу
-  anchors на каждый hover;
-- может остановиться после достижения `DesiredCount`;
-- возвращает только count и первый допустимый target, если полные аллокации не запрошены;
-- кэширует shape/orientation offsets; **result-кэш не входит в scope.** Acceptance вызывается
+- работают через reusable buffers/value types и не создают GC-нагрузку пропорционально числу
+  anchors на каждый вызов;
+- кэшируют shape/orientation offsets; **result-кэш не входит в scope.** Acceptance вызывается
   событийно (вход в зону, смена наведенной ячейки/ориентации, drop), а не per-frame, поэтому
   пересчет на каждое событие — норма. Надежная инвалидация result-кэша невозможна в принципе:
   occupancy версионируется тривиально, но rules — произвольный пользовательский код с внешними
@@ -324,7 +379,7 @@ Acceptance является горячим preview-путем, поэтому о
 - цена устаревшего acceptance-результата — неверная подсветка до следующего события: acceptance
   advisory, на drop план строится заново и executor перевалидирует через `TryPlace` с atomic
   rollback. Поэтому строгая инвалидация не является требованием корректности;
-- fallback, если baseline после этапа 8 покажет проблему на больших grid: occupancy-only counter
+- fallback, если baseline после этапа 7 покажет проблему на больших grid: occupancy-only counter
   плюс задокументированное допущение «rules стабильны в пределах drag». Это сознательное решение
   по результатам профайлера, не заранее.
 
@@ -339,7 +394,7 @@ planner обязательно, но конкретная внутренняя �
 2. **Доменные rules.** Правило может сознательно запрещать multi-cell item.
 3. **Оптимизации.** Быстрый путь для footprint из одной ячейки допустим как early-out внутри
    общего аллокатора, если результат совпадает с общей placement semantics.
-4. **Безусловный multi-entry spatial planning.** Batch+shaped входит в scope (этап 3), но strategy
+4. **Безусловный multi-entry spatial planning.** Batch+shaped входит в scope (этап 5), но strategy
    capability может его явно запретить для конкретной стратегии. Это должно быть явным решением
    capability, а не скрытым `IsShaped` guard в planner.
 5. **Оптимальная упаковка.** Первая версия использует deterministic greedy reservation. Полный
@@ -356,14 +411,22 @@ planner обязательно, но конкретная внутренняя �
 baseline, фиксация решений. Они не означают «вероятно, остановимся здесь»: целевой scope — полная
 консолидация.
 
+Порядок построен по правилу «контракты до потребителей»: session и candidate-модель появляются
+раньше первого vertical slice, чтобы shaped-поиск, batch и миграции не строились на временных
+конструкциях и не переделывались.
+
 ### Этап 0. Characterization и API audit
 
 - Зафиксировать существующее поведение slot/grid для stackable, separable, unique.
 - Добавить тесты для partial, same-inventory move, conversion и dynamic slot.
 - Добавить swap event snapshot test.
 - Покрыть тестами каждый пункт чеклиста 4.6.
+- Зафиксировать тестом существующую утечку виртуального состояния при отклоненном entry (2.1) —
+  она исчезнет с транзакциями, и это сознательное изменение.
 - Зафиксировать observable `FailureReason` строки `PlannedEntryTransfer` для shaped и single-cell
   путей: унификация их изменит, и это должно быть сознательно.
+- Зафиксировать фактический rules scope acceptance-пути (какие слои rules сегодня участвуют в
+  `CanAcceptItem` / `GetAcceptableCount`, а какие — только в planner).
 - Удалить неиспользуемый `UniversalInventory.TrySwapSlots`: до первого релиза compatibility и
   migration path для этого API не требуются.
 - Проверить внешних потребителей `PlannedSlotAllocation` и `PlannedPlacementAllocation`.
@@ -372,57 +435,31 @@ baseline, фиксация решений. Они не означают «вер
 - Снять baseline allocations/time для acceptance preview на малых и больших grid, включая
   batch-сценарии.
 
-### Этап 1. Виртуальное placement-состояние
+### Этап 1. `PlacementPlanningSession` и planning state
 
-- Ввести `PlacementPlanningState` с API из 4.1 (включая `GetReservedAmount` вместо
-  capacity-методов).
-- Инициализировать его реальными placement.
-- Добавить тесты резервирования пересекающихся footprint, освобождения source и reserved amounts.
+- Ввести `PlacementPlanningSession` (`Dictionary<IInventory, PlacementPlanningState>`, ленивое
+  создание) и `PlacementPlanningState` с API из 4.1.
+- Per-entry транзакции: `BeginEntry`/`Commit`/`Rollback` на уровне session.
+- Planning placement handles: `TryReserveCreate -> PlanningPlacementId`, merge и
+  `GetReservedAmount` по handle.
+- Инициализировать состояния реальными placement.
+- Тесты: пересекающиеся footprint, rollback восстанавливает released source и снимает резервы,
+  reserved amounts по real и planned targets, merge в planned placement, one-per-ID поверх
+  planned placements.
 - Пока не менять публичные планы и executor.
 
-### Этап 2. Shaped alternative search
+### Этап 2. Placement-candidate contract
 
-- Перевести поиск альтернативного anchor для shaped на `PlacementPlanningState`
-  (вместо runtime `CanPlace`).
-- Дать `TryPlanSwap` read-доступ к planning state для shaped-пути.
-- Порядок анкоров на этом этапе — deterministic topology scan (row-major) с merge-решениями
-  стратегии через `ResolveShapedMerge`. Полноценного strategy-ordered потока кандидатов для
-  shaped еще не существует (слотовый `GetSlotCandidates` его выразить не может) — он появляется
-  на этапе 4 и заменяет внутренности поиска. Rules проверяются как сейчас.
-- Добавить тесты: occupied hint, свободный регион, отсутствие региона, same-inventory source release.
-
-### Этап 3. Batch + shaped
-
-- Снять `IsBatchDrag`-guard для shaped в `PlanEntry`; все entries одного плана разделяют один
-  `PlacementPlanningState` per target inventory.
-- На grid-инвентарях перевести `VirtualSlotState` в view поверх `PlacementPlanningState`
-  (инвариант раздела 3): single-cell и shaped entries одного batch видят одни брони. Это
-  временный мост, удаляемый на этапе 7 вместе с `VirtualSlotState`; если мост окажется
-  дороже ожидаемого, plan B — перенести этот этап после этапа 7, где общий planning state
-  делает batch+shaped почти бесплатным (ценой откладывания payoff).
-- Ввести strategy capability для явного запрета multi-entry spatial planning (вместо guard).
-- Тесты: смешанный batch (single-cell + shaped) на grid, atomic и best-effort при частичной
-  геометрической невместимости, partial-учет по нескольким entries, ориентации per entry.
-
-### Контрольная точка A (ревью-гейт)
-
-- shaped alternative placement и batch reservation работают и покрыты тестами;
-- preview и execution не расходятся;
-- производительность в пределах baseline;
-- зафиксированы решения по behavioral changes (occupied-handler для shaped, FailureReason).
-
-### Этап 4. Placement-candidate модель
-
-- Ввести `PlacementCandidate` и ленивый поток кандидатов (4.4).
-- Перевести `SlotSelectionPolicyBase` на выбор поверх placement-кандидатов; для slot-топологии
-  поведение бит-в-бит прежнее.
+- Ввести `PlacementCandidate` и ленивый фазовый поток (4.4).
+- Закрепить владение порядком: стратегия — eligibility/capacity/фазы, selection policy — выбор;
+  default policy у стратегии, request-level override сохраняется.
 - Убрать проверку rules из кандидатов стратегий; rules проверяет только аллокатор.
-- Зафиксировать единственный источник порядка (стратегия) и роль policy как выбора/фильтра.
-- Contract-тесты: порядок кандидатов прежний для всех built-in стратегий и policies.
+- Мигрировать built-in стратегии и policies; для slot-топологии поведение бит-в-бит прежнее.
+- Contract-тесты: порядок и выбор кандидатов прежние для всех built-in стратегий и policies.
 
-### Этап 5. Универсальная модель аллокаций
+### Этап 3. Универсальная модель аллокаций
 
-- Расширить `PlannedPlacementAllocation` полями target/operation kind.
+- Расширить `PlannedPlacementAllocation` полями target/operation kind и `PlanningPlacementId`.
 - Перевести `PlannedEntryTransfer` на список аллокаций.
 - Добавить `NewDynamicSlot`.
 - Временно адаптировать старые slot allocations в новый формат.
@@ -431,40 +468,63 @@ baseline, фиксация решений. Они не означают «вер
 - Отдельно проверить partial accounting, `TransferExecutionSummary`, `ExecutedTransferEntry`,
   domain contexts и deferred add/remove events для нескольких аллокаций одного entry.
 
-### Этап 6. Унифицированный executor
+### Этап 4. Grid vertical slice: единый planner + executor для grid-топологии
 
-- Исполнять `Create` через `TryPlace` для любой topology.
-- Исполнять `Merge` через placement stack.
-- Для `NewDynamicSlot` сначала создавать слот, затем строить anchor и выполнять `TryPlace`.
-- Сохранить snapshots, domain validation, conversion и deferred events.
-- Удалить shaped-only guard из `TryAddToTargetPlacement`.
+- Все entries с target grid-топологии идут через единый аллокатор (4.5) — включая single-cell
+  как footprint 1x1. Slot-инвентари не затронуты (инвариант раздела 3).
+- Shaped alternative search реализуется здесь, сразу на strategy-ordered фазовых кандидатах.
+- Executor для grid: `Create` через `TryPlace`, `Merge` через placement stack; маппинг
+  `PlanningPlacementId -> placement`.
+- Occupied-handler, swap fallback (через session), `DragAmountStep`, hint-only — для grid через
+  единый путь (чеклист 4.6, пункты 4-7, 9).
+- Тесты: occupied hint, свободный регион, отсутствие региона, same-inventory source release,
+  смена ориентации, covered-cell drop.
+
+### Контрольная точка A (ревью-гейт)
+
+- grid-топология полностью на едином пути; preview и execution не расходятся;
+- shaped alternative search использует strategy order (фазы), rules и виртуальную topology;
+- производительность в пределах baseline;
+- зафиксированы решения по behavioral changes (occupied-handler для shaped, `FailureReason`,
+  устранение утечки отклоненного entry).
+
+### Этап 5. Batch на grid
+
+- Снять `IsBatchDrag`-guard для grid-целей: все entries одного плана разделяют одну
+  `PlacementPlanningSession`.
+- Смешанный batch (single-cell + shaped) работает без моста — один pipeline (раздел 3).
+- Ввести strategy capability для явного запрета multi-entry spatial planning (вместо guard).
+- Тесты: смешанный batch, atomic и best-effort при частичной геометрической невместимости,
+  отклоненный entry не влияет на последующие (транзакции), partial-учет по нескольким entries,
+  ориентации per entry, swap внутри batch с учетом резервов предыдущих entries.
+
+### Этап 6. Миграция slot-топологии
+
+- Перевести slot-инвентари (strategy/unique allocation) на единый аллокатор и session.
+- `NewDynamicSlot`: создание слота в executor, затем anchor и `TryPlace`; rollback удаляет слот
+  через восстановление snapshot.
+- Прогнать чеклист 4.6 целиком (пункты 1-3, 8, 10 — основная нагрузка этого этапа).
+- После стабилизации удалить `PlannedSlotAllocation`, `VirtualSlotState`, старые
+  planner/executor branches и `TryAddToTargetPlacement`-guard.
 
 ### Контрольная точка B (ревью-гейт)
 
 - единый execution contract работает для slot и grid topology;
 - весь чеклист 4.6 покрыт contract-тестами и проходит;
-- перфоманс executor в пределах baseline.
+- перфоманс planner/executor в пределах baseline.
 
-### Этап 7. Миграция single-cell planner
+### Этап 7. Унификация acceptance
 
-- Перевести strategy/unique allocation на общий аллокатор (4.5) с placement-кандидатами (4.4).
-- Использовать один planning state для всех entries одного плана; slot-инвентари переходят с
-  `VirtualSlotState` на `PlacementPlanningState`.
-- Прогнать чеклист 4.6 целиком.
-- После стабилизации удалить `PlannedSlotAllocation`, `VirtualSlotState` и старые executor
-  branches.
-
-### Этап 8. Унификация acceptance
-
-- Перевести `GetAcceptableCount` и `CanAcceptItem` на dry-run общего аллокатора.
+- Ввести `PlacementPlanningRequest` с режимами (4.7); зафиксировать `RulesScope`.
+- Перевести `GetAcceptableCount` и `CanAcceptItem` на dry-run общего аллокатора
+  (`CountOnly` / `FirstTargetOnly`).
 - Удалить `CanAcceptShape` как routing guard.
 - Проверить, что preview capacity совпадает с реально построенным планом.
-- Использовать облегченный no-plan/no-list режим allocation service и подтвердить отсутствие
-  регрессии по baseline allocations/time.
-- Если общий dry-run слишком дорог, допускается специализированный preview fast path при общей
-  contract-тестовой матрице с planner.
+- Подтвердить отсутствие регрессии по baseline allocations/time; если общий dry-run слишком
+  дорог, допускается специализированный preview fast path при общей contract-тестовой матрице
+  с planner.
 
-### Этап 9. Зачистка
+### Этап 8. Зачистка
 
 - Удалить оставшиеся semantic `IsSingleCell` branches из planner/executor/acceptance и
   `AutoTransferService` (shaped-guard в выборе режима auto-transfer). Визуальные проверки формы
@@ -473,12 +533,13 @@ baseline, фиксация решений. Они не означают «вер
 - Убедиться, что batch ограничивается только явной capability, без shape-hardcode.
 - Оставить UI, rules и доказанные early-out fast paths внутри общего аллокатора.
 
-### Этап 10. Документация
+### Этап 9. Документация
 
 - Обновить `.agents/skills/dragdrop-*` и зеркальные `.claude/skills/dragdrop-*`.
 - Исправить устаревшее описание swap в `DATA_FLOW.md` и `COMPONENTS.md`.
 - Обновить публичную документацию по strategy/acceptance extension points, включая новый
-  placement-candidate контракт `IAcceptanceStrategy` и selection policies.
+  placement-candidate контракт `IAcceptanceStrategy`, selection policies и
+  `PlacementPlanningRequest`.
 
 Каждый этап должен отдельно компилироваться и проходить соответствующий test subset.
 
@@ -488,31 +549,39 @@ baseline, фиксация решений. Они не означают «вер
 
 ### Корректность
 
-- planned footprint должен учитывать все предыдущие аллокации текущего плана;
+- planned footprint должен учитывать все предыдущие закоммиченные аллокации текущего плана;
+- `Rollback(checkpoint)` обязан восстанавливать released source placement и снимать все резервы
+  entry — частичный откат недопустим;
 - source placement нельзя освобождать повторно при нескольких allocations одного entry;
 - covered-cell interaction должен резолвиться в логический placement/anchor;
 - conversion может изменить shape, поэтому geometry проверяется по converted adapter;
 - merge не создает новый footprint, но меняет reserved amount в planning state;
+- `DragAmountStep`-trim выполняется до `Commit` внутри entry-транзакции — остаточная бронь не
+  утекает (текущее консервативное поведение `VirtualSlotState` зафиксировать в characterization
+  как известную утечку, см. 2.1);
 - same-inventory swap должен проверять совместимость двух результирующих footprint;
-- swap-планирование читает planning state, а не runtime occupancy;
-- `DragAmountStep`-округление выполняется после резервирования: остаточная бронь в planning
-  state либо явно освобождается, либо сознательно сохраняется как консервативная. Текущий
-  `VirtualSlotState` ведет себя именно консервативно (trim аллокаций не откатывает `Apply`) —
-  зафиксировать в characterization и принять решение явно, а не унаследовать молча;
+- swap-планирование читает planning states обеих сторон через session, а не runtime occupancy;
+- executor обязан детерминированно сопоставлять `PlanningPlacementId` реальным placement/slot;
+  несколько `NewDynamicSlot` в одном плане сопоставляются по handle, а не по порядку создания;
 - atomic rollback и события должны сохранять placement snapshots;
-- два виртуальных состояния одного инвентаря в одном плане запрещены (инвариант раздела 3);
-  на этапах 3-6 grid-инвентари работают через planning-state-backed view.
+- маршрутизация переходного периода — по топологии (раздел 3): два виртуальных состояния одного
+  инвентаря в одном плане запрещены.
 
 ### Изменение контракта стратегий
 
 - удаление rules-проверок из кандидатов (4.3/4.4) меняет контракт `IAcceptanceStrategy`:
   кастомные стратегии, полагавшиеся на двойную проверку, должны быть найдены в audit этапа 0;
-- порядок кандидатов built-in стратегий фиксируется contract-тестами до миграции (этап 4);
-- occupied-handler для shaped — сознательный behavioral change, фиксируется на гейте A.
+- фазовый контракт (4.4) перераспределяет владение порядком между стратегией и policy;
+  бит-в-бит совместимость built-in комбинаций фиксируется contract-тестами на этапе 2;
+- selection policy не может требовать материализации полного потока кандидатов — это часть
+  контракта, иначе grid-перфоманс деградирует;
+- occupied-handler для shaped — сознательный behavioral change, фиксируется на гейте A;
+- `RulesScope` acceptance — сознательное выравнивание с planner, текущие расхождения фиксируются
+  characterization (этап 0).
 
 ### Dynamic slots
 
-- unknown anchor допустим только как `NewDynamicSlot`;
+- unknown anchor допустим только как `NewDynamicSlot` с `PlanningPlacementId`;
 - после создания слота executor обязан проверить topology и выполнить `TryPlace`;
 - rollback должен удалить созданный слот через восстановление snapshot;
 - создание/удаление слота может сдвигать индексы; rollback не должен оставлять index-keyed
@@ -526,12 +595,13 @@ baseline, фиксация решений. Они не означают «вер
 
 - anchor scan имеет стоимость `O(anchorCount * footprintSize)`;
 - offsets shape/orientation можно кэшировать;
-- planning state должен обновлять occupancy инкрементально;
-- кандидаты перечисляются лениво; eager-список на каждую итерацию аллокации запрещен (4.4);
+- planning state должен обновлять occupancy инкрементально; checkpoint/rollback не должны
+  копировать полное состояние (журнал операций или undo-стек);
+- кандидаты перечисляются лениво фазами; eager-список на каждую итерацию аллокации запрещен (4.4);
 - acceptance не должен строить Unity-объекты, мутировать inventory или аллоцировать коллекции на
-  каждый anchor/hover после прогрева;
+  каждый anchor/вызов после прогрева;
 - result-кэш acceptance вне scope: только offsets-кэш и пересчет на UI-событие (4.7);
-- до и после этапа 8 обязательны benchmark/Profiler сравнения на representative grid sizes;
+- до и после этапа 7 обязательны benchmark/Profiler сравнения на representative grid sizes;
 - backtracking не требуется в первой версии.
 
 ### Тестовая матрица
@@ -539,11 +609,12 @@ baseline, фиксация решений. Они не означают «вер
 - slot и grid topology;
 - single-cell и multi-cell;
 - stackable, separable и unique;
-- create, explicit merge, auto merge, alternative, swap;
+- create, explicit merge, auto merge, merge в planned placement, alternative, swap;
 - full и partial stack;
-- same-inventory и cross-inventory;
+- same-inventory и cross-inventory, включая разные source inventories в одном batch;
 - conversion с неизменной и измененной shape;
 - batch best-effort и atomic, включая смешанный single-cell + shaped batch;
+- отклоненный entry не оставляет следов в session (транзакции);
 - dynamic slot create/rollback;
 - drop на anchor и covered cell;
 - placement snapshots в add/remove/swap events;
@@ -553,24 +624,29 @@ baseline, фиксация решений. Они не означают «вер
 
 ## 8. Критерии готовности
 
-### Гейт A: этапы 0-3
+### Гейт A: этапы 0-4
 
-- `PlacementPlanningState` корректно резервирует footprint нескольких planned operations.
-- Shaped alternative search использует strategy order, rules и виртуальную topology.
-- Batch+shaped работает: смешанные entries разделяют один planning state, atomic/best-effort
-  корректны.
-- Preview, planner и executor согласованы для добавленных shaped-сценариев.
+- `PlacementPlanningSession` корректно резервирует footprint нескольких planned operations,
+  per-entry rollback не оставляет следов.
+- Candidate contract: built-in стратегии и policies дают прежние результаты бит-в-бит на
+  slot-топологии.
+- Grid-топология полностью на едином пути: single-cell и shaped создают одинаковый тип списка
+  аллокаций.
+- Shaped alternative search использует фазовый strategy order, rules и виртуальную topology.
+- Preview, planner и executor согласованы для grid-сценариев.
 - Нет регрессии acceptance/hover по baseline performance.
 
-### Полная консолидация: этапы 4-10
+### Полная консолидация: этапы 5-9
 
-- Planner использует один topology-aware allocation service.
-- Все entries одного плана разделяют `PlacementPlanningState`.
-- Single-cell и shaped создают одинаковый тип списка аллокаций.
+- Planner использует один topology-aware allocation service; все entries одного плана разделяют
+  `PlacementPlanningSession`.
 - Strategy, rules и geometry имеют раздельные обязанности; rules проверяются один раз.
-- Кандидаты — placement-кандидаты, отдаются лениво, selection policies работают поверх них.
-- Acceptance capacity вычисляется dry-run того же аллокатора.
-- Executor выполняет create/merge через placement API для slot и grid topology.
+- Кандидаты — placement-кандидаты, отдаются ленивыми фазами; selection policies работают поверх
+  них; владение порядком однозначно.
+- Acceptance capacity вычисляется dry-run того же аллокатора через `PlacementPlanningRequest`
+  с зафиксированным `RulesScope`.
+- Executor выполняет create/merge через placement API для slot и grid topology; planning handles
+  детерминированно сопоставлены реальным placement.
 - Нет `IsSingleCell` branches, меняющих transfer semantics; UI/rules/early-out fast paths
   разрешены.
 - `VirtualSlotState`, `PlannedSlotAllocation` и `CanAcceptShape` удалены.
