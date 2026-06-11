@@ -30,7 +30,8 @@
 >
 > Ревью-итерация 4 (2026-06-11): per-entry execution transaction для BestEffort, условный
 > source-release для partial split, повторно перечисляемый candidate source для bit-for-bit
-> совместимости policies, стабильная ссылка на существующий placement отдельно от свободного anchor.
+> совместимости policies, стабильные ссылки на существующие placement/slot отдельно от
+> `KnownAnchor`.
 
 ---
 
@@ -220,7 +221,8 @@ PlannedPlacementAllocation
     Amount
 
 TargetReference
-    KnownAnchor(anchorIndex)            // Create в свободном/освобожденном anchor
+    KnownAnchor(anchorIndex)            // Create; только topology со стабильными индексами
+    ExistingSlot(existingSlotId)        // Create/Merge в существующий slot dynamic topology
     ExistingPlacement(existingId)       // Merge в реальный placement
     PlannedAllocation(allocationId)    // placement, создаваемый ранее в этом плане
     NewDynamicSlot                     // identity — AllocationId создающей аллокации
@@ -233,6 +235,12 @@ TargetReference
 - `ExistingPlacementId` — стабильная session-identity реального placement, назначенная при
   инициализации planning state; это не raw anchor index. Executor поддерживает mapping
   `ExistingPlacementId -> current placement`, поэтому slot lifecycle/reindex не меняет смысл плана;
+- `KnownAnchor` допустим только для topology, которая гарантирует стабильность индексов на время
+  выполнения плана (текущая fixed grid topology). Существующий slot динамического slot-инвентаря
+  адресуется через session-unique `ExistingSlotId`, а не через raw index;
+- `ExistingSlotId` назначается при инициализации state и резолвится в текущий `BaseSlot` в начале
+  entry execution transaction, до первой мутации. Если slot больше не принадлежит inventory,
+  entry завершается fail-before-mutation; индекс объекта может измениться без изменения identity;
 - merge в placement, запланированный предыдущим entry того же плана, ссылается на него через
   `TargetReference.PlannedAllocation`, а не по anchor;
 - `NewDynamicSlot` хранит намерение создать слот, потому что его реальный index появится только в
@@ -281,7 +289,8 @@ Rules отвечают за конкретный item, amount и target anchor. 
 ```text
 PlacementCandidate
     Kind: Merge | CreateAt | NewDynamicSlot
-    Target: TargetReference   (Merge: ExistingPlacement/PlannedAllocation; CreateAt: KnownAnchor)
+    Target: TargetReference   (Merge: ExistingPlacement/PlannedAllocation/ExistingSlot;
+                               CreateAt: KnownAnchor либо ExistingSlot)
     Orientation
     Capacity             (cap стратегии минус текущее содержимое placement;
                           planned-резервы НЕ учтены — их вычитает аллокатор)
@@ -516,8 +525,9 @@ baseline, фиксация решений. Они не означают «вер
 - Per-entry транзакции: `BeginEntry`/`Commit`/`Rollback` на уровне session.
 - Allocation handles: `TryReserveCreate -> AllocationId` для любого Create, merge и
   `GetReservedAmount` через `TargetReference`; id уникален в пределах session.
-- Назначать стабильный `ExistingPlacementId` каждому реальному placement при инициализации state;
-  `KnownAnchor` и `ExistingPlacement` являются разными target references.
+- Назначать стабильные `ExistingPlacementId` и `ExistingSlotId` реальным placement/slots при
+  инициализации state; `KnownAnchor`, `ExistingSlot` и `ExistingPlacement` являются разными
+  target references.
 - Граф зависимостей (4.6): session фиксирует явные ссылки на `PlannedAllocation` и
   геометрические зависимости (резерв поверх released-региона другого entry).
 - Инициализировать состояния реальными placement.
@@ -592,6 +602,8 @@ baseline, фиксация решений. Они не означают «вер
 ### Этап 6. Миграция slot-топологии
 
 - Перевести slot-инвентари (strategy/unique allocation) на единый аллокатор и session.
+- Существующие dynamic slots адресовать через `ExistingSlotId`; executor резолвит id в
+  `BaseSlot` в начале entry transaction. Raw `KnownAnchor` для dynamic slot topology запрещен.
 - `NewDynamicSlot`: создание слота в executor, затем anchor и `TryPlace`; rollback удаляет слот
   через восстановление snapshot.
 - Прогнать чеклист 4.7 целиком (пункты 1-3, 8, 10 — основная нагрузка этого этапа).
@@ -657,8 +669,11 @@ baseline, фиксация решений. Они не означают «вер
 - swap-планирование читает planning states обеих сторон через session, а не runtime occupancy;
 - executor обязан детерминированно сопоставлять `AllocationId` реальным placement/slot;
   несколько `NewDynamicSlot` в одном плане сопоставляются по handle, а не по порядку создания;
-- `KnownAnchor` и `ExistingPlacement` не взаимозаменяемы; существующий placement адресуется
-  стабильным `ExistingPlacementId`, а не индексом, который может измениться при slot lifecycle;
+- `KnownAnchor` допустим только при гарантии стабильных индексов topology. На dynamic slot
+  topology существующий target адресуется `ExistingSlotId`, который executor резолвит в
+  `BaseSlot` в начале entry transaction до первой мутации;
+- `KnownAnchor`, `ExistingSlot` и `ExistingPlacement` не взаимозаменяемы; существующие
+  slot/placement адресуются стабильными ids, а не индексом, который может измениться при lifecycle;
 - граф зависимостей обязан покрывать оба вида (явные `PlannedAllocation`-ссылки и геометрические
   через released-регион); пропуск зависимых в BestEffort — транзитивный, без ложных пропусков
   независимых entries;
@@ -684,6 +699,10 @@ baseline, фиксация решений. Они не означают «вер
 ### Dynamic slots
 
 - unknown anchor допустим только как `NewDynamicSlot` с `AllocationId`;
+- существующий dynamic slot адресуется `ExistingSlotId`; использование raw `KnownAnchor` для
+  dynamic slot topology запрещено;
+- executor резолвит все `ExistingSlotId` entry до первой мутации. Отсутствующий/удаленный slot
+  дает fail-before-mutation, а не fallback на slot с тем же текущим индексом;
 - после создания слота executor обязан проверить topology и выполнить `TryPlace`;
 - rollback должен удалить созданный слот через восстановление snapshot;
 - создание/удаление слота может сдвигать индексы; rollback не должен оставлять index-keyed
@@ -723,6 +742,8 @@ baseline, фиксация решений. Они не означают «вер
   пропускает зависимые; независимые выполняются, отсутствие snapshot дает fail-before-mutation,
   summary различает succeeded/failed/skipped и содержит per-entry причины;
 - dynamic slot create/rollback;
+- dynamic slot reindex между planning и execution не меняет target identity; удаленный
+  `ExistingSlotId` дает fail-before-mutation;
 - drop на anchor и covered cell;
 - placement snapshots в add/remove/swap events;
 - каждый пункт чеклиста 4.7.
