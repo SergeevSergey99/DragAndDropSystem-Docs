@@ -6,8 +6,8 @@ placement-модель.
 
 Доступность места определяется не одним `CanPlace`, а сочетанием трех независимых проверок:
 
-1. стратегия определяет eligibility create/merge, capacity, естественный порядок и фазовые метки
-   кандидатов; способ обхода и итоговый выбор — за selection policy (4.4);
+1. стратегия определяет eligibility create/merge, capacity и кандидатов с фазовыми метками в
+   базовом порядке; порядок предпочтения — за `PlacementCandidateOrderer` (4.4);
 2. rules проверяют конкретную операцию и целевой anchor;
 3. placement state проверяет топологию, границы и occupancy.
 
@@ -298,8 +298,8 @@ dispatch**; создание операции при планировании п
 
 Стратегия отвечает за: eligibility create/merge/reject; max stack и capacity (caps; учет
 запланированного — через аллокатор и `GetReservedAmount`); one-per-ID и separable-stack
-semantics, включая `PlannedPlacement`; естественный deterministic order и фазовые метки
-кандидатов (4.4); default selection policy; допустимость создания dynamic slot.
+semantics, включая `PlannedPlacement`; кандидаты с фазовыми метками в детерминированном базовом
+порядке (4.4); default orderer; допустимость создания dynamic slot.
 
 Стратегия **не знает ни топологию, ни форму предмета**. Геометрию она спрашивает через узкий
 read-only фасад:
@@ -330,10 +330,13 @@ built-ins и точки оценки описаны в 4.6.
 `PlacementPlanningState` отвечает только за: проекцию shape через topology, bounds, occupancy,
 резервирование, учет reserved amounts, транзакционность.
 
-### 4.4 Candidate source, selection policy и единый владелец порядка
+### 4.4 Candidate source и `PlacementCandidateOrderer`
 
-Существующий цикл `GetSlotCandidates -> Select -> Apply -> повторить` структурно совпадает с
-целевым алгоритмом 4.5 — меняются типы:
+Существующий цикл «кандидаты -> выбор -> применить -> повторить» упрощается: отдельной
+«pick»-роли в целевой модели **нет**. Аллокатор потребляет упорядоченный поток кандидатов, пока
+не наберет amount, — выбор и есть порядок. Сегодняшний `SlotSelectionPolicyBase.Select`
+(«выбери один») заставляет `AllocateViaCandidatesLoop` перестраивать кандидатов и перевыбирать
+на каждой итерации — это следствие склейки двух ролей, а не необходимость.
 
 ```text
 PlacementCandidate
@@ -344,43 +347,50 @@ PlacementCandidate
                                planned-резервы НЕ учтены — их вычитает аллокатор)
 
 PlacementCandidateSource     (отдает стратегия)
-    Enumerate(kindMask)      // ленивое, повторно перечисляемое; маска фаз обязательна, чтобы
-                             //  merge-проход не оплачивал геометрию Create-кандидатов
+    Enumerate(kindMask)      // ленивое, повторно перечисляемое; маска фаз — инструмент
+                             //  orderer'а: merge-проход не оплачивает геометрию Create
+
+PlacementCandidateOrderer    (единственная pluggable-роль выбора места)
+    Order(source, request, geometry) -> ленивый упорядоченный поток кандидатов
 ```
 
-Policy получает source, request (включая hint) и `IPlanningGeometry` — этого достаточно для
-metric-policies (ближайший к hint, минимизация фрагментации). Терминология: `SlotSelectionPolicy`
-(выбор целевого места) не связан с `SelectionManager` (`Scripts/Selection` — выделение предметов
-в UI); имена новых типов не должны усиливать коллизию.
+Распределение ролей:
 
-Владение порядком и выбором:
-
-- **стратегия** предоставляет ленивый, повторно перечисляемый source поверх `IPlanningGeometry`;
-  кандидаты имеют фазовую метку, естественный порядок сохраняет текущую strategy/topology
-  semantics, включая interleave merge и empty slots;
-- **selection policy** определяет способ обхода. `FirstSlotSelectionPolicy` берет первый кандидат
-  естественного потока; `StackFirstSlotSelectionPolicy` перечисляет `Enumerate(Merge)`, при
-  отсутствии — `Enumerate(Create | NewDynamicSlot)`. Пример `empty slot 0 + mergeable slot 1`
-  остается bit-for-bit: First — slot 0, StackFirst — slot 1;
-- повторное ленивое перечисление допустимо; полная материализация и сортировка всех anchors
-  запрещены; source стабилен в пределах одной попытки allocation;
+- **стратегия** — eligibility, capacity, кандидаты с фазовыми метками в детерминированном
+  базовом порядке (порядок анкоров — от топологии через `IPlanningGeometry`); никакой
+  предпочтительности;
+- **orderer** — предпочтительность: в каком порядке пробовать кандидатов. Получает source,
+  request (включая hint) и `IPlanningGeometry` — достаточно и для metric-orderers (ближайший к
+  hint, минимизация фрагментации);
+- built-in orderers и происхождение: `Natural` (бывший `FirstSlotSelectionPolicy` — базовый
+  порядок как есть), `MergeFirst` (бывшие `StackFirstSlotSelectionPolicy` и
+  `MergeFirstAlternativePlacementStrategy`: `Enumerate(Merge)`, затем
+  `Enumerate(Create | NewDynamicSlot)`), `EmptyFirst`/`MergeOnly`/`EmptyOnly` — прямые
+  наследники `*AlternativePlacementStrategy`;
+- пример `empty slot 0 + mergeable slot 1` остается bit-for-bit: `Natural` — slot 0,
+  `MergeFirst` — slot 1;
+- контракт ленивости: orderer не материализует и не сортирует полный поток; повторное ленивое
+  перечисление допустимо; поток стабилен в пределах одной попытки allocation;
 - rules в кандидатах не проверяются (4.3); геометрия проверяется лениво и перевалидируется при
   reserve;
-- для slot-топологии кандидаты вырождаются в текущее поведение — миграция стратегий без
-  изменения semantics.
+- для slot-топологии все вырождается в текущее поведение — миграция стратегий без изменения
+  semantics.
 
-**Один владелец порядка.** `IAlternativePlacementStrategy` поглощается selection policies —
-его семантика и есть способ обхода кандидатов. Выбор активной policy — чистая конфигурация, без
-context-enum:
+**Один тип вместо двух словарей одного понятия (2.4).** И `SlotSelectionPolicyBase`, и
+`IAlternativePlacementStrategy` переделываются в `PlacementCandidateOrderer`. Конфигурация —
+без context-enum:
 
-- дефолтная policy инвентаря/стратегии (как сейчас `DefaultSlotSelectionPolicy`);
-- per-operation override (`InventoryAcceptanceRequest.SelectionPolicy`) имеет приоритет;
-- blocked-резолвер владеет своей policy и передает ее как такой override при поиске альтернатив —
+- default orderer у стратегии/инвентаря (как сейчас `DefaultSlotSelectionPolicy`);
+- per-operation override (нынешний `InventoryAcceptanceRequest.SelectionPolicy` становится
+  orderer-override) имеет приоритет;
+- blocked-резолвер владеет своим orderer'ом и передает его как override при поиске альтернатив —
   зеркало сегодняшнего `FindAlternativeBlockedTargetResolver`, владеющего
   `IAlternativePlacementStrategy` сериализованным полем.
 
 `BlockedTargetResolver` сводится к выбору **вида реакции** (Alternative | Swap | Reject).
-Исключение заблокированного hinted-слота — свойство вызова blocked-поиска, не policy.
+Исключение заблокированного hinted-слота — свойство вызова blocked-поиска, не orderer'а.
+Терминологическая коллизия с `SelectionManager` (`Scripts/Selection`, выделение предметов в UI)
+уходит вместе с именем «Selection» в типах планирования.
 
 Будущий auto-rotate входит аддитивно: source отдает кандидатов с разными `Orientation`. `Kind`
 кандидата — словарь executor'а; новые виды операций добавляются как `PlannedOperation` (4.2),
@@ -398,7 +408,7 @@ PlanEntry(entry, policy, target, hint, session):
     3. placement path: if dragged stack covers the full source placement:
          - tentatively release source placement in its inventory's state
     4. ask strategy for lazy candidate source over IPlanningGeometry (4.4)
-    5. for each candidate chosen by selection policy:
+    5. for each candidate in orderer-defined order:
          - capacity = candidate.Capacity - state.GetReservedAmount(candidate.Target)
          - validate rules for concrete anchor and amount
          - reserve: TryReserveMerge(target) | TryReserveCreate(...) -> PlannedPlacement
@@ -429,7 +439,7 @@ strategy capabilities. Шаг 3 — сознательный behavioral change: 
 на shaped items с тем же приоритетом, что на single-cell пути (фиксируется characterization).
 
 **Детерминизм планировщика — несущее требование** (см. 4.6): одинаковые входы + одинаковое
-состояние = одинаковый план. Кастомные стратегии/policies обязаны соблюдать это контрактом.
+состояние = одинаковый план. Кастомные стратегии/orderers обязаны соблюдать это контрактом.
 
 ### 4.6 Plan rules и выполнение batch
 
@@ -567,7 +577,7 @@ slot-топологии (этап 6). Single-cell fast path после мигр�
 PlacementPlanningRequest
     Mode: Plan | AcceptancePreview | CountOnly | FirstTargetOnly
     item, amount, context/entry, target hint
-    policy (resolved), selection policy override
+    policy (resolved), orderer override
     RulesScope: какие слои rules участвуют (slot rules, inventory rules, global rules)
 ```
 
@@ -623,8 +633,8 @@ PlacementPlanningRequest
   транзакциями, сознательно.
 - Зафиксировать observable `FailureReason` строки shaped/single-cell путей.
 - Зафиксировать фактический rules scope acceptance-пути.
-- Зафиксировать порядок `IAlternativePlacementStrategy`-реализаций для blocked-hint — мигрируют
-  в policies.
+- Зафиксировать порядок `IAlternativePlacementStrategy`-реализаций для blocked-hint и
+  `SlotSelectionPolicy`-комбинаций — мигрируют в `PlacementCandidateOrderer`.
 - Зафиксировать текущее поведение atomic batch с occupied-handler: внешние мутации handler'а
   при откате batch не восстанавливаются — существующая дыра, закрывается правилом 4.2.
 - Зафиксировать наблюдаемое поведение всех комбинаций `AllowPartial`/`BatchMode`: built-in plan
@@ -661,15 +671,17 @@ PlacementPlanningRequest
   опаковому footprint-токену.
 - `PlacementCandidate` + ленивый повторно перечисляемый `PlacementCandidateSource` с
   `Enumerate(kindMask)`.
-- Policy получает source, request и `IPlanningGeometry`; активная policy — конфигурацией
-  (дефолт + per-operation override).
-- Поглотить `IAlternativePlacementStrategy` selection policies; blocked-резолвер передает свою
-  policy как override, blocked-поиск исключает hinted-слот на уровне вызова;
-  `BlockedTargetResolver` выбирает только вид реакции.
+- Ввести `PlacementCandidateOrderer` (4.4); активный orderer — конфигурацией
+  (default у стратегии/инвентаря + per-operation override).
+- Переделать `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` в orderers:
+  `Natural` (бывший First), `MergeFirst` (бывшие StackFirst и MergeFirstAlternative...),
+  `EmptyFirst`/`MergeOnly`/`EmptyOnly`; blocked-резолвер передает свой orderer как override,
+  blocked-поиск исключает hinted-слот на уровне вызова; `BlockedTargetResolver` выбирает только
+  вид реакции.
 - Убрать rules из кандидатов стратегий.
-- Мигрировать built-in стратегии и policies; slot-топология — бит-в-бит.
-- Contract-тесты: порядок/выбор прежние для всех built-in комбинаций, включая
-  `empty slot 0 + mergeable slot 1` (First/StackFirst) и blocked-hint сценарии бывших
+- Мигрировать built-in стратегии и orderers; slot-топология — бит-в-бит.
+- Contract-тесты: порядок прежний для всех built-in комбинаций, включая
+  `empty slot 0 + mergeable slot 1` (Natural/MergeFirst) и blocked-hint сценарии бывших
   `*AlternativePlacementStrategy`.
 
 ### Этап 3. Модель planned operations
@@ -690,7 +702,7 @@ PlacementPlanningRequest
 
 - Все entries с target grid-топологии — через единый аллокатор (4.5), включая single-cell как
   1x1. Slot-инвентари не затронуты (раздел 3).
-- Shaped alternative search — через общий candidate source и selection policies.
+- Shaped alternative search — через общий candidate source и orderers.
 - Executor: `Create` через `TryPlace`, `Merge` через placement stack, привязка
   `PlannedPlacement.Bind`.
 - Cross-topology swap (grid-цель, slot-источник) — через session обеих сторон; обычное
@@ -706,7 +718,7 @@ PlacementPlanningRequest
 ### Контрольная точка A (ревью-гейт)
 
 - grid-топология полностью на едином пути; preview и execution не расходятся;
-- shaped alternative search через candidate source/policy, rules и виртуальную topology;
+- shaped alternative search через candidate source/orderer, rules и виртуальную topology;
 - перфоманс в пределах baseline;
 - зафиксированы behavioral changes (occupied-handler для shaped, `FailureReason`, устранение
   утечки 2.1, миграция `*AlternativePlacementStrategy`).
@@ -776,17 +788,18 @@ PlacementPlanningRequest
   (shaped-guard выбора режима). Визуальные проверки формы
   (`DragAndDropManager.TrySetPlacementDraggedState`, `DropPreviewController`, drag visuals)
   остаются — UI по §5.1.
-- Удалить `IAlternativePlacementStrategy` и реализации (поглощены на этапе 2).
+- Удалить `IAlternativePlacementStrategy` и `SlotSelectionPolicyBase` с реализациями
+  (переделаны в `PlacementCandidateOrderer` на этапе 2).
 - Batch ограничивается только явной capability.
 
 ### Этап 9. Документация
 
 - Обновить `.agents/skills/dragdrop-*` и зеркальные `.claude/skills/dragdrop-*`.
 - Исправить описание swap в `DATA_FLOW.md` / `COMPONENTS.md`.
-- Документация extension points: candidate source, selection policies, `IPlanningGeometry`,
-  `PlannedOperation`, `IPlanRule`, `PlacementPlanningRequest`; гайд «как добавить
-  стратегию / топологию / policy / операцию / plan rule»; контракт детерминизма для
-  кастомных расширений; различие batch-гейта и транзакционного wrapper'а.
+- Документация extension points: candidate source, `PlacementCandidateOrderer`,
+  `IPlanningGeometry`, `PlannedOperation`, `IPlanRule`, `PlacementPlanningRequest`; гайд «как
+  добавить стратегию / топологию / orderer / операцию / plan rule»; контракт детерминизма для
+  кастомных расширений; различие batch-гейта и транзакционного пути.
 
 Каждый этап отдельно компилируется и проходит свой test subset.
 
@@ -822,7 +835,7 @@ PlacementPlanningRequest
 ### Детерминизм и JIT
 
 - детерминизм планировщика — несущее требование: JIT-план совпадает с preview только при
-  детерминированных стратегиях/policies/plan rules; контракт фиксируется документацией и
+  детерминированных стратегиях/orderers/plan rules; контракт фиксируется документацией и
   consistency-тестом (этап 5);
 - preview и batch-гейт — гарантия на старт, не на финиш: без транзакционного wrapper'а
   execution-сбой оставляет ранние entries примененными; документируется;
@@ -832,16 +845,17 @@ PlacementPlanningRequest
 - повторное планирование на drop — приемлемая цена (drop — редкое событие); baseline этапа 0
   подтверждает.
 
-### Изменение контракта стратегий и policies
+### Изменение контракта стратегий и orderers
 
 - удаление rules из кандидатов меняет контракт `IAcceptanceStrategy`; кастомные стратегии ищутся
   в audit этапа 0;
 - candidate-source контракт перераспределяет владение порядком; бит-в-бит совместимость built-in
   комбинаций — contract-тестами этапа 2;
-- source обязан поддерживать стабильное повторное ленивое перечисление и `kindMask`; policy не
-  может требовать материализации потока;
-- поглощение `IAlternativePlacementStrategy` — изменение публичного extension point; конфигурация
-  blocked-поиска сохраняется как policy-override резолвера;
+- source обязан поддерживать стабильное повторное ленивое перечисление и `kindMask`; orderer не
+  может требовать материализации/сортировки полного потока;
+- замена `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` одним
+  `PlacementCandidateOrderer` — изменение двух публичных extension points; конфигурация
+  blocked-поиска сохраняется как orderer-override резолвера;
 - стратегия без `CanFit` не ломает planning state — `TryReserve*` перевалидирует;
 - `CollectParticipants` обязан быть полным: незаявленный участник = незахваченный snapshot =
   неоткатываемая мутация;
@@ -906,7 +920,7 @@ PlacementPlanningRequest
   до первой мутации;
 - swap fallback стартует с чистого checkpoint: tentative source release и частичные резервы
   placement-пути откачены, двойной release отсутствует;
-- blocked-hint policies (бывшие `*AlternativePlacementStrategy`) — прежний порядок;
+- blocked-hint orderers (бывшие `*AlternativePlacementStrategy`) — прежний порядок;
 - plan rules: entry с агрегатным нарушением (сумма аллокаций превышает лимит, каждая проходит
   поодиночке) отклоняется на pre-Commit целиком (boolean verdict); `RequireFullAmount`
   воспроизводит бывший `AllowPartial=false`; `RequireAllEntriesPlanned` отклоняет batch с
@@ -923,7 +937,7 @@ PlacementPlanningRequest
 
 - `PlacementPlanningSession` корректно резервирует эффекты нескольких операций; per-entry
   rollback без следов.
-- Candidate contract: built-in стратегии и policies — бит-в-бит на slot-топологии, включая
+- Candidate contract: built-in стратегии и orderers — бит-в-бит на slot-топологии, включая
   blocked-hint.
 - Grid-топология полностью на едином пути: single-cell и shaped дают одинаковый список операций.
 - Preview, planner и executor согласованы для grid-сценариев.
@@ -935,8 +949,9 @@ PlacementPlanningRequest
   общая session, JIT-цикл — session per entry.
 - Strategy/rules/geometry разделены; rules один раз; стратегии — через `IPlanningGeometry`, без
   знания топологии.
-- Кандидаты — из повторно перечисляемого ленивого source; порядок у стратегии, обход у policy;
-  один владелец порядка (`IAlternativePlacementStrategy` поглощен).
+- Кандидаты — из повторно перечисляемого ленивого source; базовый порядок у стратегии,
+  предпочтительность — у `PlacementCandidateOrderer`: один тип вместо `SlotSelectionPolicyBase`
+  и `IAlternativePlacementStrategy`, отдельной «pick»-роли нет.
 - План — список `PlannedOperation`; новый вид операции — новый класс, без правки модели/executor.
 - Цели плана — только ссылки; индексов и id в модели нет.
 - Acceptance — dry-run того же аллокатора через `PlacementPlanningRequest` с `RulesScope`.
