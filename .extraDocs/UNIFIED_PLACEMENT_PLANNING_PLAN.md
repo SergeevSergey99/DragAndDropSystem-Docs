@@ -1,1247 +1,1030 @@
-# Unified Placement Planning - Design Plan
+# Unified Placement Transfer - Design Plan
 
-**Цель:** перестать различать single-cell и shaped в transfer semantics. Single-cell — вырожденный
-случай footprint из одной ячейки; планирование, acceptance и выполнение используют одну
-placement-модель.
+**Цель:** перестать различать single-cell и shaped в transfer semantics, но не строить для этого
+отдельную planning-систему. Single-cell является footprint из одной ячейки; выбор места,
+валидация и mutation используют общие topology-aware контракты.
 
-Доступность места определяется не одним `CanPlace`, а сочетанием трех независимых проверок:
+Главное упрощение: предварительно материализованного `TransferPlan` больше нет. Transfer service
+последовательно обрабатывает entries по реальному состоянию inventory:
 
-1. стратегия определяет eligibility create/merge, capacity и кандидатов с фазовыми метками в
-   базовом порядке; порядок предпочтения — за `PlacementCandidateOrderer` (4.4);
-2. rules проверяют конкретную операцию и целевой anchor;
-3. placement state проверяет топологию, границы и occupancy.
+```text
+validate request
+for each entry:
+    resolve candidates
+    try concrete placements immediately
+    commit or rollback this entry
+return execution report
+```
 
-> Статус: **план, runtime-код не меняется.** Реализация — отдельными компилируемыми этапами.
-> Scope: **полная консолидация** (этапы 0-9), включая batch+shaped и миграцию single-cell пути.
-> Публичного релиза не было — двойной путь убирается без compatibility-обязательств.
-> Контрольные точки — ревью-гейты, а не точки вероятной остановки.
-> Документ — результат нескольких ревью-циклов (история в git). Два ключевых упрощения финальной
-> версии: (1) **JIT-replan** — план каждого entry строится по реальному состоянию непосредственно
-> перед его исполнением, поэтому граф зависимостей entries, transitive skip и связанная
-> транзакционная механика исключены из дизайна; (2) **plan rules** — `AllowPartial`, `BatchMode`
-> (Atomic/BestEffort) и агрегатные правила свернуты в одну точку расширения `IPlanRule` (4.6):
-> правила — два конъюнктивных источника (правила инвентаря + правила операции, без
-> default-списков и override-резолюции), семантических флагов внутри pipeline нет; путь
-> выполнения — явная `TransferExecutionMode` (Jit | Transactional), потребляемая один раз на
-> границе сервиса; ни один execute-API не принимает готовый план.
+Сохраняются полезные границы:
+
+1. topology отвечает за footprint, bounds и occupancy;
+2. strategy отвечает за eligibility, capacity и базовый поток кандидатов;
+3. `PlacementCandidateOrderer` отвечает только за предпочтительный порядок;
+4. rules валидируют drag/drop request и конкретный target;
+5. transfer service владеет mutation, rollback, conversion и событиями;
+6. UI и acceptance используют тот же candidate-resolution, но не получают исполняемый план.
+
+> Статус: **план, runtime-код не меняется.**
+> Scope: полная консолидация slot/grid transfer pipeline, включая batch и shaped items.
+> Публичного релиза не было: старые planner/resolver contracts удаляются без compatibility layer.
+> Batch после рефактора всегда sequential best-effort. Режима `Atomic` для всего batch нет.
 
 ---
 
-## 1. Почему унификация возможна
+## 1. Почему planning-слой удаляется
 
-Хранилище уже унифицировано:
+Текущий `TransferPlanner` решает сразу несколько задач:
 
-- `PlacementStore` — источник правды для всех стеков, включая footprint из одной ячейки.
-- Footprint принадлежит топологии через `IInventoryTopology.GetPlacementOffsets(shape, orientation)`.
-- `SlotTopology` всегда возвращает anchor-only: форма предмета в слотном инвентаре занимает один
-  слот без отдельной policy.
-- Grid-топология использует реальные ориентированные offsets формы.
-- Основной swap-путь уже placement-based: обе исходные placement освобождаются, предметы
-  размещаются через topology-aware `TryPlace`.
-- `Placement` — объект, store сравнивает его через `ReferenceEquals`, merge мутирует stack на
-  месте. Identity сегодня нарушается в одном месте — `ShiftAfterSlotRemoved` пересоздает объекты
-  при удалении dynamic slot; это чинится точечно (4.1).
+- выбирает target;
+- считает capacity;
+- строит виртуальное состояние batch;
+- кодирует create/merge/swap/occupied-handler в разных моделях результата;
+- повторяет часть rules и strategy logic;
+- готовит данные, которые executor затем обязан интерпретировать точно так же.
 
-Различие single-cell/shaped — не свойство storage. Оно осталось в планировщике,
-acceptance-стратегиях и executor.
+Это создает второй runtime:
+
+- `VirtualSlotState` параллелен реальному `PlacementStore`;
+- `PlannedSlotAllocation` и `PlannedPlacementAllocation` параллельны mutation API;
+- preview и execution строят разные планы в разное время;
+- новый transfer case требует менять planner model и executor dispatch;
+- корректность зависит от синхронизации двух сложных алгоритмов.
+
+Для sequential batch виртуальное состояние не требуется. После успешного entry реальный
+inventory уже содержит результат, и следующий entry видит его обычным candidate-resolution.
+При ошибке откатывается только текущий entry.
+
+Planning остается только как локальная read-only операция:
+
+```text
+resolve current candidates -> choose next candidate -> attempt mutation
+```
+
+Она не создает долгоживущий объект, не резервирует виртуальную occupancy и не отделена от
+execution отдельным публичным этапом.
 
 ---
 
-## 2. Где сейчас живет расхождение
+## 2. Что уже унифицировано
 
-### 2.1 Планировщик
+- `PlacementStore` хранит все logical placements.
+- `IInventoryTopology` проецирует shape и orientation в covered cells.
+- `SlotTopology` всегда возвращает anchor-only footprint.
+- Grid topology использует реальные shape offsets.
+- `Placement` является logical location и может содержать stack.
+- Placement-based swap уже умеет освобождать обе стороны и размещать их заново.
 
-- Single-cell идет через `AllocateForStrategyInventory` / `AllocateForUniqueInventory`
-  (`PlannedSlotAllocation`), multi-cell grid — через `TryPlanShapedPlacement`
-  (`PlannedPlacementAllocation`). Две модели результата.
-- В нескольких местах `IsSingleCell` выбирает не оптимизацию, а разные transfer semantics.
-- `VirtualSlotState` хранит только stack одного слота и не моделирует footprint.
-- Виртуальное состояние не транзакционно: при отклонении entry (`AllowPartial=false` после
-  частичной аллокации) `Apply`-мутации не откатываются — отклоненный entry оставляет фантомные
-  резервы последующим entries batch.
-- Shaped-путь проверяет feasibility через runtime `CanPlace`, поэтому batch+shaped запрещен
-  жестким guard в `PlanEntry`, а не capability.
-
-### 2.2 Стратегии и acceptance
-
-- `GetSlotCandidates`, `GetAcceptableCount`, `CanUseAlternativeSlot` рассуждают через
-  `slot.IsEmpty` и не доказывают, что shape помещается в топологию.
-- `CanAcceptShape` отсекает multi-cell для grid, потому что acceptance-путь не умеет планировать
-  placement без заранее заданного anchor.
-- `GetAcceptableCount` не получает полный набор planner inputs: policy, global rules, hint и
-  blocked-target semantics в контракт не входят.
-
-### 2.3 Executor и модель плана
-
-- Slot allocation исполняется через `TryAddToSlot` / dynamic-slot path, shaped — через отдельный
-  `TryAddToTargetPlacement`.
-- `PlannedPlacementAllocation` один на entry — не покрывает распределение стека по нескольким
-  placement.
-- Результат планирования — **закрытый union**: swap и occupied-handler выражены bool-флагами
-  (`RequiresSwap`, `RequiresOccupiedHandler`) на `PlannedEntryTransfer`. Новый вид операции
-  требует одновременной правки модели плана, планировщика и executor.
-- `UniversalInventory.TrySwapSlots` мутирует `BaseSlot.Stack` напрямую; потребителей нет —
-  удалить без deprecation.
-
-### 2.4 Candidate/selection механика
-
-Механизм «порядок кандидатов + выбор» существует, но контракт целиком слотовый:
-
-- `GetSlotCandidates` возвращает eager список `(ISlot, RemainingCapacity)`, и
-  `AllocateViaCandidatesLoop` перестраивает его заново на каждой итерации аллокации;
-- `SlotSelection` выражает только `Existing(slot)` / `New()` / `None` — кандидата «создать
-  placement с anchor A в ориентации O» в модели нет;
-- rules проверяются дважды: в стратегии (`PassesRules`) и в планировщике
-  (`IsCandidateAllowedByRules`);
-- владение порядком размазано: стратегия отдает кандидатов в порядке слотов, а
-  `StackFirstSlotSelectionPolicy` переупорядочивает;
-- параллельно живет второй ordering-механизм для blocked-hint контекста:
-  `IAlternativePlacementStrategy` (MergeFirst/EmptyFirst/MergeOnly/EmptyOnly) — то же понятие
-  «порядок мест» с отдельным слотовым контрактом. Контексты вызова не пересекаются
-  (blocked-hint vs area-drop/auto-transfer), но два словаря для одного понятия — налог на каждую
-  будущую стратегию и топологию.
+Следовательно, single-cell/shaped различаются только данными footprint, а не transfer
+pipeline. Семантические ветки по `IsSingleCell` должны исчезнуть из placement, acceptance,
+swap и batch execution. Визуальные ветки по форме остаются допустимыми.
 
 ---
 
-## 3. Главный инвариант
+## 3. Целевая модель
 
-`PlacementStore.CanPlace` проверяет **реальное текущее состояние**. Планировщик не может опираться
-только на него, когда один планируемый результат содержит несколько еще не выполненных операций:
+### 3.1 `PlacementCandidate`
 
-1. первый entry в plan-all планирует footprint `{0, 1}`;
-2. runtime store не изменен;
-3. второй entry вызывает `CanPlace` и тоже получает разрешение на `{0, 1}`;
-4. план выглядит валидным, executor не сможет его применить.
-
-Поэтому **plan-all — preview, batch-гейт и транзакционное выполнение — работает** через
-виртуальный topology-aware state, резервирующий запланированные footprint и merge capacity. Это
-касается всех операций, меняющих occupancy, включая swap (4.2). JIT-цикл выполнения виртуального
-межзаписного состояния не требует — он планирует каждый entry по реальному состоянию (4.6).
-
-**Инвариант переходного периода: маршрутизация по топологии, а не по форме.** Каждый инвентарь
-обслуживается ровно одним pipeline:
-
-- grid-топология переходит на унифицированный путь целиком — включая single-cell как footprint
-  1x1 — на этапе 4;
-- slot-топология остается на старом `VirtualSlotState`-пути до этапа 6;
-- два виртуальных состояния одного инвентаря в одном планировании запрещены; смешанный batch на
-  grid не требует моста, потому что все его entries идут через один pipeline;
-- маршрутизация выбирает pipeline для **target**-инвентаря. Slot-инвентарь может получить
-  `PlacementPlanningState` как участник плана с grid-целью (reverse-сторона cross-topology swap)
-  уже на этапе 4 — в таком плане он не обслуживается старым pipeline, инвариант не нарушается.
-
----
-
-## 4. Целевая архитектура
-
-### 4.1 `PlacementPlanningSession` и `PlacementPlanningState`
-
-Планирование затрагивает больше одного инвентаря: swap размещает в обе стороны, same-inventory
-release живет в инвентаре источника. Виртуальное состояние ведется per inventory и собирается в
-session:
-
-```text
-PlacementPlanningSession
-    GetState(inventory) -> PlacementPlanningState     // лениво, по требованию
-    BeginEntry() -> checkpoint                        // охватывает все states session
-    Commit(checkpoint)
-    Rollback(checkpoint)
-
-PlacementPlanningState
-    GetPlacementAt(cellOrAnchor) -> Placement | PlannedPlacement | null
-    CanPlace(footprint, anchorSlot, ignored...)
-    TryReserveCreate(anchorSlot | newDynamicSlot, footprint, item, amount) -> PlannedPlacement
-    TryReserveMerge(target, amount)                   // target: Placement | PlannedPlacement
-    TryReleaseSourcePlacement(placement)              // tentative; только кандидат на full move
-    GetReservedAmount(target)                         // target: Placement | PlannedPlacement
-```
-
-**Зачем session как отдельная сущность.** Это не слой поверх виртуального планирования, а
-владелец per-plan вещей, которые иначе живут россыпью полей в `TransferPlanner` (как сегодня
-`BuildVirtualSlots` + список `VirtualSlotState`): словарь `inventory -> state` (один инвентарь в
-одном планировании обязан давать одно состояние — source entry 1 может быть стороной swap
-entry 3) и entry-чекпоинт, охватывающий несколько states сразу (один entry трогает до трех:
-source release, target резервы, обе стороны swap; per-state чекпоинты с ручным учетом «кого я
-трогал» воспроизводят класс утечки 2.1). Извлечение в объект делает транзакционность тестируемой
-без планировщика. **Session — внутренняя инфраструктура**: стратегии и policies видят только
-`IPlanningGeometry` (4.3).
-
-**Время жизни session = один проход планирования.** Plan-all (preview, batch-гейт,
-транзакционное выполнение): одна session на все entries. JIT-цикл: свежая session на каждый
-entry, инициализированная реальным состоянием (4.6); внутри entry она по-прежнему нужна —
-несколько аллокаций одного entry резервируют друг относительно друга.
-
-**Ссылки, а не id.** План нигде не адресует цели сырыми индексами или session-id:
-
-- существующий placement — сам `Placement` (merge мутирует stack на месте, ссылка переживает
-  доклад в стек);
-- anchor для Create — `BaseSlot`-ссылка (на обеих топологиях ячейка = слот); индекс читается из
-  слота в момент использования, как payload геометрии;
-- запланированный placement — объект `PlannedPlacement` из `TryReserveCreate`. Для
-  `NewDynamicSlot` executor создает слот и привязывает его к этому объекту
-  (`PlannedPlacement.Bind`). Словарей `id -> placement` нет — привязку несет сам объект;
-- слот/placement, удаленный между планированием и выполнением, обнаруживается проверкой
-  принадлежности **по ссылке** до первой мутации entry → fail-before-mutation, а не «слот с тем
-  же текущим индексом».
-
-`PlannedPlacement` заменяет сегодняшние synthetic virtual slots: последующая аллокация видит его
-через `GetPlacementAt`, merge-ится в него, one-per-ID учитывает наравне с реальными placement.
-
-**Точечная правка identity.** `ShiftAfterSlotRemoved` сегодня пересоздает `Placement`-объекты
-(задокументировано как «short-lived»). Поскольку план может пережить мутации собственного
-выполнения (atomic batch, мульти-операционный entry, где ранняя операция способна вызвать
-реиндексацию), реиндексация переводится на in-place rebind (мутация anchor/covered indices того
-же объекта). Полная стабильность через rollback-пути не требуется: после полного atomic-отката
-план мертв, а после отката entry в JIT-цикле следующий entry перепланируется по реальному
-состоянию. Побочная выгода — лечится класс багов index-keyed DataBindings при реиндексации.
-
-**Per-entry транзакции планирования.** Source placement освобождается до завершения планирования
-entry, резервы создаются по ходу подбора кандидатов. Отклоненный entry (plan rule отклонил
-результат, нет кандидатов, swap не сложился) откатывается `Rollback(checkpoint)` без следов:
-восстановленный source, снятые резервы. Это чинит существующую утечку 2.1.
-
-`GetReservedAmount` сознательно заменяет `GetRemainingMergeCapacity`: planning state не знает про
-max stack и stacking semantics — это зона стратегии; remaining capacity вычисляет аллокатор (4.5).
-
-Требования:
-
-- использует ту же `IInventoryTopology`, что и runtime `PlacementStore`;
-- видит реальные placement и все ранее закоммиченные изменения session;
-- не мутирует inventory, slots и runtime `PlacementStore`;
-- tentative-release source footprint — ровно один раз и только если dragged stack покрывает весь
-  source placement; перед `Commit` проверяется, что entry действительно удалит source целиком,
-  иначе tentative release откатывается и entry перепланируется один раз без освобождения
-  source footprint (partial split / `DragAmountStep`);
-- последовательный deterministic greedy planning;
-- planner и acceptance используют один алгоритм dry-run;
-- swap-планирование работает через session со states обеих сторон.
-
-### 4.2 Модель planned operations
-
-Результат планирования entry — **список типизированных операций**, а не аллокации плюс bool-флаги:
-
-```text
-PlannedEntryTransfer
-    Entry, RequestedAmount, PlannedAmount, FailureReason
-    Operations: IReadOnlyList<PlannedOperation>
-
-PlannedOperation (контракт)
-    CollectParticipants(collector)   // ДО выполнения: затронутые inventories и внешние участники
-                                     //  -> executor знает transaction participants
-    TryReserve(registrar) -> PlanningReservation?
-                                     // операция атомарно регистрирует свои candidate-specific
-                                     //  planning-эффекты; null не оставляет изменений
-    PrepareAsync(ctx, ct) -> verdict // все execution-time veto/async validation ДО первой мутации
-    Execute(ctx) -> OperationExecutionResult
-                                     // стандартизированный результат: outcomes, domain contexts,
-                                     //  вклад в deferred events, привязки PlannedPlacement
-
-Встроенные операции первой версии:
-    PlacementOperation       Kind: Create | Merge; Target: PlanTarget; Orientation, Shape, Amount
-    SwapOperation            forward/reverse пары (placement -> результат), stacks before/after
-    OccupiedHandlerOperation доменное действие
-
-PlanTarget — всегда ссылка на объект, никогда сырой индекс:
-    Placement | BaseSlot | PlannedPlacement
-```
-
-Стандартизированный `OperationExecutionResult` обязателен: без него executor не соберет summary,
-domain contexts и deferred events для неизвестной ему операции, и обещание «новая операция без
-правки executor» не выполняется.
-
-**Один владелец planning effects.** Аллокатор выбирает candidate и создает соответствующую
-операцию через factory, но не вызывает `TryReserveCreate` / `TryReserveMerge` сам:
-
-```text
-operation = operationFactory.Create(candidate, entry)
-reservation = operation.TryReserve(registrar)
-if reservation != null:
-    operations.Add(operation)
-    reservations.Add(reservation)
-```
-
-Каждая операция регистрирует свои candidate-specific изменения occupancy через
-`IPlanningEffectRegistrar` внутри entry-чекпоинта:
-
-- `TryReserve` атомарен на уровне candidate: registrar открывает вложенный scope; `null` откатывает
-  только эффекты этой попытки, не весь entry. Это критично для multi-state `SwapOperation`, у
-  которого второй reserve может отказать после успешного первого;
-- успешный вызов возвращает operation-owned `PlanningReservation`. Его `ReduceTo(amount)` может
-  только уменьшить amount и синхронно обновляет operation + planning state; `ReduceTo(0)`
-  снимает эффекты, после чего planner исключает операцию. Так `DragAmountStep`-trim не обходит
-  владельца reservation;
-- `PlacementOperation.TryReserve`: `Create` -> `TryReserveCreate`, `Merge` -> `TryReserveMerge`;
-- tentative source release — единственный entry-level planning effect: его регистрирует entry
-  planner до создания target-операций, потому что он относится ко всему переносу, а не к одному
-  candidate; target-операции source release не дублируют;
-- `SwapOperation.TryReserve`: в state target-инвентаря — release целевой placement + reserve
-  forward-результата; в state source-инвентаря — release исходной placement + reserve
-  reverse-результата. «Читающий» swap делает свои результаты невидимыми для последующих entries
-  atomic-плана: они либо double-book-ают ячейки результата, либо не видят освобожденные;
-- `OccupiedHandlerOperation` — ноль planning-эффектов, но **не ноль runtime-эффектов**:
-  существующие handlers мутируют внешние модели (Demo5: `container.AddItem` + `RemoveFromData` +
-  очистка source slot) и эмитят события немедленно — inventory snapshot этого не откатывает.
-  Через `CollectParticipants` операция декларирует внешнего участника; правила для handler'а без
-  rollback-capability различаются по пути выполнения:
-  - **транзакционный wrapper**: запрещен. Сбой позднего entry откатывает весь batch, включая уже
-    исполненный handler-entry — не-откатываемый участник делает план невалидным, и это
-    обнаруживается до первой мутации;
-  - **JIT-цикл**: допустим только как handler-only entry — единственная мутирующая операция
-    entry, исполняется последней (откатывать нечего); иначе fail-before-mutation;
-  - контракт legacy `ExecuteOccupiedSlotDrop` уточняется как **all-or-nothing**: `false` означает
-    «ни одной мутации не произошло», иначе не гарантируется даже entry-атомарность (Demo5
-    соблюдает: все проверки до первой мутации);
-  - полноценное участие в транзакционном выполнении — через transaction participant handler'а
-    (checkpoint/commit/rollback + deferred events).
-  Сегодняшний одиночный drop-on-container исполняется как handler-only entry JIT-цикла и
-  работает без изменений.
-
-**Один механизм runtime rollback.** Операции не имеют собственного `Rollback`: смешение
-operation rollback и inventory snapshots создает два порядка отката и не определяет, кто
-восстанавливает частично измененный общий participant. Откатом владеет executor через единый
-контракт:
-
-```text
-ITransactionParticipant
-    CaptureCheckpoint() -> TransactionCheckpoint
-    Commit(checkpoint)
-    Rollback(checkpoint)
-```
-
-Inventory получает adapter поверх существующего `IInventorySnapshotProvider`; внешняя доменная
-модель предоставляет participant напрямую. `CollectParticipants` обязан вернуть полный набор
-до `PrepareAsync` и первой мутации. Привязки `PlannedPlacement`, provisional outcomes и deferred
-events принадлежат execution context и также сбрасываются при rollback checkpoint. Executor
-дедуплицирует participants по identity, захватывает их в стабильном порядке, commit выполняет в
-том же порядке, rollback — в обратном. Контракт `Commit`/`Rollback` — no-fail; `Rollback`
-идемпотентен для своего checkpoint. Участник, который этого не гарантирует, не предоставляет
-transaction capability.
-
-**Канонический execution result.**
-
-```text
-OperationExecutionResult      // единственный низкоуровневый outcome операции
-EntryExecutionResult          // status/reason + outcomes всех операций entry
-TransferExecutionReport       // entries, totals, primary outcome для UI compatibility
-DropResult                    // тонкий adapter TransferExecutionReport для IDropProcessor
-```
-
-`InventoryTransferResult`, `ExecutedTransferEntry`, `SwapOperationResult`,
-`PendingSwapOutcome` и отдельный `TransferExecutionSummary` после миграции не остаются:
-placement snapshots, domain contexts, event contributions и `TransferKind` несет
-`OperationExecutionResult`. `TransferKind` задается planned operation, а не выводится executor'ом
-из уже измененного runtime-состояния. Для batch `PrimaryOutcome` — явная compatibility-проекция,
-а не неявный «последний target».
-
-Новый тип операции — новый класс с этим контрактом, **без правки модели плана и executor
-dispatch**; создание операции при планировании подключается через planner extension point
-(resolver/factory — как сегодня подключены occupied-handler и blocked-resolver), а не правкой
-ядра планировщика.
-
-Правила:
-
-- single-cell — обычный `Create`/`Merge` с footprint из одной ячейки;
-- shaped stack может иметь несколько `PlacementOperation`, если стратегия допускает несколько
-  placement;
-- merge в placement, запланированный ранее в этом же планировании, ссылается на его
-  `PlannedPlacement`-объект;
-- grid + dynamic slots запрещен конфигурацией, поэтому `PlannedPlacement` без anchor-слота
-  (`NewDynamicSlot`) нужен только slot topology;
-- `PlannedSlotAllocation` удаляется без compatibility wrapper (релиза не было); если к этапу 6
-  релиз состоится — obsolete wrapper на один релиз.
-
-### 4.3 Роли strategy, rules и geometry
-
-Стратегия отвечает за: eligibility create/merge/reject; max stack и capacity (caps; учет
-запланированного — через аллокатор и `GetReservedAmount`); one-per-ID и separable-stack
-semantics, включая `PlannedPlacement`; кандидаты с фазовыми метками в детерминированном базовом
-порядке (4.4); default orderer; допустимость создания dynamic slot.
-
-Стратегия после полной миграции — **строго read-only planning policy**. Она не добавляет, не
-удаляет и не перемещает stacks/slots. Текущий `IPlacementStrategy` разделяется: planning-часть
-переезжает в новый read-only контракт, mutation-методы `TryAdd*` / `TryRemove` и флаги
-`RequiresStrategyPlacement` / `UsesPerItemSlotPlanning` удаляются. `CanUseAlternativeSlot`
-поглощается candidate eligibility. Runtime mutation выполняют только planned operations через
-узкие storage/lifecycle primitives inventory.
-
-Стратегия **не знает ни топологию, ни форму предмета**. Геометрию она спрашивает через узкий
-read-only фасад:
-
-```text
-IPlanningGeometry (view поверх PlacementPlanningState + topology)
-    EnumerateAnchorSlots(order)        // порядок перечисления отдает ТОПОЛОГИЯ;
-                                       //  order: Natural | FromHint(slot)
-    CanFit(footprint, anchorSlot)      // footprint — опаковый токен, резолвится аллокатором
-                                       //  по converted item
-    GetPlacementAt(slot)               // реальный или planned
-    GetReservedAmount(target)
-```
-
-Новая топология реализует свое перечисление анкоров и проекцию форм — стратегии не меняются.
-Новая стратегия пишет semantics поверх фасада — топологии не меняются. Защита от кривых
-расширений: даже если стратегия не вызвала `CanFit`, `TryReserve*` перевалидирует геометрию —
-испортить planning state стратегия не может.
-
-Rules отвечают за конкретный item, amount и target anchor. Rules проверяет **только аллокатор,
-один раз** — из кандидатов стратегий проверка убирается (сейчас задублирована, 2.4). Это
-сознательное изменение контракта `IAcceptanceStrategy`.
-
-Правила над **спланированным результатом** (включая агрегатные «суммарный вес <= N», которые
-per-anchor предикатом не выражаются) — отдельный уровень валидации, plan rules: контракт,
-built-ins и точки оценки описаны в 4.6.
-
-`PlacementPlanningState` отвечает только за: проекцию shape через topology, bounds, occupancy,
-резервирование, учет reserved amounts, транзакционность.
-
-`IPlacementInventory` в процессе миграции разделяется по назначению: planner получает read-only
-placement/topology view, executor — internal mutation target (`TryPlace`, merge/remove,
-dynamic-slot lifecycle). Публичный широкий интерфейс не должен быть способом обойти planning
-pipeline из custom planner extensions.
-
-### 4.4 Candidate source и `PlacementCandidateOrderer`
-
-Существующий цикл «кандидаты -> выбор -> применить -> повторить» упрощается: отдельной
-«pick»-роли в целевой модели **нет**. Аллокатор потребляет упорядоченный поток кандидатов, пока
-не наберет amount, — выбор и есть порядок. Сегодняшний `SlotSelectionPolicyBase.Select`
-(«выбери один») заставляет `AllocateViaCandidatesLoop` перестраивать кандидатов и перевыбирать
-на каждой итерации — это следствие склейки двух ролей, а не необходимость.
+Strategy возвращает topology-neutral кандидатов:
 
 ```text
 PlacementCandidate
     Kind: Merge | Create | NewDynamicSlot
-    Target: PlanTarget        (Merge: Placement | PlannedPlacement; Create: BaseSlot)
+    Target: Placement | BaseSlot | null
+    Anchor: BaseSlot | null
     Orientation
-    Capacity                  (cap стратегии минус текущее содержимое placement;
-                               planned-резервы НЕ учтены — их вычитает аллокатор)
-
-PlacementCandidateSource     (отдает стратегия)
-    Enumerate(kindMask)      // ленивое, повторно перечисляемое; маска фаз — инструмент
-                             //  orderer'а: merge-проход не оплачивает геометрию Create
-
-PlacementCandidateOrderer    (единственная pluggable-роль выбора места)
-    Order(source, request, geometry) -> ленивый упорядоченный поток кандидатов
+    Shape
+    Capacity
+    Phase
 ```
 
-Распределение ролей:
+- `Merge` ссылается на существующий logical `Placement`.
+- `Create` содержит anchor и footprint intent.
+- `NewDynamicSlot` означает создание нового slot через lifecycle capability.
+- raw index не является identity target; индекс читается из `BaseSlot` только для topology API.
 
-- **стратегия** — eligibility, capacity, кандидаты с фазовыми метками в детерминированном
-  базовом порядке (порядок анкоров — от топологии через `IPlanningGeometry`); никакой
-  предпочтительности;
-- **orderer** — предпочтительность: в каком порядке пробовать кандидатов. Получает source,
-  request (включая hint) и `IPlanningGeometry` — достаточно и для metric-orderers (ближайший к
-  hint, минимизация фрагментации);
-- built-in orderers и происхождение: `Natural` (бывший `FirstSlotSelectionPolicy` — базовый
-  порядок как есть), `MergeFirst` (бывшие `StackFirstSlotSelectionPolicy` и
-  `MergeFirstAlternativePlacementStrategy`: `Enumerate(Merge)`, затем
-  `Enumerate(Create | NewDynamicSlot)`), `EmptyFirst`/`MergeOnly`/`EmptyOnly` — прямые
-  наследники `*AlternativePlacementStrategy`;
-- пример `empty slot 0 + mergeable slot 1` остается bit-for-bit: `Natural` — slot 0,
-  `MergeFirst` — slot 1;
-- orderer упорядочивает и **может сужать** поток (не перечислять некоторые фазы:
-  `MergeOnly`/`EmptyOnly` — сужающие orderers), но **не может расширять** — кандидатов порождает
-  только стратегия, semantic eligibility (можно ли вообще merge сюда) остается у нее. Сужение
-  по kind — операционное предпочтение, а не eligibility;
-- **источник state-aware**: кандидаты вычисляются лениво поверх текущего planning state в момент
-  перечисления. После каждой успешной reservation аллокатор заново вызывает
-  `orderer.Order(source, request, geometry)` и начинает **новое перечисление** — продолжать старое
-  нельзя: reservation меняет eligibility и предпочтительный порядок, а
-  `TryReserve*`-перевалидация этого не ловит (она проверяет геометрию, а не семантику стратегии).
-  Пример: one-per-ID после первого Create обязан предлагать merge в созданный
-  `PlannedPlacement`, а не второй Create; `MergeFirst` должен увидеть этот новый merge-кандидат
-  в первой фазе; `NewDynamicSlot` уменьшает остаток potentialNewSlots. Это формализует сегодняшний
-  re-ask `AllocateViaCandidatesLoop` без eager-материализации; поток стабилен между мутациями
-  state;
-- `NewDynamicSlot`-кандидат не несет Target (слота еще нет); reservation возвращает
-  `PlannedPlacement`; множественность — через повторное перечисление и учет potentialNewSlots
-  минус уже созданные в плане;
-- built-in orderers v1 — потоковые (без материализации и сортировки полного потока).
-  Ranking-orderers (минимизация фрагментации, «лучший по метрике») допустимы как отдельный класс
-  с явным performance-контрактом: один полный проход на перечисление, reusable buffer, без
-  применения в lightweight acceptance;
-- rules в кандидатах не проверяются (4.3); геометрия проверяется лениво и перевалидируется при
-  reserve;
-- для slot-топологии все вырождается в текущее поведение — миграция стратегий без изменения
-  semantics.
+Кандидат не хранит mutation callback и не является частью исполняемого плана.
 
-**Один тип вместо двух словарей одного понятия (2.4).** И `SlotSelectionPolicyBase`, и
-`IAlternativePlacementStrategy` переделываются в `PlacementCandidateOrderer`. Конфигурация —
-без context-enum:
+### 3.2 Strategy
 
-- default orderer у стратегии/инвентаря (как сейчас `DefaultSlotSelectionPolicy`);
-- per-operation override (нынешний `InventoryAcceptanceRequest.SelectionPolicy` становится
-  orderer-override) имеет приоритет;
-- blocked-резолвер владеет своим orderer'ом и передает его как override при поиске альтернатив —
-  зеркало сегодняшнего `FindAlternativeBlockedTargetResolver`, владеющего
-  `IAlternativePlacementStrategy` сериализованным полем.
-
-`BlockedTargetResolver` сводится к выбору **вида реакции** (Alternative | Swap | Reject).
-Исключение заблокированного hinted-слота — свойство вызова blocked-поиска, не orderer'а.
-Терминологическая коллизия с `SelectionManager` (`Scripts/Selection`, выделение предметов в UI)
-уходит вместе с именем «Selection» в типах планирования.
-
-Будущий auto-rotate входит аддитивно: source отдает кандидатов с разными `Orientation`. `Kind`
-кандидата — словарь executor'а; новые виды операций добавляются как `PlannedOperation` (4.2),
-а не расширением `Kind`.
-
-### 4.5 Один аллокатор
+Strategy после миграции является строго read-only policy:
 
 ```text
-PlanEntry(entry, policy, target, hint, session):
-    checkpoint = session.BeginEntry()
-    1. resolve converted item, footprint (shape+orientation) and requested amount
-    2. if hinted target is occupied and an occupied-slot handler claims the drop:
-         - plan OccupiedHandlerOperation (priority over swap and alternative search;
-           source release НЕ выполняется — у handler-пути нет planning-эффектов)
-    3. placement path: if dragged stack covers the full source placement:
-         - tentatively release source placement in its inventory's state
-    4. if hint present:
-         - try the hinted target first: rules -> create operation -> operation.TryReserve(...)
-    5. if hint present and FULLY blocked (в hint ничего не зарезервировано):
-         reaction = blocked-resolver (только вид реакции, 4.4):
-         - Reject      -> entry rejected; альтернативы НЕ ищутся (hint-only semantics)
-         - Swap        -> session.Rollback(checkpoint); checkpoint = session.BeginEntry()
-                          (откат tentative release шага 3 и частичных резервов — swap
-                          владеет СВОИМИ эффектами, двойной release исключен)
-                          plan SwapOperation: release обеих исходных placement + reserve
-                          обоих результатов (4.2); -> шаг 7
-         - Alternative -> candidate scan: источник исключает hint, действует
-                          orderer-override резолвера
-    6. candidate scan (после частично заполненного hint, после Alternative,
-       либо сразу — когда hint нет: area drop / auto-transfer):
-         ask strategy for lazy state-aware candidate source over IPlanningGeometry (4.4)
-         for each candidate in orderer-defined order:
-           - capacity = candidate.Capacity - state.GetReservedAmount(candidate.Target)
-           - validate rules for concrete anchor and amount
-           - create PlannedOperation through operation factory
-           - reservation = operation.TryReserve(registrar)
-             (атомарно перевалидирует geometry/eligibility; null не оставляет эффектов)
-           - append operation + reservation only after successful reserve
-           - после успешной reservation — новый вызов orderer.Order(...) и перечисление
-             state-aware source (4.4)
-    7. apply DragAmountStep semantics
-       (trim идет с конца через PlanningReservation.ReduceTo до Commit —
-        operation и planning state меняются вместе, остаточная бронь не утекает)
-    8. if final amount leaves items in source placement and step 3 released it:
-         - session.Rollback(checkpoint); replan entry once with source footprint retained
-    9. validate entry-scope plan rules (4.6) over the planned entry + accumulated deltas:
-         - violation -> entry rejected
-    10. accepted -> session.Commit(checkpoint); rejected -> session.Rollback(checkpoint)
+IPlacementStrategy
+    EnumerateCandidates(context, geometry) -> PlacementCandidateSource
+    GetCapacity(candidate, item)
+    ResolveDragAmount(...)
+    DefaultOrderer
+    capabilities
 ```
 
-Владение эффектами однозначно: source release принадлежит placement-пути entry (шаг 3);
-occupied-handler путь не регистрирует эффектов; swap-путь стартует с отката checkpoint и
-регистрирует свои release/reserve сам. Один placement не может быть released дважды в одном
-entry (4.1).
+Strategy определяет:
 
-Приоритеты путей: occupied-handler > hint > реакция blocked-резолвера > общий scan. Реакция
-резолвера выбирается **до** общего scan'а — `Reject` и `Swap` исключают поиск альтернатив;
-частично заполненный hint резолвер не вызывает и продолжает общий scan (сегодняшняя семантика
-`placedIntoHint == 0`). Точные ветви «hint частично заполнен» фиксируются characterization
-(этап 0) и воспроизводятся.
+- можно ли merge/create;
+- max stack и candidate capacity;
+- one-per-ID и separable stack semantics;
+- допустимость dynamic slot;
+- базовый deterministic порядок кандидатов;
+- capability ограничения для batch или конкретной topology.
 
-Аллокатор не ветвится по `IsSingleCell` — отличия выражаются topology, candidate source и
-strategy capabilities. Шаг 3 — сознательный behavioral change: occupied-handler распространяется
-на shaped items с тем же приоритетом, что на single-cell пути (фиксируется characterization).
+Strategy не:
 
-**Детерминизм планировщика — несущее требование** (см. 4.6): одинаковые входы + одинаковое
-состояние = одинаковый план. Кастомные стратегии/orderers обязаны соблюдать это контрактом.
+- добавляет и не удаляет stacks;
+- создает slots;
+- вызывает rules;
+- мутирует `PlacementStore`;
+- выполняет fallback relocation.
 
-### 4.6 Plan rules и выполнение batch
+Удаляются mutation-методы `TryAdd*`, `TryRemove`, `TryAddToSlot` из strategy contract, а также
+флаги, существовавшие только для маршрутизации старого executor.
 
-**Plan rules — единственный носитель partial/приемочной семантики.** `AllowPartial` и `BatchMode`
-(Atomic/BestEffort) как флаги удаляются из `DropRequestPolicy`/`DropPolicySettings` и из
-pipeline. **Никаких default-списков и override-резолюции для правил нет** — два конъюнктивных
-источника, по образцу существующих слоев rules (slot/inventory/global):
+### 3.3 Geometry
 
-- **правила инвентаря** — стоячие требования инвентаря к любому плану (агрегатные лимиты: вес,
-  число типов; «только полные стеки», если инвентарь так решил). Регистрируются рядом с
-  inventory rules, оцениваются всегда, операция их снять не может;
-- **правила операции** — семантика конкретного переноса (`RequireFullAmount`,
-  `RequireAllEntriesPlanned`); их передает инициатор (drop area, action, blocked-резолвер,
-  программный вызов) вместе со своим запросом — как сегодня передается selection-policy
-  override.
-
-Итоговый набор = объединение обоих источников, конъюнкция (проходят все): «конфликт» правил
-невозможен, порядок влияет только на причину отказа, дубликат безвреден, merge/replace-семантика
-не нужна по построению. Аллокатор всегда планирует жадно максимум (с учетом `DragAmountStep`);
-правила валидируют спланированный результат:
+Strategy не должна знать concrete topology:
 
 ```text
-IPlanRule
-    Scope: Entry | Batch
-    Validate(context) -> verdict       // boolean v1 + reason
-
-EntryPlanRuleContext (pre-Commit каждого entry, 4.5 шаг 9):
-    спланированный entry: RequestedAmount, PlannedAmount, операции
-    дельты по инвентарю: закоммиченные предыдущими entries + tentative текущего
-    projected view инвентаря — read-view session (base + дельты), ленивые запросы,
-        НЕ материализованная копия; для правил вида «суммарный вес <= N»
-Built-in: RequireFullAmount (бывший AllowPartial=false), агрегатные
-    («суммарный вес <= N», «не больше K типов» — per-anchor предикат это не выражает:
-     три аллокации по 5 веса проходят поодиночке, сумма нарушает лимит невидимо)
-
-BatchPlanRuleContext (гейт перед стартом выполнения, на результате plan-all):
-    read-only view всего batch: список entries, у каждого RequestedAmount/PlannedAmount,
-    FailureReason, IsPlanned/IsPartial, операции; per-inventory дельты и projected views.
-    Правило видит «эти прошли, эти отклонены и почему».
-Built-in: RequireAllEntriesPlanned (бывшая атомарная приемка: есть отклоненные/частичные ->
-    отклонить весь batch). Кастомные: «не больше N entries», «суммарная стоимость», и т.д.
+IPlacementGeometry
+    EnumerateAnchors(order)
+    GetPlacementAt(cellOrAnchor)
+    CanPlace(shape, orientation, anchor, ignoredPlacement = null)
+    GetCoveredCells(shape, orientation, anchor)
 ```
 
-Правило читает **только свой контекст**, не live inventory: прямое чтение живого состояния
-ломает чистоту планировщика и детерминизм (JIT-план перестает совпадать с preview).
+Реализация является read-only facade над реальным `PlacementStore` и `IInventoryTopology`.
 
-Вердикт v1 — boolean: entry/batch отклоняется целиком (правило не умеет уменьшать amount;
-контракт вида `GetAcceptableAmount` — возможное будущее расширение, вне scope). Нарушение
-entry-scope = обычное отклонение entry через checkpoint-rollback — post-hoc удаление entries из
-готового плана не требуется. Lightweight-режимы acceptance (4.8) plan rules не оценивают —
-preview greedy, drop перевалидирует (документируется).
+Защита от custom strategy остается в transfer service: перед mutation каждый create candidate
+повторно проходит topology/bounds/occupancy validation.
 
-**Выполнение** — async-first цикл по умолчанию плюс opt-in transactional wrapper:
+### 3.4 Candidate source и orderer
+
+`PlacementCandidateSource` является ленивым и повторно перечисляемым. После каждого успешного
+placement transfer service запрашивает кандидатов заново, потому что реальное состояние уже
+изменилось.
 
 ```text
-BuildPreview(context) -> TransferPreview    // advisory UI projection; никогда не исполняется
+PlacementCandidateSource
+    Enumerate(kindMask)
 
-ExecuteAsync(context, planner, ct):         // TransferExecutionMode.Jit — путь по умолчанию
-    if batch-scope rules present:
-        plan-all (общая session) -> gate; провал -> ничего не исполняется
-    for each entry:
-        план(entry) по РЕАЛЬНОМУ состоянию (свежая session)
-        CollectParticipants -> capture checkpoints
-        PrepareAsync всех операций entry   // domain handlers, async veto, swap attempting
-        выполнить entry (атомарно на уровне entry)
-        success -> commit checkpoints + deferred events
-        сбой entry -> rollback checkpoints -> следующий планируется заново
-
-ExecuteTransactionalAsync(context, planner, ct):
-                                            // TransferExecutionMode.Transactional, opt-in
-    plan-all (общая session) -> gate -> проверка rollback-capability всех участников
-    capture full-batch checkpoints -> PrepareAsync ВСЕХ операций до первой мутации
-    исполнить план целиком -> commit; любой сбой = полный rollback
-    (план строится и исполняется внутри одного вызова — stale plan невозможен)
+PlacementCandidateOrderer
+    Order(source, context) -> IEnumerable<PlacementCandidate>
 ```
 
-`PrepareAsync` — обязательная fail-before-mutation граница: sync/async domain validation,
-cancellation, server veto и cancellable `SwapAttempting` выполняются здесь для всего entry
-(для transactional — для всего batch) до первого `Execute`. `SwapCompleted`, data-binding
-events и success hooks остаются deferred до commit. Основной service API — async; sync-wrapper
-допустим только для графа участников без async prepare и обязан явно отказать, а не блокировать
-async handler через `.GetAwaiter().GetResult()`. `PrepareAsync` не мутирует inventories или
-внешние доменные модели и не эмитит success/domain-mutation events; допустимы только явно
-объявленные side-effect-free validation/veto callbacks, включая `SwapAttempting`. Подготовленные
-данные хранятся только в execution context. Иначе fail-before-mutation и rollback через заранее
-собранных participants не гарантируются.
+Orderer:
 
-Почему JIT, а не «исполнить заранее построенный план с пропуском зависимых»: entry B планируется
-**после фактического исполнения A** — координация через реальное состояние; граф зависимостей,
-transitive skip и валидность ссылок устаревшего плана не нужны в принципе. Это корректнее
-пропуска: упавший A не тянет B «за компанию» — B перепланируется и может встать в другое место,
-либо честно откажет. Пока все entries исполняются успешно, JIT-планы побитово совпадают с
-preview-планом (детерминизм 4.5). Цена — повторное планирование на drop (не на hover).
+- не расширяет eligibility;
+- не вызывает rules;
+- не мутирует inventory;
+- только фильтрует фазы и задает порядок;
+- должен быть deterministic.
 
-**Разделение гарантий:** batch-гейт = гарантия на **старт** (не начинать, если план не
-устраивает правила); транзакционный путь = гарантия на **финиш** (откатить все при
-execution-сбое — доменная валидация, async veto; кейс trade window). Гейт без транзакционного
-пути не защищает от полуисполнения при execution-time сбое — документируется. Выбор пути —
-явная execution policy `TransferExecutionMode { Jit | Transactional }`: это политика
-*выполнения*, а не правило плана, поэтому в `IPlanRule` она не входит; поле потребляется один
-раз на границе transfer service и внутрь planner/executor не проникает. **Ни один публичный
-execute-API не принимает готовый план**: `BuildPreview` возвращает только `TransferPreview`,
-оба execute-пути строят внутренний план сами — устаревший план невозможно исполнить в принципе
-(сегодня `CanAcceptDrop`/`ProcessDrop` строят планы независимо, а executor принимает готовый
-план для любого режима).
+Built-in orderers:
 
-**Атомарность отдельного entry** (в обоих путях — entry с несколькими операциями не должен
-исполниться наполовину):
+- `Natural`;
+- `MergeFirst`;
+- `EmptyFirst`;
+- `MergeOnly`;
+- `EmptyOnly`.
 
-- перед `PrepareAsync` executor собирает `ITransactionParticipant`, заявленные
-  `CollectParticipants`, и захватывает checkpoints;
-- участник без rollback-capability (`IInventorySnapshotProvider` adapter либо native
-  transaction participant) —
-  entry помечается failed **до первой мутации**, кроме исключения для occupied-handler (4.2);
-- сбой prepare или любой операции вызывает единый rollback participants: выполненные операции,
-  созданные dynamic slots, привязки `PlannedPlacement`, provisional outcomes; deferred events
-  откатившихся операций не эмитятся;
-- `TransferExecutionReport` содержит per-entry результат: `Succeeded | Failed` + причина.
-  Статус «пропущен из-за зависимости» не существует — зависимостей между entries нет.
+`SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` заменяются одним
+`PlacementCandidateOrderer`.
 
-Preview и batch-гейт остаются оценкой по общей session (4.8): могут быть оптимистичнее
-фактического исполнения при доменных отказах — свойство подхода, drop перевалидирует.
+### 3.5 Blocked target policy
 
-### 4.7 Поведения, которые единый аллокатор обязан поглотить
-
-Главный риск миграции — не геометрия, а накопленные специальные поведения. Чеклист (каждое —
-characterization-тест до миграции и contract-тест после):
-
-1. deferred placement через `TryAddStack(-1)` для динамического инвентаря с нулем слотов
-   (inventory-area drop без target hint);
-2. deferred-fallback, когда virtual allocation ничего не нашла, но инвентарь сообщает capacity
-   через `potentialNewSlots`;
-3. различие legacy deferred (`TryAddStack(-1)`) и policy-driven `RequiresNewSlot`;
-4. `DragAmountStep`: округление и per-allocation подгонка (`ApplySourceDragAmountStep`);
-5. hint-only entries (`PlanHintOnlyEntry`), когда альтернативы недостижимы;
-6. приоритет occupied-slot handler над blocked-target поведением;
-7. swap fallback при `plannedAmount == 0`;
-8. one-per-ID учет placements, запланированных ранее в том же планировании (сегодня — synthetic
-   virtual slots; в целевой модели — `PlannedPlacement`);
-9. исключение source slot/placement при same-inventory move;
-10. `EnsureFreeSlots` / potentialNewSlots accounting для dynamic инвентарей.
-11. implicit repacking через `SlotRelocationService`: characterization фиксирует текущее
-    поведение, после чего fallback удаляется. Он мутирует посторонние slots вне transfer plan и
-    противоречит deterministic greedy; если repacking понадобится после релиза — отдельная явная
-    `RelocationOperation`, не скрытый retry внутри `TryAddStack`.
-
-Пункты 4-7 и 9 актуальны для grid vertical slice (этап 4); 1-3, 8, 10 — для миграции
-slot-топологии (этап 6). Single-cell fast path после миграции допустим **только как early-out
-внутри единого аллокатора**, не как параллельная семантическая ветка.
-
-Legacy deferred behaviors 1-3 воспроизводятся как явные `NewDynamicSlot` candidates/operations,
-а не сохранением вызовов `TryAddStack(-1)` в executor. Публичный imperative API inventory
-(`TryAddStack`) после миграции либо является adapter'ом общего placement service, либо явно
-документированным direct mutation API вне transfer semantics; executor его не вызывает.
-`TryAddStackQuiet` сохраняется только как hydration/import primitive для DataBinding restore и
-переименовывается в явный `ImportStackQuiet`/эквивалент, чтобы его нельзя было принять за
-альтернативный transfer pipeline.
-
-### 4.8 Acceptance и UI preview через тот же dry-run
-
-`GetAcceptableCount` не должен иметь отдельный алгоритм упаковки — иначе preview и planner
-разойдутся. Нужен общий запрос с явным режимом:
+Полиморфная resolver-иерархия не нужна:
 
 ```text
-PlacementPlanningRequest
-    Mode: Plan | AcceptancePreview | CountOnly | FirstTargetOnly
-    item, amount, context/entry, target hint
-    policy (resolved), orderer override
-    RulesScope: какие слои rules участвуют (slot rules, inventory rules, global rules)
+BlockedTargetResolutionKind
+    Reject
+    AlternativeSlots
+    Swap
 ```
 
-- `Plan` — полный результат с операциями; `AcceptancePreview` — та же логика, облегченный
-  результат; `CountOnly` — суммарный `Amount` с ранним выходом по `DesiredCount`;
-  `FirstTargetOnly` — первый допустимый existing anchor либо возможность `NewDynamicSlot`
-  (контракт `CanAcceptItem`);
-- `RulesScope` — обязательная часть контракта: без зафиксированного набора слоев preview и
-  planner дадут разные результаты. Текущие расхождения (acceptance не видит global rules)
-  фиксируются characterization и устраняются сознательно;
-- вызов без hint — deterministic scan anchors в порядке candidate source; greedy-оценка, не
-  оптимальная упаковка (документируется).
-
-`BuildPreview` возвращает UI-ready projection того же dry-run:
+`DropPolicySettings` хранит data-only настройки:
 
 ```text
-TransferPreview
-    IsAccepted, FailureReason
-    RequestedAmount, PlannedAmount
-    PrimaryTarget: Placement | BaseSlot | PlannedPlacementIntent
-    Orientation, Footprint/CoveredSlots
-    Entry previews для batch
+BlockedTargetResolutionKind
+AlternativeOrderer              // показывается только для AlternativeSlots
+AllowSameInventoryAlternative   // показывается только для AlternativeSlots
+PartialTransferMode
 ```
 
-`InventoryDropArea` не вызывает сначала `CanAcceptItem` для выбора `_foundSelection`, а затем
-planner повторно. `DropPreviewController` не вычисляет feasibility отдельным `CanPlace`-путем:
-он становится только renderer'ом `TransferPreview` либо удаляется. Area drop передает target
-inventory без искусственного slot hint; выбранный anchor приходит из preview/planner.
+Inspector defaults сохраняют текущее ожидаемое поведение:
 
-На release inventory pipeline не делает немедленный `CanAcceptDrop` перед execution:
-`ExecuteAsync` сам планирует по актуальному состоянию и возвращает штатный отказ.
-`CanAcceptDrop` остается compatibility/advisory adapter над `BuildPreview` для hover и общего
-`IDropProcessor`; `DragAndDropManager` и `AutoTransferService` для inventory вызывают execution
-напрямую, без двойного планирования.
+- `BlockedTargetResolutionKind.AlternativeSlots`;
+- `MergeFirst` alternative orderer;
+- same-inventory alternative разрешен;
+- partial transfer разрешен.
 
-Требования к облегченным режимам:
+`AlternativeOrderer` является `[SerializeReference]` field и показывается только для
+`AlternativeSlots`. Для area drop без blocked hint используется strategy default orderer либо
+request override, а не alternative-specific field.
 
-- reusable buffers/value types, без GC-нагрузки пропорционально числу anchors на вызов;
-- plan rules (4.6) не оцениваются — задокументированное ограничение v1;
-- кэшируются shape/orientation offsets; **result-кэш вне scope**: acceptance вызывается
-  событийно (вход в зону, смена ячейки/ориентации, drop), а не per-frame; надежная инвалидация
-  невозможна в принципе (occupancy версионируется, rules — произвольный пользовательский код);
-- цена устаревшего результата — неверная подсветка до следующего события: acceptance advisory,
-  drop планирует заново и executor перевалидирует с rollback;
-- fallback при провале baseline после этапа 7: occupancy-only counter + задокументированное
-  допущение «rules стабильны в пределах drag» — решение по профайлеру, не заранее.
+Поведение:
 
-До миграции acceptance — baseline-профили на типичных и больших grid.
+- `Reject`: explicit blocked hint завершает entry отказом;
+- `AlternativeSlots`: hinted target остается нетронутым, transfer service перечисляет остальные
+  candidates через configured orderer;
+- `Swap`: выполняется swap с конкретным occupied hinted placement.
+
+Удаляются:
+
+- `BlockedTargetResolverBase`;
+- `BlockedTargetResolution`;
+- `BlockedTargetResolutionContext`;
+- `RejectBlockedTargetResolver`;
+- `FindAlternativeBlockedTargetResolver`;
+- `SwapBlockedTargetResolver`;
+- `ISwapStrategy`;
+- `HintedTargetSwapStrategy`;
+- `SwapSearchContext`.
+
+Если в будущем появится другой вид реакции, он добавляется как новый enum case с отдельным
+явным execution path. Абстрактный resolver заранее не создается.
 
 ---
 
-## 5. Что не требуется унифицировать
+## 4. Unified transfer pipeline
 
-1. **UI и rendering** — drag visual, overlay, подсветка legitimately используют размер и форму.
-2. **Доменные rules** — правило может сознательно запрещать multi-cell item.
-3. **Оптимизации** — single-cell early-out внутри общего аллокатора при совпадающей semantics.
-4. **Безусловный multi-entry spatial planning** — batch+shaped в scope (этап 5), но strategy
-   capability может его явно запретить; это решение capability, а не скрытый guard.
-5. **Оптимальная упаковка** — deterministic greedy; bin-packing/backtracking вне scope.
-6. **Неявный repacking** — `SlotRelocationService` удаляется; возможная будущая relocation —
-   отдельная операция и отдельный дизайн.
+### 4.1 Public boundary
 
----
+Основной API:
 
-## 6. Этапы реализации
+```text
+InventoryTransferService
+    ExecuteAsync(TransferRequest, CancellationToken) -> TransferExecutionReport
+    Probe(TransferRequest) -> TransferProbe
+```
 
-Контрольные точки A и B — ревью-гейты (пауза, characterization, перфоманс), не точки остановки.
-Порядок — «контракты до потребителей»: session, candidate-модель и модель операций появляются
-раньше первого vertical slice.
+`ExecuteAsync` не принимает `TransferPlan`.
 
-### Этап 0. Characterization и API audit
+`TransferRequest` содержит:
 
-- Зафиксировать поведение slot/grid для stackable, separable, unique; partial, same-inventory
-  move, conversion, dynamic slot; swap event snapshot test.
-- Покрыть тестами каждый пункт чеклиста 4.7.
-- Зафиксировать утечку виртуального состояния при отклоненном entry (2.1) — исчезнет с
-  транзакциями, сознательно.
-- Зафиксировать observable `FailureReason` строки shaped/single-cell путей.
-- Зафиксировать фактический rules scope acceptance-пути.
-- Зафиксировать порядок `IAlternativePlacementStrategy`-реализаций для blocked-hint и
-  `SlotSelectionPolicy`-комбинаций — мигрируют в `PlacementCandidateOrderer`.
-- Зафиксировать семантику blocked-резолвера: `Reject` не ищет альтернативы (hint-only); swap и
-  альтернативы — только при полностью заблокированном hint; частично заполненный hint
-  продолжает общий scan (`placedIntoHint == 0`-ветвление).
-- Зафиксировать текущее поведение atomic batch с occupied-handler: внешние мутации handler'а
-  при откате batch не восстанавливаются — существующая дыра, закрывается правилом 4.2.
-- Зафиксировать наблюдаемое поведение всех комбинаций `AllowPartial`/`BatchMode`: built-in plan
-  rules (`RequireFullAmount`, `RequireAllEntriesPlanned`) и транзакционный путь обязаны его
-  воспроизвести; текущие места конфигурации мигрируют на правила инвентаря/операции с
-  сохранением поведения.
-- Зафиксировать детерминизм планировщика (одинаковые входы — одинаковый план) — несущее
-  требование JIT-replan.
-- Удалить `UniversalInventory.TrySwapSlots`.
-- Проверить внешних потребителей `PlannedSlotAllocation` / `PlannedPlacementAllocation`.
-- Проверить внешних потребителей mutation API стратегий и inventory:
-  `IPlacementStrategy.TryAdd*`/`TryRemove`, `TryAddStack`, `TryAddStackQuiet`,
-  `TryAddToSlot`, `SlotOperationContext`, `SlotRelocationService`; отдельно классифицировать
-  transfer, public imperative API и DataBinding hydration.
-- Зафиксировать observable implicit repacking `SlotRelocationService`, затем удалить его как
-  скрытый backtracking (4.7).
-- Проверить внешних потребителей result DTO:
-  `InventoryTransferResult`, `ExecutedTransferEntry`, `SwapOperationResult`, `PendingSwapOutcome`,
-  `TransferExecutionSummary`, batch-поля `DropResult`.
-- Зафиксировать observable результаты `CanAcceptItem` / `GetAcceptableCount` (greedy order,
-  suggested slot).
-- Зафиксировать текущие двойные вызовы preview -> execution:
-  `InventoryDropArea.CanAcceptItem -> CanAcceptDrop`, release
-  `CanAcceptDrop -> ProcessDrop`, `AutoTransferService.CanAcceptDrop -> ProcessDrop`.
-- Снять baseline allocations/time acceptance preview на малых и больших grid, включая batch.
+- `DragContext`;
+- target inventory;
+- optional target hint;
+- resolved blocked-target policy;
+- partial transfer mode;
+- global/inventory rule scope;
+- optional orderer override.
 
-### Этап 1. `PlacementPlanningSession` и planning state
+`TransferProbe` является advisory UI result, а не исполняемым объектом.
 
-- `PlacementPlanningSession` (ленивый `inventory -> state`) и `PlacementPlanningState` (4.1).
-- Per-entry транзакции `BeginEntry`/`Commit`/`Rollback` на уровне session.
-- `PlannedPlacement`-объекты; merge и `GetReservedAmount` по `Placement | PlannedPlacement`;
-  никаких id/индексных адресаций.
-- In-place rebind в `ShiftAfterSlotRemoved` (identity, 4.1); characterization фиксирует текущее
-  пересоздание до правки.
-- Session ведет накопленные дельты планирования по инвентарю (добавлено/удалено по предметам,
-  созданные/удаленные placement) — вход entry-scope plan rules (4.6).
-- Тесты: пересекающиеся footprint; rollback восстанавливает released source и снимает резервы;
-  reserved amounts по real и planned targets; merge в planned placement; one-per-ID поверх
-  planned; tentative source-release и replan partial split без release; identity при
-  `ShiftAfterSlotRemoved`.
-- Публичные планы и executor не меняются.
+### 4.2 Batch boundary
 
-### Этап 2. Candidate contract и geometry facade
+Batch всегда обрабатывается последовательно:
 
-- `IPlanningGeometry`: перечисление анкоров у топологии (`Natural`, `FromHint`), `CanFit` по
-  опаковому footprint-токену.
-- `PlacementCandidate` + ленивый повторно перечисляемый `PlacementCandidateSource` с
-  `Enumerate(kindMask)`.
-- Ввести `PlacementCandidateOrderer` (4.4); активный orderer — конфигурацией
-  (default у стратегии/инвентаря + per-operation override).
-- Переделать `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` в orderers:
-  `Natural` (бывший First), `MergeFirst` (бывшие StackFirst и MergeFirstAlternative...),
-  `EmptyFirst`/`MergeOnly`/`EmptyOnly`; blocked-резолвер передает свой orderer как override,
-  blocked-поиск исключает hinted-слот на уровне вызова; `BlockedTargetResolver` выбирает только
-  вид реакции.
-- Убрать rules из кандидатов стратегий.
-- Source — state-aware (4.4): новое перечисление после каждой reservation; тесты — one-per-ID
-  после первого Create предлагает merge в `PlannedPlacement`, а не второй Create;
-  `MergeOnly`/`EmptyOnly` сужают поток, не расширяя.
-- Миграция сериализованных Unity-ссылок: реализации `SlotSelectionPolicyBase` /
-  `IAlternativePlacementStrategy` записаны через `SerializeReference` в сценах и profiles —
-  `MovedFrom`-атрибуты либо конвертация ассетов; demo-сцены и profiles обновляются в этом же
-  этапе (простого переименования типов недостаточно).
-- Мигрировать built-in стратегии и orderers; slot-топология — бит-в-бит.
-- Contract-тесты: порядок прежний для всех built-in комбинаций, включая
-  `empty slot 0 + mergeable slot 1` (Natural/MergeFirst) и blocked-hint сценарии бывших
-  `*AlternativePlacementStrategy`.
+```text
+ExecuteAsync(request):
+    validate common request
+    validate global/inventory rules at context scope once
 
-### Этап 3. Модель planned operations
+    for each entry in stable DragContext order:
+        result = TryTransferEntry(entry, current real inventory state)
+        append result
 
-- `PlannedOperation`
-  (`CollectParticipants`/`TryReserve`/`PrepareAsync`/`Execute`),
-  `OperationExecutionResult`, `IPlanningEffectRegistrar`, `PlanTarget`.
-- Candidate-specific planning effects принадлежат `operation.TryReserve`; allocator сам
-  `TryReserveCreate`/`TryReserveMerge` не вызывает. Tentative source release — единственный
-  entry-level effect.
-- `PlanningReservation`: candidate-local atomic rollback на неуспех и `ReduceTo` для
-  operation-owned `DragAmountStep`-trim.
-- `ITransactionParticipant` + inventory adapter поверх `IInventorySnapshotProvider`; operation
-  rollback отсутствует.
-- `PlannedEntryTransfer` — список операций; swap/occupied-handler — операции вместо bool-флагов.
-- `SwapOperation.TryReserve`: release обеих исходных + reserve обоих результатов.
-- Переходный `LegacyPlacementOperation` для slot-pipeline (этапы 3-5): исполняет старую slot
-  allocation, `TryReserve` — no-op (учет в `VirtualSlotState`); удаляется на этапе 6 — иначе
-  два виртуальных состояния одного инвентаря (раздел 3).
-- Ввести и начать миграцию canonical result chain:
-  `OperationExecutionResult` -> `EntryExecutionResult` -> `TransferExecutionReport`;
-  `DropResult` — compatibility adapter.
-- Проверить partial accounting, per-entry статусы, domain contexts и deferred events для
-  нескольких операций entry.
-- Тесты эффектов swap: в atomic-планировании entry после swap-entry не может занять ячейки
-  результата и видит освобожденные.
+    return report
+```
 
-### Этап 4. Grid vertical slice: единый planner + executor для grid-топологии
+Гарантии:
 
-- Все entries с target grid-топологии — через единый аллокатор (4.5), включая single-cell как
-  1x1. Slot-инвентари не затронуты (раздел 3).
-- Shaped alternative search — через общий candidate source и orderers.
-- Executor: `Create` через narrow placement mutation target, `Merge` через placement stack,
-  привязка `PlannedPlacement.Bind`; strategy mutation API и `TryAddStack` не вызываются.
-- Cross-topology swap (grid-цель, slot-источник) — через session обеих сторон; обычное
-  планирование со slot-целью — на старом pipeline до этапа 6.
-- Occupied-handler, swap fallback, `DragAmountStep`, hint-only — для grid через единый путь
-  (чеклист 4.7, пункты 4-7, 9).
-- Точка вызова entry-scope plan rules на pre-Commit (4.5, шаг 9).
-- Тесты: occupied hint; свободный регион; отсутствие региона; full same-inventory source
-  release; partial split без release; смена ориентации; covered-cell drop; агрегатное plan rule
-  (лимит суммарного веса) отклоняет entry, когда сумма аллокаций превышает лимит, хотя каждая
-  проходит поодиночке.
+- успешные ранние entries не откатываются из-за позднего отказа;
+- failed entry не оставляет частичных mutation;
+- следующий entry видит реальный результат предыдущих;
+- successful entry commit-ит events/DataBinding до перехода к следующему entry;
+- report содержит отдельный status и reason для каждого entry;
+- success batch означает, что хотя бы один entry перенесен;
+- `IsPartial` означает, что не все requested entries/amount были перенесены.
 
-### Контрольная точка A (ревью-гейт)
+Target hint в batch применяется только к первому entry:
 
-- grid-топология полностью на едином пути; preview и execution не расходятся;
-- shaped alternative search через candidate source/orderer, rules и виртуальную topology;
-- перфоманс в пределах baseline;
-- зафиксированы behavioral changes (occupied-handler для shaped, `FailureReason`, устранение
-  утечки 2.1, миграция `*AlternativePlacementStrategy`).
+- первый entry сначала пытается использовать hinted placement;
+- если hint blocked, к нему применяется configured blocked policy;
+- последующие entries работают как area drop и перечисляют обычные candidates;
+- hint не переиспользуется после failure первого entry;
+- batch + `Swap` отклоняется целиком до начала loop (7.2).
 
-### Этап 5. Batch на grid: plan rules, JIT-цикл и транзакционный wrapper
+`BatchMode` и `Atomic` удаляются из:
 
-- Снять `IsBatchDrag`-guard для grid-целей.
-- Ввести `IPlanRule` (Entry | Batch scope), контексты `EntryPlanRuleContext` /
-  `BatchPlanRuleContext` (projected views поверх session; правило не читает live inventory) и
-  built-ins `RequireFullAmount`, `RequireAllEntriesPlanned`; удалить `AllowPartial`/`BatchMode`
-  из `DropRequestPolicy`/`ResolvedDropPolicy`/`DropPolicySettings`. Источники правил (4.6):
-  правила инвентаря (рядом с inventory rules) + правила операции (инициатор передает с
-  запросом), без default-списков; `TransferExecutionMode` — скалярное поле политики. Миграция
-  мест, где сегодня сконфигурированы `AllowPartial=false`/atomic, на соответствующий источник —
-  по characterization этапа 0.
-- JIT-цикл `ExecuteAsync(context, planner, ct)`: batch-гейт (при наличии batch-правил) ->
-  «свежая session -> план entry -> collect/checkpoint -> PrepareAsync всех операций ->
-  атомарное выполнение entry»; сбой entry не прерывает цикл.
-- `ExecuteTransactionalAsync(context, planner, ct)`: plan-all + гейт + collect/checkpoint всех
-  participants + `PrepareAsync` всего batch до первой мутации + исполнение с полным rollback —
-  внутри одного вызова.
-- Sync-wrapper допускается только без async participants и иначе возвращает явный отказ.
-- API transfer service (4.6): `BuildPreview` / `ExecuteAsync` /
-  `ExecuteTransactionalAsync` — ни один execute-API не принимает готовый план.
-- Завершить переход на `TransferExecutionReport`; удалить внутренние parallel DTO после
-  миграции consumers, `DropResult` оставить тонким adapter'ом.
-- Смешанный batch (single-cell + shaped) — один pipeline, без моста (раздел 3).
-- Strategy capability для явного запрета multi-entry spatial planning (вместо guard).
-- Тесты: смешанный batch; `RequireAllEntriesPlanned` отклоняет весь batch при частичной
-  геометрической невместимости; транзакционный wrapper откатывает все при сбое позднего entry;
-  JIT: сбой entry A -> entry B перепланируется и встает в другое место; сбой второй операции
-  entry откатывает первую; отсутствие rollback-capability дает fail-before-mutation;
-  **JIT-консистентность**: при отсутствии сбоев последовательность JIT-планов совпадает с
-  preview-планом; ориентации per entry; swap внутри plan-all с учетом резервов; кастомное
-  batch-правило читает `FailureReason` отклоненных entries и отклоняет весь batch; правило
-  суммарного веса считает по projected view (base + дельты), а не по live inventory;
-  правило инвентаря (агрегатный лимит) действует при любых правилах операции; правило операции
-  добавляется к правилам инвентаря, а не заменяет их.
+- `DropPolicySettings`;
+- `DropRequestPolicy`;
+- `ResolvedDropPolicy`;
+- planner/executor;
+- UI.
 
-### Этап 6. Миграция slot-топологии
+Full-batch rollback, projected views и plan-all отсутствуют.
 
-- Slot-инвентари — на единый аллокатор, session и JIT-цикл.
-- Цели — ссылки (`BaseSlot`/`Placement`/`PlannedPlacement`); принадлежность по ссылке до первой
-  мутации, удаленный объект — fail-before-mutation.
-- `NewDynamicSlot`: создание слота в executor, `Bind`, затем `TryPlace`; rollback удаляет слот
-  через transaction participant.
-- Чеклист 4.7 целиком (пункты 1-3, 8, 10 — основная нагрузка).
-- Удалить `PlannedSlotAllocation`, `VirtualSlotState`, `LegacyPlacementOperation`, старые
-  branches и `TryAddToTargetPlacement`-guard.
-- Сделать inventory strategy полностью read-only: удалить mutation-часть `IPlacementStrategy`
-  (`TryAdd*`, `TryRemove`, `TryAddToSlot`, `RequiresStrategyPlacement`,
-  `UsesPerItemSlotPlanning`, `CanUseAlternativeSlot`).
-- Удалить из transfer pipeline `TargetPlacementOperation`, `SlotOperationContext`,
-  deferred executor branches через `TryAddStack(-1)`.
-- Удалить `DynamicSlotDecorator` и `SlotManagementSettingsBase.WrapRuntimeStrategy`; dynamic
-  slot settings остаются lifecycle/capability, `NewDynamicSlot` исполняется operation'ом.
-- Удалить `SlotRelocationService`; implicit repacking не переносится в unified allocator.
-- Публичный `TryAddStack` маршрутизировать через общий placement service либо оставить явно
-  direct API вне transfer semantics; quiet hydration выделить отдельным именованным primitive.
+### 4.3 Entry transaction
 
-### Контрольная точка B (ревью-гейт)
+Каждый entry имеет локальную transaction boundary:
 
-- единый execution contract для slot и grid topology;
-- чеклист 4.7 покрыт contract-тестами и проходит;
-- перфоманс planner/executor в пределах baseline.
+```text
+TryTransferEntry(entry):
+    validate source/start rules
+    resolve target-side conversion preview
+    run target-independent async/domain veto before mutation
 
-### Этап 7. Унификация acceptance
+    capture source/target checkpoints
+    create working transfer stack
 
-- `PlacementPlanningRequest` с режимами (4.8); зафиксировать `RulesScope`.
-- `GetAcceptableCount` / `CanAcceptItem` — на dry-run общего аллокатора
-  (`CountOnly` / `FirstTargetOnly`).
-- `BuildPreview -> TransferPreview` с primary target, orientation и covered slots.
-- `InventoryDropArea` больше не выбирает `_foundSelection` отдельным acceptance-вызовом;
-  `DropPreviewController` становится renderer'ом preview либо удаляется.
-- На release `DragAndDropManager` и `AutoTransferService` вызывают inventory execution напрямую;
-  немедленный `CanAcceptDrop` перед ним удаляется. Compatibility `CanAcceptDrop` использует
-  `BuildPreview` только как advisory query.
-- Удалить `CanAcceptShape` как routing guard.
-- Preview capacity совпадает с реально построенным планом (исключение — plan rules:
-  lightweight-режимы их сознательно не оценивают, 4.6).
-- Нет регрессии по baseline; при провале допускается специализированный preview fast path при
-  общей contract-тестовой матрице с planner.
-- Задокументировать ограничение v1: lightweight-режимы не оценивают plan rules.
+    attempt explicit hint
+    if blocked:
+        apply BlockedTargetResolutionKind
+    else:
+        continue candidate loop while remainder exists
 
-### Этап 8. Зачистка
+    before each candidate mutation:
+        validate inventory/slot rules against concrete target
+        validate topology and capacity again
 
-- Удалить semantic `IsSingleCell` branches из planner/executor/acceptance и `AutoTransferService`
-  (shaped-guard выбора режима). Визуальные проверки формы
-  (`DragAndDropManager.TrySetPlacementDraggedState`, `DropPreviewController`, drag visuals)
-  остаются — UI по §5.1.
-- Удалить `IAlternativePlacementStrategy` и `SlotSelectionPolicyBase` с реализациями
-  (переделаны в `PlacementCandidateOrderer` на этапе 2).
-- Удалить `IInventoryQueryStrategy`: `Contains`, counts и перечисление stacks читают логические
-  placements из store/view, не covered-slot проекцию и не strategy.
-- Разделить широкий `IPlacementInventory` на read-only planning view и internal mutation target.
-- Удалить legacy result DTO (`InventoryTransferResult`, `ExecutedTransferEntry`,
-  `SwapOperationResult`, `PendingSwapOutcome`, `TransferExecutionSummary`) после миграции
-  compatibility consumers на `TransferExecutionReport`.
-- Batch ограничивается только явной capability.
+    return unplaced remainder to source
 
-### Этап 9. Документация
+    if RequireFull and remainder exists:
+        rollback entry
+        return failed
 
-- Обновить `.agents/skills/dragdrop-*` и зеркальные `.claude/skills/dragdrop-*`.
-- Исправить описание swap в `DATA_FLOW.md` / `COMPONENTS.md`.
-- Документация extension points: candidate source, `PlacementCandidateOrderer`,
-  `IPlanningGeometry`, `PlannedOperation`, `PlanningReservation`, `ITransactionParticipant`,
-  `IPlanRule`, `PlacementPlanningRequest`, `TransferPreview`, canonical result chain; гайд «как
-  добавить стратегию / топологию / orderer / операцию / transaction participant / plan rule»;
-  контракт детерминизма и запрет мутаций в `PrepareAsync` для кастомных расширений; различие
-  batch-гейта и транзакционного пути; отдельные контракты transfer API, direct mutation API и
-  quiet hydration/import.
+    commit entry
+    dispatch deferred entry events/DataBinding notifications
+    return EntryTransferResult
+```
 
-Каждый этап отдельно компилируется и проходит свой test subset.
+Для inventory checkpoints используется существующий snapshot contract либо его узкая замена.
+Общая plugin-style transaction framework не вводится до появления реального внешнего
+participant, который невозможно выразить inventory snapshot.
+
+События и DataBinding notifications отправляются только после успешного commit entry и до
+обработки следующего entry. Иначе rules и external model следующего entry увидят состояние,
+отличающееся от runtime inventory.
+
+### 4.4 Concrete placement attempt
+
+Mutation выполняет transfer service через узкие inventory primitives:
+
+```text
+TryApplyCandidate(workingStack, candidate) -> CandidateTransferResult
+
+CandidateTransferResult
+    TransferredAmount
+    RemainingAmount
+    Outcome
+    FailureReason
+```
+
+Инварианты:
+
+- `TransferredAmount == 0` означает отсутствие mutation;
+- успешная операция переносит точно заранее вычисленный amount;
+- create/merge mutation является all-or-nothing для этого amount;
+- при локальном отказе отделенный sub-stack возвращается в `workingStack`;
+- transfer service не вызывает strategy mutation API;
+- после успеха candidates перечисляются заново по актуальному state.
+
+Это позволяет одному entry иметь несколько outcomes без отдельной planned-operation model.
+
+### 4.5 Результаты
+
+Каноническая result chain:
+
+```text
+PlacementTransferOutcome
+    Kind: Create | Merge | Swap | OccupiedHandler
+    SourcePlacementSnapshot
+    TargetPlacementSnapshot
+    SourceItem
+    TargetItem
+    Amount
+
+EntryTransferResult
+    Status: Succeeded | Partial | Failed
+    RequestedAmount
+    TransferredAmount
+    RemainingAmount
+    FailureReason
+    Outcomes[]
+
+TransferExecutionReport
+    EntryResults[]
+    RequestedAmount
+    TransferredAmount
+    SucceededEntries
+    FailedEntries
+    IsPartial
+
+DropResult
+    compatibility projection of TransferExecutionReport
+```
+
+Удаляются параллельные DTO:
+
+- `InventoryTransferResult`;
+- `ExecutedTransferEntry`;
+- `SwapOperationResult`;
+- `PendingSwapOutcome`;
+- `TransferExecutionSummary`.
+
+`TransferKind` задается concrete execution path, а не выводится из уже измененного slot state.
 
 ---
 
-## 7. Риски и проверки
+## 5. Rules
 
-### Корректность
+Отдельной системы `IPlanRule` нет.
 
-- planned footprint учитывает все закоммиченные эффекты текущего планирования, включая swap;
-- `Rollback(checkpoint)` восстанавливает released source и снимает все резервы entry — частичный
-  откат недопустим;
-- committed source release — только если entry удаляет source placement целиком; partial split и
-  `DragAmountStep` планируются с занятым source footprint (tentative release + однократный
-  replan);
-- covered-cell interaction резолвится в логический placement/anchor;
-- conversion может изменить shape — geometry по converted adapter;
-- merge не создает footprint, но меняет reserved amount;
-- `DragAmountStep`-trim — до `Commit`, остаточная бронь не утекает;
-- same-inventory swap проверяет совместимость двух результирующих footprint;
-- `SwapOperation` регистрирует эффекты (release обеих сторон + reserve обоих результатов) —
-  «читающий» swap в atomic-плане ведет к double-book/недопланированию;
-- candidate-specific reserve выполняет только `PlannedOperation.TryReserve`; allocator не
-  дублирует вызовы planning state;
-- неуспешный candidate reserve атомарен и не загрязняет следующий candidate; успешный
-  `PlanningReservation.ReduceTo` синхронно уменьшает operation и planning state;
-- один placement не может быть released дважды в одном entry: source release принадлежит
-  placement-пути, swap fallback стартует с отката checkpoint и владеет своими release (4.5);
-- план не адресует цели индексами/id — только ссылки; принадлежность по ссылке до первой мутации;
-- `PlannedPlacement.Bind` — единственный механизм связывания; несколько `NewDynamicSlot`
-  различаются объектами, не порядком создания;
-- `ShiftAfterSlotRemoved` ребиндит placement на месте — план не должен переживать пересоздание
-  объектов внутри собственного выполнения;
-- runtime rollback имеет одного владельца — `ITransactionParticipant`; operation-level rollback
-  отсутствует;
-- atomic rollback и события сохраняют placement snapshots;
-- маршрутизация переходного периода — по топологии (раздел 3).
+Существующая rule-система получает две явные drop-фазы:
 
-### Детерминизм и JIT
+```text
+IDragRule
+    CanStartDrag(context, entry)
+    CanDropContext(context)       // один раз на request; default Success
+    CanDrop(context, entry)       // concrete entry/target
+```
 
-- детерминизм планировщика — несущее требование: JIT-план совпадает с preview только при
-  детерминированных стратегиях/orderers/plan rules; контракт фиксируется документацией и
-  consistency-тестом (этап 5);
-- preview и batch-гейт — гарантия на старт, не на финиш: без транзакционного wrapper'а
-  execution-сбой оставляет ранние entries примененными; документируется;
-- удаление `AllowPartial`/`BatchMode` — breaking-изменение политики (pre-release допустимо);
-  built-in rules в соответствующих источниках (инвентарь/операция) обязаны воспроизвести
-  текущее поведение по characterization этапа 0;
-- повторное планирование на drop — приемлемая цена (drop — редкое событие); baseline этапа 0
-  подтверждает.
+Это расширение существующего `IDragRule`/`RuleValidator`, а не новая коллекция правил.
+`DragRuleBase.CanDropContext` по умолчанию возвращает success, поэтому обычным item/slot rules
+не требуется дополнительная реализация.
 
-### Изменение контракта стратегий и orderers
+Global/inventory rules получают полный `DragContext` и могут видеть весь requested batch. Они
+остаются read-only и проверяют:
 
-- удаление rules из кандидатов меняет контракт `IAcceptanceStrategy`; кастомные стратегии ищутся
-  в audit этапа 0;
-- candidate-source контракт перераспределяет владение порядком; бит-в-бит совместимость built-in
-  комбинаций — contract-тестами этапа 2;
-- source обязан поддерживать стабильное повторное ленивое перечисление и `kindMask`; потоковые
-  orderers не материализуют и не сортируют полный поток. Ranking-orderers могут сделать один
-  полный проход с reusable buffer по отдельному performance-контракту 4.4 и не используются в
-  lightweight acceptance;
-- замена `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` одним
-  `PlacementCandidateOrderer` — изменение двух публичных extension points; конфигурация
-  blocked-поиска сохраняется как orderer-override резолвера;
-- strategy после этапа 6 read-only: custom strategy больше не получает mutation API inventory;
-  custom runtime mutation оформляется `PlannedOperation`;
-- стратегия без `CanFit` не ломает planning state — `TryReserve*` перевалидирует;
-- `CollectParticipants` обязан быть полным: незаявленный участник = незахваченный checkpoint =
-  неоткатываемая мутация;
-- participants дедуплицируются по identity; stable capture/commit и reverse rollback не зависят
-  от порядка обнаружения операциями; commit/rollback participant'а не должны отказывать;
-- legacy occupied-handlers без rollback-capability: в транзакционном wrapper'е запрещены (план
-  невалиден до первой мутации), в JIT-цикле — только handler-only entry; legacy Execute обязан
-  быть all-or-nothing; полноценное участие — через transaction-aware интерфейс;
-- occupied-handler для shaped — сознательный behavioral change (гейт A);
-- `RulesScope` acceptance — сознательное выравнивание с planner;
-- plan rules оцениваются на pre-Commit entry и на batch-гейте; lightweight acceptance их не
-  видит — preview для них оптимистичен (документированное ограничение v1); правило получает
-  read-only контекст (projected view поверх session) и не мутирует его;
-- правило, читающее live inventory вместо контекста, ломает детерминизм preview==JIT — контракт
-  чистоты фиксируется документацией;
-- правила — два конъюнктивных источника (инвентарь + операция) без default-списков и
-  override-резолюции; операция не может снять правило инвентаря (4.6);
+- возможность start drag;
+- aggregate допустимость request до первой mutation;
+- допустимость item для target inventory;
+- конкретный target candidate;
+- aggregate свойства request: суммарный вес, число entries, source inventories, item types.
 
-### Dynamic slots
+Rules не проверяют projected или будущий inventory state. Фактическая вместимость определяется
+последовательными placement attempts.
 
-- placement без anchor-слота — только `PlannedPlacement` с NewDynamicSlot-намерением;
-- executor резолвит ссылочные цели entry до первой мутации; отсутствующий объект —
-  fail-before-mutation;
-- после создания слота — проверка topology, `TryPlace`, `Bind`;
-- rollback удаляет созданный слот через transaction checkpoint; не оставляет index-keyed
-  DataBinding с ключами на чужие logical slots;
-- characterization: создание, rollback, повторное использование source slot, реиндексация;
-- grid + dynamic slot management остается запрещенным до отдельной модели расширяемой spatial
-  topology.
+Разделение:
 
-### Производительность
+- request-level aggregate rule реализует `CanDropContext` и читает `context.Entries`; failure
+  отклоняет request до первой mutation;
+- entry-level rule читает текущий `entry`;
+- slot/target rule вызывается только после выбора concrete anchor через context copy с этим
+  target;
+- topology validation выполняется transfer service, не rule.
 
-- anchor scan — `O(anchorCount * footprintSize)`; offsets кэшируются;
-- planning state обновляет occupancy инкрементально; checkpoint/rollback — журнал/undo-стек, не
-  копия состояния;
-- кандидаты — лениво и повторно, `kindMask` исключает оплату чужих фаз; eager-список на итерацию
-  запрещен;
-- acceptance не строит Unity-объекты, не мутирует inventory, не аллоцирует на anchor/вызов после
-  прогрева;
-- result-кэш acceptance вне scope (4.8);
-- per-entry transaction checkpoints JIT-цикла ограничены participants entry
-  (`CollectParticipants`);
-- `PrepareAsync` вызывается один раз на операцию до мутаций; sync-wrapper не блокирует async
-  participants; prepare не мутирует доменное состояние и не эмитит события;
-- batch-гейт (plan-all) выполняется только при наличии batch-scope правил в политике;
-- benchmark/Profiler до и после этапа 7 на representative grid sizes;
-- backtracking не требуется.
+`RuleEvaluationService` вызывает `CanDropContext` только у global и target-inventory
+validators. Slot validators участвуют только в concrete candidate validation.
 
-### Тестовая матрица
+Rule не может мутировать inventory. Результат позднего capacity exhaustion является штатным
+partial/failure result, а не нарушением rule.
 
-- slot и grid topology; single-cell и multi-cell; stackable, separable, unique;
-- create, explicit merge, auto merge, merge в planned placement, alternative, swap;
-- full и partial stack; same-inventory и cross-inventory (включая разные sources в batch);
+Если требуется правило вида «после переноса inventory должен весить не больше N», оно может
+вычислить это из live inventory + requested entry до mutation. Для сложного best-effort batch
+правило либо оценивает весь request консервативно, либо проверяется перед каждым entry по
+актуальному state.
+
+---
+
+## 6. Partial transfer и большие stacks
+
+### 6.1 Один stack, несколько placements
+
+Большой stack является одним entry, даже если target strategy распределяет его по нескольким
+placements.
+
+Пример: stack из 10 предметов переносится в Unique inventory с шестью свободными slots.
+
+```text
+RequestedAmount = 10
+TransferredAmount = 6
+RemainingAmount = 4
+Outcomes = 6 create outcomes по одному предмету
+```
+
+Алгоритм:
+
+1. Создать `workingStack` запрошенного размера.
+2. Strategy возвращает candidates с capacity.
+3. Unique candidate принимает `1`; separable stack принимает до своего max; merge принимает
+   remaining capacity placement.
+4. Transfer service отделяет exact amount и применяет candidate.
+5. После успеха candidates строятся заново.
+6. Когда candidates закончились, остаток возвращается в source.
+
+### 6.2 Partial policy
+
+```text
+PartialTransferMode
+    Allow
+    RequireFull
+```
+
+- `Allow`: успешные outcomes commit, remainder возвращается в source.
+- `RequireFull`: любой remainder откатывает весь текущий entry.
+
+`RequireFull` не откатывает предыдущие entries batch.
+
+### 6.3 Возврат remainder
+
+Возврат остатка является частью entry transaction:
+
+- partial split возвращается в исходный placement/stack;
+- concrete adapter instances сохраняются;
+- outgoing/incoming conversion не должна подменять adapters, возвращаемые source;
+- если remainder невозможно вернуть, откатываются source и target checkpoints;
+- events отражают только фактически committed amount.
+
+### 6.4 `DragAmountStep`
+
+`DragAmountStep` применяется к фактически transferable amount без materialized plan:
+
+1. выполнить entry attempt под checkpoint;
+2. вычислить допустимый rounded amount;
+3. если transfer должен быть уменьшен, rollback;
+4. повторить entry один раз с rounded cap.
+
+Это медленнее только для редкого trim case, но удаляет отдельную reservation/trim model.
+
+### 6.5 Source footprint при same-inventory move
+
+Source footprint нельзя безусловно освобождать при partial transfer:
+
+- partial attempt сохраняет source placement занятым;
+- candidate source исключает source placement;
+- full relocation может выполнить отдельную попытку с временно удаленным source placement;
+- такая попытка обязана перенести весь entry;
+- при remainder выполняется полный rollback.
+
+Так target placements не смогут занять source cells, после чего remainder уже нельзя было бы
+вернуть обратно.
+
+---
+
+## 7. Swap
+
+### 7.1 Single-entry swap
+
+Swap является специальным entry path внутри transfer service, а не strategy и не planned
+operation.
+
+Условия v1:
+
+- `DragContext` содержит ровно один entry;
+- задан concrete occupied target placement;
+- переносится весь source placement/stack;
+- обе стороны поддерживают snapshot rollback;
+- forward и reverse conversion успешны;
+- rules проверены в обе стороны;
+- обе resulting footprints помещаются после освобождения исходных placements;
+- same-inventory resulting footprints не пересекаются.
+
+Execution:
+
+```text
+capture both inventories
+remove source placement
+remove target placement
+place converted source at target anchor
+place converted target at source anchor
+commit both or rollback both
+```
+
+### 7.2 Batch drop с `Swap`
+
+В v1 batch swap не поддерживается.
+
+Если несколько dragged entries dropped на один occupied target при
+`BlockedTargetResolutionKind.Swap`, весь request отклоняется до mutation:
+
+```text
+Swap requires a single full entry
+```
+
+Нельзя silently:
+
+- swap только первый entry;
+- переместить остальные как alternatives;
+- последовательно менять содержимое одного target.
+
+Это были бы разные и неожиданные semantics.
+
+### 7.3 Future group exchange
+
+Кейс `9 x 1x1` из grid `3x3` против одного `3x3` placement полезен, но является не batch swap,
+а отдельным group exchange с собственной all-or-nothing boundary:
+
+- освобождаются два набора placements;
+- большой placement размещается в области source group;
+- source group упаковывается в область target placement;
+- операция commit/rollback целиком.
+
+Такой `GroupExchange` требует отдельного контракта областей и packing semantics. Он оставляется
+на будущее и не удерживает planner/resolver infrastructure в v1.
+
+---
+
+## 8. Occupied handlers и dynamic slots
+
+### 8.1 Occupied handler
+
+Приоритет остается:
+
+```text
+explicit occupied hint:
+    occupied handler -> normal merge/create attempt -> blocked policy
+```
+
+Handler path является отдельным entry execution:
+
+- pure check до mutation;
+- execution должен быть all-or-nothing;
+- `false` означает, что mutation не было;
+- handler сам не запускает alternative/swap;
+- success events откладываются до завершения entry.
+
+Если external model не поддерживает rollback, handler не смешивается с другими mutations одного
+entry.
+
+### 8.2 Dynamic slots
+
+Dynamic inventory выражает возможность создать новый slot через lifecycle capability.
+Strategy может вернуть `NewDynamicSlot` candidate, но не создает slot сама.
+
+Transfer service:
+
+```text
+create slot
+try exact placement
+on failure remove created slot
+on success record outcome
+```
+
+Удаляются:
+
+- `DynamicSlotDecorator`;
+- `SlotManagementSettingsBase.WrapRuntimeStrategy`;
+- deferred executor fallback через `TryAddStack(-1)`.
+
+`TryAddStackQuiet` не является transfer API. DataBinding restore получает отдельный
+`ImportStackQuiet`/`HydrateStack` primitive.
+
+### 8.3 Relocation
+
+`SlotRelocationService` и implicit repacking удаляются.
+
+Transfer использует deterministic greedy candidates. Он не перемещает посторонние stacks, чтобы
+освободить место. Если relocation потребуется в будущем, это отдельная пользовательская
+операция, а не скрытый retry.
+
+---
+
+## 9. Acceptance и preview
+
+Acceptance не строит `TransferPlan`.
+
+Общий read-only resolver предоставляет:
+
+```text
+TransferProbe
+    CanAttempt
+    FailureReason
+    PrimaryCandidate
+    SuggestedAmount
+    Orientation
+    CoveredSlots
+```
+
+`Probe` использует те же:
+
+- target-side conversion;
+- strategy candidate source;
+- orderer;
+- rules;
+- topology validation.
+
+Ограничения:
+
+- probe не резервирует state;
+- execution всегда перевалидирует;
+- exact batch packing не обещается;
+- batch preview показывает только общий target и возможность попытки;
+- `SuggestedAmount` является оценкой по текущему state;
+- execution report является единственным authoritative result.
+
+Single-entry preview может точно показать первый create/merge target и footprint. Для
+multi-placement stack подсветка всех будущих targets не требуется.
+
+`InventoryDropArea` не делает отдельный `CanAcceptItem -> CanAcceptDrop` chain.
+`DropPreviewController` только отображает `TransferProbe`.
+На release inventory pipeline сразу вызывает `ExecuteAsync`; предварительный `CanAcceptDrop`
+не является execution guard.
+
+---
+
+## 10. Что удаляется
+
+### Planning/execution
+
+- `TransferPlanner`;
+- `TransferPlan`;
+- `PlannedEntryTransfer`;
+- `PlannedSlotAllocation`;
+- `PlannedPlacementAllocation`;
+- `VirtualSlotState`;
+- `EntryPlanningOperation`;
+- `PlannedOperation`;
+- `PlanningReservation`;
+- `PlacementPlanningSession`;
+- `IPlanRule` и plan-rule contexts;
+- planner/executor split как runtime boundary.
+
+`TransferPlanExecutor` заменяется единым `InventoryTransferService`, который владеет
+candidate-resolution и mutation.
+
+### Policy
+
+- `BatchMode`;
+- `Atomic`;
+- `BlockedTargetResolverBase` и concrete resolvers;
+- `BlockedTargetResolution`;
+- `BlockedTargetResolutionContext`;
+- `ISwapStrategy`;
+- `HintedTargetSwapStrategy`;
+- `SwapSearchContext`.
+
+### Strategies
+
+- strategy mutation API;
+- `IAlternativePlacementStrategy`;
+- `SlotSelectionPolicyBase`;
+- `DynamicSlotDecorator`;
+- `IInventoryQueryStrategy`;
+- `RequiresStrategyPlacement`;
+- `UsesPerItemSlotPlanning`;
+- `CanUseAlternativeSlot`.
+
+### Legacy helpers
+
+- `TargetPlacementOperation`;
+- `SlotOperationContext`;
+- `SlotRelocationService`;
+- `UniversalInventory.TrySwapSlots`;
+- deferred `TryAddStack(-1)` transfer path;
+- parallel execution result DTO.
+
+---
+
+## 11. Что остается отдельным
+
+1. UI и rendering могут проверять форму и orientation.
+2. Rules могут запрещать конкретные shapes/items.
+3. Single-cell fast path допустим внутри topology/storage при той же semantics.
+4. Optimal packing и backtracking вне scope.
+5. Group exchange вне scope.
+6. Sorting/repacking inventory является отдельной action.
+7. Hydration/import не проходит через transfer pipeline.
+
+---
+
+## 12. Этапы реализации
+
+### Этап 0. Characterization
+
+- Зафиксировать single-cell и shaped create/merge/move/swap.
+- Зафиксировать occupied handler priority.
+- Зафиксировать blocked target: reject/alternative/swap.
+- Зафиксировать alternative order: Natural/MergeFirst/EmptyFirst/MergeOnly/EmptyOnly.
+- Зафиксировать same-inventory source exclusion.
+- Зафиксировать dynamic slot create/remove.
+- Зафиксировать partial large stack:
+  - Unique: один предмет на placement;
+  - Separable: merge + spill;
+  - Stackable one-per-ID;
+  - remainder возвращается source.
+- Зафиксировать `RequireFull`.
+- Зафиксировать `DragAmountStep`.
+- Зафиксировать batch best-effort.
+- Зафиксировать swap geometry и bidirectional rules.
+- Зафиксировать current double preview/execution calls.
+- Снять performance baseline acceptance и transfer.
+
+### Этап 1. Policy simplification
+
+- Ввести `BlockedTargetResolutionKind`.
+- Перенести alternative orderer и same-inventory flag в data-only settings.
+- Зафиксировать defaults: AlternativeSlots + MergeFirst + same-inventory alternative + partial.
+- Перевести `DropRequestPolicy` и `ResolvedDropPolicy` на nullable scalar overrides.
+- Удалить resolver hierarchy и swap strategy.
+- Удалить `BatchMode`/`Atomic`; batch semantics становится фиксированной best-effort.
+- Обновить сериализованные scenes/profiles. Нужна явная asset migration, потому что старые
+  resolver values хранятся как `SerializeReference`.
+
+### Этап 2. Candidate contract
+
+- Ввести topology-neutral `PlacementCandidate`.
+- Ввести lazy `PlacementCandidateSource`.
+- Ввести `PlacementCandidateOrderer`.
+- Переделать `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` implementations в
+  orderers.
+- Ввести `IPlacementGeometry`.
+- Перенести rules из strategy candidate enumeration в transfer resolver.
+- Contract tests: eligibility не меняется от orderer; built-in порядок сохраняется.
+
+### Этап 3. Unified entry transfer для grid
+
+- Ввести `InventoryTransferService.TryTransferEntry`.
+- Grid topology полностью перевести на candidate loop: single-cell и shaped.
+- Create/merge выполняются через narrow placement mutation API.
+- Реализовать `EntryTransferResult`, outcomes и deferred events.
+- Реализовать entry rollback.
+- Реализовать same-inventory full relocation и partial source-footprint rule.
+- Реализовать single-entry swap без planner.
+
+### Контрольная точка A
+
+- Grid single-cell/shaped используют один pipeline.
+- Нет materialized plan или virtual occupancy.
+- Swap, partial stack и rollback проходят characterization tests.
+- Performance не хуже baseline на значимую величину.
+
+### Этап 4. Slot topology и strategies
+
+- Slot topology перевести на тот же candidate loop.
+- Strategy сделать read-only.
+- Удалить strategy mutation flags/methods.
+- `NewDynamicSlot` выполнять через lifecycle capability.
+- Удалить `DynamicSlotDecorator`, relocation и deferred placement.
+- Разделить public read-only inventory view и internal mutation surface.
+- Удалить `IInventoryQueryStrategy`; queries читают logical placements.
+
+### Этап 5. Sequential batch
+
+- `ExecuteAsync` проходит entries в stable order.
+- Per-entry rollback, без full-batch rollback.
+- Failed entry не прерывает остальные.
+- Добавить `CanDropContext` в существующий rule lifecycle и batch-visible inventory/global rule
+  tests.
+- Target hint использует только первый entry; остальные идут как area drop.
+- После successful entry DataBinding/events commit-ятся до следующего entry.
+- Batch + `Swap` отклонять до mutation.
+- Mixed single-cell/shaped batch работает по реальному state.
+- Report различает failed entry и partial amount.
+
+### Этап 6. Acceptance/UI
+
+- Ввести `TransferProbe`.
+- `CanAcceptItem`, `GetAcceptableCount`, hover и preview перевести на общий candidate resolver.
+- Удалить двойное planning/acceptance.
+- `InventoryDropArea` больше не хранит отдельно выбранный slot.
+- `DropPreviewController` становится renderer.
+- Release вызывает execution напрямую.
+
+### Этап 7. Cleanup и документация
+
+- Удалить planner/executor models и parallel DTO.
+- Удалить semantic `IsSingleCell` branches.
+- Обновить `.agents/skills/dragdrop-*` и зеркальную документацию.
+- Обновить `COMPONENTS.md`, `DATA_FLOW.md`, `STRATEGIES.md`.
+- Документировать extension points:
+  - strategy;
+  - topology;
+  - candidate orderer;
+  - inventory/global rule;
+  - dynamic slot lifecycle.
+- Документировать ограничения batch swap и advisory preview.
+
+Каждый этап должен компилироваться и проходить свой test subset.
+
+---
+
+## 13. Риски и обязательные проверки
+
+### Correctness
+
+- failed candidate с amount `0` не мутирует state;
+- failed entry полностью восстанавливает source и target;
+- successful partial entry возвращает exact adapter remainder;
+- events соответствуют только committed outcomes;
+- full relocation может использовать освобожденный source footprint;
+- partial transfer не отдает source footprint target placements;
+- covered-cell hint резолвится в logical placement;
+- conversion меняет target shape до topology validation;
+- dynamic slot удаляется при failed candidate/entry;
+- same-inventory move не превращается в no-op с несбалансированными events;
+- orderer не может вернуть ineligible candidate как допустимый;
+- swap валидирует обе стороны и resulting footprint overlap.
+
+### Batch
+
+- entries выполняются в стабильном порядке;
+- следующий entry видит mutation предыдущего;
+- следующий entry видит committed DataBinding/external state предыдущего;
+- failed entry не откатывает успешные предыдущие;
+- failed entry не блокирует последующие;
+- aggregate request rule получает полный `DragContext`;
+- context-rule failure отклоняет batch до первой mutation;
+- target hint применяется только к первому entry;
+- batch + occupied target + Swap отклоняется до mutation;
+- mixed topology sources не требуют virtual bridge.
+
+### Large stack
+
+- Unique распределяет по одному предмету;
+- Separable merge-ит и создает несколько stacks до capacity;
+- Stackable one-per-ID не открывает второй logical placement;
+- `Allow` commit-ит transferable amount;
+- `RequireFull` откатывает entry;
+- remainder сохраняет concrete adapter instances и source order;
+- `DragAmountStep` retry не эмитит события первой попытки.
+
+### Performance
+
+- candidate source ленивый;
+- orderer не материализует поток без необходимости;
+- после каждого success выполняется только нужный re-enumeration;
+- topology offsets кэшируются;
+- snapshots ограничены source/target текущего entry;
+- probe не создает Unity objects;
+- нет allocations per anchor после прогрева;
+- benchmark: small/large slot inventory, grid, large Unique stack, separable spill, batch.
+
+---
+
+## 14. Тестовая матрица
+
+- slot/grid topology;
+- single-cell/multi-cell;
+- stackable/separable/unique;
+- explicit target/area drop/auto-transfer;
+- create/merge/alternative/reject;
+- full/partial stack;
+- same-inventory/cross-inventory;
 - conversion с неизменной и измененной shape;
-- batch: JIT-цикл и транзакционный wrapper, включая смешанный single-cell + shaped;
-- отклоненный entry не оставляет следов в session;
-- full move освобождает source footprint; partial split / rounded-down `DragAmountStep` — нет;
-- эффекты swap в atomic-плане: ячейки результата заняты, освобожденные доступны;
-- частичный отказ `SwapOperation.TryReserve` откатывает candidate-local effects, не затрагивая
-  ранее принятые операции entry; `DragAmountStep`-trim через reservation handle не оставляет
-  лишний merge amount или занятый footprint удаленной операции;
-- JIT: сбой entry A -> B перепланируется (может встать в другое место); сбой второй операции
-  откатывает первую через participants; отсутствие transaction capability —
-  fail-before-mutation; при отсутствии сбоев JIT-планы совпадают с preview; report различает
-  per-entry Succeeded/Failed с причинами;
-- prepare: async/domain veto второй операции срабатывает до выполнения первой; cancellation до
-  commit не оставляет мутаций; validation/veto callback side-effect-free; `SwapAttempting` —
-  prepare, `SwapCompleted` — deferred commit;
-- транзакционный wrapper: сбой позднего entry откатывает весь batch, включая ранние entries;
-- identity placement при `ShiftAfterSlotRemoved`; реиндексация не меняет смысл ссылочных целей;
-  удаленный slot/placement — fail-before-mutation;
-- legacy occupied-handler: в JIT-цикле handler-only entry исполняется, смешанный entry —
-  fail-before-mutation; в транзакционном wrapper'е не-откатываемый handler инвалидирует план
-  до первой мутации;
-- swap fallback стартует с чистого checkpoint: tentative source release и частичные резервы
-  placement-пути откачены, двойной release отсутствует;
-- blocked-hint orderers (бывшие `*AlternativePlacementStrategy`) — прежний порядок;
-- plan rules: entry с агрегатным нарушением (сумма аллокаций превышает лимит, каждая проходит
-  поодиночке) отклоняется на pre-Commit целиком (boolean verdict); `RequireFullAmount`
-  воспроизводит бывший `AllowPartial=false`; `RequireAllEntriesPlanned` отклоняет batch с
-  отклоненными/частичными entries; кастомное batch-правило видит `FailureReason` отклоненных;
-- dynamic slot create/rollback; drop на anchor и covered cell;
-- preview: area/slot UI получает primary target и footprint из `TransferPreview`; preview и
-  execution не используют отдельные selection/geometry алгоритмы;
-- direct inventory execution на release не вызывает предварительный `CanAcceptDrop`; отказ
-  возвращается из `ExecuteAsync`;
-- read-only strategy: executor не вызывает `TryAddStack`, `TryAddToSlot` или strategy mutation;
-- implicit `SlotRelocationService` отсутствует; deterministic greedy не выполняет скрытый retry;
-- canonical results: operation/entry/report сохраняют placement geometry и event payload без
-  параллельных DTO;
-- placement snapshots в add/remove/swap events;
-- каждый пункт чеклиста 4.7.
+- covered-cell drop;
+- dynamic slot;
+- occupied handler;
+- single-entry swap:
+  - slot-slot;
+  - grid-grid;
+  - cross-topology;
+  - shaped footprint;
+  - overlapping result rejection;
+  - partial source rejection;
+- batch:
+  - все entries успешны;
+  - middle entry failed, later succeeds;
+  - capacity заканчивается;
+  - shaped + single-cell;
+  - explicit hint используется только первым entry;
+  - DataBinding первого entry обновлен до validation второго;
+  - `CanDropContext` failure не оставляет mutations;
+  - Swap policy rejects whole request;
+- large stack:
+  - 10 -> Unique capacity 6 gives 6/4;
+  - same case RequireFull gives 0/10;
+  - merge + spill;
+  - max stack cap;
+  - remainder restore failure triggers rollback;
+- same-inventory:
+  - full relocation into old source footprint;
+  - partial transfer cannot consume source footprint;
+- rules:
+  - concrete target rejected;
+  - aggregate batch request rejected;
+  - rules do not mutate;
+- preview:
+  - same first candidate/orderer as execution;
+  - advisory amount can become stale without data loss;
+- events/DataBinding:
+  - no events on rollback;
+  - balanced remove/add per outcome;
+  - correct placement snapshots.
 
 ---
 
-## 8. Критерии готовности
+## 15. Критерии готовности
 
-### Гейт A: этапы 0-4
-
-- `PlacementPlanningSession` корректно резервирует эффекты нескольких операций; per-entry
-  rollback без следов.
-- Candidate contract: built-in стратегии и orderers — бит-в-бит на slot-топологии, включая
-  blocked-hint.
-- Grid-топология полностью на едином пути: single-cell и shaped дают одинаковый список операций.
-- Preview, planner и executor согласованы для grid-сценариев.
-- Нет регрессии acceptance/hover по baseline.
-
-### Полная консолидация: этапы 5-9
-
-- Один topology-aware allocation service; plan-all (preview/гейт/транзакционный wrapper) —
-  общая session, JIT-цикл — session per entry.
-- Strategy/rules/geometry разделены; rules один раз; стратегии — через `IPlanningGeometry`, без
-  знания топологии и mutation API.
-- Кандидаты — из повторно перечисляемого ленивого source; базовый порядок у стратегии,
-  предпочтительность — у `PlacementCandidateOrderer`: один тип вместо `SlotSelectionPolicyBase`
-  и `IAlternativePlacementStrategy`, отдельной «pick»-роли нет.
-- План — список `PlannedOperation`; новый вид операции — новый класс, без правки модели/executor.
-- Planning effects резервирует сама операция; runtime rollback — только через
-  `ITransactionParticipant`; неуспешный candidate reserve атомарен, trim выполняется через
-  `PlanningReservation`.
-- Цели плана — только ссылки; индексов и id в модели нет.
-- Acceptance и UI preview — dry-run того же аллокатора через `PlacementPlanningRequest` с
-  `RulesScope`; `TransferPreview` содержит target и footprint.
-- При отсутствии сбоев JIT-исполнение воспроизводит preview-план (consistency-тест).
-- Plan rules — единственный носитель partial/приемочной семантики: `AllowPartial`/`BatchMode`
-  удалены из политики и pipeline, built-ins (`RequireFullAmount`, `RequireAllEntriesPlanned`)
-  воспроизводят прежнее поведение; путь выполнения — явная `TransferExecutionMode`
-  (Jit | Transactional), потребляемая один раз на границе сервиса; строгий all-or-nothing —
-  только `ExecuteTransactionalAsync(context, planner, ct)`; ни один execute-API не принимает
-  готовый план.
-- Execution async-first: все `PrepareAsync` завершаются до первой мутации соответствующего
-  entry/batch.
-- Нет `IsSingleCell` branches, меняющих semantics; UI/rules/early-out fast paths разрешены.
-- `VirtualSlotState`, `PlannedSlotAllocation`, `CanAcceptShape`, `TrySwapSlots`,
-  `IAlternativePlacementStrategy`, mutation-часть `IPlacementStrategy`,
-  `DynamicSlotDecorator`, `SlotRelocationService`, `TargetPlacementOperation`,
-  `SlotOperationContext`, `IInventoryQueryStrategy` удалены.
-- Единая result chain:
-  `OperationExecutionResult -> EntryExecutionResult -> TransferExecutionReport`;
-  `DropResult` — compatibility adapter, parallel result DTO отсутствуют.
-- Batch ограничивается только явной strategy capability.
-- `IPlanRule` оценивается на pre-Commit entry и batch-гейте; нарушение отклоняет entry/batch
-  штатным rollback.
-- Все characterization и новые тесты проходят; чеклист 4.7 покрыт contract-тестами.
+- Один topology-aware transfer service для slot и grid.
+- `TransferPlan`, virtual planning state и planner/executor split отсутствуют.
+- Batch всегда sequential best-effort; `Atomic` отсутствует в API и Inspector.
+- Каждый entry rollback-safe.
+- Strategy read-only и topology-neutral.
+- Strategy задает eligibility/capacity/base order.
+- `PlacementCandidateOrderer` является единственной pluggable ролью порядка.
+- Rules проверяются transfer service и не дублируются strategy.
+- Existing rule lifecycle содержит однократный `CanDropContext`; отдельной plan-rule системы нет.
+- `BlockedTargetResolutionKind` заменяет resolver hierarchy.
+- Swap strategy hierarchy отсутствует.
+- Single-entry swap сохраняет placement geometry и rollback.
+- Batch swap явно отклоняется и документирован как future group exchange.
+- Большой stack может распределиться по нескольким placements.
+- Partial remainder гарантированно возвращается source.
+- `RequireFull` откатывает только текущий entry.
+- Dynamic slots создаются transfer service, не strategy.
+- Implicit relocation отсутствует.
+- Acceptance/UI используют общий candidate resolver без executable plan.
+- Result chain одна; parallel DTO отсутствуют.
+- Characterization, contract и integration tests проходят.
 - Architecture skills и публичная документация соответствуют реализации.
 
 ---
 
 *Основные затрагиваемые области: `TransferPlanner`, `TransferPlanExecutor`,
-`InventoryTransferService`, `InventoryDropProcessor`, `InventoryDropArea`,
-`DragAndDropManager`, `AutoTransferService`, `PlacementStore`, `InventoryTopology`,
-`UniversalInventory`, `InventoryAcceptanceRequest`, `VirtualSlotState`,
-`InventoryStrategyBase`, `IPlacementStrategy`, `IAcceptanceStrategy`,
-`IInventoryQueryStrategy`, `SlotAcceptanceCandidate`, `SlotSelectionPolicy`,
-`DropPreviewController`, `TargetPlacementOperation`, `SlotRelocationService`,
-`DynamicSlotDecorator`, `Core/Drop/*AlternativePlacementStrategy`,
-`BlockedTargetResolverBase`, DataBinding hydration и concrete strategies.*
+`InventoryTransferService`, `InventoryDropProcessor`, `DropPolicy`, `DropPolicySettings`,
+`DropRequestPolicySettings`, `PlacementStore`, `InventoryTopology`, `UniversalInventory`,
+`InventoryAcceptanceRequest`, `InventoryStrategyBase`, `IPlacementStrategy`,
+`IAcceptanceStrategy`, `IInventoryQueryStrategy`, `SlotSelectionPolicy`,
+`Core/Drop/*AlternativePlacementStrategy`, `BlockedTargetResolverBase`, `ISwapStrategy`,
+`DynamicSlotDecorator`, `SlotRelocationService`, `TargetPlacementOperation`,
+`InventoryDropArea`, `DropPreviewController`, `AutoTransferService`, DataBinding и tests.*
