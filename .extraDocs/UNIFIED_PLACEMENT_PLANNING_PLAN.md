@@ -103,7 +103,10 @@ PlacementCandidate
 - `NewDynamicSlot` означает создание нового slot через lifecycle capability.
 - raw index не является identity target; индекс читается из `BaseSlot` только для topology API.
 
-Кандидат не хранит mutation callback и не является частью исполняемого плана.
+Кандидат не хранит mutation callback и не является частью исполняемого плана. Взаимовлияние
+кандидатов (one-per-ID: использовать можно только один из пустых слотов) не кодируется в
+кандидате — execution разрешает его повторным перечислением после mutation: следующий проход
+вернет единственный placement с фактическим остатком capacity.
 
 ### 3.2 Strategy
 
@@ -277,6 +280,7 @@ Batch всегда обрабатывается последовательно:
 ExecuteAsync(request):
     validate common request
     validate global/inventory rules at context scope once
+    await request-level domain veto        // может запретить весь request; до любых mutations
 
     for each entry in stable DragContext order:
         result = TryTransferEntry(entry, current real inventory state)
@@ -284,6 +288,13 @@ ExecuteAsync(request):
 
     return report
 ```
+
+Async veto существует ровно в двух точках: request-level (выше) и entry-level (4.3), обе — до
+mutations своего scope. Post-mutation veto не существует: после commit entry внешняя логика
+реагирует через DataBinding/events, но не откатывает. Существующие
+`ITransferDomainHandler`/`IAsyncTransferDomainHandler` мигрируют на эти две точки. Поскольку
+`await` уступает кадры, кандидаты резолвятся строго после veto своего scope — состояние,
+изменившееся за время ожидания, увидится обычным candidate-resolution.
 
 Гарантии:
 
@@ -321,7 +332,7 @@ Full-batch rollback, projected views и plan-all отсутствуют.
 TryTransferEntry(entry):
     validate source/start rules
     resolve target-side conversion preview
-    run target-independent async/domain veto before mutation
+    await entry-level domain veto          // может запретить этот entry; до его mutations
 
     capture source/target checkpoints
     create working transfer stack
@@ -355,6 +366,14 @@ participant, который невозможно выразить inventory snap
 обработки следующего entry. Иначе rules и external model следующего entry увидят состояние,
 отличающееся от runtime inventory.
 
+**Контракт количеств в событиях:** каждое add/remove событие несет точный перенесенный
+sub-stack своего outcome (как сегодняшний `CreateCopy(actuallyAdded)`), DataBinding никогда не
+получает количество из `DragEntry.Stack`. Entry из 10 предметов, разложенный 6+4, дает два
+сбалансированных события со стеками 6 и 4. Поэтому разбиение `DragEntry` на несколько entries
+не требуется и запрещено: его нельзя выполнить заранее (размеры кусков выясняются в процессе
+размещения), оно ломает per-entry семантику `RequireFull` и entry-level veto и раздувает report
+относительно жеста пользователя.
+
 ### 4.4 Concrete placement attempt
 
 Mutation выполняет transfer service через узкие inventory primitives:
@@ -376,7 +395,9 @@ CandidateTransferResult
 - create/merge mutation является all-or-nothing для этого amount;
 - при локальном отказе отделенный sub-stack возвращается в `workingStack`;
 - transfer service не вызывает strategy mutation API;
-- после успеха candidates перечисляются заново по актуальному state.
+- после успеха candidates перечисляются заново по актуальному state;
+- публичные convenience-API инвентаря (`TryAddStack` и подобные) сохраняются для геймплейного
+  кода и реализуются поверх тех же narrow mutation primitives.
 
 Это позволяет одному entry иметь несколько outcomes без отдельной planned-operation model.
 
@@ -693,6 +714,12 @@ TransferProbe
 - rules;
 - topology validation.
 
+`SuggestedAmount` вычисляется одним проходом по ordered candidates без mutation:
+`accumulate min(remaining, candidate.Capacity)`. Известное ограничение: для one-per-ID при
+desired > maxStack альтернативные пустые слоты дают оптимистичную оценку — execution перенесет
+первую допустимую часть, remainder вернется в source. Это укладывается в advisory-контракт
+probe и не требует метаданных на кандидате.
+
 Ограничения:
 
 - probe не резервирует state;
@@ -774,6 +801,11 @@ candidate-resolution и mutation.
 5. Group exchange вне scope.
 6. Sorting/repacking inventory является отдельной action.
 7. Hydration/import не проходит через transfer pipeline.
+8. Транзакционный all-or-nothing batch не предоставляется и дешево не возвращается:
+   events/DataBinding фиксируются после каждого entry. Atomic-подобный гейт реализуется
+   request-level rule (`CanDropContext`) с консервативной симуляцией размещения; поскольку
+   post-mutation veto-точек нет, после прохождения гейта исполнение фейлится только в
+   исключительных случаях.
 
 ---
 
@@ -797,6 +829,8 @@ candidate-resolution и mutation.
 - Зафиксировать batch best-effort.
 - Зафиксировать swap geometry и bidirectional rules.
 - Зафиксировать current double preview/execution calls.
+- Зафиксировать текущие точки `ITransferDomainHandler`/`IAsyncTransferDomainHandler` и их
+  veto-семантику — мигрируют на request-level и entry-level veto (4.2/4.3).
 - Снять performance baseline acceptance и transfer.
 
 ### Этап 1. Policy simplification
@@ -896,6 +930,8 @@ candidate-resolution и mutation.
 - failed entry полностью восстанавливает source и target;
 - successful partial entry возвращает exact adapter remainder;
 - events соответствуют только committed outcomes;
+- события строятся из фактического outcome sub-stack, никогда из `DragEntry.Stack` —
+  multi-placement entry не дает двойного счета в DataBinding;
 - full relocation может использовать освобожденный source footprint;
 - partial transfer не отдает source footprint target placements;
 - covered-cell hint резолвится в logical placement;
@@ -986,9 +1022,16 @@ candidate-resolution и mutation.
 - preview:
   - same first candidate/orderer as execution;
   - advisory amount can become stale without data loss;
+  - one-per-ID, desired > maxStack: probe оптимистичен, execution переносит первую допустимую
+    часть, remainder возвращается (advisory-контракт);
+- async veto:
+  - request-level отклоняет до любых mutations;
+  - entry-level отклоняет конкретный entry, предыдущие committed entries сохраняются;
+  - состояние, изменившееся во время await, видится candidate-resolution после veto;
 - events/DataBinding:
   - no events on rollback;
   - balanced remove/add per outcome;
+  - entry 10 -> 6+4: binding получает суммарно ровно 10 адаптеров, без повторного счета;
   - correct placement snapshots.
 
 ---
