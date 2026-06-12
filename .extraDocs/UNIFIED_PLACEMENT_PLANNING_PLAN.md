@@ -369,8 +369,24 @@ PlacementCandidateOrderer    (единственная pluggable-роль выб
   наследники `*AlternativePlacementStrategy`;
 - пример `empty slot 0 + mergeable slot 1` остается bit-for-bit: `Natural` — slot 0,
   `MergeFirst` — slot 1;
-- контракт ленивости: orderer не материализует и не сортирует полный поток; повторное ленивое
-  перечисление допустимо; поток стабилен в пределах одной попытки allocation;
+- orderer упорядочивает и **может сужать** поток (не перечислять некоторые фазы:
+  `MergeOnly`/`EmptyOnly` — сужающие orderers), но **не может расширять** — кандидатов порождает
+  только стратегия, semantic eligibility (можно ли вообще merge сюда) остается у нее. Сужение
+  по kind — операционное предпочтение, а не eligibility;
+- **источник state-aware**: кандидаты вычисляются лениво поверх текущего planning state в момент
+  перечисления. После каждой успешной reservation аллокатор начинает **новое перечисление** —
+  продолжать старое нельзя: reservation меняет eligibility, и `TryReserve*`-перевалидация этого
+  не ловит (она проверяет геометрию, а не семантику стратегии). Пример: one-per-ID после первого
+  Create обязан предлагать merge в созданный `PlannedPlacement`, а не второй Create;
+  `NewDynamicSlot` уменьшает остаток potentialNewSlots. Это формализует сегодняшний re-ask
+  `AllocateViaCandidatesLoop` без eager-материализации; поток стабилен между мутациями state;
+- `NewDynamicSlot`-кандидат не несет Target (слота еще нет); reservation возвращает
+  `PlannedPlacement`; множественность — через повторное перечисление и учет potentialNewSlots
+  минус уже созданные в плане;
+- built-in orderers v1 — потоковые (без материализации и сортировки полного потока).
+  Ranking-orderers (минимизация фрагментации, «лучший по метрике») допустимы как отдельный класс
+  с явным performance-контрактом: один полный проход на перечисление, reusable buffer, без
+  применения в lightweight acceptance;
 - rules в кандидатах не проверяются (4.3); геометрия проверяется лениво и перевалидируется при
   reserve;
 - для slot-топологии все вырождается в текущее поведение — миграция стратегий без изменения
@@ -407,19 +423,28 @@ PlanEntry(entry, policy, target, hint, session):
            source release НЕ выполняется — у handler-пути нет planning-эффектов)
     3. placement path: if dragged stack covers the full source placement:
          - tentatively release source placement in its inventory's state
-    4. ask strategy for lazy candidate source over IPlanningGeometry (4.4)
-    5. for each candidate in orderer-defined order:
-         - capacity = candidate.Capacity - state.GetReservedAmount(candidate.Target)
-         - validate rules for concrete anchor and amount
-         - reserve: TryReserveMerge(target) | TryReserveCreate(...) -> PlannedPlacement
-           (reserve перевалидирует геометрию)
-         - append PlacementOperation
-    6. if nothing placed, hinted target is blocked and resolver requests Swap:
-         - session.Rollback(checkpoint); checkpoint = session.BeginEntry()
-           (откатывает tentative release шага 3 и частичные резервы — swap владеет
-           СВОИМИ эффектами, двойной release исключен)
-         - plan SwapOperation; RegisterEffects освобождает обе исходные placement и
-           резервирует оба результата (4.2)
+    4. if hint present:
+         - try the hinted target first: rules + reserve (merge/create) at hint
+    5. if hint present and FULLY blocked (в hint ничего не зарезервировано):
+         reaction = blocked-resolver (только вид реакции, 4.4):
+         - Reject      -> entry rejected; альтернативы НЕ ищутся (hint-only semantics)
+         - Swap        -> session.Rollback(checkpoint); checkpoint = session.BeginEntry()
+                          (откат tentative release шага 3 и частичных резервов — swap
+                          владеет СВОИМИ эффектами, двойной release исключен)
+                          plan SwapOperation: release обеих исходных placement + reserve
+                          обоих результатов (4.2); -> шаг 7
+         - Alternative -> candidate scan: источник исключает hint, действует
+                          orderer-override резолвера
+    6. candidate scan (после частично заполненного hint, после Alternative,
+       либо сразу — когда hint нет: area drop / auto-transfer):
+         ask strategy for lazy state-aware candidate source over IPlanningGeometry (4.4)
+         for each candidate in orderer-defined order:
+           - capacity = candidate.Capacity - state.GetReservedAmount(candidate.Target)
+           - validate rules for concrete anchor and amount
+           - reserve: TryReserveMerge(target) | TryReserveCreate(...) -> PlannedPlacement
+             (reserve перевалидирует геометрию)
+           - append PlacementOperation
+           - после успешной reservation — новое перечисление source (state-aware, 4.4)
     7. apply DragAmountStep semantics
        (trim уменьшает резервы до Commit — остаточная бронь не утекает)
     8. if final amount leaves items in source placement and step 3 released it:
@@ -433,6 +458,12 @@ PlanEntry(entry, policy, target, hint, session):
 occupied-handler путь не регистрирует эффектов; swap-путь стартует с отката checkpoint и
 регистрирует свои release/reserve сам. Один placement не может быть released дважды в одном
 entry (4.1).
+
+Приоритеты путей: occupied-handler > hint > реакция blocked-резолвера > общий scan. Реакция
+резолвера выбирается **до** общего scan'а — `Reject` и `Swap` исключают поиск альтернатив;
+частично заполненный hint резолвер не вызывает и продолжает общий scan (сегодняшняя семантика
+`placedIntoHint == 0`). Точные ветви «hint частично заполнен» фиксируются characterization
+(этап 0) и воспроизводятся.
 
 Аллокатор не ветвится по `IsSingleCell` — отличия выражаются topology, candidate source и
 strategy capabilities. Шаг 3 — сознательный behavioral change: occupied-handler распространяется
@@ -635,6 +666,9 @@ PlacementPlanningRequest
 - Зафиксировать фактический rules scope acceptance-пути.
 - Зафиксировать порядок `IAlternativePlacementStrategy`-реализаций для blocked-hint и
   `SlotSelectionPolicy`-комбинаций — мигрируют в `PlacementCandidateOrderer`.
+- Зафиксировать семантику blocked-резолвера: `Reject` не ищет альтернативы (hint-only); swap и
+  альтернативы — только при полностью заблокированном hint; частично заполненный hint
+  продолжает общий scan (`placedIntoHint == 0`-ветвление).
 - Зафиксировать текущее поведение atomic batch с occupied-handler: внешние мутации handler'а
   при откате batch не восстанавливаются — существующая дыра, закрывается правилом 4.2.
 - Зафиксировать наблюдаемое поведение всех комбинаций `AllowPartial`/`BatchMode`: built-in plan
@@ -679,6 +713,13 @@ PlacementPlanningRequest
   blocked-поиск исключает hinted-слот на уровне вызова; `BlockedTargetResolver` выбирает только
   вид реакции.
 - Убрать rules из кандидатов стратегий.
+- Source — state-aware (4.4): новое перечисление после каждой reservation; тесты — one-per-ID
+  после первого Create предлагает merge в `PlannedPlacement`, а не второй Create;
+  `MergeOnly`/`EmptyOnly` сужают поток, не расширяя.
+- Миграция сериализованных Unity-ссылок: реализации `SlotSelectionPolicyBase` /
+  `IAlternativePlacementStrategy` записаны через `SerializeReference` в сценах и profiles —
+  `MovedFrom`-атрибуты либо конвертация ассетов; demo-сцены и profiles обновляются в этом же
+  этапе (простого переименования типов недостаточно).
 - Мигрировать built-in стратегии и orderers; slot-топология — бит-в-бит.
 - Contract-тесты: порядок прежний для всех built-in комбинаций, включая
   `empty slot 0 + mergeable slot 1` (Natural/MergeFirst) и blocked-hint сценарии бывших
