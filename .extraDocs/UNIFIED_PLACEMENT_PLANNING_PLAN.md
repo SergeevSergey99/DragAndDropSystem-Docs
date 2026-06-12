@@ -259,14 +259,25 @@ domain contexts и deferred events для неизвестной ему опер
 - `OccupiedHandlerOperation` — ноль planning-эффектов, но **не ноль runtime-эффектов**:
   существующие handlers мутируют внешние модели (Demo5: `container.AddItem` + `RemoveFromData` +
   очистка source slot) и эмитят события немедленно — inventory snapshot этого не откатывает.
-  Через `CollectParticipants` операция декларирует внешнего участника; если он не предоставляет
-  rollback (опциональный transaction-aware интерфейс handler'а), entry с такой операцией допустим,
-  только если она — единственная мутирующая операция entry и исполняется последней (откатывать
-  нечего), иначе fail-before-mutation. Сегодняшний одиночный drop-on-container подпадает под
-  исключение и работает без изменений.
+  Через `CollectParticipants` операция декларирует внешнего участника; правила для handler'а без
+  rollback-capability различаются по режиму:
+  - **Atomic**: запрещен. Сбой позднего entry откатывает весь batch, включая уже исполненный
+    handler-entry — не-откатываемый участник делает план невалидным, и это обнаруживается до
+    первой мутации;
+  - **BestEffort**: допустим только как handler-only entry — единственная мутирующая операция
+    entry, исполняется последней (откатывать нечего); иначе fail-before-mutation;
+  - контракт legacy `ExecuteOccupiedSlotDrop` уточняется как **all-or-nothing**: `false` означает
+    «ни одной мутации не произошло», иначе не гарантируется даже entry-атомарность (Demo5
+    соблюдает: все проверки до первой мутации);
+  - полноценное участие в Atomic/batch — через transaction-aware интерфейс handler'а
+    (декларация эффектов + rollback + deferred events).
+  Сегодняшний одиночный drop-on-container исполняется как BestEffort handler-only entry и
+  работает без изменений.
 
-Новый тип операции — новый класс с этими четырьмя методами, без правки модели плана,
-планировщика и executor dispatch.
+Новый тип операции — новый класс с этими четырьмя методами, **без правки модели плана и executor
+dispatch**; создание операции при планировании подключается через planner extension point
+(resolver/factory — как сегодня подключены occupied-handler и blocked-resolver), а не правкой
+ядра планировщика.
 
 Правила:
 
@@ -317,6 +328,12 @@ Rules отвечают за конкретный item, amount и target anchor. 
 Оценка **инкрементальная, на pre-Commit каждого entry** (4.5, шаг 9): нарушение = обычное
 отклонение entry через checkpoint-rollback, post-hoc удаление entries из готового плана не
 требуется. В JIT-цикле BestEffort работает естественно — каждый entry планируется отдельно.
+
+Вердикт правила в v1 — **boolean**: entry отклоняется целиком, `AllowPartial` к агрегатному
+вердикту неприменим (правило не умеет уменьшать amount; контракт вида `GetAcceptableAmount` —
+возможное будущее расширение, вне scope). После отклонения действует обычная BatchMode-семантика:
+atomic — план невалиден, best-effort — остальные entries продолжаются.
+
 Ограничение v1: lightweight-режимы acceptance (4.8) агрегатные правила не оценивают — preview
 остается greedy-оценкой, drop перевалидирует (документируется).
 
@@ -385,10 +402,11 @@ context-enum:
 PlanEntry(entry, policy, target, hint, session):
     checkpoint = session.BeginEntry()
     1. resolve converted item, footprint (shape+orientation) and requested amount
-    2. if dragged stack covers the full source placement:
+    2. if hinted target is occupied and an occupied-slot handler claims the drop:
+         - plan OccupiedHandlerOperation (priority over swap and alternative search;
+           source release НЕ выполняется — у handler-пути нет planning-эффектов)
+    3. placement path: if dragged stack covers the full source placement:
          - tentatively release source placement in its inventory's state
-    3. if hinted target is occupied and an occupied-slot handler claims the drop:
-         - plan OccupiedHandlerOperation (priority over swap and alternative search)
     4. ask strategy for lazy candidate source over IPlanningGeometry (4.4)
     5. for each candidate chosen by selection policy:
          - capacity = candidate.Capacity - state.GetReservedAmount(candidate.Target)
@@ -396,17 +414,25 @@ PlanEntry(entry, policy, target, hint, session):
          - reserve: TryReserveMerge(target) | TryReserveCreate(...) -> PlannedPlacement
            (reserve перевалидирует геометрию)
          - append PlacementOperation
-    6. if hinted target is blocked and resolver requests Swap:
+    6. if nothing placed, hinted target is blocked and resolver requests Swap:
+         - session.Rollback(checkpoint); checkpoint = session.BeginEntry()
+           (откатывает tentative release шага 3 и частичные резервы — swap владеет
+           СВОИМИ эффектами, двойной release исключен)
          - plan SwapOperation; RegisterEffects освобождает обе исходные placement и
            резервирует оба результата (4.2)
     7. apply AllowPartial, BatchMode and DragAmountStep semantics
        (trim уменьшает резервы до Commit — остаточная бронь не утекает)
-    8. if final amount leaves items in source placement and step 2 released it:
+    8. if final amount leaves items in source placement and step 3 released it:
          - session.Rollback(checkpoint); replan entry once with source footprint retained
     9. validate IPlanAggregateRules over accumulated plan deltas (pre-Commit):
          - violation -> entry rejected
     10. accepted -> session.Commit(checkpoint); rejected -> session.Rollback(checkpoint)
 ```
+
+Владение эффектами однозначно: source release принадлежит placement-пути entry (шаг 3);
+occupied-handler путь не регистрирует эффектов; swap-путь стартует с отката checkpoint и
+регистрирует свои release/reserve сам. Один placement не может быть released дважды в одном
+entry (4.1).
 
 Аллокатор не ветвится по `IsSingleCell` — отличия выражаются topology, candidate source и
 strategy capabilities. Шаг 3 — сознательный behavioral change: occupied-handler распространяется
@@ -456,6 +482,16 @@ BestEffort:
 Preview для BestEffort batch остается оценкой по общей session (4.8): он может оказаться
 оптимистичнее фактического исполнения, если часть entries упадет на доменной валидации — это
 свойство best-effort по определению, drop всегда перевалидирует.
+
+**API transfer service кодирует инвариант типами** — устаревший BestEffort-план невозможно
+передать executor'у случайно (сегодня `CanAcceptDrop` и `ProcessDrop` независимо строят полный
+план и executor принимает готовый план для любого режима):
+
+```text
+BuildPreviewPlan(context) -> TransferPlan       // preview/валидация; никогда не исполняется
+ExecuteAtomic(plan)                             // принимает план целиком, исполняет атомарно
+ExecuteBestEffort(context, planner)             // плана на входе НЕТ: строит его per entry (JIT)
+```
 
 ### 4.7 Поведения, которые единый аллокатор обязан поглотить
 
@@ -547,6 +583,8 @@ PlacementPlanningRequest
 - Зафиксировать фактический rules scope acceptance-пути.
 - Зафиксировать порядок `IAlternativePlacementStrategy`-реализаций для blocked-hint — мигрируют
   в policies.
+- Зафиксировать текущее поведение atomic batch с occupied-handler: внешние мутации handler'а
+  при откате batch не восстанавливаются — существующая дыра, закрывается правилом 4.2.
 - Зафиксировать детерминизм планировщика (одинаковые входы — одинаковый план) — несущее
   требование JIT-replan.
 - Удалить `UniversalInventory.TrySwapSlots`.
@@ -633,6 +671,9 @@ PlacementPlanningRequest
 - Atomic: одна session на все entries; полный rollback при сбое.
 - BestEffort: цикл «свежая session по реальному состоянию -> план entry -> атомарное выполнение
   entry» на уровне transfer service; сбой entry не прерывает цикл.
+- API transfer service (4.6): `BuildPreviewPlan` / `ExecuteAtomic(plan)` /
+  `ExecuteBestEffort(context, planner)` — executor не принимает заранее построенный
+  BestEffort-план.
 - Смешанный batch (single-cell + shaped) — один pipeline, без моста (раздел 3).
 - Strategy capability для явного запрета multi-entry spatial planning (вместо guard).
 - Тесты: смешанный batch; atomic при частичной геометрической невместимости (полный откат);
@@ -664,7 +705,8 @@ PlacementPlanningRequest
 - `GetAcceptableCount` / `CanAcceptItem` — на dry-run общего аллокатора
   (`CountOnly` / `FirstTargetOnly`).
 - Удалить `CanAcceptShape` как routing guard.
-- Preview capacity совпадает с реально построенным планом.
+- Preview capacity совпадает с реально построенным планом (исключение — `IPlanAggregateRule`:
+  lightweight-режимы их сознательно не оценивают, 4.3).
 - Нет регрессии по baseline; при провале допускается специализированный preview fast path при
   общей contract-тестовой матрице с planner.
 - Задокументировать ограничение v1: lightweight-режимы не оценивают `IPlanAggregateRule`.
@@ -708,6 +750,8 @@ PlacementPlanningRequest
 - same-inventory swap проверяет совместимость двух результирующих footprint;
 - `SwapOperation` регистрирует эффекты (release обеих сторон + reserve обоих результатов) —
   «читающий» swap в atomic-плане ведет к double-book/недопланированию;
+- один placement не может быть released дважды в одном entry: source release принадлежит
+  placement-пути, swap fallback стартует с отката checkpoint и владеет своими release (4.5);
 - план не адресует цели индексами/id — только ссылки; принадлежность по ссылке до первой мутации;
 - `PlannedPlacement.Bind` — единственный механизм связывания; несколько `NewDynamicSlot`
   различаются объектами, не порядком создания;
@@ -739,8 +783,9 @@ PlacementPlanningRequest
 - стратегия без `CanFit` не ломает planning state — `TryReserve*` перевалидирует;
 - `CollectParticipants` обязан быть полным: незаявленный участник = незахваченный snapshot =
   неоткатываемая мутация;
-- legacy occupied-handlers без rollback-capability: «единственная мутирующая операция entry,
-  исполняется последней»; полноценное участие — через transaction-aware интерфейс;
+- legacy occupied-handlers без rollback-capability: в Atomic запрещены (план невалиден до первой
+  мутации), в BestEffort — только handler-only entry; legacy Execute обязан быть all-or-nothing;
+  полноценное участие — через transaction-aware интерфейс;
 - occupied-handler для shaped — сознательный behavioral change (гейт A);
 - `RulesScope` acceptance — сознательное выравнивание с planner;
 - `IPlanAggregateRule` оценивается только на pre-Commit entry; lightweight acceptance его не
@@ -787,12 +832,14 @@ PlacementPlanningRequest
   JIT-планы совпадают с preview; summary различает per-entry Succeeded/Failed с причинами;
 - identity placement при `ShiftAfterSlotRemoved`; реиндексация не меняет смысл ссылочных целей;
   удаленный slot/placement — fail-before-mutation;
-- legacy occupied-handler: handler-only entry исполняется, смешанный entry —
-  fail-before-mutation;
+- legacy occupied-handler: в BestEffort handler-only entry исполняется, смешанный entry —
+  fail-before-mutation; в Atomic не-откатываемый handler инвалидирует план до первой мутации;
+- swap fallback стартует с чистого checkpoint: tentative source release и частичные резервы
+  placement-пути откачены, двойной release отсутствует;
 - blocked-hint policies (бывшие `*AlternativePlacementStrategy`) — прежний порядок;
 - агрегатные правила: entry, нарушающий лимит суммой аллокаций (каждая проходит поодиночке),
-  отклоняется на pre-Commit; в atomic batch действует AllowPartial-семантика, в BestEffort
-  последующие entries планируются дальше;
+  отклоняется на pre-Commit целиком (boolean verdict, `AllowPartial` неприменим); в atomic batch
+  отклонение entry инвалидирует план, в BestEffort последующие entries планируются дальше;
 - dynamic slot create/rollback; drop на anchor и covered cell;
 - placement snapshots в add/remove/swap events;
 - каждый пункт чеклиста 4.7.
