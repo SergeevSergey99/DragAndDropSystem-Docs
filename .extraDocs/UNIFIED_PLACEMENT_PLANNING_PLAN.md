@@ -19,6 +19,8 @@ placement-модель.
 > версии: **BestEffort исполняется через JIT-replan** (план каждого entry строится по реальному
 > состоянию непосредственно перед его исполнением), поэтому граф зависимостей entries,
 > transitive skip и связанная транзакционная механика исключены из дизайна.
+> Агрегатные правила: принят **вариант A** — `IPlanAggregateRule` с инкрементальной оценкой на
+> pre-Commit каждого entry (4.3, 4.5 шаг 9).
 
 ---
 
@@ -307,6 +309,17 @@ Rules отвечают за конкретный item, amount и target anchor. 
 один раз** — из кандидатов стратегий проверка убирается (сейчас задублирована, 2.4). Это
 сознательное изменение контракта `IAcceptanceStrategy`.
 
+**Агрегатный уровень rules.** Per-anchor предикат не выражает правила над суммой плана
+(«суммарный вес инвентаря <= 100», «не больше K типов предметов»): три аллокации по 5 веса
+проходят поодиночке, сумма нарушает лимит невидимо для всех per-anchor хуков. Для этого класса —
+`IPlanAggregateRule` (регистрируется как inventory rule): валидирует накопленные дельты
+планирования по инвентарю (добавлено/удалено по предметам, созданные/удаленные placement).
+Оценка **инкрементальная, на pre-Commit каждого entry** (4.5, шаг 9): нарушение = обычное
+отклонение entry через checkpoint-rollback, post-hoc удаление entries из готового плана не
+требуется. В JIT-цикле BestEffort работает естественно — каждый entry планируется отдельно.
+Ограничение v1: lightweight-режимы acceptance (4.8) агрегатные правила не оценивают — preview
+остается greedy-оценкой, drop перевалидирует (документируется).
+
 `PlacementPlanningState` отвечает только за: проекцию shape через topology, bounds, occupancy,
 резервирование, учет reserved amounts, транзакционность.
 
@@ -390,7 +403,9 @@ PlanEntry(entry, policy, target, hint, session):
        (trim уменьшает резервы до Commit — остаточная бронь не утекает)
     8. if final amount leaves items in source placement and step 2 released it:
          - session.Rollback(checkpoint); replan entry once with source footprint retained
-    9. accepted -> session.Commit(checkpoint); rejected -> session.Rollback(checkpoint)
+    9. validate IPlanAggregateRules over accumulated plan deltas (pre-Commit):
+         - violation -> entry rejected
+    10. accepted -> session.Commit(checkpoint); rejected -> session.Rollback(checkpoint)
 ```
 
 Аллокатор не ветвится по `IsSingleCell` — отличия выражаются topology, candidate source и
@@ -491,6 +506,7 @@ PlacementPlanningRequest
 Требования к облегченным режимам:
 
 - reusable buffers/value types, без GC-нагрузки пропорционально числу anchors на вызов;
+- агрегатные правила (4.3) не оцениваются — задокументированное ограничение v1;
 - кэшируются shape/orientation offsets; **result-кэш вне scope**: acceptance вызывается
   событийно (вход в зону, смена ячейки/ориентации, drop), а не per-frame; надежная инвалидация
   невозможна в принципе (occupancy версионируется, rules — произвольный пользовательский код);
@@ -547,6 +563,8 @@ PlacementPlanningRequest
   никаких id/индексных адресаций.
 - In-place rebind в `ShiftAfterSlotRemoved` (identity, 4.1); characterization фиксирует текущее
   пересоздание до правки.
+- Session ведет накопленные дельты планирования по инвентарю (добавлено/удалено по предметам,
+  созданные/удаленные placement) — основа `IPlanAggregateRule` (4.3).
 - Тесты: пересекающиеся footprint; rollback восстанавливает released source и снимает резервы;
   reserved amounts по real и planned targets; merge в planned placement; one-per-ID поверх
   planned; tentative source-release и replan partial split без release; identity при
@@ -595,8 +613,11 @@ PlacementPlanningRequest
   планирование со slot-целью — на старом pipeline до этапа 6.
 - Occupied-handler, swap fallback, `DragAmountStep`, hint-only — для grid через единый путь
   (чеклист 4.7, пункты 4-7, 9).
+- Точка вызова `IPlanAggregateRule` на pre-Commit entry (4.5, шаг 9).
 - Тесты: occupied hint; свободный регион; отсутствие региона; full same-inventory source
-  release; partial split без release; смена ориентации; covered-cell drop.
+  release; partial split без release; смена ориентации; covered-cell drop; агрегатное правило
+  (лимит суммарного веса) отклоняет entry, когда сумма аллокаций превышает лимит, хотя каждая
+  проходит поодиночке.
 
 ### Контрольная точка A (ревью-гейт)
 
@@ -646,6 +667,7 @@ PlacementPlanningRequest
 - Preview capacity совпадает с реально построенным планом.
 - Нет регрессии по baseline; при провале допускается специализированный preview fast path при
   общей contract-тестовой матрице с planner.
+- Задокументировать ограничение v1: lightweight-режимы не оценивают `IPlanAggregateRule`.
 
 ### Этап 8. Зачистка
 
@@ -661,8 +683,9 @@ PlacementPlanningRequest
 - Обновить `.agents/skills/dragdrop-*` и зеркальные `.claude/skills/dragdrop-*`.
 - Исправить описание swap в `DATA_FLOW.md` / `COMPONENTS.md`.
 - Документация extension points: candidate source, selection policies, `IPlanningGeometry`,
-  `PlannedOperation`, `PlacementPlanningRequest`; гайд «как добавить
-  стратегию / топологию / policy / операцию»; контракт детерминизма для кастомных расширений.
+  `PlannedOperation`, `IPlanAggregateRule`, `PlacementPlanningRequest`; гайд «как добавить
+  стратегию / топологию / policy / операцию / агрегатное правило»; контракт детерминизма для
+  кастомных расширений.
 
 Каждый этап отдельно компилируется и проходит свой test subset.
 
@@ -719,7 +742,9 @@ PlacementPlanningRequest
 - legacy occupied-handlers без rollback-capability: «единственная мутирующая операция entry,
   исполняется последней»; полноценное участие — через transaction-aware интерфейс;
 - occupied-handler для shaped — сознательный behavioral change (гейт A);
-- `RulesScope` acceptance — сознательное выравнивание с planner.
+- `RulesScope` acceptance — сознательное выравнивание с planner;
+- `IPlanAggregateRule` оценивается только на pre-Commit entry; lightweight acceptance его не
+  видит — preview для агрегатных правил оптимистичен (документированное ограничение v1).
 
 ### Dynamic slots
 
@@ -765,6 +790,9 @@ PlacementPlanningRequest
 - legacy occupied-handler: handler-only entry исполняется, смешанный entry —
   fail-before-mutation;
 - blocked-hint policies (бывшие `*AlternativePlacementStrategy`) — прежний порядок;
+- агрегатные правила: entry, нарушающий лимит суммой аллокаций (каждая проходит поодиночке),
+  отклоняется на pre-Commit; в atomic batch действует AllowPartial-семантика, в BestEffort
+  последующие entries планируются дальше;
 - dynamic slot create/rollback; drop на anchor и covered cell;
 - placement snapshots в add/remove/swap events;
 - каждый пункт чеклиста 4.7.
@@ -799,27 +827,10 @@ PlacementPlanningRequest
 - `VirtualSlotState`, `PlannedSlotAllocation`, `CanAcceptShape`, `TrySwapSlots`,
   `IAlternativePlacementStrategy` удалены.
 - Batch ограничивается только явной strategy capability.
+- `IPlanAggregateRule` оценивается инкрементально на pre-Commit; нарушение отклоняет entry
+  штатным rollback.
 - Все characterization и новые тесты проходят; чеклист 4.7 покрыт contract-тестами.
 - Architecture skills и публичная документация соответствуют реализации.
-
----
-
-## 9. Открытые вопросы
-
-### Агрегатные правила (решение не принято)
-
-Текущие rules — предикаты над одной операцией («можно ли N штук сюда»). Класс правил над
-агрегатом («суммарный вес инвентаря <= 100», «не больше 3 типов предметов») per-anchor проверкой
-не выражается: три аллокации по 5 веса проходят поодиночке (90+5), сумма 105 нарушает лимит
-невидимо для всех хук-точек.
-
-- **A. Шов сейчас:** `IPlanAggregateRule` валидирует накопленные дельты плана по инвентарю
-  **инкрементально на pre-Commit каждого entry** — нарушение = обычное отклонение entry через
-  checkpoint-rollback, без post-hoc удаления entries из готового плана. В JIT-цикле BestEffort
-  работает естественно (каждый entry — свое планирование). Ограничение v1: lightweight-режимы
-  acceptance агрегатные правила не учитывают (preview — greedy-оценка, drop перевалидирует).
-- **B. Вне scope:** агрегатные ограничения — зона domain handlers на выполнении. Дешевле сейчас;
-  preview систематически лжет для таких правил, ретрофит в выпущенный pipeline дороже.
 
 ---
 
