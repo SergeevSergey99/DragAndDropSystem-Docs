@@ -374,12 +374,15 @@ PlacementCandidateOrderer    (единственная pluggable-роль выб
   только стратегия, semantic eligibility (можно ли вообще merge сюда) остается у нее. Сужение
   по kind — операционное предпочтение, а не eligibility;
 - **источник state-aware**: кандидаты вычисляются лениво поверх текущего planning state в момент
-  перечисления. После каждой успешной reservation аллокатор начинает **новое перечисление** —
-  продолжать старое нельзя: reservation меняет eligibility, и `TryReserve*`-перевалидация этого
-  не ловит (она проверяет геометрию, а не семантику стратегии). Пример: one-per-ID после первого
-  Create обязан предлагать merge в созданный `PlannedPlacement`, а не второй Create;
-  `NewDynamicSlot` уменьшает остаток potentialNewSlots. Это формализует сегодняшний re-ask
-  `AllocateViaCandidatesLoop` без eager-материализации; поток стабилен между мутациями state;
+  перечисления. После каждой успешной reservation аллокатор заново вызывает
+  `orderer.Order(source, request, geometry)` и начинает **новое перечисление** — продолжать старое
+  нельзя: reservation меняет eligibility и предпочтительный порядок, а
+  `TryReserve*`-перевалидация этого не ловит (она проверяет геометрию, а не семантику стратегии).
+  Пример: one-per-ID после первого Create обязан предлагать merge в созданный
+  `PlannedPlacement`, а не второй Create; `MergeFirst` должен увидеть этот новый merge-кандидат
+  в первой фазе; `NewDynamicSlot` уменьшает остаток potentialNewSlots. Это формализует сегодняшний
+  re-ask `AllocateViaCandidatesLoop` без eager-материализации; поток стабилен между мутациями
+  state;
 - `NewDynamicSlot`-кандидат не несет Target (слота еще нет); reservation возвращает
   `PlannedPlacement`; множественность — через повторное перечисление и учет potentialNewSlots
   минус уже созданные в плане;
@@ -444,7 +447,8 @@ PlanEntry(entry, policy, target, hint, session):
            - reserve: TryReserveMerge(target) | TryReserveCreate(...) -> PlannedPlacement
              (reserve перевалидирует геометрию)
            - append PlacementOperation
-           - после успешной reservation — новое перечисление source (state-aware, 4.4)
+           - после успешной reservation — новый вызов orderer.Order(...) и перечисление
+             state-aware source (4.4)
     7. apply DragAmountStep semantics
        (trim уменьшает резервы до Commit — остаточная бронь не утекает)
     8. if final amount leaves items in source placement and step 3 released it:
@@ -892,8 +896,10 @@ PlacementPlanningRequest
   в audit этапа 0;
 - candidate-source контракт перераспределяет владение порядком; бит-в-бит совместимость built-in
   комбинаций — contract-тестами этапа 2;
-- source обязан поддерживать стабильное повторное ленивое перечисление и `kindMask`; orderer не
-  может требовать материализации/сортировки полного потока;
+- source обязан поддерживать стабильное повторное ленивое перечисление и `kindMask`; потоковые
+  orderers не материализуют и не сортируют полный поток. Ranking-orderers могут сделать один
+  полный проход с reusable buffer по отдельному performance-контракту 4.4 и не используются в
+  lightweight acceptance;
 - замена `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` одним
   `PlacementCandidateOrderer` — изменение двух публичных extension points; конфигурация
   blocked-поиска сохраняется как orderer-override резолвера;
