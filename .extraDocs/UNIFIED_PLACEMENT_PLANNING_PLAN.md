@@ -35,9 +35,16 @@
 > session» (swap резервирует результаты); **ссылки вместо id** (`PlanTarget`: `Placement` /
 > `BaseSlot` / `PlannedPlacement` — id-слой `AllocationId`/`ExistingPlacementId`/`ExistingSlotId`/
 > `KnownAnchor` удален); геометрический фасад `IPlanningGeometry` (топология владеет перечислением
-> анкоров, стратегия не знает ни топологию, ни форму); `SelectionContext` + `Enumerate(kindMask)`
-> для policies; поглощение `IAlternativePlacementStrategy` selection policies. Открытый вопрос:
+> анкоров, стратегия не знает ни топологию, ни форму); `Enumerate(kindMask)` для policies;
+> поглощение `IAlternativePlacementStrategy` selection policies. Открытый вопрос:
 > агрегатные правила (раздел 9).
+>
+> Ревью-итерация 6 (2026-06-12): context-enum для policies отклонен — активная policy задается
+> конфигурацией (дефолт инвентаря/стратегии + per-operation override; blocked-резолвер передает
+> свою policy как override, зеркаля сегодняшнее владение `IAlternativePlacementStrategy`);
+> session явно помечена внутренней инфраструктурой планировщика (обобщение `BuildVirtualSlots`),
+> публичная поверхность расширений — только strategy / policy / rules / operations /
+> `IPlanningGeometry`.
 
 ---
 
@@ -170,7 +177,25 @@
 План затрагивает больше одного инвентаря: swap размещает предметы в обе стороны (текущий
 `TryPlanSwap` уже проверяет геометрию обеих сторон), batch может содержать разные source
 inventories, а same-inventory release живет в инвентаре источника. Поэтому виртуальное состояние
-ведется per inventory и собирается в session:
+ведется per inventory и собирается в session.
+
+**Зачем session как отдельная сущность.** Session — не слой поверх виртуального планирования,
+а владелец трех per-plan вещей, которые иначе живут россыпью полей внутри `TransferPlanner`
+(как сегодня `BuildVirtualSlots` + список `VirtualSlotState`):
+
+- словарь `inventory -> state`: один инвентарь в пределах одного плана обязан давать одно и то же
+  виртуальное состояние (source-инвентарь entry 1 может оказаться стороной swap у entry 3 —
+  два независимых состояния не увидят резервы друг друга);
+- entry-чекпоинт, охватывающий несколько инвентарей сразу: один entry трогает до трех states
+  (source release — у источника, резервы — у цели, swap — у обоих), и откат отклоненного entry
+  обязан быть атомарным по всем затронутым states. Per-state чекпоинты с ручным учетом «какие
+  states я трогал» воспроизводят ровно класс утечки 2.1;
+- граф зависимостей entries — по построению межинвентарный и per-plan.
+
+Извлечение этой тройки в объект делает транзакционность тестируемой без планировщика (этап 1) и
+оставляет планировщик алгоритмом, а не алгоритмом-плюс-хранилищем. Session — **внутренняя**
+инфраструктура: стратегии и policies видят только `IPlanningGeometry` (4.3), пользовательские
+расширения session не трогают.
 
 ```text
 PlacementPlanningSession
@@ -344,12 +369,15 @@ PlacementCandidate
 PlacementCandidateSource     (отдает стратегия)
     Enumerate(kindMask)      // ленивое, повторно перечисляемое; маска фаз обязательна,
                              //  чтобы merge-проход не оплачивал геометрию Create-кандидатов
-
-SelectionContext             (получает policy)
-    Request, Hint
-    Reason: AreaDrop | BlockedHint | AutoTransfer | Preview
-    Geometry: IPlanningGeometry   // для metric-policies: ближайший к hint, фрагментация и т.п.
 ```
+
+Policy получает source, request (включая hint) и `IPlanningGeometry` — этого достаточно для
+metric-policies (ближайший к hint, минимизация фрагментации и т.п.). Никакого context-enum:
+какая policy активна — вопрос **конфигурации**, а не тега в контракте.
+
+Терминология: `SlotSelectionPolicy` (выбор целевого места в инвентаре) не связан с
+`SelectionManager` (`Scripts/Selection` — выделение предметов в UI для batch-drag). Имена новых
+типов не должны усиливать эту коллизию.
 
 Владение порядком и выбором:
 
@@ -373,12 +401,17 @@ SelectionContext             (получает policy)
 
 **Один владелец порядка вместо двух механизмов.** Семейство `IAlternativePlacementStrategy`
 (MergeFirst/EmptyFirst/MergeOnly/EmptyOnly) поглощается selection policies: его семантика — это
-буквально способ обхода кандидатов. Контексты вызова при этом сохраняются и становятся явными
-через `SelectionContext.Reason`: blocked-hint поиск (сегодня — `FindAlternativeBlockedTargetResolver`)
-и targetless выбор (area-drop, auto-transfer) — разные `Reason`, и инвентарь может конфигурировать
-для них разные policy. `BlockedTargetResolver` сводится к выбору **вида реакции**
-(Alternative | Swap | Reject) и не владеет порядком. Кандидат-источник для `Reason=BlockedHint`
-исключает заблокированный hinted-слот (текущая семантика `excludeBaseSlot`).
+буквально способ обхода кандидатов. Выбор активной policy — чистая конфигурация:
+
+- дефолтная policy инвентаря/стратегии (как сейчас `DefaultSlotSelectionPolicy`);
+- per-operation override (`InventoryAcceptanceRequest.SelectionPolicy`) имеет приоритет;
+- blocked-резолвер владеет своей policy и передает ее как такой override при поиске альтернатив —
+  зеркало сегодняшнего `FindAlternativeBlockedTargetResolver`, который владеет
+  `IAlternativePlacementStrategy` сериализованным полем.
+
+`BlockedTargetResolver` сводится к выбору **вида реакции** (Alternative | Swap | Reject) и не
+владеет порядком. Исключение заблокированного hinted-слота (текущая семантика `excludeBaseSlot`) —
+свойство вызова blocked-поиска, а не policy.
 
 Будущие orientation-расширения (auto-rotate) входят аддитивно: source отдает кандидатов с разными
 `Orientation`, аллокатор и policy не меняются.
@@ -615,12 +648,14 @@ baseline, фиксация решений. Они не означают «вер
   `FromHint`), `CanFit` по опаковому footprint-токену.
 - Ввести `PlacementCandidate` и ленивый повторно перечисляемый `PlacementCandidateSource`
   c `Enumerate(kindMask)` (4.4).
-- Ввести `SelectionContext` (request, hint, `Reason`, geometry facade); policy получает контекст.
+- Policy получает source, request и `IPlanningGeometry`; активная policy задается конфигурацией:
+  дефолт инвентаря/стратегии + per-operation override.
 - Закрепить владение порядком: стратегия — eligibility/capacity/естественный порядок/фазовая
   метка, selection policy — способ обхода и выбор; default policy у стратегии, request-level
   override сохраняется.
-- Поглотить `IAlternativePlacementStrategy` selection policies (`Reason=BlockedHint`, exclude
-  hinted slot); `BlockedTargetResolver` выбирает только вид реакции (Alternative | Swap | Reject).
+- Поглотить `IAlternativePlacementStrategy` selection policies; blocked-резолвер передает свою
+  policy как per-operation override, blocked-поиск исключает hinted-слот на уровне вызова;
+  `BlockedTargetResolver` выбирает только вид реакции (Alternative | Swap | Reject).
 - Убрать проверку rules из кандидатов стратегий; rules проверяет только аллокатор.
 - Мигрировать built-in стратегии и policies; для slot-топологии поведение бит-в-бит прежнее.
 - Contract-тесты: порядок и выбор кандидатов прежние для всех built-in стратегий и policies,
@@ -727,8 +762,8 @@ baseline, фиксация решений. Они не означают «вер
 - Обновить `.agents/skills/dragdrop-*` и зеркальные `.claude/skills/dragdrop-*`.
 - Исправить устаревшее описание swap в `DATA_FLOW.md` и `COMPONENTS.md`.
 - Обновить публичную документацию по strategy/acceptance extension points: candidate source,
-  selection policies + `SelectionContext`, `IPlanningGeometry`, `PlannedOperation`,
-  `PlacementPlanningRequest`, гайд «как добавить стратегию / топологию / policy / операцию».
+  selection policies, `IPlanningGeometry`, `PlannedOperation`, `PlacementPlanningRequest`,
+  гайд «как добавить стратегию / топологию / policy / операцию».
 
 Каждый этап должен отдельно компилироваться и проходить соответствующий test subset.
 
@@ -778,8 +813,8 @@ baseline, фиксация решений. Они не означают «вер
 - candidate source обязан поддерживать стабильное повторное ленивое перечисление и `kindMask`;
   selection policy не может требовать материализации полного потока кандидатов, иначе
   grid-перфоманс деградирует;
-- поглощение `IAlternativePlacementStrategy` — изменение публичного extension point; контексты
-  вызова сохраняются через `SelectionContext.Reason`, прежние комбинации фиксируются
+- поглощение `IAlternativePlacementStrategy` — изменение публичного extension point; прежняя
+  конфигурация blocked-поиска сохраняется как policy-override резолвера, комбинации фиксируются
   characterization (этап 0) и contract-тестами (этап 2);
 - стратегия, не проверившая `CanFit`, не должна ломать planning state: `TryReserve*`
   перевалидирует геометрию (защита от кривых кастомных стратегий);
