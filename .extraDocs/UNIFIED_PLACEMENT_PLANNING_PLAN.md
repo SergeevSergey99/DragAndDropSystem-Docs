@@ -20,8 +20,10 @@ placement-модель.
 > перед его исполнением, поэтому граф зависимостей entries, transitive skip и связанная
 > транзакционная механика исключены из дизайна; (2) **plan rules** — `AllowPartial`, `BatchMode`
 > (Atomic/BestEffort) и агрегатные правила свернуты в одну точку расширения `IPlanRule` (4.6):
-> политика несет список правил, семантических флагов внутри pipeline нет; строгий all-or-nothing
-> на выполнении — опциональный транзакционный wrapper.
+> правила — два конъюнктивных источника (правила инвентаря + правила операции, без
+> default-списков и override-резолюции), семантических флагов внутри pipeline нет; путь
+> выполнения — явная `TransferExecutionMode` (Jit | Transactional), потребляемая один раз на
+> границе сервиса; ни один execute-API не принимает готовый план.
 
 ---
 
@@ -106,7 +108,7 @@ acceptance-стратегиях и executor.
 `PlacementStore.CanPlace` проверяет **реальное текущее состояние**. Планировщик не может опираться
 только на него, когда один планируемый результат содержит несколько еще не выполненных операций:
 
-1. первый entry атомарного batch планирует footprint `{0, 1}`;
+1. первый entry в plan-all планирует footprint `{0, 1}`;
 2. runtime store не изменен;
 3. второй entry вызывает `CanPlace` и тоже получает разрешение на `{0, 1}`;
 4. план выглядит валидным, executor не сможет его применить.
@@ -431,31 +433,48 @@ strategy capabilities. Шаг 3 — сознательный behavioral change: 
 
 ### 4.6 Plan rules и выполнение batch
 
-**Plan rules — единственный носитель partial/batch-семантики.** `AllowPartial` и `BatchMode`
+**Plan rules — единственный носитель partial/приемочной семантики.** `AllowPartial` и `BatchMode`
 (Atomic/BestEffort) как флаги удаляются из `DropRequestPolicy`/`DropPolicySettings` и из
-pipeline: политика несет **список `IPlanRule`-пресетов** (`SerializeReference`), резолвится как
-сейчас (override -> inventory/context default). Аллокатор всегда планирует жадно максимум (с
-учетом `DragAmountStep`); правила валидируют спланированный результат:
+pipeline. **Никаких default-списков и override-резолюции для правил нет** — два конъюнктивных
+источника, по образцу существующих слоев rules (slot/inventory/global):
+
+- **правила инвентаря** — стоячие требования инвентаря к любому плану (агрегатные лимиты: вес,
+  число типов; «только полные стеки», если инвентарь так решил). Регистрируются рядом с
+  inventory rules, оцениваются всегда, операция их снять не может;
+- **правила операции** — семантика конкретного переноса (`RequireFullAmount`,
+  `RequireAllEntriesPlanned`); их передает инициатор (drop area, action, blocked-резолвер,
+  программный вызов) вместе со своим запросом — как сегодня передается selection-policy
+  override.
+
+Итоговый набор = объединение обоих источников, конъюнкция (проходят все): «конфликт» правил
+невозможен, порядок влияет только на причину отказа, дубликат безвреден, merge/replace-семантика
+не нужна по построению. Аллокатор всегда планирует жадно максимум (с учетом `DragAmountStep`);
+правила валидируют спланированный результат:
 
 ```text
 IPlanRule
     Scope: Entry | Batch
-    Validate(view) -> verdict          // boolean v1 + reason
+    Validate(context) -> verdict       // boolean v1 + reason
 
-Entry-scope (pre-Commit каждого entry, 4.5 шаг 9). Вход — read-only view:
+EntryPlanRuleContext (pre-Commit каждого entry, 4.5 шаг 9):
     спланированный entry: RequestedAmount, PlannedAmount, операции
-    накопленные дельты session по инвентарю (добавлено/удалено по предметам,
-    созданные/удаленные placement)
+    дельты по инвентарю: закоммиченные предыдущими entries + tentative текущего
+    projected view инвентаря — read-view session (base + дельты), ленивые запросы,
+        НЕ материализованная копия; для правил вида «суммарный вес <= N»
 Built-in: RequireFullAmount (бывший AllowPartial=false), агрегатные
     («суммарный вес <= N», «не больше K типов» — per-anchor предикат это не выражает:
      три аллокации по 5 веса проходят поодиночке, сумма нарушает лимит невидимо)
 
-Batch-scope (гейт перед стартом выполнения, на результате plan-all). Вход — read-only view
-всего batch: список entries, у каждого RequestedAmount/PlannedAmount, FailureReason,
-IsPlanned/IsPartial, операции. Правило видит «эти прошли, эти отклонены и почему».
+BatchPlanRuleContext (гейт перед стартом выполнения, на результате plan-all):
+    read-only view всего batch: список entries, у каждого RequestedAmount/PlannedAmount,
+    FailureReason, IsPlanned/IsPartial, операции; per-inventory дельты и projected views.
+    Правило видит «эти прошли, эти отклонены и почему».
 Built-in: RequireAllEntriesPlanned (бывшая атомарная приемка: есть отклоненные/частичные ->
     отклонить весь batch). Кастомные: «не больше N entries», «суммарная стоимость», и т.д.
 ```
+
+Правило читает **только свой контекст**, не live inventory: прямое чтение живого состояния
+ломает чистоту планировщика и детерминизм (JIT-план перестает совпадать с preview).
 
 Вердикт v1 — boolean: entry/batch отклоняется целиком (правило не умеет уменьшать amount;
 контракт вида `GetAcceptableAmount` — возможное будущее расширение, вне scope). Нарушение
@@ -468,7 +487,7 @@ preview greedy, drop перевалидирует (документируетс�
 ```text
 BuildPreviewPlan(context) -> TransferPlan   // preview/валидация; никогда не исполняется
 
-Execute(context, planner):                  // JIT-цикл, путь по умолчанию
+Execute(context, planner):                  // TransferExecutionMode.Jit — путь по умолчанию
     if batch-scope rules present:
         plan-all (общая session) -> gate; провал -> ничего не исполняется
     for each entry:
@@ -476,9 +495,10 @@ Execute(context, planner):                  // JIT-цикл, путь по ум�
         выполнить entry (атомарно на уровне entry)
         сбой entry -> откат только этого entry -> следующий планируется заново
 
-ExecuteTransactional(plan):                 // opt-in: строгий all-or-nothing на ВЫПОЛНЕНИИ
-    full-batch snapshots -> исполнить план гейта целиком -> любой сбой = полный rollback
-    (план гейта только что построен — повторное планирование не нужно)
+ExecuteTransactional(context, planner):     // TransferExecutionMode.Transactional, opt-in
+    plan-all (общая session) -> gate -> проверка rollback-capability всех участников
+    full-batch snapshots -> исполнить план целиком -> любой сбой = полный rollback
+    (план строится и исполняется внутри одного вызова — stale plan невозможен)
 ```
 
 Почему JIT, а не «исполнить заранее построенный план с пропуском зависимых»: entry B планируется
@@ -489,13 +509,16 @@ transitive skip и валидность ссылок устаревшего пл
 preview-планом (детерминизм 4.5). Цена — повторное планирование на drop (не на hover).
 
 **Разделение гарантий:** batch-гейт = гарантия на **старт** (не начинать, если план не
-устраивает правила); транзакционный wrapper = гарантия на **финиш** (откатить все при
-execution-сбое — доменная валидация, async veto; кейс trade window). Гейт без wrapper'а не
-защищает от полуисполнения при execution-time сбое — документируется. Выбор wrapper'а — одно
-поле политики, потребляемое один раз на границе transfer service; внутрь planner/executor оно
-не проникает. Сегодняшний executor, принимающий готовый план для любого режима (а
-`CanAcceptDrop`/`ProcessDrop` строят планы независимо), заменяется этой тройкой API —
-устаревший план невозможно исполнить случайно.
+устраивает правила); транзакционный путь = гарантия на **финиш** (откатить все при
+execution-сбое — доменная валидация, async veto; кейс trade window). Гейт без транзакционного
+пути не защищает от полуисполнения при execution-time сбое — документируется. Выбор пути —
+явная execution policy `TransferExecutionMode { Jit | Transactional }`: это политика
+*выполнения*, а не правило плана, поэтому в `IPlanRule` она не входит; поле потребляется один
+раз на границе transfer service и внутрь planner/executor не проникает. **Ни один публичный
+execute-API не принимает готовый план**: `BuildPreviewPlan` возвращает план только для preview,
+оба execute-пути строят план внутри себя — устаревший план невозможно исполнить в принципе
+(сегодня `CanAcceptDrop`/`ProcessDrop` строят планы независимо, а executor принимает готовый
+план для любого режима).
 
 **Атомарность отдельного entry** (в обоих путях — entry с несколькими операциями не должен
 исполниться наполовину):
@@ -605,8 +628,9 @@ PlacementPlanningRequest
 - Зафиксировать текущее поведение atomic batch с occupied-handler: внешние мутации handler'а
   при откате batch не восстанавливаются — существующая дыра, закрывается правилом 4.2.
 - Зафиксировать наблюдаемое поведение всех комбинаций `AllowPartial`/`BatchMode`: built-in plan
-  rules (`RequireFullAmount`, `RequireAllEntriesPlanned`) и транзакционный wrapper обязаны его
-  воспроизвести; дефолтные пресеты политики после миграции совпадают с текущими дефолтами.
+  rules (`RequireFullAmount`, `RequireAllEntriesPlanned`) и транзакционный путь обязаны его
+  воспроизвести; текущие места конфигурации мигрируют на правила инвентаря/операции с
+  сохранением поведения.
 - Зафиксировать детерминизм планировщика (одинаковые входы — одинаковый план) — несущее
   требование JIT-replan.
 - Удалить `UniversalInventory.TrySwapSlots`.
@@ -690,16 +714,20 @@ PlacementPlanningRequest
 ### Этап 5. Batch на grid: plan rules, JIT-цикл и транзакционный wrapper
 
 - Снять `IsBatchDrag`-guard для grid-целей.
-- Ввести `IPlanRule` (Entry | Batch scope) и built-ins `RequireFullAmount`,
-  `RequireAllEntriesPlanned`; удалить `AllowPartial`/`BatchMode` из
-  `DropRequestPolicy`/`ResolvedDropPolicy`/`DropPolicySettings` — политика несет список
-  rule-пресетов; дефолты воспроизводят текущее поведение (characterization этапа 0).
+- Ввести `IPlanRule` (Entry | Batch scope), контексты `EntryPlanRuleContext` /
+  `BatchPlanRuleContext` (projected views поверх session; правило не читает live inventory) и
+  built-ins `RequireFullAmount`, `RequireAllEntriesPlanned`; удалить `AllowPartial`/`BatchMode`
+  из `DropRequestPolicy`/`ResolvedDropPolicy`/`DropPolicySettings`. Источники правил (4.6):
+  правила инвентаря (рядом с inventory rules) + правила операции (инициатор передает с
+  запросом), без default-списков; `TransferExecutionMode` — скалярное поле политики. Миграция
+  мест, где сегодня сконфигурированы `AllowPartial=false`/atomic, на соответствующий источник —
+  по characterization этапа 0.
 - JIT-цикл `Execute(context, planner)`: batch-гейт (при наличии batch-правил) -> «свежая session
   -> план entry -> атомарное выполнение entry»; сбой entry не прерывает цикл.
-- `ExecuteTransactional(plan)`: full-batch snapshots + полный rollback; исполняет план гейта без
-  повторного планирования.
+- `ExecuteTransactional(context, planner)`: plan-all + гейт + проверка участников + full-batch
+  snapshots + исполнение с полным rollback — внутри одного вызова.
 - API transfer service (4.6): `BuildPreviewPlan` / `Execute` / `ExecuteTransactional` —
-  устаревший план невозможно исполнить случайно.
+  ни один execute-API не принимает готовый план.
 - Смешанный batch (single-cell + shaped) — один pipeline, без моста (раздел 3).
 - Strategy capability для явного запрета multi-entry spatial planning (вместо guard).
 - Тесты: смешанный batch; `RequireAllEntriesPlanned` отклоняет весь batch при частичной
@@ -708,7 +736,10 @@ PlacementPlanningRequest
   entry откатывает первую; отсутствие rollback-capability дает fail-before-mutation;
   **JIT-консистентность**: при отсутствии сбоев последовательность JIT-планов совпадает с
   preview-планом; ориентации per entry; swap внутри plan-all с учетом резервов; кастомное
-  batch-правило читает `FailureReason` отклоненных entries и отклоняет весь batch.
+  batch-правило читает `FailureReason` отклоненных entries и отклоняет весь batch; правило
+  суммарного веса считает по projected view (base + дельты), а не по live inventory;
+  правило инвентаря (агрегатный лимит) действует при любых правилах операции; правило операции
+  добавляется к правилам инвентаря, а не заменяет их.
 
 ### Этап 6. Миграция slot-топологии
 
@@ -796,8 +827,8 @@ PlacementPlanningRequest
 - preview и batch-гейт — гарантия на старт, не на финиш: без транзакционного wrapper'а
   execution-сбой оставляет ранние entries примененными; документируется;
 - удаление `AllowPartial`/`BatchMode` — breaking-изменение политики (pre-release допустимо);
-  built-in plan rules и дефолтные пресеты обязаны воспроизвести текущее поведение по
-  characterization этапа 0;
+  built-in rules в соответствующих источниках (инвентарь/операция) обязаны воспроизвести
+  текущее поведение по characterization этапа 0;
 - повторное планирование на drop — приемлемая цена (drop — редкое событие); baseline этапа 0
   подтверждает.
 
@@ -820,8 +851,12 @@ PlacementPlanningRequest
 - occupied-handler для shaped — сознательный behavioral change (гейт A);
 - `RulesScope` acceptance — сознательное выравнивание с planner;
 - plan rules оцениваются на pre-Commit entry и на batch-гейте; lightweight acceptance их не
-  видит — preview для них оптимистичен (документированное ограничение v1); batch-правило
-  получает read-only view плана и не мутирует его.
+  видит — preview для них оптимистичен (документированное ограничение v1); правило получает
+  read-only контекст (projected view поверх session) и не мутирует его;
+- правило, читающее live inventory вместо контекста, ломает детерминизм preview==JIT — контракт
+  чистоты фиксируется документацией;
+- правила — два конъюнктивных источника (инвентарь + операция) без default-списков и
+  override-резолюции; операция не может снять правило инвентаря (4.6);
 
 ### Dynamic slots
 
@@ -906,9 +941,11 @@ PlacementPlanningRequest
 - Цели плана — только ссылки; индексов и id в модели нет.
 - Acceptance — dry-run того же аллокатора через `PlacementPlanningRequest` с `RulesScope`.
 - При отсутствии сбоев JIT-исполнение воспроизводит preview-план (consistency-тест).
-- Plan rules — единственный носитель partial/batch-семантики: `AllowPartial`/`BatchMode` удалены
-  из политики и pipeline, built-ins (`RequireFullAmount`, `RequireAllEntriesPlanned`)
-  воспроизводят прежнее поведение; строгий all-or-nothing — только `ExecuteTransactional`.
+- Plan rules — единственный носитель partial/приемочной семантики: `AllowPartial`/`BatchMode`
+  удалены из политики и pipeline, built-ins (`RequireFullAmount`, `RequireAllEntriesPlanned`)
+  воспроизводят прежнее поведение; путь выполнения — явная `TransferExecutionMode`
+  (Jit | Transactional), потребляемая один раз на границе сервиса; строгий all-or-nothing —
+  только `ExecuteTransactional(context, planner)`; ни один execute-API не принимает готовый план.
 - Нет `IsSingleCell` branches, меняющих semantics; UI/rules/early-out fast paths разрешены.
 - `VirtualSlotState`, `PlannedSlotAllocation`, `CanAcceptShape`, `TrySwapSlots`,
   `IAlternativePlacementStrategy` удалены.
