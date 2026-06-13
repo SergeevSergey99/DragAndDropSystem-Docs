@@ -98,19 +98,21 @@ namespace UDND.Inventories
                 if (sourceItem == null)
                     continue;
 
+                // Also reject if the item converts to a multi-cell shape in the target inventory.
                 if (TransferItemConversionUtility.TryResolveTargetItem(
                         entry.SourceInventory,
                         targetInventory,
                         sourceItem,
                         out var targetItem) &&
-                    !PlacementShapeUtility.IsSingleCell(
-                        PlacementShapeUtility.Resolve(targetItem),
-                        entry.Orientation))
+                    IsShapedItem(targetItem, entry.Orientation))
                     return true;
             }
 
             return false;
         }
+
+        private static bool IsShapedItem(IItemAdapter item, PlacementOrientation orientation)
+            => !PlacementShapeUtility.IsSingleCell(PlacementShapeUtility.Resolve(item), orientation);
 
         public async Task<(DropResult result, TransferExecutionReport report)> ExecuteAsync(
             DragContext context,

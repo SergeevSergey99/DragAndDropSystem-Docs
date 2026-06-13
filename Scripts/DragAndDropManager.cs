@@ -451,14 +451,14 @@ namespace UDND
             _activeDropTarget.OnBecomeActiveTarget();
         }
 
-        private async Task CompleteDragAsync(DropRequestPolicy? requested)
+        private Task CompleteDragAsync(DropRequestPolicy? requested)
         {
             if (_isProcessingTransfer)
             {
                 Extensions.DragAndDropLog("<color=red>CompleteDrag: Another transfer is in progress</color>");
                 OnDragCancelled?.Invoke(_currentContext);
                 EndDrag();
-                return;
+                return Task.CompletedTask;
             }
 
             _isCompletingDrag = true;
@@ -540,6 +540,8 @@ namespace UDND
                 _isCompletingDrag = false;
                 _isProcessingTransfer = false;
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
