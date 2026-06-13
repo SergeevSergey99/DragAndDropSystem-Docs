@@ -181,7 +181,11 @@ namespace UDND.Tests.Inventories
             _slots = TestSlotFactory.CreateSlots(2);
             var request = MakeRequest("gem", 5);
 
-            bool accepted = _strategy.TryGetCandidate(_slots, request, _slots[1], out var candidate);
+            bool accepted = _strategy.TryGetCandidate(
+                new InventoryPlacementGeometry(_slots[0].Inventory),
+                request,
+                _slots[1],
+                out var candidate);
 
             Assert.IsTrue(accepted);
             Assert.AreSame(_slots[1], candidate.Slot);
@@ -196,7 +200,7 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(1, "existing"));
 
             bool accepted = _strategy.TryGetCandidate(
-                _slots,
+                new InventoryPlacementGeometry(_slots[0].Inventory),
                 MakeRequest("gem", 1),
                 _slots[0],
                 out _);

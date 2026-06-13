@@ -9,7 +9,8 @@ namespace UDND.Core
     {
         Reject = 0,
         AlternativeSlots = 1,
-        SwapTargets = 2
+        Swap = 2,
+        SwapTargets = Swap
     }
 
     public sealed class BlockedTargetResolution

@@ -162,13 +162,20 @@ namespace UDND.Inventories
         }
 
         public bool TryGetCandidate(
-            IReadOnlyList<ISlot> slots,
+            IPlacementGeometry geometry,
             InventoryAcceptanceRequest request,
             BaseSlot targetBaseSlot,
-            out SlotAcceptanceCandidate candidate)
+            out PlacementCandidate candidate)
         {
-            return _placementStrategy.TryGetCandidate(slots, request, targetBaseSlot, out candidate);
+            return _placementStrategy.TryGetCandidate(geometry, request, targetBaseSlot, out candidate);
         }
+
+        public PlacementCandidateSource GetCandidates(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
+            => _placementStrategy.GetCandidates(geometry, request);
+
+        public PlacementCandidateOrderer DefaultOrderer => _placementStrategy.DefaultOrderer;
 
         public bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
         {

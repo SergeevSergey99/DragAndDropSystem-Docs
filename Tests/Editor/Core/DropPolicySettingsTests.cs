@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UDND.Core;
+using UDND.Inventories;
 
 namespace UDND.Tests.Core
 {
@@ -24,6 +25,13 @@ namespace UDND.Tests.Core
             Assert.IsInstanceOf<FindAlternativeBlockedTargetResolver>(resolved.BlockedTargetResolver);
             Assert.IsTrue(resolved.AllowPartial);
             Assert.AreEqual(BatchMode.BestEffort, resolved.BatchMode);
+            Assert.AreEqual(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                resolved.BlockedTargetResolution);
+            Assert.IsInstanceOf<MergeFirstPlacementCandidateOrderer>(
+                resolved.AlternativeOrderer);
+            Assert.AreEqual(PartialTransferMode.Allow, resolved.PartialTransferMode);
+            Assert.IsTrue(resolved.AllowSameInventoryAlternativePlacement);
         }
 
         // ---------- Request overrides ----------

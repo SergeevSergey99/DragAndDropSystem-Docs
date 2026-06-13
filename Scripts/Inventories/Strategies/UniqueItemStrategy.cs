@@ -107,24 +107,27 @@ namespace UDND.Inventories
         }
 
         public override bool TryGetCandidate(
-            IReadOnlyList<ISlot> slots,
+            IPlacementGeometry geometry,
             InventoryAcceptanceRequest request,
             BaseSlot targetBaseSlot,
-            out SlotAcceptanceCandidate candidate)
+            out PlacementCandidate candidate)
         {
             candidate = default;
-            if (slots == null || request == null || targetBaseSlot == null ||
+            if (geometry == null || request == null || targetBaseSlot == null ||
                 request.ItemAdapter == null || request.DesiredCount <= 0)
                 return false;
 
-            var logicalTarget = ResolveLogicalStackSlot(targetBaseSlot, slots);
-            var target = ResolveBaseSlot(logicalTarget);
-            if (target == null || IsSourceSlot(logicalTarget, request) || !target.IsEmpty ||
-                !PassesRules(target, request.ItemAdapter, 1, request))
+            if (IsSourceSlot(targetBaseSlot, request) ||
+                geometry.GetPlacementAt(targetBaseSlot) != null ||
+                !targetBaseSlot.IsEmpty)
                 return false;
 
-            candidate = new SlotAcceptanceCandidate(logicalTarget, 1);
-            return true;
+            return TryCreatePlacementCandidate(
+                geometry,
+                request,
+                targetBaseSlot,
+                1,
+                out candidate);
         }
 
         public override SlotAcceptanceCandidates GetSlotCandidates(

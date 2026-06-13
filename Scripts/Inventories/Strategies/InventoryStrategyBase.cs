@@ -42,13 +42,129 @@ namespace UDND.Inventories
         public abstract bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
         public abstract SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
         public virtual SlotSelectionPolicyBase DefaultSlotSelectionPolicy => FirstSlotSelectionPolicy.Instance;
+        public virtual PlacementCandidateOrderer DefaultOrderer => NaturalPlacementCandidateOrderer.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
         public abstract bool TryGetCandidate(
-            IReadOnlyList<ISlot> slots,
+            IPlacementGeometry geometry,
             InventoryAcceptanceRequest request,
             BaseSlot targetBaseSlot,
-            out SlotAcceptanceCandidate candidate);
+            out PlacementCandidate candidate);
+
+        public virtual PlacementCandidateSource GetCandidates(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
+        {
+            return new PlacementCandidateSource(
+                () => EnumerateCandidates(geometry, request));
+        }
+
+        private IEnumerable<PlacementCandidate> EnumerateCandidates(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
+        {
+            if (geometry == null || request == null)
+                yield break;
+
+            var slotViews = new List<ISlot>(geometry.Slots.Count);
+            for (int i = 0; i < geometry.Slots.Count; i++)
+                slotViews.Add(geometry.Slots[i]);
+
+            var slotCreation = geometry.Inventory as IInventorySlotCreationCapacity;
+            bool canCreate = slotCreation?.CanCreateNewSlot ?? false;
+            int potentialNewSlots = slotCreation?.PotentialNewSlots ?? 0;
+            var legacyCandidates = GetSlotCandidates(
+                slotViews,
+                request,
+                canCreate,
+                potentialNewSlots,
+                slotCreation?.BaseSlotPrefab);
+
+            var seenPlacements = new HashSet<Placement>();
+            var seenAnchors = new HashSet<BaseSlot>();
+            if (legacyCandidates?.Slots != null)
+            {
+                for (int i = 0; i < legacyCandidates.Slots.Count; i++)
+                {
+                    var target = ResolveBaseSlot(legacyCandidates.Slots[i].Slot);
+                    if (target == null ||
+                        !TryGetCandidate(geometry, request, target, out var candidate))
+                        continue;
+
+                    if (candidate.Kind == PlacementCandidateKind.Merge)
+                    {
+                        if (candidate.TargetPlacement != null)
+                        {
+                            if (!seenPlacements.Add(candidate.TargetPlacement))
+                                continue;
+                        }
+                        else if (candidate.Anchor == null || !seenAnchors.Add(candidate.Anchor))
+                        {
+                            continue;
+                        }
+                    }
+                    else if (candidate.Anchor == null || !seenAnchors.Add(candidate.Anchor))
+                    {
+                        continue;
+                    }
+
+                    yield return candidate;
+                }
+            }
+
+            if (legacyCandidates?.CanCreateNewSlot == true)
+            {
+                var entry = request.SourceEntry;
+                var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
+                var orientation = entry?.Orientation ?? PlacementOrientation.Rot0;
+                int capacity = Math.Min(
+                    request.DesiredCount,
+                    GetMaxStackSizeForItem(request.ItemAdapter));
+                if (capacity > 0)
+                    yield return PlacementCandidate.NewDynamicSlot(orientation, shape, capacity);
+            }
+        }
+
+        protected static Placement GetSourcePlacement(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
+        {
+            if (geometry == null || request?.SourceEntry is not DragEntry entry ||
+                !ReferenceEquals(entry.SourceInventory, geometry.Inventory))
+                return null;
+
+            return entry.SourcePlacement ?? geometry.GetPlacementAt(entry.SourceBaseSlot);
+        }
+
+        protected bool TryCreatePlacementCandidate(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request,
+            BaseSlot targetBaseSlot,
+            int capacity,
+            out PlacementCandidate candidate)
+        {
+            candidate = default;
+            if (geometry == null || request == null || targetBaseSlot == null || capacity <= 0 ||
+                !geometry.TryResolveAnchor(targetBaseSlot, request, out var anchor))
+                return false;
+
+            var entry = request.SourceEntry;
+            var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
+            var orientation = entry?.Orientation ?? PlacementOrientation.Rot0;
+            var previewStack = request.CreatePreviewStack(capacity);
+            if (previewStack == null ||
+                !PassesRules(anchor, request.ItemAdapter, capacity, request) ||
+                !geometry.CanPlace(
+                    previewStack,
+                    anchor,
+                    shape,
+                    orientation,
+                    GetSourcePlacement(geometry, request)))
+                return false;
+
+            candidate = PlacementCandidate.Create(anchor, orientation, shape, capacity);
+            return true;
+        }
 
         // Base/Unique: shaped placements never merge — each item is its own placement (count 1).
         // Stack-based strategies override this with their own merge policy.

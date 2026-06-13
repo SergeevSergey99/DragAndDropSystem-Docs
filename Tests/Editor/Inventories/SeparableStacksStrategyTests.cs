@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UDND.Inventories;
 using UDND.Slots;
@@ -222,7 +223,7 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
 
             bool accepted = _strategy.TryGetCandidate(
-                _slots,
+                new InventoryPlacementGeometry(_slots[0].Inventory),
                 MakeRequest("gem", 5),
                 _slots[1],
                 out var candidate);
@@ -242,7 +243,7 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(4, "gem"));
 
             bool accepted = _strategy.TryGetCandidate(
-                _slots,
+                new InventoryPlacementGeometry(_slots[0].Inventory),
                 MakeRequest("gem", 10),
                 _slots[0],
                 out var candidate);
@@ -250,6 +251,55 @@ namespace UDND.Tests.Inventories
             Assert.IsTrue(accepted);
             Assert.AreEqual(1, candidate.RemainingCapacity);
             Assert.AreEqual(4, _slots[0].Stack.Count);
+        }
+
+        [Test]
+        public void GetCandidates_SourceIsReevaluatedOnEveryEnumeration()
+        {
+            _strategy.SetMaxStackSize(5, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(3, "gem"));
+            var geometry = new InventoryPlacementGeometry(_slots[0].Inventory);
+            var source = _strategy.GetCandidates(geometry, MakeRequest("gem", 10));
+
+            var first = source.ToList();
+            _slots[1].SetStack(ItemStackBuilder.Unique(1, "rock"));
+            var second = source.ToList();
+
+            CollectionAssert.AreEqual(
+                new[] { PlacementCandidateKind.Merge, PlacementCandidateKind.Create },
+                first.Select(candidate => candidate.Kind));
+            CollectionAssert.AreEqual(
+                new[] { PlacementCandidateKind.Merge },
+                second.Select(candidate => candidate.Kind));
+        }
+
+        [Test]
+        public void CandidateOrderers_OnlyChangeAutomaticOrder()
+        {
+            _strategy.SetMaxStackSize(5, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(3, "gem"));
+            var request = MakeRequest("gem", 10);
+            var source = _strategy.GetCandidates(
+                new InventoryPlacementGeometry(_slots[0].Inventory),
+                request);
+
+            var mergeFirst = MergeFirstPlacementCandidateOrderer.Instance
+                .Order(source, request)
+                .Select(candidate => candidate.Kind)
+                .ToArray();
+            var emptyFirst = EmptyFirstPlacementCandidateOrderer.Instance
+                .Order(source, request)
+                .Select(candidate => candidate.Kind)
+                .ToArray();
+
+            CollectionAssert.AreEqual(
+                new[] { PlacementCandidateKind.Merge, PlacementCandidateKind.Create },
+                mergeFirst);
+            CollectionAssert.AreEqual(
+                new[] { PlacementCandidateKind.Create, PlacementCandidateKind.Merge },
+                emptyFirst);
         }
 
         // ---------- CanUseAlternativeSlot ----------

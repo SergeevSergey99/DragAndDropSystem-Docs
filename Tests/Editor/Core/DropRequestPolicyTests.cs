@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UDND.Core;
+using UDND.Inventories;
 
 namespace UDND.Tests.Core
 {
@@ -34,6 +35,26 @@ namespace UDND.Tests.Core
             var policy = DropRequestPolicy.WithSwap();
 
             Assert.IsInstanceOf<SwapBlockedTargetResolver>(policy.BlockedTargetResolver);
+            Assert.AreEqual(
+                BlockedTargetResolutionKind.Swap,
+                policy.BlockedTargetResolution);
+        }
+
+        [Test]
+        public void WithAlternativeOrderer_StoresScalarPolicyWithoutResolver()
+        {
+            var orderer = new EmptyOnlyPlacementCandidateOrderer();
+
+            var policy = DropRequestPolicy.WithAlternativeOrderer(
+                orderer,
+                allowSameInventoryAlternativePlacement: false);
+
+            Assert.AreEqual(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                policy.BlockedTargetResolution);
+            Assert.AreSame(orderer, policy.AlternativeOrderer);
+            Assert.AreEqual(false, policy.AllowSameInventoryAlternativePlacement);
+            Assert.IsNull(policy.BlockedTargetResolver);
         }
 
         [Test]
@@ -76,6 +97,9 @@ namespace UDND.Tests.Core
 
             Assert.IsNull(policy.BlockedTargetResolver);
             Assert.AreEqual(allow, policy.AllowPartial);
+            Assert.AreEqual(
+                allow ? PartialTransferMode.Allow : PartialTransferMode.RequireFull,
+                policy.PartialTransferMode);
         }
 
         // ---------- Merge ----------

@@ -9,11 +9,17 @@ namespace UDND.Inventories
     /// </summary>
     public interface IStrategy
     {
+        PlacementCandidateOrderer DefaultOrderer { get; }
+
         bool TryGetCandidate(
-            IReadOnlyList<ISlot> slots,
+            IPlacementGeometry geometry,
             InventoryAcceptanceRequest request,
             BaseSlot targetBaseSlot,
-            out SlotAcceptanceCandidate candidate);
+            out PlacementCandidate candidate);
+
+        PlacementCandidateSource GetCandidates(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request);
 
         bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex);
         bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);

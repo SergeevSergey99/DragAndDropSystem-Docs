@@ -357,7 +357,7 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(6, "gem"));
 
             bool accepted = _strategy.TryGetCandidate(
-                _slots,
+                new InventoryPlacementGeometry(_slots[0].Inventory),
                 MakeRequest("gem", 8),
                 _slots[0],
                 out var candidate);
@@ -384,7 +384,7 @@ namespace UDND.Tests.Inventories
                 potentialNewSlots: 0,
                 baseSlotPrefab: null);
             bool explicitAccepted = _strategy.TryGetCandidate(
-                _slots,
+                new InventoryPlacementGeometry(_slots[0].Inventory),
                 request,
                 _slots[0],
                 out var candidate);
@@ -403,7 +403,7 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(7, "gem"));
 
             bool accepted = _strategy.TryGetCandidate(
-                _slots,
+                new InventoryPlacementGeometry(_slots[0].Inventory),
                 MakeRequest("gem", 5),
                 _slots[1],
                 out var candidate);

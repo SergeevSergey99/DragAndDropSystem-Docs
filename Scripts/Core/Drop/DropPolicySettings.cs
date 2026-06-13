@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UDND.Inventories;
 using UDND.Tools.Inspector;
 
 namespace UDND.Core
@@ -25,9 +26,21 @@ namespace UDND.Core
                 : _allowPartial;
 
             return new ResolvedDropPolicy(
-                blockedTargetResolver,
-                allowPartial,
-                _batchMode);
+                requested?.BlockedTargetResolution ??
+                DropRequestPolicy.ResolveKind(blockedTargetResolver) ??
+                BlockedTargetResolutionKind.AlternativeSlots,
+                requested?.AlternativeOrderer ??
+                DropRequestPolicy.ResolveOrderer(blockedTargetResolver) ??
+                MergeFirstPlacementCandidateOrderer.Instance,
+                requested?.AllowSameInventoryAlternativePlacement ??
+                DropRequestPolicy.ResolveSameInventoryAlternative(blockedTargetResolver) ??
+                true,
+                requested?.PartialTransferMode ??
+                (allowPartial
+                    ? PartialTransferMode.Allow
+                    : PartialTransferMode.RequireFull),
+                _batchMode,
+                blockedTargetResolver);
         }
     }
 }
