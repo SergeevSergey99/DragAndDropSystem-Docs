@@ -211,6 +211,7 @@ namespace UDND.DataBinding
             {
                 Inventory.ClearAll();
                 OnReloadUI();
+                Inventory.UpdateAllVisuals();
                 Inventory.NotifyContentRefreshed();
             }
         }

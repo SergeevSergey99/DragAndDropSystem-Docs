@@ -82,8 +82,6 @@ namespace UDND.DataBinding
 
             foreach (var placement in placements)
                 ReloadPlacement(placement, placementInventory);
-
-            Inventory.UpdateAllVisuals();
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
