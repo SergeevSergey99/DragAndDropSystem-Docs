@@ -347,6 +347,74 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(3, stack.Count, "Stack stays in source");
         }
 
+        // ---------- TryGetCandidate ----------
+
+        [Test]
+        public void TryGetCandidate_ExplicitTarget_ReportsExactCapacityWithoutMutation()
+        {
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(1);
+            _slots[0].SetStack(ItemStackBuilder.Unique(6, "gem"));
+
+            bool accepted = _strategy.TryGetCandidate(
+                _slots,
+                MakeRequest("gem", 8),
+                _slots[0],
+                out var candidate);
+
+            Assert.IsTrue(accepted);
+            Assert.AreSame(_slots[0], candidate.Slot);
+            Assert.AreEqual(4, candidate.RemainingCapacity);
+            Assert.AreEqual(6, _slots[0].Stack.Count, "Candidate preview must not mutate the target.");
+        }
+
+        [Test]
+        public void TryGetCandidate_ExplicitMergeOnly_AllowsDirectExistingStack()
+        {
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            SetExplicitMergeOnly(_strategy);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
+            var request = MakeRequest("gem", 3);
+
+            var automaticCandidates = _strategy.GetSlotCandidates(
+                _slots,
+                request,
+                canCreateNewSlot: false,
+                potentialNewSlots: 0,
+                baseSlotPrefab: null);
+            bool explicitAccepted = _strategy.TryGetCandidate(
+                _slots,
+                request,
+                _slots[0],
+                out var candidate);
+
+            Assert.IsFalse(automaticCandidates.HasAny);
+            Assert.IsTrue(explicitAccepted);
+            Assert.AreSame(_slots[0], candidate.Slot);
+            Assert.AreEqual(3, candidate.RemainingCapacity);
+        }
+
+        [Test]
+        public void TryGetCandidate_EmptyTarget_AutoMergeRedirectsToExistingStack()
+        {
+            _strategy.SetMaxStackSize(10, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(7, "gem"));
+
+            bool accepted = _strategy.TryGetCandidate(
+                _slots,
+                MakeRequest("gem", 5),
+                _slots[1],
+                out var candidate);
+
+            Assert.IsTrue(accepted);
+            Assert.AreSame(_slots[0], candidate.Slot);
+            Assert.AreEqual(3, candidate.RemainingCapacity);
+            Assert.IsTrue(_slots[1].IsEmpty);
+            Assert.AreEqual(7, _slots[0].Stack.Count);
+        }
+
         // ---------- GetSlotCandidates ----------
 
         [Test]

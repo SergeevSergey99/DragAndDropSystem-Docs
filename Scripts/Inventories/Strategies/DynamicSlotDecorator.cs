@@ -9,10 +9,10 @@ namespace UDND.Inventories
     /// Decorator for dynamic slot creation
     /// Wraps any strategy (Unique or Stackable) and adds automatic slot creation
     /// </summary>
-    public class DynamicSlotDecorator : IInventoryStrategy, IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
+    public class DynamicSlotDecorator : IInventoryStrategy, IStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
     {
         private readonly IInventoryStrategy _baseStrategy;
-        private readonly IPlacementStrategy _placementStrategy;
+        private readonly IStrategy _placementStrategy;
         private readonly IAcceptanceStrategy _acceptanceStrategy;
         private readonly IDragPolicy _dragPolicy;
         private readonly IInventoryQueryStrategy _queryStrategy;
@@ -31,8 +31,8 @@ namespace UDND.Inventories
             System.Action ensureFreeSlotsFunc = null)
         {
             _baseStrategy = baseStrategy ?? throw new System.ArgumentNullException(nameof(baseStrategy));
-            _placementStrategy = baseStrategy as IPlacementStrategy
-                ?? throw new System.ArgumentException("Base strategy must implement IPlacementStrategy.", nameof(baseStrategy));
+            _placementStrategy = baseStrategy as IStrategy
+                ?? throw new System.ArgumentException("Base strategy must implement IStrategy.", nameof(baseStrategy));
             _acceptanceStrategy = baseStrategy as IAcceptanceStrategy
                 ?? throw new System.ArgumentException("Base strategy must implement IAcceptanceStrategy.", nameof(baseStrategy));
             _dragPolicy = baseStrategy as IDragPolicy
@@ -159,6 +159,15 @@ namespace UDND.Inventories
         public bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
             return _placementStrategy.CanUseAlternativeSlot(baseSlot, itemAdapter);
+        }
+
+        public bool TryGetCandidate(
+            IReadOnlyList<ISlot> slots,
+            InventoryAcceptanceRequest request,
+            BaseSlot targetBaseSlot,
+            out SlotAcceptanceCandidate candidate)
+        {
+            return _placementStrategy.TryGetCandidate(slots, request, targetBaseSlot, out candidate);
         }
 
         public bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)

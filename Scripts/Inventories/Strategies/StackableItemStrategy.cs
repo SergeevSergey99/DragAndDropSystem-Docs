@@ -264,6 +264,86 @@ namespace UDND.Inventories
             return baseSlot.Stack.Count < maxSize;
         }
 
+        public override bool TryGetCandidate(
+            IReadOnlyList<ISlot> slots,
+            InventoryAcceptanceRequest request,
+            BaseSlot targetBaseSlot,
+            out SlotAcceptanceCandidate candidate)
+        {
+            candidate = default;
+            if (slots == null || request == null || targetBaseSlot == null ||
+                request.ItemAdapter == null || request.DesiredCount <= 0 ||
+                IsSourceSlot(targetBaseSlot, request))
+                return false;
+
+            var logicalTarget = ResolveLogicalStackSlot(targetBaseSlot, slots);
+            var target = ResolveBaseSlot(logicalTarget);
+            if (target == null)
+                return false;
+
+            int maxSize = GetMaxStackSize(
+                request.ItemAdapter,
+                DefaultMaxStackSize,
+                AllowItemStackOverride);
+
+            if (!target.IsEmpty)
+            {
+                if (target.Stack == null || !target.Stack.CanStack(request.ItemAdapter))
+                    return false;
+
+                int capacity = Math.Min(
+                    request.DesiredCount,
+                    Math.Max(0, maxSize - target.Stack.Count));
+                if (capacity <= 0 || !PassesRules(target, request.ItemAdapter, capacity, request))
+                    return false;
+
+                candidate = new SlotAcceptanceCandidate(logicalTarget, capacity);
+                return true;
+            }
+
+            HashSet<Placement> seenPlacements = null;
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null || IsSourceSlot(slot, request) ||
+                    ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
+                    continue;
+
+                var logicalSlot = ResolveLogicalStackSlot(slot, slots);
+                var existing = ResolveBaseSlot(logicalSlot);
+                if (existing == null || IsSameLogicalSlot(existing, target) ||
+                    existing.IsEmpty || !existing.Stack.CanStack(request.ItemAdapter))
+                    continue;
+
+                if (_explicitMergeOnly)
+                    return false;
+
+                int capacity = Math.Min(
+                    request.DesiredCount,
+                    Math.Max(0, maxSize - existing.Stack.Count));
+                if (capacity <= 0 || !PassesRules(existing, request.ItemAdapter, capacity, request))
+                    return false;
+
+                candidate = new SlotAcceptanceCandidate(logicalSlot, capacity);
+                return true;
+            }
+
+            int emptyCapacity = Math.Min(request.DesiredCount, maxSize);
+            if (emptyCapacity <= 0 || !PassesRules(target, request.ItemAdapter, emptyCapacity, request))
+                return false;
+
+            candidate = new SlotAcceptanceCandidate(logicalTarget, emptyCapacity);
+            return true;
+        }
+
+        private static bool IsSameLogicalSlot(BaseSlot left, BaseSlot right)
+        {
+            return ReferenceEquals(left, right) ||
+                   left != null && right != null &&
+                   left.Index == right.Index &&
+                   ReferenceEquals(left.Inventory, right.Inventory);
+        }
+
         public override SlotAcceptanceCandidates GetSlotCandidates(
             IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request,
             bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)

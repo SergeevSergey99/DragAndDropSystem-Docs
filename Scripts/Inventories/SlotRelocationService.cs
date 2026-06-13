@@ -18,7 +18,7 @@ namespace UDND.Inventories
             List<BaseSlot> slots,
             ItemStack stack,
             int targetSlotIndex,
-            IPlacementStrategy placementStrategy,
+            IStrategy placementStrategy,
             Func<BaseSlot, IItemAdapter, int, bool> canAcceptByRules,
             Func<InventorySnapshot> captureSnapshot,
             Action<InventorySnapshot> restoreSnapshot)

@@ -66,7 +66,7 @@ namespace UDND.Inventories
         private ShapedPlacementAnchorStrategyBase _shapedPlacementAnchorStrategy = new RotatedGrabOffsetAnchorStrategy();
 
         private IInventoryStrategy _strategy;
-        private IPlacementStrategy _placementStrategy;
+        private IStrategy _placementStrategy;
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
         private IInventoryQueryStrategy _queryStrategy;
@@ -102,7 +102,7 @@ namespace UDND.Inventories
             }
         }
 
-        public IPlacementStrategy PlacementStrategy
+        public IStrategy PlacementStrategy
         {
             get
             {
@@ -419,8 +419,8 @@ namespace UDND.Inventories
                 throw new ArgumentNullException(nameof(strategy));
 
             _strategy = strategy;
-            _placementStrategy = strategy as IPlacementStrategy
-                ?? throw new ArgumentException("Inventory strategy must implement IPlacementStrategy.", nameof(strategy));
+            _placementStrategy = strategy as IStrategy
+                ?? throw new ArgumentException("Inventory strategy must implement IStrategy.", nameof(strategy));
             _acceptanceStrategy = strategy as IAcceptanceStrategy
                 ?? throw new ArgumentException("Inventory strategy must implement IAcceptanceStrategy.", nameof(strategy));
             _dragPolicy = strategy as IDragPolicy

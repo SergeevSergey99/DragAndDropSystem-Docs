@@ -5,10 +5,16 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Responsible for placement, removal, and slot-level behavior specifics of a strategy.
+    /// Inventory behavior strategy.
     /// </summary>
-    public interface IPlacementStrategy
+    public interface IStrategy
     {
+        bool TryGetCandidate(
+            IReadOnlyList<ISlot> slots,
+            InventoryAcceptanceRequest request,
+            BaseSlot targetBaseSlot,
+            out SlotAcceptanceCandidate candidate);
+
         bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex);
         bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);

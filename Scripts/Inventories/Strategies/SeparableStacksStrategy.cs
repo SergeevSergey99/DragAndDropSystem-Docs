@@ -202,6 +202,45 @@ namespace UDND.Inventories
             return true;
         }
 
+        public override bool TryGetCandidate(
+            IReadOnlyList<ISlot> slots,
+            InventoryAcceptanceRequest request,
+            BaseSlot targetBaseSlot,
+            out SlotAcceptanceCandidate candidate)
+        {
+            candidate = default;
+            if (slots == null || request == null || targetBaseSlot == null ||
+                request.ItemAdapter == null || request.DesiredCount <= 0)
+                return false;
+
+            var logicalTarget = ResolveLogicalStackSlot(targetBaseSlot, slots);
+            var target = ResolveBaseSlot(logicalTarget);
+            if (target == null || IsSourceSlot(logicalTarget, request))
+                return false;
+
+            int maxSize = GetMaxStackSize(request.ItemAdapter);
+            int capacity;
+            if (target.IsEmpty)
+            {
+                capacity = Math.Min(request.DesiredCount, maxSize);
+            }
+            else
+            {
+                if (target.Stack == null || !target.Stack.CanStack(request.ItemAdapter))
+                    return false;
+
+                capacity = Math.Min(
+                    request.DesiredCount,
+                    Math.Max(0, maxSize - target.Stack.Count));
+            }
+
+            if (capacity <= 0 || !PassesRules(target, request.ItemAdapter, capacity, request))
+                return false;
+
+            candidate = new SlotAcceptanceCandidate(logicalTarget, capacity);
+            return true;
+        }
+
         public override SlotAcceptanceCandidates GetSlotCandidates(
             IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request,
             bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)

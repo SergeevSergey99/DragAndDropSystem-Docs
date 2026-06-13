@@ -212,6 +212,46 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(2, stack.Count);
         }
 
+        // ---------- TryGetCandidate ----------
+
+        [Test]
+        public void TryGetCandidate_EmptyTarget_ClampsCapacityWithoutMutation()
+        {
+            _strategy.SetMaxStackSize(3, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(2);
+            _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
+
+            bool accepted = _strategy.TryGetCandidate(
+                _slots,
+                MakeRequest("gem", 5),
+                _slots[1],
+                out var candidate);
+
+            Assert.IsTrue(accepted);
+            Assert.AreSame(_slots[1], candidate.Slot);
+            Assert.AreEqual(3, candidate.RemainingCapacity);
+            Assert.AreEqual(2, _slots[0].Stack.Count);
+            Assert.IsTrue(_slots[1].IsEmpty, "Candidate preview must not create a separate stack.");
+        }
+
+        [Test]
+        public void TryGetCandidate_PartialTarget_ReportsRemainingCapacity()
+        {
+            _strategy.SetMaxStackSize(5, allowItemOverride: false);
+            _slots = TestSlotFactory.CreateSlots(1);
+            _slots[0].SetStack(ItemStackBuilder.Unique(4, "gem"));
+
+            bool accepted = _strategy.TryGetCandidate(
+                _slots,
+                MakeRequest("gem", 10),
+                _slots[0],
+                out var candidate);
+
+            Assert.IsTrue(accepted);
+            Assert.AreEqual(1, candidate.RemainingCapacity);
+            Assert.AreEqual(4, _slots[0].Stack.Count);
+        }
+
         // ---------- CanUseAlternativeSlot ----------
 
         [Test]

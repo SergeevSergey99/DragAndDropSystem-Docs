@@ -11,7 +11,7 @@ namespace UDND.Inventories
     /// Base strategy with shared methods
     /// </summary>
     [Serializable]
-    public abstract class InventoryStrategyBase : IInventoryStrategy, IPlacementStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
+    public abstract class InventoryStrategyBase : IInventoryStrategy, IStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
     {
         [SerializeField, LabelText("Drag Amount"), Tooltip("How many items to take when dragging from a stack.")]
         [ShowIf(nameof(ShowDragAmountSettings))]
@@ -43,6 +43,12 @@ namespace UDND.Inventories
         public abstract SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
         public virtual SlotSelectionPolicyBase DefaultSlotSelectionPolicy => FirstSlotSelectionPolicy.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
+
+        public abstract bool TryGetCandidate(
+            IReadOnlyList<ISlot> slots,
+            InventoryAcceptanceRequest request,
+            BaseSlot targetBaseSlot,
+            out SlotAcceptanceCandidate candidate);
 
         // Base/Unique: shaped placements never merge — each item is its own placement (count 1).
         // Stack-based strategies override this with their own merge policy.

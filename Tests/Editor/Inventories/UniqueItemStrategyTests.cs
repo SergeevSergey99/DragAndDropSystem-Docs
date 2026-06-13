@@ -173,6 +173,38 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(1, stack.Count);
         }
 
+        // ---------- TryGetCandidate ----------
+
+        [Test]
+        public void TryGetCandidate_EmptyTarget_ReturnsSingleItemWithoutMutation()
+        {
+            _slots = TestSlotFactory.CreateSlots(2);
+            var request = MakeRequest("gem", 5);
+
+            bool accepted = _strategy.TryGetCandidate(_slots, request, _slots[1], out var candidate);
+
+            Assert.IsTrue(accepted);
+            Assert.AreSame(_slots[1], candidate.Slot);
+            Assert.AreEqual(1, candidate.RemainingCapacity);
+            Assert.IsTrue(_slots[1].IsEmpty, "Candidate preview must not mutate the target.");
+        }
+
+        [Test]
+        public void TryGetCandidate_OccupiedTarget_Rejects()
+        {
+            _slots = TestSlotFactory.CreateSlots(1);
+            _slots[0].SetStack(ItemStackBuilder.Unique(1, "existing"));
+
+            bool accepted = _strategy.TryGetCandidate(
+                _slots,
+                MakeRequest("gem", 1),
+                _slots[0],
+                out _);
+
+            Assert.IsFalse(accepted);
+            Assert.AreEqual("existing", _slots[0].Stack.ID);
+        }
+
         // ---------- GetSlotCandidates ----------
 
         [Test]

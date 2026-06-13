@@ -1590,7 +1590,7 @@ namespace UDND.Inventories
             return result.IsValid;
         }
 
-        private static IPlacementStrategy ResolvePlacementStrategy(IInventory inventory)
+        private static IStrategy ResolvePlacementStrategy(IInventory inventory)
         {
             var placementInventory = inventory as IPlacementInventory;
             return placementInventory != null ? placementInventory.PlacementStrategy : null;
