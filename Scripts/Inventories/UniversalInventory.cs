@@ -65,10 +65,7 @@ namespace UDND.Inventories
         [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel, Tooltip("Controls how a hovered grid slot is converted to a shaped-item placement anchor.")]
         private ShapedPlacementAnchorStrategyBase _shapedPlacementAnchorStrategy = new RotatedGrabOffsetAnchorStrategy();
 
-        private IInventoryStrategy _strategy;
-        private IStrategy _placementStrategy;
-        private IAcceptanceStrategy _acceptanceStrategy;
-        private IDragPolicy _dragPolicy;
+        private IStrategy _strategy;
         private BaseSlot _pointerHoveredBaseSlot;
         private BaseSlot _lastInteractedBaseSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
@@ -92,39 +89,13 @@ namespace UDND.Inventories
             _slotManagementSettings?.GetPotentialNewSlots(this, _slots.Count) ?? 0;
         BaseSlot IInventorySlotCreationCapacity.BaseSlotPrefab => baseSlotPrefab;
         public override Transform SlotContainer => _slotContainer;
-        public IInventoryStrategy Strategy
+        
+        public IStrategy Strategy
         {
             get
             {
                 EnsureStrategyInitialized();
                 return _strategy;
-            }
-        }
-
-        public IStrategy PlacementStrategy
-        {
-            get
-            {
-                EnsureStrategyInitialized();
-                return _placementStrategy;
-            }
-        }
-
-        public IAcceptanceStrategy AcceptanceStrategy
-        {
-            get
-            {
-                EnsureStrategyInitialized();
-                return _acceptanceStrategy;
-            }
-        }
-
-        public IDragPolicy DragPolicy
-        {
-            get
-            {
-                EnsureStrategyInitialized();
-                return _dragPolicy;
             }
         }
 
@@ -382,26 +353,8 @@ namespace UDND.Inventories
             EnsureSlotManagementSettings();
             EnsurePlacementSettings();
 
-            IInventoryStrategy baseStrategy = _inventoryStrategy;
-            Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
-            SetStrategy(baseStrategy);
-        }
-
-        /// <summary>
-        /// Change the inventory strategy at runtime
-        /// </summary>
-        public void SetStrategy(IInventoryStrategy strategy)
-        {
-            if (strategy == null)
-                throw new ArgumentNullException(nameof(strategy));
-
-            _strategy = strategy;
-            _placementStrategy = strategy as IStrategy
-                ?? throw new ArgumentException("Inventory strategy must implement IStrategy.", nameof(strategy));
-            _acceptanceStrategy = strategy as IAcceptanceStrategy
-                ?? throw new ArgumentException("Inventory strategy must implement IAcceptanceStrategy.", nameof(strategy));
-            _dragPolicy = strategy as IDragPolicy
-                ?? throw new ArgumentException("Inventory strategy must implement IDragPolicy.", nameof(strategy));
+            _strategy = _inventoryStrategy ?? throw new ArgumentNullException(nameof(_inventoryStrategy));
+            Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {_inventoryStrategy.GetType().Name}</color>");
             _appliedStrategyConfiguration = CaptureStrategyConfiguration();
         }
 
@@ -981,7 +934,7 @@ namespace UDND.Inventories
                 if (preferredSlot == null)
                     return false;
                 var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
-                if (!_placementStrategy.TryGetCandidate(geometry, request, preferredSlot, out var candidate))
+                if (!_strategy.TryGetCandidate(geometry, request, preferredSlot, out var candidate))
                     return false;
                 int amount = Math.Min(stack.Count, candidate.Capacity);
                 if (amount <= 0)
@@ -993,13 +946,13 @@ namespace UDND.Inventories
             }
 
             // No explicit target: distribute across best candidates.
-            var orderer = _placementStrategy.DefaultOrderer ?? NaturalPlacementCandidateOrderer.Instance;
             while (!stack.IsEmpty)
             {
                 var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
                 bool progress = false;
 
-                foreach (var candidate in orderer.Order(_placementStrategy.GetCandidates(geometry, request), request))
+                var candidates = _strategy.GetCandidates(geometry, request);
+                foreach (var candidate in candidates)
                 {
                     int amount = Math.Min(stack.Count, candidate.Capacity);
                     if (amount <= 0)
@@ -1442,7 +1395,7 @@ namespace UDND.Inventories
 
             var geometry = new InventoryPlacementGeometry(this);
             var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
-            if (!_placementStrategy.TryGetCandidate(geometry, request, targetBaseSlot, out var candidate))
+            if (!_strategy.TryGetCandidate(geometry, request, targetBaseSlot, out var candidate))
                 return false;
 
             int amount = Math.Min(stack.Count, candidate.Capacity);
@@ -1524,12 +1477,10 @@ namespace UDND.Inventories
                 return false;
 
             var geometry = new InventoryPlacementGeometry(this);
-            var candidates = _placementStrategy.GetCandidates(geometry, request);
-            var orderer = _placementStrategy.DefaultOrderer ??
-                NaturalPlacementCandidateOrderer.Instance;
+            var candidates = _strategy.GetCandidates(geometry, request);
             bool canAccept = false;
 
-            foreach (var candidate in orderer.Order(candidates, request))
+            foreach (var candidate in candidates)
             {
                 suggestedBaseSlot = candidate.Anchor ??
                     (candidate.TargetPlacement != null
@@ -1558,7 +1509,7 @@ namespace UDND.Inventories
 
             bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
             int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
-            int result = _acceptanceStrategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
+            int result = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
             Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: itemAdapter={request.ItemAdapter.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }

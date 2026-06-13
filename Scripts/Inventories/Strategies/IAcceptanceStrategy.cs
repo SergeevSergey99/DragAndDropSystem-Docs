@@ -33,24 +33,4 @@ namespace UDND.Inventories
         public static ShapedMergeDecision Reject => new ShapedMergeDecision(ShapedMergeKind.Reject, null);
         public static ShapedMergeDecision Merge(Placement target) => new ShapedMergeDecision(ShapedMergeKind.MergeIntoExisting, target);
     }
-
-    /// <summary>
-    /// Responsible for preview validation of whether the inventory can accept items in the current operation context.
-    /// </summary>
-    public interface IAcceptanceStrategy
-    {
-        int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
-
-        /// <summary>
-        /// Decides whether a shaped drop should merge into an existing placement, create a new one, or be rejected.
-        /// The strategy owns the merge policy (one-per-ID, auto/explicit).
-        /// </summary>
-        ShapedMergeDecision ResolveShapedMerge(
-            IPlacementInventory inventory,
-            IItemAdapter item,
-            int anchorIndex,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            Placement sourcePlacement);
-    }
 }

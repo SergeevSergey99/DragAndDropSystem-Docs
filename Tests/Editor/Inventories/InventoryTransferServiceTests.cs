@@ -31,7 +31,7 @@ namespace UDND.Tests.Inventories
             BlockedTargetResolutionKind blocked = BlockedTargetResolutionKind.AlternativeSlots)
             => new ResolvedDropPolicy(
                 blocked,
-                MergeFirstPlacementCandidateOrderer.Instance,
+                new MergeFirstPlacementCandidateOrderer(),
                 allowSameInventoryAlternativePlacement: true,
                 partialTransferMode: partial);
 

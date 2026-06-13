@@ -99,7 +99,7 @@ namespace UDND.Inventories
             if (!ValidateTransferStart(validationContext, targetInventory, out _))
                 return false;
 
-            var strategy = (targetInventory as IPlacementInventory)?.PlacementStrategy;
+            var strategy = (targetInventory as IPlacementInventory)?.Strategy;
             if (strategy == null)
                 return false;
 
@@ -150,12 +150,14 @@ namespace UDND.Inventories
                 }
 
                 var orderer = entryTargetSlot != null
-                    ? policy.AlternativeOrderer ?? MergeFirstPlacementCandidateOrderer.Instance
-                    : strategy.DefaultOrderer ?? NaturalPlacementCandidateOrderer.Instance;
-                foreach (var candidate in orderer.Order(strategy.GetCandidates(geometry, acceptance), acceptance))
+                    ? policy.AlternativeOrderer : null;
+                if (orderer != null)
                 {
-                    if (!ShouldSkipProbeCandidate(candidate, entry, sourceInventory, targetInventory, geometry))
-                        return true;
+                    foreach (var candidate in orderer.Order(strategy.GetCandidates(geometry, acceptance), acceptance))
+                    {
+                        if (!ShouldSkipProbeCandidate(candidate, entry, sourceInventory, targetInventory, geometry))
+                            return true;
+                    }
                 }
             }
 
@@ -246,7 +248,7 @@ namespace UDND.Inventories
                 !request.TargetBaseSlot.IsEmpty)
                 return TryExecuteSwap(request);
 
-            var strategy = (targetInventory as IPlacementInventory)?.PlacementStrategy;
+            var strategy = (targetInventory as IPlacementInventory)?.Strategy;
             if (strategy == null)
                 return EntryTransferResult.Failed(requestedAmount, "Target inventory has no strategy");
 
@@ -275,7 +277,7 @@ namespace UDND.Inventories
             };
 
             var geometry = new InventoryPlacementGeometry(targetInventory);
-            var orderer = request.OrdererOverride ?? strategy.DefaultOrderer ?? NaturalPlacementCandidateOrderer.Instance;
+            var orderer = request.OrdererOverride;
 
             if (request.TargetBaseSlot != null)
             {
@@ -309,8 +311,7 @@ namespace UDND.Inventories
                 // Both blocked-target alternatives and remainder distribution use the configured
                 // alternative orderer; the explicit attempt itself never goes through an orderer.
                 orderer = request.OrdererOverride
-                    ?? request.Policy.AlternativeOrderer
-                    ?? MergeFirstPlacementCandidateOrderer.Instance;
+                    ?? request.Policy.AlternativeOrderer;
             }
 
             while (transaction.Remaining > 0 && !transaction.Aborted)

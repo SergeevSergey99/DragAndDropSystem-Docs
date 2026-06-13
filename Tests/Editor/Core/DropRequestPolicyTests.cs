@@ -67,19 +67,14 @@ namespace UDND.Tests.Core
         {
             var basePolicy = new DropRequestPolicy(
                 BlockedTargetResolutionKind.AlternativeSlots,
-                MergeFirstPlacementCandidateOrderer.Instance,
-                allowSameInventoryAlternativePlacement: false,
+                new MergeFirstPlacementCandidateOrderer(), allowSameInventoryAlternativePlacement: false,
                 PartialTransferMode.RequireFull);
-            var overridingPolicy = new DropRequestPolicy(
-                BlockedTargetResolutionKind.Swap,
-                partialTransferMode: PartialTransferMode.Allow);
+            var overridingPolicy = new DropRequestPolicy(BlockedTargetResolutionKind.Swap, partialTransferMode: PartialTransferMode.Allow);
 
             var merged = DropRequestPolicy.Merge(basePolicy, overridingPolicy).Value;
 
             Assert.AreEqual(BlockedTargetResolutionKind.Swap, merged.BlockedTargetResolution);
-            Assert.AreSame(
-                MergeFirstPlacementCandidateOrderer.Instance,
-                merged.AlternativeOrderer);
+            Assert.AreSame(new MergeFirstPlacementCandidateOrderer(), merged.AlternativeOrderer);
             Assert.AreEqual(false, merged.AllowSameInventoryAlternativePlacement);
             Assert.AreEqual(PartialTransferMode.Allow, merged.PartialTransferMode);
         }

@@ -28,12 +28,9 @@ namespace UDND.Core
         {
             return new ResolvedDropPolicy(
                 requested?.BlockedTargetResolution ?? _blockedTargetResolution,
-                requested?.AlternativeOrderer ?? _alternativeOrderer ??
-                MergeFirstPlacementCandidateOrderer.Instance,
-                requested?.AllowSameInventoryAlternativePlacement ??
-                _allowSameInventoryAlternativePlacement,
-                requested?.PartialTransferMode ??
-                (_allowPartial
+                requested?.AlternativeOrderer ?? _alternativeOrderer,
+                requested?.AllowSameInventoryAlternativePlacement ?? _allowSameInventoryAlternativePlacement,
+                requested?.PartialTransferMode ?? (_allowPartial
                     ? PartialTransferMode.Allow
                     : PartialTransferMode.RequireFull));
         }

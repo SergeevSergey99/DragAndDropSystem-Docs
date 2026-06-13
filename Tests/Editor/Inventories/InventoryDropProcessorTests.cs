@@ -226,8 +226,7 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
             var report = processor.ProcessDropWithReport(
                 context,
-                DropRequestPolicy.WithAlternativeOrderer(
-                    EmptyFirstPlacementCandidateOrderer.Instance));
+                DropRequestPolicy.WithAlternativeOrderer(new EmptyFirstPlacementCandidateOrderer()));
 
             Assert.IsTrue(report.Success);
             Assert.AreEqual("other", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Blocked target must stay untouched");
@@ -262,8 +261,7 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
             var report = processor.ProcessDropWithReport(
                 context,
-                DropRequestPolicy.WithAlternativeOrderer(
-                    MergeFirstPlacementCandidateOrderer.Instance));
+                DropRequestPolicy.WithAlternativeOrderer(new MergeFirstPlacementCandidateOrderer()));
 
             Assert.IsTrue(report.Success);
             Assert.AreEqual(5, _target.GetSlot(1).Stack.Count, "MergeFirst must merge into existing coin stack");

@@ -39,9 +39,6 @@ namespace UDND.Inventories
     [Serializable]
     public sealed class NaturalPlacementCandidateOrderer : PlacementCandidateOrderer
     {
-        public static readonly NaturalPlacementCandidateOrderer Instance =
-            new NaturalPlacementCandidateOrderer();
-
         public override IEnumerable<PlacementCandidate> Order(
             PlacementCandidateSource source,
             InventoryAcceptanceRequest request)
@@ -53,9 +50,6 @@ namespace UDND.Inventories
     [Serializable]
     public sealed class MergeFirstPlacementCandidateOrderer : PlacementCandidateOrderer
     {
-        public static readonly MergeFirstPlacementCandidateOrderer Instance =
-            new MergeFirstPlacementCandidateOrderer();
-
         public override IEnumerable<PlacementCandidate> Order(
             PlacementCandidateSource source,
             InventoryAcceptanceRequest request)
@@ -65,9 +59,6 @@ namespace UDND.Inventories
     [Serializable]
     public sealed class EmptyFirstPlacementCandidateOrderer : PlacementCandidateOrderer
     {
-        public static readonly EmptyFirstPlacementCandidateOrderer Instance =
-            new EmptyFirstPlacementCandidateOrderer();
-
         public override IEnumerable<PlacementCandidate> Order(
             PlacementCandidateSource source,
             InventoryAcceptanceRequest request)

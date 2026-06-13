@@ -12,7 +12,7 @@ namespace UDND.Inventories
     public interface IPlacementInventory : IInventory
     {
         GridTopology? Grid { get; }
-        IStrategy PlacementStrategy { get; }
+        IStrategy Strategy { get; }
         IReadOnlyCollection<Placement> Placements { get; }
 
         Placement GetPlacementAt(BaseSlot baseSlot);

@@ -11,7 +11,7 @@ namespace UDND.Inventories
     /// Base strategy with shared methods
     /// </summary>
     [Serializable]
-    public abstract class InventoryStrategyBase : IInventoryStrategy, IStrategy, IAcceptanceStrategy, IDragPolicy
+    public abstract class InventoryStrategyBase : IStrategy
     {
         [SerializeField, LabelText("Drag Amount"), Tooltip("How many items to take when dragging from a stack.")]
         [ShowIf(nameof(ShowDragAmountSettings))]
@@ -35,8 +35,6 @@ namespace UDND.Inventories
         {
             return itemAdapter == null ? 0 : int.MaxValue;
         }
-
-        public virtual PlacementCandidateOrderer DefaultOrderer => NaturalPlacementCandidateOrderer.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
         public abstract bool TryGetCandidate(

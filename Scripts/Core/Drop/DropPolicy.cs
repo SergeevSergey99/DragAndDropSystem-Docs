@@ -60,10 +60,7 @@ namespace UDND.Core
         public static DropRequestPolicy WithAlternativeOrderer(
             PlacementCandidateOrderer orderer = null,
             bool allowSameInventoryAlternativePlacement = true)
-            => new DropRequestPolicy(
-                BlockedTargetResolutionKind.AlternativeSlots,
-                orderer ?? MergeFirstPlacementCandidateOrderer.Instance,
-                allowSameInventoryAlternativePlacement);
+            => new DropRequestPolicy(BlockedTargetResolutionKind.AlternativeSlots, orderer, allowSameInventoryAlternativePlacement);
 
         public static DropRequestPolicy WithPartial(bool allowPartial)
             => new DropRequestPolicy(
@@ -113,10 +110,8 @@ namespace UDND.Core
             PartialTransferMode partialTransferMode)
         {
             BlockedTargetResolution = blockedTargetResolution;
-            AlternativeOrderer = alternativeOrderer ??
-                MergeFirstPlacementCandidateOrderer.Instance;
-            AllowSameInventoryAlternativePlacement =
-                allowSameInventoryAlternativePlacement;
+            AlternativeOrderer = alternativeOrderer;
+            AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
         }
 

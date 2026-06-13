@@ -314,11 +314,11 @@ namespace UDND.Tests.Inventories
                 new InventoryPlacementGeometry(_slots[0].Inventory),
                 request);
 
-            var mergeFirst = MergeFirstPlacementCandidateOrderer.Instance
+            var mergeFirst = new MergeFirstPlacementCandidateOrderer()
                 .Order(source, request)
                 .Select(candidate => candidate.Kind)
                 .ToArray();
-            var emptyFirst = EmptyFirstPlacementCandidateOrderer.Instance
+            var emptyFirst = new EmptyFirstPlacementCandidateOrderer()
                 .Order(source, request)
                 .Select(candidate => candidate.Kind)
                 .ToArray();
