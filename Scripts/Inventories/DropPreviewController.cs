@@ -13,6 +13,7 @@ namespace UDND.Inventories
         private readonly IPlacementInventory _inventory;
         private readonly IShapedDragTargetResolver _anchorResolver;
         private readonly Func<PlacementStore> _getPlacementStore;
+        private readonly InventoryTransferService _transferService = new InventoryTransferService();
         private readonly List<BaseSlot> _highlightedSlots = new List<BaseSlot>();
 
         public DropPreviewController(
@@ -45,6 +46,26 @@ namespace UDND.Inventories
             if (entry.Stack == null || entry.Stack.IsEmpty || entry.Stack.PrimaryAdapter == null)
                 return false;
 
+            var policy = _inventory is IDropPolicyProvider policyProvider
+                ? policyProvider.ResolveDropPolicy(null, context)
+                : new ResolvedDropPolicy(
+                    BlockedTargetResolutionKind.AlternativeSlots,
+                    null,
+                    true,
+                    PartialTransferMode.Allow);
+            var probe = _transferService.Probe(
+                context,
+                _inventory,
+                targetBaseSlot,
+                policy);
+            if (probe.CanAttempt)
+            {
+                previewSlots = probe.CoveredSlots;
+                canPlace = true;
+                return true;
+            }
+
+            // Rejected shaped drops still render the in-bounds portion of their footprint.
             if (!TransferItemConversionUtility.TryResolveTargetItem(
                     entry.SourceInventory,
                     _inventory,
@@ -57,22 +78,9 @@ namespace UDND.Inventories
             if (offsets == null || offsets.Count == 0)
                 return true;
 
-            var acceptanceRequest = new InventoryAcceptanceRequest(
-                _inventory,
-                targetItem,
-                entry.Stack.Count,
-                context,
-                entry);
-            var geometry = new InventoryPlacementGeometry(_inventory);
-
             if (offsets.Count == 1)
             {
                 previewSlots = new[] { targetBaseSlot };
-                canPlace = _inventory.Strategy.TryGetCandidate(
-                    geometry,
-                    acceptanceRequest,
-                    targetBaseSlot,
-                    out _);
                 return true;
             }
 
@@ -85,7 +93,6 @@ namespace UDND.Inventories
                     out var anchorCell))
                 return true;
 
-            bool hasValidAnchor = _inventory.TryGetIndexForCell(anchorCell, out _);
             var coveredIndices = GetPreviewCoveredCells(anchorCell, shape, entry.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return true;
@@ -100,14 +107,6 @@ namespace UDND.Inventories
 
             previewSlots = slots;
 
-            if (!hasValidAnchor)
-                return true;
-
-            canPlace = _inventory.Strategy.TryGetCandidate(
-                geometry,
-                acceptanceRequest,
-                targetBaseSlot,
-                out _);
             return true;
         }
 

@@ -50,10 +50,6 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot = null);
         public abstract int GetAcceptableCount(InventoryAcceptanceRequest request);
 
-        public abstract bool CanAcceptItem(
-            InventoryAcceptanceRequest request,
-            out BaseSlot suggestedBaseSlot);
-
         public abstract bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack);
         public abstract bool TrySetStackForSlot(BaseSlot baseSlot, ItemStack stack);
         public abstract bool TryClearSlot(BaseSlot baseSlot);

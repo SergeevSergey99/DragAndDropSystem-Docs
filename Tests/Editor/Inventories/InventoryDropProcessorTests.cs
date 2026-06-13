@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using UDND.Core;
 using UDND.DataBinding;
@@ -552,6 +554,89 @@ namespace UDND.Tests.Inventories
                 processor.LastProbe.CoveredSlots.Select(slot => slot.Index).ToArray());
         }
 
+        [Test]
+        public async Task ProcessDropAsync_DomainStartVeto_RejectsBeforeMutation()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "first"));
+            _source.GetSlot(1).SetStack(ItemStackBuilder.Unique(1, "second"));
+
+            var binding = _target.gameObject.AddComponent<TestAsyncTransferDomainBinding>();
+            binding.RejectTransferStart = true;
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+
+            var report = await processor.ProcessDropWithReportAsync(context);
+
+            Assert.IsFalse(report.Success);
+            Assert.AreEqual("Async domain start veto", report.FailureReason);
+            Assert.AreEqual(1, binding.StartCalls);
+            Assert.AreEqual(2, CountFilledSlots(_source));
+            Assert.AreEqual(0, CountFilledSlots(_target));
+        }
+
+        [Test]
+        public async Task ProcessDropAsync_DomainStartAllows_ExecutesTransfer()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            var binding = _target.gameObject.AddComponent<TestAsyncTransferDomainBinding>();
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+            var report = await new InventoryDropProcessor(_target, new GlobalRuleValidator())
+                .ProcessDropWithReportAsync(context);
+
+            Assert.IsTrue(report.Success);
+            Assert.AreEqual(1, binding.StartCalls);
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty);
+            Assert.IsFalse(_target.GetSlot(0).IsEmpty);
+        }
+
+        [Test]
+        public void ProcessDropSync_WithAsyncDomainHandler_RequiresAsyncExecution()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            var binding = _target.gameObject.AddComponent<TestAsyncTransferDomainBinding>();
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+            var report = new InventoryDropProcessor(_target, new GlobalRuleValidator())
+                .ProcessDropWithReport(context);
+
+            Assert.IsFalse(report.Success);
+            Assert.AreEqual("Transfer requires asynchronous execution", report.FailureReason);
+            Assert.AreEqual(0, binding.StartCalls);
+            Assert.IsFalse(_source.GetSlot(0).IsEmpty);
+            Assert.IsTrue(_target.GetSlot(0).IsEmpty);
+        }
+
         // ---------- helpers ----------
 
         private static int CountFilledSlots(IInventory inv)
@@ -618,6 +703,32 @@ namespace UDND.Tests.Inventories
         {
             SuccessCalls++;
             SuccessContexts.Add(context);
+        }
+
+        protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context) { }
+        protected override void OnReloadUI() { }
+    }
+
+    public sealed class TestAsyncTransferDomainBinding :
+        InventoryDataBindingBase,
+        IAsyncTransferDomainHandler
+    {
+        public bool RejectTransferStart { get; set; }
+        public int StartCalls { get; private set; }
+
+        protected override void Awake() { }
+
+        public Task<RuleResult> CanStartTransferAsync(
+            DragContext context,
+            IInventory targetInventory,
+            CancellationToken cancellationToken)
+        {
+            StartCalls++;
+            return Task.FromResult(
+                RejectTransferStart
+                    ? RuleResult.Failure("Async domain start veto")
+                    : RuleResult.Success());
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context) { }

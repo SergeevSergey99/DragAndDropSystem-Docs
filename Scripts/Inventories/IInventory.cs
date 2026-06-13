@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UDND.Core;
 using UDND.DataBinding;
 using UDND.Slots;
@@ -8,7 +9,7 @@ namespace UDND.Inventories
     /// <summary>
     /// Base inventory interface
     /// </summary>
-    public interface IInventory : ISlotStackStore
+    public interface IInventory
     {
         /// <summary>
         /// All inventory slots
@@ -78,5 +79,17 @@ namespace UDND.Inventories
         /// in the context of a specific drag/drop operation.
         /// </summary>
         int GetAcceptableCount(InventoryAcceptanceRequest request);
+
+        bool TryGetStackForSlot(BaseSlot baseSlot, out IReadOnlyItemStack stack);
+        bool TrySetStackForSlot(BaseSlot baseSlot, ItemStack stack);
+        bool TryClearSlot(BaseSlot baseSlot);
+        bool TryGetPlacementAt(BaseSlot baseSlot, out Placement placement);
+        Vector2Int GetGrabOffset(Placement placement, BaseSlot baseSlot);
+        bool TrySplitFromSlot(BaseSlot baseSlot, int amount, out ItemStack splitStack);
+        bool TryAddToSlotStack(BaseSlot baseSlot, ItemStack stack);
+        bool TryRemoveFromSlot(
+            BaseSlot baseSlot,
+            IReadOnlyList<IItemAdapter> adapters,
+            out int removed);
     }
 }

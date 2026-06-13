@@ -211,14 +211,14 @@ methods check `IsSyncing` before calling virtual `OnItemAddedToUI()`/`OnItemRemo
 **Solution**: Use the proper occupied-slot handler hooks in `InventoryDataBindingBase`:
 
 ```csharp
-// Planner phase — pure check, no mutation
+// Read-only eligibility check
 protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
 {
     // check capacity, type compatibility, etc.
     return true; // or false to fall through to normal BlockedTargetBehavior
 }
 
-// Executor phase — full mutation, owned by DataBinding
+// Custom mutation, owned by DataBinding
 protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
 {
     // add to container, clear source slot, fire events
@@ -228,7 +228,7 @@ protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupi
 
 If `CanHandleOccupiedSlotDrop` returns false, the pipeline continues normally (swap, findAlternative, reject) according to `BlockedTargetBehavior` — no behavior is lost.
 
-**Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` and `Scripts/Inventories/TransferPlanner.cs`.
+**Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` and `Scripts/Inventories/InventoryTransferEngine.cs`.
 
 ---
 
@@ -240,15 +240,15 @@ If `CanHandleOccupiedSlotDrop` returns false, the pipeline continues normally (s
 - couples transfer target resolution to visual layout
 - makes future layouts require drop-area edits
 - encourages layout code to split stacks, create items, or emit inventory events
-- bypasses planner/executor rollback and event ordering guarantees
+- bypasses transfer-service rollback and event ordering guarantees
 
 **Solution**:
 - layout components move UI transforms only
-- transfer semantics stay in `TransferPlanner` / `TransferPlanExecutor`
+- transfer semantics stay in `InventoryTransferService`
 - dynamic target slot creation goes through generic runtime capabilities such as `IDynamicSlotLifecycle`
 - `FreeFormSlotLayout` reacts to `OnSlotCreated` and positions the created slot at the pending drop point
 
-**Check**: `Scripts/UI/InventoryDropArea.cs`, `Scripts/UI/FreeFormSlotLayout.cs`, `Scripts/Inventories/TransferPlanExecutor.cs`.
+**Check**: `Scripts/UI/InventoryDropArea.cs`, `Scripts/UI/FreeFormSlotLayout.cs`, `Scripts/Inventories/InventoryTransferEngine.cs`.
 
 ---
 

@@ -35,7 +35,7 @@ namespace UDND.Inventories
         public IItemAdapter TargetItemAdapter { get; }
 
         public Vector2Int TargetCell => TargetInventory != null && TargetBaseSlot != null
-            ? TargetInventory.GetCellForIndex(TargetBaseSlot.Index)
+            ? TargetInventory.Topology.ToCell(TargetBaseSlot.Index)
             : Vector2Int.zero;
 
         public Vector2Int SourceGrabOffset

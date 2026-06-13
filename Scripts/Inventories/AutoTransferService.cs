@@ -99,9 +99,6 @@ namespace UDND.Inventories
                 swapAttempting: swapAttempting,
                 swapCompleted: swapCompleted);
 
-            if (!handler.CanAcceptDrop(context, requestedPolicy))
-                return (DropResult.Failed("Auto-transfer plan rejected"), null);
-
             var report = await handler.ProcessDropWithReportAsync(context, requestedPolicy, cancellationToken);
             return (report.ToDropResult(targetInventory), report);
         }

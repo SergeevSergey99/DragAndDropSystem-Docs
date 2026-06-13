@@ -425,14 +425,14 @@ namespace UDND
             _activeDropTarget.OnBecomeActiveTarget();
         }
 
-        private Task CompleteDragAsync(DropRequestPolicy? requested)
+        private async Task CompleteDragAsync(DropRequestPolicy? requested)
         {
             if (_isProcessingTransfer)
             {
                 Extensions.DragAndDropLog("<color=red>CompleteDrag: Another transfer is in progress</color>");
                 OnDragCancelled?.Invoke(_currentContext);
                 EndDrag();
-                return Task.CompletedTask;
+                return;
             }
 
             _isCompletingDrag = true;
@@ -448,18 +448,20 @@ namespace UDND
                 {
                     OnDropAttempting?.Invoke(dragContext);
 
-                    bool canDrop;
                     var requestProcessor = processorToUse as IDropRequestProcessor;
-                    if (requestProcessor != null)
-                        canDrop = requestProcessor.CanAcceptDrop(dragContext, requested);
-                    else
-                        canDrop = processorToUse.CanAcceptDrop(dragContext);
+                    bool canDrop = processorToUse is InventoryDropProcessor ||
+                        (requestProcessor != null
+                            ? requestProcessor.CanAcceptDrop(dragContext, requested)
+                            : processorToUse.CanAcceptDrop(dragContext));
 
                     if (canDrop)
                     {
                         if (processorToUse is InventoryDropProcessor inventoryProcessor)
                         {
-                            result = inventoryProcessor.ProcessDrop(dragContext, requested);
+                            var report = await inventoryProcessor.ProcessDropWithReportAsync(
+                                dragContext,
+                                requested);
+                            result = report.ToDropResult(dragContext.TargetInventory);
                         }
                         else if (requestProcessor != null)
                         {
@@ -515,7 +517,6 @@ namespace UDND
                 _isProcessingTransfer = false;
             }
 
-            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -28,18 +28,9 @@ namespace UDND.Inventories
         
         int GetMaxStackSizeForItem(IItemAdapter itemAdapter);
         
-        int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
+        int GetAcceptableCount(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request);
 
-        /// <summary>
-        /// Decides whether a shaped drop should merge into an existing placement, create a new one, or be rejected.
-        /// The strategy owns the merge policy (one-per-ID, auto/explicit).
-        /// </summary>
-        ShapedMergeDecision ResolveShapedMerge(
-            IPlacementInventory inventory,
-            IItemAdapter item,
-            int anchorIndex,
-            IPlacementShape shape,
-            PlacementOrientation orientation,
-            Placement sourcePlacement);
     }
 }

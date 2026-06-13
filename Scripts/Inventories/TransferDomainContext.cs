@@ -5,7 +5,7 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Domain-operation context for a single planned transfer allocation.
+    /// Domain-operation context for a single JIT transfer allocation.
     /// Created before commit and then reused after the transfer completes successfully.
     /// </summary>
     public sealed class TransferDomainContext
@@ -48,14 +48,6 @@ namespace UDND.Inventories
         public bool IsCommitted { get; private set; }
         public TransferKind Kind { get; }
         public TransferDomainContext CounterpartContext { get; internal set; }
-
-        public void MarkCommitted(InventoryTransferResult outcome)
-        {
-            IsCommitted = true;
-            TargetBaseSlot = outcome.TargetBaseSlot ?? PlannedTargetBaseSlot;
-            TargetItemAdapter = outcome.TargetItemAdapter ?? PreviewTargetItemAdapter;
-            CommittedAmount = outcome.Amount;
-        }
 
         public void MarkCommitted(BaseSlot targetBaseSlot, IItemAdapter targetItemAdapter, int committedAmount)
         {

@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-14
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -17,7 +17,7 @@ Validation order:
 2. inventory-level rules
 3. slot-level rules
 
-`RuleEvaluationService` is used by planner/executor to validate candidates and swap directions.
+`RuleEvaluationService` is used by the transfer service to validate candidates and swap directions.
 
 ## 3. Policy-Driven Transfer Behavior
 
@@ -34,28 +34,17 @@ Current policy layers:
 - `DropPolicySettings`
 - `ResolvedDropPolicy`
 
-## 4. Planner/Executor Split
+## 4. JIT Transfer Service
 
-### Planner
+`Scripts/Inventories/InventoryTransferEngine.cs`
 
-`Scripts/Inventories/TransferPlanner.cs`
-
-- pure planning layer
-- uses target-side preview conversion and `InventoryAcceptanceRequest`
-- builds `TransferPlan` with `PlannedEntryTransfer` entries
-- uses virtual slot state to avoid overbooking in batch planning
-- can mark entry as `RequiresSwap`
-
-### Executor
-
-`Scripts/Inventories/TransferPlanExecutor.cs`
-
-- mutation layer
-- executes normal allocations through internal placement helpers
-- can create a new dynamic target slot for same-inventory area drops via `IDynamicSlotLifecycle.TryCreateSlot(...)`
-- executes swap branch when planned
-- supports rollback in `Atomic` mode
-- emits transfer/swap events only after successful completion
+- validates and executes against current inventory state
+- checks an explicit target directly or enumerates ordered automatic candidates
+- requests fresh candidates after each mutation
+- processes batch entries sequentially with per-entry rollback
+- creates dynamic targets through `IDynamicSlotLifecycle`
+- emits events only after the current entry commits
+- has no materialized plan, virtual occupancy, or batch-wide `Atomic` mode
 
 Important current detail:
 - transfer outcomes distinguish `SourceItem` and `TargetItem`
@@ -64,22 +53,22 @@ Important current detail:
 ## 5. Swap Is First-Class in Pipeline
 
 Current flow:
-- planner marks swap candidate
-- executor validates reverse and forward drop legality
+- transfer service enters swap only for a blocked explicit target and a single full entry
+- service validates reverse and forward drop legality
 - `SwapAttempting` callback can cancel
-- `UniversalInventory.TrySwapSlots` performs swap
-- `SwapCompleted` callback runs after successful plan completion
+- service mutates both placements inside the current entry transaction
+- `SwapCompleted` callback runs after successful commit
 
 ## 6. Event Architecture
 
 `UniversalInventory.TryAddToSlot()` is pure mutation, no events emitted internally.
 
-Events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()`:
+Events are emitted only after an entry commits:
 - `EmitItemAdded()` → direct `DataBinding.HandleItemAdded()` call, then `OnItemAdded`
 - `EmitItemRemoved()` → direct `DataBinding.HandleItemRemoved()` call, then `OnItemRemoved`
 
 The system prefers deferred event dispatch for consistency:
-- no false-positive events on atomic rollback
+- no false-positive events on entry rollback
 - predictable order for DataBinding consumers
 
 ## 7. Preview Acceptance Is Context-Aware
@@ -95,13 +84,13 @@ This matters for:
 - mapped-slot inventories
 - cross-inventory adapter conversion
 
-## 8. Conversion Is Previewed Before Planning
+## 8. Conversion Is Previewed Before Execution
 
 `Scripts/Inventories/TransferItemConversionUtility.cs`
 
 - source inventory preview-converts outgoing item
 - target inventory preview-converts incoming item
-- planner, drop area, and executor all work with target-side preview item
+- probe, drop area, and execution work with the target-side preview item
 
 Current note:
 - conversion now lives on inventory-side `ItemConverter`
@@ -113,9 +102,19 @@ Current note:
 
 Responsibilities:
 - resolve effective target and policy
-- request plan
-- execute plan with options
+- expose advisory probe data
+- execute the JIT transfer with options
 - return `DropResult`
+
+## 10. Asynchronous Transfer-Wide Veto
+
+`IAsyncTransferDomainHandler.CanStartTransferAsync(...)` is optional. The asynchronous execution
+path invokes it once before the first mutation, after synchronous transfer-wide validation.
+Implementations may perform remote validation or their own simulation; simulation is not required
+or supplied by the core.
+
+The synchronous execution API rejects transfers when an async handler is attached, preventing the
+check from being silently bypassed. Preview remains synchronous and does not invoke this handler.
 
 Current note:
 - same-inventory slot-target fallback still avoids reshuffling unrelated slots

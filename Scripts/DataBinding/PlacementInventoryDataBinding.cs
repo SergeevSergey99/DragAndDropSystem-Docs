@@ -117,7 +117,7 @@ namespace UDND.DataBinding
                     placement.Orientation,
                     PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
-                if (!placementInventory.TryPlace(request))
+                if (!placementInventory.TryPlace(request, out _))
                     OnPlacementReloadFailed(placement, stack.PrimaryAdapter);
 
                 return;

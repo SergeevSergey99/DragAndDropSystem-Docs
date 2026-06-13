@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UDND.Core;
 using UDND.Rules;
@@ -9,7 +11,8 @@ using UDND.Tools;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Input for a single-entry JIT transfer (plan: Unified Placement Transfer, stage 3).
+    /// Input for the low-level single-entry JIT operation.
+    /// Transfer-wide validation belongs to ExecuteBatch/ExecuteBatchAsync.
     /// </summary>
     public sealed class TransferEntryRequest
     {
@@ -76,23 +79,6 @@ namespace UDND.Inventories
             public bool Aborted;
             public List<CommittedOutcome> Committed = new List<CommittedOutcome>();
         }
-
-        /// <summary>
-        /// Advisory read-only acceptance probe. It checks whether at least one entry currently has
-        /// a viable first candidate; execution remains authoritative and revalidates everything.
-        /// </summary>
-        public bool CanAttempt(
-            DragContext context,
-            IInventory targetInventory,
-            BaseSlot targetBaseSlot,
-            ResolvedDropPolicy policy,
-            GlobalRuleValidator globalRules = null)
-            => Probe(
-                context,
-                targetInventory,
-                targetBaseSlot,
-                policy,
-                globalRules).CanAttempt;
 
         public TransferProbe Probe(
             DragContext context,
@@ -264,9 +250,71 @@ namespace UDND.Inventories
                 return TransferExecutionReport.Rejected("Swap requires a single full entry");
 
             var validationContext = context.WithTarget(targetBaseSlot, targetInventory);
+            if (HasAsyncTransferStartHandler(validationContext, targetInventory))
+                return TransferExecutionReport.Rejected(
+                    "Transfer requires asynchronous execution");
             if (!ValidateTransferStart(validationContext, targetInventory, out var rejectionReason))
                 return TransferExecutionReport.Rejected(rejectionReason);
 
+            return ExecuteBatchCore(
+                context,
+                targetInventory,
+                targetBaseSlot,
+                policy,
+                swapAttempting,
+                swapCompleted,
+                globalRules);
+        }
+
+        public async Task<TransferExecutionReport> ExecuteBatchAsync(
+            DragContext context,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlot,
+            ResolvedDropPolicy policy,
+            Func<InventorySwapContext, bool> swapAttempting = null,
+            Action<InventorySwapContext> swapCompleted = null,
+            GlobalRuleValidator globalRules = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (context?.Entries == null || context.Entries.Count == 0)
+                return TransferExecutionReport.Rejected("Empty drag context");
+
+            if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
+                context.Entries.Count > 1)
+                return TransferExecutionReport.Rejected("Swap requires a single full entry");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            var validationContext = context.WithTarget(targetBaseSlot, targetInventory);
+            if (!ValidateTransferStart(validationContext, targetInventory, out var rejectionReason))
+                return TransferExecutionReport.Rejected(rejectionReason);
+
+            var asyncValidation = await ValidateTransferStartAsync(
+                validationContext,
+                targetInventory,
+                cancellationToken);
+            if (!asyncValidation.IsValid)
+                return TransferExecutionReport.Rejected(asyncValidation.FailureReason);
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return ExecuteBatchCore(
+                context,
+                targetInventory,
+                targetBaseSlot,
+                policy,
+                swapAttempting,
+                swapCompleted,
+                globalRules);
+        }
+
+        private TransferExecutionReport ExecuteBatchCore(
+            DragContext context,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlot,
+            ResolvedDropPolicy policy,
+            Func<InventorySwapContext, bool> swapAttempting,
+            Action<InventorySwapContext> swapCompleted,
+            GlobalRuleValidator globalRules)
+        {
             var results = new List<EntryTransferResult>(context.Entries.Count);
             for (int i = 0; i < context.Entries.Count; i++)
             {
@@ -281,6 +329,10 @@ namespace UDND.Inventories
             return new TransferExecutionReport(results);
         }
 
+        /// <summary>
+        /// Executes one already-authorized entry. Callers that need transfer-wide domain validation
+        /// must use ExecuteBatch or ExecuteBatchAsync instead.
+        /// </summary>
         public EntryTransferResult TryTransferEntry(TransferEntryRequest request)
         {
             if (request?.Entry.Stack == null || request.Entry.Stack.IsEmpty)
@@ -710,7 +762,7 @@ namespace UDND.Inventories
             {
                 var placementRequest = new PlacementRequest(subStack, anchorSlot.Index, candidate.Orientation, shape);
                 return placementInventory.CanPlace(placementRequest) &&
-                       placementInventory.TryPlace(placementRequest);
+                       placementInventory.TryPlace(placementRequest, out _);
             }
 
             return anchorSlot.IsEmpty && targetInventory.TrySetStackForSlot(anchorSlot, subStack);
@@ -876,6 +928,67 @@ namespace UDND.Inventories
             }
 
             return true;
+        }
+
+        private static async Task<RuleResult> ValidateTransferStartAsync(
+            DragContext context,
+            IInventory targetInventory,
+            CancellationToken cancellationToken)
+        {
+            var handlers = new HashSet<IAsyncTransferDomainHandler>();
+
+            foreach (var entry in context.Entries)
+            {
+                var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+                if (sourceInventory?.DataBinding is IAsyncTransferDomainHandler sourceHandler)
+                    handlers.Add(sourceHandler);
+            }
+
+            if (targetInventory?.DataBinding is IAsyncTransferDomainHandler targetHandler)
+                handlers.Add(targetHandler);
+
+            foreach (var handler in handlers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    var result = await handler.CanStartTransferAsync(
+                        context,
+                        targetInventory,
+                        cancellationToken);
+                    if (!result.IsValid)
+                    {
+                        return RuleResult.Failure(
+                            string.IsNullOrEmpty(result.FailureReason)
+                                ? "Transfer rejected by async domain handler"
+                                : result.FailureReason);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    return RuleResult.Failure(ex.Message);
+                }
+            }
+
+            return RuleResult.Success();
+        }
+
+        private static bool HasAsyncTransferStartHandler(
+            DragContext context,
+            IInventory targetInventory)
+        {
+            foreach (var entry in context.Entries)
+            {
+                var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+                if (sourceInventory?.DataBinding is IAsyncTransferDomainHandler)
+                    return true;
+            }
+
+            return targetInventory?.DataBinding is IAsyncTransferDomainHandler;
         }
 
         private static IEnumerable<ITransferDomainHandler> EnumerateDomainHandlers(TransferDomainContext context)

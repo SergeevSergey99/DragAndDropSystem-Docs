@@ -22,17 +22,12 @@ namespace UDND.Inventories
             IPlacementShape shape,
             PlacementOrientation orientation = PlacementOrientation.Rot0);
 
-        Vector2Int GetCellForIndex(int index);
-        bool TryGetIndexForCell(Vector2Int cell, out int index);
-
-        bool CanPlace(PlacementRequest request);
-        bool CanPlace(PlacementRequest request, Placement ignoredPlacement);
-        bool CanPlace(PlacementRequest request, Placement ignoredA, Placement ignoredB);
-        bool TryPlace(PlacementRequest request);
+        bool CanPlace(
+            PlacementRequest request,
+            Placement ignoredA = null,
+            Placement ignoredB = null);
         bool TryPlace(PlacementRequest request, out Placement placement);
         bool RemovePlacement(Placement placement);
-        bool RemovePlacementAt(BaseSlot baseSlot);
-        bool RemovePlacementAt(int cellIndex);
     }
 
     /// <summary>
@@ -42,8 +37,6 @@ namespace UDND.Inventories
     /// </summary>
     public interface IShapedDragTargetResolver
     {
-        IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy { get; }
-
         bool TryResolveShapedPlacementAnchorCell(
             BaseSlot targetBaseSlot,
             DragContext context,

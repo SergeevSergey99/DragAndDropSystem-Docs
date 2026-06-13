@@ -1,16 +1,19 @@
 using System.Threading;
 using System.Threading.Tasks;
+using UDND.Core;
 using UDND.Rules;
 
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Optional async pre-commit validation for transfer-level domain logic.
-    /// Use this for server-backed or other asynchronous veto checks that must run
-    /// once before a local transfer is committed.
+    /// Optional asynchronous transfer-wide veto.
+    /// Called once before any entry is mutated by the asynchronous execution path.
     /// </summary>
     public interface IAsyncTransferDomainHandler
     {
-        Task<RuleResult> CanCommitTransferAsync(TransferDomainContext context, CancellationToken cancellationToken);
+        Task<RuleResult> CanStartTransferAsync(
+            DragContext context,
+            IInventory targetInventory,
+            CancellationToken cancellationToken);
     }
 }

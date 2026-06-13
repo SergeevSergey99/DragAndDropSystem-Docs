@@ -4,7 +4,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-06-13
+**Last Updated**: 2026-06-14
 **Version**: 3.0
 
 ## Expert Baseline
@@ -20,6 +20,8 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 9. Keep UI layout concerns separate from transfer semantics.
 10. Treat `IPlacementInventory.Topology` as authoritative; do not branch shared placement code on
     `GridTopology` or an `is grid` flag.
+11. Keep `IAsyncTransferDomainHandler` optional and transfer-wide; invoke it once before any
+    mutation through the asynchronous execution path.
 
 ## Review Priorities
 
@@ -30,6 +32,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - Bidirectional rule checks for swap.
 - Same-inventory area-drop behavior: source slot is excluded, dynamic inventories create a new target slot during execution.
 - No duplicate or premature event emission.
+- Async transfer-wide veto is not bypassed by a synchronous execution path.
 
 ## Critical Files
 
@@ -42,6 +45,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - `Scripts/Inventories/PlacementCandidateOrderer.cs`
 - `Scripts/Inventories/InventoryAcceptanceRequest.cs`
 - `Scripts/Inventories/TransferItemConversionUtility.cs`
+- `Scripts/Inventories/IAsyncTransferDomainHandler.cs`
 - `Scripts/DragAndDropManager.cs`
 
 ## Checklists and Deep Dives

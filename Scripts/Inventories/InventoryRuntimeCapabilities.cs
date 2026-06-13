@@ -16,11 +16,6 @@ namespace UDND.Inventories
             bool allowForeignSlot = false);
     }
 
-    public interface IDragAmountStepProvider
-    {
-        int DragAmountStep { get; }
-    }
-
     public interface IOccupiedSlotDropHandler
     {
         bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot);

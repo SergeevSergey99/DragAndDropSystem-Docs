@@ -1,5 +1,9 @@
 # Future Refactoring Roadmap
 
+> Historical document. It describes the superseded planner/executor architecture and is not a
+> reference for the current JIT transfer pipeline. See `COMPONENTS.md`, `DATA_FLOW.md`, and
+> `STRATEGIES.md` for the current design.
+
 **Last Updated**: 2026-05-30
 
 This document collects architecture changes discussed during the recent refactoring pass.
@@ -332,9 +336,9 @@ This keeps the hook:
 
 Already done:
 - `TransferDomainContext` and `ITransferDomainHandler` exist
-- `IAsyncTransferDomainHandler` now exists for optional async pre-commit veto checks
-- `TransferPlanExecutor` runs domain validation before commit and defers success hooks until the whole plan succeeds
-- `TransferPlanExecutor` now has an async execution path so async `CanCommitTransferAsync(...)` can participate before local commit
+- `IAsyncTransferDomainHandler` now exists for an optional transfer-wide veto before mutation
+- the current JIT service runs synchronous and asynchronous transfer-wide validation before processing entries
+- `CanStartTransferAsync(...)` is invoked once by the asynchronous execution path
 - Demo2 Trading money side effects were moved out of item-added/item-removed reactions into transfer-level hooks
 - swap path now also participates in domain validation/success hooks
 - trading demo no longer keeps money checks in rule-layer `CanDrop`/`CanStartDrag`

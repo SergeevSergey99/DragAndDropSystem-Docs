@@ -20,7 +20,7 @@ namespace UDND.Inventories
     /// Supports the strategy default limit and, when allowItemOverride = true, per-item limits via IStackSizeLimitable.
     /// </summary>
     [Serializable]
-    public class StackableItemStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy
+    public class StackableItemStrategy : StackBasedInventoryStrategyBase
     {
         // Inverted on purpose: default/unset = auto-merge ON. A positive "auto-merge = true" field would
         // deserialize to false on inventories serialized before this field existed ([SerializeReference] ignores
@@ -29,30 +29,6 @@ namespace UDND.Inventories
             "existing stack of that item. ON: the existing stack accepts more only via an explicit drop directly " +
             "onto it; a duplicate dropped elsewhere is rejected (strict one-per-ID).")]
         private bool _explicitMergeOnly;
-
-        // Shaped merge policy lives entirely inside the strategy (one-per-ID; auto-merge unless explicit-only).
-        public override ShapedMergeDecision ResolveShapedMerge(
-            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
-            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
-        {
-            if (inventory == null || item == null)
-                return ShapedMergeDecision.CreateNew;
-
-            // one-per-ID: at most one placement of this item exists (the drag source is excluded so a
-            // same-inventory relocation still creates the moved placement).
-            var existing = FindMergeableShapedPlacement(inventory, item, sourcePlacement);
-            if (existing == null)
-                return ShapedMergeDecision.CreateNew;
-
-            if (!_explicitMergeOnly)
-                return ShapedMergeDecision.Merge(existing); // auto-consolidate wherever it was dropped
-
-            // explicit-only: merge only when the dropped footprint overlaps the existing placement;
-            // a duplicate dropped elsewhere is rejected (no second placement of the same item).
-            return FindOverlappedShapedPlacement(inventory, item, anchorIndex, shape, orientation, sourcePlacement) != null
-                ? ShapedMergeDecision.Merge(existing)
-                : ShapedMergeDecision.Reject;
-        }
 
         public override PlacementCandidateSource GetCandidates(
             IPlacementGeometry geometry,
@@ -262,13 +238,16 @@ namespace UDND.Inventories
             return true;
         }
 
-        public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
+        public override int GetAcceptableCount(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
         {
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
-            if (item == null || desiredCount <= 0)
+            if (geometry == null || item == null || desiredCount <= 0)
                 return 0;
 
+            var slots = geometry.Slots;
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
             // one-per-ID: if item already exists, return only that logical location's remaining capacity.
@@ -296,8 +275,15 @@ namespace UDND.Inventories
             }
 
             // no existing or empty slot: new slot
-            if (canCreateNewSlot && potentialNewSlots > 0 &&
-                PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request))
+            var slotCreation = geometry.Inventory as IInventorySlotCreationCapacity;
+            if (slotCreation?.CanCreateNewSlot == true &&
+                slotCreation.PotentialNewSlots > 0 &&
+                PrefabPassesRules(
+                    slots,
+                    slotCreation.BaseSlotPrefab,
+                    item,
+                    Math.Min(desiredCount, maxSize),
+                    request))
                 return Math.Min(maxSize, desiredCount);
 
             return 0;

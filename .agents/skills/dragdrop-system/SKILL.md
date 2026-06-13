@@ -5,7 +5,7 @@ description: Quick reference for the UniversalDragAndDrop JIT transfer pipeline,
 # Unity Drag & Drop Inventory System - Quick Reference
 
 **Version**: 3.0
-**Last Updated**: 2026-06-13
+**Last Updated**: 2026-06-14
 
 ## System Overview
 
@@ -17,6 +17,7 @@ Core drag & drop uses one just-in-time transfer pipeline:
 4. `IStrategy` (`Scripts/Inventories/Strategies/IStrategy.cs`) - validates explicit targets and enumerates placement candidates.
 5. `PlacementCandidateOrderer` (`Scripts/Inventories/PlacementCandidateOrderer.cs`) - orders candidates only for automatic distribution.
 6. `InventoryAcceptanceRequest` and `TransferItemConversionUtility` - provide target-aware, non-mutating preview data.
+7. `IAsyncTransferDomainHandler` - optional transfer-wide asynchronous veto before any mutation.
 
 Main benefits:
 - unified behavior for single and batch drag
@@ -25,6 +26,7 @@ Main benefits:
 - explicit target validation does not enumerate or order all candidates
 - topology-owned footprints work for single-cell and shaped items
 - swap and alternative placement remain in the same transfer service
+- asynchronous domain checks cannot be bypassed by synchronous execution
 
 ## Main Components
 
@@ -49,6 +51,8 @@ Main benefits:
   - area-drop entry point that builds preview requests
 - `IDynamicSlotLifecycle` (`Scripts/Inventories/InventoryRuntimeCapabilities.cs`)
   - capability for runtime slot creation/removal used by transfer execution
+- `IAsyncTransferDomainHandler`
+  - optional server-backed or user-defined transfer-wide check invoked once before mutation
 
 ## Policy Model
 

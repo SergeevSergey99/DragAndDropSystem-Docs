@@ -35,7 +35,9 @@ namespace UDND.Inventories
         {
             return itemAdapter == null ? 0 : int.MaxValue;
         }
-        public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
+        public abstract int GetAcceptableCount(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request);
 
         public abstract bool TryGetCandidate(
             IPlacementGeometry geometry,
@@ -104,7 +106,7 @@ namespace UDND.Inventories
                 dynamicCapacity <= 0 ||
                 !CanCreateDynamicCandidate(geometry, request) ||
                 !PrefabPassesRules(
-                    new List<BaseSlot>(geometry.Slots),
+                    geometry.Slots,
                     slotCreation.BaseSlotPrefab,
                     request.ItemAdapter,
                     dynamicCapacity,
@@ -171,13 +173,6 @@ namespace UDND.Inventories
             candidate = PlacementCandidate.Create(anchor, orientation, shape, capacity);
             return true;
         }
-
-        // Base/Unique: shaped placements never merge — each item is its own placement (count 1).
-        // Stack-based strategies override this with their own merge policy.
-        public virtual ShapedMergeDecision ResolveShapedMerge(
-            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
-            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
-            => ShapedMergeDecision.CreateNew;
 
         public virtual int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
         {
@@ -264,40 +259,7 @@ namespace UDND.Inventories
             return true;
         }
 
-        protected bool PrefabPassesRules(List<BaseSlot> slots, BaseSlot baseSlotPrefab, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request)
-        {
-            if (itemAdapter == null || previewCount <= 0)
-                return false;
-
-            IInventoryRuleEvaluator ruleEvaluator = request?.TargetInventory as IInventoryRuleEvaluator;
-            if (ruleEvaluator == null)
-            {
-                foreach (var slot in slots)
-                {
-                    ruleEvaluator = slot?.Inventory as IInventoryRuleEvaluator;
-                    if (ruleEvaluator != null)
-                        break;
-                }
-            }
-
-            if (ruleEvaluator != null)
-                return ruleEvaluator.CanAcceptByRules(baseSlotPrefab, itemAdapter, previewCount, request, allowForeignSlot: true);
-
-            if (baseSlotPrefab?.SlotRuleValidator == null)
-                return true;
-
-            var context = request?.CreateValidationContext(baseSlotPrefab, previewCount, itemAdapter);
-            if (context == null)
-            {
-                if (!ItemStack.TryCreate(new[] { itemAdapter }, out var fallbackStack))
-                    return false;
-                context = new DragContext(fallbackStack, null, null, baseSlotPrefab, null);
-            }
-            var entry = context.Entries[0];
-            return baseSlotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
-        }
-
-        protected bool PrefabPassesRules(IReadOnlyList<ISlot> slots, BaseSlot baseSlotPrefab, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request)
+        protected bool PrefabPassesRules(IReadOnlyList<BaseSlot> slots, BaseSlot baseSlotPrefab, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request)
         {
             if (itemAdapter == null || previewCount <= 0)
                 return false;
@@ -410,55 +372,6 @@ namespace UDND.Inventories
             placement = placementInventory.GetPlacementAt(baseSlot);
             return placement != null;
         }
-
-        /// <summary>Same item, not the drag source, not empty, can stack → a valid shaped merge candidate.</summary>
-        protected static bool IsMergeablePlacement(Placement placement, Placement sourcePlacement, IItemAdapter item)
-        {
-            return placement != null &&
-                   !ReferenceEquals(placement, sourcePlacement) &&
-                   placement.Stack != null &&
-                   !placement.Stack.IsEmpty &&
-                   placement.Stack.CanStack(item);
-        }
-
-        /// <summary>First existing placement of the same item (excluding the drag source), or null.</summary>
-        protected static Placement FindMergeableShapedPlacement(IPlacementInventory inventory, IItemAdapter item, Placement sourcePlacement)
-        {
-            if (inventory?.Placements == null)
-                return null;
-
-            foreach (var placement in inventory.Placements)
-            {
-                if (IsMergeablePlacement(placement, sourcePlacement, item))
-                    return placement;
-            }
-
-            return null;
-        }
-
-        /// <summary>Same-item placement overlapped by the dropped footprint (excluding the source), or null.</summary>
-        protected static Placement FindOverlappedShapedPlacement(
-            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
-            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
-        {
-            if (inventory == null)
-                return null;
-
-            var covered = inventory.GetCoveredCells(anchorIndex, shape, orientation);
-            if (covered == null)
-                return null;
-
-            for (int i = 0; i < covered.Count; i++)
-            {
-                var placement = inventory.GetPlacementAt(covered[i]);
-                if (IsMergeablePlacement(placement, sourcePlacement, item))
-                    return placement;
-            }
-
-            return null;
-        }
-
-
 
         internal string CaptureConfigurationJson()
         {

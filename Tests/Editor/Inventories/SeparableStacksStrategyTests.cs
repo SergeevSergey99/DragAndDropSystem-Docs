@@ -445,7 +445,7 @@ namespace UDND.Tests.Inventories
             // _slots[2] empty — room 5
             var request = MakeRequest("gem", 20);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(7, count);
         }
@@ -457,7 +457,7 @@ namespace UDND.Tests.Inventories
             _slots = TestSlotFactory.CreateSlots(3);
             var request = MakeRequest("gem", 4);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(4, count);
         }
@@ -466,12 +466,20 @@ namespace UDND.Tests.Inventories
         public void GetAcceptableCount_IncludesPotentialNewSlots()
         {
             _strategy.SetMaxStackSize(4, allowItemOverride: false);
-            _slots = TestSlotFactory.CreateSlots(1);
-            _slots[0].SetStack(ItemStackBuilder.Unique(1, "rock")); // not matching, no capacity
-            _prefab = TestSlotFactory.CreatePrefab();
-            var request = MakeRequest("gem", 10);
+            var inventory = new InventoryBuilder()
+                .WithStrategy(_strategy)
+                .WithFixedSlots(1)
+                .WithSlotManagementSettings(new DynamicSlotManagementSettings())
+                .Build();
+            _inventory = inventory;
+            _slots = new List<BaseSlot>(inventory.Slots);
+            inventory.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "rock"));
+            var request = new InventoryAcceptanceRequest(
+                inventory,
+                new FakeItemAdapter("gem"),
+                10);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(inventory), request);
 
             // 3 new slots * 4 max = 12, clamped to desired 10
             Assert.AreEqual(10, count);

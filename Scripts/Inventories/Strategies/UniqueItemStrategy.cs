@@ -10,7 +10,7 @@ namespace UDND.Inventories
     /// Used for inventories with unique items
     /// </summary>
     [Serializable]
-    public class UniqueItemStrategy : InventoryStrategyBase, IUniqueInventoryStrategy
+    public class UniqueItemStrategy : InventoryStrategyBase
     {
         protected override bool ShowDragAmountSettings => false;
         public override int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount) => 1;
@@ -52,13 +52,16 @@ namespace UDND.Inventories
                 out candidate);
         }
 
-        public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
+        public override int GetAcceptableCount(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
         {
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
-            if (item == null || desiredCount <= 0)
+            if (geometry == null || item == null || desiredCount <= 0)
                 return 0;
 
+            var slots = geometry.Slots;
             int acceptableCount = 0;
             foreach (var slot in slots)
             {
@@ -66,8 +69,11 @@ namespace UDND.Inventories
                     acceptableCount++;
             }
 
-            if (canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, baseSlotPrefab, item, 1, request))
-                acceptableCount += potentialNewSlots;
+            var slotCreation = geometry.Inventory as IInventorySlotCreationCapacity;
+            if (slotCreation?.CanCreateNewSlot == true &&
+                slotCreation.PotentialNewSlots > 0 &&
+                PrefabPassesRules(slots, slotCreation.BaseSlotPrefab, item, 1, request))
+                acceptableCount += slotCreation.PotentialNewSlots;
 
             return Math.Min(acceptableCount, desiredCount);
         }

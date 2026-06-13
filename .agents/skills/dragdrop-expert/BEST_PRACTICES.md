@@ -2,7 +2,7 @@
 
 Complete guide for extending the system and optimization strategies.
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-14
 
 ## Extension Points
 
@@ -11,26 +11,17 @@ Complete guide for extending the system and optimization strategies.
 **Purpose**: Create custom inventory behavior (e.g., weight limits, volume-based, durability).
 
 **Locations**:
-- `Scripts/Inventories/Strategies/IPlacementStrategy.cs`
-- `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs`
-- `Scripts/Inventories/Strategies/IDragPolicy.cs`
-- `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs`
-- `Scripts/Inventories/Strategies/IInventoryStrategy.cs`
+- `Scripts/Inventories/Strategies/IStrategy.cs`
 - `Scripts/Inventories/Strategies/InventoryStrategyBase.cs`
 - `Scripts/Inventories/Strategies/*.cs`
 
 **How to Create**:
 1. Inherit from `InventoryStrategyBase` or an existing concrete strategy
-2. Override `TryAdd(slots, stack, targetIndex)` method
-3. Override `TryRemove(slots, item, count, sourceIndex)` method (optional)
-4. Override `TryAddToSlot(...)` if slot-target semantics differ
-5. Override `GetSlotCandidates(...)` (slot eligibility) and, if needed, `DefaultSlotSelectionPolicy` and
-   `GetAcceptableCount(...)`; override `ResolveShapedMerge(...)` for shaped merge/new/reject policy.
-   (There is no strategy-level `CanAcceptItem` anymore — eligibility lives in `GetSlotCandidates`.)
-6. Override `ResolveDragAmount(...)` only if drag semantics differ
-7. Override `Contains(...)` / `GetItemCount(...)` only if query semantics differ
-8. Use `PassesRules(slot, item, count, request)` for rule validation
-9. Return true if operation succeeds, false otherwise
+2. Override `TryGetCandidate(...)` for explicit-target semantics
+3. Override `GetCandidates(...)` for automatic eligibility and natural order
+4. Override `GetAcceptableCount(geometry, request)` when aggregate capacity differs
+5. Override `ResolveDragAmount(...)` only if drag semantics differ
+6. Use `PassesRules(...)` for candidate validation
 
 **Example Use Cases**:
 - Weight limit system (check total weight before adding)
@@ -128,7 +119,7 @@ Complete guide for extending the system and optimization strategies.
 **Rules**:
 1. Treat layout as UI-only: move `RectTransform`s, not item stacks.
 2. React to slot lifecycle events such as `OnSlotCreated`.
-3. Leave stack split/merge/move and events to `TransferPlanner` / `TransferPlanExecutor`.
+3. Leave stack split/merge/move and events to `InventoryTransferService`.
 4. Do not make `InventoryDropArea` depend on a specific layout implementation.
 5. If a layout needs new target slots, add a generic runtime capability instead of calling the layout from the drop target.
 

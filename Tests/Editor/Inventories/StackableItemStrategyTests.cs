@@ -594,7 +594,7 @@ namespace UDND.Tests.Inventories
             // _slots[2] empty — must NOT be counted under one-per-ID
             var request = MakeRequest("gem", 20);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(3, count, "Only the existing gem slot's remaining capacity counts");
         }
@@ -608,7 +608,7 @@ namespace UDND.Tests.Inventories
             // _slots[1], _slots[2] empty
             var request = MakeRequest("gem", 20);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(10, count, "Absent item gets one empty slot's worth of capacity");
         }
@@ -620,7 +620,7 @@ namespace UDND.Tests.Inventories
             _slots = TestSlotFactory.CreateSlots(3);
             var request = MakeRequest("gem", 5);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(5, count);
         }
@@ -635,7 +635,7 @@ namespace UDND.Tests.Inventories
             _prefab = TestSlotFactory.CreatePrefab();
             var request = MakeRequest("gem", 10);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(1, count, "Only the existing stack's remainder; no second stack via new slots");
         }
@@ -644,12 +644,20 @@ namespace UDND.Tests.Inventories
         public void GetAcceptableCount_ItemAbsentNoEmpty_NewSlotCapacityCounted()
         {
             _strategy.SetMaxStackSize(4, allowItemOverride: false);
-            _slots = TestSlotFactory.CreateSlots(1);
-            _slots[0].SetStack(ItemStackBuilder.Unique(2, "rock")); // no empty, item absent
-            _prefab = TestSlotFactory.CreatePrefab();
-            var request = MakeRequest("gem", 10);
+            var inventory = new InventoryBuilder()
+                .WithStrategy(_strategy)
+                .WithFixedSlots(1)
+                .WithSlotManagementSettings(new DynamicSlotManagementSettings())
+                .Build();
+            _inventory = inventory;
+            _slots = new List<BaseSlot>(inventory.Slots);
+            inventory.GetSlot(0).SetStack(ItemStackBuilder.Unique(2, "rock"));
+            var request = new InventoryAcceptanceRequest(
+                inventory,
+                new FakeItemAdapter("gem"),
+                10);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(inventory), request);
 
             Assert.AreEqual(4, count, "Absent item with no empty slot uses one new slot's capacity");
         }
@@ -664,7 +672,7 @@ namespace UDND.Tests.Inventories
                 itemAdapter: new LimitedFakeAdapter("gem", maxStackSize: 3),
                 desiredCount: 10);
 
-            int count = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
+            int count = _strategy.GetAcceptableCount(new InventoryPlacementGeometry(_slots[0].Inventory), request);
 
             Assert.AreEqual(3, count, "Per-item IStackSizeLimitable overrides strategy default");
         }

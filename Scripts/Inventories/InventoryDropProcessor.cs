@@ -122,13 +122,30 @@ namespace UDND.Inventories
             return FinalizeExecution(context, report, "JIT execute failed", "JIT executed");
         }
 
-        public Task<TransferExecutionReport> ProcessDropWithReportAsync(
+        public async Task<TransferExecutionReport> ProcessDropWithReportAsync(
             DragContext context,
             DropRequestPolicy? requested = null,
             CancellationToken cancellationToken = default)
         {
-            // JIT service is synchronous; return a completed task for API compatibility.
-            return Task.FromResult(ProcessDropWithReport(context, requested));
+            if (context == null)
+            {
+                var fail = TransferExecutionReport.Rejected("Null drag context");
+                LastExecutionReport = fail;
+                return fail;
+            }
+
+            var effectivePolicy = ResolveEffectivePolicy(context, requested);
+            var report = await _jitService.ExecuteBatchAsync(
+                context,
+                _targetInventory,
+                _targetBaseSlot,
+                effectivePolicy,
+                _swapAttempting,
+                _swapCompleted,
+                _globalRules,
+                cancellationToken);
+
+            return FinalizeExecution(context, report, "Async JIT execute failed", "Async JIT executed");
         }
 
         private TransferExecutionReport FinalizeExecution(

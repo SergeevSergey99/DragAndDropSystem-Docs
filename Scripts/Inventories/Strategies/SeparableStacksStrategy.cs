@@ -15,22 +15,10 @@ namespace UDND.Inventories
     /// when allowItemOverride = true, per-item stack limits via IStackSizeLimitable
     /// </summary>
     [Serializable]
-    public class SeparableStacksStrategy : StackBasedInventoryStrategyBase, IStackBasedInventoryStrategy, ISeparableStacksInventoryStrategy
+    public class SeparableStacksStrategy : StackBasedInventoryStrategyBase
     {
         private int GetMaxStackSize(IItemAdapter itemAdapter) =>
             GetMaxStackSize(itemAdapter, DefaultMaxStackSize, AllowItemStackOverride);
-
-        // Separable: explicit merge only — a shaped drop merges only when its footprint overlaps an existing
-        // same-item placement; otherwise it creates a new, separate placement (multiple stacks allowed).
-        public override ShapedMergeDecision ResolveShapedMerge(
-            IPlacementInventory inventory, IItemAdapter item, int anchorIndex,
-            IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
-        {
-            var overlapped = FindOverlappedShapedPlacement(inventory, item, anchorIndex, shape, orientation, sourcePlacement);
-            return overlapped != null
-                ? ShapedMergeDecision.Merge(overlapped)
-                : ShapedMergeDecision.CreateNew;
-        }
 
         public override bool TryGetCandidate(
             IPlacementGeometry geometry,
@@ -100,13 +88,16 @@ namespace UDND.Inventories
                 out candidate);
         }
 
-        public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
+        public override int GetAcceptableCount(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
         {
             var item = request?.ItemAdapter;
             var desiredCount = request?.DesiredCount ?? 0;
-            if (item == null || desiredCount <= 0)
+            if (geometry == null || item == null || desiredCount <= 0)
                 return 0;
 
+            var slots = geometry.Slots;
             int maxSize = GetMaxStackSize(item);
             int totalCapacity = 0;
 
@@ -127,10 +118,15 @@ namespace UDND.Inventories
                     return desiredCount;
             }
 
-            if (canCreateNewSlot && totalCapacity < desiredCount)
+            var slotCreation = geometry.Inventory as IInventorySlotCreationCapacity;
+            if (slotCreation?.CanCreateNewSlot == true && totalCapacity < desiredCount)
             {
-                if (PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request))
-                    totalCapacity = AddSlotCapacity(totalCapacity, maxSize, Math.Max(1, potentialNewSlots), desiredCount);
+                if (PrefabPassesRules(slots, slotCreation.BaseSlotPrefab, item, Math.Min(desiredCount, maxSize), request))
+                    totalCapacity = AddSlotCapacity(
+                        totalCapacity,
+                        maxSize,
+                        Math.Max(1, slotCreation.PotentialNewSlots),
+                        desiredCount);
             }
 
             return Math.Min(totalCapacity, desiredCount);

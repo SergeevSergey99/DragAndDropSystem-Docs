@@ -46,7 +46,7 @@ Focus:
 ## Cross-Demo Checklist
 
 - verify `DropPolicy` preset per target type
-- verify batch behavior (`Atomic` vs `BestEffort`)
+- verify sequential best-effort batch behavior and per-entry rollback
 - verify swap callbacks and cancellation path
 - verify direct DataBinding notifications
 - verify cross-inventory adapter conversion produces correct target payloads

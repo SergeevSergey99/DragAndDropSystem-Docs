@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDragAmountStepProvider, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction, IInventorySlotCreationCapacity
+    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction, IInventorySlotCreationCapacity
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -80,7 +80,6 @@ namespace UDND.Inventories
         public IReadOnlyCollection<Placement> Placements => EnsurePlacementStore().Placements;
 
         public IInventoryTopology Topology => EnsurePlacementStore().Topology;
-        public IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy => ResolveShapedPlacementAnchorStrategy();
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
         bool IInventorySlotCreationCapacity.CanCreateNewSlot =>
@@ -454,13 +453,13 @@ namespace UDND.Inventories
             return BuildCoveredCells(anchorIndex, shape, orientation);
         }
 
-        public Vector2Int GetCellForIndex(int index)
+        private Vector2Int GetCellForIndex(int index)
         {
             EnsurePlacementSettings();
             return IndexToCell(index);
         }
 
-        public bool TryGetIndexForCell(Vector2Int cell, out int index)
+        private bool TryGetIndexForCell(Vector2Int cell, out int index)
         {
             EnsurePlacementSettings();
             return EnsurePlacementStore().Topology.TryToIndex(cell, out index);
@@ -524,17 +523,10 @@ namespace UDND.Inventories
             return TryGetIndexForCell(anchorCell, out anchorIndex);
         }
 
-        public bool CanPlace(PlacementRequest request)
-        {
-            return EnsurePlacementStore().CanPlace(request);
-        }
-
-        public bool CanPlace(PlacementRequest request, Placement ignoredPlacement)
-        {
-            return EnsurePlacementStore().CanPlace(request, ignoredPlacement);
-        }
-
-        public bool CanPlace(PlacementRequest request, Placement ignoredA, Placement ignoredB)
+        public bool CanPlace(
+            PlacementRequest request,
+            Placement ignoredA = null,
+            Placement ignoredB = null)
         {
             return EnsurePlacementStore().CanPlace(request, ignoredA, ignoredB);
         }
@@ -891,9 +883,6 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanUseLegacySlotPlacement(stack))
-                return false;
-
             Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
             bool success = TryAddStackViaCandidates(stack, targetSlotIndex);
@@ -917,9 +906,6 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanUseLegacySlotPlacement(stack))
-                return false;
-
             return TryAddStackViaCandidates(stack, targetSlotIndex);
         }
 
@@ -1401,9 +1387,6 @@ namespace UDND.Inventories
                 return false;
 
             EnsureStrategyInitialized();
-            if (!CanUseLegacySlotPlacement(stack))
-                return false;
-
             var geometry = new InventoryPlacementGeometry(this);
             var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
             if (!_strategy.TryGetCandidate(geometry, request, targetBaseSlot, out var candidate))
@@ -1445,82 +1428,15 @@ namespace UDND.Inventories
             }
         }
 
-        private bool CanUseLegacySlotPlacement(ItemStack stack)
-        {
-            return stack != null && !stack.IsEmpty && CanAcceptShape(stack.PrimaryAdapter, stack.Count);
-        }
-
-        private bool CanAcceptShape(IItemAdapter itemAdapter, int count)
-        {
-            if (itemAdapter == null || count <= 0)
-                return false;
-
-            var shape = PlacementShapeUtility.Resolve(itemAdapter);
-            bool isSingleCell = PlacementShapeUtility.IsSingleCell(shape, PlacementOrientation.Rot0);
-            if (_useGridTopology && !isSingleCell)
-                return false;
-
-            // On slot inventories every item occupies one slot regardless of its spatial shape,
-            // so it may carry a stack (count > 1) just like a single-cell item; the strategy caps
-            // the amount. Grid + multi-cell is still routed through the placement path (rejected above).
-            return true;
-        }
-
-        /// <summary>
-        /// Check whether the inventory can accept an item (without targeting a specific slot)
-        /// Checks inventory rules plus matching slot availability or the ability to create a new slot
-        /// </summary>
-        public bool CanAcceptItem(IItemAdapter itemAdapter, int count, out BaseSlot suggestedBaseSlot)
-            => CanAcceptItem(new InventoryAcceptanceRequest(this, itemAdapter, count), out suggestedBaseSlot);
-
-        /// <summary>
-        /// Check whether the inventory can accept an item in the context of the current drag/drop operation.
-        /// </summary>
-        public override bool CanAcceptItem(InventoryAcceptanceRequest request, out BaseSlot suggestedBaseSlot)
-        {
-            suggestedBaseSlot = null;
-
-            if (request?.ItemAdapter == null || request.DesiredCount <= 0)
-                return false;
-
-            EnsureStrategyInitialized();
-            if (!CanAcceptShape(request.ItemAdapter, request.DesiredCount))
-                return false;
-
-            var geometry = new InventoryPlacementGeometry(this);
-            var candidates = _strategy.GetCandidates(geometry, request);
-            bool canAccept = false;
-
-            foreach (var candidate in candidates)
-            {
-                suggestedBaseSlot = candidate.Anchor ??
-                    (candidate.TargetPlacement != null
-                        ? GetSlot(candidate.TargetPlacement.AnchorIndex)
-                        : null);
-                canAccept = true;
-                break;
-            }
-
-            if (canAccept)
-                Extensions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");
-            else
-                Extensions.DragAndDropLog($"<color=red>[{name}] CanAcceptItem: No suitable slots and cannot create new</color>");
-
-            return canAccept;
-        }
-        
         public override int GetAcceptableCount(InventoryAcceptanceRequest request)
         {
             if (request?.ItemAdapter == null || request.DesiredCount <= 0)
                 return 0;
 
             EnsureStrategyInitialized();
-            if (!CanAcceptShape(request.ItemAdapter, request.DesiredCount))
-                return 0;
-
-            bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
-            int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
-            int result = _strategy.GetAcceptableCount(_slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
+            int result = _strategy.GetAcceptableCount(
+                new InventoryPlacementGeometry(this),
+                request);
             Extensions.DragAndDropLog($"<color=cyan>[{name}] GetAcceptableCount: itemAdapter={request.ItemAdapter.DisplayName}, desired={request.DesiredCount}, acceptable={result}</color>");
             return result;
         }
@@ -1653,77 +1569,5 @@ namespace UDND.Inventories
             return freeSlots;
         }
 
-        /// <summary>
-        /// Perform an item swap between two slots (possibly from different inventories).
-        /// Events are not emitted directly; information is returned through SwapOperationResult.
-        /// </summary>
-        /// <param name="targetBaseSlot">Target slot (from this inventory)</param>
-        /// <param name="sourceBaseSlot">Source slot (may belong to another inventory)</param>
-        /// <param name="result">Swap result used for event generation</param>
-        /// <returns>True if the swap succeeds</returns>
-        public bool TrySwapSlots(BaseSlot targetBaseSlot, BaseSlot sourceBaseSlot, out SwapOperationResult result)
-        {
-            result = default;
-            if (targetBaseSlot == null || sourceBaseSlot == null)
-            {
-                Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Slot is null</color>");
-                return false;
-            }
-
-            if (targetBaseSlot.IsEmpty || sourceBaseSlot.IsEmpty)
-            {
-                Extensions.DragAndDropLog("<color=red>[TrySwapSlots] One of the slots is empty</color>");
-                return false;
-            }
-
-            // Check that targetSlot belongs to this inventory
-            if (!ReferenceEquals(targetBaseSlot.Inventory, this))
-            {
-                Extensions.DragAndDropLog("<color=red>[TrySwapSlots] Target slot doesn't belong to this inventory</color>");
-                return false;
-            }
-
-            // Save stack copies for events
-            var targetStackBackup = ItemStack.TryCreate(targetBaseSlot.Stack.Adapters, out var targetBackup)
-                ? targetBackup
-                : ItemStack.Empty();
-            var sourceStackBackup = ItemStack.TryCreate(sourceBaseSlot.Stack.Adapters, out var sourceBackup)
-                ? sourceBackup
-                : ItemStack.Empty();
-
-            try
-            {
-                // Perform the swap
-                var tempStack = targetBaseSlot.Stack.CreateCopy();
-                targetBaseSlot.SetStack(sourceBaseSlot.Stack.CreateCopy());
-                sourceBaseSlot.SetStack(tempStack);
-
-                targetBaseSlot.UpdateVisuals();
-                sourceBaseSlot.UpdateVisuals();
-
-                Extensions.DragAndDropLog($"<color=green>[{name}] Swap completed: slot {targetBaseSlot.Index} ↔ slot {sourceBaseSlot.Index}</color>");
-                var targetStackAfter = ItemStack.TryCreate(targetBaseSlot.Stack.Adapters, out var targetAfter)
-                    ? targetAfter
-                    : ItemStack.Empty();
-                var sourceStackAfter = ItemStack.TryCreate(sourceBaseSlot.Stack.Adapters, out var sourceAfter)
-                    ? sourceAfter
-                    : ItemStack.Empty();
-
-                result = new SwapOperationResult(targetStackBackup, sourceStackBackup, targetStackAfter, sourceStackAfter);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[{name}] TrySwapSlots exception: {ex.Message}");
-
-                // Roll back changes
-                targetBaseSlot.SetStack(targetStackBackup);
-                sourceBaseSlot.SetStack(sourceStackBackup);
-                targetBaseSlot.UpdateVisuals();
-                sourceBaseSlot.UpdateVisuals();
-
-                return false;
-            }
-        }
     }
 }

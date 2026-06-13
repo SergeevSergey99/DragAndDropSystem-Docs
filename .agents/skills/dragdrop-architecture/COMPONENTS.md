@@ -1,6 +1,6 @@
 # Components
 
-**Last Updated**: 2026-06-13
+**Last Updated**: 2026-06-14
 
 ## InventoryDropProcessor
 
@@ -20,13 +20,14 @@ Responsibilities:
 - placement mutation, occupied-target handling, and swap
 - deferred entry outcome notifications
 - advisory first-candidate probing without reservation or full-batch prediction
+- optional asynchronous transfer-wide veto before the first mutation
 
 ## IStrategy
 
 Read-only inventory behavior policy:
 - validates a concrete selected slot with `TryGetCandidate(...)`
 - lazily enumerates automatic destinations with `GetCandidates(...)`
-- defines capacity, stacking, shaped merge, drag amount, and acceptance semantics
+- defines capacity, stacking, drag amount, and acceptance semantics
 
 It does not mutate inventories or create slots.
 
@@ -82,6 +83,7 @@ before placement mutation.
 - `IDynamicSlotLifecycle`: creates/removes dynamic slots during execution.
 - `IInventorySnapshotProvider`: captures entry rollback checkpoints.
 - `ITransferDomainHandler`: transfer-wide veto, concrete candidate validation, and success hook.
+- `IAsyncTransferDomainHandler`: optional transfer-wide asynchronous veto before mutation.
 - `IOccupiedSlotDropHandler`: domain-owned occupied-target operation.
 - `IInventoryEventSink`: commits transfer outcomes to DataBinding and subscribers.
 

@@ -1,13 +1,14 @@
 # Data Flow
 
-**Last Updated**: 2026-06-13
+**Last Updated**: 2026-06-14
 
 ## Transfer Flow
 
 ```text
 DragContext
   -> InventoryDropProcessor resolves policy
-  -> InventoryTransferService validates transfer-wide veto
+  -> InventoryTransferService validates synchronous transfer-wide veto
+  -> async execution validates optional asynchronous transfer-wide veto
   -> process DragEntry values in order
       -> resolve target-side preview adapter
       -> validate rules
@@ -25,17 +26,22 @@ No `TransferPlan`, projected occupancy, or batch-wide transaction is created.
 Mixed single-cell and shaped entries use the same loop and observe committed mutations from earlier
 entries.
 
+`IAsyncTransferDomainHandler.CanStartTransferAsync(...)` is optional and runs once before the
+first mutation. It may perform a remote check or a user-defined simulation, but the core neither
+requires nor supplies simulation. The synchronous execution API rejects a request when such a
+handler is attached, so the check cannot be silently skipped.
+
 ## Probe Flow
 
 ```text
 DragContext
-  -> transfer-wide domain veto
+  -> synchronous transfer-wide domain veto
   -> first entry with a viable explicit or automatic candidate
   -> TransferProbe(candidate, anchor, orientation, covered slots)
 ```
 
 The probe is advisory. It does not reserve state, calculate exact batch packing, or replace
-execution-time validation.
+execution-time validation. It does not invoke asynchronous domain handlers.
 
 ## Topology Flow
 

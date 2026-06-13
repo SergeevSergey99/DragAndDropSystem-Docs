@@ -2084,7 +2084,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void GridInventory_LegacyTryAddStackRejectsShapedItems()
+        public void GridInventory_TryAddStackUsesTopologyForShapedItems()
         {
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)
@@ -2095,9 +2095,11 @@ namespace UDND.Tests.Inventories
             {
                 var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
 
-                Assert.IsFalse(inventory.TryAddStack(stack));
-                Assert.AreEqual(1, stack.Count);
-                Assert.IsNull(inventory.GetPlacementAt(0));
+                Assert.IsTrue(inventory.TryAddStack(stack));
+                Assert.IsTrue(stack.IsEmpty);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1 },
+                    inventory.GetPlacementAt(0).CoveredIndices);
             }
             finally
             {

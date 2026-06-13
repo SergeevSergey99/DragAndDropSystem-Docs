@@ -47,24 +47,24 @@ Allows DataBinding to intercept a drop on an occupied slot **before** `BlockedTa
 
 Two virtual hooks in `InventoryDataBindingBase`:
 ```csharp
-protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);  // planner
-protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);    // executor
+protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);
+protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);
 ```
 
 Pipeline integration:
-1. Planner: target slot is occupied, allocation = 0 → calls `targetInventory.CheckOccupiedSlotDrop()`
-2. If `CanHandleOccupiedSlotDrop` returns `true` → entry is marked `RequiresOccupiedHandler`
-3. If returns `false` → normal `BlockedTargetBehavior` decision (swap/findAlternative/reject) continues
-4. Executor: for `RequiresOccupiedHandler` entries → calls `targetInventory.ExecuteOccupiedSlotDrop()`
-5. DataBinding owns the full mutation: add to target, clear source slot, fire domain events
+1. JIT service sees an occupied explicit target and calls `CheckOccupiedSlotDrop(...)`.
+2. If accepted, it invokes `ExecuteOccupiedSlotDrop(...)` in the current entry transaction.
+3. If rejected, normal blocked-target resolution continues.
+4. DataBinding owns the custom mutation.
 
 Example: Demo5 Containers — `PlayerContainerInventoryDataBinding` uses this to insert a dragged item into a container when dropped on it. If the container is full or the drop would create a cycle, the hook returns false and swap/other behavior applies normally.
 
-## Atomic Batch Execution
+## Sequential Batch Execution
 
-- implemented via `TransferPlanExecutor` + snapshot providers
-- prevents partial side effects for atomic policy
-- uses deferred event dispatch so DataBinding and subscribers see only committed outcomes
+- entries execute sequentially against current inventory state
+- each entry has its own rollback checkpoint
+- failed entries do not undo earlier committed entries
+- events are deferred until the current entry commits
 
 ## Free-Form Dynamic Slots
 
@@ -74,8 +74,8 @@ Example: Demo5 Containers — `PlayerContainerInventoryDataBinding` uses this to
 - it should not split stacks, create items, or emit inventory events
 
 Same-inventory area drops are handled by the core pipeline:
-- planner excludes the source slot from candidate search
-- executor can create a dynamic target slot via `IDynamicSlotLifecycle.TryCreateSlot(...)`
+- candidate resolution excludes the source placement
+- execution can create a dynamic target slot via `IDynamicSlotLifecycle.TryCreateSlot(...)`
 - normal split/move/event dispatch then applies
 
 ## Swap Callbacks for Integrations
@@ -86,7 +86,7 @@ Swap remains inventory-scoped and event-based:
 
 Transfer-level domain hooks now also run for swap path:
 - domain validation executes before swap commit
-- domain success hooks are deferred until the whole plan succeeds
+- domain success hooks are deferred until the entry commits
 
 ## DataBinding Integration
 

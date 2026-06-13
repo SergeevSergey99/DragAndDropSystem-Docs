@@ -119,8 +119,7 @@ IStrategy
     TryGetCandidate(context, geometry, targetSlot, out candidate)
     GetCandidates(context, geometry) -> PlacementCandidateSource
     ResolveDragAmount(...)
-    GetAcceptableCount(...)
-    ResolveShapedMerge(...)
+    GetAcceptableCount(geometry, request)
 ```
 
 Strategy определяет:
@@ -305,6 +304,7 @@ Batch всегда обрабатывается последовательно:
 ExecuteAsync(request):
     validate common request
     validate ITransferDomainHandler at request scope once
+    validate optional IAsyncTransferDomainHandler at request scope once
 
     for each entry in stable DragContext order:
         result = TryTransferEntry(entry, current real inventory state)
@@ -313,11 +313,18 @@ ExecuteAsync(request):
     return report
 ```
 
-`ITransferDomainHandler` является единственной domain extension point. Перед началом transfer он
-получает полный контекст операции и может отменить обработку всего request. Core не требует и не
+`ITransferDomainHandler` остается синхронной domain extension point. Перед началом transfer он
+получает полный контекст операции и может отменить обработку всего request.
+
+Опциональный `IAsyncTransferDomainHandler.CanStartTransferAsync(...)` решает ту же задачу для
+server-backed и других асинхронных проверок. Он вызывается ровно один раз асинхронным execution
+path до первой mutation. Наличие handler не является обязательным, core не требует и не
 предоставляет симуляцию. Пользователь при желании может выполнить внутри handler собственную
-симуляцию. Успешный результат означает только «можно начать best-effort обработку», а не
-гарантирует успешность всех entries.
+симуляцию. Синхронный execution при наличии async handler отклоняет request вместо обхода
+проверки.
+
+Успешный результат transfer-wide handler означает только «можно начать best-effort обработку»,
+а не гарантирует успешность всех entries.
 
 Тот же handler lifecycle может проверять уже выбранный concrete candidate перед mutation.
 Strategy отвечает за inventory semantics и capacity; domain handler — за внешние бизнес-условия.
@@ -704,8 +711,9 @@ TransferProbe
 enumeration и orderer. Для area drop/auto-transfer он выбирается из ordered candidate source.
 Probe не пытается предсказать общее transferable amount для multi-placement stack.
 
-`GetAcceptableCount` сохраняет текущий exact read-only контракт. Probe не заменяет его и не
-является execution guard.
+`GetAcceptableCount(geometry, request)` сохраняет exact read-only контракт и использует ту же
+topology-neutral geometry, что candidate resolution. Probe не заменяет его и не является
+execution guard.
 
 Ограничения:
 
@@ -781,8 +789,9 @@ candidate-resolution и mutation.
 
 1. UI и rendering могут проверять форму и orientation.
 2. `ITransferDomainHandler` может запрещать transfer по внешним бизнес-условиям.
-3. Single-cell fast path допустим внутри topology/storage при той же semantics.
-4. Optimal packing и backtracking вне scope.
+3. `IAsyncTransferDomainHandler` может асинхронно запретить весь transfer до первой mutation.
+4. Single-cell fast path допустим внутри topology/storage при той же semantics.
+5. Optimal packing и backtracking вне scope.
 5. Group exchange вне scope.
 6. Sorting/repacking inventory является отдельной action.
 7. Hydration/import не проходит через transfer pipeline.
@@ -876,6 +885,8 @@ candidate-resolution и mutation.
 - Failed entry не прерывает остальные.
 - Расширить существующий `ITransferDomainHandler` request-level проверкой полного контекста
   операции до первой mutation; default handler отсутствует, поэтому обычный transfer идет сразу.
+- Сохранить необязательный `IAsyncTransferDomainHandler` для transfer-wide асинхронного veto до
+  первой mutation. Sync execution при его наличии не выполняет transfer.
 - Target hint использует только первый entry; остальные идут как area drop.
 - После successful entry DataBinding/events commit-ятся до следующего entry.
 - Batch + `Swap` отклонять до mutation.
@@ -903,6 +914,7 @@ candidate-resolution и mutation.
   - topology;
   - candidate orderer;
   - `ITransferDomainHandler`;
+  - `IAsyncTransferDomainHandler`;
   - dynamic slot lifecycle.
 - Документировать ограничения batch swap и advisory preview.
 
