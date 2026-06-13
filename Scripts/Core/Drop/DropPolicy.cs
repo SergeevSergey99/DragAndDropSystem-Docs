@@ -28,7 +28,7 @@ namespace UDND.Core
     public enum BlockedTargetResolutionKind : byte
     {
         Reject = 0,
-        AlternativeSlots = 1,
+        FindAlternative = 1,
         Swap = 2
     }
 
@@ -60,7 +60,7 @@ namespace UDND.Core
         public static DropRequestPolicy WithAlternativeOrderer(
             PlacementCandidateOrderer orderer = null,
             bool allowSameInventoryAlternativePlacement = true)
-            => new DropRequestPolicy(BlockedTargetResolutionKind.AlternativeSlots, orderer, allowSameInventoryAlternativePlacement);
+            => new DropRequestPolicy(BlockedTargetResolutionKind.FindAlternative, orderer, allowSameInventoryAlternativePlacement);
 
         public static DropRequestPolicy WithPartial(bool allowPartial)
             => new DropRequestPolicy(

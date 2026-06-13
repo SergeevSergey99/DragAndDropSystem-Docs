@@ -28,7 +28,7 @@ namespace UDND.Tests.Inventories
 
         private static ResolvedDropPolicy DefaultPolicy(
             PartialTransferMode partial = PartialTransferMode.Allow,
-            BlockedTargetResolutionKind blocked = BlockedTargetResolutionKind.AlternativeSlots)
+            BlockedTargetResolutionKind blocked = BlockedTargetResolutionKind.FindAlternative)
             => new ResolvedDropPolicy(
                 blocked,
                 new MergeFirstPlacementCandidateOrderer(),
@@ -38,7 +38,7 @@ namespace UDND.Tests.Inventories
         private EntryTransferResult Transfer(
             BaseSlot targetSlot = null,
             PartialTransferMode partial = PartialTransferMode.Allow,
-            BlockedTargetResolutionKind blocked = BlockedTargetResolutionKind.AlternativeSlots)
+            BlockedTargetResolutionKind blocked = BlockedTargetResolutionKind.FindAlternative)
         {
             var builder = DragContextBuilder.FromAllSlots(_source);
             var context = (targetSlot != null

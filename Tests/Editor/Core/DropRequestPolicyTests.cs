@@ -12,13 +12,13 @@ namespace UDND.Tests.Core
         {
             var orderer = new EmptyOnlyPlacementCandidateOrderer();
             var policy = new DropRequestPolicy(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 orderer,
                 allowSameInventoryAlternativePlacement: false,
                 PartialTransferMode.RequireFull);
 
             Assert.AreEqual(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 policy.BlockedTargetResolution);
             Assert.AreSame(orderer, policy.AlternativeOrderer);
             Assert.AreEqual(false, policy.AllowSameInventoryAlternativePlacement);
@@ -44,7 +44,7 @@ namespace UDND.Tests.Core
                 allowSameInventoryAlternativePlacement: false);
 
             Assert.AreEqual(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 policy.BlockedTargetResolution);
             Assert.AreSame(orderer, policy.AlternativeOrderer);
             Assert.AreEqual(false, policy.AllowSameInventoryAlternativePlacement);
@@ -67,7 +67,7 @@ namespace UDND.Tests.Core
         {
             var baseOrderer = new MergeFirstPlacementCandidateOrderer();
             var basePolicy = new DropRequestPolicy(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 baseOrderer, allowSameInventoryAlternativePlacement: false,
                 PartialTransferMode.RequireFull);
             var overridingPolicy = new DropRequestPolicy(BlockedTargetResolutionKind.Swap, partialTransferMode: PartialTransferMode.Allow);

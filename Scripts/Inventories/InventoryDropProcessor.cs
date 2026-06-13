@@ -187,7 +187,7 @@ namespace UDND.Inventories
 
             return new ResolvedDropPolicy(
                 requested?.BlockedTargetResolution ??
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 requested?.AlternativeOrderer,
                 requested?.AllowSameInventoryAlternativePlacement ?? true,
                 requested?.PartialTransferMode ?? PartialTransferMode.Allow);

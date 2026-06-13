@@ -437,7 +437,7 @@ namespace UDND.Inventories
                             // had no stackable capacity (otherwise explicitPlaced would be true).
                             // Route to the swap path directly.
                             return TryExecuteSwap(request);
-                        case BlockedTargetResolutionKind.AlternativeSlots:
+                        case BlockedTargetResolutionKind.FindAlternative:
                             if (ReferenceEquals(sourceInventory, targetInventory) &&
                                 !request.Policy.AllowSameInventoryAlternativePlacement)
                                 return EntryTransferResult.Failed(requestedAmount, "Same-inventory alternative placement is not allowed");

@@ -49,7 +49,7 @@ namespace UDND.Inventories
             var policy = _inventory is IDropPolicyProvider policyProvider
                 ? policyProvider.ResolveDropPolicy(null, context)
                 : new ResolvedDropPolicy(
-                    BlockedTargetResolutionKind.AlternativeSlots,
+                    BlockedTargetResolutionKind.FindAlternative,
                     null,
                     true,
                     PartialTransferMode.Allow);

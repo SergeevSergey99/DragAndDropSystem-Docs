@@ -10,14 +10,14 @@ namespace UDND.Core
     {
         [SerializeField]
         private BlockedTargetResolutionKind _blockedTargetResolution =
-            BlockedTargetResolutionKind.AlternativeSlots;
+            BlockedTargetResolutionKind.FindAlternative;
 
-        [SerializeReference, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.AlternativeSlots),
+        [SerializeReference, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.FindAlternative),
          ManagedReferencePicker, InlineProperty, HideLabel]
         private PlacementCandidateOrderer _alternativeOrderer =
             new MergeFirstPlacementCandidateOrderer();
 
-        [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.AlternativeSlots),
+        [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.FindAlternative),
          Tooltip("Allow a blocked same-inventory drop to use another placement.")]
         private bool _allowSameInventoryAlternativePlacement = true;
 

@@ -11,7 +11,7 @@ namespace UDND.Core
         [SerializeField] private bool _overrideBlockedTargetResolution;
         [SerializeField, ShowIf(nameof(_overrideBlockedTargetResolution))]
         private BlockedTargetResolutionKind _blockedTargetResolution =
-            BlockedTargetResolutionKind.AlternativeSlots;
+            BlockedTargetResolutionKind.FindAlternative;
 
         [SerializeReference, ShowIf(nameof(ShowAlternativeOrderer)),
          ManagedReferencePicker, InlineProperty, HideLabel]
@@ -27,7 +27,7 @@ namespace UDND.Core
 
         private bool ShowAlternativeOrderer =>
             _overrideBlockedTargetResolution &&
-            _blockedTargetResolution == BlockedTargetResolutionKind.AlternativeSlots;
+            _blockedTargetResolution == BlockedTargetResolutionKind.FindAlternative;
 
         public DropRequestPolicy? TryBuild()
         {

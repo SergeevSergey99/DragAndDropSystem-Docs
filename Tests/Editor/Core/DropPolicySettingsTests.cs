@@ -21,7 +21,7 @@ namespace UDND.Tests.Core
             var resolved = _settings.Resolve(null, context: null);
 
             Assert.AreEqual(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 resolved.BlockedTargetResolution);
             Assert.IsInstanceOf<MergeFirstPlacementCandidateOrderer>(
                 resolved.AlternativeOrderer);
@@ -34,7 +34,7 @@ namespace UDND.Tests.Core
         {
             var orderer = new EmptyOnlyPlacementCandidateOrderer();
             var request = new DropRequestPolicy(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 orderer,
                 allowSameInventoryAlternativePlacement: false,
                 PartialTransferMode.RequireFull);
@@ -56,7 +56,7 @@ namespace UDND.Tests.Core
                 context: null);
 
             Assert.AreEqual(
-                BlockedTargetResolutionKind.AlternativeSlots,
+                BlockedTargetResolutionKind.FindAlternative,
                 resolved.BlockedTargetResolution);
             Assert.AreEqual(
                 PartialTransferMode.RequireFull,
