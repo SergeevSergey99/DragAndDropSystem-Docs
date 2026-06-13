@@ -41,3 +41,5 @@ Transfer architecture is centered on:
 11. Keep footprint projection topology-owned: `SlotTopology` maps every item to one anchor slot,
     spatial topologies use oriented shape offsets, and `PlacementStore` only validates bounds/occupancy.
 12. Validate an explicit target directly; enumerate and order candidates only for automatic placement.
+13. Keep `IPlacementInventory` topology-neutral: expose `IInventoryTopology`, never a grid-specific
+    flag or nullable `GridTopology` through the shared contract.

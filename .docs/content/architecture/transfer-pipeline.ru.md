@@ -56,8 +56,9 @@ Area drop и auto-transfer сразу используют автоматиче�
 capacity, merge/create и перечисление candidates.
 
 `IPlacementGeometry` и topology отвечают за anchor, oriented footprint, bounds,
-occupancy и covered slots. Single-cell и shaped items используют один placement
-pipeline.
+occupancy и covered slots. `IPlacementInventory` предоставляет активную
+`IInventoryTopology`; общий код не определяет поведение через grid-specific флаг.
+Single-cell и shaped items используют один pipeline, включая auto-transfer.
 
 ## Batch semantics
 

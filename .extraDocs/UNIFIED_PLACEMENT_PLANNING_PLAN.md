@@ -69,9 +69,12 @@ execution отдельным публичным этапом.
 ## 2. Что уже унифицировано
 
 - `PlacementStore` хранит все logical placements.
+- `IPlacementInventory.Topology` предоставляет активную `IInventoryTopology` без привязки
+  общего placement-контракта к grid.
 - `IInventoryTopology` проецирует shape и orientation в covered cells.
 - `SlotTopology` всегда возвращает anchor-only footprint.
-- Grid topology использует реальные shape offsets.
+- `RectGridTopology` использует реальные shape offsets; custom topology может задать собственную
+  проекцию через тот же контракт.
 - `Placement` является logical location и может содержать stack.
 - Placement-based swap уже умеет освобождать обе стороны и размещать их заново.
 
@@ -95,7 +98,6 @@ PlacementCandidate
     Orientation
     Shape
     Capacity
-    Phase
 ```
 
 - `Merge` ссылается на существующий logical `Placement`.
@@ -115,10 +117,10 @@ Strategy после миграции является строго read-only pol
 ```text
 IStrategy
     TryGetCandidate(context, geometry, targetSlot, out candidate)
-    EnumerateCandidates(context, geometry) -> PlacementCandidateSource
+    GetCandidates(context, geometry) -> PlacementCandidateSource
     ResolveDragAmount(...)
-    DefaultOrderer
-    capabilities
+    GetAcceptableCount(...)
+    ResolveShapedMerge(...)
 ```
 
 Strategy определяет:
@@ -129,8 +131,7 @@ Strategy определяет:
 - max stack и candidate capacity;
 - one-per-ID и separable stack semantics;
 - допустимость dynamic slot;
-- базовый deterministic порядок кандидатов;
-- capability ограничения для batch или конкретной topology.
+- естественный deterministic порядок кандидатов.
 
 Strategy не:
 
@@ -156,6 +157,8 @@ IPlacementGeometry
 ```
 
 Реализация является read-only facade над реальным `PlacementStore` и `IInventoryTopology`.
+Ни strategy, ни DataBinding, ни preview не определяют возможности placement через
+`GridTopology`/`is grid`: они используют topology projection и общие placement primitives.
 
 Защита от custom strategy остается в transfer service: перед mutation каждый create candidate
 повторно проходит topology/bounds/occupancy validation.

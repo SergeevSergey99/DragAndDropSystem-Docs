@@ -53,10 +53,26 @@ namespace UDND.Inventories
                 return false;
 
             var shape = PlacementShapeUtility.Resolve(targetItem);
-            if (!_inventory.Grid.HasValue || PlacementShapeUtility.IsSingleCell(shape, entry.Orientation))
+            var offsets = _inventory.Topology.GetPlacementOffsets(shape, entry.Orientation);
+            if (offsets == null || offsets.Count == 0)
+                return true;
+
+            var acceptanceRequest = new InventoryAcceptanceRequest(
+                _inventory,
+                targetItem,
+                entry.Stack.Count,
+                context,
+                entry);
+            var geometry = new InventoryPlacementGeometry(_inventory);
+
+            if (offsets.Count == 1)
             {
                 previewSlots = new[] { targetBaseSlot };
-                canPlace = true;
+                canPlace = _inventory.Strategy.TryGetCandidate(
+                    geometry,
+                    acceptanceRequest,
+                    targetBaseSlot,
+                    out _);
                 return true;
             }
 
@@ -69,7 +85,7 @@ namespace UDND.Inventories
                     out var anchorCell))
                 return true;
 
-            bool hasValidAnchor = _inventory.TryGetIndexForCell(anchorCell, out int anchorIndex);
+            bool hasValidAnchor = _inventory.TryGetIndexForCell(anchorCell, out _);
             var coveredIndices = GetPreviewCoveredCells(anchorCell, shape, entry.Orientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return true;
@@ -84,25 +100,14 @@ namespace UDND.Inventories
 
             previewSlots = slots;
 
-            var acceptanceRequest = new InventoryAcceptanceRequest(
-                _inventory,
-                targetItem,
-                entry.Stack.Count,
-                context,
-                entry);
-            var previewStack = acceptanceRequest.CreatePreviewStack(entry.Stack.Count, targetItem);
-            if (previewStack == null)
-                return true;
-
             if (!hasValidAnchor)
                 return true;
 
-            var ignoredPlacement = ReferenceEquals(entry.SourceInventory, _inventory)
-                ? entry.SourcePlacement
-                : null;
-            canPlace = _inventory.CanPlace(
-                new PlacementRequest(previewStack, anchorIndex, entry.Orientation, shape),
-                ignoredPlacement);
+            canPlace = _inventory.Strategy.TryGetCandidate(
+                geometry,
+                acceptanceRequest,
+                targetBaseSlot,
+                out _);
             return true;
         }
 

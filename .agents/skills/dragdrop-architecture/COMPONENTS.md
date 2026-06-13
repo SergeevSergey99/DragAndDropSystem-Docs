@@ -1,200 +1,84 @@
 # Components
 
-**Last Updated**: 2026-06-09
-
-## DragAndDropManager
-
-Location: `Scripts/DragAndDropManager.cs`
-
-Responsibilities:
-- drag lifecycle orchestration
-- active drop target resolution
-- global rules access
-- routing to `IDropProcessor`
-- public swap events (`OnSwapAttempting`, `OnSwapCompleted`)
-
-Note: manager no longer owns transfer branching logic directly.
-
-## InputModalityTracker / InputEventRouter
-
-Locations:
-- `Scripts/Interaction/InputModalityTracker.cs`
-- `Scripts/Interaction/InputEventRouter.cs`
-
-Responsibilities:
-- `InputModalityTracker`: scene-level `Mouse` vs `Navigation` state and modality-change events
-- `InputEventRouter`: binding resolution, inventory runtime-state, pointer phase classification, global/default `InputAction` routing
+**Last Updated**: 2026-06-13
 
 ## InventoryDropProcessor
 
-Location: `Scripts/Inventories/InventoryDropProcessor.cs`
+UI-facing boundary that resolves target inventory, target slot, request overrides, and
+`ResolvedDropPolicy`, then delegates to `InventoryTransferService`.
+
+## InventoryTransferService
+
+Implemented in `Scripts/Inventories/InventoryTransferEngine.cs`.
 
 Responsibilities:
-- resolve effective target inventory/slot
-- resolve effective `DropRequestPolicy` / `DropPolicySettings` into `ResolvedDropPolicy`
-- invoke planner and executor
-- pass execution options (global rules, swap callbacks)
+- sequential best-effort batch processing
+- per-entry snapshots and rollback
+- explicit-target and automatic candidate paths
+- exact stack splitting and conversion
+- placement mutation, occupied-target handling, and swap
+- deferred entry outcome notifications
 
-This is the adapter between UI target layer and transfer core.
+## IStrategy
 
-## DropPolicy
+Read-only inventory behavior policy:
+- validates a concrete selected slot with `TryGetCandidate(...)`
+- lazily enumerates automatic destinations with `GetCandidates(...)`
+- defines capacity, stacking, shaped merge, drag amount, and acceptance semantics
 
-Location: `Scripts/Core/Drop/DropPolicy.cs`
+It does not mutate inventories or create slots.
 
-Defines three policy layers:
-- `DropRequestPolicy` - runtime operation override
-- `DropPolicySettings` - inventory defaults
-- `ResolvedDropPolicy` - final planner-facing policy
+## PlacementCandidateOrderer
 
-Main behavior fields:
-- `BlockedTargetBehavior`
-- `AllowPartial`
-- `BatchMode`
-- `AlternativePlacementMode`
+Orders candidates only during automatic distribution. It is not used for the initial explicit
+target attempt.
 
-## TransferPlanner
+## IPlacementInventory
 
-Location: `Scripts/Inventories/TransferPlanner.cs`
+Topology-neutral placement inventory contract. It exposes:
+- `IInventoryTopology Topology`
+- `IStrategy Strategy`
+- logical placements and placement mutation primitives
 
-Responsibilities:
-- pure planning from drag context and policy
-- target-side preview conversion via `TransferItemConversionUtility`
-- inventory acceptance preview via `InventoryAcceptanceRequest`
-- virtual-slot allocation for batch operations
-- rule-aware target candidate selection
-- source-slot exclusion for same-inventory area drops
-- checking occupied-slot handler hook before swap/findAlternative: `RequiresOccupiedHandler` + `OccupiedTargetSlot`
-- planning swap entries (`RequiresSwap` + `SwapTargetSlot`)
+It must not expose a nullable grid flag through the common contract.
 
-Plan entry types (`PlannedEntryTransfer`):
-- allocation entry (slot allocations, `PlannedAmount > 0`)
-- `RequiresOccupiedHandler` — DataBinding hook checked **before** swap decision
-- `RequiresSwap` — checked only if occupied handler returned false
+## IInventoryTopology / PlacementStore
 
-Key helper objects:
-- `EntryPlanningOperation`
-- `VirtualSlotState`
+`IInventoryTopology` projects shape and orientation into cells. `PlacementStore` owns occupancy
+and bounds checks without knowing concrete topology types.
 
-## TransferPlanExecutor
+Built-in topologies:
+- `SlotTopology`
+- `RectGridTopology`
+- `SlotCountLimitedTopology`
 
-Location: `Scripts/Inventories/TransferPlanExecutor.cs`
+Custom topologies implement the same interface.
 
-Responsibilities:
-- execute plan entries in sequence
-- run normal transfers through internal execution helpers
-- create explicit dynamic target slots for same-inventory area drops via `IDynamicSlotLifecycle.TryCreateSlot(...)`
-- run occupied-handler branch: `ExecuteOccupiedSlotDrop` on target inventory → DataBinding owns full mutation
-- run swap branch with bidirectional rule validation
-- support atomic rollback through snapshots
-- defer transfer/swap event dispatch until operation success
-- dispatch remove/add with final transfer outcomes
+## InventoryPlacementGeometry
 
-## InventoryTransfer Models
+Read-only strategy facade over inventory slots, placements, anchor resolution, topology validation,
+and covered-slot lookup.
 
-Location: `Scripts/Inventories/InventoryTransferService.cs`
+## InventoryAcceptanceRequest
 
-Responsibilities:
-- define `InventoryTransferRequest`
-- define `InventoryTransferResult`
-- carry concrete transfer payload between executor helpers and event dispatch
+Carries target inventory, target-side adapter, requested amount, and optional drag context/source
+entry for candidate and rule validation.
 
-Related execution helpers:
-- `TargetPlacementOperation`
-- `AlternativeSlotSearchOperation`
-- `InventoryAcceptanceRequest`
+## TransferItemConversionUtility
 
-## UniversalInventory / BaseSlot
+Resolves non-mutating preview adapters and performs outgoing/incoming stack conversion immediately
+before placement mutation.
 
-Locations:
-- `Scripts/Inventories/UniversalInventory.cs`
-- `Scripts/Slots/BaseSlot.cs`
+## Runtime Capabilities
 
-Responsibilities:
-- store and mutate item stacks
-- run inventory/slot rule checks
-- provide concrete slot-level mutations and visuals
-- support `TrySwapSlots` for swap execution
-- notify DataBinding directly via `HandleItemAdded()`/`HandleItemRemoved()` (not events)
-- preview and apply item conversion via `TryPreviewIncomingItem()` / `TryPreviewOutgoingItem()`
-- evaluate slot rules for acceptance preview using `InventoryAcceptanceRequest`
+- `IDynamicSlotLifecycle`: creates/removes dynamic slots during execution.
+- `IInventorySnapshotProvider`: captures entry rollback checkpoints.
+- `ITransferDomainHandler`: transfer-wide veto, concrete candidate validation, and success hook.
+- `IOccupiedSlotDropHandler`: domain-owned occupied-target operation.
+- `IInventoryEventSink`: commits transfer outcomes to DataBinding and subscribers.
 
-Notes:
-- `TryAddToSlot` is pure mutation, no events emitted internally
-- events are emitted only by `TransferPlanExecutor.DispatchTransferEvents()`
-- dynamic slot behavior is split between strategy wrapping (`DynamicSlotDecorator`) and
-  `IDynamicSlotLifecycle` (`TryCreateSlot` / `HandleSlotEmptied`)
-- current `ItemStack` model is instance-aware: it stores a representative `PrimaryAdapter`
-  plus `IReadOnlyList<IItemAdapter> Adapters`; `Count` is derived from adapter list length
-- type checks/casts in rules, bindings, tooltips, and visuals should use `PrimaryAdapter`
-  (or `ItemAdapter`, which is kept as an alias for compatibility)
+## UI Components
 
-## PlacementStore / InventoryTopology
-
-Locations:
-- `Scripts/Inventories/PlacementStore.cs`
-- `Scripts/Core/Models/InventoryTopology.cs`
-
-Responsibilities:
-- topology projects an item shape into placement offsets
-- `SlotTopology` always returns the anchor offset because every item occupies one slot
-- spatial topologies return the item's oriented shape offsets
-- `PlacementStore` checks bounds and occupancy using the topology projection
-
-Boundary:
-- item acceptance restrictions belong to rules or acceptance strategies
-- `PlacementStore` must not branch on concrete topology types
-
-## FreeFormSlotLayout
-
-Location: `Scripts/UI/FreeFormSlotLayout.cs`
-
-Responsibilities:
-- position dynamically created UI slots at the current drop point
-- provide auto-layout/restoration helpers for free-form slot containers
-- clamp positions against container or bounds override
-
-Boundary:
-- does not own item transfer, split, merge, or event emission
-- reacts to `UniversalInventory.OnSlotCreated`; transfer semantics stay in planner/executor
-
-## Acceptance Preview
-
-Key classes:
-- `InventoryAcceptanceRequest`
-- `TransferItemConversionUtility`
-
-Responsibilities:
-- keep slot-specific preview validation out of feature bindings
-- let strategies ask "can this inventory accept this transfer in this context?"
-- support area-drop and planner preview with the same request model
-
-## DataBinding System
-
-Location: `Scripts/DataBinding/`
-
-Key classes:
-- `InventoryDataBindingBase` — base class with direct notification (`HandleItemAdded`/`HandleItemRemoved`),
-  swap event subscriptions, sync scope, rule integration, item conversion pipeline,
-  and occupied-slot drop hooks
-- `ListInventoryDataBinding<TData, TAdapter>` — template for list-based data sources
-- `MappedSlotInventoryDataBinding<TData, TAdapter>` — template for slot-mapped data with `Dictionary<BaseSlot, SlotBinding<TData, TAdapter>>`,
-  `TryGetTargetBinding()` / `TryGetSourceBinding()` helpers.
-  `SlotBinding<TData, TAdapter>` is internally list-based: `GetAll` returns `TData` (for reload),
-  `Add`/`Remove` receive `TAdapter` lists, `CanDrop`/`CanStartDrag` receive `TAdapter` (no `ExtractData` needed).
-  Two constructors: simple single-item (`get/set/clear`) and stacking (`getAll/add/remove/clear`).
-  Both types can coexist in the same `CreateBindingMap()` dictionary.
-
-Responsibilities:
-- bidirectional sync between UI (`UniversalInventory`) and external data
-- converter wiring during inventory initialization
-- rule integration (`CanStartDrag`, `CanDrop`, `CanSwap`)
-- swap handling via event subscriptions (`OnSwapAttempting` / `OnSwapCompleted`)
-- occupied-slot drop interception via two virtual hooks:
-  - `CanHandleOccupiedSlotDrop(DragEntry, BaseSlot)` — pure check, called by planner
-  - `ExecuteOccupiedSlotDrop(DragEntry, BaseSlot)` — full mutation, called by executor
-
-Current note:
-- conversion now lives on inventory-side `ItemConverter`
-- `DataBinding` only wires converter in and provides a legacy fallback path
-- occupied-slot handler is checked **before** `BlockedTargetBehavior` (swap/findAlternative/reject);
-  if handler returns false, normal pipeline continues unchanged
+- `DropPreviewController` projects preview footprints through `IPlacementInventory.Topology`.
+- `PlacementOverlay` renders recorded covered slots and does not decide placement semantics.
+- Layout components react to slot lifecycle and never mutate transfer contents.

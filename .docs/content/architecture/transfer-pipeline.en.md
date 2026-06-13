@@ -67,7 +67,9 @@ Area drops and auto-transfer start directly with automatic candidate enumeration
 - checking bounds and occupancy;
 - returning covered slots.
 
-Single-cell items use the same placement path as shaped items.
+`IPlacementInventory` exposes the active `IInventoryTopology`; shared code never uses a
+grid-specific flag to decide placement behavior. Single-cell and shaped items use the same path,
+including auto-transfer.
 
 ## Batch semantics
 

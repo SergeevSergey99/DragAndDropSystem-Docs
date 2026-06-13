@@ -6,12 +6,12 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Optional inventory contract for grid/shaped placement support.
+    /// Optional inventory contract for topology-aware placement support.
     /// Code that needs placement semantics should depend on this interface instead of a concrete inventory component.
     /// </summary>
     public interface IPlacementInventory : IInventory
     {
-        GridTopology? Grid { get; }
+        IInventoryTopology Topology { get; }
         IStrategy Strategy { get; }
         IReadOnlyCollection<Placement> Placements { get; }
 

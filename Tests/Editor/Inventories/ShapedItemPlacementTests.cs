@@ -394,6 +394,36 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void PlacementInventory_ExposesActiveTopologyWithoutGridContract()
+        {
+            var slotInventory = new InventoryBuilder().WithFixedSlots(3).Build();
+            var gridInventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                Assert.IsInstanceOf<SlotTopology>(
+                    ((IPlacementInventory)slotInventory).Topology);
+                Assert.IsInstanceOf<SlotCountLimitedTopology>(
+                    ((IPlacementInventory)gridInventory).Topology);
+
+                var offsets = ((IPlacementInventory)gridInventory).Topology.GetPlacementOffsets(
+                    new RectPlacementShape(2, 1),
+                    PlacementOrientation.Rot0);
+                CollectionAssert.AreEqual(
+                    new[] { Vector2Int.zero, Vector2Int.right },
+                    offsets);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(slotInventory);
+                InventoryBuilder.Destroy(gridInventory);
+            }
+        }
+
+        [Test]
         public void PlacementCellUtility_WithTopology_UsesTopologyBounds()
         {
             IInventoryTopology topology = new RectGridTopology(3, 2);
@@ -1030,7 +1060,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void AutoTransferService_RejectsShapedItems()
+        public void AutoTransferService_ShapedItem_UsesTopologyAwareCandidateLoop()
         {
             var source = new InventoryBuilder()
                 .WithFixedSlots(4)
@@ -1038,6 +1068,7 @@ namespace UDND.Tests.Inventories
                 .Build();
             var target = new InventoryBuilder()
                 .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
                 .Build();
 
             try
@@ -1046,14 +1077,27 @@ namespace UDND.Tests.Inventories
                 Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
 
                 var service = new AutoTransferService();
-                Assert.IsFalse(service.TryCreateContext(
+                Assert.IsTrue(service.TryCreateContext(
                     new[] { source.GetSlot(0) },
                     source,
                     target,
                     out var context,
-                    out string failureReason));
-                Assert.IsNull(context);
-                StringAssert.Contains("shaped", failureReason);
+                    out string failureReason),
+                    failureReason);
+
+                var processor = new InventoryDropProcessor(
+                    targetBaseSlot: null,
+                    targetInventory: target,
+                    globalRules: new GlobalRuleValidator());
+                var report = processor.ProcessDropWithReport(context);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(1, report.TransferredAmount);
+                Assert.IsNull(source.GetPlacementAt(0));
+                Assert.IsNotNull(target.GetPlacementAt(0));
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1 },
+                    target.GetPlacementAt(0).CoveredIndices);
             }
             finally
             {
@@ -1313,9 +1357,10 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void ProcessDrop_ShapedStackIntoUniqueGrid_PlacesOnlyOne()
+        public void ProcessDrop_ShapedStackIntoUniqueGrid_DistributesAndReturnsOnlyRemainder()
         {
-            // Unique caps a shaped placement at count 1, even when a count > 1 stack is dropped in.
+            // Unique caps each shaped placement at count 1. The JIT loop keeps looking for
+            // placements after the explicit target and leaves only the amount that cannot fit.
             var source = new InventoryBuilder().WithStrategy(new StackableItemStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
             var target = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(6).WithGridTopology(3, 2).Build();
 
@@ -1335,9 +1380,10 @@ namespace UDND.Tests.Inventories
                 var report = processor.ProcessDropWithReport(context);
 
                 Assert.IsTrue(report.Success, report.FailureReason);
-                Assert.AreEqual(1, report.TransferredAmount, "Unique grid accepts exactly one");
+                Assert.AreEqual(2, report.TransferredAmount, "Two 2x1 placements fit in a 3x2 grid");
                 Assert.AreEqual(1, target.GetPlacementAt(0).Stack.Count, "Unique never holds count > 1");
-                Assert.AreEqual(2, source.GetPlacementAt(0).Stack.Count, "Remainder stays in source (partial)");
+                Assert.AreEqual(1, target.GetPlacementAt(3).Stack.Count, "Remainder uses automatic placement");
+                Assert.AreEqual(1, source.GetPlacementAt(0).Stack.Count, "Only the amount that did not fit remains");
             }
             finally
             {

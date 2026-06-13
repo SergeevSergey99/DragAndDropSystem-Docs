@@ -53,7 +53,9 @@ Area drop y auto-transfer empiezan directamente con candidates automáticos.
 
 `IStrategy` controla semántica de items, capacidad, merge/create y candidates.
 `IPlacementGeometry` y la topology controlan anchor, footprint orientado, límites,
-ocupación y covered slots. Items single-cell y shaped usan el mismo pipeline.
+ocupación y covered slots. `IPlacementInventory` expone la `IInventoryTopology`
+activa; el código compartido no decide comportamiento mediante un flag específico
+de grid. Items single-cell y shaped usan el mismo pipeline, incluido auto-transfer.
 
 ## Semántica batch
 

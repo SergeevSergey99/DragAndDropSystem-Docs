@@ -150,14 +150,13 @@ namespace UDND.Inventories
                 }
 
                 var orderer = entryTargetSlot != null
-                    ? policy.AlternativeOrderer : null;
-                if (orderer != null)
+                    ? policy.AlternativeOrderer
+                    : NaturalPlacementCandidateOrderer.Instance;
+                orderer ??= NaturalPlacementCandidateOrderer.Instance;
+                foreach (var candidate in orderer.Order(strategy.GetCandidates(geometry, acceptance), acceptance))
                 {
-                    foreach (var candidate in orderer.Order(strategy.GetCandidates(geometry, acceptance), acceptance))
-                    {
-                        if (!ShouldSkipProbeCandidate(candidate, entry, sourceInventory, targetInventory, geometry))
-                            return true;
-                    }
+                    if (!ShouldSkipProbeCandidate(candidate, entry, sourceInventory, targetInventory, geometry))
+                        return true;
                 }
             }
 
@@ -277,7 +276,9 @@ namespace UDND.Inventories
             };
 
             var geometry = new InventoryPlacementGeometry(targetInventory);
-            var orderer = request.OrdererOverride ?? request.Policy.AlternativeOrderer;
+            var orderer = request.OrdererOverride
+                ?? request.Policy.AlternativeOrderer
+                ?? NaturalPlacementCandidateOrderer.Instance;
 
             if (request.TargetBaseSlot != null)
             {
@@ -311,15 +312,8 @@ namespace UDND.Inventories
                 // Both blocked-target alternatives and remainder distribution use the configured
                 // alternative orderer; the explicit attempt itself never goes through an orderer.
                 orderer = request.OrdererOverride
-                    ?? request.Policy.AlternativeOrderer;
-
-                // Explicit CREATE succeeded: the item was placed as a unit in an empty slot.
-                // Remainder stays in the source — scattering to unrelated slots is not intended
-                // (e.g. dropping a shaped stack of 3 into a unique grid places exactly 1).
-                // Explicit MERGE succeeded: overflow is intentional (filling a partial stack),
-                // so the while loop continues to spill the remainder elsewhere.
-                if (explicitPlaced && explicitCandidate.Kind == PlacementCandidateKind.Create)
-                    goto CommitEntry;
+                    ?? request.Policy.AlternativeOrderer
+                    ?? NaturalPlacementCandidateOrderer.Instance;
             }
 
             while (transaction.Remaining > 0 && !transaction.Aborted)
@@ -344,7 +338,6 @@ namespace UDND.Inventories
                     break;
             }
 
-            CommitEntry:
             if (transaction.Aborted)
                 return EntryTransferResult.Failed(requestedAmount, "Entry rolled back: source restore failed");
 
@@ -589,9 +582,14 @@ namespace UDND.Inventories
 
             sourceSlot.UpdateVisuals();
             anchorSlot.UpdateVisuals();
-            if (placementInventory?.Grid != null)
+            if (placementInventory != null &&
+                placementInventory.GetCoveredCells(
+                    anchorSlot.Index,
+                    candidate.Shape,
+                    candidate.Orientation).Count > 1)
                 targetInventory.UpdateAllVisuals();
-            if (sourceInventory is IPlacementInventory sourcePlacementInventory && sourcePlacementInventory.Grid.HasValue)
+            if (transaction.SourcePlacementSnapshot?.CoveredIndices != null &&
+                transaction.SourcePlacementSnapshot.CoveredIndices.Count > 1)
                 sourceInventory.UpdateAllVisuals();
 
             domainContext.MarkCommitted(anchorSlot, transferredStack.PrimaryAdapter, amount);

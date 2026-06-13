@@ -18,6 +18,8 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 7. Preserve per-entry rollback and partial-stack return semantics.
 8. Preserve target-aware preview conversion and acceptance requests before mutation.
 9. Keep UI layout concerns separate from transfer semantics.
+10. Treat `IPlacementInventory.Topology` as authoritative; do not branch shared placement code on
+    `GridTopology` or an `is grid` flag.
 
 ## Review Priorities
 

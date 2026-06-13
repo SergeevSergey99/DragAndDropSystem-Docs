@@ -39,6 +39,9 @@ namespace UDND.Inventories
     [Serializable]
     public sealed class NaturalPlacementCandidateOrderer : PlacementCandidateOrderer
     {
+        public static readonly NaturalPlacementCandidateOrderer Instance =
+            new NaturalPlacementCandidateOrderer();
+
         public override IEnumerable<PlacementCandidate> Order(
             PlacementCandidateSource source,
             InventoryAcceptanceRequest request)

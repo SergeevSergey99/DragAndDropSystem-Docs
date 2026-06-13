@@ -70,49 +70,12 @@ namespace UDND.Inventories
                 return false;
             }
 
-            if (HasShapedAutoTransferEntry(entries, targetInventory))
-            {
-                failureReason = "Auto-transfer does not support shaped items";
-                return false;
-            }
-
             var dragContext = new DragContext(entries);
             dragContext.TargetInventory = targetInventory;
             context = dragContext;
 
             return true;
         }
-
-        private static bool HasShapedAutoTransferEntry(IReadOnlyList<DragEntry> entries, IInventory targetInventory)
-        {
-            if (entries == null)
-                return false;
-
-            for (int i = 0; i < entries.Count; i++)
-            {
-                var entry = entries[i];
-                if (entry.IsShaped)
-                    return true;
-
-                var sourceItem = entry.Stack?.PrimaryAdapter;
-                if (sourceItem == null)
-                    continue;
-
-                // Also reject if the item converts to a multi-cell shape in the target inventory.
-                if (TransferItemConversionUtility.TryResolveTargetItem(
-                        entry.SourceInventory,
-                        targetInventory,
-                        sourceItem,
-                        out var targetItem) &&
-                    IsShapedItem(targetItem, entry.Orientation))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsShapedItem(IItemAdapter item, PlacementOrientation orientation)
-            => !PlacementShapeUtility.IsSingleCell(PlacementShapeUtility.Resolve(item), orientation);
 
         public async Task<(DropResult result, TransferExecutionReport report)> ExecuteAsync(
             DragContext context,

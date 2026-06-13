@@ -109,8 +109,7 @@ namespace UDND.UI
             _renderedPlacements.Clear();
 
             if (_inventory == null ||
-                _inventory is not IPlacementInventory placementInventory ||
-                !placementInventory.Grid.HasValue)
+                _inventory is not IPlacementInventory placementInventory)
                 return;
 
             var root = ResolveOverlayRoot();

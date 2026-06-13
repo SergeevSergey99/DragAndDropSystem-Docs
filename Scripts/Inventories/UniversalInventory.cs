@@ -79,7 +79,7 @@ namespace UDND.Inventories
         public override int SlotCount => _slots.Count;
         public IReadOnlyCollection<Placement> Placements => EnsurePlacementStore().Placements;
 
-        public GridTopology? Grid => _useGridTopology ? _gridTopology.Normalized() : (GridTopology?)null;
+        public IInventoryTopology Topology => EnsurePlacementStore().Topology;
         public IShapedPlacementAnchorStrategy ShapedPlacementAnchorStrategy => ResolveShapedPlacementAnchorStrategy();
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;

@@ -81,12 +81,7 @@ namespace UDND.DataBinding
                 return;
 
             foreach (var placement in placements)
-            {
-                if (placementInventory.Grid.HasValue)
-                    ReloadGridPlacement(placement, placementInventory);
-                else
-                    ReloadSlotPlacement(placement, placementInventory);
-            }
+                ReloadPlacement(placement, placementInventory);
 
             Inventory.UpdateAllVisuals();
         }
@@ -113,15 +108,14 @@ namespace UDND.DataBinding
                 adapter));
         }
 
-        private void ReloadSlotPlacement(PlacementData<TData> placement, IPlacementInventory placementInventory)
+        private void ReloadPlacement(PlacementData<TData> placement, IPlacementInventory placementInventory)
         {
             int count = Math.Max(1, placement.Count);
-            int targetSlotIndex = placement.AnchorIndex >= 0 ? placement.AnchorIndex : -1;
-            if (targetSlotIndex >= 0 && TryCreateStack(placement.Item, count, out var stack))
+            if (placement.AnchorIndex >= 0 && TryCreateStack(placement.Item, count, out var stack))
             {
                 var request = new PlacementRequest(
                     stack,
-                    targetSlotIndex,
+                    placement.AnchorIndex,
                     placement.Orientation,
                     PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
@@ -131,23 +125,7 @@ namespace UDND.DataBinding
                 return;
             }
 
-            AddToUIQuiet(() => CreateAdapter(placement.Item), count, targetSlotIndex);
-        }
-
-        private void ReloadGridPlacement(PlacementData<TData> placement, IPlacementInventory placementInventory)
-        {
-            int count = Math.Max(1, placement.Count);
-            if (!TryCreateStack(placement.Item, count, out var stack))
-                return;
-
-            var request = new PlacementRequest(
-                stack,
-                Math.Max(0, placement.AnchorIndex),
-                placement.Orientation,
-                PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
-
-            if (!placementInventory.TryPlace(request))
-                OnPlacementReloadFailed(placement, stack.PrimaryAdapter);
+            AddToUIQuiet(() => CreateAdapter(placement.Item), count, -1);
         }
 
         private bool TryCreateStack(TData item, int count, out ItemStack stack)
