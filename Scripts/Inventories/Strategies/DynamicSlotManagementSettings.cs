@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UDND.Slots;
 
@@ -13,16 +12,6 @@ namespace UDND.Inventories
 
         [SerializeField, Tooltip("Maximum number of maintained free slots. Explicit target-index adds can still create slots up to the requested index.")]
         private int _maxFreeSlots = 0;
-
-        public override IInventoryStrategy WrapRuntimeStrategy(
-            IInventory inventory,
-            IInventoryStrategy baseStrategy,
-            Func<BaseSlot> createSlot,
-            Func<List<BaseSlot>> getSlots,
-            Action ensureFreeSlots)
-        {
-            return new DynamicSlotDecorator(baseStrategy, createSlot, _maxSlots, _maxFreeSlots, getSlots, ensureFreeSlots);
-        }
 
         public override bool CanCreateNewSlot(IInventory inventory, int currentSlotCount)
         {

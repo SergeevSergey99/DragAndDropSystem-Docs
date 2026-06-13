@@ -122,8 +122,7 @@ namespace UDND.Tests
                 ItemStack stack,
                 BaseSlot targetBaseSlot,
                 IInventory sourceInventory = null,
-                int sourceSlotIndex = -1,
-                SlotOperationContext operationContext = null)
+                int sourceSlotIndex = -1)
                 => TrySetStackForSlot(targetBaseSlot, stack);
 
             public int RemoveItemsFromSlot(

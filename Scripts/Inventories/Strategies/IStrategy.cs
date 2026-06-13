@@ -1,11 +1,11 @@
-using System.Collections.Generic;
 using UDND.Core;
 using UDND.Slots;
 
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Inventory behavior strategy.
+    /// Read-only inventory behavior strategy. Produces placement candidates and resolves
+    /// drag amounts; all mutation is performed by the caller through narrow inventory primitives.
     /// </summary>
     public interface IStrategy
     {
@@ -20,11 +20,5 @@ namespace UDND.Inventories
         PlacementCandidateSource GetCandidates(
             IPlacementGeometry geometry,
             InventoryAcceptanceRequest request);
-
-        bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex);
-        bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
-        bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
-        bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
-        bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter);
     }
 }

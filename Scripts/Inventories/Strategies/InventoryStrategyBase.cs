@@ -11,7 +11,7 @@ namespace UDND.Inventories
     /// Base strategy with shared methods
     /// </summary>
     [Serializable]
-    public abstract class InventoryStrategyBase : IInventoryStrategy, IStrategy, IAcceptanceStrategy, IDragPolicy, IInventoryQueryStrategy
+    public abstract class InventoryStrategyBase : IInventoryStrategy, IStrategy, IAcceptanceStrategy, IDragPolicy
     {
         [SerializeField, LabelText("Drag Amount"), Tooltip("How many items to take when dragging from a stack.")]
         [ShowIf(nameof(ShowDragAmountSettings))]
@@ -36,10 +36,6 @@ namespace UDND.Inventories
             return itemAdapter == null ? 0 : int.MaxValue;
         }
 
-        public bool TryAddQuiet(List<BaseSlot> slots, ItemStack stack, int targetIndex) => TryAdd(slots, stack, targetIndex, skipRules: true);
-        public abstract bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
-        public abstract bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
-        public abstract bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
         public virtual PlacementCandidateOrderer DefaultOrderer => NaturalPlacementCandidateOrderer.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
@@ -177,39 +173,6 @@ namespace UDND.Inventories
             IPlacementShape shape, PlacementOrientation orientation, Placement sourcePlacement)
             => ShapedMergeDecision.CreateNew;
 
-        public virtual int GetItemCount(List<BaseSlot> slots, IItemAdapter itemAdapter)
-        {
-            int total = 0;
-            HashSet<Placement> seenPlacements = null;
-            foreach (var slot in slots)
-            {
-                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
-                    continue;
-
-                if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
-                {
-                    total += slot.Stack.Count;
-                }
-            }
-            return total;
-        }
-
-        public virtual bool Contains(List<BaseSlot> slots, IItemAdapter itemAdapter)
-        {
-            HashSet<Placement> seenPlacements = null;
-            foreach (var slot in slots)
-            {
-                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements))
-                    continue;
-
-                if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public virtual int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount)
         {
             DragAmount amount = dragAmount;
@@ -241,17 +204,6 @@ namespace UDND.Inventories
                 default:
                     return stackCount;
             }
-        }
-
-        public virtual bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
-        {
-            if (baseSlot == null || itemAdapter == null)
-                return false;
-
-            if (baseSlot.IsEmpty)
-                return true;
-
-            return baseSlot.Stack != null && baseSlot.Stack.CanStack(itemAdapter);
         }
 
         /// <summary>
@@ -304,28 +256,6 @@ namespace UDND.Inventories
                 return ruleEvaluator.CanAcceptByRules(baseSlot, itemAdapter, previewCount, request);
 
             return true;
-        }
-
-        protected int FindEmptySlotIndex(List<BaseSlot> slots)
-        {
-            for (int i = 0; i < slots.Count; i++)
-            {
-                if (slots[i].IsEmpty)
-                    return i;
-            }
-            return -1;
-        }
-
-        protected int FindSlotWithItem(List<BaseSlot> slots, IItemAdapter itemAdapter)
-        {
-            for (int i = 0; i < slots.Count; i++)
-            {
-                if (!slots[i].IsEmpty && slots[i].Stack.CanStack(itemAdapter))
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         protected bool PrefabPassesRules(List<BaseSlot> slots, BaseSlot baseSlotPrefab, IItemAdapter itemAdapter, int previewCount, InventoryAcceptanceRequest request)
@@ -522,80 +452,7 @@ namespace UDND.Inventories
             return null;
         }
 
-        protected static bool TryMergeIntoSlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
-            => TryMergeIntoSlot(stack, baseSlot, maxStackSize, ensureFreeSlots, operationContext, out _);
 
-        protected static bool TryMergeIntoSlot(
-            ItemStack stack,
-            BaseSlot baseSlot,
-            int maxStackSize,
-            System.Action ensureFreeSlots,
-            SlotOperationContext operationContext,
-            out int addedAmount)
-        {
-            addedAmount = 0;
-            int canFit = Math.Max(0, maxStackSize - baseSlot.Stack.Count);
-            int toAdd = Math.Min(stack.Count, canFit);
-            if (toAdd <= 0) return false;
-
-            var movedStack = stack.Split(toAdd);
-            if (movedStack.IsEmpty)
-                return false;
-
-            if (baseSlot.Inventory == null)
-            {
-                stack.TryAddToStack(movedStack);
-                return false;
-            }
-
-            int before = baseSlot.Stack.Count;
-            if (!baseSlot.Inventory.TryAddToSlotStack(baseSlot, movedStack))
-            {
-                stack.TryAddToStack(movedStack);
-                return false;
-            }
-
-            baseSlot.UpdateVisuals();
-            addedAmount = Math.Max(0, baseSlot.Stack.Count - before);
-            if (addedAmount <= 0)
-            {
-                stack.TryAddToStack(movedStack);
-                return false;
-            }
-
-            operationContext?.RecordResult(baseSlot, false, addedAmount);
-            ensureFreeSlots?.Invoke();
-            return true;
-        }
-
-        protected static int RemoveFromSlot(BaseSlot baseSlot, int amount)
-        {
-            if (baseSlot == null || amount <= 0)
-                return 0;
-
-            if (baseSlot.Inventory != null &&
-                baseSlot.Inventory.TrySplitFromSlot(baseSlot, amount, out var removedStack))
-                return removedStack.Count;
-
-            return 0;
-        }
-
-        protected static bool TryPlaceIntoEmptySlot(ItemStack stack, BaseSlot baseSlot, int maxStackSize, System.Action ensureFreeSlots, SlotOperationContext operationContext)
-        {
-            int toPlace = Math.Min(stack.Count, maxStackSize);
-            if (toPlace <= 0) return false;
-
-            bool slotWasEmpty = baseSlot.IsEmpty;
-            var movedStack = stack.Split(toPlace);
-            if (movedStack.IsEmpty)
-                return false;
-
-            baseSlot.SetStack(movedStack);
-            baseSlot.UpdateVisuals();
-            operationContext?.RecordResult(baseSlot, slotWasEmpty, toPlace);
-            ensureFreeSlots?.Invoke();
-            return true;
-        }
 
         internal string CaptureConfigurationJson()
         {

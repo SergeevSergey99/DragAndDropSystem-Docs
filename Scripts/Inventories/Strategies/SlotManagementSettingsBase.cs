@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UDND.Slots;
 
@@ -8,16 +7,6 @@ namespace UDND.Inventories
     [Serializable]
     public abstract class SlotManagementSettingsBase
     {
-        public virtual IInventoryStrategy WrapRuntimeStrategy(
-            IInventory inventory,
-            IInventoryStrategy baseStrategy,
-            Func<BaseSlot> createSlot,
-            Func<List<BaseSlot>> getSlots,
-            Action ensureFreeSlots)
-        {
-            return baseStrategy;
-        }
-
         public virtual bool CanCreateNewSlot(IInventory inventory, int currentSlotCount)
         {
             return false;

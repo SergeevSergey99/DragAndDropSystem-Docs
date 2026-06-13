@@ -69,7 +69,6 @@ namespace UDND.Inventories
         private IStrategy _placementStrategy;
         private IAcceptanceStrategy _acceptanceStrategy;
         private IDragPolicy _dragPolicy;
-        private IInventoryQueryStrategy _queryStrategy;
         private BaseSlot _pointerHoveredBaseSlot;
         private BaseSlot _lastInteractedBaseSlot;
         private StrategyConfiguration _appliedStrategyConfiguration;
@@ -129,15 +128,6 @@ namespace UDND.Inventories
             }
         }
 
-        public IInventoryQueryStrategy QueryStrategy
-        {
-            get
-            {
-                EnsureStrategyInitialized();
-                return _queryStrategy;
-            }
-        }
-        
         public override InventoryDataBindingBase DataBinding { get; protected set; }
 
         public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
@@ -394,19 +384,7 @@ namespace UDND.Inventories
 
             IInventoryStrategy baseStrategy = _inventoryStrategy;
             Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: {baseStrategy.GetType().Name}</color>");
-
-            // Wrap it in a decorator for dynamic slots if needed
-            IInventoryStrategy configuredStrategy = _slotManagementSettings.WrapRuntimeStrategy(this, baseStrategy, CreateSlot, () => _slots, EnsureFreeSlots);
-            if (!ReferenceEquals(configuredStrategy, baseStrategy))
-            {
-                SetStrategy(configuredStrategy);
-                Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy wrapped by {_slotManagementSettings.GetType().Name}</color>");
-            }
-            else
-            {
-                SetStrategy(baseStrategy);
-                Extensions.DragAndDropLog($"<color=yellow>[{name}] Strategy: Fixed slots</color>");
-            }
+            SetStrategy(baseStrategy);
         }
 
         /// <summary>
@@ -424,8 +402,6 @@ namespace UDND.Inventories
                 ?? throw new ArgumentException("Inventory strategy must implement IAcceptanceStrategy.", nameof(strategy));
             _dragPolicy = strategy as IDragPolicy
                 ?? throw new ArgumentException("Inventory strategy must implement IDragPolicy.", nameof(strategy));
-            _queryStrategy = strategy as IInventoryQueryStrategy
-                ?? throw new ArgumentException("Inventory strategy must implement IInventoryQueryStrategy.", nameof(strategy));
             _appliedStrategyConfiguration = CaptureStrategyConfiguration();
         }
 
@@ -967,19 +943,9 @@ namespace UDND.Inventories
 
             Extensions.DragAndDropLog($"<color=cyan>[{name}] TryAddStack: {stack.DisplayName} x{stack.Count}, targetSlot={targetSlotIndex}, currentSlots={_slots.Count}, strategy={_strategy?.GetType().Name}</color>");
 
-            bool success = _placementStrategy.TryAdd(_slots, stack, targetSlotIndex);
-            bool stackConsumed = stack.IsEmpty;
+            bool success = TryAddStackViaCandidates(stack, targetSlotIndex);
 
-            if ((!success || !stackConsumed) && stack != null && !stack.IsEmpty)
-            {
-                success = SlotRelocationService.TryRelocateAndRetry(
-                    _slots, stack, targetSlotIndex, _placementStrategy,
-                    (slot, item, count) => CanAcceptByRules(slot, item, count),
-                    CaptureSnapshot, RestoreSnapshot);
-                stackConsumed = stack.IsEmpty;
-            }
-
-            if (success && stackConsumed)
+            if (success)
             {
                 Extensions.DragAndDropLog($"<color=green>[{name}] TryAddStack SUCCESS! Now have {_slots.Count} slots</color>");
                 UpdateAllVisuals();
@@ -987,7 +953,6 @@ namespace UDND.Inventories
             else
             {
                 Extensions.DragAndDropLog($"<color=red>[{name}] TryAddStack FAILED!</color>");
-                success = false;
             }
 
             return success;
@@ -1002,7 +967,90 @@ namespace UDND.Inventories
             if (!CanUseLegacySlotPlacement(stack))
                 return false;
 
-            return _placementStrategy.TryAddQuiet(_slots, stack, targetSlotIndex);
+            return TryAddStackViaCandidates(stack, targetSlotIndex);
+        }
+
+        private bool TryAddStackViaCandidates(ItemStack stack, int targetSlotIndex)
+        {
+            var geometry = new InventoryPlacementGeometry(this);
+
+            // Explicit target: try only that slot, no spill into other slots.
+            if (targetSlotIndex >= 0)
+            {
+                var preferredSlot = GetSlot(targetSlotIndex);
+                if (preferredSlot == null)
+                    return false;
+                var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
+                if (!_placementStrategy.TryGetCandidate(geometry, request, preferredSlot, out var candidate))
+                    return false;
+                int amount = Math.Min(stack.Count, candidate.Capacity);
+                if (amount <= 0)
+                    return false;
+                var subStack = stack.Split(amount);
+                if (!TryApplyAddCandidate(candidate, subStack))
+                    stack.TryAddToStack(subStack);
+                return stack.IsEmpty;
+            }
+
+            // No explicit target: distribute across best candidates.
+            var orderer = _placementStrategy.DefaultOrderer ?? NaturalPlacementCandidateOrderer.Instance;
+            while (!stack.IsEmpty)
+            {
+                var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
+                bool progress = false;
+
+                foreach (var candidate in orderer.Order(_placementStrategy.GetCandidates(geometry, request), request))
+                {
+                    int amount = Math.Min(stack.Count, candidate.Capacity);
+                    if (amount <= 0)
+                        continue;
+
+                    var subStack = stack.Split(amount);
+                    if (!TryApplyAddCandidate(candidate, subStack))
+                        stack.TryAddToStack(subStack);
+                    else
+                    {
+                        progress = true;
+                        break;
+                    }
+                }
+
+                if (!progress)
+                    break;
+            }
+
+            return stack.IsEmpty;
+        }
+
+        private bool TryApplyAddCandidate(PlacementCandidate candidate, ItemStack subStack)
+        {
+            switch (candidate.Kind)
+            {
+                case PlacementCandidateKind.Merge:
+                {
+                    var anchorSlot = candidate.TargetPlacement != null
+                        ? GetSlot(candidate.TargetPlacement.AnchorIndex)
+                        : candidate.Anchor;
+                    return anchorSlot != null && TryAddToSlotStack(anchorSlot, subStack);
+                }
+                case PlacementCandidateKind.Create:
+                {
+                    var anchorSlot = candidate.Anchor;
+                    if (anchorSlot == null)
+                        return false;
+                    var shape = candidate.Shape ?? PlacementShapeUtility.Resolve(subStack.PrimaryAdapter);
+                    var placementReq = new PlacementRequest(subStack, anchorSlot.Index, candidate.Orientation, shape);
+                    return CanPlace(placementReq) && TryPlace(placementReq);
+                }
+                case PlacementCandidateKind.NewDynamicSlot:
+                {
+                    if (!((IDynamicSlotLifecycle)this).TryCreateSlot(out var newSlot) || newSlot == null)
+                        return false;
+                    return TrySetStackForSlot(newSlot, subStack);
+                }
+                default:
+                    return false;
+            }
         }
 
         public bool CanAcceptByRules(
@@ -1177,7 +1225,17 @@ namespace UDND.Inventories
             UpdateAllVisuals();
         }
 
-        public override bool Contains(IItemAdapter itemAdapter) => _queryStrategy.Contains(_slots, itemAdapter);
+        public override bool Contains(IItemAdapter itemAdapter)
+        {
+            if (itemAdapter == null)
+                return false;
+            foreach (var placement in EnsurePlacementStore().Placements)
+            {
+                if (placement?.Stack != null && placement.Stack.CanStack(itemAdapter))
+                    return true;
+            }
+            return false;
+        }
         
         public override void UpdateAllVisuals()
         {
@@ -1373,8 +1431,7 @@ namespace UDND.Inventories
             ItemStack stack,
             BaseSlot targetBaseSlot,
             IInventory sourceInventory = null,
-            int sourceSlotIndex = -1,
-            SlotOperationContext operationContext = null)
+            int sourceSlotIndex = -1)
         {
             if (stack == null || stack.IsEmpty || targetBaseSlot == null)
                 return false;
@@ -1383,7 +1440,24 @@ namespace UDND.Inventories
             if (!CanUseLegacySlotPlacement(stack))
                 return false;
 
-            return _placementStrategy.TryAddToSlot(_slots, stack, targetBaseSlot, EnsureFreeSlots, operationContext);
+            var geometry = new InventoryPlacementGeometry(this);
+            var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
+            if (!_placementStrategy.TryGetCandidate(geometry, request, targetBaseSlot, out var candidate))
+                return false;
+
+            int amount = Math.Min(stack.Count, candidate.Capacity);
+            if (amount <= 0)
+                return false;
+
+            var subStack = stack.Split(amount);
+            if (!TryApplyAddCandidate(candidate, subStack))
+            {
+                stack.TryAddToStack(subStack);
+                return false;
+            }
+
+            UpdateAllVisuals();
+            return true;
         }
 
         private void EnsureInventoryStrategySettings()

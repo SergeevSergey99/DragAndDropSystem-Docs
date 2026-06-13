@@ -61,8 +61,7 @@ namespace UDND.Inventories
             ItemStack stack,
             BaseSlot targetBaseSlot,
             IInventory sourceInventory = null,
-            int sourceSlotIndex = -1,
-            SlotOperationContext operationContext = null);
+            int sourceSlotIndex = -1);
 
         /// <summary>
         /// Remove items from a source slot and emit the inventory's normal removal side effects.

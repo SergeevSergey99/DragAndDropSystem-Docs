@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UDND.Core;
 using UDND.Slots;
@@ -17,91 +17,6 @@ namespace UDND.Inventories
         // Unique items never stack: one per slot/placement (count 1), including shaped placements.
         // The candidate capacity must therefore stay at one.
         public override int GetMaxStackSizeForItem(IItemAdapter itemAdapter) => itemAdapter == null ? 0 : 1;
-
-        public override bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
-        {
-            if (baseSlot == null || itemAdapter == null)
-                return false;
-
-            return baseSlot.IsEmpty;
-        }
-
-        public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false)
-        {
-            if (stack == null || stack.IsEmpty)
-                return false;
-
-            // Check the target slot
-            if (targetIndex >= 0 && targetIndex < slots.Count)
-            {
-                var targetSlot = slots[targetIndex];
-
-                if (targetSlot.IsEmpty && (skipRules || PassesRules(targetSlot, stack.PrimaryAdapter, 1)))
-                {
-                    var singleItemStack = stack.Split(1);
-                    if (singleItemStack.IsEmpty)
-                        return false;
-
-                    targetSlot.SetStack(singleItemStack);
-                }
-                return stack.IsEmpty;
-            }
-
-            // Distribute items across empty slots (1 per slot)
-            for (int i = 0; i < slots.Count && !stack.IsEmpty; i++)
-            {
-                var slot = slots[i];
-                if (!slot.IsEmpty)
-                    continue;
-
-                if (!skipRules && !PassesRules(slot, stack.PrimaryAdapter, 1))
-                    continue;
-
-                var singleItemStack = stack.Split(1);
-                if (singleItemStack.IsEmpty)
-                    return false;
-
-                slot.SetStack(singleItemStack);
-                // Continue the loop to distribute remaining items
-            }
-
-            return stack.IsEmpty;
-        }
-
-        public override bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex)
-        {
-            if (sourceIndex >= 0 && sourceIndex < slots.Count)
-            {
-                var slot = slots[sourceIndex];
-                if (!slot.IsEmpty && slot.Stack.CanStack(itemAdapter))
-                {
-                    slot.Clear();
-                    return true;
-                }
-                return false;
-            }
-
-            // Find and remove the first matching item
-            int slotIndex = FindSlotWithItem(slots, itemAdapter);
-            if (slotIndex >= 0)
-            {
-                slots[slotIndex].Clear();
-                return true;
-            }
-
-            return false;
-        }
-
-        public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext)
-        {
-            if (stack == null || stack.IsEmpty || targetBaseSlot == null || !targetBaseSlot.IsEmpty)
-                return false;
-
-            if (!PassesRules(targetBaseSlot, stack.PrimaryAdapter, 1))
-                return false;
-
-            return TryPlaceIntoEmptySlot(stack, targetBaseSlot, 1, ensureFreeSlots, operationContext);
-        }
 
         public override bool TryGetCandidate(
             IPlacementGeometry geometry,
@@ -144,7 +59,7 @@ namespace UDND.Inventories
             if (canCreateNewSlot && potentialNewSlots > 0 && PrefabPassesRules(slots, baseSlotPrefab, item, 1, request))
                 acceptableCount += potentialNewSlots;
 
-            return System.Math.Min(acceptableCount, desiredCount);
+            return Math.Min(acceptableCount, desiredCount);
         }
     }
 }

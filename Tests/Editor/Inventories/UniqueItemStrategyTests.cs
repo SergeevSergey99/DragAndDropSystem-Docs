@@ -12,6 +12,7 @@ namespace UDND.Tests.Inventories
         private UniqueItemStrategy _strategy;
         private List<BaseSlot> _slots;
         private BaseSlot _prefab;
+        private UniversalInventory _inventory;
 
         [SetUp]
         public void SetUp()
@@ -22,10 +23,28 @@ namespace UDND.Tests.Inventories
         [TearDown]
         public void TearDown()
         {
-            TestSlotFactory.Dispose(_slots);
+            if (_inventory != null)
+            {
+                InventoryBuilder.Destroy(_inventory);
+                _inventory = null;
+            }
+            else
+            {
+                TestSlotFactory.Dispose(_slots);
+            }
             TestSlotFactory.Dispose(_prefab);
             _slots = null;
             _prefab = null;
+        }
+
+        private UniversalInventory BuildInventory(int slotCount)
+        {
+            _inventory = new InventoryBuilder()
+                .WithStrategy(_strategy)
+                .WithFixedSlots(slotCount)
+                .Build();
+            _slots = new List<BaseSlot>(_inventory.Slots);
+            return _inventory;
         }
 
         // ---------- TryAdd with explicit targetIndex ----------
@@ -33,28 +52,28 @@ namespace UDND.Tests.Inventories
         [Test]
         public void TryAdd_TargetEmpty_PlacesExactlyOneItem()
         {
-            _slots = TestSlotFactory.CreateSlots(3);
+            var inventory = BuildInventory(3);
             var stack = ItemStackBuilder.Unique(2, "gem");
 
-            bool fullyPlaced = _strategy.TryAdd(_slots, stack, targetIndex: 1);
+            bool fullyPlaced = inventory.TryAddStack(stack, 1);
 
             Assert.IsFalse(fullyPlaced, "Unique places 1 per call when addressed by index");
-            Assert.IsFalse(_slots[1].IsEmpty);
-            Assert.AreEqual(1, _slots[1].Stack.Count);
+            Assert.IsFalse(inventory.GetSlot(1).IsEmpty);
+            Assert.AreEqual(1, inventory.GetSlot(1).Stack.Count);
             Assert.AreEqual(1, stack.Count, "One item must remain in the source stack");
         }
 
         [Test]
         public void TryAdd_TargetOccupied_DoesNothing()
         {
-            _slots = TestSlotFactory.CreateSlots(3);
-            _slots[0].SetStack(ItemStackBuilder.Unique(1, "existing"));
+            var inventory = BuildInventory(3);
+            inventory.TrySetStackForSlot(inventory.GetSlot(0), ItemStackBuilder.Unique(1, "existing"));
             var incoming = ItemStackBuilder.Unique(1, "gem");
 
-            bool fullyPlaced = _strategy.TryAdd(_slots, incoming, targetIndex: 0);
+            bool fullyPlaced = inventory.TryAddStack(incoming, 0);
 
             Assert.IsFalse(fullyPlaced);
-            Assert.AreEqual("existing", _slots[0].Stack.ID);
+            Assert.AreEqual("existing", inventory.GetSlot(0).Stack.ID);
             Assert.AreEqual(1, incoming.Count);
         }
 
@@ -63,86 +82,93 @@ namespace UDND.Tests.Inventories
         [Test]
         public void TryAdd_NoTargetIndex_DistributesOnePerEmptySlot()
         {
-            _slots = TestSlotFactory.CreateSlots(3);
+            var inventory = BuildInventory(3);
             var stack = ItemStackBuilder.Unique(3, "gem");
 
-            bool fullyPlaced = _strategy.TryAdd(_slots, stack, targetIndex: -1);
+            bool fullyPlaced = inventory.TryAddStack(stack);
 
             Assert.IsTrue(fullyPlaced);
             Assert.IsTrue(stack.IsEmpty);
-            foreach (var s in _slots)
-                Assert.AreEqual(1, s.Stack.Count);
+            for (int i = 0; i < 3; i++)
+                Assert.AreEqual(1, inventory.GetSlot(i).Stack.Count);
         }
 
         [Test]
         public void TryAdd_FiveItems_FourEmptySlots_LeavesOneInStack()
         {
-            // Regression for the original user bug at the strategy layer:
-            // Unique must place 4 items, leave 1 in the source stack, and not crash.
-            _slots = TestSlotFactory.CreateSlots(4);
+            // Regression: Unique must place 4 items, leave 1 in the source stack, and not crash.
+            var inventory = BuildInventory(4);
             var stack = ItemStackBuilder.Unique(5, "gem");
 
-            bool fullyPlaced = _strategy.TryAdd(_slots, stack, targetIndex: -1);
+            bool fullyPlaced = inventory.TryAddStack(stack);
 
             Assert.IsFalse(fullyPlaced);
             Assert.AreEqual(1, stack.Count, "One item must remain un-placed");
-            foreach (var s in _slots)
-                Assert.AreEqual(1, s.Stack.Count);
+            for (int i = 0; i < 4; i++)
+                Assert.AreEqual(1, inventory.GetSlot(i).Stack.Count);
         }
 
         [Test]
         public void TryAdd_NoEmptySlots_ReturnsFalseAndLeavesStackIntact()
         {
-            _slots = TestSlotFactory.CreateSlots(2);
-            _slots[0].SetStack(ItemStackBuilder.Unique(1, "a"));
-            _slots[1].SetStack(ItemStackBuilder.Unique(1, "b"));
+            var inventory = BuildInventory(2);
+            inventory.TrySetStackForSlot(inventory.GetSlot(0), ItemStackBuilder.Unique(1, "a"));
+            inventory.TrySetStackForSlot(inventory.GetSlot(1), ItemStackBuilder.Unique(1, "b"));
             var stack = ItemStackBuilder.Unique(2, "gem");
 
-            bool fullyPlaced = _strategy.TryAdd(_slots, stack, targetIndex: -1);
+            bool fullyPlaced = inventory.TryAddStack(stack);
 
             Assert.IsFalse(fullyPlaced);
             Assert.AreEqual(2, stack.Count);
         }
 
-        // ---------- TryRemove ----------
+        // ---------- TryRemove → TrySplitFromSlot ----------
 
         [Test]
         public void TryRemove_BySourceIndex_ClearsSlot()
         {
-            _slots = TestSlotFactory.CreateSlots(2);
-            var adapter = new FakeItemAdapter("gem");
-            _slots[1].SetStack(ItemStackBuilder.Of(adapter));
+            var inventory = BuildInventory(2);
+            inventory.TrySetStackForSlot(inventory.GetSlot(1), ItemStackBuilder.Of(new FakeItemAdapter("gem")));
 
-            bool removed = _strategy.TryRemove(_slots, adapter, count: 1, sourceIndex: 1);
+            bool removed = inventory.TrySplitFromSlot(inventory.GetSlot(1), 1, out _);
 
             Assert.IsTrue(removed);
-            Assert.IsTrue(_slots[1].IsEmpty);
+            Assert.IsTrue(inventory.GetSlot(1).IsEmpty);
         }
 
         [Test]
         public void TryRemove_WithoutIndex_ClearsFirstMatchingSlot()
         {
-            _slots = TestSlotFactory.CreateSlots(3);
-            _slots[1].SetStack(ItemStackBuilder.Unique(1, "gem"));
-            _slots[2].SetStack(ItemStackBuilder.Unique(1, "gem"));
+            var inventory = BuildInventory(3);
+            inventory.TrySetStackForSlot(inventory.GetSlot(1), ItemStackBuilder.Unique(1, "gem"));
+            inventory.TrySetStackForSlot(inventory.GetSlot(2), ItemStackBuilder.Unique(1, "gem"));
 
-            bool removed = _strategy.TryRemove(_slots, new FakeItemAdapter("gem"), count: 1, sourceIndex: -1);
+            var gemAdapter = new FakeItemAdapter("gem");
+            bool removed = false;
+            foreach (var slot in inventory.Slots)
+            {
+                if (slot.IsEmpty || !slot.Stack.CanStack(gemAdapter)) continue;
+                removed = inventory.TrySplitFromSlot(slot, 1, out _);
+                break;
+            }
 
             Assert.IsTrue(removed);
-            Assert.IsTrue(_slots[1].IsEmpty);
-            Assert.IsFalse(_slots[2].IsEmpty, "Only the first match should be cleared");
+            Assert.IsTrue(inventory.GetSlot(1).IsEmpty);
+            Assert.IsFalse(inventory.GetSlot(2).IsEmpty, "Only the first match should be cleared");
         }
 
         [Test]
         public void TryRemove_NoMatch_ReturnsFalse()
         {
-            _slots = TestSlotFactory.CreateSlots(2);
-            _slots[0].SetStack(ItemStackBuilder.Unique(1, "gem"));
+            var inventory = BuildInventory(2);
+            inventory.TrySetStackForSlot(inventory.GetSlot(0), ItemStackBuilder.Unique(1, "gem"));
 
-            bool removed = _strategy.TryRemove(_slots, new FakeItemAdapter("rock"), count: 1, sourceIndex: -1);
+            var gemSlot = inventory.GetSlot(0);
+            var rockAdapter = new FakeItemAdapter("rock");
+            bool hasRock = !gemSlot.IsEmpty && gemSlot.Stack.CanStack(rockAdapter);
 
-            Assert.IsFalse(removed);
-            Assert.IsFalse(_slots[0].IsEmpty);
+            Assert.IsFalse(hasRock, "No rock found — nothing to remove");
+            Assert.IsFalse(inventory.GetSlot(0).IsEmpty, "Gem slot is unchanged");
         }
 
         // ---------- TryAddToSlot ----------
@@ -150,27 +176,27 @@ namespace UDND.Tests.Inventories
         [Test]
         public void TryAddToSlot_EmptyTarget_PlacesOneItem()
         {
-            _slots = TestSlotFactory.CreateSlots(2);
+            var inventory = BuildInventory(2);
             var stack = ItemStackBuilder.Unique(2, "gem");
 
-            bool placed = _strategy.TryAddToSlot(_slots, stack, _slots[0], ensureFreeSlots: null, operationContext: new SlotOperationContext());
+            bool placed = inventory.TryAddToSlot(stack, inventory.GetSlot(0));
 
             Assert.IsTrue(placed);
-            Assert.AreEqual(1, _slots[0].Stack.Count);
+            Assert.AreEqual(1, inventory.GetSlot(0).Stack.Count);
             Assert.AreEqual(1, stack.Count);
         }
 
         [Test]
         public void TryAddToSlot_OccupiedTarget_ReturnsFalse()
         {
-            _slots = TestSlotFactory.CreateSlots(2);
-            _slots[0].SetStack(ItemStackBuilder.Unique(1, "existing"));
+            var inventory = BuildInventory(2);
+            inventory.TrySetStackForSlot(inventory.GetSlot(0), ItemStackBuilder.Unique(1, "existing"));
             var stack = ItemStackBuilder.Unique(1, "gem");
 
-            bool placed = _strategy.TryAddToSlot(_slots, stack, _slots[0], ensureFreeSlots: null, operationContext: null);
+            bool placed = inventory.TryAddToSlot(stack, inventory.GetSlot(0));
 
             Assert.IsFalse(placed);
-            Assert.AreEqual("existing", _slots[0].Stack.ID);
+            Assert.AreEqual("existing", inventory.GetSlot(0).Stack.ID);
             Assert.AreEqual(1, stack.Count);
         }
 

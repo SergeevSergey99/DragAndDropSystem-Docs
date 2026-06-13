@@ -42,8 +42,7 @@ namespace UDND.Inventories
             ItemStack stack,
             BaseSlot targetBaseSlot,
             IInventory sourceInventory = null,
-            int sourceSlotIndex = -1,
-            SlotOperationContext operationContext = null);
+            int sourceSlotIndex = -1);
         public abstract int RemoveItemsFromSlot(
             BaseSlot sourceBaseSlot,
             ItemStack stackToRemove,
