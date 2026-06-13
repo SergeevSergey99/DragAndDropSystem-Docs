@@ -22,6 +22,8 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
     `GridTopology` or an `is grid` flag.
 11. Keep `IAsyncTransferDomainHandler` optional and transfer-wide; invoke it once before any
     mutation through the asynchronous execution path.
+12. Keep orientation topology-defined; manager, UI, snapshots, and placement code must not assume
+    four 90-degree rotations.
 
 ## Review Priorities
 
@@ -33,6 +35,7 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - Same-inventory area-drop behavior: source slot is excluded, dynamic inventories create a new target slot during execution.
 - No duplicate or premature event emission.
 - Async transfer-wide veto is not bypassed by a synchronous execution path.
+- Orientation is normalized and projected by the active topology.
 
 ## Critical Files
 

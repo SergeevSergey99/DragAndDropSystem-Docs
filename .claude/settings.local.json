@@ -36,7 +36,8 @@
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build DragAndDropSystem.Runtime.csproj -v q --nologo)",
       "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build DragAndDropSystem.Runtime.csproj --no-restore /p:CustomBeforeMicrosoftCommonTargets='E:\\\\UnityProjects\\\\UniversalDragAndDropAsset\\\\Assets\\\\Plugins\\\\UniversalDragAndDrop\\\\codex-new-sources.targets')",
       "Bash(sort -t: -k1)",
-      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build DragAndDropSystem.Tests.Editor.csproj)"
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build DragAndDropSystem.Tests.Editor.csproj)",
+      "Bash(xargs -I{} basename {})"
     ],
     "deny": [],
     "ask": []

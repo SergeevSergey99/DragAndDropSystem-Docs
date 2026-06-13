@@ -25,6 +25,7 @@ Main benefits:
 - batch is sequential best-effort and each entry sees mutations from previous entries
 - explicit target validation does not enumerate or order all candidates
 - topology-owned footprints work for single-cell and shaped items
+- topology-owned orientation steps support four-direction rect grids and future six-direction hex grids
 - swap and alternative placement remain in the same transfer service
 - asynchronous domain checks cannot be bypassed by synchronous execution
 
@@ -53,6 +54,8 @@ Main benefits:
   - capability for runtime slot creation/removal used by transfer execution
 - `IAsyncTransferDomainHandler`
   - optional server-backed or user-defined transfer-wide check invoked once before mutation
+- `IInventoryTopology`
+  - owns orientation count, rotation, visual angle, grab-offset transform, and footprint projection
 
 ## Policy Model
 

@@ -5,7 +5,7 @@ description: Architecture reference for UniversalDragAndDrop with a policy-drive
 # DragDrop Architecture
 
 **Version**: 3.0
-**Last Updated**: 2026-06-13
+**Last Updated**: 2026-06-14
 
 ## Architectural Baseline
 
@@ -44,3 +44,5 @@ Transfer architecture is centered on:
 12. Validate an explicit target directly; enumerate and order candidates only for automatic placement.
 13. Keep `IPlacementInventory` topology-neutral: expose `IInventoryTopology`, never a grid-specific
     flag or nullable `GridTopology` through the shared contract.
+14. Treat orientation as a topology-defined discrete step. Shared code must not assume four
+    directions or multiply orientation values by 90 degrees.

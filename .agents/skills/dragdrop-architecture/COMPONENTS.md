@@ -50,6 +50,17 @@ It must not expose a nullable grid flag through the common contract.
 `IInventoryTopology` projects shape and orientation into cells. `PlacementStore` owns occupancy
 and bounds checks without knowing concrete topology types.
 
+`PlacementOrientation` is a discrete step index. A topology owns:
+- orientation count and normalization
+- rotating an orientation by N steps
+- visual angle for a step
+- grab-offset transformation
+- oriented footprint projection
+
+`RectGridTopology` uses four 90-degree steps. A hex topology can use six 60-degree steps without
+changing placement, strategy, or transfer contracts. `Placement` records the projected offsets
+that were actually committed so snapshots do not have to reconstruct topology-specific rotation.
+
 Built-in topologies:
 - `SlotTopology`
 - `RectGridTopology`

@@ -47,14 +47,19 @@ execution-time validation. It does not invoke asynchronous domain handlers.
 
 ```text
 IPlacementInventory.Topology
+  -> normalize topology-defined orientation step
+  -> rotate grab offset using topology coordinates
   -> IInventoryTopology.GetPlacementOffsets(shape, orientation)
   -> PlacementCellUtility maps offsets to indices
   -> PlacementStore validates bounds and occupancy
-  -> Placement records anchor and covered indices
+  -> Placement records anchor, covered indices, and projected offsets
 ```
 
 Shared code does not branch on `GridTopology`. `SlotTopology`, `RectGridTopology`, and custom
 topologies participate through `IInventoryTopology`.
+
+No shared layer assumes 90-degree rotation. Rect grids expose four steps and a future axial hex
+topology may expose six.
 
 ## Explicit And Automatic Paths
 
