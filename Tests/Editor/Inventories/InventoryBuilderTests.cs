@@ -43,8 +43,7 @@ namespace UDND.Tests.Inventories
 
             Assert.IsNotNull(_inventory.Strategy, "Strategy must be initialized after Build");
             Assert.IsNotNull(_inventory.PlacementStrategy, "PlacementStrategy lazy-init must work");
-            Assert.IsTrue(_inventory.PlacementStrategy.UsesPerItemSlotPlanning,
-                "Unique strategy exposes per-item planning");
+            Assert.AreSame(strategy, _inventory.PlacementStrategy);
         }
 
         [Test]

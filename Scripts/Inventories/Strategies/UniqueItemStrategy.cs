@@ -14,11 +14,8 @@ namespace UDND.Inventories
     {
         protected override bool ShowDragAmountSettings => false;
         public override int ResolveDragAmount(int stackCount, DragAmount dragAmount, int customDragAmount) => 1;
-        public override bool RequiresStrategyPlacement(ItemStack stack) => stack != null && !stack.IsEmpty && stack.Count > 1;
-        public override bool UsesPerItemSlotPlanning => true;
-
         // Unique items never stack: one per slot/placement (count 1), including shaped placements.
-        // Without this the planner would read int.MaxValue from the base and allow count > 1 on the shaped path.
+        // The candidate capacity must therefore stay at one.
         public override int GetMaxStackSizeForItem(IItemAdapter itemAdapter) => itemAdapter == null ? 0 : 1;
 
         public override bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
@@ -128,31 +125,6 @@ namespace UDND.Inventories
                 targetBaseSlot,
                 1,
                 out candidate);
-        }
-
-        public override SlotAcceptanceCandidates GetSlotCandidates(
-            IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request,
-            bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
-        {
-            var item = request?.ItemAdapter;
-            if (item == null || (request?.DesiredCount ?? 0) <= 0)
-                return SlotAcceptanceCandidates.None;
-
-            var candidates = new List<SlotAcceptanceCandidate>();
-            foreach (var slot in slots)
-            {
-                if (IsSourceSlot(slot, request)) continue;
-                var stack = slot.Stack;
-                if (stack != null && !stack.IsEmpty) continue;
-                var baseSlot = ResolveBaseSlot(slot);
-                if (baseSlot == null) continue;
-                if (!PassesRules(baseSlot, item, 1, request)) continue;
-                candidates.Add(new SlotAcceptanceCandidate(slot, 1));
-            }
-
-            bool canCreate = canCreateNewSlot && potentialNewSlots > 0 &&
-                             PrefabPassesRules(slots, baseSlotPrefab, item, 1, request);
-            return new SlotAcceptanceCandidates(candidates, canCreate, canCreate ? potentialNewSlots : 0);
         }
 
         public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)

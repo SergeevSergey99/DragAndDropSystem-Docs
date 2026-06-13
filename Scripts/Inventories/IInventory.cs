@@ -66,7 +66,7 @@ namespace UDND.Inventories
 
         /// <summary>
         /// Remove items from a source slot and emit the inventory's normal removal side effects.
-        /// Used by external drop processors that do not go through TransferPlanExecutor.
+        /// Used by external drop processors.
         /// </summary>
         int RemoveItemsFromSlot(
             BaseSlot sourceBaseSlot,

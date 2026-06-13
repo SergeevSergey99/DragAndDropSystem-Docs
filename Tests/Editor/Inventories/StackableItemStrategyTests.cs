@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -233,7 +234,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void GetSlotCandidates_ShapedPlacementWithRoom_ReportsRemainingCapacity()
+        public void GetCandidates_ShapedPlacementWithRoom_ReportsRemainingCapacity()
         {
             // C2 (ShapedStacking-Plan.md): a shaped item is no longer capped at 1. An existing shaped
             // placement is a stackable one-per-ID location with capacity = maxStack - count; no second
@@ -252,13 +253,14 @@ namespace UDND.Tests.Inventories
                 CollectionAssert.AreEqual(new[] { 0, 1 }, placement.CoveredIndices);
 
                 var request = new InventoryAcceptanceRequest(inventory, new ShapeAdapter("bag", 2, 1), 3);
-                var candidates = _strategy.GetSlotCandidates(
-                    inventory.Slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: null);
+                var candidates = _strategy
+                    .GetCandidates(new InventoryPlacementGeometry(inventory), request)
+                    .ToList();
 
-                Assert.IsFalse(candidates.CanCreateNewSlot, "one-per-ID: no second placement for an existing item");
-                Assert.AreEqual(1, candidates.Slots.Count, "Only the existing placement's anchor is eligible");
-                Assert.AreEqual(0, candidates.Slots[0].Slot.Index, "Candidate is the placement anchor");
-                Assert.AreEqual(4, candidates.Slots[0].RemainingCapacity, "maxStack(5) - count(1)");
+                Assert.AreEqual(1, candidates.Count, "Only the existing placement's anchor is eligible");
+                Assert.AreEqual(PlacementCandidateKind.Merge, candidates[0].Kind);
+                Assert.AreEqual(0, candidates[0].Anchor.Index, "Candidate is the placement anchor");
+                Assert.AreEqual(4, candidates[0].Capacity, "maxStack(5) - count(1)");
             }
             finally
             {
@@ -363,8 +365,8 @@ namespace UDND.Tests.Inventories
                 out var candidate);
 
             Assert.IsTrue(accepted);
-            Assert.AreSame(_slots[0], candidate.Slot);
-            Assert.AreEqual(4, candidate.RemainingCapacity);
+            Assert.AreSame(_slots[0], candidate.Anchor);
+            Assert.AreEqual(4, candidate.Capacity);
             Assert.AreEqual(6, _slots[0].Stack.Count, "Candidate preview must not mutate the target.");
         }
 
@@ -377,22 +379,17 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
             var request = MakeRequest("gem", 3);
 
-            var automaticCandidates = _strategy.GetSlotCandidates(
-                _slots,
-                request,
-                canCreateNewSlot: false,
-                potentialNewSlots: 0,
-                baseSlotPrefab: null);
+            var automaticCandidates = GetCandidates(request);
             bool explicitAccepted = _strategy.TryGetCandidate(
                 new InventoryPlacementGeometry(_slots[0].Inventory),
                 request,
                 _slots[0],
                 out var candidate);
 
-            Assert.IsFalse(automaticCandidates.HasAny);
+            Assert.IsEmpty(automaticCandidates);
             Assert.IsTrue(explicitAccepted);
-            Assert.AreSame(_slots[0], candidate.Slot);
-            Assert.AreEqual(3, candidate.RemainingCapacity);
+            Assert.AreSame(_slots[0], candidate.Anchor);
+            Assert.AreEqual(3, candidate.Capacity);
         }
 
         [Test]
@@ -409,13 +406,13 @@ namespace UDND.Tests.Inventories
                 out var candidate);
 
             Assert.IsTrue(accepted);
-            Assert.AreSame(_slots[0], candidate.Slot);
-            Assert.AreEqual(3, candidate.RemainingCapacity);
+            Assert.AreSame(_slots[0], candidate.Anchor);
+            Assert.AreEqual(3, candidate.Capacity);
             Assert.IsTrue(_slots[1].IsEmpty);
             Assert.AreEqual(7, _slots[0].Stack.Count);
         }
 
-        // ---------- GetSlotCandidates ----------
+        // ---------- GetCandidates ----------
 
         [Test]
         public void CanAcceptItem_PartialSlotWithRoom_SuggestsIt()
@@ -425,11 +422,10 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
             var request = MakeRequest("gem", 2);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsTrue(selection.Accepted);
-            Assert.AreSame(_slots[0], selection.Slot as BaseSlot);
+            Assert.IsNotEmpty(candidates);
+            Assert.AreSame(_slots[0], candidates[0].Anchor);
         }
 
         [Test]
@@ -441,11 +437,9 @@ namespace UDND.Tests.Inventories
             _slots[1].SetStack(ItemStackBuilder.Unique(2, "gem"));
             var request = MakeRequest("gem", 1);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsFalse(selection.Accepted);
-            Assert.IsNull(selection.Slot);
+            Assert.IsEmpty(candidates);
         }
 
         [Test]
@@ -458,11 +452,9 @@ namespace UDND.Tests.Inventories
             // _slots[1] empty
             var request = MakeRequest("gem", 1);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsFalse(candidates.HasAny, "Full existing stack + one-per-ID => no candidates, no new slot");
-            Assert.IsFalse(selection.Accepted);
+            Assert.IsEmpty(candidates, "Full existing stack + one-per-ID => no candidates, no new slot");
         }
 
         [Test]
@@ -473,31 +465,14 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(3, "rock"));
             var request = MakeRequest("gem", 1);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsTrue(selection.Accepted);
-            Assert.AreSame(_slots[1], selection.Slot as BaseSlot);
+            Assert.IsNotEmpty(candidates);
+            Assert.AreSame(_slots[1], candidates[0].Anchor);
         }
 
         [Test]
-        public void CanAcceptItem_FullAndNoEmpty_DynamicPrefabAllowed_ReturnsTrue()
-        {
-            _strategy.SetMaxStackSize(2, allowItemOverride: false);
-            _slots = TestSlotFactory.CreateSlots(1);
-            _slots[0].SetStack(ItemStackBuilder.Unique(2, "rock"));
-            _prefab = TestSlotFactory.CreatePrefab();
-            var request = MakeRequest("gem", 1);
-
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: _prefab);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
-
-            Assert.IsTrue(selection.Accepted);
-            Assert.IsTrue(selection.CreateNew, "Only dynamic capacity available — must be a forced-new selection");
-        }
-
-        [Test]
-        public void GetSlotCandidates_SameInventorySourcePlacement_ExcludesAllCoveredCells()
+        public void GetCandidates_SameInventorySourcePlacement_ExcludesAllCoveredCells()
         {
             var inventory = new InventoryBuilder()
                 .WithStrategy(new StackableItemStrategy())
@@ -521,18 +496,15 @@ namespace UDND.Tests.Inventories
                     context,
                     entry);
 
-                var candidates = _strategy.GetSlotCandidates(
-                    inventory.Slots,
-                    request,
-                    canCreateNewSlot: false,
-                    potentialNewSlots: 0,
-                    baseSlotPrefab: null);
+                var candidates = _strategy
+                    .GetCandidates(new InventoryPlacementGeometry(inventory), request)
+                    .ToList();
 
-                Assert.IsTrue(candidates.HasAny, "The source placement must not make the item look already present.");
-                foreach (var candidate in candidates.Slots)
+                Assert.IsNotEmpty(candidates, "The source placement must not make the item look already present.");
+                foreach (var candidate in candidates)
                 {
-                    Assert.AreNotEqual(0, candidate.Slot.Index);
-                    Assert.AreNotEqual(1, candidate.Slot.Index);
+                    Assert.AreNotEqual(0, candidate.Anchor.Index);
+                    Assert.AreNotEqual(1, candidate.Anchor.Index);
                 }
             }
             finally
@@ -542,24 +514,24 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void GetSlotCandidates_AutoMergeOff_ItemPresent_ReturnsNone()
+        public void GetCandidates_AutoMergeOff_ItemPresent_ReturnsNone()
         {
             // C8: with auto-merge OFF, duplicates are not auto-consolidated via system distribution
             // (area-drop / auto-transfer / overflow). The existing stack accepts more only via an explicit
-            // drop onto it (planner hint path), so GetSlotCandidates offers nothing here.
+            // drop onto it, so automatic candidate enumeration offers nothing here.
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
             SetExplicitMergeOnly(_strategy);
             _slots = TestSlotFactory.CreateSlots(2);
             _slots[0].SetStack(ItemStackBuilder.Unique(2, "gem"));
             var request = MakeRequest("gem", 3);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 2, baseSlotPrefab: null);
+            var candidates = GetCandidates(request);
 
-            Assert.IsFalse(candidates.HasAny, "Auto-merge OFF must not auto-consolidate an existing stack");
+            Assert.IsEmpty(candidates, "Auto-merge OFF must not auto-consolidate an existing stack");
         }
 
         [Test]
-        public void GetSlotCandidates_AutoMergeOff_ItemAbsent_StillOffersEmpty()
+        public void GetCandidates_AutoMergeOff_ItemAbsent_StillOffersEmpty()
         {
             // Auto-merge OFF only changes duplicate handling; a first stack is still placed normally.
             _strategy.SetMaxStackSize(10, allowItemOverride: false);
@@ -568,11 +540,10 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(2, "rock"));
             var request = MakeRequest("gem", 1);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsTrue(selection.Accepted);
-            Assert.AreSame(_slots[1], selection.Slot as BaseSlot);
+            Assert.IsNotEmpty(candidates);
+            Assert.AreSame(_slots[1], candidates[0].Anchor);
         }
 
         // ---------- GetAcceptableCount ----------
@@ -670,6 +641,11 @@ namespace UDND.Tests.Inventories
                 targetInventory: null,
                 itemAdapter: new FakeItemAdapter(itemId),
                 desiredCount: desiredCount);
+
+        private List<PlacementCandidate> GetCandidates(InventoryAcceptanceRequest request)
+            => _strategy
+                .GetCandidates(new InventoryPlacementGeometry(_slots[0].Inventory), request)
+                .ToList();
 
         private sealed class LimitedFakeAdapter : IItemAdapter, IStackSizeLimitable
         {

@@ -415,14 +415,14 @@ namespace UDND.DataBinding
         }
 
         /// <summary>
-        /// Called by the planner when an item is dropped onto an occupied slot, BEFORE swap/findAlternative checks.
+        /// Called when an item is dropped onto an occupied slot, before swap or alternative-slot handling.
         /// Return true if this DataBinding can handle such a drop (for example, putting an item inside a container).
         /// If false, the pipeline continues with the default logic (swap, findAlternative, reject).
         /// </summary>
         protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
 
         /// <summary>
-        /// Executes a drop onto an occupied slot. Called by the executor if CanHandleOccupiedSlotDrop returned true.
+        /// Executes a drop onto an occupied slot when CanHandleOccupiedSlotDrop returned true.
         /// The implementation must handle the transfer fully: add the item to the target place,
         /// clear the source slot, and update the data.
         /// </summary>

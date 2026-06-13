@@ -1880,7 +1880,7 @@ namespace UDND.Tests.Inventories
         {
             // C1 (ShapedStacking-Plan.md): placement geometry is independent of stack quantity.
             // A multi-cell footprint may carry a stack with count > 1; the count cap (max stack)
-            // is enforced by the strategy / planner, not by placement geometry.
+            // is enforced by the strategy, not by placement geometry.
             var inventory = new InventoryBuilder()
                 .WithFixedSlots(6)
                 .Build();

@@ -40,8 +40,6 @@ namespace UDND.Inventories
         public abstract bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex, bool skipRules = false);
         public abstract bool TryRemove(List<BaseSlot> slots, IItemAdapter itemAdapter, int count, int sourceIndex);
         public abstract bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack, BaseSlot targetBaseSlot, System.Action ensureFreeSlots, SlotOperationContext operationContext);
-        public abstract SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
-        public virtual SlotSelectionPolicyBase DefaultSlotSelectionPolicy => FirstSlotSelectionPolicy.Instance;
         public virtual PlacementCandidateOrderer DefaultOrderer => NaturalPlacementCandidateOrderer.Instance;
         public abstract int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
@@ -66,63 +64,65 @@ namespace UDND.Inventories
             if (geometry == null || request == null)
                 yield break;
 
-            var slotViews = new List<ISlot>(geometry.Slots.Count);
-            for (int i = 0; i < geometry.Slots.Count; i++)
-                slotViews.Add(geometry.Slots[i]);
-
-            var slotCreation = geometry.Inventory as IInventorySlotCreationCapacity;
-            bool canCreate = slotCreation?.CanCreateNewSlot ?? false;
-            int potentialNewSlots = slotCreation?.PotentialNewSlots ?? 0;
-            var legacyCandidates = GetSlotCandidates(
-                slotViews,
-                request,
-                canCreate,
-                potentialNewSlots,
-                slotCreation?.BaseSlotPrefab);
-
             var seenPlacements = new HashSet<Placement>();
             var seenAnchors = new HashSet<BaseSlot>();
-            if (legacyCandidates?.Slots != null)
+            for (int i = 0; i < geometry.Slots.Count; i++)
             {
-                for (int i = 0; i < legacyCandidates.Slots.Count; i++)
-                {
-                    var target = ResolveBaseSlot(legacyCandidates.Slots[i].Slot);
-                    if (target == null ||
-                        !TryGetCandidate(geometry, request, target, out var candidate))
-                        continue;
+                var target = geometry.Slots[i];
+                if (target == null ||
+                    !TryGetCandidate(geometry, request, target, out var candidate))
+                    continue;
 
-                    if (candidate.Kind == PlacementCandidateKind.Merge)
+                if (candidate.Kind == PlacementCandidateKind.Merge)
+                {
+                    if (candidate.TargetPlacement != null)
                     {
-                        if (candidate.TargetPlacement != null)
-                        {
-                            if (!seenPlacements.Add(candidate.TargetPlacement))
-                                continue;
-                        }
-                        else if (candidate.Anchor == null || !seenAnchors.Add(candidate.Anchor))
-                        {
+                        if (!seenPlacements.Add(candidate.TargetPlacement))
                             continue;
-                        }
                     }
                     else if (candidate.Anchor == null || !seenAnchors.Add(candidate.Anchor))
                     {
                         continue;
                     }
-
-                    yield return candidate;
                 }
+                else if (candidate.Anchor == null || !seenAnchors.Add(candidate.Anchor))
+                {
+                    continue;
+                }
+
+                yield return candidate;
             }
 
-            if (legacyCandidates?.CanCreateNewSlot == true)
-            {
-                var entry = request.SourceEntry;
-                var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
-                var orientation = entry?.Orientation ?? PlacementOrientation.Rot0;
-                int capacity = Math.Min(
-                    request.DesiredCount,
-                    GetMaxStackSizeForItem(request.ItemAdapter));
-                if (capacity > 0)
-                    yield return PlacementCandidate.NewDynamicSlot(orientation, shape, capacity);
-            }
+            var slotCreation = geometry.Inventory as IInventorySlotCreationCapacity;
+            int dynamicCapacity = Math.Min(
+                request.DesiredCount,
+                GetMaxStackSizeForItem(request.ItemAdapter));
+            if (slotCreation?.CanCreateNewSlot != true ||
+                slotCreation.PotentialNewSlots <= 0 ||
+                dynamicCapacity <= 0 ||
+                !CanCreateDynamicCandidate(geometry, request) ||
+                !PrefabPassesRules(
+                    new List<BaseSlot>(geometry.Slots),
+                    slotCreation.BaseSlotPrefab,
+                    request.ItemAdapter,
+                    dynamicCapacity,
+                    request))
+                yield break;
+
+            var entry = request.SourceEntry;
+            var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
+            var orientation = entry?.Orientation ?? PlacementOrientation.Rot0;
+            yield return PlacementCandidate.NewDynamicSlot(
+                orientation,
+                shape,
+                dynamicCapacity);
+        }
+
+        protected virtual bool CanCreateDynamicCandidate(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
+        {
+            return true;
         }
 
         protected static Placement GetSourcePlacement(
@@ -242,9 +242,6 @@ namespace UDND.Inventories
                     return stackCount;
             }
         }
-
-        public virtual bool RequiresStrategyPlacement(ItemStack stack) => false;
-        public virtual bool UsesPerItemSlotPlanning => false;
 
         public virtual bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {

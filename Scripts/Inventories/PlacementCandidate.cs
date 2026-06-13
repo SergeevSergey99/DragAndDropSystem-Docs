@@ -35,10 +35,6 @@ namespace UDND.Inventories
         public IPlacementShape Shape { get; }
         public int Capacity { get; }
 
-        // Transitional aliases for acceptance callers.
-        public ISlot Slot => Anchor;
-        public int RemainingCapacity => Capacity;
-
         public static PlacementCandidate Merge(Placement placement, BaseSlot anchor, int capacity)
             => new PlacementCandidate(
                 PlacementCandidateKind.Merge,

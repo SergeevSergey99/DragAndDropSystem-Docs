@@ -149,13 +149,6 @@ namespace UDND.Inventories
             return _dragPolicy.ResolveDragAmount(stackCount, dragAmount, customDragAmount);
         }
 
-        public bool RequiresStrategyPlacement(ItemStack stack)
-        {
-            return _placementStrategy.RequiresStrategyPlacement(stack);
-        }
-
-        public bool UsesPerItemSlotPlanning => _placementStrategy.UsesPerItemSlotPlanning;
-
         public bool CanUseAlternativeSlot(BaseSlot baseSlot, IItemAdapter itemAdapter)
         {
             return _placementStrategy.CanUseAlternativeSlot(baseSlot, itemAdapter);
@@ -186,13 +179,6 @@ namespace UDND.Inventories
         {
             return _baseStrategy.GetMaxStackSizeForItem(itemAdapter);
         }
-
-        public SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
-        {
-            return _acceptanceStrategy.GetSlotCandidates(slots, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
-        }
-
-        public SlotSelectionPolicyBase DefaultSlotSelectionPolicy => _acceptanceStrategy.DefaultSlotSelectionPolicy;
 
         public int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
         {

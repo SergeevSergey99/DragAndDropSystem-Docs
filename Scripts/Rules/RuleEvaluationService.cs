@@ -5,7 +5,7 @@ using UDND.Inventories;
 namespace UDND.Rules
 {
     /// <summary>
-    /// Single rule evaluation entry point for planner/executor/handlers.
+    /// Single rule evaluation entry point for transfer services and handlers.
     /// </summary>
     public class RuleEvaluationService
     {

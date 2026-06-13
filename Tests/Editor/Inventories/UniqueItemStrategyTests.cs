@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UDND.Inventories;
 using UDND.Slots;
@@ -188,8 +189,8 @@ namespace UDND.Tests.Inventories
                 out var candidate);
 
             Assert.IsTrue(accepted);
-            Assert.AreSame(_slots[1], candidate.Slot);
-            Assert.AreEqual(1, candidate.RemainingCapacity);
+            Assert.AreSame(_slots[1], candidate.Anchor);
+            Assert.AreEqual(1, candidate.Capacity);
             Assert.IsTrue(_slots[1].IsEmpty, "Candidate preview must not mutate the target.");
         }
 
@@ -209,7 +210,7 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual("existing", _slots[0].Stack.ID);
         }
 
-        // ---------- GetSlotCandidates ----------
+        // ---------- GetCandidates ----------
 
         [Test]
         public void CanAcceptItem_HasEmptySlot_ReturnsTrueAndSuggestsIt()
@@ -218,11 +219,10 @@ namespace UDND.Tests.Inventories
             _slots[0].SetStack(ItemStackBuilder.Unique(1, "a"));
             var request = MakeRequest("gem", 1);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsTrue(selection.Accepted);
-            Assert.AreSame(_slots[1], selection.Slot as BaseSlot);
+            Assert.IsNotEmpty(candidates);
+            Assert.AreSame(_slots[1], candidates[0].Anchor);
         }
 
         [Test]
@@ -233,26 +233,9 @@ namespace UDND.Tests.Inventories
             _slots[1].SetStack(ItemStackBuilder.Unique(1, "b"));
             var request = MakeRequest("gem", 1);
 
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: false, potentialNewSlots: 0, baseSlotPrefab: null);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
+            var candidates = GetCandidates(request);
 
-            Assert.IsFalse(selection.Accepted);
-            Assert.IsNull(selection.Slot);
-        }
-
-        [Test]
-        public void CanAcceptItem_AllFullButDynamicPrefabAllowed_ReturnsTrue()
-        {
-            _slots = TestSlotFactory.CreateSlots(1);
-            _slots[0].SetStack(ItemStackBuilder.Unique(1, "a"));
-            _prefab = TestSlotFactory.CreatePrefab();
-            var request = MakeRequest("gem", 2);
-
-            var candidates = _strategy.GetSlotCandidates(_slots, request, canCreateNewSlot: true, potentialNewSlots: 3, baseSlotPrefab: _prefab);
-            var selection = _strategy.DefaultSlotSelectionPolicy.Select(candidates, request);
-
-            Assert.IsTrue(selection.Accepted);
-            Assert.IsTrue(selection.CreateNew, "Only dynamic capacity available — must be a forced-new selection");
+            Assert.IsEmpty(candidates);
         }
 
         // ---------- GetAcceptableCount ----------
@@ -300,5 +283,10 @@ namespace UDND.Tests.Inventories
                 targetInventory: null,
                 itemAdapter: new FakeItemAdapter(itemId),
                 desiredCount: desiredCount);
+
+        private List<PlacementCandidate> GetCandidates(InventoryAcceptanceRequest request)
+            => _strategy
+                .GetCandidates(new InventoryPlacementGeometry(_slots[0].Inventory), request)
+                .ToList();
     }
 }

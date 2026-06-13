@@ -14,15 +14,13 @@ namespace UDND.Inventories
             IItemAdapter itemAdapter,
             int desiredCount,
             DragContext context = null,
-            DragEntry? sourceEntry = null,
-            SlotSelectionPolicyBase selectionPolicy = null)
+            DragEntry? sourceEntry = null)
         {
             TargetInventory = targetInventory;
             ItemAdapter = itemAdapter;
             DesiredCount = desiredCount;
             Context = context;
             SourceEntry = sourceEntry;
-            SelectionPolicy = selectionPolicy;
         }
 
         public IInventory TargetInventory { get; }
@@ -30,7 +28,6 @@ namespace UDND.Inventories
         public int DesiredCount { get; }
         public DragContext Context { get; }
         public DragEntry? SourceEntry { get; }
-        public SlotSelectionPolicyBase SelectionPolicy { get; }
 
         public IInventory SourceInventory => SourceEntry.HasValue ? SourceEntry.Value.SourceInventory : null;
         public BaseSlot SourceBaseSlot => SourceEntry.HasValue ? SourceEntry.Value.SourceBaseSlot : null;

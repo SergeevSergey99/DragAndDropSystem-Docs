@@ -244,8 +244,7 @@ namespace UDND.Inventories
 
         /// <summary>
         /// Remove items from a slot in this inventory and emit events.
-        /// Used by external drop processors (WorldDropZone and similar)
-        /// that do not go through TransferPlanExecutor.
+        /// Used by external drop processors such as WorldDropZone.
         /// </summary>
         /// <returns>Number of removed items, or 0 if nothing was removed</returns>
         public override int RemoveItemsFromSlot(BaseSlot sourceBaseSlot, ItemStack stackToRemove, IInventory targetInventory = null, BaseSlot targetBaseSlot = null)
@@ -801,7 +800,7 @@ namespace UDND.Inventories
             createdSlot.UpdateVisuals();
             sourceBaseSlot.UpdateVisuals();
 
-            // Report as a slot-to-slot move within this inventory (mirrors TransferPlanExecutor events).
+            // Report as a slot-to-slot move within this inventory.
             EmitItemRemoved(movedStackForEvents, sourceBaseSlot.Index, this, sourceBaseSlot, createdSlot);
             EmitItemAdded(movedStackForEvents, createdSlot.Index, this, sourceBaseSlot, createdSlot);
 
@@ -1450,17 +1449,21 @@ namespace UDND.Inventories
             if (!CanAcceptShape(request.ItemAdapter, request.DesiredCount))
                 return false;
 
-            bool canCreateNewSlot = _slotManagementSettings.CanCreateNewSlot(this, _slots.Count);
-            int potentialNewSlots = _slotManagementSettings.GetPotentialNewSlots(this, _slots.Count);
+            var geometry = new InventoryPlacementGeometry(this);
+            var candidates = _placementStrategy.GetCandidates(geometry, request);
+            var orderer = _placementStrategy.DefaultOrderer ??
+                NaturalPlacementCandidateOrderer.Instance;
+            bool canAccept = false;
 
-            IReadOnlyList<ISlot> slotsView = _slots;
-            var candidates = _acceptanceStrategy.GetSlotCandidates(
-                slotsView, request, canCreateNewSlot, potentialNewSlots, baseSlotPrefab);
-            var policy = request.SelectionPolicy ?? _acceptanceStrategy.DefaultSlotSelectionPolicy;
-            var selection = policy.Select(candidates, request);
-
-            suggestedBaseSlot = selection.Slot as BaseSlot;
-            bool canAccept = selection.Accepted;
+            foreach (var candidate in orderer.Order(candidates, request))
+            {
+                suggestedBaseSlot = candidate.Anchor ??
+                    (candidate.TargetPlacement != null
+                        ? GetSlot(candidate.TargetPlacement.AnchorIndex)
+                        : null);
+                canAccept = true;
+                break;
+            }
 
             if (canAccept)
                 Extensions.DragAndDropLog($"<color=green>[{name}] CanAcceptItem: success via strategy</color>");

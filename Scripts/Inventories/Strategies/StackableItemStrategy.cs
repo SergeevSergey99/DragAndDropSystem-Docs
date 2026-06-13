@@ -71,7 +71,7 @@ namespace UDND.Inventories
                 // NOTE: targeted placement (targetIndex >= 0) is intentionally NOT one-per-ID-guarded:
                 // it means "place into THIS explicit slot" and is the primitive DynamicSlotDecorator
                 // uses to fill freshly-created overflow slots. one-per-ID is enforced in the
-                // candidate/eligibility path (GetSlotCandidates) and in the bulk/targetless branches.
+                // candidate/eligibility path and in the bulk/targetless branches.
                 if (targetSlot.IsEmpty)
                 {
                     int toPlace = Math.Min(remaining, maxSize);
@@ -387,65 +387,38 @@ namespace UDND.Inventories
                 out candidate);
         }
 
-        public override SlotAcceptanceCandidates GetSlotCandidates(
-            IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request,
-            bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
+        protected override bool CanCreateDynamicCandidate(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
         {
-            var item = request?.ItemAdapter;
-            var desiredCount = request?.DesiredCount ?? 0;
-            if (item == null || desiredCount <= 0)
-                return SlotAcceptanceCandidates.None;
+            if (geometry == null || request?.ItemAdapter == null)
+                return false;
 
-            int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
-
-            // one-per-ID: if item already exists, only that logical location is eligible.
-            // Empty slots / new slots are never offered for an item that already exists —
-            // even when its stack is full or rules-blocked (no second stack of the same item).
-            HashSet<Placement> seenPlacements = null;
-            foreach (var slot in slots)
+            var sourcePlacement = GetSourcePlacement(geometry, request);
+            foreach (var placement in geometry.Placements)
             {
-                if (IsSourceSlot(slot, request)) continue;
-                if (ShouldSkipDuplicatePlacementLocation(slot, ref seenPlacements)) continue;
-                var stack = slot.Stack;
-                if (stack == null || stack.IsEmpty || !stack.CanStack(item)) continue;
-
-                // C8: explicit-merge-only → never auto-consolidate duplicates via system distribution.
-                // The existing stack still accepts more on an explicit drop onto it (planner hint path),
-                // but area-drop / auto-transfer / overflow get no candidate → strict one-per-ID reject.
-                if (_explicitMergeOnly)
-                    return SlotAcceptanceCandidates.None;
-
-                int canFit = Math.Max(0, maxSize - stack.Count);
-                var logicalSlot = ResolveLogicalStackSlot(slot, slots);
-                var baseSlot = ResolveBaseSlot(logicalSlot);
-                if (canFit > 0 && baseSlot != null &&
-                    PassesRules(baseSlot, item, Math.Min(desiredCount, canFit), request))
-                {
-                    return new SlotAcceptanceCandidates(
-                        new List<SlotAcceptanceCandidate> { new SlotAcceptanceCandidate(logicalSlot, canFit) },
-                        false, 0);
-                }
-
-                // Present but full or rules-blocked: one-per-ID forbids a second logical location.
-                return SlotAcceptanceCandidates.None;
+                if (placement != null &&
+                    !ReferenceEquals(placement, sourcePlacement) &&
+                    placement.Stack != null &&
+                    placement.Stack.CanStack(request.ItemAdapter))
+                    return false;
             }
 
-            // item absent: offer empty slots + possibly new
-            var emptyCandidates = new List<SlotAcceptanceCandidate>();
-            foreach (var slot in slots)
+            if (geometry.Placements.Count != 0)
+                return true;
+
+            for (int i = 0; i < geometry.Slots.Count; i++)
             {
-                if (IsSourceSlot(slot, request)) continue;
-                var stack = slot.Stack;
-                if (stack != null && !stack.IsEmpty) continue;
-                var baseSlot = ResolveBaseSlot(slot);
-                if (baseSlot == null) continue;
-                if (!PassesRules(baseSlot, item, Math.Min(desiredCount, maxSize), request)) continue;
-                emptyCandidates.Add(new SlotAcceptanceCandidate(slot, maxSize));
+                var slot = geometry.Slots[i];
+                if (slot != null &&
+                    !IsSourceSlot(slot, request) &&
+                    !slot.IsEmpty &&
+                    slot.Stack != null &&
+                    slot.Stack.CanStack(request.ItemAdapter))
+                    return false;
             }
 
-            bool canCreate = canCreateNewSlot && potentialNewSlots > 0 &&
-                             PrefabPassesRules(slots, baseSlotPrefab, item, Math.Min(desiredCount, maxSize), request);
-            return new SlotAcceptanceCandidates(emptyCandidates, canCreate, canCreate ? potentialNewSlots : 0);
+            return true;
         }
 
         public override int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab)
@@ -458,7 +431,7 @@ namespace UDND.Inventories
             int maxSize = GetMaxStackSize(item, DefaultMaxStackSize, AllowItemStackOverride);
 
             // one-per-ID: if item already exists, return only that logical location's remaining capacity.
-            // The source logical location is excluded (a same-inventory move frees it) to stay consistent with GetSlotCandidates.
+            // The source logical location is excluded because a same-inventory move frees it.
             HashSet<Placement> seenPlacements = null;
             foreach (var slot in slots)
             {

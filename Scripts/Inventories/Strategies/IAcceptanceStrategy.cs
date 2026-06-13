@@ -16,7 +16,7 @@ namespace UDND.Inventories
 
     /// <summary>
     /// Strategy-owned decision for how a shaped drop relates to existing placements. All merge semantics
-    /// (one-per-ID, auto vs explicit) live inside the strategy; the planner only asks and acts.
+    /// (one-per-ID, auto vs explicit) live inside the strategy.
     /// </summary>
     public readonly struct ShapedMergeDecision
     {
@@ -39,13 +39,11 @@ namespace UDND.Inventories
     /// </summary>
     public interface IAcceptanceStrategy
     {
-        SlotAcceptanceCandidates GetSlotCandidates(IReadOnlyList<ISlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
-        SlotSelectionPolicyBase DefaultSlotSelectionPolicy { get; }
         int GetAcceptableCount(List<BaseSlot> slots, InventoryAcceptanceRequest request, bool canCreateNewSlot, int potentialNewSlots, BaseSlot baseSlotPrefab);
 
         /// <summary>
         /// Decides whether a shaped drop should merge into an existing placement, create a new one, or be rejected.
-        /// The strategy owns the merge policy (one-per-ID, auto/explicit); the planner only acts on the result.
+        /// The strategy owns the merge policy (one-per-ID, auto/explicit).
         /// </summary>
         ShapedMergeDecision ResolveShapedMerge(
             IPlacementInventory inventory,
