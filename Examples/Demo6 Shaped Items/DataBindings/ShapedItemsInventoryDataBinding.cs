@@ -15,7 +15,7 @@ namespace UDND.Examples.ShapedItems
         [Min(0)] public int anchorIndex;
         public PlacementOrientation orientation;
 
-        public ShapedPlacementSeed(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation = PlacementOrientation.Rot0)
+        public ShapedPlacementSeed(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation = PlacementOrientation.Step0)
         {
             this.item = item;
             this.anchorIndex = Mathf.Max(0, anchorIndex);

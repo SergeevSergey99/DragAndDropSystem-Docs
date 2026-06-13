@@ -40,7 +40,7 @@ namespace UDND.Inventories
                 PlacementCandidateKind.Merge,
                 placement,
                 anchor,
-                placement?.Orientation ?? PlacementOrientation.Rot0,
+                placement?.Orientation ?? PlacementOrientation.Step0,
                 placement?.Shape,
                 capacity);
 

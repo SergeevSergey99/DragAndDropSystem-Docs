@@ -47,7 +47,7 @@ namespace UDND.UI
 
             ApplySourceSize(entry);
             RenderStack(stack);
-            ApplyOrientation(entry.Orientation);
+            ApplyOrientation(entry);
             gameObject.SetActive(true);
         }
 
@@ -88,7 +88,10 @@ namespace UDND.UI
         {
             if (_useShapedPlacementBounds &&
                 entry.SourcePlacement != null &&
-                !PlacementShapeUtility.IsSingleCell(entry.SourcePlacement.Shape, entry.SourcePlacement.Orientation) &&
+                !PlacementShapeUtility.IsSingleCell(
+                    entry.SourcePlacement.Shape,
+                    entry.SourcePlacement.Orientation,
+                    entry.OrientationTopology) &&
                 entry.SourceInventory != null &&
                 TryGetPlacementSize(entry.SourceInventory, entry.SourcePlacement, out var placementSize))
             {
@@ -101,21 +104,26 @@ namespace UDND.UI
         }
 
         private static bool ShouldSwapSourceSize(DragEntry entry)
-        {
-            if (entry.SourcePlacement == null)
-                return entry.Orientation == PlacementOrientation.Rot90 ||
-                       entry.Orientation == PlacementOrientation.Rot270;
+            => IsQuarterTurn(entry.OrientationTopology, entry.Orientation);
 
-            bool sourceSwapped = entry.SourcePlacement.Orientation == PlacementOrientation.Rot90 ||
-                                 entry.SourcePlacement.Orientation == PlacementOrientation.Rot270;
-            return sourceSwapped;
-        }
-
-        private void ApplyOrientation(PlacementOrientation orientation)
+        private void ApplyOrientation(DragEntry entry)
         {
             if (_iconImage != null)
-                _iconImage.rectTransform.localEulerAngles = new Vector3(0f, 0f, -90f * (int)orientation);
+            {
+                _iconImage.rectTransform.localEulerAngles = new Vector3(
+                    0f,
+                    0f,
+                    entry.OrientationTopology.GetVisualAngleDegrees(entry.Orientation));
+            }
         }
+
+        private static bool IsQuarterTurn(
+            IInventoryTopology topology,
+            PlacementOrientation orientation)
+            => IsQuarterTurn(topology.GetVisualAngleDegrees(orientation));
+
+        private static bool IsQuarterTurn(float angle)
+            => Mathf.Abs(Mathf.Abs(Mathf.DeltaAngle(0f, angle)) - 90f) < 0.01f;
 
         private bool TryGetPlacementSize(IInventory inventory, Placement placement, out Vector2 size)
         {

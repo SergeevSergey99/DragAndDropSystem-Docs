@@ -7,10 +7,20 @@ namespace UDND.Core
     public interface IInventoryTopology
     {
         int CellCount { get; }
+        int OrientationCount { get; }
         bool Contains(Vector2Int cell);
         bool TryToIndex(Vector2Int cell, out int index);
         Vector2Int ToCell(int index);
         bool IsValidIndex(int index);
+        PlacementOrientation NormalizeOrientation(PlacementOrientation orientation);
+        PlacementOrientation Rotate(PlacementOrientation orientation, int steps);
+        float GetVisualAngleDegrees(PlacementOrientation orientation);
+        PlacementOrientation GetOrientationForVisualAngleDegrees(float angle);
+        Vector2Int RotateOffset(
+            Vector2Int offset,
+            IPlacementShape shape,
+            PlacementOrientation from,
+            PlacementOrientation to);
         IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
             PlacementOrientation orientation);
@@ -39,6 +49,7 @@ namespace UDND.Core
         public int CellCount => _slotCountProvider != null
             ? Math.Max(0, _slotCountProvider())
             : _slotCount;
+        public int OrientationCount => 1;
 
         public bool Contains(Vector2Int cell)
             => cell.y == 0 && cell.x >= 0 && cell.x < CellCount;
@@ -60,6 +71,25 @@ namespace UDND.Core
 
         public bool IsValidIndex(int index)
             => index >= 0 && index < CellCount;
+
+        public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
+            => PlacementOrientation.Step0;
+
+        public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
+            => PlacementOrientation.Step0;
+
+        public float GetVisualAngleDegrees(PlacementOrientation orientation)
+            => 0f;
+
+        public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
+            => PlacementOrientation.Step0;
+
+        public Vector2Int RotateOffset(
+            Vector2Int offset,
+            IPlacementShape shape,
+            PlacementOrientation from,
+            PlacementOrientation to)
+            => Vector2Int.zero;
 
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
@@ -96,6 +126,7 @@ namespace UDND.Core
         public int Columns => _grid.Columns;
         public int Rows => _grid.Rows;
         public int CellCount => _grid.CellCount;
+        public int OrientationCount => 4;
         public GridTopology Grid => _grid;
 
         public bool Contains(Vector2Int cell)
@@ -119,15 +150,52 @@ namespace UDND.Core
         public bool IsValidIndex(int index)
             => _grid.IsValidIndex(index);
 
+        public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
+            => PlacementOrientationUtility.Normalize(orientation, OrientationCount);
+
+        public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
+            => PlacementOrientationUtility.Rotate(orientation, steps, OrientationCount);
+
+        public float GetVisualAngleDegrees(PlacementOrientation orientation)
+            => -90f * (int)NormalizeOrientation(orientation);
+
+        public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
+            => NormalizeOrientation((PlacementOrientation)Mathf.RoundToInt(-angle / 90f));
+
+        public Vector2Int RotateOffset(
+            Vector2Int offset,
+            IPlacementShape shape,
+            PlacementOrientation from,
+            PlacementOrientation to)
+        {
+            var normalizedFrom = NormalizeOrientation(from);
+            var normalizedTo = NormalizeOrientation(to);
+            int turns = PlacementOrientationUtility.Distance(
+                normalizedFrom,
+                normalizedTo,
+                OrientationCount);
+            var rotated = offset;
+            var size = PlacementShapeUtility.GetBoundingSize(shape, normalizedFrom);
+
+            for (int i = 0; i < turns; i++)
+            {
+                rotated = new Vector2Int(size.y - 1 - rotated.y, rotated.x);
+                size = new Vector2Int(size.y, size.x);
+            }
+
+            return rotated;
+        }
+
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
             PlacementOrientation orientation)
         {
             shape ??= RectPlacementShape.One;
-            if (!shape.SupportsOrientation(orientation))
+            var normalized = NormalizeOrientation(orientation);
+            if (!shape.SupportsOrientation(normalized))
                 return Array.Empty<Vector2Int>();
 
-            return shape.GetOffsets(orientation) ?? Array.Empty<Vector2Int>();
+            return shape.GetOffsets(normalized) ?? Array.Empty<Vector2Int>();
         }
 
         public bool Equals(RectGridTopology other)
@@ -160,6 +228,7 @@ namespace UDND.Core
         }
 
         public int CellCount => Math.Min(_inner.CellCount, CurrentSlotCount);
+        public int OrientationCount => _inner.OrientationCount;
 
         public bool Contains(Vector2Int cell)
             => TryToIndex(cell, out _);
@@ -181,11 +250,66 @@ namespace UDND.Core
         public bool IsValidIndex(int index)
             => index >= 0 && index < CurrentSlotCount && _inner.IsValidIndex(index);
 
+        public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
+            => _inner.NormalizeOrientation(orientation);
+
+        public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
+            => _inner.Rotate(orientation, steps);
+
+        public float GetVisualAngleDegrees(PlacementOrientation orientation)
+            => _inner.GetVisualAngleDegrees(orientation);
+
+        public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
+            => _inner.GetOrientationForVisualAngleDegrees(angle);
+
+        public Vector2Int RotateOffset(
+            Vector2Int offset,
+            IPlacementShape shape,
+            PlacementOrientation from,
+            PlacementOrientation to)
+            => _inner.RotateOffset(offset, shape, from, to);
+
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
             PlacementOrientation orientation)
             => _inner.GetPlacementOffsets(shape, orientation);
 
         private int CurrentSlotCount => Math.Max(0, _slotCountProvider());
+    }
+
+    public static class PlacementOrientationUtility
+    {
+        public static PlacementOrientation Normalize(
+            PlacementOrientation orientation,
+            int orientationCount)
+        {
+            int count = Math.Max(1, orientationCount);
+            int value = ((int)orientation % count + count) % count;
+            return (PlacementOrientation)value;
+        }
+
+        public static PlacementOrientation Rotate(
+            PlacementOrientation orientation,
+            int steps,
+            int orientationCount)
+        {
+            int count = Math.Max(1, orientationCount);
+            int value = ((int)Normalize(orientation, count) + steps) % count;
+            if (value < 0)
+                value += count;
+            return (PlacementOrientation)value;
+        }
+
+        public static int Distance(
+            PlacementOrientation from,
+            PlacementOrientation to,
+            int orientationCount)
+        {
+            int count = Math.Max(1, orientationCount);
+            int distance =
+                (int)Normalize(to, count) -
+                (int)Normalize(from, count);
+            return distance < 0 ? distance + count : distance;
+        }
     }
 }

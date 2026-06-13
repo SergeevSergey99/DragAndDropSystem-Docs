@@ -66,7 +66,7 @@ namespace UDND.Core
         public IReadOnlyList<int> CoveredIndices => PlacementSnapshot?.CoveredIndices ?? Array.Empty<int>();
         public IReadOnlyList<Vector2Int> CoveredOffsets => PlacementSnapshot?.CoveredOffsets ?? Array.Empty<Vector2Int>();
         public IReadOnlyList<BaseSlot> CoveredBaseSlots => PlacementSnapshot?.CoveredBaseSlots ?? Array.Empty<BaseSlot>();
-        public PlacementOrientation Orientation => PlacementSnapshot?.Orientation ?? PlacementOrientation.Rot0;
+        public PlacementOrientation Orientation => PlacementSnapshot?.Orientation ?? PlacementOrientation.Step0;
         public Vector2Int BoundingSize => PlacementSnapshot?.BoundingSize ?? Vector2Int.one;
     }
 

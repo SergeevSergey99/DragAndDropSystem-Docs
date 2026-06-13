@@ -51,7 +51,7 @@ namespace UDND.Tests.Inventories
 
             Assert.IsNull(context.PlacementSnapshot);
             Assert.AreEqual(-1, context.AnchorIndex);
-            Assert.AreEqual(PlacementOrientation.Rot0, context.Orientation);
+            Assert.AreEqual(PlacementOrientation.Step0, context.Orientation);
             Assert.AreEqual(Vector2Int.one, context.BoundingSize);
             Assert.IsEmpty(context.CoveredIndices);
             Assert.IsEmpty(context.CoveredBaseSlots);
@@ -71,7 +71,7 @@ namespace UDND.Tests.Inventories
                 var targetSlot = inventory.GetSlot(1);
                 var snapshot = new PlacementSnapshot(
                     targetSlot.Index,
-                    PlacementOrientation.Rot0,
+                    PlacementOrientation.Step0,
                     Vector2Int.one,
                     anchorBaseSlot: targetSlot);
 
@@ -325,14 +325,14 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void RectPlacementShape_GetBoundingSize_SupportsFourOrientations()
+        public void RectPlacementShape_GetBoundingSize_SupportsFourTopologySteps()
         {
             var shape = new RectPlacementShape(2, 3);
 
-            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
-            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot90));
-            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot180));
-            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot270));
+            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Step0));
+            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Step1));
+            Assert.AreEqual(new Vector2Int(2, 3), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Step2));
+            Assert.AreEqual(new Vector2Int(3, 2), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Step3));
         }
 
         [Test]
@@ -355,10 +355,10 @@ namespace UDND.Tests.Inventories
             };
             var orientations = new[]
             {
-                PlacementOrientation.Rot0,
-                PlacementOrientation.Rot90,
-                PlacementOrientation.Rot180,
-                PlacementOrientation.Rot270
+                PlacementOrientation.Step0,
+                PlacementOrientation.Step1,
+                PlacementOrientation.Step2,
+                PlacementOrientation.Step3
             };
 
             foreach (var topology in topologies)
@@ -407,10 +407,10 @@ namespace UDND.Tests.Inventories
             };
             var orientations = new[]
             {
-                PlacementOrientation.Rot0,
-                PlacementOrientation.Rot90,
-                PlacementOrientation.Rot180,
-                PlacementOrientation.Rot270
+                PlacementOrientation.Step0,
+                PlacementOrientation.Step1,
+                PlacementOrientation.Step2,
+                PlacementOrientation.Step3
             };
 
             foreach (var anchorCell in anchors)
@@ -454,6 +454,75 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void RectGridTopology_OrientationStepsWrapAtFour()
+        {
+            IInventoryTopology topology = new RectGridTopology(3, 2);
+
+            Assert.AreEqual(4, topology.OrientationCount);
+            Assert.AreEqual(
+                PlacementOrientation.Step0,
+                topology.NormalizeOrientation(PlacementOrientation.Step4));
+            Assert.AreEqual(
+                PlacementOrientation.Step1,
+                topology.NormalizeOrientation(PlacementOrientation.Step5));
+            Assert.AreEqual(
+                PlacementOrientation.Step3,
+                topology.Rotate(PlacementOrientation.Step0, -1));
+            Assert.AreEqual(
+                -90f,
+                topology.GetVisualAngleDegrees(PlacementOrientation.Step1));
+        }
+
+        [Test]
+        public void PlacementStore_NormalizesOrientationBeforeCommit()
+        {
+            var store = new PlacementStore(new RectGridTopology(2, 2));
+            var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
+
+            Assert.IsTrue(store.TryPlace(
+                new PlacementRequest(
+                    stack,
+                    0,
+                    PlacementOrientation.Step5),
+                out var placement));
+
+            Assert.AreEqual(PlacementOrientation.Step1, placement.Orientation);
+            CollectionAssert.AreEqual(new[] { 0, 2 }, placement.CoveredIndices);
+        }
+
+        [Test]
+        public void SixStepTopology_OwnsSixtyDegreeRotation()
+        {
+            IInventoryTopology topology = new SixStepTestTopology();
+            var shape = new TestPlacementShape(Vector2Int.zero, Vector2Int.right);
+
+            Assert.AreEqual(6, topology.OrientationCount);
+            Assert.AreEqual(
+                PlacementOrientation.Step5,
+                topology.Rotate(PlacementOrientation.Step0, -1));
+            Assert.AreEqual(
+                -60f,
+                topology.GetVisualAngleDegrees(PlacementOrientation.Step1));
+            Assert.AreEqual(
+                PlacementOrientation.Step2,
+                topology.GetOrientationForVisualAngleDegrees(-120f));
+            CollectionAssert.AreEqual(
+                new[] { Vector2Int.zero, Vector2Int.up },
+                topology.GetPlacementOffsets(shape, PlacementOrientation.Step1));
+
+            var entry = new DragEntry(
+                ItemStackBuilder.Of(new ShapeAdapter("bar", shape)),
+                null,
+                null,
+                grabOffset: Vector2Int.right,
+                orientationTopology: topology);
+            var rotated = entry.WithOrientation(PlacementOrientation.Step1, topology);
+
+            Assert.AreEqual(PlacementOrientation.Step1, rotated.Orientation);
+            Assert.AreEqual(Vector2Int.up, rotated.GrabOffset);
+        }
+
+        [Test]
         public void SlotTopology_TryToIndex_UsesOneDimensionalCells()
         {
             IInventoryTopology topology = new SlotTopology(3);
@@ -475,7 +544,7 @@ namespace UDND.Tests.Inventories
                 Vector2Int.right,
                 Vector2Int.up);
 
-            var offsets = topology.GetPlacementOffsets(shape, PlacementOrientation.Rot90);
+            var offsets = topology.GetPlacementOffsets(shape, PlacementOrientation.Step1);
 
             CollectionAssert.AreEqual(new[] { Vector2Int.zero }, offsets);
         }
@@ -498,7 +567,7 @@ namespace UDND.Tests.Inventories
 
                 var offsets = ((IPlacementInventory)gridInventory).Topology.GetPlacementOffsets(
                     new RectPlacementShape(2, 1),
-                    PlacementOrientation.Rot0);
+                    PlacementOrientation.Step0);
                 CollectionAssert.AreEqual(
                     new[] { Vector2Int.zero, Vector2Int.right },
                     offsets);
@@ -570,7 +639,7 @@ namespace UDND.Tests.Inventories
             var covered = PlacementCellUtility.GetCoveredIndices(
                 0,
                 shape,
-                PlacementOrientation.Rot0,
+                PlacementOrientation.Step0,
                 topology,
                 PlacementBoundsMode.RequireAllInBounds);
 
@@ -608,7 +677,7 @@ namespace UDND.Tests.Inventories
         {
             var store = new PlacementStore(new RectGridTopology(2, 2));
             var outOfBoundsStack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
-            var unsupportedShape = new SingleOrientationShape(PlacementOrientation.Rot0, Vector2Int.zero);
+            var unsupportedShape = new SingleOrientationShape(PlacementOrientation.Step0, Vector2Int.zero);
             var unsupportedStack = ItemStackBuilder.Of(new FakeItemAdapter("gem"));
 
             Assert.IsFalse(store.TryPlace(new PlacementRequest(outOfBoundsStack, 3), out _));
@@ -616,7 +685,7 @@ namespace UDND.Tests.Inventories
                 new PlacementRequest(
                     unsupportedStack,
                     0,
-                    PlacementOrientation.Rot90,
+                    PlacementOrientation.Step1,
                     unsupportedShape),
                 out _));
         }
@@ -662,7 +731,7 @@ namespace UDND.Tests.Inventories
             var shape = PlacementShapeUtility.Resolve(adapter);
 
             Assert.AreSame(adapter.PlacementShape, shape);
-            Assert.AreEqual(new Vector2Int(3, 1), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
+            Assert.AreEqual(new Vector2Int(3, 1), PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Step0));
         }
 
         [Test]
@@ -673,7 +742,7 @@ namespace UDND.Tests.Inventories
             var shape = PlacementShapeUtility.Resolve(adapter);
 
             Assert.IsInstanceOf<RectPlacementShape>(shape);
-            Assert.AreEqual(Vector2Int.one, PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Rot0));
+            Assert.AreEqual(Vector2Int.one, PlacementShapeUtility.GetBoundingSize(shape, PlacementOrientation.Step0));
         }
 
         [Test]
@@ -682,11 +751,11 @@ namespace UDND.Tests.Inventories
             var shape = new RectPlacementShape(2, 3);
 
             Assert.AreSame(
-                shape.GetOffsets(PlacementOrientation.Rot0),
-                shape.GetOffsets(PlacementOrientation.Rot0));
+                shape.GetOffsets(PlacementOrientation.Step0),
+                shape.GetOffsets(PlacementOrientation.Step0));
             Assert.AreSame(
-                shape.GetOffsets(PlacementOrientation.Rot90),
-                shape.GetOffsets(PlacementOrientation.Rot90));
+                shape.GetOffsets(PlacementOrientation.Step1),
+                shape.GetOffsets(PlacementOrientation.Step1));
         }
 
         [Test]
@@ -705,7 +774,7 @@ namespace UDND.Tests.Inventories
                     new Vector2Int(0, 1));
                 var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
 
-                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot0, shape), out var placement));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Step0, shape), out var placement));
 
                 Assert.AreSame(shape, placement.Shape);
                 CollectionAssert.AreEqual(new[] { 0, 1, 3 }, placement.CoveredIndices);
@@ -728,10 +797,10 @@ namespace UDND.Tests.Inventories
 
             try
             {
-                var shape = new SingleOrientationShape(PlacementOrientation.Rot0, Vector2Int.zero, new Vector2Int(1, 0));
+                var shape = new SingleOrientationShape(PlacementOrientation.Step0, Vector2Int.zero, new Vector2Int(1, 0));
                 var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
 
-                Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90, shape)));
+                Assert.IsFalse(inventory.CanPlace(new PlacementRequest(stack, 0, PlacementOrientation.Step1, shape)));
             }
             finally
             {
@@ -755,11 +824,11 @@ namespace UDND.Tests.Inventories
                     new Vector2Int(0, 1));
                 var stack = ItemStackBuilder.Of(new FakeItemAdapter("tool"));
 
-                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot0, shape), out var placement));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Step0, shape), out var placement));
 
                 var snapshot = PlacementSnapshot.FromPlacement(placement, inventory.GetSlot);
 
-                CollectionAssert.AreEqual(shape.GetOffsets(PlacementOrientation.Rot0), snapshot.CoveredOffsets);
+                CollectionAssert.AreEqual(shape.GetOffsets(PlacementOrientation.Step0), snapshot.CoveredOffsets);
                 Assert.AreEqual(new Vector2Int(2, 2), snapshot.BoundingSize);
             }
             finally
@@ -786,7 +855,7 @@ namespace UDND.Tests.Inventories
                         new InventoryPlacementState(
                             0,
                             stack.Adapters,
-                            PlacementOrientation.Rot0,
+                            PlacementOrientation.Step0,
                             new Vector2Int(2, 2),
                             new[] { 0, 1, 3 },
                             new[]
@@ -830,7 +899,7 @@ namespace UDND.Tests.Inventories
                 Assert.AreSame(placement, entry.SourcePlacement);
                 Assert.AreEqual(new Vector2Int(1, 1), entry.GrabOffset);
                 Assert.AreEqual(new Vector2Int(2, 2), entry.BoundingSize);
-                Assert.AreEqual(PlacementOrientation.Rot0, entry.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step0, entry.Orientation);
             }
             finally
             {
@@ -852,9 +921,9 @@ namespace UDND.Tests.Inventories
                 Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0), out var placement));
 
                 var entry = new DragEntry(stack.CreateCopy(), inventory.GetSlot(1), inventory, placement);
-                var rotated = entry.WithOrientation(PlacementOrientation.Rot90);
+                var rotated = entry.WithOrientation(PlacementOrientation.Step1);
 
-                Assert.AreEqual(PlacementOrientation.Rot90, rotated.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step1, rotated.Orientation);
                 Assert.AreEqual(new Vector2Int(0, 1), rotated.GrabOffset);
             }
             finally
@@ -881,9 +950,9 @@ namespace UDND.Tests.Inventories
                     inventory.GetSlot(1),
                     inventory,
                     placement,
-                    orientation: PlacementOrientation.Rot90);
+                    orientation: PlacementOrientation.Step1);
 
-                Assert.AreEqual(PlacementOrientation.Rot90, entry.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step1, entry.Orientation);
                 Assert.AreEqual(new Vector2Int(0, 1), entry.GrabOffset);
             }
             finally
@@ -947,7 +1016,7 @@ namespace UDND.Tests.Inventories
 
                 var dragSlot = inventory.GetSlot(4);
                 var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
-                    .WithOrientation(PlacementOrientation.Rot90);
+                    .WithOrientation(PlacementOrientation.Step1);
                 var context = new DragContext(new[] { entry });
 
                 Assert.IsTrue(inventory.TryGetDropPreviewSlots(
@@ -1151,7 +1220,7 @@ namespace UDND.Tests.Inventories
                     dragSlot.Stack.CreateCopy(),
                     dragSlot,
                     source,
-                    orientation: PlacementOrientation.Rot90);
+                    orientation: PlacementOrientation.Step1);
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(1), target, new GlobalRuleValidator());
@@ -1161,7 +1230,7 @@ namespace UDND.Tests.Inventories
 
                 var targetPlacement = target.GetPlacementAt(1);
                 Assert.IsNotNull(targetPlacement);
-                Assert.AreEqual(PlacementOrientation.Rot90, targetPlacement.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step1, targetPlacement.Orientation);
                 CollectionAssert.AreEqual(new[] { 1, 4 }, targetPlacement.CoveredIndices);
             }
             finally
@@ -1887,7 +1956,7 @@ namespace UDND.Tests.Inventories
                 var outcome = report.EntryResults[0].Outcomes[0];
                 var targetSnap = outcome.TargetPlacementSnapshot;
                 Assert.AreEqual(4, targetSnap.AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot0, targetSnap.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step0, targetSnap.Orientation);
                 Assert.AreEqual(new Vector2Int(2, 2), targetSnap.BoundingSize);
                 CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, targetSnap.CoveredIndices);
                 CollectionAssert.AreEqual(
@@ -1898,7 +1967,7 @@ namespace UDND.Tests.Inventories
 
                 Assert.IsNotNull(removedContext);
                 Assert.AreEqual(0, removedContext.AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot0, removedContext.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step0, removedContext.Orientation);
                 Assert.AreEqual(new Vector2Int(2, 2), removedContext.BoundingSize);
                 CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, removedContext.CoveredIndices);
                 CollectionAssert.AreEqual(
@@ -1908,7 +1977,7 @@ namespace UDND.Tests.Inventories
                 Assert.IsNotNull(addedContext);
                 Assert.AreEqual(4, addedContext.AnchorIndex);
                 Assert.AreSame(target.GetSlot(4), addedContext.AnchorBaseSlot);
-                Assert.AreEqual(PlacementOrientation.Rot0, addedContext.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step0, addedContext.Orientation);
                 Assert.AreEqual(new Vector2Int(2, 2), addedContext.BoundingSize);
                 CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, addedContext.CoveredIndices);
                 CollectionAssert.AreEqual(
@@ -1967,11 +2036,11 @@ namespace UDND.Tests.Inventories
             try
             {
                 var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
-                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Step1)));
 
                 var dragSlot = inventory.GetSlot(3);
                 var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
-                    .WithOrientation(PlacementOrientation.Rot180);
+                    .WithOrientation(PlacementOrientation.Step2);
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(inventory.GetSlot(6), inventory, new GlobalRuleValidator());
@@ -1982,7 +2051,7 @@ namespace UDND.Tests.Inventories
                 var movedPlacement = inventory.GetPlacementAt(6);
                 Assert.IsNotNull(movedPlacement);
                 Assert.AreEqual(6, movedPlacement.AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot180, movedPlacement.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step2, movedPlacement.Orientation);
                 CollectionAssert.AreEqual(new[] { 6, 7 }, movedPlacement.CoveredIndices);
                 Assert.IsNull(inventory.GetPlacementAt(0));
             }
@@ -2003,11 +2072,11 @@ namespace UDND.Tests.Inventories
             try
             {
                 var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
-                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Rot90)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, PlacementOrientation.Step1)));
 
                 var dragSlot = inventory.GetSlot(3);
                 var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
-                    .WithOrientation(PlacementOrientation.Rot180);
+                    .WithOrientation(PlacementOrientation.Step2);
                 var context = new DragContext(new[] { entry });
 
                 var globalRules = new GlobalRuleValidator();
@@ -2020,7 +2089,7 @@ namespace UDND.Tests.Inventories
                 var movedPlacement = inventory.GetPlacementAt(3);
                 Assert.IsNotNull(movedPlacement);
                 Assert.AreEqual(3, movedPlacement.AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot180, movedPlacement.Orientation);
+                Assert.AreEqual(PlacementOrientation.Step2, movedPlacement.Orientation);
                 CollectionAssert.AreEqual(new[] { 3, 4 }, movedPlacement.CoveredIndices);
                 Assert.IsNull(inventory.GetPlacementAt(0));
             }
@@ -2197,7 +2266,7 @@ namespace UDND.Tests.Inventories
 
                 Assert.AreEqual(1, snapshot.Placements.Count);
                 Assert.AreEqual(0, snapshot.Placements[0].AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot0, snapshot.Placements[0].Orientation);
+                Assert.AreEqual(PlacementOrientation.Step0, snapshot.Placements[0].Orientation);
                 Assert.AreEqual(new Vector2Int(2, 2), snapshot.Placements[0].BoundingSize);
                 CollectionAssert.AreEqual(originalPlacement.CoveredIndices, snapshot.Placements[0].CoveredIndices);
 
@@ -2223,7 +2292,7 @@ namespace UDND.Tests.Inventories
                 new InventoryPlacementState(
                     0,
                     adapters,
-                    PlacementOrientation.Rot0,
+                    PlacementOrientation.Step0,
                     Vector2Int.one,
                     new[] { 0 })
             };
@@ -2254,7 +2323,7 @@ namespace UDND.Tests.Inventories
                         new InventoryPlacementState(
                             0,
                             stack.Adapters,
-                            PlacementOrientation.Rot0,
+                            PlacementOrientation.Step0,
                             new Vector2Int(2, 1),
                             new[] { 0, 1 })
                     });
@@ -2291,13 +2360,13 @@ namespace UDND.Tests.Inventories
                         new InventoryPlacementState(
                             0,
                             firstSnapshotStack.Adapters,
-                            PlacementOrientation.Rot0,
+                            PlacementOrientation.Step0,
                             Vector2Int.one,
                             new[] { 0 }),
                         new InventoryPlacementState(
                             0,
                             overlappingSnapshotStack.Adapters,
-                            PlacementOrientation.Rot0,
+                            PlacementOrientation.Step0,
                             Vector2Int.one,
                             new[] { 0 })
                     });
@@ -2423,7 +2492,7 @@ namespace UDND.Tests.Inventories
         }
 
         private static Vector2Int GetOrientedSize(Vector2Int size, PlacementOrientation orientation)
-            => orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
+            => orientation == PlacementOrientation.Step1 || orientation == PlacementOrientation.Step3
                 ? new Vector2Int(size.y, size.x)
                 : size;
 
@@ -2498,6 +2567,71 @@ namespace UDND.Tests.Inventories
 
             public bool SupportsOrientation(PlacementOrientation orientation)
                 => orientation == _supportedOrientation;
+        }
+
+        private sealed class SixStepTestTopology : IInventoryTopology
+        {
+            public int CellCount => 1;
+            public int OrientationCount => 6;
+
+            public bool Contains(Vector2Int cell) => cell == Vector2Int.zero;
+            public bool TryToIndex(Vector2Int cell, out int index)
+            {
+                index = cell == Vector2Int.zero ? 0 : -1;
+                return index == 0;
+            }
+
+            public Vector2Int ToCell(int index) => Vector2Int.zero;
+            public bool IsValidIndex(int index) => index == 0;
+
+            public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
+                => PlacementOrientationUtility.Normalize(orientation, OrientationCount);
+
+            public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
+                => PlacementOrientationUtility.Rotate(orientation, steps, OrientationCount);
+
+            public float GetVisualAngleDegrees(PlacementOrientation orientation)
+                => -60f * (int)NormalizeOrientation(orientation);
+
+            public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
+                => NormalizeOrientation((PlacementOrientation)Mathf.RoundToInt(-angle / 60f));
+
+            public Vector2Int RotateOffset(
+                Vector2Int offset,
+                IPlacementShape shape,
+                PlacementOrientation from,
+                PlacementOrientation to)
+            {
+                int steps = PlacementOrientationUtility.Distance(
+                    from,
+                    to,
+                    OrientationCount);
+                var result = offset;
+                for (int i = 0; i < steps; i++)
+                    result = new Vector2Int(-result.y, result.x + result.y);
+                return result;
+            }
+
+            public IReadOnlyList<Vector2Int> GetPlacementOffsets(
+                IPlacementShape shape,
+                PlacementOrientation orientation)
+            {
+                var source = shape?.GetOffsets(PlacementOrientation.Step0);
+                if (source == null || source.Count == 0)
+                    return Array.Empty<Vector2Int>();
+
+                var result = new Vector2Int[source.Count];
+                for (int i = 0; i < source.Count; i++)
+                {
+                    result[i] = RotateOffset(
+                        source[i],
+                        shape,
+                        PlacementOrientation.Step0,
+                        orientation);
+                }
+
+                return result;
+            }
         }
     }
 }

@@ -81,10 +81,7 @@ namespace UDND.Inventories
 
         private static IReadOnlyList<Vector2Int> ResolvePlacementOffsets(Placement placement)
         {
-            if (placement?.Shape == null || !placement.Shape.SupportsOrientation(placement.Orientation))
-                return Array.Empty<Vector2Int>();
-
-            return placement.Shape.GetOffsets(placement.Orientation);
+            return placement?.CoveredOffsets ?? Array.Empty<Vector2Int>();
         }
     }
 }

@@ -47,21 +47,11 @@ namespace UDND.Core
             return new PlacementSnapshot(
                 placement.AnchorIndex,
                 placement.Orientation,
-                PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation),
+                placement.BoundingSize,
                 placement.CoveredIndices,
                 slotResolver?.Invoke(placement.AnchorIndex),
                 ResolveSlots(placement.CoveredIndices, slotResolver),
-                ResolveOffsets(placement.Shape, placement.Orientation));
-        }
-
-        private static IReadOnlyList<Vector2Int> ResolveOffsets(
-            IPlacementShape shape,
-            PlacementOrientation orientation)
-        {
-            if (shape == null || !shape.SupportsOrientation(orientation))
-                return Array.Empty<Vector2Int>();
-
-            return Copy(shape.GetOffsets(orientation));
+                placement.CoveredOffsets);
         }
 
         private static IReadOnlyList<BaseSlot> ResolveSlots(

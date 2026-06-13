@@ -228,7 +228,10 @@ namespace UDND
         {
             var placement = ResolveCurrentSourcePlacement(entry);
             if (placement == null ||
-                PlacementShapeUtility.IsSingleCell(placement.Shape, placement.Orientation) ||
+                PlacementShapeUtility.IsSingleCell(
+                    placement.Shape,
+                    placement.Orientation,
+                    entry.OrientationTopology) ||
                 entry.SourceInventory == null)
                 return false;
 
@@ -380,7 +383,7 @@ namespace UDND
             _ = CompleteDragAsync(requested);
         }
 
-        public bool RotateCurrentDrag(int quarterTurns = 1)
+        public bool RotateCurrentDrag(int orientationSteps = 1)
         {
             if (!IsDragging ||
                 _currentContext?.Entries == null ||
@@ -389,19 +392,30 @@ namespace UDND
                 _isProcessingTransfer)
                 return false;
 
-            int normalizedTurns = ((quarterTurns % 4) + 4) % 4;
-            if (normalizedTurns == 0)
+            var topology = ResolveDragOrientationTopology();
+            if (topology == null)
+                return false;
+
+            int normalizedSteps =
+                ((orientationSteps % topology.OrientationCount) + topology.OrientationCount) %
+                topology.OrientationCount;
+            if (normalizedSteps == 0)
                 return true;
 
             var rotatedEntries = new List<DragEntry>(_currentContext.Entries.Count);
             for (int i = 0; i < _currentContext.Entries.Count; i++)
             {
                 var entry = _currentContext.Entries[i];
-                var orientation = RotateOrientation(entry.Orientation, normalizedTurns);
-                if (entry.Shape != null && !entry.Shape.SupportsOrientation(orientation))
+                float currentAngle = entry.OrientationTopology
+                    .GetVisualAngleDegrees(entry.Orientation);
+                var currentOrientation = topology
+                    .GetOrientationForVisualAngleDegrees(currentAngle);
+                var orientation = topology.Rotate(currentOrientation, normalizedSteps);
+                var offsets = topology.GetPlacementOffsets(entry.Shape, orientation);
+                if (offsets == null || offsets.Count == 0)
                     return false;
 
-                rotatedEntries.Add(entry.WithOrientation(orientation));
+                rotatedEntries.Add(entry.WithOrientation(orientation, topology));
             }
 
             _currentContext = _currentContext.WithEntries(rotatedEntries);
@@ -410,10 +424,27 @@ namespace UDND
             return true;
         }
 
-        private static PlacementOrientation RotateOrientation(PlacementOrientation orientation, int quarterTurns)
+        private IInventoryTopology ResolveDragOrientationTopology()
         {
-            int value = ((int)orientation + quarterTurns) % 4;
-            return (PlacementOrientation)value;
+            if (_currentContext?.TargetInventory is IPlacementInventory targetPlacementInventory &&
+                targetPlacementInventory.Topology != null &&
+                targetPlacementInventory.Topology.OrientationCount > 1)
+            {
+                return targetPlacementInventory.Topology;
+            }
+
+            var entries = _currentContext?.Entries;
+            if (entries != null)
+            {
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    var topology = entries[i].OrientationTopology;
+                    if (topology != null && topology.OrientationCount > 1)
+                        return topology;
+                }
+            }
+
+            return new RectGridTopology(1, 1);
         }
 
         private void RefreshActiveDropPreview()

@@ -69,10 +69,12 @@ namespace UDND.Inventories
             if (!CanPlace(request))
                 return false;
 
+            var orientation = Topology.NormalizeOrientation(request.Orientation);
+            var coveredOffsets = Topology.GetPlacementOffsets(request.Shape, orientation);
             var coveredIndices = GetCoveredIndices(
                 request.AnchorIndex,
                 request.Shape,
-                request.Orientation,
+                orientation,
                 PlacementBoundsMode.RequireAllInBounds);
             if (coveredIndices == null || coveredIndices.Count == 0)
                 return false;
@@ -80,10 +82,11 @@ namespace UDND.Inventories
             placement = new Placement(
                 Topology.ToCell(request.AnchorIndex),
                 request.AnchorIndex,
-                request.Orientation,
+                orientation,
                 request.Shape,
                 request.Stack,
-                coveredIndices);
+                coveredIndices,
+                coveredOffsets);
 
             Register(placement);
             return true;
@@ -154,13 +157,17 @@ namespace UDND.Inventories
                 if (covered == null || covered.Count == 0)
                     continue;
 
+                var coveredOffsets = Topology.GetPlacementOffsets(
+                    placement.Shape,
+                    placement.Orientation);
                 shiftedPlacements.Add(new Placement(
                     Topology.ToCell(anchorIndex),
                     anchorIndex,
                     placement.Orientation,
                     placement.Shape,
                     placement.MutableStack,
-                    covered));
+                    covered,
+                    coveredOffsets));
             }
 
             Reset();

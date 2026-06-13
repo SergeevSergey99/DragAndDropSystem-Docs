@@ -18,7 +18,11 @@ namespace UDND.Core
         public IPlacementShape Shape { get; }
         public Vector2Int BoundingSize { get; }
         public PlacementOrientation Orientation { get; }
-        public bool IsShaped => !PlacementShapeUtility.IsSingleCell(Shape, Orientation);
+        public IInventoryTopology OrientationTopology { get; }
+        public bool IsShaped => !PlacementShapeUtility.IsSingleCell(
+            Shape,
+            Orientation,
+            OrientationTopology);
 
         public DragEntry(
             ItemStack stack,
@@ -26,7 +30,8 @@ namespace UDND.Core
             IInventory sourceInventory,
             Placement sourcePlacement = null,
             Vector2Int? grabOffset = null,
-            PlacementOrientation? orientation = null)
+            PlacementOrientation? orientation = null,
+            IInventoryTopology orientationTopology = null)
         {
             Stack = stack;
             SourceBaseSlot = sourceBaseSlot;
@@ -39,9 +44,14 @@ namespace UDND.Core
                 SourcePlacement = resolvedPlacement;
 
             Shape = SourcePlacement?.Shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
-            var sourceOrientation = SourcePlacement?.Orientation ?? PlacementOrientation.Rot0;
-            Orientation = orientation ?? sourceOrientation;
-            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, Orientation);
+            OrientationTopology = orientationTopology ?? ResolveOrientationTopology(sourceStore);
+            var sourceOrientation = OrientationTopology.NormalizeOrientation(
+                SourcePlacement?.Orientation ?? PlacementOrientation.Step0);
+            Orientation = OrientationTopology.NormalizeOrientation(orientation ?? sourceOrientation);
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(
+                Shape,
+                Orientation,
+                OrientationTopology);
 
             var resolvedGrabOffset = grabOffset
                 ?? (sourceStore != null
@@ -49,35 +59,48 @@ namespace UDND.Core
                     : Vector2Int.zero);
             GrabOffset = grabOffset.HasValue
                 ? resolvedGrabOffset
-                : RotateGrabOffset(resolvedGrabOffset, Shape, sourceOrientation, Orientation);
+                : OrientationTopology.RotateOffset(
+                    resolvedGrabOffset,
+                    Shape,
+                    sourceOrientation,
+                    Orientation);
         }
 
-        public DragEntry WithOrientation(PlacementOrientation orientation)
-            => new DragEntry(
+        public DragEntry WithOrientation(
+            PlacementOrientation orientation,
+            IInventoryTopology orientationTopology = null)
+        {
+            var topology = orientationTopology ?? OrientationTopology;
+            var normalizedOrientation = topology.NormalizeOrientation(orientation);
+            var baseGrabOffset = OrientationTopology.RotateOffset(
+                GrabOffset,
+                Shape,
+                Orientation,
+                PlacementOrientation.Step0);
+            return new DragEntry(
                 Stack,
                 SourceBaseSlot,
                 SourceInventory,
                 SourcePlacement,
-                RotateGrabOffset(GrabOffset, Shape, Orientation, orientation),
-                orientation);
+                topology.RotateOffset(
+                    baseGrabOffset,
+                    Shape,
+                    PlacementOrientation.Step0,
+                    normalizedOrientation),
+                normalizedOrientation,
+                topology);
+        }
 
-        private static Vector2Int RotateGrabOffset(
-            Vector2Int grabOffset,
-            IPlacementShape shape,
-            PlacementOrientation from,
-            PlacementOrientation to)
+        private static IInventoryTopology ResolveOrientationTopology(IInventory inventory)
         {
-            int turns = ((int)to - (int)from + 4) % 4;
-            var offset = grabOffset;
-            var size = PlacementShapeUtility.GetBoundingSize(shape, from);
-
-            for (int i = 0; i < turns; i++)
+            if (inventory is IPlacementInventory placementInventory &&
+                placementInventory.Topology != null &&
+                placementInventory.Topology.OrientationCount > 1)
             {
-                offset = new Vector2Int(size.y - 1 - offset.y, offset.x);
-                size = new Vector2Int(size.y, size.x);
+                return placementInventory.Topology;
             }
 
-            return offset;
+            return new RectGridTopology(1, 1);
         }
     }
 

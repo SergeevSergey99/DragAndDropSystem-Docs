@@ -49,7 +49,8 @@ namespace UDND.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
-            _orientationAngle = -90f * (int)entries[0].Orientation;
+            _orientationAngle = entries[0].OrientationTopology
+                .GetVisualAngleDegrees(entries[0].Orientation);
 
             if (_glowEffect != null)
             {

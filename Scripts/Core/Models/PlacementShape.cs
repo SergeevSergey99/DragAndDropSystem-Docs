@@ -66,13 +66,13 @@ namespace UDND.Core
         {
             switch (orientation)
             {
-                case PlacementOrientation.Rot90:
+                case PlacementOrientation.Step1:
                     return 1;
-                case PlacementOrientation.Rot180:
+                case PlacementOrientation.Step2:
                     return 2;
-                case PlacementOrientation.Rot270:
+                case PlacementOrientation.Step3:
                     return 3;
-                case PlacementOrientation.Rot0:
+                case PlacementOrientation.Step0:
                 default:
                     return 0;
             }
@@ -86,7 +86,7 @@ namespace UDND.Core
 
         public OffsetPlacementShape(
             IReadOnlyList<Vector2Int> offsets,
-            PlacementOrientation supportedOrientation = PlacementOrientation.Rot0)
+            PlacementOrientation supportedOrientation = PlacementOrientation.Step0)
         {
             _offsets = CopyOffsets(offsets);
             _supportedOrientation = supportedOrientation;
@@ -133,20 +133,57 @@ namespace UDND.Core
             return offsets.Count == 1 && offsets[0] == Vector2Int.zero;
         }
 
+        public static bool IsSingleCell(
+            IPlacementShape shape,
+            PlacementOrientation orientation,
+            IInventoryTopology topology)
+        {
+            if (topology == null)
+                return IsSingleCell(shape, orientation);
+
+            var offsets = topology.GetPlacementOffsets(shape, orientation);
+            return offsets != null &&
+                   offsets.Count == 1 &&
+                   offsets[0] == Vector2Int.zero;
+        }
+
         public static Vector2Int GetBoundingSize(IPlacementShape shape, PlacementOrientation orientation)
         {
             if (!TryGetOffsets(shape, orientation, out var offsets))
                 return Vector2Int.zero;
 
-            int maxX = 0;
-            int maxY = 0;
+            return GetBoundingSize(offsets);
+        }
+
+        public static Vector2Int GetBoundingSize(
+            IPlacementShape shape,
+            PlacementOrientation orientation,
+            IInventoryTopology topology)
+        {
+            if (topology == null)
+                return GetBoundingSize(shape, orientation);
+
+            return GetBoundingSize(topology.GetPlacementOffsets(shape, orientation));
+        }
+
+        public static Vector2Int GetBoundingSize(IReadOnlyList<Vector2Int> offsets)
+        {
+            if (offsets == null || offsets.Count == 0)
+                return Vector2Int.zero;
+
+            int minX = offsets[0].x;
+            int minY = offsets[0].y;
+            int maxX = offsets[0].x;
+            int maxY = offsets[0].y;
             for (int i = 0; i < offsets.Count; i++)
             {
+                minX = Math.Min(minX, offsets[i].x);
+                minY = Math.Min(minY, offsets[i].y);
                 maxX = Math.Max(maxX, offsets[i].x);
                 maxY = Math.Max(maxY, offsets[i].y);
             }
 
-            return new Vector2Int(maxX + 1, maxY + 1);
+            return new Vector2Int(maxX - minX + 1, maxY - minY + 1);
         }
 
         public static bool OffsetsEqual(

@@ -41,7 +41,7 @@ namespace UDND.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
-            _iconImage.rectTransform.localEulerAngles = ToEulerAngles(entries[0].Orientation);
+            _iconImage.rectTransform.localEulerAngles = ToEulerAngles(entries[0]);
 
             if (_showCount && _countText != null)
             {
@@ -64,7 +64,10 @@ namespace UDND.UI
             gameObject.SetActive(false);
         }
 
-        private static Vector3 ToEulerAngles(PlacementOrientation orientation)
-            => new Vector3(0f, 0f, -90f * (int)orientation);
+        private static Vector3 ToEulerAngles(DragEntry entry)
+            => new Vector3(
+                0f,
+                0f,
+                entry.OrientationTopology.GetVisualAngleDegrees(entry.Orientation));
     }
 }

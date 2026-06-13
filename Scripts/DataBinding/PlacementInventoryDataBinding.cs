@@ -15,7 +15,7 @@ namespace UDND.DataBinding
             TData item,
             int anchorIndex,
             int count = 1,
-            PlacementOrientation orientation = PlacementOrientation.Rot0)
+            PlacementOrientation orientation = PlacementOrientation.Step0)
         {
             Item = item;
             AnchorIndex = anchorIndex;
@@ -51,7 +51,7 @@ namespace UDND.DataBinding
         public ItemStack Stack => EventContext?.Stack ?? ItemStack.Empty();
         public int Count => Stack.Count;
         public int AnchorIndex => EventContext?.AnchorIndex ?? -1;
-        public PlacementOrientation Orientation => EventContext?.Orientation ?? PlacementOrientation.Rot0;
+        public PlacementOrientation Orientation => EventContext?.Orientation ?? PlacementOrientation.Step0;
         public Vector2Int BoundingSize => EventContext?.BoundingSize ?? Vector2Int.one;
         public PlacementSnapshot PlacementSnapshot => EventContext?.PlacementSnapshot;
         public IReadOnlyList<int> CoveredIndices => EventContext?.CoveredIndices ?? Array.Empty<int>();

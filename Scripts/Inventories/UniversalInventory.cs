@@ -194,7 +194,7 @@ namespace UDND.Inventories
 
             return new PlacementSnapshot(
                 baseSlot.Index,
-                PlacementOrientation.Rot0,
+                PlacementOrientation.Step0,
                 Vector2Int.one,
                 new[] { baseSlot.Index },
                 baseSlot,
@@ -448,7 +448,7 @@ namespace UDND.Inventories
         public IReadOnlyList<int> GetCoveredCells(
             int anchorIndex,
             IPlacementShape shape,
-            PlacementOrientation orientation = PlacementOrientation.Rot0)
+            PlacementOrientation orientation = PlacementOrientation.Step0)
         {
             return BuildCoveredCells(anchorIndex, shape, orientation);
         }
@@ -624,7 +624,7 @@ namespace UDND.Inventories
             var request = new PlacementRequest(
                 stack,
                 baseSlot.Index,
-                PlacementOrientation.Rot0,
+                PlacementOrientation.Step0,
                 PlacementShapeUtility.Resolve(stack.PrimaryAdapter));
 
             if (existingPlacement != null && !placementStore.CanPlace(request, existingPlacement))

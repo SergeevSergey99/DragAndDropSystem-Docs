@@ -151,7 +151,7 @@ namespace UDND.UI
                 item.RectTransform,
                 rect.center,
                 GetPreRotatedSize(rect.size, placement.Orientation),
-                -90f * (int)placement.Orientation);
+                GetPlacementTopology().GetVisualAngleDegrees(placement.Orientation));
             item.transform.SetAsLastSibling();
             item.ShowStackCount = true;
             item.Render(placement, renderState, _color);
@@ -199,14 +199,14 @@ namespace UDND.UI
 
         private static bool IsRectangularPlacement(Placement placement)
         {
-            if (placement?.Shape == null || !placement.Shape.SupportsOrientation(placement.Orientation))
+            if (placement == null)
                 return true;
 
-            var offsets = placement.Shape.GetOffsets(placement.Orientation);
+            var offsets = placement.CoveredOffsets;
             if (offsets == null || offsets.Count == 0)
                 return true;
 
-            var bounds = PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation);
+            var bounds = PlacementShapeUtility.GetBoundingSize(offsets);
             int area = bounds.x * bounds.y;
             if (area <= 0 || offsets.Count != area)
                 return false;
@@ -227,12 +227,18 @@ namespace UDND.UI
             return true;
         }
 
-        private static Vector2 GetPreRotatedSize(Vector2 targetSize, PlacementOrientation orientation)
+        private Vector2 GetPreRotatedSize(
+            Vector2 targetSize,
+            PlacementOrientation orientation)
         {
-            return orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
+            float angle = GetPlacementTopology().GetVisualAngleDegrees(orientation);
+            return Mathf.Abs(Mathf.Abs(Mathf.DeltaAngle(0f, angle)) - 90f) < 0.01f
                 ? new Vector2(targetSize.y, targetSize.x)
                 : targetSize;
         }
+
+        private IInventoryTopology GetPlacementTopology()
+            => (_inventory as IPlacementInventory)?.Topology ?? new RectGridTopology(1, 1);
 
         private RectTransform ResolveOverlayRoot()
         {

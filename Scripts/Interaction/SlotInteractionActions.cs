@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UDND.Core;
 using UDND.Inventories;
 using UDND.Slots;
@@ -105,8 +106,9 @@ namespace UDND.Interaction
     [Serializable]
     public sealed class RotateDragAction : AssetSafeSlotInteractionAction
     {
-        [SerializeField, Tooltip("How many 90-degree clockwise steps to apply to the active drag.")]
-        private RotationStep _step = RotationStep.Clockwise90;
+        [FormerlySerializedAs("_step")]
+        [SerializeField, Tooltip("How many topology-defined clockwise orientation steps to apply.")]
+        private int _steps = 1;
 
         public override bool IsDragOnlyBinding() => true;
         public override bool AllowOutOfSlot() => true;
@@ -120,16 +122,9 @@ namespace UDND.Interaction
                 return ActionResult.Failed("Drag is not active");
 
             DragAndDropManager.AutoCreateInstance.ActivateDropTargetForSlot(snapshot?.HoveredSlot ?? snapshot?.FocusedSlot ?? snapshot?.ActiveSlot);
-            return DragAndDropManager.AutoCreateInstance.RotateCurrentDrag((int)_step)
+            return DragAndDropManager.AutoCreateInstance.RotateCurrentDrag(_steps)
                 ? ActionResult.Succeeded()
                 : ActionResult.Failed("Rotate drag failed");
-        }
-
-        private enum RotationStep
-        {
-            Clockwise90 = 1,
-            Clockwise180 = 2,
-            Clockwise270 = 3
         }
     }
 

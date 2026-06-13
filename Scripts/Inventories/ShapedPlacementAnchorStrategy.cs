@@ -30,7 +30,10 @@ namespace UDND.Inventories
         public DragContext DragContext { get; }
         public DragEntry Entry { get; }
         public IPlacementShape Shape { get; }
-        public Vector2Int BoundingSize => PlacementShapeUtility.GetBoundingSize(Shape, Orientation);
+        public Vector2Int BoundingSize => PlacementShapeUtility.GetBoundingSize(
+            Shape,
+            Orientation,
+            TargetInventory?.Topology);
         public PlacementOrientation Orientation { get; }
         public IItemAdapter TargetItemAdapter { get; }
 

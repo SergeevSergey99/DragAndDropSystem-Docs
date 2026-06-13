@@ -72,6 +72,11 @@ execution отдельным публичным этапом.
 - `IPlacementInventory.Topology` предоставляет активную `IInventoryTopology` без привязки
   общего placement-контракта к grid.
 - `IInventoryTopology` проецирует shape и orientation в covered cells.
+- `PlacementOrientation` является индексом дискретного шага (`Step0`, `Step1`, ...), а не
+  обещанием поворота на 90 градусов.
+- topology задает число orientation steps, нормализацию, визуальный угол и преобразование grab
+  offset. Rect grid использует 4 шага по 90 градусов; hex topology может использовать 6 шагов по
+  60 градусов без изменений transfer pipeline.
 - `SlotTopology` всегда возвращает anchor-only footprint.
 - `RectGridTopology` использует реальные shape offsets; custom topology может задать собственную
   проекцию через тот же контракт.
@@ -104,6 +109,7 @@ PlacementCandidate
 - `Create` содержит anchor и footprint intent.
 - `NewDynamicSlot` означает создание нового slot через lifecycle capability.
 - raw index не является identity target; индекс читается из `BaseSlot` только для topology API.
+- orientation всегда нормализуется target topology перед записью placement.
 
 Кандидат не хранит mutation callback и не является частью исполняемого плана. Взаимовлияние
 кандидатов (one-per-ID: использовать можно только один из пустых слотов) не кодируется в
@@ -822,6 +828,7 @@ candidate-resolution и mutation.
 - Зафиксировать `DragAmountStep`.
 - Зафиксировать batch best-effort.
 - Зафиксировать swap geometry и bidirectional strategy/domain validation.
+- Зафиксировать topology-defined orientation: rect 4 steps, custom/hex 6 steps.
 - Зафиксировать current double preview/execution calls.
 - Зафиксировать request-level veto существующего `ITransferDomainHandler`; core simulation не
   вводится.

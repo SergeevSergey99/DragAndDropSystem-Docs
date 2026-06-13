@@ -6,10 +6,12 @@ namespace UDND.Core
 {
     public enum PlacementOrientation : byte
     {
-        Rot0 = 0,
-        Rot90 = 1,
-        Rot180 = 2,
-        Rot270 = 3
+        Step0 = 0,
+        Step1 = 1,
+        Step2 = 2,
+        Step3 = 3,
+        Step4 = 4,
+        Step5 = 5
     }
 
     [Serializable]
@@ -60,7 +62,7 @@ namespace UDND.Core
         public PlacementRequest(
             ItemStack stack,
             int anchorIndex,
-            PlacementOrientation orientation = PlacementOrientation.Rot0,
+            PlacementOrientation orientation = PlacementOrientation.Step0,
             IPlacementShape shape = null)
         {
             Stack = stack;
@@ -73,7 +75,7 @@ namespace UDND.Core
         public static PlacementRequest For(
             ItemStack stack,
             int anchorIndex,
-            PlacementOrientation orientation = PlacementOrientation.Rot0)
+            PlacementOrientation orientation = PlacementOrientation.Step0)
             => new PlacementRequest(
                 stack,
                 anchorIndex,
@@ -98,6 +100,8 @@ namespace UDND.Core
     {
         private int[] _coveredIndices;
         private IReadOnlyList<int> _coveredIndicesView;
+        private Vector2Int[] _coveredOffsets;
+        private IReadOnlyList<Vector2Int> _coveredOffsetsView;
 
         public Placement(
             Vector2Int anchorCell,
@@ -105,13 +109,15 @@ namespace UDND.Core
             PlacementOrientation orientation,
             IPlacementShape shape,
             ItemStack stack,
-            IReadOnlyList<int> coveredIndices)
+            IReadOnlyList<int> coveredIndices,
+            IReadOnlyList<Vector2Int> coveredOffsets)
         {
             AnchorCell = anchorCell;
             AnchorIndex = anchorIndex;
             Orientation = orientation;
             Shape = shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
-            BoundingSize = PlacementShapeUtility.GetBoundingSize(Shape, orientation);
+            SetCoveredOffsets(coveredOffsets);
+            BoundingSize = PlacementShapeUtility.GetBoundingSize(_coveredOffsetsView);
             MutableStack = stack?.CreateCopy() ?? ItemStack.Empty();
             SetCoveredIndices(coveredIndices, anchorIndex);
         }
@@ -125,6 +131,7 @@ namespace UDND.Core
         public IReadOnlyItemStack Stack => MutableStack;
         internal ItemStack MutableStack { get; }
         public IReadOnlyList<int> CoveredIndices => _coveredIndicesView;
+        public IReadOnlyList<Vector2Int> CoveredOffsets => _coveredOffsetsView;
 
         private void SetCoveredIndices(IReadOnlyList<int> coveredIndices, int fallbackAnchorIndex)
         {
@@ -139,6 +146,21 @@ namespace UDND.Core
             for (int i = 0; i < coveredIndices.Count; i++)
                 _coveredIndices[i] = coveredIndices[i];
             _coveredIndicesView = Array.AsReadOnly(_coveredIndices);
+        }
+
+        private void SetCoveredOffsets(IReadOnlyList<Vector2Int> coveredOffsets)
+        {
+            if (coveredOffsets == null || coveredOffsets.Count == 0)
+            {
+                _coveredOffsets = new[] { Vector2Int.zero };
+                _coveredOffsetsView = Array.AsReadOnly(_coveredOffsets);
+                return;
+            }
+
+            _coveredOffsets = new Vector2Int[coveredOffsets.Count];
+            for (int i = 0; i < coveredOffsets.Count; i++)
+                _coveredOffsets[i] = coveredOffsets[i];
+            _coveredOffsetsView = Array.AsReadOnly(_coveredOffsets);
         }
     }
 }

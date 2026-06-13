@@ -34,7 +34,10 @@ namespace UDND.Inventories
 
             if (request?.SourceEntry is DragEntry entry &&
                 _placementInventory is IShapedDragTargetResolver resolver &&
-                !PlacementShapeUtility.IsSingleCell(entry.Shape, entry.Orientation))
+                !PlacementShapeUtility.IsSingleCell(
+                    entry.Shape,
+                    entry.Orientation,
+                    _placementInventory.Topology))
             {
                 if (!resolver.TryResolveShapedPlacementAnchor(
                         targetSlot,
@@ -71,7 +74,10 @@ namespace UDND.Inventories
                     ignoredPlacement);
             }
 
-            return PlacementShapeUtility.IsSingleCell(shape, orientation) &&
+            return PlacementShapeUtility.IsSingleCell(
+                       shape,
+                       orientation,
+                       new SlotTopology(Inventory.SlotCount)) &&
                    (anchorSlot.IsEmpty || ReferenceEquals(anchorSlot, ignoredPlacement));
         }
 
@@ -85,7 +91,10 @@ namespace UDND.Inventories
 
             if (_placementInventory == null)
             {
-                return PlacementShapeUtility.IsSingleCell(shape, orientation)
+                return PlacementShapeUtility.IsSingleCell(
+                        shape,
+                        orientation,
+                        new SlotTopology(Inventory.SlotCount))
                     ? new[] { anchorSlot }
                     : Array.Empty<BaseSlot>();
             }
