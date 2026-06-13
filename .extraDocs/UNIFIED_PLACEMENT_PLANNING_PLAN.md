@@ -20,10 +20,10 @@ return execution report
 
 1. topology отвечает за footprint, bounds и occupancy;
 2. strategy отвечает за eligibility, capacity и базовый поток кандидатов;
-3. `PlacementCandidateOrderer` отвечает только за предпочтительный порядок;
-4. rules валидируют drag/drop request и конкретный target;
+3. `PlacementCandidateOrderer` сортирует кандидатов только при автоматическом выборе места;
+4. `ITransferDomainHandler` выполняет domain validation и может отменить transfer;
 5. transfer service владеет mutation, rollback, conversion и событиями;
-6. UI и acceptance используют тот же candidate-resolution, но не получают исполняемый план.
+6. UI и acceptance используют те же strategy/topology проверки, но не получают исполняемый план.
 
 > Статус: **план, runtime-код не меняется.**
 > Scope: полная консолидация slot/grid transfer pipeline, включая batch и shaped items.
@@ -40,7 +40,7 @@ return execution report
 - считает capacity;
 - строит виртуальное состояние batch;
 - кодирует create/merge/swap/occupied-handler в разных моделях результата;
-- повторяет часть rules и strategy logic;
+- повторяет часть domain validation и strategy logic;
 - готовит данные, которые executor затем обязан интерпретировать точно так же.
 
 Это создает второй runtime:
@@ -113,9 +113,9 @@ PlacementCandidate
 Strategy после миграции является строго read-only policy:
 
 ```text
-IPlacementStrategy
+IStrategy
+    TryGetCandidate(context, geometry, targetSlot, out candidate)
     EnumerateCandidates(context, geometry) -> PlacementCandidateSource
-    GetCapacity(candidate, item)
     ResolveDragAmount(...)
     DefaultOrderer
     capabilities
@@ -123,6 +123,8 @@ IPlacementStrategy
 
 Strategy определяет:
 
+- допустимость конкретного выбранного slot/placement;
+- transferable amount для конкретного target через `candidate.Capacity`;
 - можно ли merge/create;
 - max stack и candidate capacity;
 - one-per-ID и separable stack semantics;
@@ -134,7 +136,7 @@ Strategy не:
 
 - добавляет и не удаляет stacks;
 - создает slots;
-- вызывает rules;
+- вызывает domain handlers;
 - мутирует `PlacementStore`;
 - выполняет fallback relocation.
 
@@ -164,6 +166,24 @@ IPlacementGeometry
 placement transfer service запрашивает кандидатов заново, потому что реальное состояние уже
 изменилось.
 
+Он используется только для автоматического выбора места:
+
+- area drop;
+- auto-transfer;
+- `AlternativeSlots` после blocked explicit target;
+- продолжение распределения remainder по другим placements.
+
+Если пользователь указал конкретный slot, transfer service сначала вызывает
+`IStrategy.TryGetCandidate`. Успешный результат уже содержит kind, resolved placement/anchor и
+доступное количество в `candidate.Capacity`, ограниченное requested amount. Для shaped inventory
+выбранная covered cell сначала резолвится geometry в logical placement/anchor. Enumeration и
+orderer для этой первой попытки не используются.
+
+`false` означает, что выбранный target недоступен и mutation не было. Причиной может быть
+incompatible item, zero capacity, blocked footprint или запрет strategy semantics. После этого
+только `BlockedTargetResolutionKind` определяет, завершить entry, искать alternatives или делать
+swap.
+
 ```text
 PlacementCandidateSource
     Enumerate(kindMask)
@@ -175,7 +195,7 @@ PlacementCandidateOrderer
 Orderer:
 
 - не расширяет eligibility;
-- не вызывает rules;
+- не вызывает domain handlers;
 - не мутирует inventory;
 - только фильтрует фазы и задает порядок;
 - должен быть deterministic.
@@ -222,6 +242,9 @@ Inspector defaults сохраняют текущее ожидаемое пове
 `AlternativeSlots`. Для area drop без blocked hint используется strategy default orderer либо
 request override, а не alternative-specific field.
 
+Orderer никогда не применяется к выбранному пользователем slot. Он участвует только там, где
+transfer service должен выбрать один target из нескольких автоматических candidates.
+
 Поведение:
 
 - `Reject`: explicit blocked hint завершает entry отказом;
@@ -267,7 +290,6 @@ InventoryTransferService
 - optional target hint;
 - resolved blocked-target policy;
 - partial transfer mode;
-- global/inventory rule scope;
 - optional orderer override.
 
 `TransferProbe` является advisory UI result, а не исполняемым объектом.
@@ -279,8 +301,7 @@ Batch всегда обрабатывается последовательно:
 ```text
 ExecuteAsync(request):
     validate common request
-    validate global/inventory rules at context scope once
-    await request-level domain veto        // может запретить весь request; до любых mutations
+    validate ITransferDomainHandler at request scope once
 
     for each entry in stable DragContext order:
         result = TryTransferEntry(entry, current real inventory state)
@@ -289,12 +310,14 @@ ExecuteAsync(request):
     return report
 ```
 
-Async veto существует ровно в двух точках: request-level (выше) и entry-level (4.3), обе — до
-mutations своего scope. Post-mutation veto не существует: после commit entry внешняя логика
-реагирует через DataBinding/events, но не откатывает. Существующие
-`ITransferDomainHandler`/`IAsyncTransferDomainHandler` мигрируют на эти две точки. Поскольку
-`await` уступает кадры, кандидаты резолвятся строго после veto своего scope — состояние,
-изменившееся за время ожидания, увидится обычным candidate-resolution.
+`ITransferDomainHandler` является единственной domain extension point. Перед началом transfer он
+получает полный контекст операции и может отменить обработку всего request. Core не требует и не
+предоставляет симуляцию. Пользователь при желании может выполнить внутри handler собственную
+симуляцию. Успешный результат означает только «можно начать best-effort обработку», а не
+гарантирует успешность всех entries.
+
+Тот же handler lifecycle может проверять уже выбранный concrete candidate перед mutation.
+Strategy отвечает за inventory semantics и capacity; domain handler — за внешние бизнес-условия.
 
 Гарантии:
 
@@ -312,7 +335,7 @@ Target hint в batch применяется только к первому entry
 - если hint blocked, к нему применяется configured blocked policy;
 - последующие entries работают как area drop и перечисляют обычные candidates;
 - hint не переиспользуется после failure первого entry;
-- batch + `Swap` отклоняется целиком до начала loop (7.2).
+- batch + `Swap` отклоняется целиком до начала loop (6.2).
 
 `BatchMode` и `Atomic` удаляются из:
 
@@ -330,26 +353,34 @@ Full-batch rollback, projected views и plan-all отсутствуют.
 
 ```text
 TryTransferEntry(entry):
-    validate source/start rules
     resolve target-side conversion preview
-    await entry-level domain veto          // может запретить этот entry; до его mutations
 
     capture source/target checkpoints
     create working transfer stack
 
-    attempt explicit hint
-    if blocked:
-        apply BlockedTargetResolutionKind
-    else:
-        continue candidate loop while remainder exists
+    if explicit target exists:
+        candidate = strategy.TryGetCandidate(target)
+        if candidate is available:
+            try candidate directly without orderer
+        else:
+            apply BlockedTargetResolutionKind
+
+    while remainder exists and automatic placement is allowed:
+        candidates = strategy.EnumerateCandidates(current state)
+        candidate = orderer.Select(candidates)
+        try candidate
 
     before each candidate mutation:
-        validate inventory/slot rules against concrete target
         validate topology and capacity again
-
-    return unplaced remainder to source
+        validate ITransferDomainHandler for concrete candidate
+        apply candidate mutation
 
     if RequireFull and remainder exists:
+        rollback entry
+        return failed
+
+    restore unplaced remainder to source
+    if remainder restore failed:
         rollback entry
         return failed
 
@@ -363,15 +394,16 @@ TryTransferEntry(entry):
 participant, который невозможно выразить inventory snapshot.
 
 События и DataBinding notifications отправляются только после успешного commit entry и до
-обработки следующего entry. Иначе rules и external model следующего entry увидят состояние,
-отличающееся от runtime inventory.
+обработки следующего entry. Иначе domain handlers и external model следующего entry увидят
+состояние, отличающееся от runtime inventory.
 
 **Контракт количеств в событиях:** каждое add/remove событие несет точный перенесенный
 sub-stack своего outcome (как сегодняшний `CreateCopy(actuallyAdded)`), DataBinding никогда не
-получает количество из `DragEntry.Stack`. Entry из 10 предметов, разложенный 6+4, дает два
-сбалансированных события со стеками 6 и 4. Поэтому разбиение `DragEntry` на несколько entries
-не требуется и запрещено: его нельзя выполнить заранее (размеры кусков выясняются в процессе
-размещения), оно ломает per-entry семантику `RequireFull` и entry-level veto и раздувает report
+получает количество из `DragEntry.Stack`. Entry из 10 предметов, полностью разложенный двумя
+outcomes `6 + 4`, дает события суммарно на 10 адаптеров. Entry из 10 предметов, у которого
+перенеслось 6, а 4 вернулись source как remainder, дает события только на 6 адаптеров. Поэтому
+разбиение `DragEntry` на несколько entries не требуется и запрещено: размеры outcome выясняются
+в процессе размещения, а искусственное разбиение сломает per-entry `RequireFull` и report
 относительно жеста пользователя.
 
 ### 4.4 Concrete placement attempt
@@ -446,60 +478,9 @@ DropResult
 
 ---
 
-## 5. Rules
+## 5. Partial transfer и большие stacks
 
-Отдельной системы `IPlanRule` нет.
-
-Существующая rule-система получает две явные drop-фазы:
-
-```text
-IDragRule
-    CanStartDrag(context, entry)
-    CanDropContext(context)       // один раз на request; default Success
-    CanDrop(context, entry)       // concrete entry/target
-```
-
-Это расширение существующего `IDragRule`/`RuleValidator`, а не новая коллекция правил.
-`DragRuleBase.CanDropContext` по умолчанию возвращает success, поэтому обычным item/slot rules
-не требуется дополнительная реализация.
-
-Global/inventory rules получают полный `DragContext` и могут видеть весь requested batch. Они
-остаются read-only и проверяют:
-
-- возможность start drag;
-- aggregate допустимость request до первой mutation;
-- допустимость item для target inventory;
-- конкретный target candidate;
-- aggregate свойства request: суммарный вес, число entries, source inventories, item types.
-
-Rules не проверяют projected или будущий inventory state. Фактическая вместимость определяется
-последовательными placement attempts.
-
-Разделение:
-
-- request-level aggregate rule реализует `CanDropContext` и читает `context.Entries`; failure
-  отклоняет request до первой mutation;
-- entry-level rule читает текущий `entry`;
-- slot/target rule вызывается только после выбора concrete anchor через context copy с этим
-  target;
-- topology validation выполняется transfer service, не rule.
-
-`RuleEvaluationService` вызывает `CanDropContext` только у global и target-inventory
-validators. Slot validators участвуют только в concrete candidate validation.
-
-Rule не может мутировать inventory. Результат позднего capacity exhaustion является штатным
-partial/failure result, а не нарушением rule.
-
-Если требуется правило вида «после переноса inventory должен весить не больше N», оно может
-вычислить это из live inventory + requested entry до mutation. Для сложного best-effort batch
-правило либо оценивает весь request консервативно, либо проверяется перед каждым entry по
-актуальному state.
-
----
-
-## 6. Partial transfer и большие stacks
-
-### 6.1 Один stack, несколько placements
+### 5.1 Один stack, несколько placements
 
 Большой stack является одним entry, даже если target strategy распределяет его по нескольким
 placements.
@@ -523,7 +504,7 @@ Outcomes = 6 create outcomes по одному предмету
 5. После успеха candidates строятся заново.
 6. Когда candidates закончились, остаток возвращается в source.
 
-### 6.2 Partial policy
+### 5.2 Partial policy
 
 ```text
 PartialTransferMode
@@ -536,7 +517,7 @@ PartialTransferMode
 
 `RequireFull` не откатывает предыдущие entries batch.
 
-### 6.3 Возврат remainder
+### 5.3 Возврат remainder
 
 Возврат остатка является частью entry transaction:
 
@@ -546,7 +527,7 @@ PartialTransferMode
 - если remainder невозможно вернуть, откатываются source и target checkpoints;
 - events отражают только фактически committed amount.
 
-### 6.4 `DragAmountStep`
+### 5.4 `DragAmountStep`
 
 `DragAmountStep` применяется к фактически transferable amount без materialized plan:
 
@@ -557,7 +538,7 @@ PartialTransferMode
 
 Это медленнее только для редкого trim case, но удаляет отдельную reservation/trim model.
 
-### 6.5 Source footprint при same-inventory move
+### 5.5 Source footprint при same-inventory move
 
 Source footprint нельзя безусловно освобождать при partial transfer:
 
@@ -572,9 +553,9 @@ Source footprint нельзя безусловно освобождать при
 
 ---
 
-## 7. Swap
+## 6. Swap
 
-### 7.1 Single-entry swap
+### 6.1 Single-entry swap
 
 Swap является специальным entry path внутри transfer service, а не strategy и не planned
 operation.
@@ -586,7 +567,7 @@ operation.
 - переносится весь source placement/stack;
 - обе стороны поддерживают snapshot rollback;
 - forward и reverse conversion успешны;
-- rules проверены в обе стороны;
+- strategy и domain validation пройдены в обе стороны;
 - обе resulting footprints помещаются после освобождения исходных placements;
 - same-inventory resulting footprints не пересекаются.
 
@@ -601,7 +582,7 @@ place converted target at source anchor
 commit both or rollback both
 ```
 
-### 7.2 Batch drop с `Swap`
+### 6.2 Batch drop с `Swap`
 
 В v1 batch swap не поддерживается.
 
@@ -620,7 +601,7 @@ Swap requires a single full entry
 
 Это были бы разные и неожиданные semantics.
 
-### 7.3 Future group exchange
+### 6.3 Future group exchange
 
 Кейс `9 x 1x1` из grid `3x3` против одного `3x3` placement полезен, но является не batch swap,
 а отдельным group exchange с собственной all-or-nothing boundary:
@@ -635,9 +616,9 @@ Swap requires a single full entry
 
 ---
 
-## 8. Occupied handlers и dynamic slots
+## 7. Occupied handlers и dynamic slots
 
-### 8.1 Occupied handler
+### 7.1 Occupied handler
 
 Приоритет остается:
 
@@ -657,7 +638,7 @@ Handler path является отдельным entry execution:
 Если external model не поддерживает rollback, handler не смешивается с другими mutations одного
 entry.
 
-### 8.2 Dynamic slots
+### 7.2 Dynamic slots
 
 Dynamic inventory выражает возможность создать новый slot через lifecycle capability.
 Strategy может вернуть `NewDynamicSlot` candidate, но не создает slot сама.
@@ -680,7 +661,7 @@ on success record outcome
 `TryAddStackQuiet` не является transfer API. DataBinding restore получает отдельный
 `ImportStackQuiet`/`HydrateStack` primitive.
 
-### 8.3 Relocation
+### 7.3 Relocation
 
 `SlotRelocationService` и implicit repacking удаляются.
 
@@ -690,7 +671,7 @@ Transfer использует deterministic greedy candidates. Он не пер�
 
 ---
 
-## 9. Acceptance и preview
+## 8. Acceptance и preview
 
 Acceptance не строит `TransferPlan`.
 
@@ -701,7 +682,6 @@ TransferProbe
     CanAttempt
     FailureReason
     PrimaryCandidate
-    SuggestedAmount
     Orientation
     CoveredSlots
 ```
@@ -709,16 +689,17 @@ TransferProbe
 `Probe` использует те же:
 
 - target-side conversion;
-- strategy candidate source;
-- orderer;
-- rules;
+- `IStrategy.TryGetCandidate` для выбранного slot;
+- strategy candidate source и orderer только для автоматического выбора;
+- domain validation;
 - topology validation.
 
-`SuggestedAmount` вычисляется одним проходом по ordered candidates без mutation:
-`accumulate min(remaining, candidate.Capacity)`. Известное ограничение: для one-per-ID при
-desired > maxStack альтернативные пустые слоты дают оптимистичную оценку — execution перенесет
-первую допустимую часть, remainder вернется в source. Это укладывается в advisory-контракт
-probe и не требует метаданных на кандидате.
+При explicit target `PrimaryCandidate` получается напрямую через `IStrategy.TryGetCandidate`, без
+enumeration и orderer. Для area drop/auto-transfer он выбирается из ordered candidate source.
+Probe не пытается предсказать общее transferable amount для multi-placement stack.
+
+`GetAcceptableCount` сохраняет текущий exact read-only контракт. Probe не заменяет его и не
+является execution guard.
 
 Ограничения:
 
@@ -726,7 +707,6 @@ probe и не требует метаданных на кандидате.
 - execution всегда перевалидирует;
 - exact batch packing не обещается;
 - batch preview показывает только общий target и возможность попытки;
-- `SuggestedAmount` является оценкой по текущему state;
 - execution report является единственным authoritative result.
 
 Single-entry preview может точно показать первый create/merge target и footprint. Для
@@ -739,7 +719,7 @@ multi-placement stack подсветка всех будущих targets не т
 
 ---
 
-## 10. Что удаляется
+## 9. Что удаляется
 
 ### Planning/execution
 
@@ -753,7 +733,6 @@ multi-placement stack подсветка всех будущих targets не т
 - `PlannedOperation`;
 - `PlanningReservation`;
 - `PlacementPlanningSession`;
-- `IPlanRule` и plan-rule contexts;
 - planner/executor split как runtime boundary.
 
 `TransferPlanExecutor` заменяется единым `InventoryTransferService`, который владеет
@@ -792,24 +771,24 @@ candidate-resolution и mutation.
 
 ---
 
-## 11. Что остается отдельным
+## 10. Что остается отдельным
 
 1. UI и rendering могут проверять форму и orientation.
-2. Rules могут запрещать конкретные shapes/items.
+2. `ITransferDomainHandler` может запрещать transfer по внешним бизнес-условиям.
 3. Single-cell fast path допустим внутри topology/storage при той же semantics.
 4. Optimal packing и backtracking вне scope.
 5. Group exchange вне scope.
 6. Sorting/repacking inventory является отдельной action.
 7. Hydration/import не проходит через transfer pipeline.
-8. Транзакционный all-or-nothing batch не предоставляется и дешево не возвращается:
-   events/DataBinding фиксируются после каждого entry. Atomic-подобный гейт реализуется
-   request-level rule (`CanDropContext`) с консервативной симуляцией размещения; поскольку
-   post-mutation veto-точек нет, после прохождения гейта исполнение фейлится только в
-   исключительных случаях.
+8. Транзакционный all-or-nothing batch не предоставляется: events/DataBinding фиксируются после
+   каждого entry. `ITransferDomainHandler` может отменить весь transfer до первой mutation. Core
+   не выполняет для него симуляцию и не трактует успешный verdict как гарантию полного
+   выполнения; пользователь при необходимости может реализовать собственную симуляцию внутри
+   handler.
 
 ---
 
-## 12. Этапы реализации
+## 11. Этапы реализации
 
 ### Этап 0. Characterization
 
@@ -827,10 +806,10 @@ candidate-resolution и mutation.
 - Зафиксировать `RequireFull`.
 - Зафиксировать `DragAmountStep`.
 - Зафиксировать batch best-effort.
-- Зафиксировать swap geometry и bidirectional rules.
+- Зафиксировать swap geometry и bidirectional strategy/domain validation.
 - Зафиксировать current double preview/execution calls.
-- Зафиксировать текущие точки `ITransferDomainHandler`/`IAsyncTransferDomainHandler` и их
-  veto-семантику — мигрируют на request-level и entry-level veto (4.2/4.3).
+- Зафиксировать request-level veto существующего `ITransferDomainHandler`; core simulation не
+  вводится.
 - Снять performance baseline acceptance и transfer.
 
 ### Этап 1. Policy simplification
@@ -849,11 +828,13 @@ candidate-resolution и mutation.
 - Ввести topology-neutral `PlacementCandidate`.
 - Ввести lazy `PlacementCandidateSource`.
 - Ввести `PlacementCandidateOrderer`.
+- Переименовать `IPlacementStrategy` в `IStrategy`.
+- Добавить `IStrategy.TryGetCandidate` для прямой проверки выбранного slot/placement и capacity.
 - Переделать `SlotSelectionPolicyBase` и `IAlternativePlacementStrategy` implementations в
   orderers.
 - Ввести `IPlacementGeometry`.
-- Перенести rules из strategy candidate enumeration в transfer resolver.
-- Contract tests: eligibility не меняется от orderer; built-in порядок сохраняется.
+- Contract tests: explicit target не вызывает enumeration/orderer; eligibility не меняется от
+  orderer; built-in automatic order сохраняется.
 
 ### Этап 3. Unified entry transfer для grid
 
@@ -887,8 +868,8 @@ candidate-resolution и mutation.
 - `ExecuteAsync` проходит entries в stable order.
 - Per-entry rollback, без full-batch rollback.
 - Failed entry не прерывает остальные.
-- Добавить `CanDropContext` в существующий rule lifecycle и batch-visible inventory/global rule
-  tests.
+- Расширить существующий `ITransferDomainHandler` request-level проверкой полного контекста
+  операции до первой mutation; default handler отсутствует, поэтому обычный transfer идет сразу.
 - Target hint использует только первый entry; остальные идут как area drop.
 - После successful entry DataBinding/events commit-ятся до следующего entry.
 - Batch + `Swap` отклонять до mutation.
@@ -898,7 +879,8 @@ candidate-resolution и mutation.
 ### Этап 6. Acceptance/UI
 
 - Ввести `TransferProbe`.
-- `CanAcceptItem`, `GetAcceptableCount`, hover и preview перевести на общий candidate resolver.
+- `CanAcceptItem`, `GetAcceptableCount`, hover и preview перевести на общие read-only
+  strategy/domain/topology primitives.
 - Удалить двойное planning/acceptance.
 - `InventoryDropArea` больше не хранит отдельно выбранный slot.
 - `DropPreviewController` становится renderer.
@@ -914,7 +896,7 @@ candidate-resolution и mutation.
   - strategy;
   - topology;
   - candidate orderer;
-  - inventory/global rule;
+  - `ITransferDomainHandler`;
   - dynamic slot lifecycle.
 - Документировать ограничения batch swap и advisory preview.
 
@@ -922,7 +904,7 @@ candidate-resolution и mutation.
 
 ---
 
-## 13. Риски и обязательные проверки
+## 12. Риски и обязательные проверки
 
 ### Correctness
 
@@ -939,6 +921,7 @@ candidate-resolution и mutation.
 - dynamic slot удаляется при failed candidate/entry;
 - same-inventory move не превращается в no-op с несбалансированными events;
 - orderer не может вернуть ineligible candidate как допустимый;
+- explicit target не проходит через orderer;
 - swap валидирует обе стороны и resulting footprint overlap.
 
 ### Batch
@@ -948,8 +931,8 @@ candidate-resolution и mutation.
 - следующий entry видит committed DataBinding/external state предыдущего;
 - failed entry не откатывает успешные предыдущие;
 - failed entry не блокирует последующие;
-- aggregate request rule получает полный `DragContext`;
-- context-rule failure отклоняет batch до первой mutation;
+- request-level `ITransferDomainHandler` получает полный контекст операции;
+- domain veto отклоняет batch до первой mutation;
 - target hint применяется только к первому entry;
 - batch + occupied target + Swap отклоняется до mutation;
 - mixed topology sources не требуют virtual bridge.
@@ -977,12 +960,17 @@ candidate-resolution и mutation.
 
 ---
 
-## 14. Тестовая матрица
+## 13. Тестовая матрица
 
 - slot/grid topology;
 - single-cell/multi-cell;
 - stackable/separable/unique;
 - explicit target/area drop/auto-transfer;
+- explicit target:
+  - available create/merge возвращает candidate с exact capacity;
+  - unavailable target возвращает `false` без mutation;
+  - covered cell резолвится в logical placement;
+  - enumeration и orderer не вызываются;
 - create/merge/alternative/reject;
 - full/partial stack;
 - same-inventory/cross-inventory;
@@ -1004,7 +992,7 @@ candidate-resolution и mutation.
   - shaped + single-cell;
   - explicit hint используется только первым entry;
   - DataBinding первого entry обновлен до validation второго;
-  - `CanDropContext` failure не оставляет mutations;
+  - request-level domain veto не оставляет mutations;
   - Swap policy rejects whole request;
 - large stack:
   - 10 -> Unique capacity 6 gives 6/4;
@@ -1015,38 +1003,36 @@ candidate-resolution и mutation.
 - same-inventory:
   - full relocation into old source footprint;
   - partial transfer cannot consume source footprint;
-- rules:
-  - concrete target rejected;
-  - aggregate batch request rejected;
-  - rules do not mutate;
 - preview:
-  - same first candidate/orderer as execution;
-  - advisory amount can become stale without data loss;
-  - one-per-ID, desired > maxStack: probe оптимистичен, execution переносит первую допустимую
-    часть, remainder возвращается (advisory-контракт);
-- async veto:
-  - request-level отклоняет до любых mutations;
-  - entry-level отклоняет конкретный entry, предыдущие committed entries сохраняются;
-  - состояние, изменившееся во время await, видится candidate-resolution после veto;
+  - explicit target использует тот же `IStrategy.TryGetCandidate`, что execution;
+  - automatic placement использует тот же candidate source/orderer, что execution;
+  - advisory result can become stale before execution without data loss;
+- `ITransferDomainHandler`:
+  - request-level veto отклоняет весь request до любых mutations;
+  - отсутствие handler означает отсутствие дополнительной domain validation;
+  - пользовательский handler может выполнить собственную симуляцию, но core ее не предоставляет;
+  - concrete candidate может быть отклонен до mutation;
 - events/DataBinding:
   - no events on rollback;
   - balanced remove/add per outcome;
-  - entry 10 -> 6+4: binding получает суммарно ровно 10 адаптеров, без повторного счета;
+  - entry 10 -> outcomes 6+4: remove/add notifications суммарно содержат ровно 10 адаптеров;
+  - entry 10 -> transferred 6 + remainder 4: notifications содержат ровно 6, source сохраняет 4;
   - correct placement snapshots.
 
 ---
 
-## 15. Критерии готовности
+## 14. Критерии готовности
 
 - Один topology-aware transfer service для slot и grid.
 - `TransferPlan`, virtual planning state и planner/executor split отсутствуют.
 - Batch всегда sequential best-effort; `Atomic` отсутствует в API и Inspector.
 - Каждый entry rollback-safe.
 - Strategy read-only и topology-neutral.
-- Strategy задает eligibility/capacity/base order.
-- `PlacementCandidateOrderer` является единственной pluggable ролью порядка.
-- Rules проверяются transfer service и не дублируются strategy.
-- Existing rule lifecycle содержит однократный `CanDropContext`; отдельной plan-rule системы нет.
+- `IStrategy.TryGetCandidate` проверяет выбранный slot/placement и возвращает его capacity.
+- `IStrategy.EnumerateCandidates` используется только для автоматического распределения.
+- `PlacementCandidateOrderer` не участвует в explicit-target path.
+- `ITransferDomainHandler` является единственной domain validation extension point; обязательной
+  симуляции нет.
 - `BlockedTargetResolutionKind` заменяет resolver hierarchy.
 - Swap strategy hierarchy отсутствует.
 - Single-entry swap сохраняет placement geometry и rollback.
@@ -1066,7 +1052,7 @@ candidate-resolution и mutation.
 *Основные затрагиваемые области: `TransferPlanner`, `TransferPlanExecutor`,
 `InventoryTransferService`, `InventoryDropProcessor`, `DropPolicy`, `DropPolicySettings`,
 `DropRequestPolicySettings`, `PlacementStore`, `InventoryTopology`, `UniversalInventory`,
-`InventoryAcceptanceRequest`, `InventoryStrategyBase`, `IPlacementStrategy`,
+`InventoryAcceptanceRequest`, `InventoryStrategyBase`, `IStrategy`,
 `IAcceptanceStrategy`, `IInventoryQueryStrategy`, `SlotSelectionPolicy`,
 `Core/Drop/*AlternativePlacementStrategy`, `BlockedTargetResolverBase`, `ISwapStrategy`,
 `DynamicSlotDecorator`, `SlotRelocationService`, `TargetPlacementOperation`,
