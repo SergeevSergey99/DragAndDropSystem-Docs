@@ -126,7 +126,8 @@ namespace UDND.Inventories
                         i,
                         entry,
                         anchorSlot: entryTargetSlot,
-                        coveredSlots: new[] { entryTargetSlot });
+                        coveredSlots: new[] { entryTargetSlot },
+                        isExplicitTargetCandidate: true);
                 }
 
                 if (!TryResolvePreviewAdapter(
@@ -155,7 +156,8 @@ namespace UDND.Inventories
                             i,
                             entry,
                             explicitCandidate,
-                            geometry);
+                            geometry,
+                            isExplicitTargetCandidate: true);
                     }
 
                     if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Reject)
@@ -172,7 +174,8 @@ namespace UDND.Inventories
                                 i,
                                 entry,
                                 anchorSlot: entryTargetSlot,
-                                coveredSlots: new[] { entryTargetSlot });
+                                coveredSlots: new[] { entryTargetSlot },
+                                isExplicitTargetCandidate: true);
                         }
 
                         failureReason = "Swap target is empty";
@@ -205,7 +208,8 @@ namespace UDND.Inventories
             int entryIndex,
             DragEntry entry,
             PlacementCandidate candidate,
-            InventoryPlacementGeometry geometry)
+            InventoryPlacementGeometry geometry,
+            bool isExplicitTargetCandidate = false)
         {
             IReadOnlyList<BaseSlot> coveredSlots = Array.Empty<BaseSlot>();
             var anchor = candidate.Anchor;
@@ -225,7 +229,8 @@ namespace UDND.Inventories
                 entry,
                 candidate,
                 anchor,
-                coveredSlots);
+                coveredSlots,
+                isExplicitTargetCandidate);
         }
 
         /// <summary>

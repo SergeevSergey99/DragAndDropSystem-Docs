@@ -19,7 +19,8 @@ namespace UDND.Inventories
             DragEntry entry,
             PlacementCandidate? candidate,
             BaseSlot anchorSlot,
-            IReadOnlyList<BaseSlot> coveredSlots)
+            IReadOnlyList<BaseSlot> coveredSlots,
+            bool isExplicitTargetCandidate)
         {
             CanAttempt = canAttempt;
             FailureReason = failureReason;
@@ -28,6 +29,7 @@ namespace UDND.Inventories
             Candidate = candidate;
             AnchorSlot = anchorSlot ?? candidate?.Anchor;
             CoveredSlots = coveredSlots ?? Array.Empty<BaseSlot>();
+            IsExplicitTargetCandidate = isExplicitTargetCandidate;
         }
 
         public bool CanAttempt { get; }
@@ -37,6 +39,7 @@ namespace UDND.Inventories
         public PlacementCandidate? Candidate { get; }
         public BaseSlot AnchorSlot { get; }
         public IReadOnlyList<BaseSlot> CoveredSlots { get; }
+        public bool IsExplicitTargetCandidate { get; }
         public PlacementOrientation Orientation =>
             Candidate?.Orientation ?? Entry.Orientation;
 
@@ -45,7 +48,8 @@ namespace UDND.Inventories
             DragEntry entry,
             PlacementCandidate? candidate = null,
             BaseSlot anchorSlot = null,
-            IReadOnlyList<BaseSlot> coveredSlots = null)
+            IReadOnlyList<BaseSlot> coveredSlots = null,
+            bool isExplicitTargetCandidate = false)
             => new TransferProbe(
                 true,
                 null,
@@ -53,7 +57,8 @@ namespace UDND.Inventories
                 entry,
                 candidate,
                 anchorSlot,
-                coveredSlots);
+                coveredSlots,
+                isExplicitTargetCandidate);
 
         public static TransferProbe Rejected(string reason)
             => new TransferProbe(
@@ -63,7 +68,8 @@ namespace UDND.Inventories
                 default,
                 null,
                 null,
-                null);
+                null,
+                false);
     }
 
 }

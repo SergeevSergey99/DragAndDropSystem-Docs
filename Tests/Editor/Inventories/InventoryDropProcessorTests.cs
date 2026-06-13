@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using UnityEngine.TestTools;
 using UDND.Core;
 using UDND.DataBinding;
 using UDND.Inventories;
@@ -548,14 +550,15 @@ namespace UDND.Tests.Inventories
             Assert.IsNotNull(processor.LastProbe);
             Assert.IsTrue(processor.LastProbe.CanAttempt);
             Assert.IsTrue(processor.LastProbe.Candidate.HasValue);
+            Assert.IsTrue(processor.LastProbe.IsExplicitTargetCandidate);
             Assert.AreSame(_target.GetSlot(0), processor.LastProbe.AnchorSlot);
             CollectionAssert.AreEqual(
                 new[] { 0 },
                 processor.LastProbe.CoveredSlots.Select(slot => slot.Index).ToArray());
         }
 
-        [Test]
-        public async Task ProcessDropAsync_DomainStartVeto_RejectsBeforeMutation()
+        [UnityTest]
+        public IEnumerator ProcessDropAsync_DomainStartVeto_RejectsBeforeMutation()
         {
             _source = new InventoryBuilder()
                 .WithStrategy(new UniqueItemStrategy())
@@ -575,7 +578,12 @@ namespace UDND.Tests.Inventories
             var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
 
-            var report = await processor.ProcessDropWithReportAsync(context);
+            var task = processor.ProcessDropWithReportAsync(context);
+            while (!task.IsCompleted)
+                yield return null;
+            if (task.IsFaulted)
+                throw task.Exception;
+            var report = task.Result;
 
             Assert.IsFalse(report.Success);
             Assert.AreEqual("Async domain start veto", report.FailureReason);
@@ -584,8 +592,8 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(0, CountFilledSlots(_target));
         }
 
-        [Test]
-        public async Task ProcessDropAsync_DomainStartAllows_ExecutesTransfer()
+        [UnityTest]
+        public IEnumerator ProcessDropAsync_DomainStartAllows_ExecutesTransfer()
         {
             _source = new InventoryBuilder()
                 .WithStrategy(new UniqueItemStrategy())
@@ -601,8 +609,13 @@ namespace UDND.Tests.Inventories
             _target.Initialize(binding);
 
             var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
-            var report = await new InventoryDropProcessor(_target, new GlobalRuleValidator())
+            var task = new InventoryDropProcessor(_target, new GlobalRuleValidator())
                 .ProcessDropWithReportAsync(context);
+            while (!task.IsCompleted)
+                yield return null;
+            if (task.IsFaulted)
+                throw task.Exception;
+            var report = task.Result;
 
             Assert.IsTrue(report.Success);
             Assert.AreEqual(1, binding.StartCalls);

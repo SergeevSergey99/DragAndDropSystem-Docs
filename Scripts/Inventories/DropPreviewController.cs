@@ -58,7 +58,7 @@ namespace UDND.Inventories
                 _inventory,
                 targetBaseSlot,
                 policy);
-            if (probe.CanAttempt)
+            if (probe.CanAttempt && probe.IsExplicitTargetCandidate)
             {
                 previewSlots = probe.CoveredSlots;
                 canPlace = true;
