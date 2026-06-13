@@ -550,7 +550,7 @@ namespace UDND.Tests.Inventories
             Assert.IsNotNull(processor.LastProbe);
             Assert.IsTrue(processor.LastProbe.CanAttempt);
             Assert.IsTrue(processor.LastProbe.Candidate.HasValue);
-            Assert.IsTrue(processor.LastProbe.IsExplicitTargetCandidate);
+            Assert.IsFalse(processor.LastProbe.IsExplicitTargetCandidate);
             Assert.AreSame(_target.GetSlot(0), processor.LastProbe.AnchorSlot);
             CollectionAssert.AreEqual(
                 new[] { 0 },
