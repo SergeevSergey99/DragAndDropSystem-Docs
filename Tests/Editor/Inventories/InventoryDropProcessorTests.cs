@@ -63,11 +63,11 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context);
+            var report = processor.ProcessDropWithReport(context);
 
-            Assert.IsTrue(summary.Success, $"Expected success (partial), got: {summary.DropResult.FailureReason}");
-            Assert.IsTrue(summary.IsPartial, "Operation must report partial");
-            Assert.AreEqual(4, summary.TransferredAmount);
+            Assert.IsTrue(report.Success, $"Expected success (partial), got: {report.FailureReason}");
+            Assert.IsTrue(report.IsPartial, "Operation must report partial");
+            Assert.AreEqual(4, report.TransferredAmount);
             Assert.AreEqual(4, CountFilledSlots(_target));
             Assert.AreEqual(1, CountFilledSlots(_source),
                 "Exactly one source slot must retain its item after partial transfer");
@@ -94,10 +94,10 @@ namespace UDND.Tests.Inventories
             var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
 
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithPartial(false));
+            var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithPartial(false));
 
-            Assert.IsFalse(summary.Success, "AllowPartial=false must reject when the entry can only fit partially");
-            Assert.AreEqual(0, summary.TransferredAmount);
+            Assert.IsFalse(report.Success, "AllowPartial=false must reject when the entry can only fit partially");
+            Assert.AreEqual(0, report.TransferredAmount);
             Assert.AreEqual(10, _source.GetSlot(0).Stack.Count, "Source must be untouched on full reject");
             Assert.IsTrue(_target.GetSlot(0).IsEmpty, "Target must remain empty on full reject");
         }
@@ -126,10 +126,10 @@ namespace UDND.Tests.Inventories
             var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
 
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context);
+            var report = processor.ProcessDropWithReport(context);
 
-            Assert.IsTrue(summary.Success);
-            Assert.AreEqual(6, summary.TransferredAmount,
+            Assert.IsTrue(report.Success);
+            Assert.AreEqual(6, report.TransferredAmount,
                 "All 6 must fit: 2 merge into target[0], remaining 4 spill into empty slot");
             Assert.AreEqual(0, _source.Slots.Sum(s => s.Stack?.Count ?? 0),
                 "Source must be fully drained");
@@ -156,11 +156,11 @@ namespace UDND.Tests.Inventories
             var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
 
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithPartial(true));
+            var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithPartial(true));
 
-            Assert.IsTrue(summary.Success);
-            Assert.IsTrue(summary.IsPartial);
-            Assert.AreEqual(1, summary.TransferredAmount);
+            Assert.IsTrue(report.Success);
+            Assert.IsTrue(report.IsPartial);
+            Assert.AreEqual(1, report.TransferredAmount);
             Assert.AreEqual(1, CountFilledSlots(_target));
             Assert.AreEqual(2, CountFilledSlots(_source), "Two items must remain in source");
         }
@@ -188,9 +188,9 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+            var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap());
 
-            Assert.IsTrue(summary.Success, $"Swap must succeed, got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(report.Success, $"Swap must succeed, got: {report.FailureReason}");
             Assert.AreEqual("sword", _target.GetSlot(0).Stack.ItemAdapter.ItemId);
             Assert.AreEqual("shield", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
         }
@@ -224,12 +224,12 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithAlternativeOrderer(
                     EmptyFirstPlacementCandidateOrderer.Instance));
 
-            Assert.IsTrue(summary.Success);
+            Assert.IsTrue(report.Success);
             Assert.AreEqual("other", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Blocked target must stay untouched");
             Assert.AreEqual(2, _target.GetSlot(1).Stack.Count, "EmptyFirst must not merge into the partial stack");
             Assert.AreEqual(3, _target.GetSlot(2).Stack.Count, "EmptyFirst must place into the empty slot");
@@ -260,12 +260,12 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithAlternativeOrderer(
                     MergeFirstPlacementCandidateOrderer.Instance));
 
-            Assert.IsTrue(summary.Success);
+            Assert.IsTrue(report.Success);
             Assert.AreEqual(5, _target.GetSlot(1).Stack.Count, "MergeFirst must merge into existing coin stack");
             Assert.IsTrue(_target.GetSlot(2).IsEmpty, "Empty slot must remain empty when merge is preferred");
         }
@@ -287,12 +287,12 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_source.GetSlot(1), _source, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithAlternativeOrderer(
                     allowSameInventoryAlternativePlacement: false));
 
-            Assert.IsFalse(summary.Success, "Same-inventory blocked drop must be rejected instead of using an empty fallback slot");
+            Assert.IsFalse(report.Success, "Same-inventory blocked drop must be rejected instead of using an empty fallback slot");
             Assert.AreEqual("sword", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
             Assert.AreEqual("shield", _source.GetSlot(1).Stack.ItemAdapter.ItemId);
             Assert.IsTrue(_source.GetSlot(2).IsEmpty, "Fallback slot must stay empty");
@@ -315,11 +315,11 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_source.GetSlot(1), _source, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithAlternativeOrderer());
 
-            Assert.IsTrue(summary.Success, $"Expected fallback move, got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(report.Success, $"Expected fallback move, got: {report.FailureReason}");
             Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source slot must be emptied after the move");
             Assert.AreEqual("shield", _source.GetSlot(1).Stack.ItemAdapter.ItemId, "Blocked target must stay untouched");
             Assert.AreEqual("sword", _source.GetSlot(2).Stack.ItemAdapter.ItemId, "Item must move into the alternative slot");
@@ -346,12 +346,12 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithAlternativeOrderer(
                     allowSameInventoryAlternativePlacement: false));
 
-            Assert.IsTrue(summary.Success, $"Cross-inventory fallback must remain enabled, got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(report.Success, $"Cross-inventory fallback must remain enabled, got: {report.FailureReason}");
             Assert.IsTrue(_source.GetSlot(0).IsEmpty);
             Assert.AreEqual("shield", _target.GetSlot(0).Stack.ItemAdapter.ItemId);
             Assert.AreEqual("sword", _target.GetSlot(1).Stack.ItemAdapter.ItemId);
@@ -382,11 +382,11 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithAlternativeOrderer());
 
-            Assert.IsTrue(summary.Success, $"Occupied handler must succeed, got: {summary.DropResult.FailureReason}");
+            Assert.IsTrue(report.Success, $"Occupied handler must succeed, got: {report.FailureReason}");
             Assert.Greater(binding.CanHandleCalls, 0, "Probe/execution must ask the data binding");
             Assert.AreEqual(1, binding.ExecuteCalls, "JIT service must use the occupied-slot handler");
             Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source must be consumed by the occupied-slot handler");
@@ -415,11 +415,11 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(
+            var report = processor.ProcessDropWithReport(
                 context,
                 DropRequestPolicy.WithReject());
 
-            Assert.IsFalse(summary.Success, "Reject resolver must not search alternatives or swap");
+            Assert.IsFalse(report.Success, "Reject resolver must not search alternatives or swap");
             Assert.AreEqual("sword", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
             Assert.AreEqual("shield", _target.GetSlot(0).Stack.ItemAdapter.ItemId);
             Assert.IsTrue(_target.GetSlot(1).IsEmpty);
@@ -433,10 +433,10 @@ namespace UDND.Tests.Inventories
             _target = new InventoryBuilder().WithFixedSlots(1).Build();
 
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(null);
+            var report = processor.ProcessDropWithReport(null);
 
-            Assert.IsFalse(summary.Success);
-            Assert.IsNotNull(summary.DropResult.FailureReason);
+            Assert.IsFalse(report.Success);
+            Assert.IsNotNull(report.FailureReason);
         }
 
         [Test]
@@ -450,9 +450,9 @@ namespace UDND.Tests.Inventories
             var context = new DragContext(emptyStack, _source.GetSlot(0), _source);
 
             var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context);
+            var report = processor.ProcessDropWithReport(context);
 
-            Assert.IsFalse(summary.Success, "Empty stack cannot produce a valid transfer");
+            Assert.IsFalse(report.Success, "Empty stack cannot produce a valid transfer");
         }
 
         // ---------- helpers ----------

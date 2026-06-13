@@ -112,7 +112,7 @@ namespace UDND.Inventories
             return false;
         }
 
-        public async Task<(DropResult result, TransferExecutionSummary summary)> ExecuteAsync(
+        public async Task<(DropResult result, TransferExecutionReport report)> ExecuteAsync(
             DragContext context,
             IInventory targetInventory,
             GlobalRuleValidator globalRules,
@@ -137,8 +137,8 @@ namespace UDND.Inventories
             if (!handler.CanAcceptDrop(context, requestedPolicy))
                 return (DropResult.Failed("Auto-transfer plan rejected"), null);
 
-            var summary = await handler.ProcessDropWithSummaryAsync(context, requestedPolicy, cancellationToken);
-            return (summary.DropResult, summary);
+            var report = await handler.ProcessDropWithReportAsync(context, requestedPolicy, cancellationToken);
+            return (report.ToDropResult(targetInventory), report);
         }
     }
 }

@@ -485,7 +485,7 @@ namespace UDND
                     {
                         if (processorToUse is InventoryDropProcessor inventoryProcessor)
                         {
-                            result = (await inventoryProcessor.ProcessDropWithSummaryAsync(dragContext, requested, CancellationToken.None)).DropResult;
+                            result = inventoryProcessor.ProcessDrop(dragContext, requested);
                         }
                         else if (requestProcessor != null)
                         {
@@ -752,7 +752,7 @@ namespace UDND
 
                 OnAutoTransferAttempting?.Invoke(context);
 
-                var (dropResult, executionSummary) = await _autoTransferService.ExecuteAsync(
+                var (dropResult, executionReport) = await _autoTransferService.ExecuteAsync(
                     context,
                     targetInventory,
                     _globalRules,
@@ -768,7 +768,7 @@ namespace UDND
                 }
 
                 NotifyAutoTransferSourceSlots(context);
-                FinalizeAutoTransferSuccess(context, targetInventory, dropResult, executionSummary);
+                FinalizeAutoTransferSuccess(context, targetInventory, dropResult, executionReport);
                 return true;
             }
             finally
@@ -798,15 +798,21 @@ namespace UDND
             DragContext context,
             IInventory targetInventory,
             DropResult dropResult,
-            TransferExecutionSummary executionSummary)
+            TransferExecutionReport executionReport)
         {
             var transferredItem = dropResult.ItemAdapter;
             int transferredAmount = dropResult.Amount;
             var finalTargetSlot = dropResult.TargetBaseSlot;
-            var executedEntries = executionSummary?.ExecutedEntries;
-            bool canAnimate = _autoTransferAnimation != null
-                              && executedEntries != null
-                              && executedEntries.Count > 0;
+
+            List<PlacementTransferOutcome> allOutcomes = null;
+            if (_autoTransferAnimation != null && executionReport != null)
+            {
+                allOutcomes = new List<PlacementTransferOutcome>();
+                foreach (var entry in executionReport.EntryResults)
+                    foreach (var outcome in entry.Outcomes)
+                        allOutcomes.Add(outcome);
+            }
+            bool canAnimate = allOutcomes != null && allOutcomes.Count > 0;
 
             string itemName = transferredItem?.DisplayName ?? "Unknown";
             string targetName = targetInventory?.GetType().Name ?? "Unknown";
@@ -825,34 +831,32 @@ namespace UDND
                     OnAutoTransferCompleted?.Invoke(context);
                 };
 
-                for (int i = 0; i < executedEntries.Count; i++)
+                for (int i = 0; i < allOutcomes.Count; i++)
                 {
-                    var entry = executedEntries[i];
-                    if (entry.SourceBaseSlot == null || entry.TargetBaseSlot == null || entry.ItemAdapter == null || entry.Amount <= 0)
+                    var outcome = allOutcomes[i];
+                    if (outcome.SourceBaseSlot == null || outcome.TargetBaseSlot == null || outcome.TargetItem == null || outcome.Amount <= 0)
                         continue;
 
-                    if (!ItemStack.TryCreate(entry.TargetBaseSlot.Stack.Adapters.Take(entry.Amount), out var visualStack))
+                    if (!ItemStack.TryCreate(outcome.TargetBaseSlot.Stack.Adapters.Take(outcome.Amount), out var visualStack))
                         continue;
 
-                    if (entry.TargetBaseSlot != null)
-                        entry.TargetBaseSlot.SetDraggedTo(true);
+                    outcome.TargetBaseSlot.SetDraggedTo(true);
 
                     var presenter = DragVisualPresenter.AutoCreateInstance;
-                    var visualPrefab = presenter.ResolveVisualPrefab(entry.SourceBaseSlot.Inventory);
+                    var visualPrefab = presenter.ResolveVisualPrefab(outcome.SourceBaseSlot.Inventory);
 
                     pendingAnimations++;
 
                     GameObject animationVisual = _autoTransferAnimation.AnimateTransfer(
                         visualStack,
-                        entry.SourceBaseSlot,
-                        entry.TargetBaseSlot,
+                        outcome.SourceBaseSlot,
+                        outcome.TargetBaseSlot,
                         visualPrefab,
                         presenter.VisualContainer,
                         presenter.PresentationCanvas,
                         () =>
                         {
-                            if (entry.TargetBaseSlot != null)
-                                entry.TargetBaseSlot.SetDraggedTo(false);
+                            outcome.TargetBaseSlot.SetDraggedTo(false);
                             animationCompleted();
                         });
 

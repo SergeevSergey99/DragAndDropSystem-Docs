@@ -87,8 +87,8 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(6, CountFilledSlots(_target));
             Assert.AreEqual(4, _source.GetSlot(0).Stack.Count, "Remainder must stay in the source slot");
 
-            var summary = new TransferExecutionReport(new[] { result }).ToExecutionSummary(_target);
-            Assert.AreEqual(4, summary.DropResult.RemainingInSource);
+            var report = new TransferExecutionReport(new[] { result });
+            Assert.AreEqual(4, report.RequestedAmount - report.TransferredAmount);
         }
 
         [Test]
@@ -192,8 +192,8 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(1, _source.GetSlot(0).Stack.Count, "Reject must leave the source untouched");
             Assert.IsTrue(_target.GetSlot(1).IsEmpty, "Reject must not fall back to alternative slots");
 
-            var summary = new TransferExecutionReport(new[] { result }).ToExecutionSummary(_target);
-            Assert.AreEqual("Target slot is blocked", summary.DropResult.FailureReason);
+            var dropResult = new TransferExecutionReport(new[] { result }).ToDropResult(_target);
+            Assert.AreEqual("Target slot is blocked", dropResult.FailureReason);
         }
 
         [Test]

@@ -151,77 +151,44 @@ namespace UDND.Inventories
             => new TransferExecutionReport(Array.Empty<EntryTransferResult>(), reason);
 
         /// <summary>
-        /// Projects the report to <see cref="TransferExecutionSummary"/> for backward compatibility
-        /// with callers that still read <see cref="TransferExecutionSummary.DropResult"/>.
-        /// This projection will be removed when <see cref="TransferExecutionSummary"/> is deleted.
+        /// Builds the <see cref="DropResult"/> compatibility projection from this report.
         /// </summary>
-        public TransferExecutionSummary ToExecutionSummary(IInventory targetInventory)
+        public DropResult ToDropResult(IInventory targetInventory)
         {
-            var executedEntries = new List<ExecutedTransferEntry>();
-            IItemAdapter lastItemAdapter = null;
-            BaseSlot lastTargetBaseSlot = null;
-            PlacementSnapshot lastPlacementSnapshot = null;
-
-            foreach (var entry in EntryResults)
-            {
-                foreach (var outcome in entry.Outcomes)
-                {
-                    executedEntries.Add(new ExecutedTransferEntry(
-                        outcome.SourceBaseSlot,
-                        outcome.TargetBaseSlot,
-                        outcome.TargetItem,
-                        outcome.Amount,
-                        outcome.TargetPlacementSnapshot,
-                        outcome.SourcePlacementSnapshot));
-                    lastItemAdapter = outcome.TargetItem;
-                    lastTargetBaseSlot = outcome.TargetBaseSlot;
-                    lastPlacementSnapshot = outcome.TargetPlacementSnapshot;
-                }
-            }
-
-            DropResult dropResult;
             if (!Success)
             {
                 string reason = FailureReason;
                 if (string.IsNullOrEmpty(reason))
-                {
                     foreach (var entry in EntryResults)
-                    {
-                        if (!string.IsNullOrEmpty(entry.FailureReason))
-                        {
-                            reason = entry.FailureReason;
-                            break;
-                        }
-                    }
-                }
+                        if (!string.IsNullOrEmpty(entry.FailureReason)) { reason = entry.FailureReason; break; }
 
-                dropResult = DropResult.FailedBatch(
+                return DropResult.FailedBatch(
                     reason ?? "Transfer failed",
                     SucceededEntries,
                     FailedEntries);
             }
-            else
-            {
-                dropResult = DropResult.SucceededBatch(
-                    lastItemAdapter,
-                    TransferredAmount,
-                    lastTargetBaseSlot,
-                    targetInventory,
-                    SucceededEntries,
-                    FailedEntries,
-                    IsPartial,
-                    remainingInSource: RequestedAmount - TransferredAmount,
-                    placementSnapshot: lastPlacementSnapshot);
-            }
 
-            return new TransferExecutionSummary(
-                Success,
+            IItemAdapter lastItemAdapter = null;
+            BaseSlot lastTargetBaseSlot = null;
+            PlacementSnapshot lastPlacementSnapshot = null;
+            foreach (var entry in EntryResults)
+                foreach (var outcome in entry.Outcomes)
+                {
+                    lastItemAdapter = outcome.TargetItem;
+                    lastTargetBaseSlot = outcome.TargetBaseSlot;
+                    lastPlacementSnapshot = outcome.TargetPlacementSnapshot;
+                }
+
+            return DropResult.SucceededBatch(
+                lastItemAdapter,
+                TransferredAmount,
+                lastTargetBaseSlot,
+                targetInventory,
                 SucceededEntries,
                 FailedEntries,
-                TransferredAmount,
                 IsPartial,
-                dropResult,
-                executedEntries);
+                remainingInSource: RequestedAmount - TransferredAmount,
+                placementSnapshot: lastPlacementSnapshot);
         }
     }
 }

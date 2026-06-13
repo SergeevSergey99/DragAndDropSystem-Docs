@@ -990,9 +990,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(1), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 var targetPlacement = target.GetPlacementAt(1);
                 Assert.IsNotNull(targetPlacement);
@@ -1106,10 +1106,10 @@ namespace UDND.Tests.Inventories
 
                 // Drop onto cell 3 (away from the existing bag at {0,1}).
                 var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(1, summary.TransferredAmount);
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(1, report.TransferredAmount);
                 Assert.IsNull(source.GetPlacementAt(0), "Source placement consumed");
 
                 var targetPlacement = target.GetPlacementAt(0);
@@ -1145,9 +1145,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsFalse(summary.Success, "Full one-per-ID stack must reject a second item");
+                Assert.IsFalse(report.Success, "Full one-per-ID stack must reject a second item");
                 Assert.AreEqual(1, source.GetSlot(0).Stack.Count, "Source untouched");
                 Assert.AreEqual(1, target.GetSlot(0).Stack.Count, "Target stack stays full at 1");
                 Assert.IsNull(target.GetPlacementAt(3), "No second placement");
@@ -1177,9 +1177,9 @@ namespace UDND.Tests.Inventories
 
                 // Drop ONTO the existing placement's anchor cell 0.
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
                 var targetPlacement = target.GetPlacementAt(0);
                 Assert.IsNotNull(targetPlacement);
                 Assert.AreEqual(2, targetPlacement.Stack.Count);
@@ -1210,9 +1210,9 @@ namespace UDND.Tests.Inventories
 
                 // Drop onto empty cell 3 (away from {0,1}).
                 var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 var first = target.GetPlacementAt(0);
                 var second = target.GetPlacementAt(3);
@@ -1250,10 +1250,10 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(3, summary.TransferredAmount);
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(3, report.TransferredAmount);
                 Assert.IsNull(source.GetPlacementAt(0), "Whole stack moved out of source");
 
                 var targetPlacement = target.GetPlacementAt(0);
@@ -1290,10 +1290,10 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(2, summary.TransferredAmount);
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(2, report.TransferredAmount);
 
                 var sourcePlacement = source.GetPlacementAt(0);
                 Assert.IsNotNull(sourcePlacement);
@@ -1332,10 +1332,10 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(1, summary.TransferredAmount, "Unique grid accepts exactly one");
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(1, report.TransferredAmount, "Unique grid accepts exactly one");
                 Assert.AreEqual(1, target.GetPlacementAt(0).Stack.Count, "Unique never holds count > 1");
                 Assert.AreEqual(2, source.GetPlacementAt(0).Stack.Count, "Remainder stays in source (partial)");
             }
@@ -1370,10 +1370,10 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(1, summary.TransferredAmount, "Only the maxStack room (1) merges");
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(1, report.TransferredAmount, "Only the maxStack room (1) merges");
                 Assert.AreEqual(2, target.GetPlacementAt(0).Stack.Count, "Target filled to maxStack");
                 Assert.AreEqual(2, source.GetPlacementAt(0).Stack.Count, "Overflow returned to source");
             }
@@ -1405,9 +1405,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(3), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsFalse(summary.Success, "Auto-merge OFF + drop away → reject");
+                Assert.IsFalse(report.Success, "Auto-merge OFF + drop away → reject");
                 Assert.IsNull(target.GetPlacementAt(3), "No second placement");
                 Assert.AreEqual(1, target.GetPlacementAt(0).Stack.Count, "Existing stack untouched");
             }
@@ -1439,9 +1439,9 @@ namespace UDND.Tests.Inventories
 
                 // Drop ONTO the existing placement's anchor cell 0 (footprint overlap).
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
                 Assert.AreEqual(2, target.GetPlacementAt(0).Stack.Count);
             }
             finally
@@ -1469,9 +1469,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
                 Assert.IsTrue(source.GetSlot(0).IsEmpty, "Source consumed by merge");
                 Assert.AreEqual(2, target.GetSlot(0).Stack.Count, "Merged into the occupied same-id slot");
             }
@@ -1500,9 +1500,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+                var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap());
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
                 Assert.AreEqual("sword", source.GetSlot(0).Stack.ID, "Source received the target item");
                 Assert.AreEqual("bag", target.GetSlot(0).Stack.ID, "Target received the source item");
             }
@@ -1533,9 +1533,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+                var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap());
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 // Source now holds the 1x1 gem at anchor 0 (single cell).
                 Assert.AreEqual("gem", source.GetSlot(0).Stack.ID);
@@ -1573,9 +1573,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(grid.GetSlot(0), grid, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithSwap());
+                var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap());
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 // Bag moved to the slot inventory, collapsed to one cell.
                 Assert.AreEqual("bag", slot.GetSlot(0).Stack.ID);
@@ -1613,10 +1613,10 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(0), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(3, summary.TransferredAmount);
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(3, report.TransferredAmount);
                 Assert.IsTrue(source.GetSlot(0).IsEmpty);
                 Assert.AreEqual(3, target.GetSlot(0).Stack.Count);
             }
@@ -1651,10 +1651,10 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(4), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
-                Assert.AreEqual(1, summary.TransferredAmount);
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(1, report.TransferredAmount);
                 Assert.IsNull(source.GetPlacementAt(0));
 
                 var targetPlacement = target.GetPlacementAt(4);
@@ -1698,23 +1698,22 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(target.GetSlot(8), target, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
-                Assert.AreEqual(4, summary.DropResult.AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot0, summary.DropResult.Orientation);
-                Assert.AreEqual(new Vector2Int(2, 2), summary.DropResult.BoundingSize);
-                CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, summary.DropResult.CoveredIndices);
+                Assert.AreEqual(1, report.EntryResults[0].Outcomes.Count);
+                var outcome = report.EntryResults[0].Outcomes[0];
+                var targetSnap = outcome.TargetPlacementSnapshot;
+                Assert.AreEqual(4, targetSnap.AnchorIndex);
+                Assert.AreEqual(PlacementOrientation.Rot0, targetSnap.Orientation);
+                Assert.AreEqual(new Vector2Int(2, 2), targetSnap.BoundingSize);
+                CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, targetSnap.CoveredIndices);
                 CollectionAssert.AreEqual(
                     new[] { 4, 5, 7, 8 },
-                    summary.DropResult.CoveredSlots.Select(slot => slot.Index).ToArray());
+                    targetSnap.CoveredBaseSlots.Select(slot => slot.Index).ToArray());
 
-                Assert.AreEqual(1, summary.ExecutedEntries.Count);
-                var executedEntry = summary.ExecutedEntries[0];
-                Assert.AreEqual(4, executedEntry.AnchorIndex);
-                CollectionAssert.AreEqual(new[] { 4, 5, 7, 8 }, executedEntry.CoveredIndices);
-                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, executedEntry.SourcePlacementSnapshot.CoveredIndices);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, outcome.SourcePlacementSnapshot.CoveredIndices);
 
                 Assert.IsNotNull(removedContext);
                 Assert.AreEqual(0, removedContext.AnchorIndex);
@@ -1760,9 +1759,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(inventory.GetSlot(5), inventory, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 var movedPlacement = inventory.GetPlacementAt(5);
                 Assert.IsNotNull(movedPlacement);
@@ -1795,9 +1794,9 @@ namespace UDND.Tests.Inventories
                 var context = new DragContext(new[] { entry });
 
                 var processor = new InventoryDropProcessor(inventory.GetSlot(6), inventory, new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 var movedPlacement = inventory.GetPlacementAt(6);
                 Assert.IsNotNull(movedPlacement);
@@ -1833,9 +1832,9 @@ namespace UDND.Tests.Inventories
                 var globalRules = new GlobalRuleValidator();
                 globalRules.AddRule(new SameSlotRule());
                 var processor = new InventoryDropProcessor(inventory.GetSlot(3), inventory, globalRules);
-                var summary = processor.ProcessDropWithSummary(context);
+                var report = processor.ProcessDropWithReport(context);
 
-                Assert.IsTrue(summary.Success, summary.DropResult.FailureReason);
+                Assert.IsTrue(report.Success, report.FailureReason);
 
                 var movedPlacement = inventory.GetPlacementAt(3);
                 Assert.IsNotNull(movedPlacement);
@@ -2161,12 +2160,12 @@ namespace UDND.Tests.Inventories
                     targetSlot,
                     inventory,
                     new GlobalRuleValidator());
-                var summary = processor.ProcessDropWithSummary(
+                var report = processor.ProcessDropWithReport(
                     context,
                     DropRequestPolicy.WithSwap());
 
                 Assert.IsFalse(
-                    summary.Success,
+                    report.Success,
                     "Overlapping same-inventory swap footprints must be rejected");
                 Assert.AreEqual("coin", inventory.GetSlot(0).Stack.ID);
                 Assert.AreEqual("rod", inventory.GetSlot(1).Stack.ID);

@@ -21,7 +21,7 @@ namespace UDND.Inventories
         private readonly InventoryTransferService _jitService;
         private readonly Func<InventorySwapContext, bool> _swapAttempting;
         private readonly Action<InventorySwapContext> _swapCompleted;
-        public TransferExecutionSummary LastExecutionSummary { get; private set; }
+        public TransferExecutionReport LastExecutionReport { get; private set; }
 
         /// <summary>
         /// Create a processor for a specific slot
@@ -89,27 +89,20 @@ namespace UDND.Inventories
         }
 
         public DropResult ProcessDrop(DragContext context)
-        {
-            return ProcessDrop(context, null);
-        }
+            => ProcessDrop(context, null);
 
         public DropResult ProcessDrop(DragContext context, DropRequestPolicy? requested)
-        {
-            var summary = ProcessDropWithSummary(context, requested);
-            return summary.DropResult;
-        }
+            => ProcessDropWithReport(context, requested).ToDropResult(_targetInventory);
 
-        public TransferExecutionSummary ProcessDropWithSummary(DragContext context)
-        {
-            return ProcessDropWithSummary(context, null);
-        }
+        public TransferExecutionReport ProcessDropWithReport(DragContext context)
+            => ProcessDropWithReport(context, null);
 
-        public TransferExecutionSummary ProcessDropWithSummary(DragContext context, DropRequestPolicy? requested)
+        public TransferExecutionReport ProcessDropWithReport(DragContext context, DropRequestPolicy? requested)
         {
             if (context == null)
             {
-                var fail = BuildFailureSummary("Null drag context");
-                LastExecutionSummary = fail;
+                var fail = TransferExecutionReport.Rejected("Null drag context");
+                LastExecutionReport = fail;
                 return fail;
             }
 
@@ -123,50 +116,45 @@ namespace UDND.Inventories
                 _swapCompleted,
                 _globalRules);
 
-            var summary = report.ToExecutionSummary(_targetInventory);
-            return FinalizeExecution(context, summary, "JIT execute failed", "JIT executed");
+            return FinalizeExecution(context, report, "JIT execute failed", "JIT executed");
         }
 
-        public Task<TransferExecutionSummary> ProcessDropWithSummaryAsync(
+        public Task<TransferExecutionReport> ProcessDropWithReportAsync(
             DragContext context,
             DropRequestPolicy? requested = null,
             CancellationToken cancellationToken = default)
         {
             // JIT service is synchronous; return a completed task for API compatibility.
-            return Task.FromResult(ProcessDropWithSummary(context, requested));
+            return Task.FromResult(ProcessDropWithReport(context, requested));
         }
 
-        private TransferExecutionSummary FinalizeExecution(
+        private TransferExecutionReport FinalizeExecution(
             DragContext context,
-            TransferExecutionSummary summary,
+            TransferExecutionReport report,
             string failureLogPrefix,
             string successLogPrefix)
         {
-            LastExecutionSummary = summary;
-            if (!summary.Success)
+            LastExecutionReport = report;
+            if (!report.Success)
             {
-                Extensions.DragAndDropLog($"<color=red>[InventoryDropProcessor] {failureLogPrefix}: {summary.DropResult.FailureReason}</color>");
-                return summary;
+                string reason = report.FailureReason;
+                if (string.IsNullOrEmpty(reason))
+                    foreach (var e in report.EntryResults)
+                        if (!string.IsNullOrEmpty(e.FailureReason)) { reason = e.FailureReason; break; }
+                Extensions.DragAndDropLog($"<color=red>[InventoryDropProcessor] {failureLogPrefix}: {reason}</color>");
+                return report;
             }
 
-            if (summary.DropResult.TargetBaseSlot != null && summary.DropResult.TargetInventory != null)
-            {
-                context.SetTarget(summary.DropResult.TargetBaseSlot, summary.DropResult.TargetInventory);
-            }
+            // Set the last-placed slot as the context target for post-drop feedback.
+            BaseSlot lastTargetSlot = null;
+            foreach (var e in report.EntryResults)
+                foreach (var o in e.Outcomes)
+                    lastTargetSlot = o.TargetBaseSlot;
+            if (lastTargetSlot != null && _targetInventory != null)
+                context.SetTarget(lastTargetSlot, _targetInventory);
 
-            Extensions.DragAndDropLog($"<color=green>[InventoryDropProcessor] {successLogPrefix}: amount={summary.TransferredAmount}, successEntries={summary.SucceededEntries}, failedEntries={summary.FailedEntries}</color>");
-            return summary;
-        }
-
-        private static TransferExecutionSummary BuildFailureSummary(string reason)
-        {
-            return new TransferExecutionSummary(
-                success: false,
-                succeededEntries: 0,
-                failedEntries: 0,
-                transferredAmount: 0,
-                isPartial: false,
-                dropResult: DropResult.Failed(reason));
+            Extensions.DragAndDropLog($"<color=green>[InventoryDropProcessor] {successLogPrefix}: amount={report.TransferredAmount}, successEntries={report.SucceededEntries}, failedEntries={report.FailedEntries}</color>");
+            return report;
         }
 
         private ResolvedDropPolicy ResolveEffectivePolicy(DragContext context, DropRequestPolicy? requested)
