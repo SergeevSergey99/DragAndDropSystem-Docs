@@ -29,10 +29,20 @@ namespace UDND.Inventories
                 request.ItemAdapter == null || request.DesiredCount <= 0)
                 return false;
 
-            if (IsSourceSlot(targetBaseSlot, request) ||
-                geometry.GetPlacementAt(targetBaseSlot) != null ||
-                !targetBaseSlot.IsEmpty)
+            var sourcePlacement = GetSourcePlacement(geometry, request);
+            var existingPlacement = geometry.GetPlacementAt(targetBaseSlot);
+
+            // A slot covered by a different placement is occupied — can't place here.
+            if (existingPlacement != null && !ReferenceEquals(existingPlacement, sourcePlacement))
                 return false;
+
+            // A slot with a direct non-placement stack is occupied.
+            if (existingPlacement == null && !targetBaseSlot.IsEmpty)
+                return false;
+
+            // IsSourceSlot check removed: for explicit drops (same-inventory moves with
+            // rotation) we must allow the source-covered slot as a candidate. For auto-
+            // enumeration, EnumerateCandidates post-filters Create candidates at source cells.
 
             return TryCreatePlacementCandidate(
                 geometry,

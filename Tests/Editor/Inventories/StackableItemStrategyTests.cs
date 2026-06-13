@@ -234,14 +234,17 @@ namespace UDND.Tests.Inventories
         [Test]
         public void TryRemove_NoMatch_ReturnsFalse()
         {
+            // Both slots filled with gem — no empty slot is available for rock, and gem slots
+            // can't stack rock, so GetCandidates must return nothing.
             var inventory = BuildInventory(2);
             inventory.TrySetStackForSlot(inventory.GetSlot(0), ItemStackBuilder.Unique(2, "gem"));
+            inventory.TrySetStackForSlot(inventory.GetSlot(1), ItemStackBuilder.Unique(2, "gem"));
 
             var geometry = new InventoryPlacementGeometry(inventory);
             var rockRequest = new InventoryAcceptanceRequest(inventory, new FakeItemAdapter("rock"), 1);
             var candidates = _strategy.GetCandidates(geometry, rockRequest).ToList();
 
-            Assert.IsEmpty(candidates, "No slot can accept 'rock' when slots contain only 'gem'");
+            Assert.IsEmpty(candidates, "No slot can accept 'rock' when all slots are occupied with 'gem'");
         }
 
         [Test]

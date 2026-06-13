@@ -932,7 +932,18 @@ namespace UDND.Inventories
             {
                 var preferredSlot = GetSlot(targetSlotIndex);
                 if (preferredSlot == null)
-                    return false;
+                {
+                    // Target slot doesn't exist yet; create dynamic slots until it does.
+                    var lifecycle = this as IDynamicSlotLifecycle;
+                    while (GetSlot(targetSlotIndex) == null)
+                    {
+                        if (lifecycle == null || !lifecycle.TryCreateSlot(out _))
+                            return false;
+                    }
+                    preferredSlot = GetSlot(targetSlotIndex);
+                    if (preferredSlot == null)
+                        return false;
+                }
                 var request = new InventoryAcceptanceRequest(this, stack.PrimaryAdapter, stack.Count);
                 if (!_strategy.TryGetCandidate(geometry, request, preferredSlot, out var candidate))
                     return false;

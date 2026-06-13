@@ -67,7 +67,14 @@ namespace UDND.Inventories
                 if (!TryResolveTargetItem(request.SourceInventory, request.TargetInventory, previewAdapter, out var convertedPreviewAdapter))
                     return false;
 
-                if (convertedPreviewAdapter == null || ContainsReference(syntheticAdapters, convertedPreviewAdapter))
+                if (convertedPreviewAdapter == null)
+                    return false;
+
+                // Only guard against duplicate references when a converter actually changed the
+                // adapter (same-reference output is expected when there is no conversion and is
+                // safe: preview stacks are ephemeral and discarded after CanPlace returns).
+                if (!ReferenceEquals(convertedPreviewAdapter, previewAdapter) &&
+                    ContainsReference(syntheticAdapters, convertedPreviewAdapter))
                     return false;
 
                 syntheticAdapters.Add(convertedPreviewAdapter);

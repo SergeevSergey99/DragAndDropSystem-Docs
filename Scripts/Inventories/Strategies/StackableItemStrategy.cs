@@ -54,6 +54,44 @@ namespace UDND.Inventories
                 : ShapedMergeDecision.Reject;
         }
 
+        public override PlacementCandidateSource GetCandidates(
+            IPlacementGeometry geometry,
+            InventoryAcceptanceRequest request)
+        {
+            // Explicit-merge-only: automatic enumeration must not offer merge candidates.
+            // The existing stack only accepts more when the user explicitly drops onto it.
+            if (_explicitMergeOnly && HasMatchingStackInGeometry(geometry, request))
+                return new PlacementCandidateSource(() => System.Array.Empty<PlacementCandidate>());
+            return base.GetCandidates(geometry, request);
+        }
+
+        private static bool HasMatchingStackInGeometry(IPlacementGeometry geometry, InventoryAcceptanceRequest request)
+        {
+            if (geometry == null || request?.ItemAdapter == null)
+                return false;
+
+            var sourcePlacement = GetSourcePlacement(geometry, request);
+            foreach (var placement in geometry.Placements)
+            {
+                if (placement != null && !ReferenceEquals(placement, sourcePlacement) &&
+                    placement.Stack != null && placement.Stack.CanStack(request.ItemAdapter))
+                    return true;
+            }
+
+            if (geometry.Placements.Count == 0)
+            {
+                foreach (var slot in geometry.Slots)
+                {
+                    if (slot != null && !IsSourceSlot(slot, request) &&
+                        !slot.IsEmpty && slot.Stack != null &&
+                        slot.Stack.CanStack(request.ItemAdapter))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         public override bool TryGetCandidate(
             IPlacementGeometry geometry,
             InventoryAcceptanceRequest request,
@@ -62,8 +100,7 @@ namespace UDND.Inventories
         {
             candidate = default;
             if (geometry == null || request == null || targetBaseSlot == null ||
-                request.ItemAdapter == null || request.DesiredCount <= 0 ||
-                IsSourceSlot(targetBaseSlot, request))
+                request.ItemAdapter == null || request.DesiredCount <= 0)
                 return false;
 
             int maxSize = GetMaxStackSize(
@@ -73,76 +110,64 @@ namespace UDND.Inventories
 
             var sourcePlacement = GetSourcePlacement(geometry, request);
             var explicitPlacement = geometry.GetPlacementAt(targetBaseSlot);
-            if (explicitPlacement != null)
+
+            // When the target slot is covered by our own source placement, the source will be
+            // vacated before the new placement lands. Skip all merge paths and fall through to
+            // TryCreatePlacementCandidate so the grab-offset anchor is computed correctly
+            // (e.g. same-inventory rotation that keeps the item partially over its old footprint).
+            bool coveredBySource = explicitPlacement != null &&
+                ReferenceEquals(explicitPlacement, sourcePlacement);
+
+            if (!coveredBySource)
             {
-                if (ReferenceEquals(explicitPlacement, sourcePlacement) ||
-                    explicitPlacement.Stack == null ||
-                    !explicitPlacement.Stack.CanStack(request.ItemAdapter))
+                if (IsSourceSlot(targetBaseSlot, request))
                     return false;
 
-                int capacity = Math.Min(
-                    request.DesiredCount,
-                    Math.Max(0, maxSize - explicitPlacement.Stack.Count));
-                var anchor = geometry.Inventory.GetSlot(explicitPlacement.AnchorIndex);
-                if (capacity <= 0 || anchor == null ||
-                    !PassesRules(anchor, request.ItemAdapter, capacity, request))
-                    return false;
-
-                candidate = PlacementCandidate.Merge(explicitPlacement, anchor, capacity);
-                return true;
-            }
-
-            if (!targetBaseSlot.IsEmpty)
-            {
-                if (targetBaseSlot.Stack == null ||
-                    !targetBaseSlot.Stack.CanStack(request.ItemAdapter))
-                    return false;
-
-                int capacity = Math.Min(
-                    request.DesiredCount,
-                    Math.Max(0, maxSize - targetBaseSlot.Stack.Count));
-                if (capacity <= 0 ||
-                    !PassesRules(targetBaseSlot, request.ItemAdapter, capacity, request))
-                    return false;
-
-                var entry = request.SourceEntry;
-                candidate = PlacementCandidate.Merge(
-                    targetBaseSlot,
-                    entry?.Orientation ?? PlacementOrientation.Rot0,
-                    entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter),
-                    capacity);
-                return true;
-            }
-
-            foreach (var placement in geometry.Placements)
-            {
-                if (placement == null || ReferenceEquals(placement, sourcePlacement) ||
-                    placement.Stack == null || !placement.Stack.CanStack(request.ItemAdapter))
-                    continue;
-
-                if (_explicitMergeOnly)
-                    return false;
-
-                int capacity = Math.Min(
-                    request.DesiredCount,
-                    Math.Max(0, maxSize - placement.Stack.Count));
-                var anchor = geometry.Inventory.GetSlot(placement.AnchorIndex);
-                if (capacity <= 0 || anchor == null ||
-                    !PassesRules(anchor, request.ItemAdapter, capacity, request))
-                    return false;
-
-                candidate = PlacementCandidate.Merge(placement, anchor, capacity);
-                return true;
-            }
-
-            if (geometry.Placements.Count == 0)
-            {
-                for (int i = 0; i < geometry.Slots.Count; i++)
+                if (explicitPlacement != null)
                 {
-                    var slot = geometry.Slots[i];
-                    if (slot == null || ReferenceEquals(slot, targetBaseSlot) ||
-                        IsSourceSlot(slot, request) || slot.IsEmpty ||
-                        slot.Stack == null || !slot.Stack.CanStack(request.ItemAdapter))
+                    if (ReferenceEquals(explicitPlacement, sourcePlacement) ||
+                        explicitPlacement.Stack == null ||
+                        !explicitPlacement.Stack.CanStack(request.ItemAdapter))
+                        return false;
+
+                    int capacity = Math.Min(
+                        request.DesiredCount,
+                        Math.Max(0, maxSize - explicitPlacement.Stack.Count));
+                    var anchor = geometry.Inventory.GetSlot(explicitPlacement.AnchorIndex);
+                    if (capacity <= 0 || anchor == null ||
+                        !PassesRules(anchor, request.ItemAdapter, capacity, request))
+                        return false;
+
+                    candidate = PlacementCandidate.Merge(explicitPlacement, anchor, capacity);
+                    return true;
+                }
+
+                if (!targetBaseSlot.IsEmpty)
+                {
+                    if (targetBaseSlot.Stack == null ||
+                        !targetBaseSlot.Stack.CanStack(request.ItemAdapter))
+                        return false;
+
+                    int capacity = Math.Min(
+                        request.DesiredCount,
+                        Math.Max(0, maxSize - targetBaseSlot.Stack.Count));
+                    if (capacity <= 0 ||
+                        !PassesRules(targetBaseSlot, request.ItemAdapter, capacity, request))
+                        return false;
+
+                    var entry = request.SourceEntry;
+                    candidate = PlacementCandidate.Merge(
+                        targetBaseSlot,
+                        entry?.Orientation ?? PlacementOrientation.Rot0,
+                        entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter),
+                        capacity);
+                    return true;
+                }
+
+                foreach (var placement in geometry.Placements)
+                {
+                    if (placement == null || ReferenceEquals(placement, sourcePlacement) ||
+                        placement.Stack == null || !placement.Stack.CanStack(request.ItemAdapter))
                         continue;
 
                     if (_explicitMergeOnly)
@@ -150,18 +175,44 @@ namespace UDND.Inventories
 
                     int capacity = Math.Min(
                         request.DesiredCount,
-                        Math.Max(0, maxSize - slot.Stack.Count));
-                    if (capacity <= 0 ||
-                        !PassesRules(slot, request.ItemAdapter, capacity, request))
+                        Math.Max(0, maxSize - placement.Stack.Count));
+                    var anchor = geometry.Inventory.GetSlot(placement.AnchorIndex);
+                    if (capacity <= 0 || anchor == null ||
+                        !PassesRules(anchor, request.ItemAdapter, capacity, request))
                         return false;
 
-                    var entry = request.SourceEntry;
-                    candidate = PlacementCandidate.Merge(
-                        slot,
-                        entry?.Orientation ?? PlacementOrientation.Rot0,
-                        entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter),
-                        capacity);
+                    candidate = PlacementCandidate.Merge(placement, anchor, capacity);
                     return true;
+                }
+
+                if (geometry.Placements.Count == 0)
+                {
+                    for (int i = 0; i < geometry.Slots.Count; i++)
+                    {
+                        var slot = geometry.Slots[i];
+                        if (slot == null || ReferenceEquals(slot, targetBaseSlot) ||
+                            IsSourceSlot(slot, request) || slot.IsEmpty ||
+                            slot.Stack == null || !slot.Stack.CanStack(request.ItemAdapter))
+                            continue;
+
+                        if (_explicitMergeOnly)
+                            return false;
+
+                        int capacity = Math.Min(
+                            request.DesiredCount,
+                            Math.Max(0, maxSize - slot.Stack.Count));
+                        if (capacity <= 0 ||
+                            !PassesRules(slot, request.ItemAdapter, capacity, request))
+                            return false;
+
+                        var entry = request.SourceEntry;
+                        candidate = PlacementCandidate.Merge(
+                            slot,
+                            entry?.Orientation ?? PlacementOrientation.Rot0,
+                            entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter),
+                            capacity);
+                        return true;
+                    }
                 }
             }
 

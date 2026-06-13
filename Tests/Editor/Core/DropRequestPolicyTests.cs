@@ -65,16 +65,17 @@ namespace UDND.Tests.Core
         [Test]
         public void Merge_OverridingFieldsWin_AndUnsetFieldsKeepBaseValues()
         {
+            var baseOrderer = new MergeFirstPlacementCandidateOrderer();
             var basePolicy = new DropRequestPolicy(
                 BlockedTargetResolutionKind.AlternativeSlots,
-                new MergeFirstPlacementCandidateOrderer(), allowSameInventoryAlternativePlacement: false,
+                baseOrderer, allowSameInventoryAlternativePlacement: false,
                 PartialTransferMode.RequireFull);
             var overridingPolicy = new DropRequestPolicy(BlockedTargetResolutionKind.Swap, partialTransferMode: PartialTransferMode.Allow);
 
             var merged = DropRequestPolicy.Merge(basePolicy, overridingPolicy).Value;
 
             Assert.AreEqual(BlockedTargetResolutionKind.Swap, merged.BlockedTargetResolution);
-            Assert.AreSame(new MergeFirstPlacementCandidateOrderer(), merged.AlternativeOrderer);
+            Assert.AreSame(baseOrderer, merged.AlternativeOrderer);
             Assert.AreEqual(false, merged.AllowSameInventoryAlternativePlacement);
             Assert.AreEqual(PartialTransferMode.Allow, merged.PartialTransferMode);
         }

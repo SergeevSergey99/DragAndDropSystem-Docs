@@ -67,6 +67,14 @@ namespace UDND.Inventories
                     !TryGetCandidate(geometry, request, target, out var candidate))
                     continue;
 
+                // Auto-enumeration: skip Create candidates whose resolved anchor lands on a cell
+                // covered by the drag source placement. This prevents suggesting positions that
+                // are trivially displaced (e.g. anchor stays on a source cell due to grab offset).
+                // Explicit drops bypass this via direct TryGetCandidate calls, so they're unaffected.
+                if (candidate.Kind == PlacementCandidateKind.Create &&
+                    IsSourceSlot(candidate.Anchor, request))
+                    continue;
+
                 if (candidate.Kind == PlacementCandidateKind.Merge)
                 {
                     if (candidate.TargetPlacement != null)

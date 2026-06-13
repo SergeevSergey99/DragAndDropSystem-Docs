@@ -277,7 +277,7 @@ namespace UDND.Inventories
             };
 
             var geometry = new InventoryPlacementGeometry(targetInventory);
-            var orderer = request.OrdererOverride;
+            var orderer = request.OrdererOverride ?? request.Policy.AlternativeOrderer;
 
             if (request.TargetBaseSlot != null)
             {
@@ -312,6 +312,14 @@ namespace UDND.Inventories
                 // alternative orderer; the explicit attempt itself never goes through an orderer.
                 orderer = request.OrdererOverride
                     ?? request.Policy.AlternativeOrderer;
+
+                // Explicit CREATE succeeded: the item was placed as a unit in an empty slot.
+                // Remainder stays in the source — scattering to unrelated slots is not intended
+                // (e.g. dropping a shaped stack of 3 into a unique grid places exactly 1).
+                // Explicit MERGE succeeded: overflow is intentional (filling a partial stack),
+                // so the while loop continues to spill the remainder elsewhere.
+                if (explicitPlaced && explicitCandidate.Kind == PlacementCandidateKind.Create)
+                    goto CommitEntry;
             }
 
             while (transaction.Remaining > 0 && !transaction.Aborted)
@@ -336,6 +344,7 @@ namespace UDND.Inventories
                     break;
             }
 
+            CommitEntry:
             if (transaction.Aborted)
                 return EntryTransferResult.Failed(requestedAmount, "Entry rolled back: source restore failed");
 
