@@ -23,6 +23,7 @@ Transfer architecture is centered on:
 ## Core Documents
 
 - [UNIFIED_PLACEMENT_PLANNING_PLAN.md](../../../.extraDocs/UNIFIED_PLACEMENT_PLANNING_PLAN.md) - current refactor contract and edge cases
+- [VERIFICATION.md](../VERIFICATION.md) - mandatory compilation and Unity test procedure
 - [PERFORMANCE.md](./PERFORMANCE.md) - optimization guidance
 - [FUTURE_REFACTORING_ROADMAP.md](./FUTURE_REFACTORING_ROADMAP.md) - planned architectural changes
 

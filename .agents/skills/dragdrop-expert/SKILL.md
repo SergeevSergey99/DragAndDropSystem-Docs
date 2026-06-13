@@ -49,3 +49,4 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - Anti-patterns: `ANTIPATTERNS.md`
 - Best practices: `BEST_PRACTICES.md`
 - Testing matrix: `TESTING.md`
+- Mandatory compilation and Unity test commands: `../VERIFICATION.md`

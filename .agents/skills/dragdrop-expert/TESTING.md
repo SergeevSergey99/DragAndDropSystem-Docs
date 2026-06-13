@@ -1,59 +1,66 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-13
 
-## Core Manual Tests
+Follow the mandatory commands and reporting rules in
+[Compilation And Test Verification](../VERIFICATION.md).
 
-### Single Drag/Drop
-- [ ] drag A -> empty target
-- [ ] drag A -> occupied target with `BlockedTargetBehavior=Reject`
-- [ ] drag A -> occupied target with `BlockedTargetBehavior=FindAlternative`
-- [ ] drag A -> occupied target with `BlockedTargetBehavior=Swap`
-- [ ] drag to same slot (must be blocked)
+## Core Transfer
 
-### Batch Transfer
-- [ ] batch with `BatchMode=Atomic`, one invalid entry -> full rollback
-- [ ] batch with `BatchMode=BestEffort`, one invalid entry -> partial success
-- [ ] `AllowPartial=false` rejects partial placement
-- [ ] `AllowPartial=true` allows partial placement
+- [ ] explicit target is checked through `IStrategy.TryGetCandidate(...)`
+- [ ] explicit target does not enumerate or order automatic candidates
+- [ ] area drop and auto-transfer use `GetCandidates(...)` plus an orderer
+- [ ] a successful partial candidate triggers fresh candidate enumeration
+- [ ] only the amount that cannot fit remains in the source
+- [ ] `PartialTransferMode.RequireFull` restores the current entry
+- [ ] a failed entry does not revert earlier committed batch entries
+- [ ] later batch entries see earlier committed state and DataBinding updates
 
-### Swap
-- [ ] successful swap with `BlockedTargetBehavior=Swap`
-- [ ] canceled swap via `InventorySwapContext.Cancel = true`
-- [ ] swap rejected by reverse-direction rules
-- [ ] verify `OnSwapCompleted` fires only on success
+## Topology
 
-### Events and Rollback
-- [ ] atomic failure emits no false transfer/swap completion events
-- [ ] best effort emits events only for successful entries
-- [ ] DataBinding receives direct notifications (HandleItemAdded/HandleItemRemoved)
-- [ ] external event subscribers (OnItemAdded/OnItemRemoved) receive consistent payloads
-- [ ] IsSyncing guard prevents re-entrant callbacks during ReloadUI
-- [ ] cross-inventory add/remove events use correct `SourceItem` vs `TargetItem` payloads
+- [ ] `IPlacementInventory.Topology` is the shared topology source
+- [ ] `SlotTopology` collapses every shape to one anchor slot
+- [ ] spatial and custom topologies project their own oriented footprints
+- [ ] shared placement code does not branch on `GridTopology` or `is grid`
+- [ ] preview, execution, snapshots, and DataBinding agree on covered cells
+- [ ] shaped auto-transfer uses the same candidate loop as single-cell auto-transfer
 
-## Integration Tests
+## Blocked Targets And Swap
 
-### Drop Targets
-- [ ] slot target (`SlotInputAdapter`) uses same pipeline
-- [ ] area target (`InventoryDropArea`) uses same pipeline
-- [ ] same-inventory area drop excludes source slot and does not merge back into source
-- [ ] dynamic same-inventory area drop creates a new target slot when existing slots cannot accept
-- [ ] `FreeFormSlotLayout` positions newly created slots at drop point without owning stack mutation
-- [ ] manager fallback handler path behaves identically
+- [ ] `Reject` fails the current entry without fallback
+- [ ] `AlternativeSlots` uses the configured orderer only after the explicit target fails
+- [ ] same-inventory alternatives respect their policy flag
+- [ ] swap requires one full entry
+- [ ] batch swap is rejected before mutation
+- [ ] forward and reverse conversion/rules/domain checks run
+- [ ] failed swap restores both inventories and emits no success events
 
-### Demo Flows
-- [ ] Demo1 basic item movement and rules
-- [ ] Demo2 trading restrictions + swap constraints
-- [ ] Demo2 merchant -> player / equipment adapter conversion remains correct
-- [ ] Demo3 loot/world interaction still works
+## Stack Semantics
 
-## Regression Focus
+- [ ] `UniqueItemStrategy` distributes count across distinct placements with capacity one
+- [ ] stackable one-per-ID behavior does not create duplicate logical locations
+- [ ] separable stacks can create multiple logical locations
+- [ ] explicit merge and automatic merge policies remain distinct
+- [ ] shaped stacks can split across placements
+- [ ] adapter identity and source order are preserved in transferred and remainder stacks
 
-After transfer/swap changes always re-check:
-- [ ] `TransferPlanner` output for policy matrix
-- [ ] `TransferPlanExecutor` atomic rollback
-- [ ] `InventoryAcceptanceRequest` path for area-drop and planner preview
-- [ ] `InventoryDropProcessor` effective policy resolution
-- [ ] same-inventory slot-target fallback does not reshuffle unrelated slots
-- [ ] same-inventory area-drop full-stack and partial-stack paths create/move into valid target slots
-- [ ] no compile errors due to delegate/nullability syntax on Unity C# profile
+## Events And DataBinding
+
+- [ ] notifications are emitted only after the current entry commits
+- [ ] partial transfer events contain only transferred adapters
+- [ ] rollback emits no false add/remove notifications
+- [ ] source and target conversion payloads are correct
+- [ ] occupied-target handlers remain snapshot protected
+- [ ] placement reload uses the active topology without grid-specific branching
+
+## Suggested Fixtures
+
+- `UDND.Tests.Inventories.InventoryTransferServiceTests`
+- `UDND.Tests.Inventories.StackableItemStrategyTests`
+- `UDND.Tests.Inventories.SeparableStacksStrategyTests`
+- `UDND.Tests.Inventories.ShapedItemPlacementTests`
+- `UDND.Tests.Inventories.InventoryDropProcessorTests`
+- `UDND.Tests.Core.DropRequestPolicyTests`
+
+For architecture-wide transfer changes, run the complete
+`DragAndDropSystem.Tests.Editor` assembly after the focused fixtures.

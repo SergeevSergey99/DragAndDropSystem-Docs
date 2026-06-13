@@ -7,7 +7,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 **Purpose**: Keep Claude skills synchronized with codebase changes
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-13
 
 **When to use this skill**:
 - After implementing major architectural changes
@@ -20,7 +20,9 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 ## Current Skills Structure
 
-**IMPORTANT CHANGE (2026-02-28)**: Core docs must reflect policy/planner/executor transfer architecture and swap execution inside the same pipeline.
+**IMPORTANT CHANGE (2026-06-13)**: Core docs must reflect the policy-driven JIT transfer
+architecture. Materialized planning, planner/executor split, batch `Atomic`, and resolver
+hierarchies are no longer current.
 
 ### Structure
 
@@ -140,9 +142,10 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 - `Scripts/Inventories/Strategies/` - Strategy implementations
 - `Scripts/Inventories/InventoryAcceptanceRequest.cs` - Context-aware preview request
 - `Scripts/Inventories/TransferItemConversionUtility.cs` - Target-side preview conversion
+- `Scripts/Inventories/InventoryTransferEngine.cs` - JIT execution, rollback, swap, and event dispatch
 - `Scripts/Inventories/InventoryTransferService.cs` - Transfer request/result models
-- `Scripts/Inventories/TransferPlanExecutor.cs` - Execution, rollback, and event dispatch
-- `Scripts/Inventories/TransferPlanner.cs` - Planning and acceptance flow
+- `Scripts/Inventories/IPlacementInventory.cs` - Topology-neutral placement contract
+- `Scripts/Inventories/Strategies/IStrategy.cs` - Explicit and automatic candidate contract
 - `Scripts/Inventories/InventoryRuntimeCapabilities.cs` - Runtime capabilities such as dynamic slot lifecycle
 - `Scripts/DataBinding/InventoryDataBindingBase.cs` - DataBinding base (direct notifications, sync, conversion)
 - `Scripts/DataBinding/ListInventoryDataBinding.cs` - Template for list-based DataBindings
@@ -174,7 +177,7 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
    - Strategy Pattern
    - InventoryAcceptanceRequest
    - Preview Conversion Pipeline
-   - TransferPlanExecutor
+   - InventoryTransferService
    - BaseSlot
    - Dynamic Slot Management
    - DataBinding System
@@ -313,6 +316,17 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 ---
 
 ### Step 5: Verify Consistency
+
+Before reporting completion, follow
+[Compilation And Test Verification](../VERIFICATION.md).
+
+At minimum:
+
+1. build runtime, editor test assembly, and examples sequentially;
+2. run the narrowest affected Unity EditMode fixture;
+3. run the full plugin EditMode assembly for architectural changes;
+4. if the project is open in Unity, report the lock and do not claim tests passed;
+5. distinguish compilation from executed tests in the final report.
 
 **Cross-check all skills**:
 

@@ -1,102 +1,70 @@
 # Operations
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-06-13
 
-## Manual Drag & Drop (Pipeline)
+## Manual Drag And Drop
 
-1. Active `IDropTarget` is tracked by `DragAndDropManager`.
-2. `DragAndDropManager.CompleteDrag()` gets `IDropProcessor` from the active target.
-3. `InventoryDropProcessor.CanAcceptDrop()` validates drop possibility.
-4. `InventoryDropProcessor.ProcessDrop()`:
-   - resolves effective `DropPolicy`
-   - resolves target-side preview item where needed
-   - builds `TransferPlan` via `TransferPlanner`
-   - executes plan via `TransferPlanExecutor`
-5. Manager emits final completion/cancel events.
+1. `DragAndDropManager` resolves the active `IDropTarget`.
+2. `InventoryDropProcessor` resolves `ResolvedDropPolicy`.
+3. `InventoryTransferService.CanAttempt(...)` performs an advisory read-only probe.
+4. `InventoryTransferService.ExecuteBatch(...)` processes entries sequentially.
+5. Each entry resolves conversion, validates the explicit target or automatic candidates,
+   mutates current inventory state, and commits notifications.
 
-## Transfer Plan Execution Modes
+There is no materialized plan or virtual inventory state.
 
-`BatchMode`:
-- `Atomic`: capture snapshots, rollback whole operation on first failure
-- `BestEffort`: execute each planned entry independently
+## Explicit Target
 
-## Occupied Target Behaviors
+1. Resolve the selected slot to a placement anchor.
+2. Call `IStrategy.TryGetCandidate(...)` directly.
+3. Do not enumerate candidates and do not invoke an orderer for this first attempt.
+4. If blocked, apply `BlockedTargetResolutionKind`:
+   - `Reject`
+   - `AlternativeSlots`
+   - `Swap`
+5. If part of the entry remains after a successful placement, continue through automatic
+   candidate enumeration.
 
-`BlockedTargetBehavior`:
-- `Reject`
-- `FindAlternative`
-- `Swap`
+## Automatic Placement
 
-## Drop Policy Resolution
+Area drop, auto-transfer, blocked-target alternatives, and entry remainder distribution use:
 
-1. action/drop target can provide `DropRequestPolicy`
-2. `InventoryDropProcessor` merges it with a bound target override when present
-3. `IDropPolicyProvider` on the target inventory resolves `ResolvedDropPolicy`
-4. planner receives only the resolved non-nullable policy
+1. `IStrategy.GetCandidates(...)`
+2. `PlacementCandidateOrderer`
+3. JIT candidate validation against current state
+4. one mutation
+5. fresh enumeration while a remainder exists
 
-### Temporary action override
+Shaped and single-cell items use the same loop. `IPlacementInventory.Topology` determines
+the projected footprint.
 
-`CompleteDragAction` can override drop behavior for a single transfer:
-- default binding: `CompleteDrag(null)`
-- ctrl binding: `CompleteDrag(DropRequestPolicy.WithSwap())`
-- shift binding: `CompleteDrag(DropRequestPolicy.WithFindAlternative())`
-- action settings can also override `AllowPartial` and `AlternativePlacementMode`
+## Batch
 
-This is operation-scoped. It does not mutate inventory defaults.
+- Batch is sequential best-effort.
+- Each entry has its own snapshot boundary.
+- A failed entry rolls back without reverting earlier committed entries.
+- Later entries see earlier mutations and DataBinding updates.
+- `PartialTransferMode.Allow` leaves only the amount that did not fit in the source.
+- Batch swap is rejected.
 
-## Single Entry Decision Order
+## Swap
 
-1. Try target slot if one exists
-2. If full placement succeeds -> success
-3. If partial placement succeeds:
-   - `AllowPartial = false` -> fail
-   - `AllowPartial = true` -> partial success
-4. If zero placement:
-   - `Reject` -> fail
-   - `Swap` -> plan swap
-   - `FindAlternative` -> ask strategy for alternative slots
-5. Same-inventory slot-target fallback does not reshuffle unrelated slots
-6. Same-inventory area drop excludes the source slot; if the target inventory is dynamic, execution can create a new target slot
+- Swap requires one full entry and two placement-capable, snapshot-capable inventories.
+- Both directions run conversion, rules, topology, and domain validation.
+- Both placements are removed before the incoming footprints are checked.
+- Failure restores both inventories.
 
-## Swap Flow (Current)
+## Auto-Transfer
 
-1. Planner marks entry as `RequiresSwap` when policy+conditions allow.
-2. Executor validates reverse and forward directions.
-3. `SwapAttempting(InventorySwapContext)` callback can cancel.
-4. Executor invokes `UniversalInventory.TrySwapSlots(...)`.
-5. Swap events are dispatched after successful execution completion.
-
-## Preview Acceptance
-
-Area-drop and planning preview use:
-- `TransferItemConversionUtility`
-- `InventoryAcceptanceRequest`
-
-This keeps slot-specific rules and mapped-slot bindings consistent between hover preview and final execution.
-
-## Same-Inventory Area Drop
-
-For drops onto an inventory area with no explicit target slot:
-
-1. `InventoryDropArea` still builds normal preview context.
-2. If preview suggests the source slot for a same-inventory drop, the slot hint is cleared.
-3. `TransferPlanner` excludes the source slot from same-inventory area-drop candidates.
-4. `TransferPlanExecutor` can ask `IDynamicSlotLifecycle.TryCreateSlot(...)` for a new target slot.
-5. Normal `TryAddToSlot` / split / event dispatch handles the mutation.
-
-This keeps layout components out of transfer semantics. `FreeFormSlotLayout` only positions dynamically created slots through `OnSlotCreated`.
-
-## Auto-Transfer (Quick Click / Actions)
-
-Auto-transfer uses the same planner/executor pipeline as manual drag & drop.
+Auto-transfer builds a normal `DragContext` and enters the same automatic candidate loop.
+It supports shaped items; topology decides whether and where their footprints fit.
 
 ## Key Files
 
 - `Scripts/DragAndDropManager.cs`
 - `Scripts/Inventories/InventoryDropProcessor.cs`
-- `Scripts/Inventories/TransferPlanner.cs`
-- `Scripts/Inventories/TransferPlanExecutor.cs`
-- `Scripts/Inventories/InventoryTransferService.cs`
-- `Scripts/Inventories/InventoryAcceptanceRequest.cs`
-- `Scripts/Interaction/InputEventRouter.cs`
-- `Scripts/UI/InventoryDropArea.cs`
+- `Scripts/Inventories/InventoryTransferEngine.cs`
+- `Scripts/Inventories/Strategies/IStrategy.cs`
+- `Scripts/Inventories/IPlacementInventory.cs`
+- `Scripts/Inventories/PlacementCandidateOrderer.cs`
+- `Scripts/Inventories/AutoTransferService.cs`

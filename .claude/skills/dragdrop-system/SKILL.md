@@ -1,27 +1,30 @@
 ---
 name: dragdrop-system
-description: Quick reference for Unity Drag & Drop Inventory System with policy/planner/executor pipeline, batch transfer, and swap integration.
+description: Quick reference for the UniversalDragAndDrop JIT transfer pipeline, placement candidates, batch transfer, and swap integration.
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 2.5
-**Last Updated**: 2026-05-30
+**Version**: 3.0
+**Last Updated**: 2026-06-13
 
 ## System Overview
 
-Core drag & drop works through a single transfer pipeline:
+Core drag & drop uses one just-in-time transfer pipeline:
 
 1. `DropRequestPolicy` / `DropPolicySettings` / `ResolvedDropPolicy` (`Scripts/Core/Drop/DropPolicy.cs`, `Scripts/Core/Drop/DropPolicySettings.cs`) - resolves runtime request + inventory defaults into final behavior.
-2. `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`) - builds immutable plan.
-3. `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`) - executes plan with rollback options.
-4. `InventoryAcceptanceRequest` (`Scripts/Inventories/InventoryAcceptanceRequest.cs`) - carries context-aware preview data.
-5. `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`) - resolves target-side preview conversion.
+2. `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`) - resolves policy and starts the transfer.
+3. `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`) - processes entries sequentially against current inventory state.
+4. `IStrategy` (`Scripts/Inventories/Strategies/IStrategy.cs`) - validates explicit targets and enumerates placement candidates.
+5. `PlacementCandidateOrderer` (`Scripts/Inventories/PlacementCandidateOrderer.cs`) - orders candidates only for automatic distribution.
+6. `InventoryAcceptanceRequest` and `TransferItemConversionUtility` - provide target-aware, non-mutating preview data.
 
 Main benefits:
 - unified behavior for single and batch drag
-- atomic mode with snapshot rollback
-- swap integrated into the same execution pipeline
-- slot-specific preview works for area-drops and mapped inventories
+- no precomputed transfer plan or virtual inventory state
+- batch is sequential best-effort and each entry sees mutations from previous entries
+- explicit target validation does not enumerate or order all candidates
+- topology-owned footprints work for single-cell and shaped items
+- swap and alternative placement remain in the same transfer service
 
 ## Main Components
 
@@ -29,15 +32,16 @@ Main benefits:
   - coordinates drag lifecycle and drop targets
   - exposes swap events
 - `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`)
-  - entry point for plan+execute flow for inventory drops
-- `TransferPlanner` (`Scripts/Inventories/TransferPlanner.cs`)
-  - produces `TransferPlan` and per-entry actions
-- `TransferPlanExecutor` (`Scripts/Inventories/TransferPlanExecutor.cs`)
-  - applies transfers/swaps in `Atomic` or `BestEffort` mode
+  - inventory-drop entry point and policy boundary
 - `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`)
-  - transfer request/result models used by executor
+  - performs conversion, validation, placement, swap, rollback of a failed entry, and result aggregation
+- `IStrategy`
+  - `TryGetCandidate(...)` validates a selected slot or placement area
+  - `GetCandidates(...)` lazily enumerates automatic destinations
+- `PlacementCandidateOrderer`
+  - orders automatic candidates; it is not used for an explicit target
 - `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`)
-  - resolves target preview item before planning/execution
+  - resolves target preview item before mutation
 - `InputEventRouter` / `InputModalityTracker` (`Scripts/Interaction/`)
   - input routing and modality state
 - `InventoryDropArea` (`Scripts/UI/InventoryDropArea.cs`)
@@ -50,20 +54,21 @@ Main benefits:
 `DropPolicy` has three layers:
 - `DropRequestPolicy` - temporary nullable overrides for a single operation
 - `DropPolicySettings` - inventory-level defaults in `UniversalInventory`
-- `ResolvedDropPolicy` - final planner-facing policy
+- `ResolvedDropPolicy` - final transfer-facing policy
 
 Main fields:
-- `BlockedTargetBehavior`: `Reject`, `Swap`, `FindAlternative`
-- `AllowPartial`
-- `BatchMode`: `Atomic`, `BestEffort`
-- `AlternativePlacementMode`: `MergeFirst`, `EmptyFirst`, `MergeOnly`, `EmptyOnly`
+- `BlockedTargetResolutionKind`: `Reject`, `AlternativeSlots`, `Swap`
+- `AlternativeCandidateOrderer`
+- `AllowSameInventoryAlternative`
+- `PartialTransferMode`
 
 ## Preview Model
 
-- area-drops and planner preview resolve target-side item before capacity checks
+- area-drops and transfer preview resolve target-side item before capacity checks
 - `InventoryAcceptanceRequest` lets strategies validate concrete candidate slots
 - mapped-slot bindings no longer need ad-hoc preview guards in feature code
-- same-inventory area drops exclude the source slot as a candidate; dynamic inventories may create a new target slot during execution
+- same-inventory moves exclude the source placement while checking destinations
+- dynamic inventories expose `NewDynamicSlot` as a placement candidate
 
 ## Operation References
 
@@ -71,3 +76,4 @@ Main fields:
 - concepts and constraints: `CORE_CONCEPTS.md`
 - advanced capabilities: `ADVANCED_FEATURES.md`
 - demo mappings: `EXAMPLES.md`
+- mandatory compilation and Unity test procedure: `../VERIFICATION.md`

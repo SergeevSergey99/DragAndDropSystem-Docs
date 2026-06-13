@@ -76,3 +76,4 @@ Main fields:
 - concepts and constraints: `CORE_CONCEPTS.md`
 - advanced capabilities: `ADVANCED_FEATURES.md`
 - demo mappings: `EXAMPLES.md`
+- mandatory compilation and Unity test procedure: `../VERIFICATION.md`

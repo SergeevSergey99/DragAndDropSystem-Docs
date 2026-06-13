@@ -28,7 +28,15 @@
       "Bash(.venv/bin/python -c \"import mkdocs; print\\('mkdocs', mkdocs.__version__\\)\")",
       "Bash(.venv/bin/python -c \"import material; print\\('material ok'\\)\")",
       "Bash(.venv/bin/python -c \"import mike; print\\('mike present'\\)\")",
-      "Bash(sort -t'|' -k2 -rn)"
+      "Bash(sort -t'|' -k2 -rn)",
+      "Read(//home/sergey/.dotnet/**)",
+      "Bash(command -v dotnet)",
+      "Bash(command -v csc)",
+      "Bash(command -v mcs)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build DragAndDropSystem.Runtime.csproj -v q --nologo)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build DragAndDropSystem.Runtime.csproj --no-restore /p:CustomBeforeMicrosoftCommonTargets='E:\\\\UnityProjects\\\\UniversalDragAndDropAsset\\\\Assets\\\\Plugins\\\\UniversalDragAndDrop\\\\codex-new-sources.targets')",
+      "Bash(sort -t: -k1)",
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build DragAndDropSystem.Tests.Editor.csproj)"
     ],
     "deny": [],
     "ask": []
