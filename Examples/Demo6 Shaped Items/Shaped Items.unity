@@ -6731,10 +6731,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTargetResolver:
-      rid: 8757923508012974082
+    _blockedTargetResolution: 1
+    _alternativeOrderer:
+      rid: 8757923508012974083
+    _allowSameInventoryAlternativePlacement: 1
     _allowPartial: 1
-    _batchMode: 1
   _slots:
   - {fileID: 1391442368}
   - {fileID: 736669226}
@@ -6812,14 +6813,8 @@ MonoBehaviour:
     - rid: 8757923508012974081
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
-    - rid: 8757923508012974082
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
-      data:
-        _alternativePlacementStrategy:
-          rid: 8757923508012974083
-        _allowSameInventoryAlternativePlacement: 1
     - rid: 8757923508012974083
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      type: {class: MergeFirstPlacementCandidateOrderer, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8757923508012974084
       type: {class: UniqueItemStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
@@ -17638,10 +17633,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTargetResolver:
-      rid: 8757923508012974082
+    _blockedTargetResolution: 1
+    _alternativeOrderer:
+      rid: 8757923508012974083
+    _allowSameInventoryAlternativePlacement: 1
     _allowPartial: 1
-    _batchMode: 1
   _slots:
   - {fileID: 504395501}
   - {fileID: 162883333}
@@ -17726,14 +17722,8 @@ MonoBehaviour:
     - rid: 8757923508012974081
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
-    - rid: 8757923508012974082
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
-      data:
-        _alternativePlacementStrategy:
-          rid: 8757923508012974083
-        _allowSameInventoryAlternativePlacement: 1
     - rid: 8757923508012974083
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      type: {class: MergeFirstPlacementCandidateOrderer, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
     - rid: 8757923584337772545
       type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}

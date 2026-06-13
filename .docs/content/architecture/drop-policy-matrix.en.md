@@ -1,147 +1,58 @@
 # Drop Policy Matrix
 
-This page answers a practical question:
-"what exactly will the system do for my combination of target slot, policy, and slot state?"
+The full flow is described in [Transfer Pipeline](transfer-pipeline.md).
 
-The full architecture is described in [Transfer Pipeline](transfer-pipeline.md).
-This page is the condensed behavior matrix.
+## Policy fields
 
----
+- `BlockedTargetResolutionKind`: `Reject`, `AlternativeSlots`, or `Swap`
+- `AlternativeOrderer`: ordering used only for automatic alternative placement
+- `AllowSameInventoryAlternativePlacement`: whether a blocked same-inventory drop
+  may use another placement
+- `PartialTransferMode`: allow a partial entry or require the whole amount
 
-## Short idea
+## Behavior matrix
 
-There are three main switches:
-
-- whether a concrete `target slot` exists
-- whether that slot is empty or occupied
-- which blocked-target resolver is selected
-
-Additional modifiers:
-
-- `AllowPartial`
-- `BatchMode`
-- same-inventory vs cross-inventory transfer
-
----
-
-## Basic matrix
-
-| Scenario | `Reject` | `Swap` | `FindAlternative` |
+| Scenario | `Reject` | `AlternativeSlots` | `Swap` |
 |---|---|---|---|
-| concrete `target slot`, slot is empty and valid | place into that slot | place into that slot | place into that slot |
-| concrete `target slot`, slot is occupied but merge/placement is possible | place into that slot | place into that slot | place into that slot |
-| concrete `target slot`, slot is occupied and normal placement is impossible | reject if `occupied handler` does not intercept | try `occupied handler`, then swap | try `occupied handler`, then search other slots |
-| concrete `target slot`, slot fails rules | reject | reject or swap if this is an occupied target and both swap directions pass rules | may search for another slot |
-| area-drop without a concrete slot | inventory-wide search for valid placement | usually behaves like normal inventory search, not slot-to-slot swap | inventory-wide search for valid placement |
+| explicit target is valid | use it | use it | use it |
+| explicit target is blocked | reject entry | search ordered candidates | try single-entry swap |
+| area drop, no target slot | automatic candidates | automatic candidates | automatic candidates |
+| occupied handler accepts target | handler executes | handler executes | handler executes |
+| batch with multiple entries | sequential best-effort | sequential best-effort | rejected before mutation |
 
----
+## Candidate ordering
 
-## Direct slot drop: important rule
+The configured orderer is used only when placement is automatic:
 
-When the operation already has a concrete `target slot`:
+- `NaturalPlacementCandidateOrderer`
+- `MergeFirstPlacementCandidateOrderer`
+- `EmptyFirstPlacementCandidateOrderer`
+- `MergeOnlyPlacementCandidateOrderer`
+- `EmptyOnlyPlacementCandidateOrderer`
 
-- with `Reject` and `Swap`, planner must not scan the rest of the inventory
-- inventory-wide search is only valid for `FindAlternative`
-- executor for a concrete `targetSlot` must not repeat inventory-wide `GetAcceptableCount()`
-
-This is especially important for fixed-slot inventories such as equipment.
-Otherwise you get misleading validation logs for neighboring slots.
-
----
-
-## Occupied slot: real order
-
-When the target slot is occupied and normal placement into that slot failed:
-
-1. planner first checks `DataBinding.CanHandleOccupiedSlotDrop(...)`
-2. if the binding says "I can handle this myself" -> build `RequiresOccupiedHandler`
-3. if the binding does not intercept:
-   - `Reject` -> fail
-   - `Swap` -> build `RequiresSwap`
-   - `FindAlternative` -> enumerate other candidate slots
-
-So the `occupied handler` has priority over both swap and alternative placement.
-
----
+An explicit slot is validated directly and is never reordered.
 
 ## Partial transfer
 
-`AllowPartial` only changes the amount, not the branch selection:
+`Allow` moves the amount that currently fits and leaves the remainder in the
+source. `RequireFull` restores the entry when the full requested amount cannot be
+placed.
 
-- if everything fits -> normal success
-- if only part fits and `AllowPartial = false` -> fail
-- if only part fits and `AllowPartial = true`:
-  - with `FindAlternative`, the remainder may search other slots
-  - with `Reject` and `Swap`, the remainder must not trigger inventory-wide search
+This is per-entry behavior. There is no `Atomic` batch mode.
 
----
+## Same-inventory alternatives
 
-## Same-inventory vs cross-inventory
+When `AllowSameInventoryAlternativePlacement` is disabled, a blocked explicit drop
+inside the same inventory does not fall back to another slot. Area drops and valid
+explicit targets are unaffected.
 
-### Same-inventory
+## Swap constraints
 
-- `FindAlternative` is not a global reshuffle or sort
-- by default, `FindAlternative` may move the item to another valid slot when the hinted target is blocked
-- disable `AllowSameInventoryAlternativePlacement` on `FindAlternativeBlockedTargetResolver` when a blocked same-inventory drop should leave the item in its original slot
-- swap is only supported for a single entry and a full source stack
+Swap currently requires:
 
-### Cross-inventory
+- exactly one drag entry;
+- the full dragged entry, not a partial split;
+- bidirectional rule and placement validity;
+- successful restoration if either direction fails.
 
-- conversion may change the adapter type across inventory boundaries
-- swap must not be a raw stack exchange
-- both directions must run through conversion independently
-
----
-
-## Batch drag
-
-For batch drag, keep these separate:
-
-- blocked-target resolver
-- `BatchMode`
-
-`BatchMode` answers "what happens if one entry fails":
-
-- `Atomic` -> all or nothing
-- `BestEffort` -> move what can be moved
-
-Swap is not a general batch orchestration mode.
-The current swap implementation is aimed at a single entry and a full source stack.
-
----
-
-## Practical examples
-
-### Fixed equipment slot
-
-Conditions:
-
-- a concrete slot exists
-- that slot is occupied
-- `SwapBlockedTargetResolver` is active
-
-Expected behavior:
-
-- planner works only with that slot
-- it does not validate neighboring weapon/armor/artifact slots
-- if normal placement fails and `occupied handler` does not intercept, planner builds a swap
-
-### Inventory area
-
-Conditions:
-
-- no concrete target slot
-
-Expected behavior:
-
-- inventory-wide search is allowed
-- `GetAcceptableCount()` is allowed
-- the placement strategy decides merge-first vs empty-first
-
----
-
-## If behavior looks wrong
-
-- [Transfer Pipeline](transfer-pipeline.md) — overall phase order
-- [Logs and Debugging](../reference/logs-and-debugging.md) — how to read planner/executor/rules logs
-- [Troubleshooting](../reference/troubleshooting.md) — common symptoms and causes
+Large shaped batch swaps are intentionally not supported by this policy.

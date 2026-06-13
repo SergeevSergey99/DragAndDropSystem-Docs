@@ -49,12 +49,10 @@ Si la selección está vacía, solo se arrastra el slot que se cogió. Las trans
 
 Durante el arrastre en grupo, el slot objetivo donde se sueltan los items se usa solo como pista. El sistema encuentra automáticamente slots adecuados para cada item.
 
-El comportamiento viene determinado por la `DropPolicy` del inventario objetivo:
-
-| Policy | Comportamiento |
-|---|---|
-| **Atomic** (por defecto para batch) | Todos los items deben caber. Si uno falla, se cancela toda la operación y no se mueve nada |
-| **BestEffort** | Se transfiere todo lo que quepa y el resto permanece en el origen |
+El batch siempre usa sequential best-effort. Cada entry se valida contra el estado
+actual del target: los entries válidos se confirman y los fallidos permanecen en
+source. Si la policy permite transferencia parcial, solo se mueve la cantidad que
+cabe.
 
 El swap no está soportado durante la transferencia por lotes, solo colocación en slots libres o compatibles.
 

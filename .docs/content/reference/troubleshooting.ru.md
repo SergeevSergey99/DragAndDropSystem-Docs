@@ -45,7 +45,7 @@
 - `DropPolicySettings`
 - активный blocked-target resolver
 - `InventoryDropProcessor`
-- `TransferPlanner`
+- `InventoryTransferService`
 - логи `GetAcceptableCount`
 
 ---
@@ -65,7 +65,7 @@
 
 - `ITransferDomainHandler`
 - `IAsyncTransferDomainHandler`
-- `TransferPlanExecutor`
+- `InventoryTransferService`
 
 ---
 

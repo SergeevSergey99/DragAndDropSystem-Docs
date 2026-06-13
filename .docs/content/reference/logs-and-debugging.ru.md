@@ -16,9 +16,9 @@
 | Где появился лог | Что это обычно значит |
 |---|---|
 | `RuleResult` | отказ конкретной rule-проверки |
-| `TransferPlanner` | проблема planning или выбора target |
+| `InventoryTransferService` | проблема planning или выбора target |
 | `InventoryDropProcessor` | planner не смог построить валидный план |
-| `TransferPlanExecutor` | проблема commit, conversion, swap или rollback |
+| `InventoryTransferService` | проблема commit, conversion, swap или rollback |
 | `GetAcceptableCount` | inventory-wide search по слотам |
 | `CanCommitTransfer` / domain validation | бизнес-логика запретила commit |
 
@@ -52,7 +52,7 @@ Planner не построил валидный план.
 - policy не позволяет fallback
 - нет допустимого candidate slot
 
-### `[TransferPlanExecutor] ...`
+### `[InventoryTransferService] ...`
 
 Это уже execution-stage.
 Значит planning прошёл, но проблема возникла при:
@@ -96,7 +96,7 @@ Planner не построил валидный план.
 
 Смотреть:
 
-- `TransferPlanner`
+- `InventoryTransferService`
 - `ValidateDrop`
 - `InventoryAcceptanceRequest`
 - `GetAcceptableCount`
@@ -126,7 +126,7 @@ Planner не построил валидный план.
 
 Смотреть:
 
-- `TransferPlanExecutor`
+- `InventoryTransferService`
 - conversion utility
 - `TryAddToSlot` / `TryAddStack`
 

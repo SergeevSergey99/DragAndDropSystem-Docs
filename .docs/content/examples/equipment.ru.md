@@ -168,8 +168,7 @@ flowchart TD
 | `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | базовый шаблон slot-mapped binding |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | общий lifecycle hooks |
 | `Scripts/Inventories/InventoryDropProcessor.cs` | drop boundary между UI и transfer core |
-| `Scripts/Inventories/TransferPlanner.cs` | planner фаза |
-| `Scripts/Inventories/TransferPlanExecutor.cs` | execution + rollback + events |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | JIT validation candidates, execution, rollback и events |
 
 ---
 

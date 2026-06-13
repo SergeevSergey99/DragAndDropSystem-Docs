@@ -16,9 +16,9 @@ Idea central:
 | Dónde aparece el log | Qué suele significar |
 |---|---|
 | `RuleResult` | una comprobación concreta de una rule fue rechazada |
-| `TransferPlanner` | problema de planning o de selección del target |
+| `InventoryTransferService` | problema de planning o de selección del target |
 | `InventoryDropProcessor` | el planner no pudo construir un plan válido |
-| `TransferPlanExecutor` | problema de commit, conversión, swap o rollback |
+| `InventoryTransferService` | problema de commit, conversión, swap o rollback |
 | `GetAcceptableCount` | búsqueda de slots a nivel de inventario |
 | `CanCommitTransfer` / domain validation | la lógica de negocio vetó el commit |
 
@@ -52,7 +52,7 @@ Causas comunes:
 - la policy no permite fallback
 - no existe ningún candidate slot válido
 
-### `[TransferPlanExecutor] ...`
+### `[InventoryTransferService] ...`
 
 Esto es logging de la fase de execution.
 El planning ya tuvo éxito, y el problema ocurrió durante:
@@ -96,7 +96,7 @@ Causas típicas:
 
 Mira:
 
-- `TransferPlanner`
+- `InventoryTransferService`
 - `ValidateDrop`
 - `InventoryAcceptanceRequest`
 - `GetAcceptableCount`
@@ -126,7 +126,7 @@ Causas típicas:
 
 Mira:
 
-- `TransferPlanExecutor`
+- `InventoryTransferService`
 - utility de conversión
 - `TryAddToSlot` / `TryAddStack`
 

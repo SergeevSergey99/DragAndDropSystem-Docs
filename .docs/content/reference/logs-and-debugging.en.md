@@ -4,10 +4,9 @@ This page helps you quickly identify which phase of the pipeline failed.
 
 Core idea:
 
-- `planner` chooses a valid plan
-- `executor` handles commit, conversion, and rollback
+- `InventoryTransferService` validates candidates against current state and commits one entry
 - `rules` handle mechanical constraints
-- `domain hooks` handle business veto right before commit
+- `domain hooks` may veto the whole transfer before entry processing
 
 ---
 
@@ -16,9 +15,8 @@ Core idea:
 | Where the log appears | What it usually means |
 |---|---|
 | `RuleResult` | one specific rule check was rejected |
-| `TransferPlanner` | planning or target-selection problem |
-| `InventoryDropProcessor` | planner failed to build a valid plan |
-| `TransferPlanExecutor` | commit, conversion, swap, or rollback problem |
+| `InventoryTransferService` | target selection, conversion, placement, swap, or rollback problem |
+| `InventoryDropProcessor` | policy resolution or transfer rejection |
 | `GetAcceptableCount` | inventory-wide slot search |
 | `CanCommitTransfer` / domain validation | business logic vetoed the commit |
 
@@ -41,10 +39,9 @@ If the log comes from:
 - `MappedSlotInventoryDataBinding.CanDrop()` -> usually adapter type or slot compatibility
 - `CanStartDrag()` -> wrong adapter type in the source slot or source-side drag veto
 
-### `[InventoryDropProcessor] plan failed: ...`
+### `[InventoryDropProcessor] ...`
 
-The planner failed to produce a valid plan.
-Execution has not started yet.
+The drop was rejected before an entry committed.
 
 Common causes:
 
@@ -52,10 +49,9 @@ Common causes:
 - policy does not allow a fallback
 - there is no valid candidate slot
 
-### `[TransferPlanExecutor] ...`
+### `[InventoryTransferService] ...`
 
-This is execution-stage logging.
-Planning already succeeded, and the problem happened during:
+The problem happened while validating or executing the current entry:
 
 - domain validation
 - split/remove
@@ -96,7 +92,7 @@ Typical causes:
 
 Look at:
 
-- `TransferPlanner`
+- `InventoryTransferService`
 - `ValidateDrop`
 - `InventoryAcceptanceRequest`
 - `GetAcceptableCount`
@@ -126,7 +122,7 @@ Typical causes:
 
 Look at:
 
-- `TransferPlanExecutor`
+- `InventoryTransferService`
 - conversion utility
 - `TryAddToSlot` / `TryAddStack`
 

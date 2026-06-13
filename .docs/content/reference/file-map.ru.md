@@ -55,25 +55,13 @@
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Стандартная drop-area инвентаря на основе `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `DragAmount`, `DragAmountStepRounding`, `BatchMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Базовые value-type модели drop policy, используемые planning и execution. |
-| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level настройки drop policy, включая blocked-target resolver и параметры batch/partial. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Scalar policy модели JIT transfer pipeline. |
+| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Настройки blocked target, orderer, same-inventory fallback и partial transfer. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемый helper для временных drop request override'ов в actions и triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
-| `Scripts/Core/Drop/BlockedTargetResolverBase.cs` | `BlockedTargetResolverBase`, `BlockedTargetResolution`, `BlockedTargetResolutionContext` | Базовый контракт blocked-target поведения. Resolver возвращает `Reject`, `AlternativeSlots` или `SwapTargets`. |
-| `Scripts/Core/Drop/RejectBlockedTargetResolver.cs` | `RejectBlockedTargetResolver` | Resolver, который сразу отклоняет blocked target. |
-| `Scripts/Core/Drop/SwapBlockedTargetResolver.cs` | `SwapBlockedTargetResolver` | Resolver, который превращает кандидатов вложенной swap strategy в `SwapTargets`. |
-| `Scripts/Core/Drop/ISwapStrategy.cs` | `ISwapStrategy` | Контракт для object-based перечисления swap-candidates, используемый `SwapBlockedTargetResolver`. |
-| `Scripts/Core/Drop/SwapSearchContext.cs` | `SwapSearchContext` | Контекст, который swap strategy получает для доступа к состоянию drag, target inventory и hinted slot. |
-| `Scripts/Core/Drop/HintedTargetSwapStrategy.cs` | `HintedTargetSwapStrategy` | Дефолтная swap strategy, которая рассматривает только текущий hinted target slot. |
-| `Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs` | `FindAlternativeBlockedTargetResolver` | Resolver, который превращает alternative placement candidates в `AlternativeSlots` и может отключать fallback внутри того же inventory. |
-| `Scripts/Core/Drop/IAlternativePlacementStrategy.cs` | `IAlternativePlacementStrategy` | Контракт для object-based перечисления альтернативных слотов, используемый `FindAlternativeBlockedTargetResolver`. |
-| `Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs` | `MergeFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет merge-кандидаты. |
-| `Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs` | `EmptyFirstAlternativePlacementStrategy` | Стратегия alternative placement, которая сначала ищет пустые слоты. |
-| `Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs` | `MergeOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только merge-кандидаты. |
-| `Scripts/Core/Drop/EmptyOnlyAlternativePlacementStrategy.cs` | `EmptyOnlyAlternativePlacementStrategy` | Стратегия alternative placement, которая рассматривает только пустые слоты. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Интерфейс для объектов, которые отдают активные настройки drop policy. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Модель запроса на проверку, может ли инвентарь принять входящий предмет или стек. |
-| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing точка входа, переводящая drop attempt в planning и execution. |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing точка входа, которая resolve policy и запускает JIT transfer. |
 
 ---
 
@@ -99,19 +87,18 @@
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Pass-through converter для случаев, когда конвертация не нужна. |
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum, описывающий тип transfer flow. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Контекст, который передаётся в domain handlers. |
-| `Scripts/Inventories/InventoryTransferService.cs` | runtime transfer request/result models | Общие модели transfer request/result, используемые по всему конвейеру. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Sequential JIT service с per-entry rollback, swap и automatic candidates. |
+| `Scripts/Inventories/InventoryTransferService.cs` | `InventoryTransferRequest`, `InventoryTransferResult` | Низкоуровневые request/result модели переноса. |
+| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Канонический descriptor merge/create/dynamic target. |
+| `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Сортировка только для automatic placement. |
+| `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Topology-aware contract anchor, footprint, occupancy и covered slots. |
 | `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Snapshot-модель и provider-интерфейс для безопасного чтения состояния инвентаря. |
 | `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Вспомогательные методы для построения и чтения snapshot'ов. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Сервис для quick-transfer поведения между инвентарями. |
 | `Scripts/Inventories/SlotOperationContext.cs` | `SlotOperationContext` | Low-level контекст, используемый placement и execution helper'ами. |
 | `Scripts/Inventories/SwapOperationResult.cs` | `SwapOperationResult` | Result-модель для helper'ов swap planning/execution. |
-| `Scripts/Inventories/EntryPlanningOperation.cs` | planning operation types | Внутренний helper planning'а для одного drag entry. |
-| `Scripts/Inventories/TargetPlacementOperation.cs` | placement operation types | Внутренний helper, моделирующий решение о размещении на стороне цели. |
 | `Scripts/Inventories/SlotRelocationService.cs` | `SlotRelocationService` | Fallback-helper, который пытается освободить или перестроить слоты, если прямое размещение заблокировано. |
-| `Scripts/Inventories/VirtualSlotState.cs` | `VirtualSlotState` | Виртуальное состояние слота, используемое при planning без мутации реального UI. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Внутренний utility, который последовательно применяет конвертацию adapter'ов в planning и execution. |
-| `Scripts/Inventories/TransferPlanExecutor.cs` | `TransferExecutionSummary`, `TransferExecutionOptions`, `TransferPlanExecutor` | Выполняет transfer plan, вносит мутации, запускает commit hooks, rollback и deferred events. |
-| `Scripts/Inventories/TransferPlanner.cs` | `TransferPlanFailureCode`, `PlanFailure`, `PlannedSwapData`, `PlannedEntryTransfer`, `TransferPlan`, `TransferPlanner` | Строит план переноса без изменения состояния инвентаря. Использует результаты blocked-target resolver'ов и отвечает за preview allocation, swap planning и диагностику ошибок. |
 
 ---
 
@@ -119,7 +106,7 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Inventories/Strategies/IPlacementStrategy.cs` | `IPlacementStrategy` | Контракт стратегии размещения. |
+| `Scripts/Inventories/Strategies/IStrategy.cs` | `IStrategy` | Проверка explicit target, enumeration automatic candidates и item placement. |
 | `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs` | `IAcceptanceStrategy` | Контракт стратегии оценки вместимости и accept logic. |
 | `Scripts/Inventories/Strategies/IDragPolicy.cs` | `IDragPolicy` | Контракт стратегии для решений, связанных с drag amount и drag policy. |
 | `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs` | `IInventoryQueryStrategy` | Контракт стратегии для query/read-операций по инвентарю. |
@@ -414,7 +401,7 @@
 |---|---|
 | Привязать свои list-based данные | `InventoryDataBindingBase.cs`, `ListInventoryDataBinding.cs`, любой demo binding из Demo1 или Demo4 |
 | Сделать fixed slots для экипировки | `MappedSlotInventoryDataBinding.cs`, `EquipmentInventoryDataBinding.cs` |
-| Понять planning drag/drop | `TransferPlanner.cs`, `TransferPlanExecutor.cs`, `InventoryDropProcessor.cs` |
+| Понять transfer drag/drop | `InventoryDropProcessor.cs`, `InventoryTransferEngine.cs`, `IStrategy.cs`, `PlacementCandidate.cs` |
 | Добавить свои drag rules | `IDragRule.cs`, `BuiltInRules.cs`, `CompositeRule.cs` |
 | Поддержать quick transfer | `AutoTransferService.cs`, `AutoTransferAction.cs`, `AutoTransferAnimationStrategy.cs` |
 | Добавить свои input bindings | `InteractionBindingsProfile.cs`, `InputEventRouter.cs`, `SlotInteractionActions.cs` |

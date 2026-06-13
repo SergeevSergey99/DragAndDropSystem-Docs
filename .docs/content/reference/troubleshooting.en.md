@@ -45,7 +45,7 @@ Where to look:
 - `DropPolicySettings`
 - active blocked-target resolver
 - `InventoryDropProcessor`
-- `TransferPlanner`
+- `InventoryTransferService`
 - `GetAcceptableCount` logs
 
 ---
@@ -65,7 +65,7 @@ Where to look:
 
 - `ITransferDomainHandler`
 - `IAsyncTransferDomainHandler`
-- `TransferPlanExecutor`
+- `InventoryTransferService`
 
 ---
 

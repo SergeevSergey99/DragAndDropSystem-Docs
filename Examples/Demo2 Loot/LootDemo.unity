@@ -1699,11 +1699,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTargetResolver:
-      rid: 8490480914487312388
-    _allowMergeOnDrop: 1
+    _blockedTargetResolution: 1
+    _alternativeOrderer:
+      rid: 8490480914487312389
+    _allowSameInventoryAlternativePlacement: 1
     _allowPartial: 1
-    _batchMode: 1
   _slots:
   - {fileID: 397178222}
   - {fileID: 125456828}
@@ -1725,13 +1725,8 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
-    - rid: 8490480914487312388
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
-      data:
-        _alternativePlacementStrategy:
-          rid: 8490480914487312389
     - rid: 8490480914487312389
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      type: {class: MergeFirstPlacementCandidateOrderer, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
 --- !u!114 &486925684
 MonoBehaviour:
@@ -2937,11 +2932,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTargetResolver:
-      rid: 8490480914487312384
-    _allowMergeOnDrop: 1
+    _blockedTargetResolution: 1
+    _alternativeOrderer:
+      rid: 8490480914487312385
+    _allowSameInventoryAlternativePlacement: 1
     _allowPartial: 1
-    _batchMode: 1
   _slots:
   - {fileID: 937319877}
   - {fileID: 1559681665}
@@ -2963,13 +2958,8 @@ MonoBehaviour:
       data:
         _dragAmount: 0
         _customDragAmount: 1
-    - rid: 8490480914487312384
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
-      data:
-        _alternativePlacementStrategy:
-          rid: 8490480914487312385
     - rid: 8490480914487312385
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      type: {class: MergeFirstPlacementCandidateOrderer, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
 --- !u!114 &961149623
 MonoBehaviour:
@@ -5842,11 +5832,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTargetResolver:
-      rid: 8490480914487312386
-    _allowMergeOnDrop: 1
+    _blockedTargetResolution: 1
+    _alternativeOrderer:
+      rid: 8490480914487312387
+    _allowSameInventoryAlternativePlacement: 1
     _allowPartial: 1
-    _batchMode: 1
   _slots:
   - {fileID: 1855719185}
   - {fileID: 1367063339}
@@ -5865,13 +5855,8 @@ MonoBehaviour:
         _customDragAmount: 1
         _maxStackSize: 0
         _allowItemStackOverride: 0
-    - rid: 8490480914487312386
-      type: {class: FindAlternativeBlockedTargetResolver, ns: UDND.Core, asm: UDND.Runtime}
-      data:
-        _alternativePlacementStrategy:
-          rid: 8490480914487312387
     - rid: 8490480914487312387
-      type: {class: MergeFirstAlternativePlacementStrategy, ns: UDND.Core, asm: UDND.Runtime}
+      type: {class: MergeFirstPlacementCandidateOrderer, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
 --- !u!114 &1939663763
 MonoBehaviour:

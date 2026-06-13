@@ -158,8 +158,7 @@ flowchart TD
 | `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | base template for slot-mapped bindings |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | common lifecycle hooks |
 | `Scripts/Inventories/InventoryDropProcessor.cs` | UI-to-transfer boundary |
-| `Scripts/Inventories/TransferPlanner.cs` | planning phase |
-| `Scripts/Inventories/TransferPlanExecutor.cs` | execution + rollback + events |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | JIT candidate validation, execution, rollback, and events |
 
 ---
 
