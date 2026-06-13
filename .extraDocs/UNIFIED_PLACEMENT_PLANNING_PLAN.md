@@ -684,7 +684,10 @@ Acceptance не строит `TransferPlan`.
 TransferProbe
     CanAttempt
     FailureReason
-    PrimaryCandidate
+    EntryIndex
+    Entry
+    Candidate
+    AnchorSlot
     Orientation
     CoveredSlots
 ```
@@ -697,7 +700,7 @@ TransferProbe
 - domain validation;
 - topology validation.
 
-При explicit target `PrimaryCandidate` получается напрямую через `IStrategy.TryGetCandidate`, без
+При explicit target `Candidate` получается напрямую через `IStrategy.TryGetCandidate`, без
 enumeration и orderer. Для area drop/auto-transfer он выбирается из ordered candidate source.
 Probe не пытается предсказать общее transferable amount для multi-placement stack.
 

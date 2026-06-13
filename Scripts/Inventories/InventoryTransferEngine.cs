@@ -87,23 +87,37 @@ namespace UDND.Inventories
             BaseSlot targetBaseSlot,
             ResolvedDropPolicy policy,
             GlobalRuleValidator globalRules = null)
+            => Probe(
+                context,
+                targetInventory,
+                targetBaseSlot,
+                policy,
+                globalRules).CanAttempt;
+
+        public TransferProbe Probe(
+            DragContext context,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlot,
+            ResolvedDropPolicy policy,
+            GlobalRuleValidator globalRules = null)
         {
             if (context?.Entries == null || context.Entries.Count == 0 || targetInventory == null)
-                return false;
+                return TransferProbe.Rejected("Empty drag context or target inventory");
 
             if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
                 context.Entries.Count > 1)
-                return false;
+                return TransferProbe.Rejected("Swap requires a single full entry");
 
             var validationContext = context.WithTarget(targetBaseSlot, targetInventory);
-            if (!ValidateTransferStart(validationContext, targetInventory, out _))
-                return false;
+            if (!ValidateTransferStart(validationContext, targetInventory, out var startFailure))
+                return TransferProbe.Rejected(startFailure);
 
             var strategy = (targetInventory as IPlacementInventory)?.Strategy;
             if (strategy == null)
-                return false;
+                return TransferProbe.Rejected("Target inventory has no strategy");
 
             var geometry = new InventoryPlacementGeometry(targetInventory);
+            string failureReason = "No placement accepted the transfer";
             for (int i = 0; i < context.Entries.Count; i++)
             {
                 var entry = context.Entries[i];
@@ -112,12 +126,22 @@ namespace UDND.Inventories
                 var entryContext = context.WithTarget(entryTargetSlot, targetInventory);
                 var rules = new RuleEvaluationService().ValidateEntryDrop(entryContext, entry, globalRules);
                 if (!rules.IsValid || sourceInventory == null || entry.Stack?.PrimaryAdapter == null)
+                {
+                    if (!rules.IsValid && !string.IsNullOrEmpty(rules.FailureReason))
+                        failureReason = rules.FailureReason;
                     continue;
+                }
 
                 if (entryTargetSlot != null && !entryTargetSlot.IsEmpty &&
                     targetInventory is IOccupiedSlotDropHandler occupiedHandler &&
                     occupiedHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
-                    return true;
+                {
+                    return TransferProbe.Accepted(
+                        i,
+                        entry,
+                        anchorSlot: entryTargetSlot,
+                        coveredSlots: new[] { entryTargetSlot });
+                }
 
                 if (!TryResolvePreviewAdapter(
                         sourceInventory,
@@ -135,18 +159,46 @@ namespace UDND.Inventories
 
                 if (entryTargetSlot != null)
                 {
-                    if (strategy.TryGetCandidate(geometry, acceptance, entryTargetSlot, out _))
-                        return true;
+                    if (strategy.TryGetCandidate(
+                            geometry,
+                            acceptance,
+                            entryTargetSlot,
+                            out var explicitCandidate))
+                    {
+                        return CreateAcceptedProbe(
+                            i,
+                            entry,
+                            explicitCandidate,
+                            geometry);
+                    }
 
                     if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Reject)
+                    {
+                        failureReason = "Target slot is blocked";
                         continue;
+                    }
 
                     if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap)
-                        return !entryTargetSlot.IsEmpty;
+                    {
+                        if (!entryTargetSlot.IsEmpty)
+                        {
+                            return TransferProbe.Accepted(
+                                i,
+                                entry,
+                                anchorSlot: entryTargetSlot,
+                                coveredSlots: new[] { entryTargetSlot });
+                        }
+
+                        failureReason = "Swap target is empty";
+                        continue;
+                    }
 
                     if (ReferenceEquals(sourceInventory, targetInventory) &&
                         !policy.AllowSameInventoryAlternativePlacement)
+                    {
+                        failureReason = "Same-inventory alternative placement is not allowed";
                         continue;
+                    }
                 }
 
                 var orderer = entryTargetSlot != null
@@ -156,11 +208,38 @@ namespace UDND.Inventories
                 foreach (var candidate in orderer.Order(strategy.GetCandidates(geometry, acceptance), acceptance))
                 {
                     if (!ShouldSkipProbeCandidate(candidate, entry, sourceInventory, targetInventory, geometry))
-                        return true;
+                        return CreateAcceptedProbe(i, entry, candidate, geometry);
                 }
             }
 
-            return false;
+            return TransferProbe.Rejected(failureReason);
+        }
+
+        private static TransferProbe CreateAcceptedProbe(
+            int entryIndex,
+            DragEntry entry,
+            PlacementCandidate candidate,
+            InventoryPlacementGeometry geometry)
+        {
+            IReadOnlyList<BaseSlot> coveredSlots = Array.Empty<BaseSlot>();
+            var anchor = candidate.Anchor;
+            if (anchor == null && candidate.TargetPlacement != null)
+                anchor = geometry.Inventory.GetSlot(candidate.TargetPlacement.AnchorIndex);
+
+            if (anchor != null)
+            {
+                coveredSlots = geometry.GetCoveredSlots(
+                    anchor,
+                    candidate.Shape ?? entry.Shape,
+                    candidate.Orientation);
+            }
+
+            return TransferProbe.Accepted(
+                entryIndex,
+                entry,
+                candidate,
+                anchor,
+                coveredSlots);
         }
 
         /// <summary>

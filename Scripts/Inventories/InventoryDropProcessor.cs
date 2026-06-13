@@ -22,6 +22,7 @@ namespace UDND.Inventories
         private readonly Func<InventorySwapContext, bool> _swapAttempting;
         private readonly Action<InventorySwapContext> _swapCompleted;
         public TransferExecutionReport LastExecutionReport { get; private set; }
+        public TransferProbe LastProbe { get; private set; }
 
         /// <summary>
         /// Create a processor for a specific slot
@@ -65,22 +66,24 @@ namespace UDND.Inventories
         {
             if (context == null || _targetInventory == null)
             {
+                LastProbe = TransferProbe.Rejected("Null drag context or target inventory");
                 Extensions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: null context or inventory</color>");
                 return false;
             }
 
             var effectivePolicy = ResolveEffectivePolicy(context, requested);
 
-            bool canAttempt = _jitService.CanAttempt(
+            LastProbe = _jitService.Probe(
                 context,
                 _targetInventory,
                 _targetBaseSlot,
                 effectivePolicy,
                 _globalRules);
 
-            if (!canAttempt)
+            if (!LastProbe.CanAttempt)
             {
-                Extensions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: probe rejected</color>");
+                Extensions.DragAndDropLog(
+                    $"<color=red>[InventoryDropProcessor] CanAcceptDrop: probe rejected: {LastProbe.FailureReason}</color>");
                 return false;
             }
 

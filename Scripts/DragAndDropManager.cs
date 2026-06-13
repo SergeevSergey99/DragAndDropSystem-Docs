@@ -158,12 +158,6 @@ namespace UDND
                 return false;
 
             var dragContext = new DragContext(entries);
-            if (!ValidateShapedDragScope(dragContext, out var shapedFailureReason))
-            {
-                Extensions.DragAndDropLog($"Cannot start drag: {shapedFailureReason}");
-                return false;
-            }
-
             _currentContext = dragContext;
 
             // Event: starting
@@ -209,26 +203,6 @@ namespace UDND
                 return false;
 
             PushDropTarget(target);
-            return true;
-        }
-
-        private static bool ValidateShapedDragScope(DragContext context, out string failureReason)
-        {
-            failureReason = null;
-            if (context == null)
-            {
-                failureReason = "Invalid drag context";
-                return false;
-            }
-
-            // C5 (ShapedStacking-Plan.md): shaped items may now be dragged as stacks (count > 1) —
-            // move the whole stack or split part of it. Only batch drag still excludes shaped entries.
-            if (context.IsBatchDrag && context.HasShapedEntries)
-            {
-                failureReason = "Batch drag does not support shaped items";
-                return false;
-            }
-
             return true;
         }
 

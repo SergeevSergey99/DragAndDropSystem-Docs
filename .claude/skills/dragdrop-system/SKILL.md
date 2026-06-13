@@ -33,6 +33,7 @@ Main benefits:
   - exposes swap events
 - `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`)
   - inventory-drop entry point and policy boundary
+  - exposes the last advisory `TransferProbe` used by `CanAcceptDrop`
 - `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`)
   - performs conversion, validation, placement, swap, rollback of a failed entry, and result aggregation
 - `IStrategy`
@@ -64,11 +65,14 @@ Main fields:
 
 ## Preview Model
 
+- `TransferProbe` describes the first currently viable entry, candidate, anchor, orientation, and
+  covered slots; it does not reserve state or predict the whole batch
 - area-drops and transfer preview resolve target-side item before capacity checks
 - `InventoryAcceptanceRequest` lets strategies validate concrete candidate slots
 - mapped-slot bindings no longer need ad-hoc preview guards in feature code
 - same-inventory moves exclude the source placement while checking destinations
 - dynamic inventories expose `NewDynamicSlot` as a placement candidate
+- mixed single-cell/shaped batches are allowed and evaluated entry-by-entry against current state
 
 ## Operation References
 

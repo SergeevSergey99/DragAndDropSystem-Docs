@@ -215,6 +215,93 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void StartDrag_MixedSingleCellAndShapedBatch_IsAllowed()
+        {
+            var inventory = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            UDND.DragAndDropManager manager = null;
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)),
+                    0)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new FakeItemAdapter("coin")),
+                    2)));
+
+                manager = UDND.DragAndDropManager.AutoCreateInstance;
+                Assert.IsTrue(manager.StartDrag(new[]
+                {
+                    inventory.GetSlot(0),
+                    inventory.GetSlot(2)
+                }));
+
+                Assert.IsTrue(manager.CurrentContext.IsBatchDrag);
+                Assert.IsTrue(manager.CurrentContext.HasShapedEntries);
+                Assert.AreEqual(2, manager.CurrentContext.Entries.Count);
+            }
+            finally
+            {
+                manager?.CancelDrag();
+                if (manager != null)
+                    UnityEngine.Object.DestroyImmediate(manager.gameObject);
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_MixedSingleCellAndShapedBatch_UsesCurrentTopologyState()
+        {
+            var source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(8)
+                .WithGridTopology(4, 2)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)),
+                    0)));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new FakeItemAdapter("coin")),
+                    2)));
+
+                var context = DragContextBuilder
+                    .FromSlots(source, 0, 2)
+                    .ToTarget(target)
+                    .Build();
+                var processor = new InventoryDropProcessor(target, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(context);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual(2, report.SucceededEntries);
+                Assert.AreEqual(2, report.TransferredAmount);
+                Assert.IsNull(source.GetPlacementAt(0));
+                Assert.IsNull(source.GetPlacementAt(2));
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1 },
+                    target.GetPlacementAt(0).CoveredIndices);
+                Assert.AreEqual("coin", target.GetPlacementAt(2).Stack.PrimaryAdapter.ItemId);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void TryPlace_WithGridTopology_CoversShapeSizeCells()
         {
             var inventory = new InventoryBuilder()
@@ -420,6 +507,54 @@ namespace UDND.Tests.Inventories
             {
                 InventoryBuilder.Destroy(slotInventory);
                 InventoryBuilder.Destroy(gridInventory);
+            }
+        }
+
+        [Test]
+        public void Probe_ShapedCandidate_ReturnsProjectedCoveredSlots()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(2)
+                .WithGridTopology(2, 1)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(4)
+                .WithGridTopology(2, 2)
+                .Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1)),
+                    0)));
+                var context = DragContextBuilder
+                    .FromSlots(source, 0)
+                    .ToTargetSlot(target.GetSlot(0), target)
+                    .Build();
+                var policy = target.ResolveDropPolicy(
+                    DropRequestPolicy.WithAlternativeOrderer(),
+                    context);
+
+                var probe = new InventoryTransferService().Probe(
+                    context,
+                    target,
+                    target.GetSlot(0),
+                    policy,
+                    new GlobalRuleValidator());
+
+                Assert.IsTrue(probe.CanAttempt, probe.FailureReason);
+                Assert.AreEqual(0, probe.EntryIndex);
+                Assert.IsTrue(probe.Candidate.HasValue);
+                Assert.AreEqual(PlacementCandidateKind.Create, probe.Candidate.Value.Kind);
+                Assert.AreSame(target.GetSlot(0), probe.AnchorSlot);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1 },
+                    probe.CoveredSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
             }
         }
 

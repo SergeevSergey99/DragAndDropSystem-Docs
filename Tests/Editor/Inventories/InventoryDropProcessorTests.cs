@@ -453,6 +453,105 @@ namespace UDND.Tests.Inventories
             Assert.IsFalse(report.Success, "Empty stack cannot produce a valid transfer");
         }
 
+        [Test]
+        public void ProcessDrop_MiddleEntryRejected_LaterEntryStillCommits()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(3)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(3)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "first"));
+            _source.GetSlot(1).SetStack(ItemStackBuilder.Unique(1, "blocked"));
+            _source.GetSlot(2).SetStack(ItemStackBuilder.Unique(1, "last"));
+
+            var binding = _target.gameObject.AddComponent<TestTransferDomainBinding>();
+            binding.RejectedItemId = "blocked";
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+
+            var report = processor.ProcessDropWithReport(context);
+
+            Assert.IsTrue(report.Success, report.FailureReason);
+            Assert.IsTrue(report.IsPartial);
+            Assert.AreEqual(2, report.SucceededEntries);
+            Assert.AreEqual(1, report.FailedEntries);
+            Assert.AreEqual(2, report.TransferredAmount);
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty);
+            Assert.AreEqual("blocked", _source.GetSlot(1).Stack.ItemAdapter.ItemId);
+            Assert.IsTrue(_source.GetSlot(2).IsEmpty);
+            Assert.AreEqual(2, binding.SuccessCalls);
+            Assert.AreEqual(2, binding.SuccessContexts.Count);
+        }
+
+        [Test]
+        public void ProcessDrop_DomainStartVeto_RejectsBatchBeforeMutation()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "first"));
+            _source.GetSlot(1).SetStack(ItemStackBuilder.Unique(1, "second"));
+
+            var binding = _target.gameObject.AddComponent<TestTransferDomainBinding>();
+            binding.RejectTransferStart = true;
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+
+            Assert.IsFalse(processor.CanAcceptDrop(context));
+            Assert.IsNotNull(processor.LastProbe);
+            Assert.AreEqual("Domain start veto", processor.LastProbe.FailureReason);
+
+            var report = processor.ProcessDropWithReport(context);
+
+            Assert.IsFalse(report.Success);
+            Assert.AreEqual("Domain start veto", report.FailureReason);
+            Assert.AreEqual(2, CountFilledSlots(_source));
+            Assert.AreEqual(0, CountFilledSlots(_target));
+            Assert.AreEqual(0, binding.CommitCalls);
+            Assert.AreEqual(0, binding.SuccessCalls);
+        }
+
+        [Test]
+        public void CanAcceptDrop_StoresFirstCandidateProbe()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
+            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
+
+            Assert.IsTrue(processor.CanAcceptDrop(context));
+            Assert.IsNotNull(processor.LastProbe);
+            Assert.IsTrue(processor.LastProbe.CanAttempt);
+            Assert.IsTrue(processor.LastProbe.Candidate.HasValue);
+            Assert.AreSame(_target.GetSlot(0), processor.LastProbe.AnchorSlot);
+            CollectionAssert.AreEqual(
+                new[] { 0 },
+                processor.LastProbe.CoveredSlots.Select(slot => slot.Index).ToArray());
+        }
+
         // ---------- helpers ----------
 
         private static int CountFilledSlots(IInventory inv)
@@ -484,6 +583,41 @@ namespace UDND.Tests.Inventories
             ExecuteCalls++;
             entry.SourceBaseSlot.Clear();
             return true;
+        }
+
+        protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context) { }
+        protected override void OnReloadUI() { }
+    }
+
+    public sealed class TestTransferDomainBinding : InventoryDataBindingBase, ITransferDomainHandler
+    {
+        public bool RejectTransferStart { get; set; }
+        public string RejectedItemId { get; set; }
+        public int CommitCalls { get; private set; }
+        public int SuccessCalls { get; private set; }
+        public System.Collections.Generic.List<TransferDomainContext> SuccessContexts { get; } =
+            new System.Collections.Generic.List<TransferDomainContext>();
+
+        protected override void Awake() { }
+
+        public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+            => RejectTransferStart
+                ? RuleResult.Failure("Domain start veto")
+                : RuleResult.Success();
+
+        public RuleResult CanCommitTransfer(TransferDomainContext context)
+        {
+            CommitCalls++;
+            return context.SourceItemAdapter?.ItemId == RejectedItemId
+                ? RuleResult.Failure("Entry veto")
+                : RuleResult.Success();
+        }
+
+        public void OnTransferSucceeded(TransferDomainContext context)
+        {
+            SuccessCalls++;
+            SuccessContexts.Add(context);
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context) { }

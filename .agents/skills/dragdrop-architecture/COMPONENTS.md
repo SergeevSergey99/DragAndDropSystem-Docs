@@ -6,6 +6,7 @@
 
 UI-facing boundary that resolves target inventory, target slot, request overrides, and
 `ResolvedDropPolicy`, then delegates to `InventoryTransferService`.
+`CanAcceptDrop` stores an advisory `TransferProbe`; execution always revalidates.
 
 ## InventoryTransferService
 
@@ -18,6 +19,7 @@ Responsibilities:
 - exact stack splitting and conversion
 - placement mutation, occupied-target handling, and swap
 - deferred entry outcome notifications
+- advisory first-candidate probing without reservation or full-batch prediction
 
 ## IStrategy
 
@@ -63,6 +65,12 @@ and covered-slot lookup.
 
 Carries target inventory, target-side adapter, requested amount, and optional drag context/source
 entry for candidate and rule validation.
+
+## TransferProbe
+
+Read-only snapshot of the first currently viable batch entry and candidate. It exposes the entry,
+candidate, resolved anchor, orientation, and covered slots. It is UI guidance only: it neither
+reserves inventory state nor replaces execution-time validation.
 
 ## TransferItemConversionUtility
 

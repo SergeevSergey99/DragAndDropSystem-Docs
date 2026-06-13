@@ -22,6 +22,20 @@ DragContext
 ```
 
 No `TransferPlan`, projected occupancy, or batch-wide transaction is created.
+Mixed single-cell and shaped entries use the same loop and observe committed mutations from earlier
+entries.
+
+## Probe Flow
+
+```text
+DragContext
+  -> transfer-wide domain veto
+  -> first entry with a viable explicit or automatic candidate
+  -> TransferProbe(candidate, anchor, orientation, covered slots)
+```
+
+The probe is advisory. It does not reserve state, calculate exact batch packing, or replace
+execution-time validation.
 
 ## Topology Flow
 
