@@ -152,6 +152,10 @@ namespace UDND.Inventories
             var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
             var orientation = entry?.Orientation ?? PlacementOrientation.Rot0;
             var previewStack = request.CreatePreviewStack(capacity);
+            var sourcePlacement = GetSourcePlacement(geometry, request);
+            bool movesWholeRemainingStack =
+                request.SourceBaseSlot?.Stack != null &&
+                capacity >= request.SourceBaseSlot.Stack.Count;
             if (previewStack == null ||
                 !PassesRules(anchor, request.ItemAdapter, capacity, request) ||
                 !geometry.CanPlace(
@@ -159,7 +163,7 @@ namespace UDND.Inventories
                     anchor,
                     shape,
                     orientation,
-                    GetSourcePlacement(geometry, request)))
+                    movesWholeRemainingStack ? sourcePlacement : null))
                 return false;
 
             candidate = PlacementCandidate.Create(anchor, orientation, shape, capacity);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UDND.Core;
 using UDND.Examples.Trading.Data;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -81,6 +82,8 @@ namespace UDND.Examples.Trading
                     ? RuleResult.Success()
                     : RuleResult.Failure("Only potions can be placed in this slot")),
         };
+
+        public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory) => RuleResult.Success();
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 

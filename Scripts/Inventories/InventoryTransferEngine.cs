@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UDND.Core;
+using UDND.Rules;
 using UDND.Slots;
 using UDND.Tools;
 
@@ -18,7 +19,10 @@ namespace UDND.Inventories
             IInventory targetInventory,
             BaseSlot targetBaseSlot,
             ResolvedDropPolicy policy,
-            PlacementCandidateOrderer ordererOverride = null)
+            PlacementCandidateOrderer ordererOverride = null,
+            Func<InventorySwapContext, bool> swapAttempting = null,
+            Action<InventorySwapContext> swapCompleted = null,
+            GlobalRuleValidator globalRules = null)
         {
             Context = context;
             Entry = entry;
@@ -26,6 +30,9 @@ namespace UDND.Inventories
             TargetBaseSlot = targetBaseSlot;
             Policy = policy;
             OrdererOverride = ordererOverride;
+            SwapAttempting = swapAttempting;
+            SwapCompleted = swapCompleted;
+            GlobalRules = globalRules;
         }
 
         public DragContext Context { get; }
@@ -34,6 +41,9 @@ namespace UDND.Inventories
         public BaseSlot TargetBaseSlot { get; }
         public ResolvedDropPolicy Policy { get; }
         public PlacementCandidateOrderer OrdererOverride { get; }
+        public Func<InventorySwapContext, bool> SwapAttempting { get; }
+        public Action<InventorySwapContext> SwapCompleted { get; }
+        public GlobalRuleValidator GlobalRules { get; }
     }
 
     /// <summary>
@@ -67,6 +77,130 @@ namespace UDND.Inventories
             public List<CommittedOutcome> Committed = new List<CommittedOutcome>();
         }
 
+        /// <summary>
+        /// Advisory read-only acceptance probe. It checks whether at least one entry currently has
+        /// a viable first candidate; execution remains authoritative and revalidates everything.
+        /// </summary>
+        public bool CanAttempt(
+            DragContext context,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlot,
+            ResolvedDropPolicy policy,
+            GlobalRuleValidator globalRules = null)
+        {
+            if (context?.Entries == null || context.Entries.Count == 0 || targetInventory == null)
+                return false;
+
+            if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
+                context.Entries.Count > 1)
+                return false;
+
+            var validationContext = context.WithTarget(targetBaseSlot, targetInventory);
+            if (!ValidateTransferStart(validationContext, targetInventory, out _))
+                return false;
+
+            var strategy = (targetInventory as IPlacementInventory)?.PlacementStrategy;
+            if (strategy == null)
+                return false;
+
+            var geometry = new InventoryPlacementGeometry(targetInventory);
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var entry = context.Entries[i];
+                var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+                var entryTargetSlot = i == 0 ? targetBaseSlot : null;
+                var entryContext = context.WithTarget(entryTargetSlot, targetInventory);
+                var rules = new RuleEvaluationService().ValidateEntryDrop(entryContext, entry, globalRules);
+                if (!rules.IsValid || sourceInventory == null || entry.Stack?.PrimaryAdapter == null)
+                    continue;
+
+                if (entryTargetSlot != null && !entryTargetSlot.IsEmpty &&
+                    targetInventory is IOccupiedSlotDropHandler occupiedHandler &&
+                    occupiedHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
+                    return true;
+
+                if (!TryResolvePreviewAdapter(
+                        sourceInventory,
+                        targetInventory,
+                        entry.Stack.PrimaryAdapter,
+                        out var previewAdapter))
+                    continue;
+
+                var acceptance = new InventoryAcceptanceRequest(
+                    targetInventory,
+                    previewAdapter,
+                    entry.Stack.Count,
+                    entryContext,
+                    entry);
+
+                if (entryTargetSlot != null)
+                {
+                    if (strategy.TryGetCandidate(geometry, acceptance, entryTargetSlot, out _))
+                        return true;
+
+                    if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Reject)
+                        continue;
+
+                    if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap)
+                        return !entryTargetSlot.IsEmpty;
+
+                    if (ReferenceEquals(sourceInventory, targetInventory) &&
+                        !policy.AllowSameInventoryAlternativePlacement)
+                        continue;
+                }
+
+                var orderer = entryTargetSlot != null
+                    ? policy.AlternativeOrderer ?? MergeFirstPlacementCandidateOrderer.Instance
+                    : strategy.DefaultOrderer ?? NaturalPlacementCandidateOrderer.Instance;
+                foreach (var candidate in orderer.Order(strategy.GetCandidates(geometry, acceptance), acceptance))
+                {
+                    if (!ShouldSkipProbeCandidate(candidate, entry, sourceInventory, targetInventory, geometry))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Sequential best-effort batch: each entry is its own transaction.
+        /// Events/DataBinding commit per entry so the next entry sees the real state.
+        /// Batch + Swap is rejected before any mutation.
+        /// </summary>
+        public TransferExecutionReport ExecuteBatch(
+            DragContext context,
+            IInventory targetInventory,
+            BaseSlot targetBaseSlot,
+            ResolvedDropPolicy policy,
+            Func<InventorySwapContext, bool> swapAttempting = null,
+            Action<InventorySwapContext> swapCompleted = null,
+            GlobalRuleValidator globalRules = null)
+        {
+            if (context?.Entries == null || context.Entries.Count == 0)
+                return TransferExecutionReport.Rejected("Empty drag context");
+
+            if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
+                context.Entries.Count > 1)
+                return TransferExecutionReport.Rejected("Swap requires a single full entry");
+
+            var validationContext = context.WithTarget(targetBaseSlot, targetInventory);
+            if (!ValidateTransferStart(validationContext, targetInventory, out var rejectionReason))
+                return TransferExecutionReport.Rejected(rejectionReason);
+
+            var results = new List<EntryTransferResult>(context.Entries.Count);
+            for (int i = 0; i < context.Entries.Count; i++)
+            {
+                var entryTargetSlot = i == 0 ? targetBaseSlot : null;
+                var req = new TransferEntryRequest(
+                    context, context.Entries[i], targetInventory, entryTargetSlot, policy,
+                    swapAttempting: swapAttempting, swapCompleted: swapCompleted,
+                    globalRules: globalRules);
+                results.Add(TryTransferEntry(req));
+            }
+
+            return new TransferExecutionReport(results);
+        }
+
         public EntryTransferResult TryTransferEntry(TransferEntryRequest request)
         {
             if (request?.Entry.Stack == null || request.Entry.Stack.IsEmpty)
@@ -81,6 +215,36 @@ namespace UDND.Inventories
                 return EntryTransferResult.Failed(requestedAmount, "Invalid source");
             if (targetInventory == null)
                 return EntryTransferResult.Failed(requestedAmount, "Target inventory is null");
+
+            var validationContext = request.Context.WithTarget(request.TargetBaseSlot, targetInventory);
+            var ruleResult = new RuleEvaluationService()
+                .ValidateEntryDrop(validationContext, entry, request.GlobalRules);
+            if (!ruleResult.IsValid)
+            {
+                return EntryTransferResult.Failed(
+                    requestedAmount,
+                    string.IsNullOrEmpty(ruleResult.FailureReason)
+                        ? "Drop rules rejected the entry"
+                        : ruleResult.FailureReason);
+            }
+
+            if (request.TargetBaseSlot != null &&
+                !request.TargetBaseSlot.IsEmpty &&
+                targetInventory is IOccupiedSlotDropHandler occupiedHandler &&
+                occupiedHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
+            {
+                return TryExecuteOccupiedHandler(
+                    request,
+                    sourceInventory,
+                    targetInventory,
+                    occupiedHandler);
+            }
+
+            // Single-entry swap path bypasses the candidate-loop machinery after common rules.
+            if (request.Policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
+                request.TargetBaseSlot != null &&
+                !request.TargetBaseSlot.IsEmpty)
+                return TryExecuteSwap(request);
 
             var strategy = (targetInventory as IPlacementInventory)?.PlacementStrategy;
             if (strategy == null)
@@ -130,7 +294,10 @@ namespace UDND.Inventories
                         case BlockedTargetResolutionKind.Reject:
                             return EntryTransferResult.Failed(requestedAmount, "Target slot is blocked");
                         case BlockedTargetResolutionKind.Swap:
-                            return EntryTransferResult.Failed(requestedAmount, "Swap is not supported by the JIT pipeline yet");
+                            // Occupied explicit target + Swap policy reached here means the target
+                            // had no stackable capacity (otherwise explicitPlaced would be true).
+                            // Route to the swap path directly.
+                            return TryExecuteSwap(request);
                         case BlockedTargetResolutionKind.AlternativeSlots:
                             if (ReferenceEquals(sourceInventory, targetInventory) &&
                                 !request.Policy.AllowSameInventoryAlternativePlacement)
@@ -181,6 +348,89 @@ namespace UDND.Inventories
             return CommitEntry(transaction);
         }
 
+        private static EntryTransferResult TryExecuteOccupiedHandler(
+            TransferEntryRequest request,
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            IOccupiedSlotDropHandler handler)
+        {
+            int requestedAmount = request.Entry.Stack.Count;
+            if (sourceInventory is not IInventorySnapshotProvider sourceProvider ||
+                targetInventory is not IInventorySnapshotProvider targetProvider)
+            {
+                return EntryTransferResult.Failed(
+                    requestedAmount,
+                    "Occupied-slot handler requires snapshot-capable inventories");
+            }
+
+            var sourceSnapshot = sourceProvider.CaptureSnapshot();
+            var targetSnapshot = ReferenceEquals(sourceInventory, targetInventory)
+                ? null
+                : targetProvider.CaptureSnapshot();
+            var sourceRemovedStack = request.Entry.Stack.CreateCopy();
+            var sourcePlacementSnapshot = ResolvePlacementSnapshot(
+                sourceInventory,
+                request.Entry.SourceBaseSlot);
+            var targetPlacementSnapshot = ResolvePlacementSnapshot(
+                targetInventory,
+                request.TargetBaseSlot);
+
+            try
+            {
+                if (!handler.ExecuteOccupiedSlotDrop(request.Entry, request.TargetBaseSlot))
+                {
+                    RestoreOccupiedHandlerSnapshots(
+                        sourceInventory, sourceProvider, sourceSnapshot,
+                        targetInventory, targetProvider, targetSnapshot);
+                    return EntryTransferResult.Failed(requestedAmount, "Occupied-slot handler failed");
+                }
+            }
+            catch (Exception ex)
+            {
+                RestoreOccupiedHandlerSnapshots(
+                    sourceInventory, sourceProvider, sourceSnapshot,
+                    targetInventory, targetProvider, targetSnapshot);
+                return EntryTransferResult.Failed(requestedAmount, ex.Message);
+            }
+
+            sourceInventory.UpdateAllVisuals();
+            if (!ReferenceEquals(sourceInventory, targetInventory))
+                targetInventory.UpdateAllVisuals();
+
+            var outcome = new PlacementTransferOutcome(
+                PlacementTransferOutcomeKind.OccupiedHandler,
+                sourceInventory,
+                targetInventory,
+                request.Entry.SourceBaseSlot,
+                request.TargetBaseSlot,
+                sourceRemovedStack,
+                sourceRemovedStack.CreateCopy(),
+                sourcePlacementSnapshot,
+                targetPlacementSnapshot,
+                targetWasEmptyBefore: false);
+            return EntryTransferResult.Committed(
+                requestedAmount,
+                requestedAmount,
+                new[] { outcome });
+        }
+
+        private static void RestoreOccupiedHandlerSnapshots(
+            IInventory sourceInventory,
+            IInventorySnapshotProvider sourceProvider,
+            InventorySnapshot sourceSnapshot,
+            IInventory targetInventory,
+            IInventorySnapshotProvider targetProvider,
+            InventorySnapshot targetSnapshot)
+        {
+            sourceProvider.RestoreSnapshot(sourceSnapshot);
+            sourceInventory.UpdateAllVisuals();
+            if (targetSnapshot != null)
+            {
+                targetProvider.RestoreSnapshot(targetSnapshot);
+                targetInventory.UpdateAllVisuals();
+            }
+        }
+
         private static InventoryAcceptanceRequest CreateAcceptanceRequest(
             TransferEntryRequest request,
             EntryTransaction transaction)
@@ -218,6 +468,24 @@ namespace UDND.Inventories
                    ReferenceEquals(geometry.GetPlacementAt(candidate.Anchor), sourcePlacement);
         }
 
+        private static bool ShouldSkipProbeCandidate(
+            PlacementCandidate candidate,
+            DragEntry entry,
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            InventoryPlacementGeometry geometry)
+        {
+            if (!ReferenceEquals(sourceInventory, targetInventory))
+                return false;
+
+            if (ReferenceEquals(candidate.Anchor, entry.SourceBaseSlot) ||
+                ReferenceEquals(candidate.TargetPlacement, entry.SourcePlacement))
+                return true;
+
+            return candidate.Anchor != null &&
+                   ReferenceEquals(geometry.GetPlacementAt(candidate.Anchor), entry.SourcePlacement);
+        }
+
         private bool TryApplyCandidate(
             TransferEntryRequest request,
             EntryTransaction transaction,
@@ -232,6 +500,10 @@ namespace UDND.Inventories
             var targetInventory = transaction.TargetInventory;
             var sourceSlot = transaction.SourceBaseSlot;
             var placementInventory = targetInventory as IPlacementInventory;
+            var sourceCheckpoint = transaction.SourceSnapshotProvider.CaptureSnapshot();
+            var targetCheckpoint = ReferenceEquals(sourceInventory, targetInventory)
+                ? null
+                : transaction.TargetSnapshotProvider.CaptureSnapshot();
 
             BaseSlot anchorSlot = null;
             BaseSlot createdDynamicSlot = null;
@@ -256,7 +528,7 @@ namespace UDND.Inventories
 
             if (anchorSlot == null)
             {
-                ReleaseDynamicSlot(targetInventory, createdDynamicSlot);
+                RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
             }
 
@@ -274,7 +546,7 @@ namespace UDND.Inventories
 
             if (!ValidateDomainHandlers(domainContext))
             {
-                ReleaseDynamicSlot(targetInventory, createdDynamicSlot);
+                RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
             }
 
@@ -284,7 +556,7 @@ namespace UDND.Inventories
             if (!sourceInventory.TrySplitFromSlot(sourceSlot, amount, out var subStack) ||
                 subStack == null || subStack.Count != amount)
             {
-                ReleaseDynamicSlot(targetInventory, createdDynamicSlot);
+                RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
             }
 
@@ -293,8 +565,7 @@ namespace UDND.Inventories
             if (!TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, subStack) ||
                 !TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, subStack))
             {
-                RestoreSubStack(transaction, sourceRemovedStack);
-                ReleaseDynamicSlot(targetInventory, createdDynamicSlot);
+                RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
             }
 
@@ -302,8 +573,7 @@ namespace UDND.Inventories
 
             if (!TryMutateTarget(candidate, targetInventory, placementInventory, geometry, anchorSlot, subStack))
             {
-                RestoreSubStack(transaction, sourceRemovedStack);
-                ReleaseDynamicSlot(targetInventory, createdDynamicSlot);
+                RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
             }
 
@@ -359,32 +629,29 @@ namespace UDND.Inventories
             return anchorSlot.IsEmpty && targetInventory.TrySetStackForSlot(anchorSlot, subStack);
         }
 
-        private static void RestoreSubStack(EntryTransaction transaction, ItemStack sourceRemovedStack)
+        private static void RestoreCandidateCheckpoint(
+            EntryTransaction transaction,
+            InventorySnapshot sourceCheckpoint,
+            InventorySnapshot targetCheckpoint)
         {
-            var sourceSlot = transaction.SourceBaseSlot;
-            bool restored = sourceSlot.IsEmpty
-                ? transaction.SourceInventory.TrySetStackForSlot(sourceSlot, sourceRemovedStack)
-                : transaction.SourceInventory.TryAddToSlotStack(sourceSlot, sourceRemovedStack);
-
-            if (!restored)
+            try
             {
-                // Cannot put the sub-stack back: hard-restore both inventories. The committed list
-                // is cleared so the caller fails the entry without dispatching stale events.
-                Extensions.DragAndDropLog("<color=red>[InventoryTransferService] Sub-stack restore failed, rolling back entry</color>");
+                transaction.SourceSnapshotProvider.RestoreSnapshot(sourceCheckpoint);
+                transaction.SourceInventory.UpdateAllVisuals();
+                if (targetCheckpoint != null)
+                {
+                    transaction.TargetSnapshotProvider.RestoreSnapshot(targetCheckpoint);
+                    transaction.TargetInventory.UpdateAllVisuals();
+                }
+            }
+            catch (Exception ex)
+            {
+                Extensions.DragAndDropLog($"<color=red>[InventoryTransferService] Candidate rollback failed: {ex.Message}</color>");
                 RestoreSnapshots(transaction);
                 transaction.Committed.Clear();
                 transaction.Remaining = transaction.RequestedAmount;
                 transaction.Aborted = true;
             }
-
-            sourceSlot.UpdateVisuals();
-        }
-
-        private static void ReleaseDynamicSlot(IInventory targetInventory, BaseSlot createdSlot)
-        {
-            if (createdSlot != null && createdSlot.IsEmpty &&
-                targetInventory is IDynamicSlotLifecycle lifecycle)
-                lifecycle.HandleSlotEmptied(createdSlot);
         }
 
         private static EntryTransferResult RollbackEntry(EntryTransaction transaction, string reason)
@@ -483,6 +750,47 @@ namespace UDND.Inventories
             return true;
         }
 
+        private static bool ValidateTransferStart(
+            DragContext context,
+            IInventory targetInventory,
+            out string failureReason)
+        {
+            failureReason = null;
+            var handlers = new HashSet<ITransferDomainHandler>();
+
+            foreach (var entry in context.Entries)
+            {
+                var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+                if (sourceInventory?.DataBinding is ITransferDomainHandler sourceHandler)
+                    handlers.Add(sourceHandler);
+            }
+
+            if (targetInventory?.DataBinding is ITransferDomainHandler targetHandler)
+                handlers.Add(targetHandler);
+
+            foreach (var handler in handlers)
+            {
+                try
+                {
+                    var result = handler.CanStartTransfer(context, targetInventory);
+                    if (result.IsValid)
+                        continue;
+
+                    failureReason = string.IsNullOrEmpty(result.FailureReason)
+                        ? "Transfer rejected by domain handler"
+                        : result.FailureReason;
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    failureReason = ex.Message;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private static IEnumerable<ITransferDomainHandler> EnumerateDomainHandlers(TransferDomainContext context)
         {
             var sourceHandler = context.SourceInventory?.DataBinding as ITransferDomainHandler;
@@ -523,6 +831,206 @@ namespace UDND.Inventories
 
             previewAdapter = previewStack.PrimaryAdapter;
             return previewAdapter != null;
+        }
+
+        // ──── Swap ─────────────────────────────────────────────────────────────────────────────
+
+        private EntryTransferResult TryExecuteSwap(TransferEntryRequest request)
+        {
+            var entry = request.Entry;
+            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+            var targetInventory = request.TargetInventory;
+            var sourceSlot = entry.SourceBaseSlot;
+            var targetSlot = request.TargetBaseSlot;
+            int requestedAmount = entry.Stack.Count;
+
+            if (sourceInventory == null || targetInventory == null || sourceSlot == null || targetSlot == null)
+                return EntryTransferResult.Failed(requestedAmount, "Swap: invalid source/target");
+
+            if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
+                return EntryTransferResult.Failed(requestedAmount, "Swap requires non-empty source and target");
+
+            // Swap transfers the entire source placement stack.
+            if (sourceSlot.Stack?.Count != requestedAmount)
+                return EntryTransferResult.Failed(requestedAmount, "Swap requires the entire source stack");
+
+            if (sourceInventory is not IInventorySnapshotProvider sourceSnapshotProvider ||
+                targetInventory is not IInventorySnapshotProvider targetSnapshotProvider)
+                return EntryTransferResult.Failed(requestedAmount, "Swap requires snapshot-capable inventories");
+
+            if (sourceInventory is not IPlacementInventory sourcePlacementInventory ||
+                targetInventory is not IPlacementInventory targetPlacementInventory)
+                return EntryTransferResult.Failed(requestedAmount, "Swap requires placement-capable inventories");
+
+            var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
+            var targetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
+            if (sourcePlacement?.Stack == null || targetPlacement?.Stack == null)
+                return EntryTransferResult.Failed(requestedAmount, "Swap: cannot resolve placements");
+
+            // Clone stacks for events (before mutation) and build converted copies for placement.
+            var sourceStackBefore = sourcePlacement.Stack.CreateCopy();
+            var targetStackBefore = targetPlacement.Stack.CreateCopy();
+
+            // Forward: source item will be placed in the target inventory.
+            if (!ItemStack.TryCreate(sourcePlacement.Stack.Adapters, out var targetStackAfter) ||
+                !TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, targetStackAfter) ||
+                !TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, targetStackAfter))
+                return EntryTransferResult.Failed(requestedAmount, "Swap: forward conversion failed");
+
+            // Reverse: target item will be placed in the source inventory.
+            if (!ItemStack.TryCreate(targetPlacement.Stack.Adapters, out var sourceStackAfter) ||
+                !TransferItemConversionUtility.TryConvertOutgoingStack(targetInventory, sourceStackAfter) ||
+                !TransferItemConversionUtility.TryConvertIncomingStack(sourceInventory, sourceStackAfter))
+                return EntryTransferResult.Failed(requestedAmount, "Swap: reverse conversion failed");
+
+            // Domain validation in both directions.
+            var forwardDomain = new TransferDomainContext(
+                sourceInventory, targetInventory, sourceSlot, targetSlot,
+                sourceStackBefore.PrimaryAdapter, targetStackAfter.PrimaryAdapter,
+                sourceStackBefore.Count, TransferKind.Swap);
+            var reverseDomain = new TransferDomainContext(
+                targetInventory, sourceInventory, targetSlot, sourceSlot,
+                targetStackBefore.PrimaryAdapter, sourceStackAfter.PrimaryAdapter,
+                targetStackBefore.Count, TransferKind.Swap);
+            forwardDomain.CounterpartContext = reverseDomain;
+            reverseDomain.CounterpartContext = forwardDomain;
+
+            if (!ValidateDomainHandlers(forwardDomain) || !ValidateDomainHandlers(reverseDomain))
+                return EntryTransferResult.Failed(requestedAmount, "Swap: domain validation failed");
+
+            // Optional UI callback before mutation.
+            var swapContext = new InventorySwapContext(
+                sourceStackBefore, targetStackBefore, sourceSlot, targetSlot,
+                sourceInventory, targetInventory);
+            if (request.SwapAttempting != null && !request.SwapAttempting(swapContext))
+                return EntryTransferResult.Failed(requestedAmount, "Swap cancelled by listener");
+
+            var sourceSnapshot = sourceSnapshotProvider.CaptureSnapshot();
+            var targetSnapshot = ReferenceEquals(sourceInventory, targetInventory)
+                ? null
+                : targetSnapshotProvider.CaptureSnapshot();
+
+            var sourceRemovedSnapshot = PlacementSnapshot.FromPlacement(sourcePlacement, sourcePlacementInventory.GetSlot);
+            var targetRemovedSnapshot = PlacementSnapshot.FromPlacement(targetPlacement, targetPlacementInventory.GetSlot);
+
+            if (!sourcePlacementInventory.RemovePlacement(sourcePlacement) ||
+                !targetPlacementInventory.RemovePlacement(targetPlacement))
+            {
+                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                    targetInventory, targetSnapshotProvider, targetSnapshot);
+                return EntryTransferResult.Failed(requestedAmount, "Swap: failed to vacate placements");
+            }
+
+            // Each item keeps its own footprint while moving to the opposite anchor.
+            var forwardShape = PlacementShapeUtility.Resolve(targetStackAfter.PrimaryAdapter)
+                ?? sourcePlacement.Shape;
+            var forwardReq = new PlacementRequest(
+                targetStackAfter.CreateCopy(), targetPlacement.AnchorIndex,
+                sourcePlacement.Orientation, forwardShape);
+            if (!targetPlacementInventory.TryPlace(forwardReq, out var forwardPlacement))
+            {
+                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                    targetInventory, targetSnapshotProvider, targetSnapshot);
+                return EntryTransferResult.Failed(requestedAmount, "Swap: cannot place source item in target");
+            }
+
+            var reverseShape = PlacementShapeUtility.Resolve(sourceStackAfter.PrimaryAdapter)
+                ?? targetPlacement.Shape;
+            var reverseReq = new PlacementRequest(
+                sourceStackAfter.CreateCopy(), sourcePlacement.AnchorIndex,
+                targetPlacement.Orientation, reverseShape);
+            if (!sourcePlacementInventory.TryPlace(reverseReq, out var reversePlacement))
+            {
+                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
+                    targetInventory, targetSnapshotProvider, targetSnapshot);
+                return EntryTransferResult.Failed(requestedAmount, "Swap: cannot place target item in source");
+            }
+
+            sourceInventory.UpdateAllVisuals();
+            targetInventory.UpdateAllVisuals();
+
+            var forwardAddedSnapshot = PlacementSnapshot.FromPlacement(forwardPlacement, targetPlacementInventory.GetSlot);
+            var reverseAddedSnapshot = PlacementSnapshot.FromPlacement(reversePlacement, sourcePlacementInventory.GetSlot);
+
+            // Commit domain hooks.
+            forwardDomain.MarkCommitted(targetSlot, targetStackAfter.PrimaryAdapter, sourceStackBefore.Count);
+            reverseDomain.MarkCommitted(sourceSlot, sourceStackAfter.PrimaryAdapter, targetStackBefore.Count);
+            foreach (var h in EnumerateDomainHandlers(forwardDomain))
+                try { h.OnTransferSucceeded(forwardDomain); } catch (Exception ex)
+                { Extensions.DragAndDropLog($"<color=red>[InventoryTransferService] Swap domain hook threw: {ex.Message}</color>"); }
+            foreach (var h in EnumerateDomainHandlers(reverseDomain))
+                try { h.OnTransferSucceeded(reverseDomain); } catch (Exception ex)
+                { Extensions.DragAndDropLog($"<color=red>[InventoryTransferService] Swap domain hook threw: {ex.Message}</color>"); }
+
+            DispatchSwapEvents(
+                sourceInventory, targetInventory, sourceSlot, targetSlot,
+                sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter,
+                sourceRemovedSnapshot, targetRemovedSnapshot,
+                forwardAddedSnapshot, reverseAddedSnapshot);
+
+            request.SwapCompleted?.Invoke(swapContext);
+
+            var outcome = new PlacementTransferOutcome(
+                PlacementTransferOutcomeKind.Swap,
+                sourceInventory, targetInventory,
+                sourceSlot, targetSlot,
+                sourceStackBefore, targetStackAfter,
+                sourceRemovedSnapshot, forwardAddedSnapshot,
+                targetWasEmptyBefore: false);
+
+            return EntryTransferResult.Committed(requestedAmount, requestedAmount, new[] { outcome });
+        }
+
+        private static void RestoreSwapSnapshots(
+            IInventory sourceInventory,
+            IInventorySnapshotProvider sourceProvider,
+            InventorySnapshot sourceSnapshot,
+            IInventory targetInventory,
+            IInventorySnapshotProvider targetProvider,
+            InventorySnapshot targetSnapshot)
+        {
+            sourceProvider.RestoreSnapshot(sourceSnapshot);
+            sourceInventory.UpdateAllVisuals();
+            if (targetSnapshot != null)
+            {
+                targetProvider.RestoreSnapshot(targetSnapshot);
+                targetInventory.UpdateAllVisuals();
+            }
+        }
+
+        private static void DispatchSwapEvents(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            BaseSlot sourceSlot,
+            BaseSlot targetSlot,
+            ItemStack sourceStackBefore,
+            ItemStack targetStackBefore,
+            ItemStack targetStackAfter,
+            ItemStack sourceStackAfter,
+            PlacementSnapshot sourceRemovedSnapshot,
+            PlacementSnapshot targetRemovedSnapshot,
+            PlacementSnapshot forwardAddedSnapshot,
+            PlacementSnapshot reverseAddedSnapshot)
+        {
+            if (targetInventory is IInventoryEventSink targetEventSink)
+            {
+                targetEventSink.EmitItemRemoved(
+                    targetStackBefore, targetSlot.Index, sourceInventory,
+                    targetSlot, sourceSlot, targetRemovedSnapshot);
+                targetEventSink.EmitItemAdded(
+                    targetStackAfter, targetSlot.Index, sourceInventory,
+                    sourceSlot, targetSlot, forwardAddedSnapshot);
+            }
+
+            if (sourceInventory is IInventoryEventSink sourceEventSink)
+            {
+                sourceEventSink.EmitItemRemoved(
+                    sourceStackBefore, sourceSlot.Index, targetInventory,
+                    sourceSlot, targetSlot, sourceRemovedSnapshot);
+                sourceEventSink.EmitItemAdded(
+                    sourceStackAfter, sourceSlot.Index, targetInventory,
+                    targetSlot, sourceSlot, reverseAddedSnapshot);
+            }
         }
 
         private static PlacementSnapshot ResolvePlacementSnapshot(IInventory inventory, BaseSlot slot)

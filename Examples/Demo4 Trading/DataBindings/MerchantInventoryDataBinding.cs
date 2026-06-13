@@ -56,6 +56,8 @@ namespace UDND.Examples.Trading
         protected override void AddToData(TradableSoAdapter adapter) => MerchantData.AddItem(adapter.Item);
         protected override void RemoveFromData(TradableSoAdapter adapter) => MerchantData.TryRemoveItem(adapter.Item);
 
+        public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory) => RuleResult.Success();
+
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidateMerchantTransfer(context, MerchantData);
 
         public void OnTransferSucceeded(TransferDomainContext context) => TradingHelper.ApplyMerchantTransferEffects(context, MerchantData);

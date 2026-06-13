@@ -10,7 +10,7 @@ namespace UDND.Inventories
 {
     /// <summary>
     /// Drop processor for inventory-based targets (slots and inventory areas).
-    /// Encapsulates 3-tier rule validation and delegates to the planner/executor pipeline.
+    /// Uses a read-only acceptance probe and delegates mutation to the JIT transfer service.
     /// </summary>
     public class InventoryDropProcessor : IDropRequestProcessor
     {
@@ -18,11 +18,9 @@ namespace UDND.Inventories
         private readonly IInventory _targetInventory;
         private readonly DropRequestPolicy? _boundRequestOverride;
         private readonly GlobalRuleValidator _globalRules;
-        private readonly TransferPlanner _planner;
-        private readonly TransferPlanExecutor _executor;
+        private readonly InventoryTransferService _jitService;
         private readonly Func<InventorySwapContext, bool> _swapAttempting;
         private readonly Action<InventorySwapContext> _swapCompleted;
-        private readonly SlotSelectionPolicyBase _selectionPolicy;
         public TransferExecutionSummary LastExecutionSummary { get; private set; }
 
         /// <summary>
@@ -41,11 +39,9 @@ namespace UDND.Inventories
             _targetInventory = targetInventory;
             _boundRequestOverride = boundRequestOverride;
             _globalRules = globalRules;
-            _planner = new TransferPlanner();
-            _executor = new TransferPlanExecutor();
+            _jitService = new InventoryTransferService();
             _swapAttempting = swapAttempting;
             _swapCompleted = swapCompleted;
-            _selectionPolicy = selectionPolicy;
         }
 
         /// <summary>
@@ -77,21 +73,20 @@ namespace UDND.Inventories
 
             var effectivePolicy = ResolveEffectivePolicy(context, requested);
 
-            var plan = _planner.BuildPlan(
+            bool canAttempt = _jitService.CanAttempt(
                 context,
-                effectivePolicy,
                 _targetInventory,
                 _targetBaseSlot,
-                _globalRules,
-                _selectionPolicy);
+                effectivePolicy,
+                _globalRules);
 
-            if (!plan.IsValid)
+            if (!canAttempt)
             {
-                Extensions.DragAndDropLog($"<color=red>[InventoryDropProcessor] CanAcceptDrop: plan failed: {plan.Failure?.Reason}</color>");
+                Extensions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: probe rejected</color>");
                 return false;
             }
 
-            Extensions.DragAndDropLog("<color=green>[InventoryDropProcessor] CanAcceptDrop: plan is valid</color>");
+            Extensions.DragAndDropLog("<color=green>[InventoryDropProcessor] CanAcceptDrop: probe accepted</color>");
             return true;
         }
 
@@ -113,101 +108,34 @@ namespace UDND.Inventories
 
         public TransferExecutionSummary ProcessDropWithSummary(DragContext context, DropRequestPolicy? requested)
         {
-            if (!TryPrepareExecution(context, requested, "ProcessDrop", out var plan, out var failureSummary))
+            if (context == null)
             {
-                LastExecutionSummary = failureSummary;
-                return failureSummary;
+                var fail = BuildFailureSummary("Null drag context");
+                LastExecutionSummary = fail;
+                return fail;
             }
 
-            var summary = _executor.Execute(plan, new TransferExecutionOptions
-            {
-                GlobalRules = _globalRules,
-                SwapAttempting = _swapAttempting,
-                SwapCompleted = _swapCompleted
-            });
-            return FinalizeExecution(context, summary, "Execute failed", "Executed plan");
+            var effectivePolicy = ResolveEffectivePolicy(context, requested);
+            var report = _jitService.ExecuteBatch(
+                context,
+                _targetInventory,
+                _targetBaseSlot,
+                effectivePolicy,
+                _swapAttempting,
+                _swapCompleted,
+                _globalRules);
+
+            var summary = report.ToExecutionSummary(_targetInventory);
+            return FinalizeExecution(context, summary, "JIT execute failed", "JIT executed");
         }
 
-        public async Task<TransferExecutionSummary> ProcessDropWithSummaryAsync(
+        public Task<TransferExecutionSummary> ProcessDropWithSummaryAsync(
             DragContext context,
             DropRequestPolicy? requested = null,
             CancellationToken cancellationToken = default)
         {
-            if (!TryPrepareExecution(context, requested, "ProcessDropAsync", out var plan, out var failureSummary))
-            {
-                LastExecutionSummary = failureSummary;
-                return failureSummary;
-            }
-
-            var summary = await _executor.ExecuteAsync(plan, new TransferExecutionOptions
-            {
-                GlobalRules = _globalRules,
-                SwapAttempting = _swapAttempting,
-                SwapCompleted = _swapCompleted
-            }, cancellationToken);
-            return FinalizeExecution(context, summary, "ExecuteAsync failed", "Executed async plan");
-        }
-
-        private bool TryPrepareExecution(
-            DragContext context,
-            DropRequestPolicy? requested,
-            string operationName,
-            out TransferPlan plan,
-            out TransferExecutionSummary failureSummary)
-        {
-            plan = null;
-            failureSummary = null;
-
-            if (context == null)
-            {
-                failureSummary = BuildFailureSummary("Null drag context");
-                return false;
-            }
-
-            if (context.Entries == null || context.Entries.Count == 0)
-            {
-                failureSummary = BuildFailureSummary("Drag context has no entries");
-                return false;
-            }
-
-            var entry = context.Entries[0];
-            var source = entry.SourceInventory;
-            var sourceSlot = entry.SourceBaseSlot;
-            var draggedStack = entry.Stack;
-
-            if (source == null || sourceSlot == null || draggedStack == null)
-            {
-                Extensions.DragAndDropLog($"<color=red>[InventoryDropProcessor] {operationName}: Invalid context</color>");
-                failureSummary = BuildFailureSummary("Invalid drag context");
-                return false;
-            }
-
-            if (_targetInventory == null)
-            {
-                failureSummary = BuildFailureSummary("Target inventory is null");
-                return false;
-            }
-
-            var effectivePolicy = ResolveEffectivePolicy(context, requested);
-
-            plan = _planner.BuildPlan(
-                context,
-                effectivePolicy,
-                _targetInventory,
-                _targetBaseSlot,
-                _globalRules,
-                _selectionPolicy);
-
-            if (plan == null || !plan.IsValid)
-            {
-                failureSummary = BuildFailureSummary(plan?.Failure?.Reason ?? "Transfer plan is invalid");
-                return false;
-            }
-
-            var policy = plan.Policy;
-            var blockedResolverName = policy.BlockedTargetResolver?.GetType().Name ?? "None";
-            Extensions.DragAndDropLog($"<color=yellow>[InventoryDropProcessor] {operationName}: {draggedStack.Count}x {draggedStack.DisplayName} | TargetSlot={_targetBaseSlot?.Index.ToString() ?? "AREA"} | Policy=[BlockedResolver={blockedResolverName}, Partial={policy.AllowPartial}, Batch={policy.BatchMode}]</color>");
-            return true;
+            // JIT service is synchronous; return a completed task for API compatibility.
+            return Task.FromResult(ProcessDropWithSummary(context, requested));
         }
 
         private TransferExecutionSummary FinalizeExecution(

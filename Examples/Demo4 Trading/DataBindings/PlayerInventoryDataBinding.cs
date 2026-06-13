@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UDND.Core;
 using UDND.Examples.Trading.Data;
 using UDND.DataBinding;
 using UDND.Inventories;
@@ -23,6 +24,8 @@ namespace UDND.Examples.Trading
 
         protected override void AddToData(TradableItemAdapterModelAdapter adapter) => PlayerData.AddItem(adapter.Item);
         protected override void RemoveFromData(TradableItemAdapterModelAdapter adapter) => PlayerData.TryRemoveItem(adapter.Item);
+
+        public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory) => RuleResult.Success();
 
         public RuleResult CanCommitTransfer(TransferDomainContext context) => TradingHelper.ValidatePlayerTransfer(context, PlayerData);
 
