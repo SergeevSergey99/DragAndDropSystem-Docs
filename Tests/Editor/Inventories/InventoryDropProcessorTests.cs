@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using UDND.Core;
 using UDND.DataBinding;
@@ -11,15 +10,14 @@ namespace UDND.Tests.Inventories
 {
     /// <summary>
     /// Integration tests for InventoryDropProcessor — the public entry point of the
-    /// plan + execute pipeline. Each test wires two real UniversalInventory instances
+    /// JIT transfer pipeline. Each test wires two real UniversalInventory instances
     /// via InventoryBuilder, builds a DragContext with DragContextBuilder, and asserts
     /// against the resulting TransferExecutionSummary + final slot state.
     ///
     /// Covers the scenarios that used to regress silently before the snapshot fix:
     ///   - 5 Unique items dropped into a 4-slot area (BestEffort)
-    ///   - Atomic rollback on partial failure
     ///   - AllowPartial=false early reject
-    ///   - Swap via SwapBlockedTargetResolver
+    ///   - Swap via BlockedTargetResolutionKind.Swap
     ///   - FindAlternative with EmptyFirst / MergeFirst placement
     /// </summary>
     [TestFixture]
@@ -78,10 +76,8 @@ namespace UDND.Tests.Inventories
         [Test]
         public void ProcessDrop_AllowPartialFalse_SingleEntryCannotFitFully_Rejected()
         {
-            // AllowPartial is a PER-ENTRY check in the planner: it fires when a single
-            // entry's stack would have to be split across capacity. Here a 10-coin source
-            // stack tries to land in a 5-capacity target slot — the planner would plan 5/10,
-            // which is partial, so AllowPartial=false must reject the whole operation.
+            // RequireFull is a per-entry transaction rule. Here a 10-coin source stack
+            // can transfer only 5, so the entry must roll back.
             _source = new InventoryBuilder()
                 .WithStrategy(new StackableItemStrategy())
                 .WithMaxStackSize(20)
@@ -169,51 +165,6 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual(2, CountFilledSlots(_source), "Two items must remain in source");
         }
 
-        // ---------- Atomic mode ----------
-
-        [Test]
-        public void ProcessDrop_AtomicMode_OneEntryFails_WholeOperationRollsBack()
-        {
-            var atomicSettings = new DropPolicySettings();
-            SetPrivateField(atomicSettings, "_batchMode", BatchMode.Atomic);
-
-            // Sanity: reflection must actually flip _batchMode before we proceed,
-            // otherwise the rest of the test is meaningless.
-            Assume.That(
-                atomicSettings.Resolve(null, null).BatchMode,
-                Is.EqualTo(BatchMode.Atomic),
-                "Reflection failed to set _batchMode on DropPolicySettings");
-
-            _source = new InventoryBuilder()
-                .WithStrategy(new UniqueItemStrategy())
-                .WithFixedSlots(5)
-                .Build();
-            _target = new InventoryBuilder()
-                .WithStrategy(new UniqueItemStrategy())
-                .WithFixedSlots(4)
-                .WithDropPolicy(atomicSettings)
-                .Build();
-
-            // And verify the inventory actually exposes atomic mode through its provider.
-            Assume.That(
-                _target.ResolveDropPolicy(null, null).BatchMode,
-                Is.EqualTo(BatchMode.Atomic),
-                "InventoryBuilder failed to wire atomic settings into UniversalInventory");
-
-            for (int i = 0; i < 5; i++)
-                _source.TryAddStack(ItemStackBuilder.Unique(1, $"gem_{i}"));
-
-            var context = DragContextBuilder.FromAllSlots(_source).ToTarget(_target).Build();
-
-            var processor = new InventoryDropProcessor(_target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context);
-
-            Assert.IsFalse(summary.Success, "Atomic must fail when not every entry can be placed");
-            Assert.AreEqual(0, summary.TransferredAmount);
-            Assert.AreEqual(5, CountFilledSlots(_source), "Source must be fully restored after rollback");
-            Assert.AreEqual(0, CountFilledSlots(_target), "Target must be fully restored after rollback");
-        }
-
         // ---------- Swap resolver ----------
 
         [Test]
@@ -275,7 +226,8 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
             var summary = processor.ProcessDropWithSummary(
                 context,
-                DropRequestPolicy.WithFindAlternative(new EmptyFirstAlternativePlacementStrategy()));
+                DropRequestPolicy.WithAlternativeOrderer(
+                    EmptyFirstPlacementCandidateOrderer.Instance));
 
             Assert.IsTrue(summary.Success);
             Assert.AreEqual("other", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Blocked target must stay untouched");
@@ -310,7 +262,8 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
             var summary = processor.ProcessDropWithSummary(
                 context,
-                DropRequestPolicy.WithFindAlternative(new MergeFirstAlternativePlacementStrategy()));
+                DropRequestPolicy.WithAlternativeOrderer(
+                    MergeFirstPlacementCandidateOrderer.Instance));
 
             Assert.IsTrue(summary.Success);
             Assert.AreEqual(5, _target.GetSlot(1).Stack.Count, "MergeFirst must merge into existing coin stack");
@@ -336,7 +289,7 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_source.GetSlot(1), _source, new GlobalRuleValidator());
             var summary = processor.ProcessDropWithSummary(
                 context,
-                DropRequestPolicy.WithFindAlternative(
+                DropRequestPolicy.WithAlternativeOrderer(
                     allowSameInventoryAlternativePlacement: false));
 
             Assert.IsFalse(summary.Success, "Same-inventory blocked drop must be rejected instead of using an empty fallback slot");
@@ -362,7 +315,9 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_source.GetSlot(1), _source, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithFindAlternative());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithAlternativeOrderer());
 
             Assert.IsTrue(summary.Success, $"Expected fallback move, got: {summary.DropResult.FailureReason}");
             Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source slot must be emptied after the move");
@@ -393,7 +348,7 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
             var summary = processor.ProcessDropWithSummary(
                 context,
-                DropRequestPolicy.WithFindAlternative(
+                DropRequestPolicy.WithAlternativeOrderer(
                     allowSameInventoryAlternativePlacement: false));
 
             Assert.IsTrue(summary.Success, $"Cross-inventory fallback must remain enabled, got: {summary.DropResult.FailureReason}");
@@ -427,11 +382,13 @@ namespace UDND.Tests.Inventories
                 .Build();
 
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
-            var summary = processor.ProcessDropWithSummary(context, DropRequestPolicy.WithFindAlternative());
+            var summary = processor.ProcessDropWithSummary(
+                context,
+                DropRequestPolicy.WithAlternativeOrderer());
 
             Assert.IsTrue(summary.Success, $"Occupied handler must succeed, got: {summary.DropResult.FailureReason}");
-            Assert.Greater(binding.CanHandleCalls, 0, "Planner must ask the data binding before using FindAlternative");
-            Assert.AreEqual(1, binding.ExecuteCalls, "Executor must use the occupied-slot handler");
+            Assert.Greater(binding.CanHandleCalls, 0, "Probe/execution must ask the data binding");
+            Assert.AreEqual(1, binding.ExecuteCalls, "JIT service must use the occupied-slot handler");
             Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source must be consumed by the occupied-slot handler");
             Assert.AreEqual("container", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Occupied target must stay untouched");
             Assert.IsTrue(_target.GetSlot(1).IsEmpty, "FindAlternative must not move the item into the free slot");
@@ -460,7 +417,7 @@ namespace UDND.Tests.Inventories
             var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
             var summary = processor.ProcessDropWithSummary(
                 context,
-                DropRequestPolicy.WithResolver(new RejectBlockedTargetResolver()));
+                DropRequestPolicy.WithReject());
 
             Assert.IsFalse(summary.Success, "Reject resolver must not search alternatives or swap");
             Assert.AreEqual("sword", _source.GetSlot(0).Stack.ItemAdapter.ItemId);
@@ -508,19 +465,6 @@ namespace UDND.Tests.Inventories
             return n;
         }
 
-        private static void SetPrivateField(object target, string fieldName, object value)
-        {
-            var type = target.GetType();
-            FieldInfo field = null;
-            while (type != null && field == null)
-            {
-                field = type.GetField(fieldName,
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                type = type.BaseType;
-            }
-            Assert.IsNotNull(field, $"Field '{fieldName}' not found on {target.GetType().Name}");
-            field.SetValue(target, value);
-        }
     }
 
     public sealed class TestOccupiedSlotBinding : InventoryDataBindingBase

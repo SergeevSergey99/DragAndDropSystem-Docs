@@ -1,9 +1,1 @@
-using System;
-
-namespace UDND.Core
-{
-    [Serializable]
-    public sealed class RejectBlockedTargetResolver : BlockedTargetResolverBase
-    {
-    }
-}
+// Legacy reject resolver removed. Use BlockedTargetResolutionKind.Reject.

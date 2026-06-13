@@ -7,44 +7,38 @@ namespace UDND.Tests.Core
     [TestFixture]
     public class DropRequestPolicyTests
     {
-        // ---------- Construction ----------
-
         [Test]
-        public void Constructor_StoresFields()
+        public void Constructor_StoresScalarFields()
         {
-            var resolver = new FindAlternativeBlockedTargetResolver();
-            var policy = new DropRequestPolicy(resolver, allowPartial: false);
+            var orderer = new EmptyOnlyPlacementCandidateOrderer();
+            var policy = new DropRequestPolicy(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                orderer,
+                allowSameInventoryAlternativePlacement: false,
+                PartialTransferMode.RequireFull);
 
-            Assert.AreSame(resolver, policy.BlockedTargetResolver);
-            Assert.AreEqual(false, policy.AllowPartial);
+            Assert.AreEqual(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                policy.BlockedTargetResolution);
+            Assert.AreSame(orderer, policy.AlternativeOrderer);
+            Assert.AreEqual(false, policy.AllowSameInventoryAlternativePlacement);
+            Assert.AreEqual(PartialTransferMode.RequireFull, policy.PartialTransferMode);
         }
 
         [Test]
-        public void WithResolver_WrapsResolver_LeavesAllowPartialNull()
-        {
-            var resolver = new SwapBlockedTargetResolver();
-            var policy = DropRequestPolicy.WithResolver(resolver);
-
-            Assert.AreSame(resolver, policy.BlockedTargetResolver);
-            Assert.IsFalse(policy.AllowPartial.HasValue);
-        }
-
-        [Test]
-        public void WithSwap_UsesSwapResolver()
+        public void WithSwap_UsesSwapKind()
         {
             var policy = DropRequestPolicy.WithSwap();
 
-            Assert.IsInstanceOf<SwapBlockedTargetResolver>(policy.BlockedTargetResolver);
             Assert.AreEqual(
                 BlockedTargetResolutionKind.Swap,
                 policy.BlockedTargetResolution);
         }
 
         [Test]
-        public void WithAlternativeOrderer_StoresScalarPolicyWithoutResolver()
+        public void WithAlternativeOrderer_StoresOrdererAndSameInventoryFlag()
         {
-            var orderer = new EmptyOnlyPlacementCandidateOrderer();
-
+            var orderer = new EmptyFirstPlacementCandidateOrderer();
             var policy = DropRequestPolicy.WithAlternativeOrderer(
                 orderer,
                 allowSameInventoryAlternativePlacement: false);
@@ -54,129 +48,46 @@ namespace UDND.Tests.Core
                 policy.BlockedTargetResolution);
             Assert.AreSame(orderer, policy.AlternativeOrderer);
             Assert.AreEqual(false, policy.AllowSameInventoryAlternativePlacement);
-            Assert.IsNull(policy.BlockedTargetResolver);
         }
 
-        [Test]
-        public void WithFindAlternative_DefaultPlacementStrategy_UsesFindAlternativeResolver()
-        {
-            var policy = DropRequestPolicy.WithFindAlternative();
-
-            var resolver = policy.BlockedTargetResolver as FindAlternativeBlockedTargetResolver;
-            Assert.IsNotNull(resolver);
-            Assert.IsNotNull(resolver.AlternativePlacementStrategy,
-                "FindAlternative without explicit strategy must keep its default (MergeFirst)");
-        }
-
-        [Test]
-        public void WithFindAlternative_WithCustomPlacement_OverridesStrategy()
-        {
-            var custom = new EmptyFirstAlternativePlacementStrategy();
-
-            var policy = DropRequestPolicy.WithFindAlternative(custom);
-
-            var resolver = (FindAlternativeBlockedTargetResolver)policy.BlockedTargetResolver;
-            Assert.AreSame(custom, resolver.AlternativePlacementStrategy);
-        }
-
-        [Test]
-        public void WithFindAlternative_CanDisableSameInventoryAlternativePlacement()
-        {
-            var policy = DropRequestPolicy.WithFindAlternative(
-                allowSameInventoryAlternativePlacement: false);
-
-            var resolver = (FindAlternativeBlockedTargetResolver)policy.BlockedTargetResolver;
-            Assert.IsFalse(resolver.AllowSameInventoryAlternativePlacement);
-        }
-
-        [TestCase(true)]
-        [TestCase(false)]
-        public void WithPartial_SetsAllowPartial_LeavesResolverNull(bool allow)
+        [TestCase(true, PartialTransferMode.Allow)]
+        [TestCase(false, PartialTransferMode.RequireFull)]
+        public void WithPartial_SetsMode(
+            bool allow,
+            PartialTransferMode expected)
         {
             var policy = DropRequestPolicy.WithPartial(allow);
 
-            Assert.IsNull(policy.BlockedTargetResolver);
-            Assert.AreEqual(allow, policy.AllowPartial);
-            Assert.AreEqual(
-                allow ? PartialTransferMode.Allow : PartialTransferMode.RequireFull,
-                policy.PartialTransferMode);
+            Assert.AreEqual(expected, policy.PartialTransferMode);
+            Assert.IsFalse(policy.BlockedTargetResolution.HasValue);
         }
 
-        // ---------- Merge ----------
+        [Test]
+        public void Merge_OverridingFieldsWin_AndUnsetFieldsKeepBaseValues()
+        {
+            var basePolicy = new DropRequestPolicy(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                MergeFirstPlacementCandidateOrderer.Instance,
+                allowSameInventoryAlternativePlacement: false,
+                PartialTransferMode.RequireFull);
+            var overridingPolicy = new DropRequestPolicy(
+                BlockedTargetResolutionKind.Swap,
+                partialTransferMode: PartialTransferMode.Allow);
+
+            var merged = DropRequestPolicy.Merge(basePolicy, overridingPolicy).Value;
+
+            Assert.AreEqual(BlockedTargetResolutionKind.Swap, merged.BlockedTargetResolution);
+            Assert.AreSame(
+                MergeFirstPlacementCandidateOrderer.Instance,
+                merged.AlternativeOrderer);
+            Assert.AreEqual(false, merged.AllowSameInventoryAlternativePlacement);
+            Assert.AreEqual(PartialTransferMode.Allow, merged.PartialTransferMode);
+        }
 
         [Test]
         public void Merge_BothNull_ReturnsNull()
         {
             Assert.IsFalse(DropRequestPolicy.Merge(null, null).HasValue);
-        }
-
-        [Test]
-        public void Merge_BaseNull_ReturnsOverriding()
-        {
-            var over = DropRequestPolicy.WithSwap();
-
-            var merged = DropRequestPolicy.Merge(null, over);
-
-            Assert.IsTrue(merged.HasValue);
-            Assert.AreSame(over.BlockedTargetResolver, merged.Value.BlockedTargetResolver);
-        }
-
-        [Test]
-        public void Merge_OverridingNull_ReturnsBase()
-        {
-            var baseP = DropRequestPolicy.WithPartial(false);
-
-            var merged = DropRequestPolicy.Merge(baseP, null);
-
-            Assert.IsTrue(merged.HasValue);
-            Assert.AreEqual(false, merged.Value.AllowPartial);
-        }
-
-        [Test]
-        public void Merge_OverridingResolver_TakesPrecedence()
-        {
-            var baseP = DropRequestPolicy.WithResolver(new FindAlternativeBlockedTargetResolver());
-            var over = DropRequestPolicy.WithResolver(new SwapBlockedTargetResolver());
-
-            var merged = DropRequestPolicy.Merge(baseP, over).Value;
-
-            Assert.IsInstanceOf<SwapBlockedTargetResolver>(merged.BlockedTargetResolver);
-        }
-
-        [Test]
-        public void Merge_OverridingResolverNull_KeepsBaseResolver()
-        {
-            var baseResolver = new SwapBlockedTargetResolver();
-            var baseP = DropRequestPolicy.WithResolver(baseResolver);
-            var over = DropRequestPolicy.WithPartial(true); // no resolver
-
-            var merged = DropRequestPolicy.Merge(baseP, over).Value;
-
-            Assert.AreSame(baseResolver, merged.BlockedTargetResolver);
-            Assert.AreEqual(true, merged.AllowPartial);
-        }
-
-        [Test]
-        public void Merge_OverridingAllowPartialNull_KeepsBaseAllowPartial()
-        {
-            var baseP = DropRequestPolicy.WithPartial(false);
-            var over = DropRequestPolicy.WithResolver(new SwapBlockedTargetResolver());
-
-            var merged = DropRequestPolicy.Merge(baseP, over).Value;
-
-            Assert.AreEqual(false, merged.AllowPartial);
-            Assert.IsInstanceOf<SwapBlockedTargetResolver>(merged.BlockedTargetResolver);
-        }
-
-        [Test]
-        public void Merge_BothAllowPartialSet_OverridingWins()
-        {
-            var baseP = DropRequestPolicy.WithPartial(true);
-            var over = DropRequestPolicy.WithPartial(false);
-
-            var merged = DropRequestPolicy.Merge(baseP, over).Value;
-
-            Assert.AreEqual(false, merged.AllowPartial);
         }
     }
 }

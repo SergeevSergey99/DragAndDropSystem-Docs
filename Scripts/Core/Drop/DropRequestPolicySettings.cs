@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UDND.Inventories;
 using UDND.Tools.Inspector;
 
 namespace UDND.Core
@@ -7,22 +8,45 @@ namespace UDND.Core
     [Serializable]
     public sealed class DropRequestPolicySettings
     {
-        [SerializeField] private bool _overrideBlockedTargetResolver;
-        [SerializeReference, ShowIf(nameof(_overrideBlockedTargetResolver)), ManagedReferencePicker, InlineProperty, HideLabel]
-        private BlockedTargetResolverBase _blockedTargetResolver = new FindAlternativeBlockedTargetResolver();
+        [SerializeField] private bool _overrideBlockedTargetResolution;
+        [SerializeField, ShowIf(nameof(_overrideBlockedTargetResolution))]
+        private BlockedTargetResolutionKind _blockedTargetResolution =
+            BlockedTargetResolutionKind.AlternativeSlots;
+
+        [SerializeReference, ShowIf(nameof(ShowAlternativeOrderer)),
+         ManagedReferencePicker, InlineProperty, HideLabel]
+        private PlacementCandidateOrderer _alternativeOrderer =
+            new MergeFirstPlacementCandidateOrderer();
+
+        [SerializeField, ShowIf(nameof(ShowAlternativeOrderer))]
+        private bool _allowSameInventoryAlternativePlacement = true;
 
         [SerializeField] private bool _overrideAllowPartial;
         [SerializeField, ShowIf(nameof(_overrideAllowPartial))]
         private bool _allowPartial = true;
 
+        private bool ShowAlternativeOrderer =>
+            _overrideBlockedTargetResolution &&
+            _blockedTargetResolution == BlockedTargetResolutionKind.AlternativeSlots;
+
         public DropRequestPolicy? TryBuild()
         {
-            if (!_overrideBlockedTargetResolver && !_overrideAllowPartial)
+            if (!_overrideBlockedTargetResolution && !_overrideAllowPartial)
                 return null;
 
             return new DropRequestPolicy(
-                _overrideBlockedTargetResolver ? _blockedTargetResolver : null,
-                _overrideAllowPartial ? _allowPartial : (bool?)null);
+                _overrideBlockedTargetResolution
+                    ? _blockedTargetResolution
+                    : (BlockedTargetResolutionKind?)null,
+                ShowAlternativeOrderer ? _alternativeOrderer : null,
+                ShowAlternativeOrderer
+                    ? _allowSameInventoryAlternativePlacement
+                    : (bool?)null,
+                _overrideAllowPartial
+                    ? _allowPartial
+                        ? PartialTransferMode.Allow
+                        : PartialTransferMode.RequireFull
+                    : (PartialTransferMode?)null);
         }
     }
 }

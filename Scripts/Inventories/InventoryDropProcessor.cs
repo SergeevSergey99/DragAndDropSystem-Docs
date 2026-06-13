@@ -32,8 +32,7 @@ namespace UDND.Inventories
             GlobalRuleValidator globalRules,
             DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
-            Action<InventorySwapContext> swapCompleted = null,
-            SlotSelectionPolicyBase selectionPolicy = null)
+            Action<InventorySwapContext> swapCompleted = null)
         {
             _targetBaseSlot = targetBaseSlot;
             _targetInventory = targetInventory;
@@ -52,9 +51,8 @@ namespace UDND.Inventories
             GlobalRuleValidator globalRules,
             DropRequestPolicy? boundRequestOverride = null,
             Func<InventorySwapContext, bool> swapAttempting = null,
-            Action<InventorySwapContext> swapCompleted = null,
-            SlotSelectionPolicyBase selectionPolicy = null)
-            : this(null, targetInventory, globalRules, boundRequestOverride, swapAttempting, swapCompleted, selectionPolicy)
+            Action<InventorySwapContext> swapCompleted = null)
+            : this(null, targetInventory, globalRules, boundRequestOverride, swapAttempting, swapCompleted)
         {
         }
 
@@ -179,14 +177,13 @@ namespace UDND.Inventories
             if (provider != null)
                 return provider.ResolveDropPolicy(requested, context);
 
-            var blockedTargetResolver = requested.HasValue && requested.Value.BlockedTargetResolver != null
-                ? requested.Value.BlockedTargetResolver
-                : new FindAlternativeBlockedTargetResolver();
-            var allowPartial = requested.HasValue && requested.Value.AllowPartial.HasValue
-                ? requested.Value.AllowPartial.Value
-                : true;
-
-            return new ResolvedDropPolicy(blockedTargetResolver, allowPartial, BatchMode.BestEffort);
+            return new ResolvedDropPolicy(
+                requested?.BlockedTargetResolution ??
+                BlockedTargetResolutionKind.AlternativeSlots,
+                requested?.AlternativeOrderer ??
+                MergeFirstPlacementCandidateOrderer.Instance,
+                requested?.AllowSameInventoryAlternativePlacement ?? true,
+                requested?.PartialTransferMode ?? PartialTransferMode.Allow);
         }
     }
 }

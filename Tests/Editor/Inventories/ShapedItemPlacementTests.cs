@@ -1007,53 +1007,6 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void BuildPlan_ShapedGridPlacement_UsesPlacementAllocation()
-        {
-            var source = new InventoryBuilder()
-                .WithFixedSlots(6)
-                .WithGridTopology(3, 2)
-                .Build();
-            var target = new InventoryBuilder()
-                .WithFixedSlots(9)
-                .WithGridTopology(3, 3)
-                .Build();
-
-            try
-            {
-                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
-                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0)));
-
-                var dragSlot = source.GetSlot(4);
-                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source);
-                var context = new DragContext(new[] { entry });
-                var planner = new TransferPlanner();
-
-                var plan = planner.BuildPlan(
-                    context,
-                    new DropPolicySettings().Resolve(null, context),
-                    target,
-                    target.GetSlot(8),
-                    new GlobalRuleValidator());
-
-                Assert.IsTrue(plan.IsValid, plan.Failure?.Reason);
-                Assert.AreEqual(1, plan.Entries.Count);
-                Assert.IsTrue(plan.Entries[0].HasPlacementAllocation);
-                Assert.AreEqual(0, plan.Entries[0].Allocations.Count);
-
-                var allocation = plan.Entries[0].PlacementAllocation.Value;
-                Assert.AreEqual(4, allocation.AnchorIndex);
-                Assert.AreEqual(PlacementOrientation.Rot0, allocation.Orientation);
-                Assert.AreEqual(new Vector2Int(2, 2), allocation.BoundingSize);
-                Assert.AreEqual(1, allocation.Amount);
-            }
-            finally
-            {
-                InventoryBuilder.Destroy(source);
-                InventoryBuilder.Destroy(target);
-            }
-        }
-
-        [Test]
         public void DragContext_ShapedBatchAndStackedShapedEntries_AreDetected()
         {
             var shapedStack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1));
@@ -2181,91 +2134,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void TryPlanSwapAgainstTarget_ShapedSourceItem_ProducesSwapPlan()
-        {
-            // A shaped source in a slot inventory occupies one slot, so it swaps with a single-cell
-            // target through the universal placement-based swap.
-            var source = new InventoryBuilder()
-                .WithFixedSlots(1)
-                .Build();
-            var target = new InventoryBuilder()
-                .WithFixedSlots(1)
-                .Build();
-
-            try
-            {
-                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
-                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
-
-                var sourceSlot = source.GetSlot(0);
-                var targetSlot = target.GetSlot(0);
-                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
-                var context = new DragContext(new[] { entry });
-
-                var planner = new TransferPlanner();
-                var planned = InvokeTryPlanSwapAgainstTarget(
-                    planner,
-                    context,
-                    entry,
-                    target,
-                    targetSlot,
-                    requested: 1,
-                    targetItem: entry.Stack.PrimaryAdapter);
-
-                Assert.IsNotNull(planned, "Shaped source in a slot inventory must produce a swap plan");
-                Assert.IsTrue(planned.RequiresSwap);
-            }
-            finally
-            {
-                InventoryBuilder.Destroy(source);
-                InventoryBuilder.Destroy(target);
-            }
-        }
-
-        [Test]
-        public void TryPlanSwapAgainstTarget_ShapedTargetItem_ProducesSwapPlan()
-        {
-            // A shaped target in a slot inventory occupies one slot, so it swaps with a single-cell
-            // source through the universal placement-based swap.
-            var source = new InventoryBuilder()
-                .WithFixedSlots(1)
-                .Build();
-            var target = new InventoryBuilder()
-                .WithFixedSlots(1)
-                .Build();
-
-            try
-            {
-                Assert.IsTrue(source.TryAddStack(ItemStackBuilder.Of(new FakeItemAdapter("coin"))));
-                Assert.IsTrue(target.TryAddStack(ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 1))));
-
-                var sourceSlot = source.GetSlot(0);
-                var targetSlot = target.GetSlot(0);
-                var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source);
-                var context = new DragContext(new[] { entry });
-
-                var planner = new TransferPlanner();
-                var planned = InvokeTryPlanSwapAgainstTarget(
-                    planner,
-                    context,
-                    entry,
-                    target,
-                    targetSlot,
-                    requested: 1,
-                    targetItem: entry.Stack.PrimaryAdapter);
-
-                Assert.IsNotNull(planned, "Shaped target in a slot inventory must produce a swap plan");
-                Assert.IsTrue(planned.RequiresSwap);
-            }
-            finally
-            {
-                InventoryBuilder.Destroy(source);
-                InventoryBuilder.Destroy(target);
-            }
-        }
-
-        [Test]
-        public void TryPlanSwapAgainstTarget_SameInventory_OverlappingResultFootprints_IsRejected()
+        public void ProcessDrop_SameInventorySwap_OverlappingResultFootprints_IsRejected()
         {
             // In one 4x1 grid: a 1x1 at cell 0 and a 3x1 anchored at cell 1 (covers 1,2,3).
             // Each side fits when both are vacated, but the swapped footprints overlap (the 3x1 moving
@@ -2288,17 +2157,20 @@ namespace UDND.Tests.Inventories
                 var entry = new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, inventory);
                 var context = new DragContext(new[] { entry });
 
-                var planner = new TransferPlanner();
-                var planned = InvokeTryPlanSwapAgainstTarget(
-                    planner,
-                    context,
-                    entry,
-                    inventory,
+                var processor = new InventoryDropProcessor(
                     targetSlot,
-                    requested: 1,
-                    targetItem: entry.Stack.PrimaryAdapter);
+                    inventory,
+                    new GlobalRuleValidator());
+                var summary = processor.ProcessDropWithSummary(
+                    context,
+                    DropRequestPolicy.WithSwap());
 
-                Assert.IsNull(planned, "Overlapping same-inventory swap footprints must be rejected");
+                Assert.IsFalse(
+                    summary.Success,
+                    "Overlapping same-inventory swap footprints must be rejected");
+                Assert.AreEqual("coin", inventory.GetSlot(0).Stack.ID);
+                Assert.AreEqual("rod", inventory.GetSlot(1).Stack.ID);
+                Assert.AreEqual(3, inventory.GetPlacementAt(1).CoveredIndices.Count);
             }
             finally
             {
@@ -2372,28 +2244,6 @@ namespace UDND.Tests.Inventories
             => orientation == PlacementOrientation.Rot90 || orientation == PlacementOrientation.Rot270
                 ? new Vector2Int(size.y, size.x)
                 : size;
-
-        private static PlannedEntryTransfer InvokeTryPlanSwapAgainstTarget(
-            TransferPlanner planner,
-            DragContext context,
-            DragEntry entry,
-            UniversalInventory targetInventory,
-            BaseSlot targetSlot,
-            int requested,
-            IItemAdapter targetItem)
-        {
-            var method = typeof(TransferPlanner).GetMethod(
-                "TryPlanSwapAgainstTarget",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.IsNotNull(method, "TryPlanSwapAgainstTarget must exist");
-            return (PlannedEntryTransfer)method.Invoke(
-                planner,
-                new object[]
-                {
-                    context, entry, targetInventory, targetSlot,
-                    new GlobalRuleValidator(), requested, targetItem
-                });
-        }
 
         private static void EnableGrid(UniversalInventory inventory, int columns, int rows)
         {

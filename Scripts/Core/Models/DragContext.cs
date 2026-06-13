@@ -124,7 +124,7 @@ namespace UDND.Core
         /// <b>null</b> means the target is not specified (auto-transfer, drop onto an inventory area, code-driven call).<br/>
         /// <b>Single drag:</b> exact final slot, slot rules are applied directly.<br/>
         /// <b>Batch drag:</b> UI hint (slot under the cursor). The final slot for each entry is unknown
-        /// until the actual transfer and is determined by the execution pipeline (`TransferPlanExecutor`).
+        /// until the actual transfer and is determined by the JIT transfer service.
         /// Rules should use <see cref="IsBatchDrag"/> to ignore TargetSlot during batch validation.
         /// </para>
         /// </summary>

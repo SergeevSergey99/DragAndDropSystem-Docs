@@ -5,14 +5,13 @@ using UDND.Interaction;
 using UDND.Inventories;
 using UDND.Slots;
 using UDND.Tools;
-using UDND.Tools.Inspector;
 
 namespace UDND.UI
 {
     /// <summary>
     /// Inventory-bound drop area.
     /// Allows dropping items anywhere inside the inventory, not just onto a specific slot.
-    /// Delegates drop handling to InventoryDropProcessor (planner/executor pipeline).
+    /// Delegates area drops to the JIT transfer pipeline without preselecting a slot.
     /// </summary>
     public class InventoryDropArea : DropAreaBase
     {
@@ -29,13 +28,6 @@ namespace UDND.UI
         [Header("Drop Policy Override")]
         [SerializeField, Tooltip("Optional policy override for this drop zone. If disabled, the inventory policy is used.")]
         private DropRequestPolicySettings _dropPolicyOverride = new DropRequestPolicySettings();
-
-        [Header("Slot Selection Policy")]
-        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel,
-         Tooltip("How the system picks a target slot when no explicit slot is chosen. Null = strategy default.")]
-        private SlotSelectionPolicyBase _slotSelectionPolicy;
-
-        private SlotSelection _foundSelection;
 
         public IInventory Inventory => _inventory;
 
@@ -77,18 +69,15 @@ namespace UDND.UI
             if (DragManager == null || !DragManager.IsDragging || _inventory == null)
                 return false;
 
-            if (!TryResolveFocusedTargetSlot(out _foundSelection))
+            var context = DragManager.CurrentContext;
+            if (context == null || !CreateDropProcessor().CanAcceptDrop(
+                    context.WithTarget(null, _inventory)))
                 return false;
 
             DragManager.PushDropTarget(this);
-            var slotIndex = (_foundSelection.Slot as BaseSlot)?.Index.ToString() ?? (_foundSelection.CreateNew ? "NEW" : "AREA");
-            Extensions.DragAndDropLog($"<color=cyan>[InventoryDropArea] Entered, slot={slotIndex}, inventory={_inventory.name}</color>");
+            Extensions.DragAndDropLog(
+                $"<color=cyan>[InventoryDropArea] Entered, inventory={_inventory.name}</color>");
             return true;
-        }
-
-        protected override void OnTargetDeactivated()
-        {
-            _foundSelection = SlotSelection.None;
         }
 
         protected override void OnHighlightChanged(bool highlighted, bool canAccept)
@@ -102,18 +91,18 @@ namespace UDND.UI
         //  IDropTarget overrides (delegated processing)
         // ══════════════════════════════════════════════════════════
 
-        public override BaseSlot GetTargetSlot() => _foundSelection.Slot as BaseSlot;
+        public override BaseSlot GetTargetSlot() => null;
 
         public override IDropProcessor GetDropProcessor()
         {
-            return CreateDropProcessor(_foundSelection.Slot as BaseSlot);
+            return CreateDropProcessor();
         }
 
         // ══════════════════════════════════════════════════════════
         //  Domain logic
         // ══════════════════════════════════════════════════════════
 
-        private InventoryDropProcessor CreateDropProcessor(BaseSlot targetBaseSlot)
+        private InventoryDropProcessor CreateDropProcessor()
         {
             var boundOverride = _dropPolicyOverride != null ? _dropPolicyOverride.TryBuild() : (DropRequestPolicy?)null;
             System.Func<InventorySwapContext, bool> swapAttempting = DragManager != null
@@ -124,71 +113,11 @@ namespace UDND.UI
                 : null;
 
             return new InventoryDropProcessor(
-                targetBaseSlot,
                 _inventory,
                 DragManager?.GlobalRules,
                 boundOverride,
                 swapAttempting,
-                swapCompleted,
-                _slotSelectionPolicy);
-        }
-
-        private bool TryResolveFocusedTargetSlot(out SlotSelection selection)
-        {
-            selection = SlotSelection.None;
-
-            var context = DragManager.CurrentContext;
-            if (context == null || context.Entries.Count == 0)
-                return false;
-
-            if (!TryBuildValidationContext(context, out var validationContext, out selection))
-                return false;
-
-            var processor = CreateDropProcessor(selection.Slot as BaseSlot);
-            bool canAccept = processor.CanAcceptDrop(validationContext);
-            if (!canAccept)
-                Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Planner rejected drop in {_inventory.name}</color>");
-
-            return canAccept;
-        }
-
-        private bool TryBuildValidationContext(DragContext context, out DragContext validationContext, out SlotSelection selection)
-        {
-            validationContext = null;
-            selection = SlotSelection.None;
-
-            if (context == null || context.Entries.Count == 0)
-                return false;
-
-            var firstEntry = context.Entries[0];
-            var stack = firstEntry.Stack;
-            if (stack == null || stack.PrimaryAdapter == null)
-                return false;
-
-            if (!TransferItemConversionUtility.TryResolveTargetItem(firstEntry.SourceInventory, _inventory, stack.PrimaryAdapter, out var targetPreviewItem))
-                return false;
-
-            var acceptanceRequest = new InventoryAcceptanceRequest(
-                _inventory,
-                targetPreviewItem,
-                stack.Count,
-                context,
-                firstEntry,
-                _slotSelectionPolicy);
-
-            bool canAccept = _inventory.CanAcceptItem(acceptanceRequest, out BaseSlot suggestedBaseSlot);
-            if (!canAccept)
-            {
-                Extensions.DragAndDropLog($"<color=red>[InventoryDropArea] Cannot accept itemAdapter in {_inventory.name}</color>");
-                return false;
-            }
-
-            selection = suggestedBaseSlot != null
-                ? SlotSelection.Existing(suggestedBaseSlot)
-                : SlotSelection.New();
-
-            validationContext = context.WithTarget(suggestedBaseSlot, _inventory);
-            return true;
+                swapCompleted);
         }
     }
 }

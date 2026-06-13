@@ -9,8 +9,8 @@ using UDND.Slots;
 namespace UDND.Inventories
 {
     /// <summary>
-    /// Builds and executes auto-transfer operations through the same planner/executor
-    /// pipeline used by drag-and-drop handlers.
+    /// Builds and executes auto-transfer operations through the same JIT transfer service
+    /// used by drag-and-drop handlers.
     /// </summary>
     public sealed class AutoTransferService
     {
@@ -119,8 +119,7 @@ namespace UDND.Inventories
             System.Func<InventorySwapContext, bool> swapAttempting,
             System.Action<InventorySwapContext> swapCompleted,
             CancellationToken cancellationToken,
-            DropRequestPolicy? requestedPolicy = null,
-            SlotSelectionPolicyBase selectionPolicy = null)
+            DropRequestPolicy? requestedPolicy = null)
         {
             if (context == null)
                 return (DropResult.Failed("Auto-transfer context is null"), null);
@@ -133,8 +132,7 @@ namespace UDND.Inventories
                 targetInventory: targetInventory,
                 globalRules: globalRules,
                 swapAttempting: swapAttempting,
-                swapCompleted: swapCompleted,
-                selectionPolicy: selectionPolicy);
+                swapCompleted: swapCompleted);
 
             if (!handler.CanAcceptDrop(context, requestedPolicy))
                 return (DropResult.Failed("Auto-transfer plan rejected"), null);

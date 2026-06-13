@@ -15,16 +15,11 @@ namespace UDND.Tests.Core
             _settings = new DropPolicySettings();
         }
 
-        // ---------- Defaults ----------
-
         [Test]
-        public void Resolve_NullRequest_UsesDefaultResolverAndAllowPartial()
+        public void Resolve_NullRequest_UsesDefaultScalarPolicy()
         {
             var resolved = _settings.Resolve(null, context: null);
 
-            Assert.IsInstanceOf<FindAlternativeBlockedTargetResolver>(resolved.BlockedTargetResolver);
-            Assert.IsTrue(resolved.AllowPartial);
-            Assert.AreEqual(BatchMode.BestEffort, resolved.BatchMode);
             Assert.AreEqual(
                 BlockedTargetResolutionKind.AlternativeSlots,
                 resolved.BlockedTargetResolution);
@@ -34,61 +29,38 @@ namespace UDND.Tests.Core
             Assert.IsTrue(resolved.AllowSameInventoryAlternativePlacement);
         }
 
-        // ---------- Request overrides ----------
-
         [Test]
-        public void Resolve_RequestResolver_TakesPrecedenceOverDefault()
+        public void Resolve_RequestOverridesSelectedFields()
         {
-            var swap = new SwapBlockedTargetResolver();
-            var request = DropRequestPolicy.WithResolver(swap);
+            var orderer = new EmptyOnlyPlacementCandidateOrderer();
+            var request = new DropRequestPolicy(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                orderer,
+                allowSameInventoryAlternativePlacement: false,
+                PartialTransferMode.RequireFull);
 
             var resolved = _settings.Resolve(request, context: null);
 
-            Assert.AreSame(swap, resolved.BlockedTargetResolver);
+            Assert.AreSame(orderer, resolved.AlternativeOrderer);
+            Assert.IsFalse(resolved.AllowSameInventoryAlternativePlacement);
+            Assert.AreEqual(
+                PartialTransferMode.RequireFull,
+                resolved.PartialTransferMode);
         }
 
         [Test]
-        public void Resolve_RequestAllowPartial_TakesPrecedenceOverDefault()
+        public void Resolve_RequestOnlyPartial_KeepsDefaultBlockedPolicy()
         {
-            var request = DropRequestPolicy.WithPartial(false);
+            var resolved = _settings.Resolve(
+                DropRequestPolicy.WithPartial(false),
+                context: null);
 
-            var resolved = _settings.Resolve(request, context: null);
-
-            Assert.IsFalse(resolved.AllowPartial);
-        }
-
-        [Test]
-        public void Resolve_RequestOnlyResolver_AllowPartialFromSettings()
-        {
-            // Request sets resolver but not AllowPartial — partial must fall back to default (true)
-            var request = DropRequestPolicy.WithResolver(new SwapBlockedTargetResolver());
-
-            var resolved = _settings.Resolve(request, context: null);
-
-            Assert.IsTrue(resolved.AllowPartial);
-            Assert.IsInstanceOf<SwapBlockedTargetResolver>(resolved.BlockedTargetResolver);
-        }
-
-        [Test]
-        public void Resolve_RequestOnlyPartial_ResolverFromSettings()
-        {
-            var request = DropRequestPolicy.WithPartial(false);
-
-            var resolved = _settings.Resolve(request, context: null);
-
-            Assert.IsInstanceOf<FindAlternativeBlockedTargetResolver>(resolved.BlockedTargetResolver);
-            Assert.IsFalse(resolved.AllowPartial);
-        }
-
-        [Test]
-        public void Resolve_BatchMode_AlwaysFromSettings_NotInfluencedByRequest()
-        {
-            // DropRequestPolicy has no BatchMode field — it must always come from settings
-            var request = DropRequestPolicy.WithResolver(new SwapBlockedTargetResolver());
-
-            var resolved = _settings.Resolve(request, context: null);
-
-            Assert.AreEqual(BatchMode.BestEffort, resolved.BatchMode);
+            Assert.AreEqual(
+                BlockedTargetResolutionKind.AlternativeSlots,
+                resolved.BlockedTargetResolution);
+            Assert.AreEqual(
+                PartialTransferMode.RequireFull,
+                resolved.PartialTransferMode);
         }
     }
 }

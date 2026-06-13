@@ -4,7 +4,7 @@ namespace UDND.Inventories
 {
     /// <summary>
     /// Exposes dynamic-slot creation parameters to the planner.
-    /// Implemented by UniversalInventory; queried as a downcast inside TransferPlanner.
+    /// Implemented by UniversalInventory and queried by candidate enumeration.
     /// </summary>
     internal interface IInventorySlotCreationCapacity
     {

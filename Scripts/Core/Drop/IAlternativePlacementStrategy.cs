@@ -1,15 +1,1 @@
-using System;
-using System.Collections.Generic;
-using UDND.Slots;
-
-namespace UDND.Core
-{
-    public interface IAlternativePlacementStrategy
-    {
-        IEnumerable<BaseSlot> EnumerateAlternativeSlots(
-            List<BaseSlot> slots,
-            IItemAdapter itemAdapter,
-            BaseSlot excludeBaseSlot,
-            Func<BaseSlot, IItemAdapter, bool> canUseAlternativeSlot);
-    }
-}
+// Legacy alternative placement strategy removed. Use PlacementCandidateOrderer.
