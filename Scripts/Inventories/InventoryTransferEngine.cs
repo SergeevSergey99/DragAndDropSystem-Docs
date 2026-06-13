@@ -1252,7 +1252,7 @@ namespace UDND.Inventories
 
             return new PlacementSnapshot(
                 slot.Index,
-                PlacementOrientation.Step0,
+                0,
                 Vector2Int.one,
                 new[] { slot.Index },
                 slot,

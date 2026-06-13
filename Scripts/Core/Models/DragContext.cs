@@ -17,7 +17,7 @@ namespace UDND.Core
         public Vector2Int GrabOffset { get; }
         public IPlacementShape Shape { get; }
         public Vector2Int BoundingSize { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IInventoryTopology OrientationTopology { get; }
         public bool IsShaped => !PlacementShapeUtility.IsSingleCell(
             Shape,
@@ -30,7 +30,7 @@ namespace UDND.Core
             IInventory sourceInventory,
             Placement sourcePlacement = null,
             Vector2Int? grabOffset = null,
-            PlacementOrientation? orientation = null,
+            int? orientation = null,
             IInventoryTopology orientationTopology = null)
         {
             Stack = stack;
@@ -46,7 +46,7 @@ namespace UDND.Core
             Shape = SourcePlacement?.Shape ?? PlacementShapeUtility.Resolve(stack?.PrimaryAdapter);
             OrientationTopology = orientationTopology ?? ResolveOrientationTopology(sourceStore);
             var sourceOrientation = OrientationTopology.NormalizeOrientation(
-                SourcePlacement?.Orientation ?? PlacementOrientation.Step0);
+                SourcePlacement?.Orientation ?? 0);
             Orientation = OrientationTopology.NormalizeOrientation(orientation ?? sourceOrientation);
             BoundingSize = PlacementShapeUtility.GetBoundingSize(
                 Shape,
@@ -67,7 +67,7 @@ namespace UDND.Core
         }
 
         public DragEntry WithOrientation(
-            PlacementOrientation orientation,
+            int orientation,
             IInventoryTopology orientationTopology = null)
         {
             var topology = orientationTopology ?? OrientationTopology;
@@ -76,7 +76,7 @@ namespace UDND.Core
                 GrabOffset,
                 Shape,
                 Orientation,
-                PlacementOrientation.Step0);
+                0);
             return new DragEntry(
                 Stack,
                 SourceBaseSlot,
@@ -85,7 +85,7 @@ namespace UDND.Core
                 topology.RotateOffset(
                     baseGrabOffset,
                     Shape,
-                    PlacementOrientation.Step0,
+                    0,
                     normalizedOrientation),
                 normalizedOrientation,
                 topology);

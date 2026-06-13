@@ -20,7 +20,7 @@ namespace UDND.Inventories
         IReadOnlyList<int> GetCoveredCells(
             int anchorIndex,
             IPlacementShape shape,
-            PlacementOrientation orientation = PlacementOrientation.Step0);
+            int orientation = 0);
 
         bool CanPlace(
             PlacementRequest request,

@@ -19,11 +19,11 @@ namespace UDND.Inventories
             ItemStack previewStack,
             BaseSlot anchorSlot,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             Placement ignoredPlacement = null);
         IReadOnlyList<BaseSlot> GetCoveredSlots(
             BaseSlot anchorSlot,
             IPlacementShape shape,
-            PlacementOrientation orientation);
+            int orientation);
     }
 }

@@ -115,7 +115,7 @@ namespace UDND.Inventories
 
             var entry = request.SourceEntry;
             var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
-            var orientation = entry?.Orientation ?? PlacementOrientation.Step0;
+            var orientation = entry?.Orientation ?? 0;
             yield return PlacementCandidate.NewDynamicSlot(
                 orientation,
                 shape,
@@ -154,7 +154,7 @@ namespace UDND.Inventories
 
             var entry = request.SourceEntry;
             var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
-            var orientation = entry?.Orientation ?? PlacementOrientation.Step0;
+            var orientation = entry?.Orientation ?? 0;
             var previewStack = request.CreatePreviewStack(capacity);
             var sourcePlacement = GetSourcePlacement(geometry, request);
             bool movesWholeRemainingStack =

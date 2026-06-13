@@ -41,7 +41,7 @@ namespace UDND.Inventories
         public InventoryPlacementState(
             int anchorIndex,
             IReadOnlyList<IItemAdapter> adapters,
-            PlacementOrientation orientation,
+            int orientation,
             Vector2Int boundingSize,
             IReadOnlyList<int> coveredIndices = null,
             IReadOnlyList<Vector2Int> coveredOffsets = null)
@@ -62,7 +62,7 @@ namespace UDND.Inventories
 
         public int AnchorIndex { get; }
         public IReadOnlyList<IItemAdapter> Adapters { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
         public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
         public Vector2Int BoundingSize { get; }

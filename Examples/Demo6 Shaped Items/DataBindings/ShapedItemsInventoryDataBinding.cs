@@ -13,9 +13,9 @@ namespace UDND.Examples.ShapedItems
     {
         public ShapedItemExampleSO item;
         [Min(0)] public int anchorIndex;
-        public PlacementOrientation orientation;
+        public int orientation;
 
-        public ShapedPlacementSeed(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation = PlacementOrientation.Step0)
+        public ShapedPlacementSeed(ShapedItemExampleSO item, int anchorIndex, int orientation = 0)
         {
             this.item = item;
             this.anchorIndex = Mathf.Max(0, anchorIndex);
@@ -82,7 +82,7 @@ namespace UDND.Examples.ShapedItems
                 ReloadUI();
         }
 
-        private void RemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation)
+        private void RemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex, int orientation)
         {
             if (TryRemoveFirstPlacement(item, anchorIndex, orientation, requireOrientation: true)) return;
             if (TryRemoveFirstPlacement(item, anchorIndex, orientation, requireOrientation: false)) return;
@@ -90,7 +90,7 @@ namespace UDND.Examples.ShapedItems
             TryRemoveFirstPlacement(item, -1, orientation, requireOrientation: false);
         }
 
-        private bool TryRemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex, PlacementOrientation orientation, bool requireOrientation)
+        private bool TryRemoveFirstPlacement(ShapedItemExampleSO item, int anchorIndex, int orientation, bool requireOrientation)
         {
             for (int i = 0; i < _placements.Count; i++)
             {

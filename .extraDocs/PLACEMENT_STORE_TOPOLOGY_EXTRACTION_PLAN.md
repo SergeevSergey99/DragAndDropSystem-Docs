@@ -77,7 +77,7 @@ public interface IInventoryTopology
     bool IsValidIndex(int index);
     IReadOnlyList<Vector2Int> GetPlacementOffsets(
         IPlacementShape shape,
-        PlacementOrientation orientation);
+        int orientation);
 }
 ```
 
@@ -151,13 +151,13 @@ public sealed class PlacementStore
     public IReadOnlyList<int> GetCoveredIndices(
         int anchorIndex,
         IPlacementShape shape,
-        PlacementOrientation orientation,
+        int orientation,
         PlacementBoundsMode boundsMode);
 
     public IReadOnlyList<int> GetCoveredIndices(
         Vector2Int anchorCell,
         IPlacementShape shape,
-        PlacementOrientation orientation,
+        int orientation,
         PlacementBoundsMode boundsMode);
 
     public void ShiftAfterSlotRemoved(int removedIndex);
@@ -227,8 +227,8 @@ second slot placement implementation.
 Item geometry remains `IPlacementShape`:
 
 ```csharp
-IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation);
-bool SupportsOrientation(PlacementOrientation orientation);
+IReadOnlyList<Vector2Int> GetOffsets(int orientation);
+bool SupportsOrientation(int orientation);
 ```
 
 Topology decides how `anchor + offset` maps to a cell index.

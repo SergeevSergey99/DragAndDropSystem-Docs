@@ -16,7 +16,7 @@ namespace UDND.Inventories
             PlacementCandidateKind kind,
             Placement targetPlacement,
             BaseSlot anchor,
-            PlacementOrientation orientation,
+            int orientation,
             IPlacementShape shape,
             int capacity)
         {
@@ -31,7 +31,7 @@ namespace UDND.Inventories
         public PlacementCandidateKind Kind { get; }
         public Placement TargetPlacement { get; }
         public BaseSlot Anchor { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IPlacementShape Shape { get; }
         public int Capacity { get; }
 
@@ -40,13 +40,13 @@ namespace UDND.Inventories
                 PlacementCandidateKind.Merge,
                 placement,
                 anchor,
-                placement?.Orientation ?? PlacementOrientation.Step0,
+                placement?.Orientation ?? 0,
                 placement?.Shape,
                 capacity);
 
         public static PlacementCandidate Merge(
             BaseSlot anchor,
-            PlacementOrientation orientation,
+            int orientation,
             IPlacementShape shape,
             int capacity)
             => new PlacementCandidate(
@@ -59,7 +59,7 @@ namespace UDND.Inventories
 
         public static PlacementCandidate Create(
             BaseSlot anchor,
-            PlacementOrientation orientation,
+            int orientation,
             IPlacementShape shape,
             int capacity)
             => new PlacementCandidate(
@@ -71,7 +71,7 @@ namespace UDND.Inventories
                 capacity);
 
         public static PlacementCandidate NewDynamicSlot(
-            PlacementOrientation orientation,
+            int orientation,
             IPlacementShape shape,
             int capacity)
             => new PlacementCandidate(

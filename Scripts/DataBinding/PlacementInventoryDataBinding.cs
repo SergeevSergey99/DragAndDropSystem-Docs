@@ -15,7 +15,7 @@ namespace UDND.DataBinding
             TData item,
             int anchorIndex,
             int count = 1,
-            PlacementOrientation orientation = PlacementOrientation.Step0)
+            int orientation = 0)
         {
             Item = item;
             AnchorIndex = anchorIndex;
@@ -26,7 +26,7 @@ namespace UDND.DataBinding
         public TData Item { get; }
         public int AnchorIndex { get; }
         public int Count { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ namespace UDND.DataBinding
         public ItemStack Stack => EventContext?.Stack ?? ItemStack.Empty();
         public int Count => Stack.Count;
         public int AnchorIndex => EventContext?.AnchorIndex ?? -1;
-        public PlacementOrientation Orientation => EventContext?.Orientation ?? PlacementOrientation.Step0;
+        public int Orientation => EventContext?.Orientation ?? 0;
         public Vector2Int BoundingSize => EventContext?.BoundingSize ?? Vector2Int.one;
         public PlacementSnapshot PlacementSnapshot => EventContext?.PlacementSnapshot;
         public IReadOnlyList<int> CoveredIndices => EventContext?.CoveredIndices ?? Array.Empty<int>();

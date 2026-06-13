@@ -70,7 +70,7 @@ namespace UDND.Inventories
                 var entry = request.SourceEntry;
                 candidate = PlacementCandidate.Merge(
                     targetBaseSlot,
-                    entry?.Orientation ?? PlacementOrientation.Step0,
+                    entry?.Orientation ?? 0,
                     entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter),
                     mergeCapacity);
                 return true;

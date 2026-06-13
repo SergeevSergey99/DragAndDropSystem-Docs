@@ -229,7 +229,7 @@ namespace UDND.UI
 
         private Vector2 GetPreRotatedSize(
             Vector2 targetSize,
-            PlacementOrientation orientation)
+            int orientation)
         {
             float angle = GetPlacementTopology().GetVisualAngleDegrees(orientation);
             return Mathf.Abs(Mathf.Abs(Mathf.DeltaAngle(0f, angle)) - 90f) < 0.01f

@@ -12,7 +12,7 @@ namespace UDND.Core
     {
         public PlacementSnapshot(
             int anchorIndex,
-            PlacementOrientation orientation,
+            int orientation,
             Vector2Int boundingSize,
             IReadOnlyList<int> coveredIndices = null,
             BaseSlot anchorBaseSlot = null,
@@ -29,7 +29,7 @@ namespace UDND.Core
         }
 
         public int AnchorIndex { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IReadOnlyList<int> CoveredIndices { get; }
         public IReadOnlyList<Vector2Int> CoveredOffsets { get; }
         public Vector2Int BoundingSize { get; }

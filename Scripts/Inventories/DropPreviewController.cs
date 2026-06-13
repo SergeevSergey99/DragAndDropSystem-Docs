@@ -143,7 +143,7 @@ namespace UDND.Inventories
         private IReadOnlyList<int> GetPreviewCoveredCells(
             Vector2Int anchorCell,
             IPlacementShape shape,
-            PlacementOrientation orientation)
+            int orientation)
         {
             return _getPlacementStore().GetCoveredIndices(
                 anchorCell,

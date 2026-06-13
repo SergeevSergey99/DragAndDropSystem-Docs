@@ -72,8 +72,8 @@ execution отдельным публичным этапом.
 - `IPlacementInventory.Topology` предоставляет активную `IInventoryTopology` без привязки
   общего placement-контракта к grid.
 - `IInventoryTopology` проецирует shape и orientation в covered cells.
-- `PlacementOrientation` является индексом дискретного шага (`Step0`, `Step1`, ...), а не
-  обещанием поворота на 90 градусов.
+- Orientation хранится как `int` — индекс дискретного шага, а не угол и не обещание поворота
+  на 90 градусов. Значение нормализуется активной topology.
 - topology задает число orientation steps, нормализацию, визуальный угол и преобразование grab
   offset. Rect grid использует 4 шага по 90 градусов; hex topology может использовать 6 шагов по
   60 градусов без изменений transfer pipeline.

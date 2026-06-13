@@ -119,7 +119,7 @@ namespace UDND.UI
 
         private static bool IsQuarterTurn(
             IInventoryTopology topology,
-            PlacementOrientation orientation)
+            int orientation)
             => IsQuarterTurn(topology.GetVisualAngleDegrees(orientation));
 
         private static bool IsQuarterTurn(float angle)

@@ -47,7 +47,7 @@ internal enum PlannedPlacementOrigin { Real, Reserved }
 internal sealed class PlannedPlacement
 {
     public int AnchorIndex { get; }
-    public PlacementOrientation Orientation { get; }
+    public int Orientation { get; }
     public IPlacementShape Shape { get; }                 // value-like, безопасно шарить ссылку
     public IReadOnlyList<int> CoveredIndices { get; }     // зафиксировано при создании токена
     public IItemAdapter ItemAdapter { get; }             // для merge-eligibility (решает caller)
@@ -87,7 +87,7 @@ internal sealed class PlacementPlanningState
 
     // --- Geometry / feasibility (только topology + bounds + occupancy) ---
     public IReadOnlyList<int> GetCoveredCells(
-        int anchorIndex, IPlacementShape shape, PlacementOrientation orientation);
+        int anchorIndex, IPlacementShape shape, int orientation);
     public bool CanPlace(
         PlacementRequest request,
         PlannedPlacement ignoredA = null,

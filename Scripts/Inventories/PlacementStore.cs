@@ -107,7 +107,7 @@ namespace UDND.Inventories
         public IReadOnlyList<int> GetCoveredIndices(
             int anchorIndex,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             PlacementBoundsMode boundsMode)
         {
             if (!Topology.IsValidIndex(anchorIndex))
@@ -124,7 +124,7 @@ namespace UDND.Inventories
         public IReadOnlyList<int> GetCoveredIndices(
             Vector2Int anchorCell,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             PlacementBoundsMode boundsMode)
         {
             return PlacementCellUtility.GetCoveredIndices(

@@ -6,8 +6,8 @@ namespace UDND.Core
 {
     public interface IPlacementShape
     {
-        IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation);
-        bool SupportsOrientation(PlacementOrientation orientation);
+        IReadOnlyList<Vector2Int> GetOffsets(int orientation);
+        bool SupportsOrientation(int orientation);
     }
 
     public interface IItemPlacementShapeProvider
@@ -37,10 +37,10 @@ namespace UDND.Core
 
         public static RectPlacementShape One { get; } = new RectPlacementShape(1, 1);
 
-        public IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation)
+        public IReadOnlyList<Vector2Int> GetOffsets(int orientation)
             => _offsetsByOrientation[NormalizeOrientationIndex(orientation)];
 
-        public bool SupportsOrientation(PlacementOrientation orientation) => true;
+        public bool SupportsOrientation(int orientation) => true;
 
         public bool Equals(RectPlacementShape other)
             => other != null && Width == other.Width && Height == other.Height;
@@ -62,40 +62,27 @@ namespace UDND.Core
             return Array.AsReadOnly(offsets);
         }
 
-        private static int NormalizeOrientationIndex(PlacementOrientation orientation)
-        {
-            switch (orientation)
-            {
-                case PlacementOrientation.Step1:
-                    return 1;
-                case PlacementOrientation.Step2:
-                    return 2;
-                case PlacementOrientation.Step3:
-                    return 3;
-                case PlacementOrientation.Step0:
-                default:
-                    return 0;
-            }
-        }
+        private static int NormalizeOrientationIndex(int orientation)
+            => OrientationStepUtility.Normalize(orientation, 4);
     }
 
     public sealed class OffsetPlacementShape : IPlacementShape
     {
         private readonly IReadOnlyList<Vector2Int> _offsets;
-        private readonly PlacementOrientation _supportedOrientation;
+        private readonly int _supportedOrientation;
 
         public OffsetPlacementShape(
             IReadOnlyList<Vector2Int> offsets,
-            PlacementOrientation supportedOrientation = PlacementOrientation.Step0)
+            int supportedOrientation = 0)
         {
             _offsets = CopyOffsets(offsets);
             _supportedOrientation = supportedOrientation;
         }
 
-        public IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation)
+        public IReadOnlyList<Vector2Int> GetOffsets(int orientation)
             => SupportsOrientation(orientation) ? _offsets : Array.Empty<Vector2Int>();
 
-        public bool SupportsOrientation(PlacementOrientation orientation)
+        public bool SupportsOrientation(int orientation)
             => orientation == _supportedOrientation;
 
         private static IReadOnlyList<Vector2Int> CopyOffsets(IReadOnlyList<Vector2Int> offsets)
@@ -125,7 +112,7 @@ namespace UDND.Core
             return new RectPlacementShape(size.x, size.y);
         }
 
-        public static bool IsSingleCell(IPlacementShape shape, PlacementOrientation orientation)
+        public static bool IsSingleCell(IPlacementShape shape, int orientation)
         {
             if (!TryGetOffsets(shape, orientation, out var offsets))
                 return false;
@@ -135,7 +122,7 @@ namespace UDND.Core
 
         public static bool IsSingleCell(
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             IInventoryTopology topology)
         {
             if (topology == null)
@@ -147,7 +134,7 @@ namespace UDND.Core
                    offsets[0] == Vector2Int.zero;
         }
 
-        public static Vector2Int GetBoundingSize(IPlacementShape shape, PlacementOrientation orientation)
+        public static Vector2Int GetBoundingSize(IPlacementShape shape, int orientation)
         {
             if (!TryGetOffsets(shape, orientation, out var offsets))
                 return Vector2Int.zero;
@@ -157,7 +144,7 @@ namespace UDND.Core
 
         public static Vector2Int GetBoundingSize(
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             IInventoryTopology topology)
         {
             if (topology == null)
@@ -189,7 +176,7 @@ namespace UDND.Core
         public static bool OffsetsEqual(
             IPlacementShape left,
             IPlacementShape right,
-            PlacementOrientation orientation)
+            int orientation)
         {
             if (ReferenceEquals(left, right))
                 return true;
@@ -216,7 +203,7 @@ namespace UDND.Core
 
         private static bool TryGetOffsets(
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             out IReadOnlyList<Vector2Int> offsets)
         {
             shape ??= RectPlacementShape.One;

@@ -12,18 +12,18 @@ namespace UDND.Core
         bool TryToIndex(Vector2Int cell, out int index);
         Vector2Int ToCell(int index);
         bool IsValidIndex(int index);
-        PlacementOrientation NormalizeOrientation(PlacementOrientation orientation);
-        PlacementOrientation Rotate(PlacementOrientation orientation, int steps);
-        float GetVisualAngleDegrees(PlacementOrientation orientation);
-        PlacementOrientation GetOrientationForVisualAngleDegrees(float angle);
+        int NormalizeOrientation(int orientation);
+        int Rotate(int orientation, int steps);
+        float GetVisualAngleDegrees(int orientation);
+        int GetOrientationForVisualAngleDegrees(float angle);
         Vector2Int RotateOffset(
             Vector2Int offset,
             IPlacementShape shape,
-            PlacementOrientation from,
-            PlacementOrientation to);
+            int from,
+            int to);
         IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
-            PlacementOrientation orientation);
+            int orientation);
     }
 
     public readonly struct SlotTopology : IInventoryTopology, IEquatable<SlotTopology>
@@ -72,28 +72,28 @@ namespace UDND.Core
         public bool IsValidIndex(int index)
             => index >= 0 && index < CellCount;
 
-        public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
-            => PlacementOrientation.Step0;
+        public int NormalizeOrientation(int orientation)
+            => 0;
 
-        public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
-            => PlacementOrientation.Step0;
+        public int Rotate(int orientation, int steps)
+            => 0;
 
-        public float GetVisualAngleDegrees(PlacementOrientation orientation)
+        public float GetVisualAngleDegrees(int orientation)
             => 0f;
 
-        public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
-            => PlacementOrientation.Step0;
+        public int GetOrientationForVisualAngleDegrees(float angle)
+            => 0;
 
         public Vector2Int RotateOffset(
             Vector2Int offset,
             IPlacementShape shape,
-            PlacementOrientation from,
-            PlacementOrientation to)
+            int from,
+            int to)
             => Vector2Int.zero;
 
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
-            PlacementOrientation orientation)
+            int orientation)
             => AnchorOnlyOffsets;
 
         public bool Equals(SlotTopology other)
@@ -150,27 +150,27 @@ namespace UDND.Core
         public bool IsValidIndex(int index)
             => _grid.IsValidIndex(index);
 
-        public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
-            => PlacementOrientationUtility.Normalize(orientation, OrientationCount);
+        public int NormalizeOrientation(int orientation)
+            => OrientationStepUtility.Normalize(orientation, OrientationCount);
 
-        public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
-            => PlacementOrientationUtility.Rotate(orientation, steps, OrientationCount);
+        public int Rotate(int orientation, int steps)
+            => OrientationStepUtility.Rotate(orientation, steps, OrientationCount);
 
-        public float GetVisualAngleDegrees(PlacementOrientation orientation)
-            => -90f * (int)NormalizeOrientation(orientation);
+        public float GetVisualAngleDegrees(int orientation)
+            => -90f * NormalizeOrientation(orientation);
 
-        public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
-            => NormalizeOrientation((PlacementOrientation)Mathf.RoundToInt(-angle / 90f));
+        public int GetOrientationForVisualAngleDegrees(float angle)
+            => NormalizeOrientation(Mathf.RoundToInt(-angle / 90f));
 
         public Vector2Int RotateOffset(
             Vector2Int offset,
             IPlacementShape shape,
-            PlacementOrientation from,
-            PlacementOrientation to)
+            int from,
+            int to)
         {
             var normalizedFrom = NormalizeOrientation(from);
             var normalizedTo = NormalizeOrientation(to);
-            int turns = PlacementOrientationUtility.Distance(
+            int turns = OrientationStepUtility.Distance(
                 normalizedFrom,
                 normalizedTo,
                 OrientationCount);
@@ -188,7 +188,7 @@ namespace UDND.Core
 
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
-            PlacementOrientation orientation)
+            int orientation)
         {
             shape ??= RectPlacementShape.One;
             var normalized = NormalizeOrientation(orientation);
@@ -250,65 +250,64 @@ namespace UDND.Core
         public bool IsValidIndex(int index)
             => index >= 0 && index < CurrentSlotCount && _inner.IsValidIndex(index);
 
-        public PlacementOrientation NormalizeOrientation(PlacementOrientation orientation)
+        public int NormalizeOrientation(int orientation)
             => _inner.NormalizeOrientation(orientation);
 
-        public PlacementOrientation Rotate(PlacementOrientation orientation, int steps)
+        public int Rotate(int orientation, int steps)
             => _inner.Rotate(orientation, steps);
 
-        public float GetVisualAngleDegrees(PlacementOrientation orientation)
+        public float GetVisualAngleDegrees(int orientation)
             => _inner.GetVisualAngleDegrees(orientation);
 
-        public PlacementOrientation GetOrientationForVisualAngleDegrees(float angle)
+        public int GetOrientationForVisualAngleDegrees(float angle)
             => _inner.GetOrientationForVisualAngleDegrees(angle);
 
         public Vector2Int RotateOffset(
             Vector2Int offset,
             IPlacementShape shape,
-            PlacementOrientation from,
-            PlacementOrientation to)
+            int from,
+            int to)
             => _inner.RotateOffset(offset, shape, from, to);
 
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(
             IPlacementShape shape,
-            PlacementOrientation orientation)
+            int orientation)
             => _inner.GetPlacementOffsets(shape, orientation);
 
         private int CurrentSlotCount => Math.Max(0, _slotCountProvider());
     }
 
-    public static class PlacementOrientationUtility
+    public static class OrientationStepUtility
     {
-        public static PlacementOrientation Normalize(
-            PlacementOrientation orientation,
+        public static int Normalize(
+            int orientation,
             int orientationCount)
         {
             int count = Math.Max(1, orientationCount);
-            int value = ((int)orientation % count + count) % count;
-            return (PlacementOrientation)value;
+            return (orientation % count + count) % count;
         }
 
-        public static PlacementOrientation Rotate(
-            PlacementOrientation orientation,
+        public static int Rotate(
+            int orientation,
             int steps,
             int orientationCount)
         {
             int count = Math.Max(1, orientationCount);
-            int value = ((int)Normalize(orientation, count) + steps) % count;
+            int value = (Normalize(orientation, count) + steps) % count;
             if (value < 0)
                 value += count;
-            return (PlacementOrientation)value;
+            return value;
         }
 
         public static int Distance(
-            PlacementOrientation from,
-            PlacementOrientation to,
+            int from,
+            int to,
             int orientationCount)
         {
             int count = Math.Max(1, orientationCount);
             int distance =
-                (int)Normalize(to, count) -
-                (int)Normalize(from, count);
+                Normalize(to, count) -
+                Normalize(from, count);
             return distance < 0 ? distance + count : distance;
         }
     }

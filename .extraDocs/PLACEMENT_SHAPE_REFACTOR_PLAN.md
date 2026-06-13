@@ -29,8 +29,8 @@ Out of scope:
 ```csharp
 public interface IPlacementShape
 {
-    IReadOnlyList<Vector2Int> GetOffsets(PlacementOrientation orientation);
-    bool SupportsOrientation(PlacementOrientation orientation);
+    IReadOnlyList<Vector2Int> GetOffsets(int orientation);
+    bool SupportsOrientation(int orientation);
 }
 
 public interface IItemPlacementShapeProvider

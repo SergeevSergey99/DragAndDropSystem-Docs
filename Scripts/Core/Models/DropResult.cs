@@ -96,7 +96,7 @@ namespace UDND.Core
         public int AnchorIndex => PlacementSnapshot != null && PlacementSnapshot.AnchorIndex >= 0
             ? PlacementSnapshot.AnchorIndex
             : TargetBaseSlot?.Index ?? -1;
-        public PlacementOrientation Orientation => PlacementSnapshot?.Orientation ?? PlacementOrientation.Step0;
+        public int Orientation => PlacementSnapshot?.Orientation ?? 0;
         public Vector2Int BoundingSize => PlacementSnapshot?.BoundingSize ?? Vector2Int.one;
 
         /// <summary>

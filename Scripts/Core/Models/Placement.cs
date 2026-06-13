@@ -4,16 +4,6 @@ using UnityEngine;
 
 namespace UDND.Core
 {
-    public enum PlacementOrientation : byte
-    {
-        Step0 = 0,
-        Step1 = 1,
-        Step2 = 2,
-        Step3 = 3,
-        Step4 = 4,
-        Step5 = 5
-    }
-
     [Serializable]
     public struct GridTopology : IEquatable<GridTopology>
     {
@@ -62,7 +52,7 @@ namespace UDND.Core
         public PlacementRequest(
             ItemStack stack,
             int anchorIndex,
-            PlacementOrientation orientation = PlacementOrientation.Step0,
+            int orientation = 0,
             IPlacementShape shape = null)
         {
             Stack = stack;
@@ -75,7 +65,7 @@ namespace UDND.Core
         public static PlacementRequest For(
             ItemStack stack,
             int anchorIndex,
-            PlacementOrientation orientation = PlacementOrientation.Step0)
+            int orientation = 0)
             => new PlacementRequest(
                 stack,
                 anchorIndex,
@@ -84,7 +74,7 @@ namespace UDND.Core
 
         public ItemStack Stack { get; }
         public int AnchorIndex { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IPlacementShape Shape { get; }
         public Vector2Int BoundingSize { get; }
     }
@@ -106,7 +96,7 @@ namespace UDND.Core
         public Placement(
             Vector2Int anchorCell,
             int anchorIndex,
-            PlacementOrientation orientation,
+            int orientation,
             IPlacementShape shape,
             ItemStack stack,
             IReadOnlyList<int> coveredIndices,
@@ -124,7 +114,7 @@ namespace UDND.Core
 
         public Vector2Int AnchorCell { get; }
         public int AnchorIndex { get; }
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IPlacementShape Shape { get; }
         public Vector2Int BoundingSize { get; }
         /// <summary>Read-only view of the inventory-owned stack.</summary>

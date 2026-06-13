@@ -50,7 +50,7 @@ It must not expose a nullable grid flag through the common contract.
 `IInventoryTopology` projects shape and orientation into cells. `PlacementStore` owns occupancy
 and bounds checks without knowing concrete topology types.
 
-`PlacementOrientation` is a discrete step index. A topology owns:
+Orientation is stored as an integer step index, not an angle. A topology owns:
 - orientation count and normalization
 - rotating an orientation by N steps
 - visual angle for a step

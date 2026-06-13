@@ -40,7 +40,7 @@ namespace UDND.Inventories
         public BaseSlot AnchorSlot { get; }
         public IReadOnlyList<BaseSlot> CoveredSlots { get; }
         public bool IsExplicitTargetCandidate { get; }
-        public PlacementOrientation Orientation =>
+        public int Orientation =>
             Candidate?.Orientation ?? Entry.Orientation;
 
         public static TransferProbe Accepted(

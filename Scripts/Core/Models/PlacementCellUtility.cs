@@ -17,7 +17,7 @@ namespace UDND.Core
         public static IReadOnlyList<int> GetCoveredIndices(
             int anchorIndex,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             IInventoryTopology topology,
             PlacementBoundsMode boundsMode)
         {
@@ -35,7 +35,7 @@ namespace UDND.Core
         public static IReadOnlyList<int> GetCoveredIndices(
             Vector2Int anchorCell,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             IInventoryTopology topology,
             PlacementBoundsMode boundsMode)
         {
@@ -53,7 +53,7 @@ namespace UDND.Core
         private static IReadOnlyList<int> GetCoveredIndicesCore(
             Vector2Int anchorCell,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             IInventoryTopology topology,
             PlacementBoundsMode boundsMode)
         {

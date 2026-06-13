@@ -61,7 +61,7 @@ namespace UDND.Inventories
             ItemStack previewStack,
             BaseSlot anchorSlot,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             Placement ignoredPlacement = null)
         {
             if (previewStack == null || previewStack.IsEmpty || anchorSlot == null)
@@ -84,7 +84,7 @@ namespace UDND.Inventories
         public IReadOnlyList<BaseSlot> GetCoveredSlots(
             BaseSlot anchorSlot,
             IPlacementShape shape,
-            PlacementOrientation orientation)
+            int orientation)
         {
             if (anchorSlot == null)
                 return Array.Empty<BaseSlot>();

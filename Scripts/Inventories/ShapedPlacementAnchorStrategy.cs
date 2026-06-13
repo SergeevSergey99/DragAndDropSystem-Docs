@@ -13,7 +13,7 @@ namespace UDND.Inventories
             DragContext dragContext,
             DragEntry entry,
             IPlacementShape shape,
-            PlacementOrientation orientation,
+            int orientation,
             IItemAdapter targetItemAdapter)
         {
             TargetInventory = targetInventory;
@@ -34,7 +34,7 @@ namespace UDND.Inventories
             Shape,
             Orientation,
             TargetInventory?.Topology);
-        public PlacementOrientation Orientation { get; }
+        public int Orientation { get; }
         public IItemAdapter TargetItemAdapter { get; }
 
         public Vector2Int TargetCell => TargetInventory != null && TargetBaseSlot != null
