@@ -28,8 +28,8 @@ flowchart TD
 
 Key ideas:
 
-- **No `TransferPlan`, no virtual slot state.** Earlier versions built a plan first
-  and executed it later. That is gone.
+- **Nothing is precomputed.** The system does not build a plan or a virtual copy of
+  the inventory ahead of time; it mutates the real state as it goes.
 - **Sequential and best-effort.** Entries are handled one by one; entry N sees the
   result of entry N-1. A failed entry is rolled back on its own and does not undo
   earlier successful entries.

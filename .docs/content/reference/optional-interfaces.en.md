@@ -59,8 +59,8 @@ public class ShopInventoryBinding
 
 ### Exact Pipeline Order
 
-There is no materialized `TransferPlan`. The transfer engine processes entries
-sequentially against the real inventory state. For a single entry the order is:
+The transfer engine processes entries sequentially against the real inventory state,
+without precomputing a plan. For a single entry the order is:
 
 1. `CanDrop` and the rest of the rules decide whether the drop is mechanically valid.
 2. `CanStartTransfer` runs once, before the first mutation, and may veto the whole
