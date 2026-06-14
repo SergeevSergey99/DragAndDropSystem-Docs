@@ -4,7 +4,7 @@ El flujo completo está en [Transfer Pipeline](transfer-pipeline.md).
 
 ## Campos de policy
 
-- `BlockedTargetResolutionKind`: `Reject`, `AlternativeSlots` o `Swap`
+- `BlockedTargetResolutionKind`: `Reject`, `FindAlternative` o `Swap`
 - `AlternativeOrderer`: orden usado solo para colocación automática
 - `AllowSameInventoryAlternativePlacement`: permite otro placement para un drop
   bloqueado dentro del mismo inventory
@@ -12,7 +12,7 @@ El flujo completo está en [Transfer Pipeline](transfer-pipeline.md).
 
 ## Matriz
 
-| Escenario | `Reject` | `AlternativeSlots` | `Swap` |
+| Escenario | `Reject` | `FindAlternative` | `Swap` |
 |---|---|---|---|
 | target explícito válido | usar target | usar target | usar target |
 | target explícito bloqueado | rechazar entry | buscar ordered candidates | intentar swap |

@@ -14,8 +14,8 @@ Normalmente esto cae en una de estas dos categorías:
 
 | Interface | Suele implementarse en | Cuándo se usa | Propósito |
 |---|---|---|---|
-| `ITransferDomainHandler` | normalmente `InventoryDataBinding` | después de rules/planning e inmediatamente antes del commit, y otra vez tras completar con éxito | validación de negocio a nivel de transferencia y side effects |
-| `IAsyncTransferDomainHandler` | normalmente `InventoryDataBinding` | después de `CanCommitTransfer` síncrono y antes del commit | comprobaciones asíncronas externas: servidor, fichero, base de datos |
+| `ITransferDomainHandler` | normalmente `InventoryDataBinding` | una vez antes de la primera mutación (`CanStartTransfer`), antes de confirmar cada colocación (`CanCommitTransfer`) y tras un commit exitoso (`OnTransferSucceeded`) | validación de negocio a nivel de transferencia y side effects |
+| `IAsyncTransferDomainHandler` | normalmente `InventoryDataBinding` | una vez antes de la primera mutación, solo camino async (`CanStartTransferAsync`) | veto async externo de toda la transferencia: servidor, fichero, base de datos |
 | `IStackSizeLimitable` | `IItemAdapter` | cuando una stacking strategy calcula la capacidad del stack | límite de stack por item |
 | `IDescribable` | `IItemAdapter` | cuando la UI quiere mostrar una descripción | metadatos extra para tooltips y sistemas similares |
 
@@ -23,8 +23,12 @@ Normalmente esto cae en una de estas dos categorías:
 
 ## ITransferDomainHandler
 
-`ITransferDomainHandler` sirve para la lógica de dominio alrededor de una transferencia ya planificada.
+`ITransferDomainHandler` sirve para la lógica de dominio alrededor de una transferencia.
 No es un sustituto de las rules ni otra capa genérica de validación.
+
+La interface tiene tres métodos: un veto de toda la transferencia (`CanStartTransfer`), una
+comprobación por colocación (`CanCommitTransfer`) y un hook de éxito (`OnTransferSucceeded`).
+Hay que implementar los tres.
 
 Normalmente se implementa en un binding:
 
@@ -32,6 +36,13 @@ Normalmente se implementa en un binding:
 public class ShopInventoryBinding
     : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
+    // Veto de toda la transferencia, una vez antes de cualquier mutación.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+    {
+        return _shopIsOpen ? RuleResult.Success() : RuleResult.Failure("La tienda está cerrada");
+    }
+
+    // Comprobación por colocación, antes de confirmar cada colocación concreta.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return HasEnoughMoney(context)
@@ -48,21 +59,22 @@ public class ShopInventoryBinding
 
 ### Orden exacto del pipeline
 
-Para una transferencia normal, el orden es:
+No hay un plan materializado. El motor de transferencia procesa las entries de forma
+secuencial contra el estado real del inventario. Para una sola entry, el orden es:
 
-1. `CanDrop` y el resto de rules deciden si la transferencia puede planificarse.
-2. el planner construye un `TransferPlan` sin mutar inventarios.
-3. el executor crea un `TransferDomainContext` para la planned allocation concreta.
-4. `CanCommitTransfer` se ejecuta primero en el binding de origen y luego en el de destino si implementan `ITransferDomainHandler`.
-5. si el binding también implementa `IAsyncTransferDomainHandler`, `CanCommitTransferAsync` se ejecuta después de la comprobación síncrona.
-6. solo entonces ocurre el commit real: split, conversion, placement y rollback si hace falta.
-7. después de que toda la operación tenga éxito, se ejecuta `OnTransferSucceeded`.
-8. solo después se despachan las notificaciones add/remove del inventario y otros deferred events.
+1. `CanDrop` y el resto de rules deciden si el drop es mecánicamente válido.
+2. `CanStartTransfer` se ejecuta una vez, antes de la primera mutación, y puede vetar toda la
+   operación. `CanStartTransferAsync` hace lo mismo en el camino de ejecución asíncrono.
+3. el motor resuelve un candidato de colocación concreto y crea un `TransferDomainContext` para él.
+4. `CanCommitTransfer` se ejecuta antes de mutar esa colocación (primero el binding de origen, luego el de destino si implementan `ITransferDomainHandler`).
+5. solo entonces ocurre el commit real: split, conversion, placement y rollback si hace falta.
+6. tras confirmar una colocación, se ejecuta `OnTransferSucceeded`.
+7. solo después se despachan las notificaciones add/remove del inventario y otros deferred events.
 
 Por tanto:
 
-- `CanCommitTransfer` sucede más tarde que las rules
-- `CanCommitTransfer` sucede antes de cualquier mutación de esa transferencia
+- `CanStartTransfer` sucede una vez, antes de cualquier mutación de toda la operación
+- `CanCommitTransfer` sucede antes de cualquier mutación de una colocación concreta
 - `OnTransferSucceeded` sucede después de un commit exitoso, pero antes de `OnItemRemoved` / `OnItemAdded`
 
 ### Qué contiene TransferDomainContext
@@ -71,9 +83,9 @@ Por tanto:
 
 - `SourceInventory` / `TargetInventory`
 - `SourceBinding` / `TargetBinding`
-- `SourceSlot`
-- `PlannedTargetSlot`
-- `TargetSlot` después del commit
+- `SourceBaseSlot`
+- `PlannedTargetBaseSlot`
+- `TargetBaseSlot` después del commit
 - `SourceItemAdapter`
 - `PreviewTargetItemAdapter`
 - `TargetItemAdapter` después del commit
@@ -110,7 +122,9 @@ Si la pregunta es "¿puede confirmarse ahora mismo esta operación ya planificad
 
 ## IAsyncTransferDomainHandler
 
-`IAsyncTransferDomainHandler` amplía `ITransferDomainHandler` cuando la respuesta no puede obtenerse inmediatamente.
+`IAsyncTransferDomainHandler` amplía `ITransferDomainHandler` con un veto asíncrono de
+**toda la transferencia**, `CanStartTransferAsync`, para cuando la respuesta no puede
+obtenerse inmediatamente. Es la contraparte async de `CanStartTransfer`, no de `CanCommitTransfer`.
 
 ```csharp
 public class ServerInventoryBinding
@@ -119,12 +133,16 @@ public class ServerInventoryBinding
       IAsyncTransferDomainHandler
 {
     public RuleResult CanCommitTransfer(TransferDomainContext context)
-    {
-        return ValidateLocalState(context);
-    }
+        => ValidateLocalState(context);
 
-    public async Task<RuleResult> CanCommitTransferAsync(
-        TransferDomainContext context,
+    public void OnTransferSucceeded(TransferDomainContext context) { }
+
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+        => RuleResult.Success();
+
+    public async Task<RuleResult> CanStartTransferAsync(
+        DragContext context,
+        IInventory targetInventory,
         CancellationToken cancellationToken)
     {
         return await _serverApi.ValidateTransferAsync(context, cancellationToken);
@@ -141,12 +159,11 @@ public class ServerInventoryBinding
 
 Importante:
 
-- `CanCommitTransferAsync` no sustituye a la versión síncrona; va después
-- si la comprobación síncrona ya falla, la fase asíncrona no se ejecuta
-- la validación asíncrona ocurre antes del commit local
-- un fallo en la fase asíncrona cancela la transferencia sin mutar los inventarios
+- `CanStartTransferAsync` es de toda la transferencia y se ejecuta una vez, antes de la primera mutación
+- solo corre en el camino de ejecución asíncrono; una transferencia síncrona se rechaza cuando hay un handler async, así que la comprobación nunca se salta en silencio
+- un fallo en la fase asíncrona cancela toda la transferencia sin mutar los inventarios
 
-Si la comprobación es puramente local y rápida, `CanCommitTransfer` normal es suficiente.
+Si la comprobación es puramente local y rápida, `CanStartTransfer` / `CanCommitTransfer` bastan.
 
 ---
 
@@ -173,7 +190,7 @@ La interface es leída por inventory strategies cuando calculan la capacidad del
 
 - `StackableItemStrategy`
 - `SeparableStacksStrategy`
-- el planner a través de `UniversalInventory.GetMaxStackSizeForItem(...)`
+- el motor de transferencia a través de `UniversalInventory.GetMaxStackSizeForItem(...)`
 
 ### Nota importante sobre _allowItemStackOverride
 

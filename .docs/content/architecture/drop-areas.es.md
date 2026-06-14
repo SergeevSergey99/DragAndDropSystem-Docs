@@ -23,7 +23,7 @@ flowchart TD
 | Patrón | Idea | Cuándo usarlo |
 |---------|------|-------------|
 | **Simple Consumption** | Sobrescribe `CanAcceptEntry` + `ProcessEntry`. La eliminación del source es automática | Zona del mundo, papelera, venta: cualquier target sin inventario |
-| **Delegation** | Sobrescribe `GetDropProcessor()`, devuelve tu propio `IDropProcessor` | Áreas de inventario con lógica compleja (policy, planner, swap) |
+| **Delegation** | Sobrescribe `GetDropProcessor()`, devuelve tu propio `IDropProcessor` | Áreas de inventario con lógica compleja (policy, swap, conversión) |
 
 ---
 
@@ -68,7 +68,7 @@ flowchart TD
 
 ## Delegation
 
-Cuando necesitas lógica compleja de drop (planner/executor, policies, swaps), sobrescribe `GetDropProcessor()`:
+Cuando necesitas lógica compleja de drop (el pipeline de transferencia, policies, swaps), sobrescribe `GetDropProcessor()`:
 
 ```csharp
 public class CustomInventoryArea : DropAreaBase
@@ -265,5 +265,5 @@ protected override void OnHighlightChanged(bool highlighted, bool canAccept)
 |-------|---------|-------------|
 | `DropAreaBase` | --- | Clase base para todas las drop areas |
 | `WorldDropZone` | Simple Consumption | Crea objetos 3D en el mundo |
-| `InventoryDropArea` | Delegation | Drop dentro del inventario vía planner/executor |
+| `InventoryDropArea` | Delegation | Drop dentro del inventario vía el pipeline de transferencia |
 

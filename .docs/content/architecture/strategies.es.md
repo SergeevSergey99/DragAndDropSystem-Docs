@@ -1,16 +1,21 @@
-# Placement Strategies
+# Estrategias de colocación
 
-Cada inventario elige una strategy que determina cómo se colocan y se fusionan los items en los slots. La strategy se configura en el Inspector y afecta a todas las operaciones de add y move.
+Cada inventario elige una **estrategia** que decide cómo ocupan y se fusionan los objetos
+en los huecos. La estrategia se selecciona en el Inspector y aplica a cada adición y movimiento.
+
+Una estrategia es de **solo lectura**: responde "¿dónde puede ir este objeto y cuánto cabe?"
+produciendo *candidatos de colocación*. Nunca añade, quita ni muta nada; toda la mutación la
+realiza el motor de transferencia. Ver [Pipeline de transferencia](transfer-pipeline.md).
 
 ---
 
-## Comparación de strategies
+## Comparación de estrategias
 
-| | Slot 1 | Slot 2 | Slot 3 | Comportamiento |
+| | Hueco 1 | Hueco 2 | Hueco 3 | Comportamiento |
 |---|---|---|---|---|
-| **Unique** | Sword | Shield | Potion | Un item = un slot |
-| **Stackable** | Potion x5 | Potion x3 | Shield | Los items idénticos se apilan automáticamente |
-| **Separable Stacks** | Squad x10 | Squad x20 | --- | Los stacks son independientes, se fusionan bajo petición |
+| **Unique** | Espada | Escudo | Poción | Un objeto = un hueco |
+| **Stackable** | Poción x5 | Poción x3 | Escudo | Los objetos idénticos se apilan automáticamente |
+| **Separable Stacks** | Escuadra x10 | Escuadra x20 | --- | Los stacks son independientes, se fusionan a petición |
 
 ---
 
@@ -18,7 +23,7 @@ Cada inventario elige una strategy que determina cómo se colocan y se fusionan 
 
 ```mermaid
 flowchart TD
-    Q1{"¿Los items deben hacer stack?"}
+    Q1{"¿Los objetos deben apilarse?"}
     Q1 -->|No| UNI["Unique"]
     Q1 -->|Sí| Q2{"¿Los stacks se fusionan automáticamente?"}
     Q2 -->|Sí| STK["Stackable"]
@@ -29,31 +34,34 @@ flowchart TD
 
 ## Unique
 
-Cada item ocupa exactamente un slot. No se soporta stacking: al transferir varias instancias, cada una se coloca en un slot separado.
+Cada objeto ocupa exactamente un hueco; no hay apilado. Al transferir varias instancias,
+cada una toma un hueco aparte.
 
 ```mermaid
 flowchart TD
-    A["Item"] --> B{"¿Slot libre?"}
+    A["Objeto"] --> B{"¿Hueco libre?"}
     B -->|Sí| C["Colocar"]
-    B -->|No| D["Buscar otro slot libre"]
+    B -->|No| D["Buscar otro hueco libre"]
     D --> E{"¿Encontrado?"}
     E -->|Sí| C
     E -->|No| F["Rechazar"]
 ```
 
-Uso típico: inventario de equipamiento, colección de artefactos únicos.
+Uso típico: inventario de equipo, colección de artefactos únicos.
 
 ---
 
 ## Stackable
 
-Los items idénticos se combinan automáticamente en un solo stack. Al añadir, el sistema primero busca un stack existente con el mismo item y después un slot libre.
+Los objetos idénticos se combinan automáticamente en un stack. Al añadir, la estrategia
+ofrece primero un candidato de merge para un stack existente del mismo objeto, y luego un
+candidato de create para un hueco libre.
 
 ```mermaid
 flowchart TD
-    A["Item"] --> B{"¿Mismo item en algún slot?"}
+    A["Objeto"] --> B{"¿Mismo objeto ya en un hueco?"}
     B -->|Sí| C["Fusionar stacks"]
-    B -->|No| D{"¿Slot libre?"}
+    B -->|No| D{"¿Hueco libre?"}
     D -->|Sí| E["Crear stack"]
     D -->|No| F["Rechazar"]
 ```
@@ -64,13 +72,15 @@ Uso típico: consumibles (pociones, flechas), recursos.
 
 ## Separable Stacks
 
-Los items pueden apilarse pero NO se fusionan automáticamente. Puedes tener varios stacks del mismo item en distintos slots. La fusión solo ocurre en un drop explícito sobre el mismo item (si lo permite `allowMergeOnDrop`).
+Los objetos pueden apilarse pero **no** se fusionan automáticamente. Puedes tener varios
+stacks del mismo objeto en huecos distintos. Un merge ocurre solo en un drop explícito sobre
+el mismo objeto, cuando el merge está permitido.
 
 ```mermaid
 flowchart TD
-    A["Item"] --> B{"¿Slot vacío?"}
-    B -->|Sí| C["Crear nuevo stack"]
-    B -->|No| D{"¿Mismo item + merge permitido?"}
+    A["Objeto"] --> B{"¿Hueco vacío?"}
+    B -->|Sí| C["Crear un nuevo stack"]
+    B -->|No| D{"¿Mismo objeto + merge permitido?"}
     D -->|Sí| E["Fusionar"]
     D -->|No| F["Rechazar"]
 ```
@@ -79,15 +89,18 @@ Uso típico: estilo Heroes of Might & Magic (escuadras con stacks independientes
 
 ---
 
-## Dynamic Slots
+## Gestión de huecos (fixed vs dynamic)
 
-Un decorador que envuelve cualquier strategy y añade creación/eliminación automática de slots:
+La estrategia decide la *colocación*; la **gestión de huecos** decide si el conjunto de
+huecos es fijo o puede crecer y encoger. Es un ajuste aparte del inventario.
 
-- Crea nuevos slots cuando hace falta (hasta un límite especificado).
-- Mantiene un número mínimo de slots libres.
-- Elimina slots vacíos sobrantes cuando se quitan items.
+- `FixedSlotManagementSettings` — un número fijo de huecos.
+- `DynamicSlotManagementSettings` — crea huecos nuevos según haga falta (hasta un límite),
+  mantiene un mínimo de huecos libres y elimina los vacíos sobrantes al quitar objetos.
 
-Funciona con cualquiera de las tres strategies.
+Los huecos dinámicos funcionan con cualquiera de las tres estrategias. La estrategia solo
+devuelve un candidato `NewDynamicSlot` cuando se permite crecer; el motor dirige la creación
+y eliminación reales mediante `IDynamicSlotLifecycle`.
 
 ---
 
@@ -95,75 +108,82 @@ Funciona con cualquiera de las tres strategies.
 
 | Parámetro | Valores | Descripción |
 |---|---|---|
-| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Strategy de colocación elegida directamente mediante `[SerializeReference]` |
-| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Modo de ciclo de vida de slots elegido directamente mediante `[SerializeReference]` |
-| **Max Slots** | número | Slots máximos (para Dynamic) |
-| **Max Free Slots** | número | Cuántos slots vacíos mantener (para Dynamic) |
-| **Drag Amount** | `One` / `Half` / `All` / `Custom` | Cuántos items arrastrar desde un stack |
+| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Estrategia de colocación, seleccionada con `[SerializeReference]` |
+| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Modo de ciclo de vida de huecos, con `[SerializeReference]` |
+| **Max Slots** | número | Máximo de huecos (solo Dynamic) |
+| **Max Free Slots** | número | Huecos vacíos a mantener disponibles (solo Dynamic) |
+| **Drag Amount** | `All` / `HalfDown` / `HalfUp` / `One` / `Custom` | Cuántos objetos arrastrar de un stack |
 
 ---
 
-## Strategy personalizada
+## Estrategia personalizada
 
-Para crear tu propia placement strategy:
+Una estrategia personalizada es de solo lectura: produce candidatos, no muta.
 
-1. Crea una clase que herede de `InventoryStrategyBase`.
-2. Márquela con `[Serializable]`.
-3. Aparecerá automáticamente en el strategy picker de `UniversalInventory`.
-4. Sobrescribe los métodos clave:
+1. Hereda de `InventoryStrategyBase`.
+2. Márcala `[Serializable]` para que aparezca en el selector de estrategias de `UniversalInventory`.
+3. Sobrescribe los métodos de candidatos:
 
 ```csharp
+[Serializable]
 public class MyCustomStrategy : InventoryStrategyBase
 {
-    // Add an item to the inventory
-    public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex)
+    // Validar un hueco elegido directamente y devolver su candidato (kind + capacity).
+    public override bool TryGetCandidate(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request,
+        BaseSlot targetBaseSlot,
+        out PlacementCandidate candidate)
     {
-        // Tu lógica de colocación
+        // Resolver el ancla, decidir merge vs create, calcular capacity.
+        // Hay ayudantes como TryCreatePlacementCandidate(...) y PassesRules(...).
     }
 
-    // Add an item to a specific slot
-    public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack,
-        BaseSlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
+    // Enumerar candidatos para colocación automática (drop en área / auto-transferencia).
+    public override PlacementCandidateSource GetCandidates(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request)
     {
-        // Tu lógica para un slot concreto
+        // Devolver una fuente de candidatos perezosa y reenumerable.
     }
 
-    // Remove an item
-    public override bool TryRemove(List<BaseSlot> slots, IItemAdapter item,
-        int count, int sourceIndex)
+    // Cuántos objetos puede aceptar el inventario ahora mismo (conteo de solo lectura).
+    public override int GetAcceptableCount(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request)
     {
-        // Tu lógica de eliminación
-    }
-
-    // How many items the inventory can accept
-    public override int GetAcceptableCount(List<BaseSlot> slots,
-        InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, BaseSlot slotPrefab)
-    {
-        // Tu lógica de recuento
-    }
-
-    // Can the inventory accept the item
-    public override bool CanAcceptItem(List<BaseSlot> slots,
-        InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, BaseSlot slotPrefab, out BaseSlot suggestedSlot)
-    {
-        // Tu lógica de validación
+        // Tu lógica de conteo.
     }
 }
 ```
 
-!!! tip "Validación de rules"
-    Usa el método `PassesRules(slot, item, count)` de la clase base para validar las slot rules antes de colocar.
+!!! tip "Ayudantes de la clase base"
+    `PassesRules(slot, item, count)` valida las reglas del hueco, y
+    `TryCreatePlacementCandidate(...)` construye un candidato de create validado contra la
+    topología. La geometría (`IPlacementGeometry`) te da resolución de ancla, comprobaciones
+    de límites y ocupación, y huecos cubiertos: tu estrategia nunca necesita saber que es una grid.
 
-## Slot Management personalizado
+!!! warning "Las estrategias no mutan"
+    Ya no existen los métodos `TryAdd`/`TryRemove`/`TryAddToSlot`. Si buscas dónde se colocan
+    realmente los objetos, eso es el motor de transferencia, no la estrategia.
 
-Para crear tu propio modo de ciclo de vida de slots:
+---
 
-1. Crea una clase que herede de `SlotManagementSettingsBase`.
-2. Márquela con `[Serializable]`.
-3. Sobrescribe los hooks que necesites, por ejemplo `WrapRuntimeStrategy`, `EnsureFreeSlots` o `HandleSlotEmptied`.
-4. Aparecerá automáticamente en el picker de `Slot Management` de `UniversalInventory`.
+## Gestión de huecos personalizada
+
+Para crear tu propio modo de ciclo de vida de huecos:
+
+1. Hereda de `SlotManagementSettingsBase`.
+2. Márcalo `[Serializable]` para que aparezca en el selector de gestión de huecos.
+3. Sobrescribe los hooks que necesites:
+
+| Hook | Propósito |
+|---|---|
+| `CanCreateNewSlot(...)` | ¿Puede crecer el inventario ahora mismo? |
+| `GetPotentialNewSlots(...)` | Cuántos huecos más se podrían crear |
+| `EnsureFreeSlots(...)` | Precrear el número configurado de huecos libres |
+| `CanRemoveAnotherSlot(...)` | ¿Se puede eliminar un hueco vacío sobrante? |
+| `HandleSlotEmptied(...)` | Reaccionar cuando un hueco queda vacío (p. ej. trim) |
 
 ---
 
@@ -171,13 +191,14 @@ Para crear tu propio modo de ciclo de vida de slots:
 
 | Concepto | Clase | Descripción |
 |---|---|---|
-| Clase base | `InventoryStrategyBase` | Métodos comunes para todas las strategies |
-| Base compartida de stacks | `StackBasedInventoryStrategyBase` | Soporte común para límite de stack y override por item en strategies de stack |
-| Unique | `UniqueItemStrategy` | Un item = un slot |
+| Contrato de estrategia | `IStrategy` | Solo lectura: candidatos, capacity, tamaño máximo de stack |
+| Clase base | `InventoryStrategyBase` | Ayudantes de candidatos y comprobaciones de reglas |
+| Base de stack | `StackBasedInventoryStrategyBase` | Soporte de tamaño de stack y override por objeto para estrategias de apilado |
+| Unique | `UniqueItemStrategy` | Un objeto = un hueco |
 | Stackable | `StackableItemStrategy` | Fusión automática de stacks |
-| Separable | `SeparableStacksStrategy` | Stacks independientes con fusión opcional |
-| Interfaces de capacidad | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Interfaces semánticas opcionales para código personalizado |
-| Base de slot management | `SlotManagementSettingsBase` | Clase base para modos fixed, dynamic y custom del ciclo de vida de slots |
-| Dynamic slots | `DynamicSlotManagementSettings`, `DynamicSlotDecorator` | Modo dinámico y su decorador de runtime |
-| Interface | `IInventoryStrategy` | Contrato para todas las strategies |
-
+| Separable | `SeparableStacksStrategy` | Stacks independientes con merge opcional |
+| Candidato | `PlacementCandidate`, `PlacementCandidateSource` | Intención merge/create/new-slot neutral a la topología |
+| Ordenamiento | `PlacementCandidateOrderer` | Ordena candidatos solo para colocación automática |
+| Base de gestión de huecos | `SlotManagementSettingsBase` | Base para modos fixed, dynamic y propios |
+| Modos de huecos | `FixedSlotManagementSettings`, `DynamicSlotManagementSettings` | Conjunto de huecos fijo o creciente |
+| Ciclo de vida dinámico | `IDynamicSlotLifecycle` | Creación/eliminación de huecos dirigida por el motor |

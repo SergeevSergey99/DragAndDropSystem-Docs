@@ -44,9 +44,9 @@ Por defecto, el sistema usa un identity converter.
 
 ## Quién llama a la conversión
 
-### Preview / planning
+### Preview
 
-Durante el preview y el planning, la conversión está orquestada por `TransferItemConversionUtility`.
+Durante el preview, la conversión está orquestada por `TransferItemConversionUtility`.
 
 Esto es necesario para que las rules del target y los hooks del binding vean un target-side adapter en lugar del source-side adapter original.
 
@@ -143,8 +143,8 @@ Si la operación está solo temporalmente prohibida por lógica de negocio, ese 
 Usa:
 
 - rules
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
 
 ---
 
@@ -186,7 +186,7 @@ Normalmente significa:
 
 ## Dónde continuar
 
-- [Transfer Pipeline](transfer-pipeline.md) — orden completo de planning/execution
+- [Pipeline de transferencia](transfer-pipeline.md) — el orden completo de transferencia
 - [Demo4 Trading](../examples/demo4-trading.md) — ejemplo funcional de conversión entre merchant/player/equipment
 - [Troubleshooting](../reference/troubleshooting.md) — síntomas y causas comunes
 

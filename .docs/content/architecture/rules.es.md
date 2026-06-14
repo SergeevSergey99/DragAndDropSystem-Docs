@@ -10,7 +10,7 @@ Las rules separan la lógica de restricciones de la lógica de colocación. En v
 
 !!! note "Las rules no son lo mismo que los business hooks"
     Las rules se ocupan de restricciones mecánicas de transferencia: si el item puede arrastrarse, si puede soltarse en este objetivo, si el slot acepta este tipo.
-    Si necesitas comprobaciones a nivel de operación como suficiente oro, autorización del servidor o side effects después del éxito, usa transfer-level hooks (`CanCommitTransfer`, `CanCommitTransferAsync`, `OnTransferSucceeded`) en lugar de `CanDrop`.
+    Si necesitas comprobaciones a nivel de operación como suficiente oro, autorización del servidor o side effects después del éxito, usa transfer-level hooks (`CanStartTransfer`, `CanStartTransferAsync`, `CanCommitTransfer`, `OnTransferSucceeded`) en lugar de `CanDrop`.
     Para una comparación compacta, consulta también [Transfer Pipeline](transfer-pipeline.md) y [Drop Policy Matrix](drop-policy-matrix.md).
 
 ---
@@ -117,7 +117,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     START["When drag starts"] --> CHECK1["Check CanStartDrag"]
-    CHECK1 -->|Allowed| PLAN["When planning transfer"]
+    CHECK1 -->|Allowed| PLAN["When validating the target"]
     CHECK1 -->|Denied| CANCEL["Drag cancelled"]
 
     PLAN --> CHECK2["Check CanDrop"]
@@ -134,7 +134,7 @@ flowchart TD
 Puntos específicos de validación:
 
 1. **Inicio del drag** — global + inventory + slot rules del origen.
-2. **Planning de la transferencia** — global + inventory + slot rules del objetivo.
+2. **Validación del objetivo** — global + inventory + slot rules del objetivo.
 3. **Swap** — las rules se validan en ambas direcciones (A&rarr;B y B&rarr;A).
 
 Si las rules parecen dispararse "demasiado a menudo", empieza por [Logs and Debugging](../reference/logs-and-debugging.md) y [Troubleshooting](../reference/troubleshooting.md).

@@ -58,25 +58,24 @@ flowchart TD
 | Hook | Cuándo se ejecuta | Úsalo para |
 |---|---|---|
 | `CanStartDrag` | antes de que empiece el drag | bloquear coger un item desde el origen |
-| `CanDrop` | durante preview y planning | restricciones mecánicas, compatibilidad de slot |
-| `CanCommitTransfer` | antes del commit real | comprobaciones rápidas locales previas al commit, dinero, veto de dominio |
-| `CanCommitTransferAsync` | opcionalmente después del pre-commit síncrono y antes del commit | servidor, fichero, base de datos, perfil externo, cualquier comprobación asíncrona externa |
+| `CanDrop` | durante preview y validación del objetivo | restricciones mecánicas, compatibilidad de slot |
+| `CanStartTransfer` | una vez, antes de la primera mutación | veto de toda la operación (tienda cerrada, propiedad) |
+| `CanCommitTransfer` | antes de confirmar cada colocación concreta | comprobaciones locales por colocación, dinero, veto de dominio |
+| `CanStartTransferAsync` | una vez, antes de la primera mutación (solo camino async) | veto async de toda la transferencia: servidor, fichero, base de datos, perfil externo |
 | `OnTransferSucceeded` | tras un commit exitoso | cambios de moneda, analíticas, side effects de dominio |
 | `AddToData` / `RemoveFromData` | tras los eventos del inventario | sincronizar tus datos |
 
 La separación importante es:
 
 - `CanDrop` es para la mecánica
-- `CanCommitTransfer` y `CanCommitTransferAsync` juntos gestionan la validación de negocio previa al commit
+- `CanStartTransfer` / `CanStartTransferAsync` vetan **toda** la operación antes de que empiece
+- `CanCommitTransfer` valida cada colocación **concreta** antes de confirmarla
 - `AddToData/RemoveFromData` son solo para sincronización
 
-Si un binding implementa ambas versiones, el orden es:
-
-1. `CanCommitTransfer`
-2. `CanCommitTransferAsync`
-3. commit real
-
-Si la comprobación síncrona falla, la comprobación asíncrona no se ejecuta.
+`CanStartTransfer` y `CanStartTransferAsync` son de toda la transferencia y se ejecutan una
+vez, antes de la primera mutación. `CanStartTransferAsync` solo corre en el camino de
+ejecución asíncrono; si hay un handler async, una transferencia síncrona se rechaza en lugar
+de saltarse la comprobación.
 
 Para más sobre los tres tipos de comprobaciones (rules, business checks, notifications), consulta la página [Transfer Pipeline](transfer-pipeline.md).
 
@@ -108,6 +107,15 @@ Si un binding debe participar en la lógica de negocio de la operación, impleme
 public class ShopInventoryBinding
     : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
+    // Veto de toda la transferencia, una vez antes de cualquier mutación.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+    {
+        return _shopIsOpen
+            ? RuleResult.Success()
+            : RuleResult.Failure("La tienda está cerrada");
+    }
+
+    // Comprobación por colocación, antes de confirmarla.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return ValidateBusinessRules(context)
@@ -124,16 +132,18 @@ public class ShopInventoryBinding
 
 ---
 
-## Validación asíncrona previa al commit
+## Veto async de toda la transferencia
 
-Si una transferencia debe esperar a una comprobación externa antes del commit, por ejemplo:
+Si *toda* la transferencia debe esperar una respuesta externa antes de que algo se mueva, por ejemplo:
 
 - una respuesta del servidor
 - leer un fichero
 - una consulta a base de datos
 - cargar un perfil externo o datos de guardado
 
-implementa también `IAsyncTransferDomainHandler` en el binding.
+implementa también `IAsyncTransferDomainHandler` en el binding. Su único método,
+`CanStartTransferAsync`, es un veto de toda la transferencia que se ejecuta una vez antes de
+la primera mutación: la contraparte asíncrona de `CanStartTransfer`.
 
 ```csharp
 public class ServerBackedInventoryBinding
@@ -141,6 +151,7 @@ public class ServerBackedInventoryBinding
       ITransferDomainHandler,
       IAsyncTransferDomainHandler
 {
+    // Comprobación local por colocación, sigue siendo síncrona.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return ValidateLocalState(context)
@@ -148,8 +159,16 @@ public class ServerBackedInventoryBinding
             : RuleResult.Failure("La validación local ha fallado");
     }
 
-    public async Task<RuleResult> CanCommitTransferAsync(
-        TransferDomainContext context,
+    public void OnTransferSucceeded(TransferDomainContext context) { }
+
+    // Veto síncrono de toda la transferencia. Requerido por ITransferDomainHandler.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+        => RuleResult.Success();
+
+    // Veto asíncrono de toda la transferencia, una vez antes de la primera mutación.
+    public async Task<RuleResult> CanStartTransferAsync(
+        DragContext context,
+        IInventory targetInventory,
         CancellationToken cancellationToken)
     {
         bool allowed = await _serverApi.ValidateTransferAsync(context, cancellationToken);
@@ -163,14 +182,13 @@ public class ServerBackedInventoryBinding
 Cómo funciona:
 
 - `CanDrop` sigue siendo un hook síncrono y rápido para preview
-- `CanCommitTransfer` gestiona comprobaciones locales previas al commit
-- `CanCommitTransferAsync` no sustituye a la versión síncrona, la amplía
-- si el binding implementa ambas, `CanCommitTransfer` se ejecuta primero y `CanCommitTransferAsync` después
-- `CanCommitTransferAsync` se ejecuta una sola vez antes del commit real si el binding implementa la interfaz
-- si la validación asíncrona devuelve `RuleResult.Failure(...)`, la transferencia se cancela
+- `CanCommitTransfer` gestiona comprobaciones locales por colocación
+- `CanStartTransferAsync` es de toda la transferencia y se ejecuta una vez, antes de la primera mutación
+- solo corre en el camino de ejecución asíncrono; una transferencia síncrona se rechaza cuando hay un handler async, así que la comprobación nunca se salta
+- si la validación asíncrona devuelve `RuleResult.Failure(...)`, se cancela toda la transferencia
 
 Usa `IAsyncTransferDomainHandler` cuando la respuesta no pueda producirse inmediatamente.
-Si la comprobación es local y rápida, `CanCommitTransfer` normal es suficiente.
+Si la comprobación es local y rápida, `CanStartTransfer` / `CanCommitTransfer` bastan.
 
 Para ver el orden exacto de llamadas, el papel de `TransferDomainContext` y la diferencia entre `ITransferDomainHandler` y las rules, consulta [Optional Interfaces](../reference/optional-interfaces.md).
 
@@ -214,8 +232,8 @@ Para operaciones por lotes, usa `BeginSync()` para suprimir eventos y evitar fee
 En un proyecto típico no hace falta profundizar en:
 
 - eventos internos del inventario
-- estructuras helper internas del planning layer
-- clases low-level del execution layer
+- el motor de transferencia interno
+- clases low-level de colocación y almacenamiento
 
 Normalmente basta con:
 
