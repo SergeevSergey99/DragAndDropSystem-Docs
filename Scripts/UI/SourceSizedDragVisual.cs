@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UDND.Core;
-using UDND.Inventories;
 using UDND.Slots;
 
 namespace UDND.UI
 {
     /// <summary>
     /// Drag visual that preserves the UI size of the dragged source.
-    /// For shaped placements, the size is computed from all covered source slots.
+    /// The root is sized to the item's orientation-0 footprint (cell size x shape bounds); the
+    /// current orientation is conveyed solely by rotating the icon in <see cref="ApplyOrientation"/>.
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
     public class SourceSizedDragVisual : IDragVisual
@@ -21,7 +21,6 @@ namespace UDND.UI
 
         [Header("Settings")]
         [SerializeField] private bool _showCount = true;
-        [SerializeField] private bool _useShapedPlacementBounds = true;
         [SerializeField] private Vector2 _fallbackSize = new Vector2(100f, 100f);
         [SerializeField] private Color _normalColor = Color.white;
 
@@ -74,9 +73,6 @@ namespace UDND.UI
         private void ApplySourceSize(DragEntry entry)
         {
             var size = ResolveSourceSize(entry);
-            if (ShouldSwapSourceSize(entry))
-                size = new Vector2(size.y, size.x);
-
             if (size.x <= 0f || size.y <= 0f)
                 size = _fallbackSize;
 
@@ -84,27 +80,19 @@ namespace UDND.UI
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
         }
 
+        // Size as if the item were at orientation 0: one cell times the shape's orientation-0 bounds.
+        // ApplyOrientation then rotates the icon to the current orientation.
         private Vector2 ResolveSourceSize(DragEntry entry)
         {
-            if (_useShapedPlacementBounds &&
-                entry.SourcePlacement != null &&
-                !PlacementShapeUtility.IsSingleCell(
-                    entry.SourcePlacement.Shape,
-                    entry.SourcePlacement.Orientation,
-                    entry.OrientationTopology) &&
-                entry.SourceInventory != null &&
-                TryGetPlacementSize(entry.SourceInventory, entry.SourcePlacement, out var placementSize))
-            {
-                return placementSize;
-            }
+            if (!TryGetSlotSize(entry.SourceBaseSlot, out var cellSize))
+                return _fallbackSize;
 
-            return TryGetSlotSize(entry.SourceBaseSlot, out var slotSize)
-                ? slotSize
-                : _fallbackSize;
+            var bounds = PlacementShapeUtility.GetBoundingSize(entry.Shape, 0, entry.OrientationTopology);
+            if (bounds.x <= 0 || bounds.y <= 0)
+                return cellSize;
+
+            return new Vector2(cellSize.x * bounds.x, cellSize.y * bounds.y);
         }
-
-        private static bool ShouldSwapSourceSize(DragEntry entry)
-            => IsQuarterTurn(entry.OrientationTopology, entry.Orientation);
 
         private void ApplyOrientation(DragEntry entry)
         {
@@ -115,51 +103,6 @@ namespace UDND.UI
                     0f,
                     entry.OrientationTopology.GetVisualAngleDegrees(entry.Orientation));
             }
-        }
-
-        private static bool IsQuarterTurn(
-            IInventoryTopology topology,
-            int orientation)
-            => IsQuarterTurn(topology.GetVisualAngleDegrees(orientation));
-
-        private static bool IsQuarterTurn(float angle)
-            => Mathf.Abs(Mathf.Abs(Mathf.DeltaAngle(0f, angle)) - 90f) < 0.01f;
-
-        private bool TryGetPlacementSize(IInventory inventory, Placement placement, out Vector2 size)
-        {
-            size = default;
-            bool hasPoint = false;
-            var min = Vector2.zero;
-            var max = Vector2.zero;
-
-            for (int i = 0; i < placement.CoveredIndices.Count; i++)
-            {
-                var slot = inventory.GetSlot(placement.CoveredIndices[i]);
-                if (!TryGetRectTransform(slot, out var slotRect))
-                    return false;
-
-                slotRect.GetWorldCorners(_corners);
-                for (int c = 0; c < _corners.Length; c++)
-                {
-                    var localPoint = TransformPointToVisualParent(_corners[c]);
-                    if (!hasPoint)
-                    {
-                        min = localPoint;
-                        max = localPoint;
-                        hasPoint = true;
-                        continue;
-                    }
-
-                    min = Vector2.Min(min, localPoint);
-                    max = Vector2.Max(max, localPoint);
-                }
-            }
-
-            if (!hasPoint)
-                return false;
-
-            size = max - min;
-            return size.x > 0f && size.y > 0f;
         }
 
         private bool TryGetSlotSize(BaseSlot slot, out Vector2 size)
