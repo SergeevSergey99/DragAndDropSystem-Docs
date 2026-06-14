@@ -9681,6 +9681,9 @@ MonoBehaviour:
     anchorIndex: 0
     orientation: 0
   - item: {fileID: 11400000, guid: 832817f58622c614ebeda8440aac782f, type: 2}
+    anchorIndex: 2
+    orientation: 0
+  - item: {fileID: 11400000, guid: 832817f58622c614ebeda8440aac782f, type: 2}
     anchorIndex: 3
     orientation: 0
 --- !u!114 &1317235741

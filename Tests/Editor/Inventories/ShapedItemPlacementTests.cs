@@ -2075,6 +2075,86 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_SeparableShapedWithinSameGrid_DropOnOwnFootprint_Succeeds()
+        {
+            // Separable strategy: dropping a multi-cell item onto a slot still covered by its own
+            // placement (with a shift) must move it, not fall through to the blocked-target policy.
+            var inventory = new InventoryBuilder()
+                .WithStrategy(new SeparableStacksStrategy())
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                // 2x2 bag at anchor 0 -> covers 0,1,3,4.
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("bag", 2, 2));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0)));
+
+                // Grab the anchor cell (slot 0); release over slot 1 (still inside the footprint).
+                var dragSlot = inventory.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory);
+                var context = new DragContext(new[] { entry });
+
+                var processor = new InventoryDropProcessor(inventory.GetSlot(1), inventory, new GlobalRuleValidator());
+                var report = processor.ProcessDropWithReport(context);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+
+                var moved = inventory.GetPlacementAt(1);
+                Assert.IsNotNull(moved);
+                Assert.AreEqual(1, moved.AnchorIndex);
+                CollectionAssert.AreEqual(new[] { 1, 2, 4, 5 }, moved.CoveredIndices);
+                Assert.IsNull(inventory.GetPlacementAt(0));
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_SeparableShapedWithinSameGrid_RotateOverOwnFootprint_Succeeds()
+        {
+            // Same Separable case, but with a rotation while staying over the old footprint.
+            var inventory = new InventoryBuilder()
+                .WithStrategy(new SeparableStacksStrategy())
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                // 2x1 blade at anchor 0 (orientation 0) -> covers 0,1.
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0)));
+
+                // Grab slot 0, rotate to vertical, release over slot 0 (still its own footprint).
+                var dragSlot = inventory.GetSlot(0);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                    .WithOrientation(1);
+                var context = new DragContext(new[] { entry });
+
+                var globalRules = new GlobalRuleValidator();
+                globalRules.AddRule(new SameSlotRule());
+                var processor = new InventoryDropProcessor(inventory.GetSlot(0), inventory, globalRules);
+                var report = processor.ProcessDropWithReport(context);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+
+                var moved = inventory.GetPlacementAt(0);
+                Assert.IsNotNull(moved);
+                Assert.AreEqual(0, moved.AnchorIndex);
+                Assert.AreEqual(1, moved.Orientation);
+                CollectionAssert.AreEqual(new[] { 0, 3 }, moved.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_ShapedWithinSameGrid_AllowsOverlapWithSourcePlacement()
         {
             var inventory = new InventoryBuilder()
