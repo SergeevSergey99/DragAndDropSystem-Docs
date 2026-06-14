@@ -23,7 +23,7 @@
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Глобальный менеджер активного drag-and-drop в сцене. Отслеживает lifecycle перетаскивания, текущий context и верхнеуровневую координацию. |
 | `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Главный компонент инвентаря. Владеет слотами, прямыми `[SerializeReference]` полями стратегий, наборами правил и inventory-level поведением переноса. |
-| `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Абстрактная базовая сущность слота, которую используют инвентари, planning и execution. |
+| `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Абстрактная базовая сущность слота, которую используют инвентари и движок переноса. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Стандартная конкретная реализация слота, используемая пакетом. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Базовый binding, связывающий `UniversalInventory` с вашим источником игровых данных. |
 
@@ -37,7 +37,7 @@
 | `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Опциональный интерфейс для адаптеров, которые отдают расширенное описание для UI, например tooltip. |
 | `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Опциональные интерфейсы для систем фильтрации и сортировки. |
 | `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Опциональное переопределение лимита стака на уровне конкретного предмета. |
-| `Scripts/Core/Models/ItemStack.cs` | `ItemStack` | Runtime-модель стака, используемая слотами, planning, swap и execution. |
+| `Scripts/Core/Models/ItemStack.cs` | `ItemStack` | Runtime-модель стака, используемая слотами, переносом и swap. |
 | `Scripts/Core/Models/DragContext.cs` | `DragContext` | Контекст одного drag-оператора: source entries, target info и флаги текущей операции. |
 | `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Универсальный result-объект для action-style API. |
 | `Scripts/Core/Models/DropResult.cs` | `DropResult` | Result-объект, возвращаемый обработчиками drop. |
@@ -80,7 +80,7 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Inventories/IInventory.cs` | `IInventory` | Базовый контракт инвентаря, который используют planner, validator и сервисы. |
+| `Scripts/Inventories/IInventory.cs` | `IInventory` | Базовый контракт инвентаря, который используют движок переноса, validator и сервисы. |
 | `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Синхронные business hooks перед commit и после успешного переноса. |
 | `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Асинхронные hooks для pre-commit проверок вроде серверной валидации. |
 | `Scripts/Inventories/IItemAdapterConverter.cs` | `IItemAdapterConverter` | Конвертирует item adapter при переносе между инвентарями с разными моделями данных. |
@@ -88,17 +88,14 @@
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum, описывающий тип transfer flow. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Контекст, который передаётся в domain handlers. |
 | `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Sequential JIT service с per-entry rollback, swap и automatic candidates. |
-| `Scripts/Inventories/InventoryTransferService.cs` | `InventoryTransferRequest`, `InventoryTransferResult` | Низкоуровневые request/result модели переноса. |
+| `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Совещательный probe-результат для preview и acceptance. |
 | `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Канонический descriptor merge/create/dynamic target. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Сортировка только для automatic placement. |
 | `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Topology-aware contract anchor, footprint, occupancy и covered slots. |
 | `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Snapshot-модель и provider-интерфейс для безопасного чтения состояния инвентаря. |
 | `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Вспомогательные методы для построения и чтения snapshot'ов. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Сервис для quick-transfer поведения между инвентарями. |
-| `Scripts/Inventories/SlotOperationContext.cs` | `SlotOperationContext` | Low-level контекст, используемый placement и execution helper'ами. |
-| `Scripts/Inventories/SwapOperationResult.cs` | `SwapOperationResult` | Result-модель для helper'ов swap planning/execution. |
-| `Scripts/Inventories/SlotRelocationService.cs` | `SlotRelocationService` | Fallback-helper, который пытается освободить или перестроить слоты, если прямое размещение заблокировано. |
-| `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Внутренний utility, который последовательно применяет конвертацию adapter'ов в planning и execution. |
+| `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Внутренний utility, который последовательно применяет конвертацию adapter'ов в preview и execution. |
 
 ---
 
@@ -106,21 +103,15 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Inventories/Strategies/IStrategy.cs` | `IStrategy` | Проверка explicit target, enumeration automatic candidates и item placement. |
-| `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs` | `IAcceptanceStrategy` | Контракт стратегии оценки вместимости и accept logic. |
-| `Scripts/Inventories/Strategies/IDragPolicy.cs` | `IDragPolicy` | Контракт стратегии для решений, связанных с drag amount и drag policy. |
-| `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs` | `IInventoryQueryStrategy` | Контракт стратегии для query/read-операций по инвентарю. |
-| `Scripts/Inventories/Strategies/IInventoryStrategy.cs` | `IInventoryStrategy` | Сводный интерфейс, который реализуют конкретные inventory behavior strategy. |
-| `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Базовый класс для placement/acceptance стратегий. |
+| `Scripts/Inventories/Strategies/IStrategy.cs` | `IStrategy` | Read-only контракт: проверка explicit target, enumeration automatic candidates и capacity. |
+| `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Базовый класс для read-only стратегий, выдающих кандидатов. |
 | `Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs` | `StackBasedInventoryStrategyBase` | Общая stack-aware база с лимитом стека и поддержкой per-item override. |
-| `Scripts/Inventories/Strategies/StrategyCapabilities.cs` | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Опциональные semantic capability interfaces для кастомного кода. |
 | `Scripts/Inventories/Strategies/UniqueItemStrategy.cs` | `UniqueItemStrategy` | Стратегия, в которой каждый слот хранит отдельный предмет или стек без merge-логики. |
 | `Scripts/Inventories/Strategies/StackableItemStrategy.cs` | `StackableItemStrategy` | Стратегия для обычного merge-поведения stackable предметов. |
 | `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs` | `SeparableStacksStrategy` | Стратегия для стеков, поддерживающих split и частичные переносы. |
 | `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Базовый класс для режимов жизненного цикла слотов, выбираемых прямо в `UniversalInventory`. |
 | `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Fixed-режим жизненного цикла слотов. |
 | `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Dynamic-режим с поддержкой свободных слотов и trimming hooks. |
-| `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs` | `DynamicSlotDecorator` | Декоратор, добавляющий dynamic slot creation/management поверх другой стратегии. |
 | `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Runtime snapshot для refresh логики стратегии, slot management и merge policy. |
 
 ---

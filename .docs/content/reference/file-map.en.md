@@ -23,7 +23,7 @@ The tables below list every script file and describe the main class, interface, 
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Global scene manager for active drags. Tracks drag lifecycle, current context, and high-level orchestration. |
 | `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Main inventory component. Owns slots, direct `[SerializeReference]` strategy fields, rule collections, and inventory-level transfer behavior. |
-| `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Abstract slot base used by inventories and planning/execution code. |
+| `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Abstract slot base used by inventories and the transfer engine. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Default concrete slot implementation used by the package. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Base class that connects `UniversalInventory` to your game data source. |
 
@@ -37,7 +37,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Optional interface for adapters that provide extended description data for UI such as tooltips. |
 | `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Optional interfaces for filter and sort systems. |
 | `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Optional per-item stack size override. |
-| `Scripts/Core/Models/ItemStack.cs` | `ItemStack` | Runtime stack model used by slots, planning, swapping, and execution. |
+| `Scripts/Core/Models/ItemStack.cs` | `ItemStack` | Runtime stack model used by slots, transfer, and swapping. |
 | `Scripts/Core/Models/DragContext.cs` | `DragContext` | Per-drag context containing source entries, target info, and flags for the current operation. |
 | `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Generic result object for action-style APIs. |
 | `Scripts/Core/Models/DropResult.cs` | `DropResult` | Result object returned by drop processing. |
@@ -80,7 +80,7 @@ The tables below list every script file and describe the main class, interface, 
 
 | File | Types | Role |
 |---|---|---|
-| `Scripts/Inventories/IInventory.cs` | `IInventory` | Base inventory contract consumed by planners, validators, and services. |
+| `Scripts/Inventories/IInventory.cs` | `IInventory` | Base inventory contract consumed by the transfer engine, validators, and services. |
 | `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Sync pre-commit and post-success business hook interface. |
 | `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Async validation hook interface for server/file/network-like commit checks. |
 | `Scripts/Inventories/IItemAdapterConverter.cs` | `IItemAdapterConverter` | Converts item adapters when crossing inventory boundaries with different item models. |
@@ -88,17 +88,14 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum describing the type of transfer flow being executed. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Context object passed into domain handlers. |
 | `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Sequential JIT transfer service with per-entry rollback, swap, and automatic candidate handling. |
-| `Scripts/Inventories/InventoryTransferService.cs` | `InventoryTransferRequest`, `InventoryTransferResult` | Low-level transfer request/result models. |
+| `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Advisory probe result used for preview and acceptance. |
 | `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Canonical merge/create/dynamic target descriptor. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Ordering policies used only for automatic placement. |
 | `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Topology-aware anchor, footprint, occupancy, and covered-slot contract. |
 | `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Snapshot model and provider interface used for stable inventory inspection and operations such as sorting or previewing. |
 | `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Helper methods for building and reading snapshots. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Service that performs quick-transfer style moves between inventories. |
-| `Scripts/Inventories/SlotOperationContext.cs` | `SlotOperationContext` | Low-level context object shared by placement and execution helpers. |
-| `Scripts/Inventories/SwapOperationResult.cs` | `SwapOperationResult` | Result model for swap planning/execution helpers. |
-| `Scripts/Inventories/SlotRelocationService.cs` | `SlotRelocationService` | Fallback helper that tries to free or reorganize slots when a direct placement path is blocked. |
-| `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Internal utility that applies target/source adapter conversion consistently across planning and execution. |
+| `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Internal utility that applies target/source adapter conversion consistently across preview and execution. |
 
 ---
 
@@ -106,21 +103,15 @@ The tables below list every script file and describe the main class, interface, 
 
 | File | Types | Role |
 |---|---|---|
-| `Scripts/Inventories/Strategies/IStrategy.cs` | `IStrategy` | Explicit-target validation, automatic candidate enumeration, and item placement contract. |
-| `Scripts/Inventories/Strategies/IAcceptanceStrategy.cs` | `IAcceptanceStrategy` | Acceptance/capacity evaluation strategy contract. |
-| `Scripts/Inventories/Strategies/IDragPolicy.cs` | `IDragPolicy` | Strategy contract for drag amount and drag policy related decisions. |
-| `Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs` | `IInventoryQueryStrategy` | Read/query-oriented strategy contract used by higher-level inventory code. |
-| `Scripts/Inventories/Strategies/IInventoryStrategy.cs` | `IInventoryStrategy` | Combined strategy interface implemented by concrete inventory behaviors. |
-| `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Base class for inventory placement/acceptance strategy implementations. |
+| `Scripts/Inventories/Strategies/IStrategy.cs` | `IStrategy` | Read-only contract: explicit-target validation, automatic candidate enumeration, and capacity. |
+| `Scripts/Inventories/Strategies/InventoryStrategyBase.cs` | `InventoryStrategyBase` | Base class for read-only candidate-producing strategies. |
 | `Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs` | `StackBasedInventoryStrategyBase` | Shared stack-aware base with max stack size and per-item override support. |
-| `Scripts/Inventories/Strategies/StrategyCapabilities.cs` | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Optional semantic capability interfaces for custom code. |
 | `Scripts/Inventories/Strategies/UniqueItemStrategy.cs` | `UniqueItemStrategy` | Strategy where each slot holds one independent item stack/unit. |
 | `Scripts/Inventories/Strategies/StackableItemStrategy.cs` | `StackableItemStrategy` | Strategy focused on regular stack merging behavior. |
 | `Scripts/Inventories/Strategies/SeparableStacksStrategy.cs` | `SeparableStacksStrategy` | Strategy for stacks that support splitting and granular partial moves. |
 | `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Base class for direct slot lifecycle modes selected in `UniversalInventory`. |
 | `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Fixed slot lifecycle mode. |
 | `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Dynamic slot lifecycle mode with free-slot maintenance and trimming hooks. |
-| `Scripts/Inventories/Strategies/DynamicSlotDecorator.cs` | `DynamicSlotDecorator` | Decorator that adds dynamic slot creation/management behavior around another strategy. |
 | `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Runtime refresh snapshot for strategy, slot management, and merge-policy configuration. |
 
 ---

@@ -14,8 +14,8 @@
 
 | Интерфейс | Где реализуется | Когда используется | Для чего нужен |
 |---|---|---|---|
-| `ITransferDomainHandler` | обычно на `InventoryDataBinding` | после rules/planning и прямо перед commit, а затем после успешного завершения операции | бизнес-валидация и side effects уровня переноса |
-| `IAsyncTransferDomainHandler` | обычно на `InventoryDataBinding` | после sync `CanCommitTransfer` и перед commit | внешние async-проверки: сервер, файл, БД |
+| `ITransferDomainHandler` | обычно на `InventoryDataBinding` | один раз до первой мутации (`CanStartTransfer`), перед фиксацией каждого размещения (`CanCommitTransfer`) и после успешного commit (`OnTransferSucceeded`) | бизнес-валидация и side effects уровня переноса |
+| `IAsyncTransferDomainHandler` | обычно на `InventoryDataBinding` | один раз до первой мутации, только async-путь (`CanStartTransferAsync`) | внешнее async-вето на весь перенос: сервер, файл, БД |
 | `IStackSizeLimitable` | на `IItemAdapter` | когда стратегия считает лимит стака | per-item лимит стака |
 | `IDescribable` | на `IItemAdapter` | когда UI хочет показать описание | дополнительная метаинформация для tooltip и похожих систем |
 
@@ -23,8 +23,11 @@
 
 ## ITransferDomainHandler
 
-`ITransferDomainHandler` нужен для domain-логики вокруг уже спланированного переноса.
+`ITransferDomainHandler` нужен для domain-логики вокруг переноса.
 Это не замена rules и не ещё один generic validation layer.
+
+У интерфейса три метода: вето на весь перенос (`CanStartTransfer`), проверка на каждое
+размещение (`CanCommitTransfer`) и хук успеха (`OnTransferSucceeded`). Реализовать нужно все три.
 
 Реализуется обычно на binding'е:
 
@@ -32,6 +35,13 @@
 public class ShopInventoryBinding
     : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
+    // Вето на весь перенос, один раз до любых мутаций.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+    {
+        return _shopIsOpen ? RuleResult.Success() : RuleResult.Failure("Магазин закрыт");
+    }
+
+    // Проверка на конкретное размещение, перед его фиксацией.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return HasEnoughMoney(context)
@@ -48,21 +58,22 @@ public class ShopInventoryBinding
 
 ### Точный порядок в конвейере
 
-При обычном переносе порядок такой:
+Материализованного `TransferPlan` нет. Движок переноса обрабатывает записи
+последовательно по реальному состоянию инвентаря. Для одной записи порядок такой:
 
-1. `CanDrop` и остальные rules проверяют, можно ли в принципе строить перенос.
-2. planner строит `TransferPlan` без изменения инвентарей.
-3. executor создаёт `TransferDomainContext` для конкретного planned allocation.
-4. `CanCommitTransfer` вызывается на source binding, затем на target binding, если они реализуют `ITransferDomainHandler`.
-5. если binding дополнительно реализует `IAsyncTransferDomainHandler`, после sync-проверки вызывается `CanCommitTransferAsync`.
-6. только после этого выполняется реальный commit: split, conversion, placement, rollback при необходимости.
-7. после успешного завершения всей операции вызывается `OnTransferSucceeded`.
-8. только потом dispatch'атся inventory add/remove notifications и остальные deferred events.
+1. `CanDrop` и остальные rules проверяют механическую допустимость drop.
+2. `CanStartTransfer` вызывается один раз, до первой мутации, и может отклонить всю
+   операцию. `CanStartTransferAsync` делает то же на асинхронном пути.
+3. движок резолвит конкретного кандидата размещения и создаёт для него `TransferDomainContext`.
+4. `CanCommitTransfer` вызывается до мутации этого размещения (сначала source binding, затем target binding, если они реализуют `ITransferDomainHandler`).
+5. только после этого выполняется реальный commit: split, conversion, placement, rollback при необходимости.
+6. после фиксации размещения вызывается `OnTransferSucceeded`.
+7. только потом dispatch'атся inventory add/remove notifications и остальные deferred events.
 
 То есть:
 
-- `CanCommitTransfer` происходит позже rules
-- `CanCommitTransfer` происходит раньше любых мутаций конкретного transfer allocation
+- `CanStartTransfer` происходит один раз, до любых мутаций всей операции
+- `CanCommitTransfer` происходит раньше любых мутаций конкретного размещения
 - `OnTransferSucceeded` происходит уже после успешного commit, но раньше `OnItemRemoved` / `OnItemAdded`
 
 ### Что лежит в TransferDomainContext
@@ -71,9 +82,9 @@ public class ShopInventoryBinding
 
 - `SourceInventory` / `TargetInventory`
 - `SourceBinding` / `TargetBinding`
-- `SourceSlot`
-- `PlannedTargetSlot`
-- `TargetSlot` после commit
+- `SourceBaseSlot`
+- `PlannedTargetBaseSlot`
+- `TargetBaseSlot` после commit
 - `SourceItemAdapter`
 - `PreviewTargetItemAdapter`
 - `TargetItemAdapter` после commit
@@ -110,7 +121,9 @@ public class ShopInventoryBinding
 
 ## IAsyncTransferDomainHandler
 
-`IAsyncTransferDomainHandler` дополняет `ITransferDomainHandler`, если ответ нельзя получить мгновенно.
+`IAsyncTransferDomainHandler` дополняет `ITransferDomainHandler` асинхронным вето на
+**весь перенос** — `CanStartTransferAsync` — когда ответ нельзя получить мгновенно. Это
+async-аналог `CanStartTransfer`, а не `CanCommitTransfer`.
 
 ```csharp
 public class ServerInventoryBinding
@@ -119,12 +132,16 @@ public class ServerInventoryBinding
       IAsyncTransferDomainHandler
 {
     public RuleResult CanCommitTransfer(TransferDomainContext context)
-    {
-        return ValidateLocalState(context);
-    }
+        => ValidateLocalState(context);
 
-    public async Task<RuleResult> CanCommitTransferAsync(
-        TransferDomainContext context,
+    public void OnTransferSucceeded(TransferDomainContext context) { }
+
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+        => RuleResult.Success();
+
+    public async Task<RuleResult> CanStartTransferAsync(
+        DragContext context,
+        IInventory targetInventory,
         CancellationToken cancellationToken)
     {
         return await _serverApi.ValidateTransferAsync(context, cancellationToken);
@@ -141,12 +158,12 @@ public class ServerInventoryBinding
 
 Важно:
 
-- `CanCommitTransferAsync` не заменяет sync-версию, а идёт после неё
-- если sync-проверка уже вернула отказ, async-стадия не запускается
-- async-проверка вызывается перед локальным commit
-- отказ на async-стадии отменяет перенос без мутации инвентарей
+- `CanStartTransferAsync` — transfer-wide и срабатывает один раз, до первой мутации
+- он работает только на асинхронном пути; если async-обработчик есть, синхронный перенос
+  отклоняется, так что проверка не пропускается молча
+- отказ на async-стадии отменяет весь перенос без мутации инвентарей
 
-Если проверка чисто локальная и быстрая, достаточно обычного `CanCommitTransfer`.
+Если проверка чисто локальная и быстрая, достаточно `CanStartTransfer` / `CanCommitTransfer`.
 
 ---
 
@@ -173,7 +190,7 @@ public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
 
 - `StackableItemStrategy`
 - `SeparableStacksStrategy`
-- planner через `UniversalInventory.GetMaxStackSizeForItem(...)`
+- движок переноса через `UniversalInventory.GetMaxStackSizeForItem(...)`
 
 ### Важное уточнение про _allowItemStackOverride
 

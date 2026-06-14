@@ -14,8 +14,8 @@ Usually this falls into one of two categories:
 
 | Interface | Usually implemented on | When it is used | Purpose |
 |---|---|---|---|
-| `ITransferDomainHandler` | usually `InventoryDataBinding` | after rules/planning and immediately before commit, then again after successful completion | transfer-level business validation and side effects |
-| `IAsyncTransferDomainHandler` | usually `InventoryDataBinding` | after sync `CanCommitTransfer` and before commit | external async checks: server, file, database |
+| `ITransferDomainHandler` | usually `InventoryDataBinding` | once before the first mutation (`CanStartTransfer`), before each placement commits (`CanCommitTransfer`), and after a successful commit (`OnTransferSucceeded`) | transfer-level business validation and side effects |
+| `IAsyncTransferDomainHandler` | usually `InventoryDataBinding` | once before the first mutation, async execution path only (`CanStartTransferAsync`) | external async transfer-wide veto: server, file, database |
 | `IStackSizeLimitable` | `IItemAdapter` | when a stacking strategy calculates stack capacity | per-item stack limit |
 | `IDescribable` | `IItemAdapter` | when UI wants to show a description | extra metadata for tooltips and similar systems |
 
@@ -23,8 +23,12 @@ Usually this falls into one of two categories:
 
 ## ITransferDomainHandler
 
-`ITransferDomainHandler` is for domain logic around an already planned transfer.
+`ITransferDomainHandler` is for domain logic around a transfer.
 It is not a replacement for rules and not another generic validation layer.
+
+The interface has three methods: a transfer-wide veto (`CanStartTransfer`), a
+per-placement check (`CanCommitTransfer`), and a success hook (`OnTransferSucceeded`).
+All three must be implemented.
 
 It is usually implemented on a binding:
 
@@ -32,6 +36,13 @@ It is usually implemented on a binding:
 public class ShopInventoryBinding
     : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
+    // Transfer-wide veto, once before anything is mutated.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+    {
+        return _shopIsOpen ? RuleResult.Success() : RuleResult.Failure("The shop is closed");
+    }
+
+    // Per-placement check, before each concrete placement commits.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return HasEnoughMoney(context)
@@ -48,21 +59,22 @@ public class ShopInventoryBinding
 
 ### Exact Pipeline Order
 
-For a normal transfer the order is:
+There is no materialized `TransferPlan`. The transfer engine processes entries
+sequentially against the real inventory state. For a single entry the order is:
 
-1. `CanDrop` and the rest of the rules decide whether the transfer can be planned at all.
-2. the planner builds a `TransferPlan` without mutating inventories.
-3. the executor creates a `TransferDomainContext` for the specific planned allocation.
-4. `CanCommitTransfer` runs on the source binding first and then on the target binding if they implement `ITransferDomainHandler`.
-5. if the binding also implements `IAsyncTransferDomainHandler`, `CanCommitTransferAsync` runs after the sync check.
-6. only then does the real commit happen: split, conversion, placement, rollback if needed.
-7. after the whole operation succeeds, `OnTransferSucceeded` runs.
-8. only after that are inventory add/remove notifications and other deferred events dispatched.
+1. `CanDrop` and the rest of the rules decide whether the drop is mechanically valid.
+2. `CanStartTransfer` runs once, before the first mutation, and may veto the whole
+   operation. `CanStartTransferAsync` does the same on the async execution path.
+3. the engine resolves a concrete placement candidate and creates a `TransferDomainContext` for it.
+4. `CanCommitTransfer` runs before that placement is mutated (source binding first, then target binding if they implement `ITransferDomainHandler`).
+5. only then does the real commit happen: split, conversion, placement, rollback if needed.
+6. after a placement commits, `OnTransferSucceeded` runs.
+7. only after that are inventory add/remove notifications and other deferred events dispatched.
 
 So:
 
-- `CanCommitTransfer` happens later than rules
-- `CanCommitTransfer` happens before any mutation of that transfer allocation
+- `CanStartTransfer` happens once, before any mutation of the whole operation
+- `CanCommitTransfer` happens before any mutation of a specific placement
 - `OnTransferSucceeded` happens after a successful commit, but before `OnItemRemoved` / `OnItemAdded`
 
 ### What TransferDomainContext Contains
@@ -71,9 +83,9 @@ So:
 
 - `SourceInventory` / `TargetInventory`
 - `SourceBinding` / `TargetBinding`
-- `SourceSlot`
-- `PlannedTargetSlot`
-- `TargetSlot` after commit
+- `SourceBaseSlot`
+- `PlannedTargetBaseSlot`
+- `TargetBaseSlot` after commit
 - `SourceItemAdapter`
 - `PreviewTargetItemAdapter`
 - `TargetItemAdapter` after commit
@@ -110,7 +122,9 @@ If the question is "can this already planned operation be committed right now?",
 
 ## IAsyncTransferDomainHandler
 
-`IAsyncTransferDomainHandler` extends `ITransferDomainHandler` when the answer cannot be produced immediately.
+`IAsyncTransferDomainHandler` extends `ITransferDomainHandler` with an asynchronous
+**transfer-wide** veto, `CanStartTransferAsync`, for when the answer cannot be produced
+immediately. It is the async counterpart of `CanStartTransfer`, not of `CanCommitTransfer`.
 
 ```csharp
 public class ServerInventoryBinding
@@ -119,12 +133,16 @@ public class ServerInventoryBinding
       IAsyncTransferDomainHandler
 {
     public RuleResult CanCommitTransfer(TransferDomainContext context)
-    {
-        return ValidateLocalState(context);
-    }
+        => ValidateLocalState(context);
 
-    public async Task<RuleResult> CanCommitTransferAsync(
-        TransferDomainContext context,
+    public void OnTransferSucceeded(TransferDomainContext context) { }
+
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+        => RuleResult.Success();
+
+    public async Task<RuleResult> CanStartTransferAsync(
+        DragContext context,
+        IInventory targetInventory,
         CancellationToken cancellationToken)
     {
         return await _serverApi.ValidateTransferAsync(context, cancellationToken);
@@ -141,12 +159,12 @@ Use it when you must wait for:
 
 Important:
 
-- `CanCommitTransferAsync` does not replace the sync version, it comes after it
-- if the sync check already fails, the async stage does not run
-- async validation runs before local commit
-- a failure at the async stage cancels the transfer without mutating inventories
+- `CanStartTransferAsync` is transfer-wide and runs once, before the first mutation
+- it runs only on the asynchronous execution path; a synchronous transfer is rejected
+  when an async handler is present, so the check is never silently skipped
+- a failure at the async stage cancels the whole transfer without mutating inventories
 
-If the check is purely local and fast, regular `CanCommitTransfer` is enough.
+If the check is purely local and fast, `CanStartTransfer` / `CanCommitTransfer` are enough.
 
 ---
 
@@ -173,7 +191,7 @@ The interface is read by inventory strategies when they calculate stack capacity
 
 - `StackableItemStrategy`
 - `SeparableStacksStrategy`
-- the planner through `UniversalInventory.GetMaxStackSizeForItem(...)`
+- the transfer engine through `UniversalInventory.GetMaxStackSizeForItem(...)`
 
 ### Important Note About _allowItemStackOverride
 
