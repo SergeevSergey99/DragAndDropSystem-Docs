@@ -97,6 +97,74 @@ namespace UDND.Core
         }
     }
 
+    /// <summary>
+    /// Arbitrary (non-rectangular) footprint authored as a set of cell offsets.
+    /// Precomputes the four 90-degree rotations using the same per-cell transform as
+    /// <see cref="RectGridTopology.RotateOffset"/>, so covered cells stay consistent with the
+    /// topology's grab-offset rotation. Mirrors <see cref="RectPlacementShape"/>'s 4-step model.
+    /// </summary>
+    public sealed class ComplexPlacementShape : IPlacementShape
+    {
+        private const int OrientationSteps = 4;
+
+        private readonly IReadOnlyList<Vector2Int>[] _offsetsByOrientation;
+
+        public ComplexPlacementShape(IReadOnlyList<Vector2Int> offsets)
+        {
+            var normalized = Normalize(offsets);
+            _offsetsByOrientation = new IReadOnlyList<Vector2Int>[OrientationSteps];
+
+            var current = normalized;
+            for (int step = 0; step < OrientationSteps; step++)
+            {
+                // Order cells row-major so covered indices stay ascending and deterministic,
+                // matching RectPlacementShape and the rest of the placement code.
+                Array.Sort(current, CompareCells);
+                _offsetsByOrientation[step] = Array.AsReadOnly(current);
+                current = RotateClockwise(current);
+            }
+        }
+
+        private static int CompareCells(Vector2Int a, Vector2Int b)
+        {
+            int byY = a.y.CompareTo(b.y);
+            return byY != 0 ? byY : a.x.CompareTo(b.x);
+        }
+
+        public IReadOnlyList<Vector2Int> GetOffsets(int orientation)
+            => _offsetsByOrientation[OrientationStepUtility.Normalize(orientation, OrientationSteps)];
+
+        public bool SupportsOrientation(int orientation) => true;
+
+        private static Vector2Int[] Normalize(IReadOnlyList<Vector2Int> offsets)
+        {
+            if (offsets == null || offsets.Count == 0)
+                return new[] { Vector2Int.zero };
+
+            int minX = int.MaxValue;
+            int minY = int.MaxValue;
+            for (int i = 0; i < offsets.Count; i++)
+            {
+                minX = Math.Min(minX, offsets[i].x);
+                minY = Math.Min(minY, offsets[i].y);
+            }
+
+            var result = new Vector2Int[offsets.Count];
+            for (int i = 0; i < offsets.Count; i++)
+                result[i] = new Vector2Int(offsets[i].x - minX, offsets[i].y - minY);
+            return result;
+        }
+
+        private static Vector2Int[] RotateClockwise(Vector2Int[] offsets)
+        {
+            var size = PlacementShapeUtility.GetBoundingSize(offsets);
+            var result = new Vector2Int[offsets.Length];
+            for (int i = 0; i < offsets.Length; i++)
+                result[i] = new Vector2Int(size.y - 1 - offsets[i].y, offsets[i].x);
+            return result;
+        }
+    }
+
     public static class PlacementShapeUtility
     {
         public static IPlacementShape Resolve(IItemAdapter adapter)

@@ -1,0 +1,18 @@
+{
+  "name": "UDND.Examples.ShapedItems.Editor",
+  "rootNamespace": "UDND.Examples.ShapedItems.Editor",
+  "references": [
+    "UDND.Examples"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -764,6 +764,84 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ComplexPlacementShape_RotatesLShapeAcrossFourOrientations()
+        {
+            // L-shape: anchor + right + up.
+            var shape = new ComplexPlacementShape(new[]
+            {
+                new Vector2Int(0, 0),
+                new Vector2Int(1, 0),
+                new Vector2Int(0, 1)
+            });
+
+            Assert.IsTrue(shape.SupportsOrientation(0));
+            Assert.IsTrue(shape.SupportsOrientation(7));
+
+            CollectionAssert.AreEquivalent(
+                new[] { new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(0, 1) },
+                shape.GetOffsets(0));
+            CollectionAssert.AreEquivalent(
+                new[] { new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(1, 1) },
+                shape.GetOffsets(1));
+            CollectionAssert.AreEquivalent(
+                new[] { new Vector2Int(1, 0), new Vector2Int(0, 1), new Vector2Int(1, 1) },
+                shape.GetOffsets(2));
+            CollectionAssert.AreEquivalent(
+                new[] { new Vector2Int(0, 0), new Vector2Int(0, 1), new Vector2Int(1, 1) },
+                shape.GetOffsets(3));
+
+            // Wraps mod 4.
+            CollectionAssert.AreEqual(shape.GetOffsets(0), shape.GetOffsets(4));
+        }
+
+        [Test]
+        public void ComplexPlacementShape_RectInput_MatchesRectPlacementShapeFootprint()
+        {
+            // A full 2x1 rect authored as freeform must cover the same cells as RectPlacementShape.
+            var freeform = new ComplexPlacementShape(new[]
+            {
+                new Vector2Int(0, 0),
+                new Vector2Int(1, 0)
+            });
+            var rect = new RectPlacementShape(2, 1);
+
+            for (int orientation = 0; orientation < 4; orientation++)
+                CollectionAssert.AreEquivalent(
+                    rect.GetOffsets(orientation),
+                    freeform.GetOffsets(orientation),
+                    $"orientation {orientation}");
+        }
+
+        [Test]
+        public void TryPlace_ComplexLShape_RotatedOrientation_CoversRotatedCells()
+        {
+            var inventory = new InventoryBuilder()
+                .WithFixedSlots(6)
+                .WithGridTopology(3, 2)
+                .Build();
+
+            try
+            {
+                var shape = new ComplexPlacementShape(new[]
+                {
+                    new Vector2Int(0, 0),
+                    new Vector2Int(1, 0),
+                    new Vector2Int(0, 1)
+                });
+                var stack = ItemStackBuilder.Of(new FakeItemAdapter("hook"));
+
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, 1, shape), out var placement));
+
+                Assert.AreEqual(1, placement.Orientation);
+                CollectionAssert.AreEqual(new[] { 0, 1, 4 }, placement.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        [Test]
         public void TryPlace_WithExplicitPlacementShape_UsesShapeOffsets()
         {
             var inventory = new InventoryBuilder()

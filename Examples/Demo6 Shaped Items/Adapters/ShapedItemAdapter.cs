@@ -12,7 +12,7 @@ namespace UDND.Examples.ShapedItems
         {
             this.item = item;
             _placementShape = item != null
-                ? item.PlacementShape
+                ? new ComplexPlacementShape(item.GetOccupiedCells())
                 : RectPlacementShape.One;
         }
 
