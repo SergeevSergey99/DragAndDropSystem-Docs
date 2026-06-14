@@ -10,16 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3e7ed94d90f65744991578935c0b14d, type: 3}
-  m_Name: L-Shape ComplexShapedItemExampleSO
-  m_EditorClassIdentifier:
-  _itemName: L-Shape
-  _icon: {fileID: 21300000, guid: d33c2fecfdc76f14dad647cf16efe3a2, type: 3}
+  m_Name: Axe ComplexShapedItemExampleSO
+  m_EditorClassIdentifier: 
+  _itemName: Axe
+  _icon: {fileID: 21300000, guid: b33760fbf20dd814cb6d2a8669b6d505, type: 3}
   _width: 2
   _height: 3
-  _cells:
-  - 1
-  - 1
-  - 1
-  - 0
-  - 1
-  - 0
+  _cells: 000000000100
