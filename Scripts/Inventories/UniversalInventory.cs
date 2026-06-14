@@ -58,11 +58,11 @@ namespace UDND.Inventories
         private bool _useGridTopology;
 
         [FoldoutGroup("Placement")]
-        [SerializeField, Tooltip("Grid dimensions used when grid topology is enabled.")]
+        [SerializeField, Tooltip("Grid dimensions used when grid topology is enabled."), ShowIf(nameof(_useGridTopology))]
         private GridTopology _gridTopology = new GridTopology(1, 1);
 
         [FoldoutGroup("Placement")]
-        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel, Tooltip("Controls how a hovered grid slot is converted to a shaped-item placement anchor.")]
+        [SerializeReference, ManagedReferencePicker, InlineProperty, HideLabel, Tooltip("Controls how a hovered grid slot is converted to a shaped-item placement anchor."), ShowIf(nameof(_useGridTopology))]
         private ShapedPlacementAnchorStrategyBase _shapedPlacementAnchorStrategy = new RotatedGrabOffsetAnchorStrategy();
 
         private IStrategy _strategy;

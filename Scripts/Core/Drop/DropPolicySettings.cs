@@ -19,7 +19,7 @@ namespace UDND.Core
 
         [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.FindAlternative),
          Tooltip("Allow a blocked same-inventory drop to use another placement.")]
-        private bool _allowSameInventoryAlternativePlacement = true;
+        private bool _allowSameInventoryAlternativePlacement = false;
 
         [SerializeField, Tooltip("Allow partial transfer if only part of one entry fits.")]
         private bool _allowPartial = true;

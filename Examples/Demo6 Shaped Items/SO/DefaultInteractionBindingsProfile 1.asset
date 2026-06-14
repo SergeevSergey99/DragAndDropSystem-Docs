@@ -32,6 +32,12 @@ MonoBehaviour:
     _triggerPhase: 0
     _action:
       rid: 8757923531141414912
+  - _label: 
+    _key: 113
+    _modifier: 0
+    _triggerPhase: 0
+    _action:
+      rid: 8248672906390536196
   _legacyInputActionBindings: []
   _inputActionBindings: []
   references:
@@ -45,6 +51,10 @@ MonoBehaviour:
           _overrideAmount: 0
           _amount: 0
           _customAmount: 1
+    - rid: 8248672906390536196
+      type: {class: RotateDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
+      data:
+        _steps: -1
     - rid: 8490480985322553345
       type: {class: CompleteDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
@@ -62,4 +72,4 @@ MonoBehaviour:
     - rid: 8757923531141414912
       type: {class: RotateDragAction, ns: UDND.Interaction, asm: UDND.Runtime}
       data:
-        _step: 1
+        _steps: 1

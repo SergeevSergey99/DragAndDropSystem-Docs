@@ -38,6 +38,7 @@ namespace UDND.UI
         {
             CurrentPlacement = placement;
             CurrentState = state;
+            _image.sprite = placement?.Stack?.Icon;
 
             switch (state)
             {
@@ -61,14 +62,20 @@ namespace UDND.UI
                 return;
 
             _image.raycastTarget = false;
-            _image.sprite = placement?.Stack?.Icon;
             _image.color = fallbackColor;
             gameObject.SetActive(true);
         }
 
         protected virtual void RenderFilledAndDraggedFrom(Placement placement, Color fallbackColor)
         {
-            gameObject.SetActive(false);
+            bool shouldShow = placement?.Stack.Count > 1;
+            
+            gameObject.SetActive(shouldShow);
+            _countContainer.SetActive(ShowStackCount && shouldShow);
+            
+            
+            if (shouldShow && _countText != null)
+                _countText.text = (placement?.Stack.Count-1).ToString();
         }
 
         /// <summary>Shows the placement stack count (when &gt; 1) on the count-bearing item only.</summary>
