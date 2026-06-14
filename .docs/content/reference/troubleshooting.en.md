@@ -37,13 +37,13 @@ Typical causes:
 
 - the operation used `FindAlternative`
 - area-drop was activated instead of slot-drop
-- executor called `GetAcceptableCount()` again
-- planner did not receive a concrete `targetSlotHint`
+- the transfer engine re-evaluated `GetAcceptableCount()`
+- the transfer engine did not receive a concrete target hint
 
 Where to look:
 
 - `DropPolicySettings`
-- active blocked-target resolver
+- the resolved `BlockedTargetResolutionKind`
 - `InventoryDropProcessor`
 - `InventoryTransferService`
 - `GetAcceptableCount` logs
@@ -56,8 +56,8 @@ Usually the problem is not in rules, but in execution or domain hooks.
 
 Typical causes:
 
-- `CanCommitTransfer` veto
-- `CanCommitTransferAsync` veto
+- `CanStartTransfer` / `CanCommitTransfer` veto
+- `CanStartTransferAsync` veto
 - conversion failed during execution
 - placement failed after split
 
@@ -158,7 +158,7 @@ In that case, look for a route/policy problem.
 
 ## Where to start debugging
 
-1. Identify the phase: drag start, preview/planning, domain validation, execution, or swap.
+1. Identify the phase: drag start, preview, domain validation, execution, or swap.
 2. Look at the first meaningful log in the stack, not the last one.
 3. Check whether a concrete `targetSlot` exists.
 4. Check which adapter type is physically stored in the slot after the operation.

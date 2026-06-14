@@ -129,10 +129,10 @@ flowchart TD
 ## Flujo de compra exitosa
 
 1. El jugador empieza un drag desde el inventario del comerciante.
-2. El planner construye un target-side preview item a través del converter.
+2. El motor de transferencia construye un target-side preview item a través del converter.
 3. Las player-side rules validan la compatibilidad mecánica.
 4. Un domain hook comprueba si hay suficiente oro para confirmar.
-5. El executor realiza la transferencia y solo entonces dispara los side effects.
+5. El motor realiza la transferencia y solo entonces dispara los side effects.
 6. DataBinding actualiza las listas de datos del jugador y del comerciante.
 
 ---

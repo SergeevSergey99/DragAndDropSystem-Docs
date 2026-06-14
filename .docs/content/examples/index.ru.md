@@ -134,4 +134,4 @@
 
 - [Quick Start](../getting-started/quick-start.md) — если нужен базовый запуск с нуля
 - [Data Binding](../architecture/data-binding.md) — если нужен полный lifecycle hooks
-- [Transfer Pipeline](../architecture/transfer-pipeline.md) — если нужно понять planning / execution / rollback
+- [Transfer Pipeline](../architecture/transfer-pipeline.md) — если нужно понять порядок переноса и rollback

@@ -46,7 +46,7 @@ Esto es necesario para que el sistema entienda:
 
 Para que cualquier tipo pueda mostrarse en los slots, debes escribir un adaptador especial que actúe de puente entre los datos y el slot.
 
-Normalmente esto se reduce a un pequeño adapter y un `DataBinding`. Cuanto más complejo sea tu modelo de datos, más gruesa será esa capa de integración, pero el drag and drop, el swapping, el stacking, el planning y el flujo de eventos ya los resuelve el asset.
+Normalmente esto se reduce a un pequeño adapter y un `DataBinding`. Cuanto más complejo sea tu modelo de datos, más gruesa será esa capa de integración, pero el drag and drop, el swapping, el stacking, las transferencias y el flujo de eventos ya los resuelve el asset.
 
 Para algunos casos comunes ya se proporcionan clases plantilla de `DataBinding`, lo que simplifica la mayoría de configuraciones.
 

@@ -37,13 +37,13 @@
 
 - операция пошла через `FindAlternative`
 - активировался area-drop вместо slot-drop
-- executor повторно позвал `GetAcceptableCount()`
-- planner не получил concrete `targetSlotHint`
+- движок переноса повторно вычислил `GetAcceptableCount()`
+- движок переноса не получил concrete target hint
 
 Где смотреть:
 
 - `DropPolicySettings`
-- активный blocked-target resolver
+- результирующий `BlockedTargetResolutionKind`
 - `InventoryDropProcessor`
 - `InventoryTransferService`
 - логи `GetAcceptableCount`
@@ -56,8 +56,8 @@
 
 Типовые причины:
 
-- `CanCommitTransfer` veto
-- `CanCommitTransferAsync` veto
+- `CanStartTransfer` / `CanCommitTransfer` veto
+- `CanStartTransferAsync` veto
 - conversion failed during execution
 - placement failed after split
 
@@ -158,7 +158,7 @@
 
 ## С чего начать отладку
 
-1. Определите фазу: drag start, preview/planning, domain validation, execution, swap.
+1. Определите фазу: drag start, preview, domain validation, execution, swap.
 2. Посмотрите первый meaningful лог в стеке, а не последний.
 3. Проверьте, есть ли concrete `targetSlot`.
 4. Проверьте, какой adapter-type реально лежит в slot после операции.

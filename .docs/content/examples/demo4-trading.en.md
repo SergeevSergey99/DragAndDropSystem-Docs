@@ -70,8 +70,8 @@ Buying from a merchant:
 
 Swap between merchant and equipment/player inventory:
 
-1. The planner detects that normal placement is impossible and marks the entry as `RequiresSwap`.
-2. The executor validates both directions on target-side converted preview stacks.
+1. With the `Swap` blocked-target policy, the engine takes the single-entry swap path for the occupied target.
+2. The engine validates both directions on target-side converted preview stacks.
 3. It then captures copies of both stacks and converts them in both directions.
 4. The opposite slots receive already converted stacks, not raw adapters.
 5. Because of that, the next drag from those slots does not fail with `Wrong item type`.

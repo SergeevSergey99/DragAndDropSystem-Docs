@@ -134,5 +134,5 @@ Muestra:
 
 - [Quick Start](../getting-started/quick-start.md) — para una configuración básica desde cero
 - [Data Binding](../architecture/data-binding.md) — para ver el lifecycle completo y los hooks
-- [Transfer Pipeline](../architecture/transfer-pipeline.md) — para detalles de planning / execution / rollback
+- [Transfer Pipeline](../architecture/transfer-pipeline.md) — para detalles del orden de transferencia y rollback
 

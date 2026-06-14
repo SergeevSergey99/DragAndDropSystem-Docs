@@ -130,7 +130,7 @@ Add a `PointerBinding` to `InteractionBindingsProfile`:
 
 1. Player picks up a stack of 10 items (normal drag).
 2. Holds Shift and clicks an empty slot.
-3. 1 item is transferred through the standard pipeline (planner → executor → events).
+3. 1 item is transferred through the standard pipeline (transfer engine → events).
 4. Dragging continues with 9 items, visual updates.
 5. When only 1 item remains, Shift+Click performs a regular `CompleteDrag`.
 

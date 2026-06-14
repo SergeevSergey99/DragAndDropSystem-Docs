@@ -88,7 +88,7 @@ Typical causes:
 - slot contains the wrong adapter type
 - source binding forbids dragging
 
-### 2. Preview / planning
+### 2. Preview / candidate resolution
 
 Look at:
 
@@ -101,14 +101,14 @@ Typical causes:
 
 - target-side conversion failed
 - slot rules reject the target adapter
-- planner searches candidates more broadly than expected
+- the transfer engine searches candidates more broadly than expected
 
 ### 3. Domain validation
 
 Look at:
 
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
 - `ValidateDomainHandlers`
 
 Typical causes:
@@ -124,7 +124,7 @@ Look at:
 
 - `InventoryTransferService`
 - conversion utility
-- `TryAddToSlot` / `TryAddStack`
+- `TryAddStack` / placement mutation primitives
 
 Typical causes:
 
@@ -157,9 +157,9 @@ That usually means the issue is not in rules, but in execution or domain hooks.
 
 Check:
 
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
-- executor conversion
+- conversion
 - placement / rollback
 
 ### Warnings appear for other slots

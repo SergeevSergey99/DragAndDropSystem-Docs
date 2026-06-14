@@ -37,13 +37,13 @@ Causas típicas:
 
 - la operación usó `FindAlternative`
 - se activó area-drop en lugar de slot-drop
-- el executor volvió a llamar a `GetAcceptableCount()`
-- el planner no recibió un `targetSlotHint` concreto
+- el motor de transferencia volvió a evaluar `GetAcceptableCount()`
+- el motor de transferencia no recibió un target hint concreto
 
 Dónde mirar:
 
 - `DropPolicySettings`
-- blocked-target resolver activo
+- el `BlockedTargetResolutionKind` resuelto
 - `InventoryDropProcessor`
 - `InventoryTransferService`
 - logs de `GetAcceptableCount`
@@ -56,8 +56,8 @@ Normalmente el problema no está en las rules, sino en la execution o en los dom
 
 Causas típicas:
 
-- veto de `CanCommitTransfer`
-- veto de `CanCommitTransferAsync`
+- veto de `CanStartTransfer` / `CanCommitTransfer`
+- veto de `CanStartTransferAsync`
 - la conversión falló durante la execution
 - el placement falló después del split
 
@@ -158,7 +158,7 @@ En ese caso, busca un problema de ruta/policy.
 
 ## Por dónde empezar a depurar
 
-1. Identifica la fase: inicio del drag, preview/planning, validación de dominio, execution o swap.
+1. Identifica la fase: inicio del drag, preview, validación de dominio, execution o swap.
 2. Mira el primer log significativo de la stack, no el último.
 3. Comprueba si existe un `targetSlot` concreto.
 4. Comprueba qué tipo de adapter está almacenado físicamente en el slot después de la operación.

@@ -46,7 +46,7 @@ This is needed so the system understands:
 
 For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.
 
-Usually this is a small adapter and one `DataBinding`. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, planning, and event flow are already handled by the asset.
+Usually this is a small adapter and one `DataBinding`. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, transfers, and event flow are already handled by the asset.
 
 For some common cases, template `DataBinding` classes are already provided, which makes most setups easier.
 

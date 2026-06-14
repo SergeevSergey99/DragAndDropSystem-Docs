@@ -70,8 +70,8 @@ Comprar a un comerciante:
 
 Swap entre inventario del comerciante y equipo/inventario del jugador:
 
-1. El planner detecta que la colocación normal es imposible y marca la entrada como `RequiresSwap`.
-2. El executor valida ambas direcciones usando preview stacks convertidos al lado objetivo.
+1. Con la política `Swap` para destino bloqueado, el motor toma el camino de swap de una sola entry para el destino ocupado.
+2. El motor valida ambas direcciones usando preview stacks convertidos al lado objetivo.
 3. Luego captura copias de ambos stacks y los convierte en ambas direcciones.
 4. Los slots opuestos reciben stacks ya convertidos, no raw adapters.
 5. Gracias a eso, el siguiente drag desde esos slots no falla con `Wrong item type`.

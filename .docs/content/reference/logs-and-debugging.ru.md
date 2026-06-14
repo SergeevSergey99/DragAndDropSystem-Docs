@@ -4,10 +4,9 @@
 
 Главная идея:
 
-- `planner` отвечает за выбор допустимого плана
-- `executor` отвечает за commit, conversion и rollback
+- `InventoryTransferService` валидирует кандидатов по текущему состоянию и коммитит по одной записи
 - `rules` отвечают за механические ограничения
-- `domain hooks` отвечают за бизнес-veto перед commit
+- `domain hooks` могут наложить вето на весь перенос до обработки записей
 
 ---
 
@@ -16,9 +15,8 @@
 | Где появился лог | Что это обычно значит |
 |---|---|
 | `RuleResult` | отказ конкретной rule-проверки |
-| `InventoryTransferService` | проблема planning или выбора target |
-| `InventoryDropProcessor` | planner не смог построить валидный план |
-| `InventoryTransferService` | проблема commit, conversion, swap или rollback |
+| `InventoryTransferService` | проблема выбора target, conversion, placement, swap или rollback |
+| `InventoryDropProcessor` | разрешение policy или отказ переноса |
 | `GetAcceptableCount` | inventory-wide search по слотам |
 | `CanCommitTransfer` / domain validation | бизнес-логика запретила commit |
 
@@ -41,10 +39,9 @@
 - `MappedSlotInventoryDataBinding.CanDrop()` -> обычно проблема типа adapter или slot compatibility
 - `CanStartDrag()` -> в source slot лежит не тот adapter-type или drag запрещён логикой binding
 
-### `[InventoryDropProcessor] plan failed: ...`
+### `[InventoryDropProcessor] ...`
 
-Planner не построил валидный план.
-До execution дело не дошло.
+Drop отклонён до того, как зафиксировалась запись.
 
 Чаще всего причины:
 
@@ -55,7 +52,7 @@ Planner не построил валидный план.
 ### `[InventoryTransferService] ...`
 
 Это уже execution-stage.
-Значит planning прошёл, но проблема возникла при:
+Значит preview прошёл, но проблема возникла при:
 
 - domain validation
 - split/remove
@@ -92,7 +89,7 @@ Planner не построил валидный план.
 - slot содержит не тот adapter-type
 - source binding запрещает drag
 
-### 2. Preview / planning
+### 2. Preview / разрешение кандидатов
 
 Смотреть:
 
@@ -105,14 +102,14 @@ Planner не построил валидный план.
 
 - target-side conversion не сработал
 - slot rules отклоняют target adapter
-- planner ищет candidates шире, чем ты ожидал
+- движок переноса ищет candidates шире, чем ты ожидал
 
 ### 3. Domain validation
 
 Смотреть:
 
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
 - `ValidateDomainHandlers`
 
 Типовые причины:
@@ -128,7 +125,7 @@ Planner не построил валидный план.
 
 - `InventoryTransferService`
 - conversion utility
-- `TryAddToSlot` / `TryAddStack`
+- `TryAddStack` / примитивы мутации placement
 
 Типовые причины:
 
@@ -161,9 +158,9 @@ Planner не построил валидный план.
 
 Ищи в:
 
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
-- executor conversion
+- conversion
 - placement / rollback
 
 ### Сыпятся warning-и по другим слотам

@@ -4,10 +4,9 @@ Esta página te ayuda a identificar rápidamente qué fase del pipeline ha falla
 
 Idea central:
 
-- `planner` elige un plan válido
-- `executor` maneja commit, conversion y rollback
+- `InventoryTransferService` valida candidatos contra el estado actual y confirma una entry cada vez
 - `rules` manejan restricciones mecánicas
-- `domain hooks` manejan el veto de negocio justo antes del commit
+- `domain hooks` pueden vetar toda la transferencia antes de procesar las entries
 
 ---
 
@@ -16,9 +15,8 @@ Idea central:
 | Dónde aparece el log | Qué suele significar |
 |---|---|
 | `RuleResult` | una comprobación concreta de una rule fue rechazada |
-| `InventoryTransferService` | problema de planning o de selección del target |
-| `InventoryDropProcessor` | el planner no pudo construir un plan válido |
-| `InventoryTransferService` | problema de commit, conversión, swap o rollback |
+| `InventoryTransferService` | problema de selección del target, conversión, placement, swap o rollback |
+| `InventoryDropProcessor` | resolución de policy o rechazo de la transferencia |
 | `GetAcceptableCount` | búsqueda de slots a nivel de inventario |
 | `CanCommitTransfer` / domain validation | la lógica de negocio vetó el commit |
 
@@ -41,10 +39,9 @@ Si el log viene de:
 - `MappedSlotInventoryDataBinding.CanDrop()` -> normalmente tipo de adapter o compatibilidad del slot
 - `CanStartDrag()` -> tipo de adapter incorrecto en el source slot o veto de drag del lado de origen
 
-### `[InventoryDropProcessor] plan failed: ...`
+### `[InventoryDropProcessor] ...`
 
-El planner no pudo producir un plan válido.
-La execution todavía no ha empezado.
+El drop fue rechazado antes de que una entry se confirmara.
 
 Causas comunes:
 
@@ -55,7 +52,7 @@ Causas comunes:
 ### `[InventoryTransferService] ...`
 
 Esto es logging de la fase de execution.
-El planning ya tuvo éxito, y el problema ocurrió durante:
+El preview ya tuvo éxito, y el problema ocurrió durante:
 
 - validación de dominio
 - split/remove
@@ -92,7 +89,7 @@ Causas típicas:
 - el slot contiene el tipo de adapter incorrecto
 - el source binding prohíbe el drag
 
-### 2. Preview / planning
+### 2. Preview / resolución de candidatos
 
 Mira:
 
@@ -105,14 +102,14 @@ Causas típicas:
 
 - falló la conversión del lado objetivo
 - las slot rules rechazan el target adapter
-- el planner busca candidatos de forma más amplia de lo esperado
+- el motor de transferencia busca candidatos de forma más amplia de lo esperado
 
 ### 3. Validación de dominio
 
 Mira:
 
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
 - `ValidateDomainHandlers`
 
 Causas típicas:
@@ -128,7 +125,7 @@ Mira:
 
 - `InventoryTransferService`
 - utility de conversión
-- `TryAddToSlot` / `TryAddStack`
+- `TryAddStack` / primitivas de mutación de placement
 
 Causas típicas:
 
@@ -161,9 +158,9 @@ Eso suele significar que el problema no está en las rules, sino en la execution
 
 Comprueba:
 
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
-- conversión del executor
+- conversión
 - placement / rollback
 
 ### Aparecen warnings para otros slots

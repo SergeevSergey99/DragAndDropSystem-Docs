@@ -22,7 +22,7 @@ flowchart LR
     Initialization ~~~ Drop
 ```
 
-Ключевая идея: координаты **не прокидываются** через transfer pipeline (policy / planner / executor). Позиционирование --- чисто UI-задача, решаемая через два хука:
+Ключевая идея: координаты **не прокидываются** через transfer pipeline (policy / strategy / движок переноса). Позиционирование --- чисто UI-задача, решаемая через два хука:
 
 1. `DragAndDropManager.OnDropAttempting` --- запоминаем позицию мыши.
 2. `UniversalInventory.OnSlotCreated` --- ставим новый слот в запомненную позицию.
@@ -75,7 +75,7 @@ flowchart LR
         A["Игрок отпускает предмет"] --> B["InventoryDropArea вызывает CompleteDrag()"]
         B --> C["DragAndDropManager: OnDropAttempting"]
         C --> D["FreeFormSlotLayout запоминает Input.mousePosition"]
-        D --> E["UniversalInventory: ProcessDrop → Planner → Executor"]
+        D --> E["UniversalInventory: ProcessDrop → движок переноса"]
         E --> F["CreateSlot() для Dynamic-слота"]
         F --> G["OnSlotCreated(slot)"]
         G --> H["screen → local + ClampToBounds"]
@@ -194,4 +194,4 @@ public class MyCustomLayout : MonoBehaviour
 | `UniversalInventory.OnSlotCreated` | Событие создания слота --- основной хук для layout-систем |
 | `UniversalInventory.SlotContainer` | Доступ к Transform-контейнеру для конвертации координат |
 | `InventoryDropArea` | Стандартная область дропа, работает без изменений |
-| `DynamicSlotDecorator` | Декоратор стратегии: автоматически создаёт слоты при нехватке |
+| `DynamicSlotManagementSettings` | Режим управления слотами: автоматически создаёт слоты при нехватке |

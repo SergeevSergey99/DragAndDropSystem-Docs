@@ -129,10 +129,10 @@ flowchart TD
 ## Successful purchase flow
 
 1. The player starts a drag from merchant inventory.
-2. The planner builds a target-side preview item through the converter.
+2. The transfer engine builds a target-side preview item through the converter.
 3. Player-side rules validate mechanical compatibility.
 4. A domain hook checks whether there is enough gold to commit.
-5. The executor performs the transfer and only then triggers side effects.
+5. The engine performs the transfer and only then triggers side effects.
 6. DataBinding updates the player and merchant data lists.
 
 ---

@@ -108,7 +108,7 @@ flowchart TD
 
 ## Почему это лучше, чем всё делать в CanDrop
 
-Потому что `CanDrop` вызывается как часть preview/planning.
+Потому что `CanDrop` вызывается как часть preview.
 
 А денежная логика и другие доменные проверки часто должны:
 
@@ -168,10 +168,10 @@ flowchart LR
 ## Как проходит успешная покупка
 
 1. Игрок начинает drag из merchant inventory.
-2. Planner строит target-side preview item через converter.
+2. Движок переноса строит target-side preview item через converter.
 3. Player-side rules проверяют механическую совместимость.
 4. Domain hook проверяет, хватает ли золота на commit.
-5. Executor выполняет перенос и только после успеха вызывает side effects.
+5. Движок выполняет перенос и только после успеха вызывает side effects.
 6. DataBinding обновляет списки данных игрока и торговца.
 
 ---

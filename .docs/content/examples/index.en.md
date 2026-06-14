@@ -134,4 +134,4 @@ Shows:
 
 - [Quick Start](../getting-started/quick-start.md) — for a basic setup from scratch
 - [Data Binding](../architecture/data-binding.md) — for the full lifecycle and hooks
-- [Transfer Pipeline](../architecture/transfer-pipeline.md) — for planning / execution / rollback details
+- [Transfer Pipeline](../architecture/transfer-pipeline.md) — for transfer order and rollback details

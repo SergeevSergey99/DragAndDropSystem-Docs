@@ -22,7 +22,7 @@ flowchart LR
     Initialization ~~~ Drop
 ```
 
-Key idea: coordinates are **not passed** through the transfer pipeline (policy / planner / executor). Positioning is a pure UI concern, solved through two hooks:
+Key idea: coordinates are **not passed** through the transfer pipeline (policy / strategy / transfer engine). Positioning is a pure UI concern, solved through two hooks:
 
 1. `DragAndDropManager.OnDropAttempting` --- capture mouse position.
 2. `UniversalInventory.OnSlotCreated` --- position the new slot at the captured coordinates.
@@ -75,7 +75,7 @@ flowchart LR
         A["Player releases item"] --> B["InventoryDropArea calls CompleteDrag()"]
         B --> C["DragAndDropManager: OnDropAttempting"]
         C --> D["FreeFormSlotLayout stores Input.mousePosition"]
-        D --> E["UniversalInventory: ProcessDrop → Planner → Executor"]
+        D --> E["UniversalInventory: ProcessDrop → transfer engine"]
         E --> F["CreateSlot() for a dynamic slot"]
         F --> G["OnSlotCreated(slot)"]
         G --> H["Convert screen → local and ClampToBounds"]
@@ -194,4 +194,4 @@ public class MyCustomLayout : MonoBehaviour
 | `UniversalInventory.OnSlotCreated` | Slot creation event --- the main hook for layout systems |
 | `UniversalInventory.SlotContainer` | Access to the Transform container for coordinate conversion |
 | `InventoryDropArea` | Standard drop area, works without modifications |
-| `DynamicSlotDecorator` | Strategy decorator: automatically creates slots when needed |
+| `DynamicSlotManagementSettings` | Slot management mode: automatically creates slots when needed |
