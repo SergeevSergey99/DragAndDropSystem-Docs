@@ -127,11 +127,11 @@ namespace UDND.UI
                 }
 
                 var renderState = ResolveRenderState(placement);
-                bool rendered = IsRectangularPlacement(placement)
-                    ? TryRenderPlacementBounds(placement, root, renderState)
-                    : TryRenderPlacementCells(placement, root, renderState);
 
-                if (!rendered)
+                // Every placement renders as a single item spanning the bounding box of its
+                // occupied cells. The item's sprite conveys the actual footprint (e.g. the notch
+                // of an L), so non-rectangular shapes must not be split into one item per cell.
+                if (!TryRenderPlacementBounds(placement, root, renderState))
                     continue;
 
                 _renderedPlacements.Add(placement);
@@ -159,30 +159,6 @@ namespace UDND.UI
             return true;
         }
 
-        private bool TryRenderPlacementCells(
-            Placement placement,
-            RectTransform root,
-            PlacementOverlayRenderState renderState)
-        {
-            bool renderedAny = false;
-            for (int i = 0; i < placement.CoveredIndices.Count; i++)
-            {
-                var slot = _inventory.GetSlot(placement.CoveredIndices[i]);
-                if (!TryGetSlotRect(slot, root, out var rect))
-                    continue;
-
-                var item = CreateItem(root, placement);
-                ApplyItemRect(item.RectTransform, rect.center, rect.size, 0f);
-                item.transform.SetAsLastSibling();
-                item.ShowStackCount = placement.CoveredIndices[i] == placement.AnchorIndex;
-                item.Render(placement, renderState, _color);
-                _activeItems.Add(item);
-                renderedAny = true;
-            }
-
-            return renderedAny;
-        }
-
         private static void ApplyItemRect(
             RectTransform itemRect,
             Vector2 anchoredPosition,
@@ -195,36 +171,6 @@ namespace UDND.UI
             itemRect.anchoredPosition = anchoredPosition;
             itemRect.sizeDelta = size;
             itemRect.localEulerAngles = new Vector3(0f, 0f, zRotation);
-        }
-
-        private static bool IsRectangularPlacement(Placement placement)
-        {
-            if (placement == null)
-                return true;
-
-            var offsets = placement.CoveredOffsets;
-            if (offsets == null || offsets.Count == 0)
-                return true;
-
-            var bounds = PlacementShapeUtility.GetBoundingSize(offsets);
-            int area = bounds.x * bounds.y;
-            if (area <= 0 || offsets.Count != area)
-                return false;
-
-            var occupiedOffsets = new HashSet<Vector2Int>(offsets);
-            if (occupiedOffsets.Count != area)
-                return false;
-
-            for (int y = 0; y < bounds.y; y++)
-            {
-                for (int x = 0; x < bounds.x; x++)
-                {
-                    if (!occupiedOffsets.Contains(new Vector2Int(x, y)))
-                        return false;
-                }
-            }
-
-            return true;
         }
 
         private Vector2 GetPreRotatedSize(
@@ -378,25 +324,6 @@ namespace UDND.UI
 
             if (!hasPoint)
                 return false;
-
-            rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
-            return rect.width > 0f && rect.height > 0f;
-        }
-
-        private bool TryGetSlotRect(BaseSlot slot, RectTransform root, out Rect rect)
-        {
-            rect = default;
-            if (!TryGetSlotWorldCorners(slot))
-                return false;
-
-            var min = (Vector2)root.InverseTransformPoint(_corners[0]);
-            var max = min;
-            for (int i = 1; i < _corners.Length; i++)
-            {
-                var localPoint = (Vector2)root.InverseTransformPoint(_corners[i]);
-                min = Vector2.Min(min, localPoint);
-                max = Vector2.Max(max, localPoint);
-            }
 
             rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             return rect.width > 0f && rect.height > 0f;
