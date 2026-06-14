@@ -1,6 +1,11 @@
 # Placement Strategies
 
-Each inventory chooses a strategy that determines how items are placed and merged in slots. The strategy is set in the Inspector and affects all add and move operations.
+Each inventory chooses a **strategy** that decides how items occupy and merge in
+slots. The strategy is selected in the Inspector and applies to every add and move.
+
+A strategy is **read-only**: it answers "where may this item go and how much fits?"
+by producing *placement candidates*. It never adds, removes, or mutates anything —
+the transfer engine performs all mutation. See [Transfer Pipeline](transfer-pipeline.md).
 
 ---
 
@@ -29,13 +34,14 @@ flowchart TD
 
 ## Unique
 
-Each item occupies exactly one slot. Stacking is not supported --- when transferring multiple instances, each is placed in a separate slot.
+Each item occupies exactly one slot; stacking is not supported. When several
+instances are transferred, each one takes a separate slot.
 
 ```mermaid
 flowchart TD
     A["Item"] --> B{"Slot free?"}
     B -->|Yes| C["Place"]
-    B -->|No| D["Search for another free slot"]
+    B -->|No| D["Look for another free slot"]
     D --> E{"Found?"}
     E -->|Yes| C
     E -->|No| F["Reject"]
@@ -47,29 +53,33 @@ Typical use: equipment inventory, collection of unique artifacts.
 
 ## Stackable
 
-Identical items are automatically combined into one stack. When adding, the system first looks for an existing stack with the same item, then for a free slot.
+Identical items are automatically combined into one stack. When adding, the strategy
+first offers a merge candidate for an existing stack of the same item, then a create
+candidate for a free slot.
 
 ```mermaid
 flowchart TD
-    A["Item"] --> B{"Same item in a slot?"}
+    A["Item"] --> B{"Same item already in a slot?"}
     B -->|Yes| C["Merge stacks"]
     B -->|No| D{"Free slot?"}
     D -->|Yes| E["Create stack"]
     D -->|No| F["Reject"]
 ```
 
-Typical use: consumable items (potions, arrows), resources.
+Typical use: consumables (potions, arrows), resources.
 
 ---
 
 ## Separable Stacks
 
-Items can stack but are NOT automatically merged. You can have multiple stacks of the same item in different slots. Merging only occurs on an explicit drop onto the same item (if allowed by the `allowMergeOnDrop` setting).
+Items can stack but are **not** merged automatically. You can keep several stacks of
+the same item in different slots. A merge happens only on an explicit drop onto the
+same item, when merging is allowed.
 
 ```mermaid
 flowchart TD
     A["Item"] --> B{"Empty slot?"}
-    B -->|Yes| C["Create new stack"]
+    B -->|Yes| C["Create a new stack"]
     B -->|No| D{"Same item + merge allowed?"}
     D -->|Yes| E["Merge"]
     D -->|No| F["Reject"]
@@ -79,15 +89,18 @@ Typical use: Heroes of Might & Magic style (squads with independent stacks).
 
 ---
 
-## Dynamic Slots
+## Slot management (fixed vs dynamic)
 
-A decorator that wraps any strategy and adds automatic slot creation/removal:
+Strategy decides *placement*; **slot management** decides whether the slot set is
+fixed or can grow and shrink. It is a separate setting on the inventory.
 
-- Creates new slots as needed (up to a specified limit).
-- Maintains a minimum number of free slots.
-- Removes excess empty slots when items are removed.
+- `FixedSlotManagementSettings` — a fixed number of slots.
+- `DynamicSlotManagementSettings` — creates new slots as needed (up to a limit),
+  keeps a minimum number of free slots, and removes excess empties on removal.
 
-Works with any of the three strategies.
+Dynamic slots work with any of the three strategies. The strategy only returns a
+`NewDynamicSlot` candidate when growth is allowed; the engine drives the actual
+slot creation and removal through `IDynamicSlotLifecycle`.
 
 ---
 
@@ -95,75 +108,82 @@ Works with any of the three strategies.
 
 | Parameter | Values | Description |
 |---|---|---|
-| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Item placement strategy selected directly through `[SerializeReference]` |
-| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Slot lifecycle mode selected directly through `[SerializeReference]` |
-| **Max Slots** | number | Maximum slots (for Dynamic) |
-| **Max Free Slots** | number | How many empty slots to maintain (for Dynamic) |
-| **Drag Amount** | `One` / `Half` / `All` / `Custom` | How many items to drag from a stack |
+| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Placement strategy, selected through `[SerializeReference]` |
+| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Slot lifecycle mode, selected through `[SerializeReference]` |
+| **Max Slots** | number | Maximum slots (Dynamic only) |
+| **Max Free Slots** | number | Empty slots to keep available (Dynamic only) |
+| **Drag Amount** | `All` / `HalfDown` / `HalfUp` / `One` / `Custom` | How many items to drag from a stack |
 
 ---
 
 ## Custom Strategy
 
-To create your own placement strategy:
+A custom strategy is read-only: it produces candidates, it does not mutate.
 
-1. Create a class inheriting from `InventoryStrategyBase`.
-2. Mark it `[Serializable]`.
-3. It appears automatically in the `UniversalInventory` strategy picker.
-4. Override the key methods:
+1. Inherit from `InventoryStrategyBase`.
+2. Mark it `[Serializable]` so it appears in the `UniversalInventory` strategy picker.
+3. Override the candidate methods:
 
 ```csharp
+[Serializable]
 public class MyCustomStrategy : InventoryStrategyBase
 {
-    // Add an item to the inventory
-    public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex)
+    // Validate a directly chosen slot and return its candidate (kind + capacity).
+    public override bool TryGetCandidate(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request,
+        BaseSlot targetBaseSlot,
+        out PlacementCandidate candidate)
     {
-        // Your placement logic
+        // Resolve the anchor, decide merge vs create, compute capacity.
+        // Helpers like TryCreatePlacementCandidate(...) and PassesRules(...) are available.
     }
 
-    // Add an item to a specific slot
-    public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack,
-        BaseSlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
+    // Enumerate candidates for automatic placement (area drop / auto-transfer).
+    public override PlacementCandidateSource GetCandidates(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request)
     {
-        // Your logic for a specific slot
+        // Return a lazy, re-enumerable source of candidates.
     }
 
-    // Remove an item
-    public override bool TryRemove(List<BaseSlot> slots, IItemAdapter item,
-        int count, int sourceIndex)
+    // How many items the inventory can accept right now (read-only count).
+    public override int GetAcceptableCount(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request)
     {
-        // Your removal logic
-    }
-
-    // How many items the inventory can accept
-    public override int GetAcceptableCount(List<BaseSlot> slots,
-        InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, BaseSlot slotPrefab)
-    {
-        // Your counting logic
-    }
-
-    // Can the inventory accept the item
-    public override bool CanAcceptItem(List<BaseSlot> slots,
-        InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, BaseSlot slotPrefab, out BaseSlot suggestedSlot)
-    {
-        // Your validation logic
+        // Your counting logic.
     }
 }
 ```
 
-!!! tip "Rule Validation"
-    Use the `PassesRules(slot, item, count)` method from the base class to validate slot rules before placement.
+!!! tip "Helpers on the base class"
+    `PassesRules(slot, item, count)` validates slot rules, and
+    `TryCreatePlacementCandidate(...)` builds a validated create candidate against the
+    topology. Geometry (`IPlacementGeometry`) gives you anchor resolution, bounds and
+    occupancy checks, and covered slots — your strategy never needs to know it is a grid.
+
+!!! warning "Strategies do not mutate"
+    There are no `TryAdd`/`TryRemove`/`TryAddToSlot` methods anymore. If you are looking
+    for where items are actually placed, that is the transfer engine, not the strategy.
+
+---
 
 ## Custom Slot Management
 
 To create your own slot lifecycle mode:
 
-1. Create a class inheriting from `SlotManagementSettingsBase`.
-2. Mark it `[Serializable]`.
-3. Override the hooks you need, for example `WrapRuntimeStrategy`, `EnsureFreeSlots`, or `HandleSlotEmptied`.
-4. It appears automatically in the `UniversalInventory` slot management picker.
+1. Inherit from `SlotManagementSettingsBase`.
+2. Mark it `[Serializable]` so it appears in the slot-management picker.
+3. Override the hooks you need:
+
+| Hook | Purpose |
+|---|---|
+| `CanCreateNewSlot(...)` | May the inventory grow right now? |
+| `GetPotentialNewSlots(...)` | How many more slots could be created |
+| `EnsureFreeSlots(...)` | Pre-create the configured number of free slots |
+| `CanRemoveAnotherSlot(...)` | May an excess empty slot be removed? |
+| `HandleSlotEmptied(...)` | React when a slot becomes empty (e.g. trim) |
 
 ---
 
@@ -171,12 +191,14 @@ To create your own slot lifecycle mode:
 
 | Concept | Class | Description |
 |---|---|---|
-| Base class | `InventoryStrategyBase` | Common methods for all strategies |
-| Shared stack base | `StackBasedInventoryStrategyBase` | Shared stack size and per-item override support for stack-oriented strategies |
+| Strategy contract | `IStrategy` | Read-only: candidates, capacity, max stack size |
+| Base class | `InventoryStrategyBase` | Shared candidate helpers and rule checks |
+| Shared stack base | `StackBasedInventoryStrategyBase` | Stack-size and per-item override support for stacking strategies |
 | Unique | `UniqueItemStrategy` | One item = one slot |
 | Stackable | `StackableItemStrategy` | Automatic stack merging |
 | Separable | `SeparableStacksStrategy` | Independent stacks with optional merging |
-| Capabilities | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Optional semantic interfaces for custom code |
-| Slot management base | `SlotManagementSettingsBase` | Base class for fixed, dynamic, and custom slot lifecycle modes |
-| Dynamic slots | `DynamicSlotManagementSettings`, `DynamicSlotDecorator` | Dynamic slot mode and its runtime decorator |
-| Interface | `IInventoryStrategy` | Contract for all strategies |
+| Candidate | `PlacementCandidate`, `PlacementCandidateSource` | Topology-neutral merge/create/new-slot intent |
+| Ordering | `PlacementCandidateOrderer` | Orders candidates for automatic placement only |
+| Slot management base | `SlotManagementSettingsBase` | Base for fixed, dynamic, and custom slot lifecycle |
+| Slot management modes | `FixedSlotManagementSettings`, `DynamicSlotManagementSettings` | Fixed vs growing slot sets |
+| Dynamic lifecycle | `IDynamicSlotLifecycle` | Engine-driven slot creation/removal |

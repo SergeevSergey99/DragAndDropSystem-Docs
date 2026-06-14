@@ -1,6 +1,12 @@
 # Стратегии размещения
 
-Каждый инвентарь выбирает стратегию, определяющую, как предметы размещаются и объединяются в слотах. Стратегия задаётся в Inspector и влияет на все операции добавления и перемещения.
+Каждый инвентарь выбирает **стратегию**, которая решает, как предметы занимают и
+объединяются в слотах. Стратегия задаётся в инспекторе и применяется ко всем
+добавлениям и перемещениям.
+
+Стратегия **read-only**: она отвечает на вопрос «куда можно положить предмет и сколько
+влезет?», выдавая *кандидатов размещения*. Сама она ничего не добавляет, не удаляет и
+не мутирует — все изменения делает движок переноса. См. [Пайплайн переноса](transfer-pipeline.md).
 
 ---
 
@@ -8,162 +14,177 @@
 
 | | Слот 1 | Слот 2 | Слот 3 | Поведение |
 |---|---|---|---|---|
-| **Уникальные** | Меч | Щит | Зелье | Один предмет = один слот |
-| **Стакающиеся** | Зелье x5 | Зелье x3 | Щит | Одинаковые автоматически складываются |
-| **Разделяемые стаки** | Отряд x10 | Отряд x20 | --- | Стаки независимы, слияние по запросу |
+| **Unique** | Меч | Щит | Зелье | Один предмет = один слот |
+| **Stackable** | Зелье x5 | Зелье x3 | Щит | Одинаковые предметы автоматически стакаются |
+| **Separable Stacks** | Отряд x10 | Отряд x20 | --- | Стаки независимы, объединяются по запросу |
 
 ---
 
-## Когда что использовать
+## Что когда использовать
 
 ```mermaid
 flowchart TD
-    Q1{"Предметы должны складываться?"}
-    Q1 -->|Нет| UNI["Уникальные"]
+    Q1{"Предметы должны стакаться?"}
+    Q1 -->|Нет| UNI["Unique"]
     Q1 -->|Да| Q2{"Стаки объединяются автоматически?"}
-    Q2 -->|Да| STK["Стакающиеся"]
-    Q2 -->|Нет| SEP["Разделяемые стаки"]
+    Q2 -->|Да| STK["Stackable"]
+    Q2 -->|Нет| SEP["Separable Stacks"]
 ```
 
 ---
 
-## Уникальные
+## Unique
 
-Каждый предмет занимает ровно один слот. Стаки не поддерживаются --- при переносе нескольких экземпляров каждый размещается в отдельный слот.
+Каждый предмет занимает ровно один слот; стакинг не поддерживается. При переносе
+нескольких экземпляров каждый занимает отдельный слот.
 
 ```mermaid
 flowchart TD
     A["Предмет"] --> B{"Слот свободен?"}
-    B -->|Да| C["Положить"]
-    B -->|Нет| D["Искать другой свободный"]
+    B -->|Да| C["Разместить"]
+    B -->|Нет| D["Искать другой свободный слот"]
     D --> E{"Найден?"}
     E -->|Да| C
-    E -->|Нет| F["Отклонить"]
+    E -->|Нет| F["Отказ"]
 ```
 
 Типичное применение: инвентарь экипировки, коллекция уникальных артефактов.
 
 ---
 
-## Стакающиеся
+## Stackable
 
-Одинаковые предметы автоматически складываются в один стак. При добавлении система сначала ищет существующий стак с таким же предметом, затем --- свободный слот.
+Одинаковые предметы автоматически объединяются в один стак. При добавлении стратегия
+сначала предлагает merge-кандидата для существующего стака того же предмета, затем
+create-кандидата для свободного слота.
 
 ```mermaid
 flowchart TD
-    A["Предмет"] --> B{"Есть такой же в слоте?"}
+    A["Предмет"] --> B{"Такой же предмет уже в слоте?"}
     B -->|Да| C["Объединить стаки"]
     B -->|Нет| D{"Свободный слот?"}
     D -->|Да| E["Создать стак"]
-    D -->|Нет| F["Отклонить"]
+    D -->|Нет| F["Отказ"]
 ```
 
-Типичное применение: расходуемые предметы (зелья, стрелы), ресурсы.
+Типичное применение: расходники (зелья, стрелы), ресурсы.
 
 ---
 
-## Разделяемые стаки
+## Separable Stacks
 
-Предметы могут складываться, но НЕ объединяются автоматически. Можно иметь несколько стаков одного предмета в разных слотах. Слияние происходит только при явном дропе на тот же предмет (если разрешено настройкой `allowMergeOnDrop`).
+Предметы могут стакаться, но **не** объединяются автоматически. Можно держать несколько
+стаков одного предмета в разных слотах. Объединение происходит только при явном drop на
+тот же предмет, когда merge разрешён.
 
 ```mermaid
 flowchart TD
     A["Предмет"] --> B{"Пустой слот?"}
     B -->|Да| C["Создать новый стак"]
-    B -->|Нет| D{"Тот же предмет + слияние разрешено?"}
+    B -->|Нет| D{"Тот же предмет + merge разрешён?"}
     D -->|Да| E["Объединить"]
-    D -->|Нет| F["Отклонить"]
+    D -->|Нет| F["Отказ"]
 ```
 
 Типичное применение: стиль Heroes of Might & Magic (отряды с независимыми стаками).
 
 ---
 
-## Динамические слоты
+## Управление слотами (fixed или dynamic)
 
-Декоратор, который оборачивает любую стратегию и добавляет автоматическое создание/удаление слотов:
+Стратегия решает *размещение*; **управление слотами** решает, фиксирован ли набор
+слотов или может расти и сжиматься. Это отдельная настройка инвентаря.
 
-- Создаёт новые слоты по мере необходимости (до заданного лимита).
-- Обеспечивает минимальное количество свободных слотов.
-- Удаляет лишние пустые слоты при удалении предметов.
+- `FixedSlotManagementSettings` — фиксированное число слотов.
+- `DynamicSlotManagementSettings` — создаёт новые слоты по мере необходимости (до
+  лимита), держит минимум свободных слотов и удаляет лишние пустые при удалении.
 
-Работает с любой из трёх стратегий.
+Динамические слоты работают с любой из трёх стратегий. Стратегия лишь возвращает
+кандидата `NewDynamicSlot`, когда рост разрешён; фактическим созданием и удалением
+слотов управляет движок через `IDynamicSlotLifecycle`.
 
 ---
 
-## Настройка в Inspector
+## Настройка в инспекторе
 
 | Параметр | Значения | Описание |
 |---|---|---|
-| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Стратегия размещения предметов, выбираемая напрямую через `[SerializeReference]` |
-| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Режим жизненного цикла слотов, выбираемый напрямую через `[SerializeReference]` |
-| **Max Slots** | число | Максимум слотов (для Dynamic) |
-| **Max Free Slots** | число | Сколько пустых слотов поддерживать (для Dynamic) |
-| **Drag Amount** | `One` / `Half` / `All` / `Custom` | Сколько предметов перетаскивать из стака |
+| **Inventory Strategy** | `UniqueItemStrategy` / `StackableItemStrategy` / `SeparableStacksStrategy` | Стратегия размещения, выбирается через `[SerializeReference]` |
+| **Slot Management** | `FixedSlotManagementSettings` / `DynamicSlotManagementSettings` | Режим жизненного цикла слотов, через `[SerializeReference]` |
+| **Max Slots** | число | Максимум слотов (только Dynamic) |
+| **Max Free Slots** | число | Сколько пустых слотов держать (только Dynamic) |
+| **Drag Amount** | `All` / `HalfDown` / `HalfUp` / `One` / `Custom` | Сколько предметов тянуть из стака |
 
 ---
 
 ## Своя стратегия
 
-Чтобы создать собственную стратегию размещения:
+Своя стратегия read-only: она выдаёт кандидатов, но не мутирует.
 
-1. Создайте класс-наследник `InventoryStrategyBase`.
-2. Пометьте его `[Serializable]`.
-3. Он автоматически появится в strategy picker у `UniversalInventory`.
-4. Переопределите ключевые методы:
+1. Наследуйтесь от `InventoryStrategyBase`.
+2. Пометьте `[Serializable]`, чтобы она появилась в пикере стратегий `UniversalInventory`.
+3. Переопределите методы кандидатов:
 
 ```csharp
+[Serializable]
 public class MyCustomStrategy : InventoryStrategyBase
 {
-    // Добавить предмет в инвентарь
-    public override bool TryAdd(List<BaseSlot> slots, ItemStack stack, int targetIndex)
+    // Проверить напрямую выбранный слот и вернуть его кандидата (kind + capacity).
+    public override bool TryGetCandidate(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request,
+        BaseSlot targetBaseSlot,
+        out PlacementCandidate candidate)
     {
-        // Ваша логика размещения
+        // Резолвим якорь, решаем merge или create, считаем capacity.
+        // Доступны помощники TryCreatePlacementCandidate(...) и PassesRules(...).
     }
 
-    // Добавить предмет в конкретный слот
-    public override bool TryAddToSlot(List<BaseSlot> slots, ItemStack stack,
-        BaseSlot targetSlot, Action ensureFreeSlots, SlotOperationContext ctx)
+    // Перечислить кандидатов для автоматического размещения (area drop / авто-перенос).
+    public override PlacementCandidateSource GetCandidates(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request)
     {
-        // Ваша логика для конкретного слота
+        // Вернуть ленивый, повторно перечисляемый источник кандидатов.
     }
 
-    // Удалить предмет
-    public override bool TryRemove(List<BaseSlot> slots, IItemAdapter item,
-        int count, int sourceIndex)
+    // Сколько предметов инвентарь может принять сейчас (read-only подсчёт).
+    public override int GetAcceptableCount(
+        IPlacementGeometry geometry,
+        InventoryAcceptanceRequest request)
     {
-        // Ваша логика удаления
-    }
-
-    // Сколько предметов инвентарь может принять
-    public override int GetAcceptableCount(List<BaseSlot> slots,
-        InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, BaseSlot slotPrefab)
-    {
-        // Ваша логика подсчёта
-    }
-
-    // Может ли инвентарь принять предмет
-    public override bool CanAcceptItem(List<BaseSlot> slots,
-        InventoryAcceptanceRequest request, bool canCreateNewSlot,
-        int potentialNewSlots, BaseSlot slotPrefab, out BaseSlot suggestedSlot)
-    {
-        // Ваша логика проверки
+        // Ваша логика подсчёта.
     }
 }
 ```
 
-!!! tip "Проверка правил"
-    Используйте метод `PassesRules(slot, item, count)` из базового класса для проверки правил слота перед размещением.
+!!! tip "Помощники базового класса"
+    `PassesRules(slot, item, count)` проверяет правила слота, а
+    `TryCreatePlacementCandidate(...)` строит провалидированного create-кандидата по
+    топологии. Геометрия (`IPlacementGeometry`) даёт резолв якоря, проверки границ и
+    занятости, покрытые слоты — стратегии не нужно знать, грид это или нет.
 
-## Свой Slot Management
+!!! warning "Стратегии не мутируют"
+    Методов `TryAdd`/`TryRemove`/`TryAddToSlot` больше нет. Если вы ищете, где предметы
+    реально размещаются, — это движок переноса, а не стратегия.
 
-Чтобы создать собственный режим жизненного цикла слотов:
+---
 
-1. Создайте класс-наследник `SlotManagementSettingsBase`.
-2. Пометьте его `[Serializable]`.
-3. Переопределите нужные hooks, например `WrapRuntimeStrategy`, `EnsureFreeSlots` или `HandleSlotEmptied`.
-4. Он автоматически появится в picker поля `Slot Management` у `UniversalInventory`.
+## Своё управление слотами
+
+Чтобы создать свой режим жизненного цикла слотов:
+
+1. Наследуйтесь от `SlotManagementSettingsBase`.
+2. Пометьте `[Serializable]`, чтобы он появился в пикере управления слотами.
+3. Переопределите нужные хуки:
+
+| Хук | Назначение |
+|---|---|
+| `CanCreateNewSlot(...)` | Может ли инвентарь сейчас расти? |
+| `GetPotentialNewSlots(...)` | Сколько ещё слотов можно создать |
+| `EnsureFreeSlots(...)` | Заранее создать заданное число свободных слотов |
+| `CanRemoveAnotherSlot(...)` | Можно ли удалить лишний пустой слот? |
+| `HandleSlotEmptied(...)` | Реакция на опустевший слот (например, trim) |
 
 ---
 
@@ -171,12 +192,14 @@ public class MyCustomStrategy : InventoryStrategyBase
 
 | Концепция | Класс | Описание |
 |---|---|---|
-| Базовый класс | `InventoryStrategyBase` | Общие методы для всех стратегий |
-| Общая stack-база | `StackBasedInventoryStrategyBase` | Общая поддержка лимита стека и per-item override для stack-стратегий |
-| Уникальные | `UniqueItemStrategy` | Один предмет = один слот |
-| Стакающиеся | `StackableItemStrategy` | Автоматическое объединение стаков |
-| Разделяемые | `SeparableStacksStrategy` | Независимые стаки с опциональным слиянием |
-| Capability interfaces | `IUniqueInventoryStrategy`, `IStackBasedInventoryStrategy`, `ISeparableStacksInventoryStrategy` | Опциональные semantic-интерфейсы для кастомного кода |
-| База slot management | `SlotManagementSettingsBase` | Базовый класс для fixed, dynamic и custom режимов жизненного цикла слотов |
-| Динамические слоты | `DynamicSlotManagementSettings`, `DynamicSlotDecorator` | Dynamic-режим и его runtime-декоратор |
-| Интерфейс | `IInventoryStrategy` | Контракт для всех стратегий |
+| Контракт стратегии | `IStrategy` | Read-only: кандидаты, capacity, размер стака |
+| Базовый класс | `InventoryStrategyBase` | Общие помощники кандидатов и проверки правил |
+| База стак-стратегий | `StackBasedInventoryStrategyBase` | Размер стака и per-item override для стакающихся стратегий |
+| Unique | `UniqueItemStrategy` | Один предмет = один слот |
+| Stackable | `StackableItemStrategy` | Автоматическое объединение стаков |
+| Separable | `SeparableStacksStrategy` | Независимые стаки с опциональным merge |
+| Кандидат | `PlacementCandidate`, `PlacementCandidateSource` | Topology-neutral намерение merge/create/new-slot |
+| Упорядочивание | `PlacementCandidateOrderer` | Упорядочивает кандидатов только для автоматического размещения |
+| База управления слотами | `SlotManagementSettingsBase` | База для fixed, dynamic и своих режимов |
+| Режимы слотов | `FixedSlotManagementSettings`, `DynamicSlotManagementSettings` | Фиксированный или растущий набор слотов |
+| Динамический lifecycle | `IDynamicSlotLifecycle` | Создание/удаление слотов движком |

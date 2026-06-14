@@ -4,7 +4,7 @@ The full flow is described in [Transfer Pipeline](transfer-pipeline.md).
 
 ## Policy fields
 
-- `BlockedTargetResolutionKind`: `Reject`, `AlternativeSlots`, or `Swap`
+- `BlockedTargetResolutionKind`: `Reject`, `FindAlternative`, or `Swap`
 - `AlternativeOrderer`: ordering used only for automatic alternative placement
 - `AllowSameInventoryAlternativePlacement`: whether a blocked same-inventory drop
   may use another placement
@@ -12,7 +12,7 @@ The full flow is described in [Transfer Pipeline](transfer-pipeline.md).
 
 ## Behavior matrix
 
-| Scenario | `Reject` | `AlternativeSlots` | `Swap` |
+| Scenario | `Reject` | `FindAlternative` | `Swap` |
 |---|---|---|---|
 | explicit target is valid | use it | use it | use it |
 | explicit target is blocked | reject entry | search ordered candidates | try single-entry swap |

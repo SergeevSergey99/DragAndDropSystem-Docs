@@ -44,9 +44,9 @@ protected override IItemAdapterConverter CreateItemConverter()
 
 ## Кто вызывает conversion
 
-### Preview / planning
+### Preview
 
-Во время preview и planning conversion orchestrates `TransferItemConversionUtility`.
+Во время preview конвертацию оркеструет `TransferItemConversionUtility`.
 
 Это нужно, чтобы target rules и binding hooks видели уже target-side adapter, а не source-side adapter.
 
@@ -143,8 +143,8 @@ Preview stack и execution stack могут быть разными объект
 Тогда используйте:
 
 - rules
+- `CanStartTransfer` / `CanStartTransferAsync`
 - `CanCommitTransfer`
-- `CanCommitTransferAsync`
 
 ---
 
@@ -186,6 +186,6 @@ Preview stack и execution stack могут быть разными объект
 
 ## Где смотреть дальше
 
-- [Конвейер переноса](transfer-pipeline.md) — полная фаза planning/execution
+- [Пайплайн переноса](transfer-pipeline.md) — полный порядок переноса
 - [Demo4 Trading](../examples/demo4-trading.md) — рабочий пример conversion между merchant/player/equipment
 - [Troubleshooting](../reference/troubleshooting.md) — симптомы и типовые причины

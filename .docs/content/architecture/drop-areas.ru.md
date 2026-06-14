@@ -23,7 +23,7 @@ flowchart TD
 | Паттерн | Суть | Когда использовать |
 |---------|------|--------------------|
 | **Простое потребление** | Переопределить `CanAcceptEntry` + `ProcessEntry`. Удаление из источника --- автоматически | Зона мира, корзина, продажа --- любая цель без инвентаря |
-| **Делегирование** | Переопределить `GetDropProcessor()`, вернуть свой `IDropProcessor` | Инвентарные области со сложной логикой (policy, planner, swap) |
+| **Делегирование** | Переопределить `GetDropProcessor()`, вернуть свой `IDropProcessor` | Инвентарные области со сложной логикой (policy, swap, конвертация) |
 
 ---
 
@@ -68,7 +68,7 @@ flowchart TD
 
 ## Делегирование
 
-Когда нужна сложная логика дропа (planner/executor, policy, swap), переопределите `GetDropProcessor()`:
+Когда нужна сложная логика дропа (пайплайн переноса, policy, swap), переопределите `GetDropProcessor()`:
 
 ```csharp
 public class CustomInventoryArea : DropAreaBase
@@ -265,4 +265,4 @@ protected override void OnHighlightChanged(bool highlighted, bool canAccept)
 |-------|---------|----------|
 | `DropAreaBase` | --- | Базовый класс для всех зон дропа |
 | `WorldDropZone` | Простое потребление | Спавн 3D-объектов в мире |
-| `InventoryDropArea` | Делегирование | Дроп в инвентарь через planner/executor |
+| `InventoryDropArea` | Делегирование | Дроп в инвентарь через пайплайн переноса |

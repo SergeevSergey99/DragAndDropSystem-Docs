@@ -4,7 +4,7 @@
 
 ## Поля policy
 
-- `BlockedTargetResolutionKind`: `Reject`, `AlternativeSlots` или `Swap`
+- `BlockedTargetResolutionKind`: `Reject`, `FindAlternative` или `Swap`
 - `AlternativeOrderer`: сортировка только для автоматического размещения
 - `AllowSameInventoryAlternativePlacement`: можно ли искать другой placement при
   blocked drop внутри того же inventory
@@ -12,7 +12,7 @@
 
 ## Матрица поведения
 
-| Сценарий | `Reject` | `AlternativeSlots` | `Swap` |
+| Сценарий | `Reject` | `FindAlternative` | `Swap` |
 |---|---|---|---|
 | выбранный target валиден | использовать target | использовать target | использовать target |
 | выбранный target заблокирован | отклонить entry | искать ordered candidates | попытаться swap |

@@ -23,7 +23,7 @@ flowchart TD
 | Pattern | Idea | When to Use |
 |---------|------|-------------|
 | **Simple Consumption** | Override `CanAcceptEntry` + `ProcessEntry`. Source removal is automatic | World zone, trash, sell --- any target without an inventory |
-| **Delegation** | Override `GetDropProcessor()`, return your own `IDropProcessor` | Inventory areas with complex logic (policy, planner, swap) |
+| **Delegation** | Override `GetDropProcessor()`, return your own `IDropProcessor` | Inventory areas with complex logic (policy, swap, conversion) |
 
 ---
 
@@ -68,7 +68,7 @@ flowchart TD
 
 ## Delegation
 
-When you need complex drop logic (planner/executor, policies, swaps), override `GetDropProcessor()`:
+When you need complex drop logic (the transfer pipeline, policies, swaps), override `GetDropProcessor()`:
 
 ```csharp
 public class CustomInventoryArea : DropAreaBase
@@ -265,4 +265,4 @@ protected override void OnHighlightChanged(bool highlighted, bool canAccept)
 |-------|---------|-------------|
 | `DropAreaBase` | --- | Base class for all drop areas |
 | `WorldDropZone` | Simple Consumption | Spawns 3D objects in the world |
-| `InventoryDropArea` | Delegation | Drop into inventory via planner/executor |
+| `InventoryDropArea` | Delegation | Drop into an inventory through the transfer pipeline |

@@ -10,7 +10,7 @@ Rules separate constraint logic from placement logic. Instead of embedding check
 
 !!! note "Rules are not the same as business hooks"
     Rules handle mechanical transfer constraints: can the item be dragged, can it be dropped into this target, does the slot accept this type.
-    If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (`CanCommitTransfer`, `CanCommitTransferAsync`, `OnTransferSucceeded`) instead of `CanDrop`.
+    If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (`CanStartTransfer`, `CanStartTransferAsync`, `CanCommitTransfer`, `OnTransferSucceeded`) instead of `CanDrop`.
     For a compact comparison, also see [Transfer Pipeline](transfer-pipeline.md) and [Drop Policy Matrix](drop-policy-matrix.md).
 
 ---
@@ -117,7 +117,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     START["When drag starts"] --> CHECK1["Check CanStartDrag"]
-    CHECK1 -->|Allowed| PLAN["When planning transfer"]
+    CHECK1 -->|Allowed| PLAN["When validating the target"]
     CHECK1 -->|Denied| CANCEL["Drag cancelled"]
 
     PLAN --> CHECK2["Check CanDrop"]
@@ -134,7 +134,7 @@ flowchart TD
 Specific validation points:
 
 1. **Drag start** --- global + inventory + slot rules of the source.
-2. **Transfer planning** --- global + inventory + slot rules of the target.
+2. **Target validation** --- global + inventory + slot rules of the target.
 3. **Swap** --- rules are validated in both directions (A&rarr;B and B&rarr;A).
 
 If rules seem to fire "too often", start with [Logs and Debugging](../reference/logs-and-debugging.md) and [Troubleshooting](../reference/troubleshooting.md).

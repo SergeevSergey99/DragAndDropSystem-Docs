@@ -58,25 +58,24 @@ flowchart TD
 | Hook | When it runs | Use it for |
 |---|---|---|
 | `CanStartDrag` | before drag starts | block taking an item from source |
-| `CanDrop` | during preview and planning | mechanical constraints, slot compatibility |
-| `CanCommitTransfer` | before real commit | fast local pre-commit checks, money, domain veto |
-| `CanCommitTransferAsync` | optionally after sync pre-commit and before commit | server, file, database, external profile, any external async checks |
+| `CanDrop` | during preview and target validation | mechanical constraints, slot compatibility |
+| `CanStartTransfer` | once, before the first mutation | veto the whole operation (shop closed, ownership) |
+| `CanCommitTransfer` | before each concrete placement commits | fast local per-placement checks, money, domain veto |
+| `CanStartTransferAsync` | once, before the first mutation (async path only) | transfer-wide async veto: server, file, database, external profile |
 | `OnTransferSucceeded` | after successful commit | currency changes, analytics, domain side effects |
 | `AddToData` / `RemoveFromData` | after inventory events | syncing your data |
 
 The important split is:
 
 - `CanDrop` is for mechanics
-- `CanCommitTransfer` and `CanCommitTransferAsync` together handle pre-commit business validation
+- `CanStartTransfer` / `CanStartTransferAsync` veto the **whole** operation before it begins
+- `CanCommitTransfer` validates each **concrete** placement before it commits
 - `AddToData/RemoveFromData` are for sync only
 
-If a binding implements both versions, the order is:
-
-1. `CanCommitTransfer`
-2. `CanCommitTransferAsync`
-3. real commit
-
-If the sync check fails, the async check is not called.
+`CanStartTransfer` and `CanStartTransferAsync` are transfer-wide and run once, before
+the first mutation. `CanStartTransferAsync` runs only on the asynchronous execution
+path; if an async handler is present, a synchronous transfer is rejected rather than
+silently skipping the check.
 
 For more on the three types of checks (rules, business checks, notifications), see the [Transfer Pipeline](transfer-pipeline.md) page.
 
@@ -108,6 +107,15 @@ If a binding needs to participate in the business logic of the operation, implem
 public class ShopInventoryBinding
     : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
+    // Transfer-wide veto, runs once before anything is mutated.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+    {
+        return _shopIsOpen
+            ? RuleResult.Success()
+            : RuleResult.Failure("The shop is closed");
+    }
+
+    // Per-placement check, runs before each concrete placement commits.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return ValidateBusinessRules(context)
@@ -124,16 +132,19 @@ public class ShopInventoryBinding
 
 ---
 
-## Async pre-commit validation
+## Async transfer-wide veto
 
-If a transfer must wait for an external check before commit, for example:
+If the *whole* transfer must wait for an external answer before anything moves, for
+example:
 
 - a server response
 - reading a file
 - a database query
 - loading external profile or save data
 
-implement `IAsyncTransferDomainHandler` on the binding as well.
+implement `IAsyncTransferDomainHandler` on the binding as well. Its single method,
+`CanStartTransferAsync`, is a transfer-wide veto that runs once before the first
+mutation — the asynchronous counterpart of `CanStartTransfer`.
 
 ```csharp
 public class ServerBackedInventoryBinding
@@ -141,6 +152,7 @@ public class ServerBackedInventoryBinding
       ITransferDomainHandler,
       IAsyncTransferDomainHandler
 {
+    // Local per-placement check, still synchronous.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return ValidateLocalState(context)
@@ -148,8 +160,17 @@ public class ServerBackedInventoryBinding
             : RuleResult.Failure("Local validation failed");
     }
 
-    public async Task<RuleResult> CanCommitTransferAsync(
-        TransferDomainContext context,
+    public void OnTransferSucceeded(TransferDomainContext context) { }
+
+    // Synchronous transfer-wide veto. Required by ITransferDomainHandler.
+    // Return Success here and let the async version do the awaiting work.
+    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
+        => RuleResult.Success();
+
+    // Asynchronous transfer-wide veto, runs once before the first mutation.
+    public async Task<RuleResult> CanStartTransferAsync(
+        DragContext context,
+        IInventory targetInventory,
         CancellationToken cancellationToken)
     {
         bool allowed = await _serverApi.ValidateTransferAsync(context, cancellationToken);
@@ -163,14 +184,14 @@ public class ServerBackedInventoryBinding
 How it works:
 
 - `CanDrop` stays a fast synchronous preview hook
-- `CanCommitTransfer` handles local pre-commit checks
-- `CanCommitTransferAsync` does not replace the sync version, it extends it
-- if the binding implements both, `CanCommitTransfer` runs first and `CanCommitTransferAsync` runs second
-- `CanCommitTransferAsync` runs once before the real commit if the binding implements the interface
-- if async validation returns `RuleResult.Failure(...)`, the transfer is cancelled
+- `CanCommitTransfer` handles local per-placement checks
+- `CanStartTransferAsync` is transfer-wide and runs once, before the first mutation
+- it runs only on the asynchronous execution path; a synchronous transfer is
+  rejected when an async handler is present, so the check is never skipped
+- if async validation returns `RuleResult.Failure(...)`, the whole transfer is cancelled
 
 Use `IAsyncTransferDomainHandler` when the answer cannot be produced immediately.
-If the check is local and fast, regular `CanCommitTransfer` is enough.
+If the check is local and fast, `CanStartTransfer` / `CanCommitTransfer` are enough.
 
 For the exact call order, the role of `TransferDomainContext`, and the difference between
 `ITransferDomainHandler` and rules, see [Optional Interfaces](../reference/optional-interfaces.md).
@@ -215,8 +236,8 @@ For batch operations, use `BeginSync()` to suppress events and prevent feedback 
 In a typical project you don't need to dig into:
 
 - internal inventory events
-- planning layer helper structures
-- low-level execution layer classes
+- the internal transfer engine
+- low-level placement and storage classes
 
 Usually it's enough to:
 

@@ -257,7 +257,7 @@ When this is a problem, use `OnDropCompletedFrom` / `OnDropCompletedTo`. They ar
 
 Recipe `3×A → 6×B`. Slot contains 384×B. Player drags into an inventory with max stack 64.
 
-- Planner distributes across 6 slots: `64+64+64+64+64+64 = 384`
+- The transfer spreads across 6 slots: `64+64+64+64+64+64 = 384`
 - `OnItemRemovedFromUI` fires 6 times with `Count = 64`
 - `64 / 6 = 10` (integer division) — remainder lost on each call
 
@@ -286,10 +286,10 @@ public class CraftResultDataBinding : InventoryDataBindingBase
 
 ### DragAmountStep
 
-The transfer planner respects the source inventory's `DragAmountStep`: the **total** number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all allocations is divisible by the step, even if individual allocations are not.
+The transfer respects the source inventory's `DragAmountStep`: the **total** number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all placements is divisible by the step, even if individual placements are not.
 
 ```csharp
 // In the source inventory:
 _inventory.SetDragAmountStep(recipe.ResultCount, DragAmountStepRounding.Ceil);
-// Planner: total = floor(total / step) * step
+// Transfer: total = floor(total / step) * step
 ```
