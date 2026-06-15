@@ -30,13 +30,6 @@ namespace UDND
         [SerializeField, Range(1f, 50f), Tooltip("Maximum mouse movement for auto-transfer (pixels)")]
         private float _quickClickDistanceThreshold = 5f;
 
-        [Header("Auto-Transfer Animation")]
-        [SerializeReference, ManagedReferencePicker, Tooltip("Auto-transfer animation strategy. Null = instant transfer")]
-        private AutoTransferAnimationStrategy _autoTransferAnimation;
-
-        // Active animation visuals list to support multiple simultaneous animations
-        private List<GameObject> _activeAnimationVisuals = new List<GameObject>();
-
         private DragContext _currentContext;
         private IDropTarget _activeDropTarget;
         private IDropProcessor _currentProcessor;
@@ -101,16 +94,6 @@ namespace UDND
         protected override void DeInit()
         {
             base.DeInit();
-
-            // Destroy all active animation visuals
-            foreach (var visual in _activeAnimationVisuals)
-            {
-                if (visual != null)
-                {
-                    Destroy(visual);
-                }
-            }
-            _activeAnimationVisuals.Clear();
         }
 
         /// <summary>
@@ -812,95 +795,35 @@ namespace UDND
             int transferredAmount = dropResult.Amount;
             var finalTargetSlot = dropResult.TargetBaseSlot;
 
-            List<PlacementTransferOutcome> allOutcomes = null;
-            if (_autoTransferAnimation != null && executionReport != null)
-            {
-                allOutcomes = new List<PlacementTransferOutcome>();
-                foreach (var entry in executionReport.EntryResults)
-                    foreach (var outcome in entry.Outcomes)
-                        allOutcomes.Add(outcome);
-            }
-            bool canAnimate = allOutcomes != null && allOutcomes.Count > 0;
-
             string itemName = transferredItem?.DisplayName ?? "Unknown";
             string targetName = targetInventory?.GetType().Name ?? "Unknown";
             Extensions.DragAndDropLog($"<color=green>AutoTransfer success: {transferredAmount}x {itemName} → {targetName} (slot {finalTargetSlot?.Index.ToString() ?? "-"})</color>");
 
-            if (canAnimate)
-            {
-                int pendingAnimations = 0;
-                System.Action animationCompleted = () =>
-                {
-                    pendingAnimations--;
-                    if (pendingAnimations > 0)
-                        return;
-
-                    OnDropCompleted?.Invoke(context);
-                    OnAutoTransferCompleted?.Invoke(context);
-                };
-
-                for (int i = 0; i < allOutcomes.Count; i++)
-                {
-                    var outcome = allOutcomes[i];
-                    if (outcome.SourceBaseSlot == null || outcome.TargetBaseSlot == null || outcome.TargetItem == null || outcome.Amount <= 0)
-                        continue;
-
-                    if (!ItemStack.TryCreate(outcome.TargetBaseSlot.Stack.Adapters.Take(outcome.Amount), out var visualStack))
-                        continue;
-
-                    outcome.TargetBaseSlot.SetDraggedTo(true);
-
-                    var presenter = DragVisualPresenter.AutoCreateInstance;
-                    var visualPrefab = presenter.ResolveVisualPrefab(outcome.SourceBaseSlot.Inventory);
-
-                    pendingAnimations++;
-
-                    GameObject animationVisual = _autoTransferAnimation.AnimateTransfer(
-                        visualStack,
-                        outcome.SourceBaseSlot,
-                        outcome.TargetBaseSlot,
-                        visualPrefab,
-                        presenter.VisualContainer,
-                        presenter.PresentationCanvas,
-                        () =>
-                        {
-                            outcome.TargetBaseSlot.SetDraggedTo(false);
-                            animationCompleted();
-                        });
-
-                    if (animationVisual != null)
-                    {
-                        _activeAnimationVisuals.Add(animationVisual);
-                        StartCoroutine(RemoveAnimationVisualWhenDestroyed(animationVisual));
-                    }
-                }
-
-                if (pendingAnimations == 0)
-                {
-                    OnDropCompleted?.Invoke(context);
-                    OnAutoTransferCompleted?.Invoke(context);
-                }
-            }
-            else
+            // Flight animation and its transient visuals are owned by the presenter (the visual layer).
+            // We keep ownership of the lifecycle events and fire them once the flights complete.
+            void FireCompleted()
             {
                 OnDropCompleted?.Invoke(context);
                 OnAutoTransferCompleted?.Invoke(context);
             }
+
+            if (DragVisualPresenter.IsInstanceExist)
+                DragVisualPresenter.AutoCreateInstance.PlayAutoTransfer(CollectOutcomes(executionReport), FireCompleted);
+            else
+                FireCompleted();
         }
 
-        /// <summary>
-        /// Coroutine that automatically removes a visual from the list after it is destroyed
-        /// </summary>
-        private System.Collections.IEnumerator RemoveAnimationVisualWhenDestroyed(GameObject visual)
+        private static IReadOnlyList<PlacementTransferOutcome> CollectOutcomes(TransferExecutionReport report)
         {
-            // Wait while the visual still exists
-            while (visual != null)
-            {
-                yield return null;
-            }
+            if (report == null)
+                return System.Array.Empty<PlacementTransferOutcome>();
 
-            // The visual was destroyed, remove it from the list
-            _activeAnimationVisuals.Remove(visual);
+            var outcomes = new List<PlacementTransferOutcome>();
+            foreach (var entry in report.EntryResults)
+                foreach (var outcome in entry.Outcomes)
+                    outcomes.Add(outcome);
+
+            return outcomes;
         }
 
         public bool RaiseSwapAttempting(InventorySwapContext context)

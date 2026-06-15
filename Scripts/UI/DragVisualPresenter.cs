@@ -1,10 +1,14 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using CodeUtils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UDND.Core;
 using UDND.Interaction;
 using UDND.Inventories;
+using UDND.Tools.Inspector;
 
 namespace UDND.UI
 {
@@ -19,10 +23,16 @@ namespace UDND.UI
         [SerializeField, Min(0.1f)] private float _batchVisualMinScale = 0.65f;
         [SerializeField, Min(0f)] private float _batchVisualScaleStep = 0.08f;
 
+        [Header("Auto-Transfer Animation")]
+        [SerializeReference, ManagedReferencePicker, Tooltip("Auto-transfer flight animation. Null = instant (no flight visual).")]
+        private AutoTransferAnimationStrategy _autoTransferAnimation;
+
         private readonly Dictionary<MonoBehaviour, List<VisualInstance>> _visualPool = new Dictionary<MonoBehaviour, List<VisualInstance>>();
         private readonly Dictionary<IInventory, InventoryDragVisualBinder> _bindersByInventory = new Dictionary<IInventory, InventoryDragVisualBinder>();
 
         private readonly List<ActiveVisual> _activeVisuals = new List<ActiveVisual>();
+        // Transient flight visuals for auto-transfer, tracked so teardown can destroy any in flight.
+        private readonly List<GameObject> _activeAnimationVisuals = new List<GameObject>();
         private bool _subscribed;
 
         public Canvas PresentationCanvas => _canvas;
@@ -41,6 +51,14 @@ namespace UDND.UI
         protected override void DeInit()
         {
             UnsubscribeFromManager();
+
+            for (int i = 0; i < _activeAnimationVisuals.Count; i++)
+            {
+                if (_activeAnimationVisuals[i] != null)
+                    Destroy(_activeAnimationVisuals[i]);
+            }
+            _activeAnimationVisuals.Clear();
+
             base.DeInit();
         }
 
@@ -314,6 +332,74 @@ namespace UDND.UI
 #else
             return Input.mousePosition;
 #endif
+        }
+
+        /// <summary>
+        /// Plays the configured auto-transfer flight animation for each committed outcome and invokes
+        /// <paramref name="onComplete"/> exactly once after every flight finishes (immediately if no
+        /// animation is configured or nothing is animatable). Owns the transient visuals' lifecycle.
+        /// </summary>
+        public void PlayAutoTransfer(IReadOnlyList<PlacementTransferOutcome> outcomes, Action onComplete)
+        {
+            if (_autoTransferAnimation == null || outcomes == null || outcomes.Count == 0)
+            {
+                onComplete?.Invoke();
+                return;
+            }
+
+            // Start at one as a loop guard so a synchronously-completing animation can't fire
+            // onComplete before all outcomes have been scheduled; released after the loop.
+            int pending = 1;
+
+            void AnimationCompleted()
+            {
+                if (--pending == 0)
+                    onComplete?.Invoke();
+            }
+
+            for (int i = 0; i < outcomes.Count; i++)
+            {
+                var outcome = outcomes[i];
+                if (outcome.SourceBaseSlot == null || outcome.TargetBaseSlot == null ||
+                    outcome.TargetItem == null || outcome.Amount <= 0 ||
+                    outcome.TargetBaseSlot.Stack == null ||
+                    !ItemStack.TryCreate(outcome.TargetBaseSlot.Stack.Adapters.Take(outcome.Amount), out var visualStack))
+                    continue;
+
+                var targetSlot = outcome.TargetBaseSlot;
+                targetSlot.SetDraggedTo(true);
+                var visualPrefab = ResolveVisualPrefab(outcome.SourceBaseSlot.Inventory);
+
+                pending++;
+                var visual = _autoTransferAnimation.AnimateTransfer(
+                    visualStack,
+                    outcome.SourceBaseSlot,
+                    targetSlot,
+                    visualPrefab,
+                    VisualContainer,
+                    PresentationCanvas,
+                    () =>
+                    {
+                        targetSlot.SetDraggedTo(false);
+                        AnimationCompleted();
+                    });
+
+                if (visual != null)
+                {
+                    _activeAnimationVisuals.Add(visual);
+                    StartCoroutine(RemoveAnimationVisualWhenDestroyed(visual));
+                }
+            }
+
+            AnimationCompleted();
+        }
+
+        private IEnumerator RemoveAnimationVisualWhenDestroyed(GameObject visual)
+        {
+            while (visual != null)
+                yield return null;
+
+            _activeAnimationVisuals.Remove(visual);
         }
 
         private sealed class VisualInstance
