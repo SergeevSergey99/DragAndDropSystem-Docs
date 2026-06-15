@@ -20,6 +20,7 @@ namespace UDND.UI
         private readonly List<PlacementOverlayItem> _activeItems = new List<PlacementOverlayItem>();
         private readonly Stack<PlacementOverlayItem> _itemPool = new Stack<PlacementOverlayItem>();
         private readonly HashSet<Placement> _renderedPlacements = new HashSet<Placement>();
+        private readonly List<BaseSlot> _coveredSlotsBuffer = new List<BaseSlot>();
         private readonly Vector3[] _corners = new Vector3[4];
         private bool _refreshScheduled;
         private bool _dimensionsDirty;
@@ -93,7 +94,7 @@ namespace UDND.UI
         private void OnRectTransformDimensionsChange() => ScheduleRefresh(dimensionsChanged: true);
 
         [Button]
-        void Refresh() => Refresh(dimensionsChanged: true);
+        void Refresh() => Refresh(true);
 
         private void Refresh(bool dimensionsChanged)
         {
@@ -146,41 +147,49 @@ namespace UDND.UI
             if (!TryGetPlacementRect(placement, root, out var rect))
                 return false;
 
-            var item = CreateItem(root, placement);
-            ApplyItemRect(
-                item.RectTransform,
-                rect.center,
-                GetPreRotatedSize(rect.size, placement.Orientation),
-                GetPlacementTopology().GetVisualAngleDegrees(placement.Orientation));
+            var item = GetItem(root, placement);
+            
+            item.RectTransform.anchoredPosition = rect.center;
+            item.RectTransform.sizeDelta = GetUnrotatedSize(rect.size, placement);
+            
             item.transform.SetAsLastSibling();
-            item.ShowStackCount = true;
             item.Render(placement, renderState, _color);
             _activeItems.Add(item);
             return true;
         }
 
-        private static void ApplyItemRect(
-            RectTransform itemRect,
-            Vector2 anchoredPosition,
-            Vector2 size,
-            float zRotation)
+        public IReadOnlyList<BaseSlot> CollectCoveredSlots(Placement placement)
         {
-            itemRect.anchorMin = new Vector2(0.5f, 0.5f);
-            itemRect.anchorMax = new Vector2(0.5f, 0.5f);
-            itemRect.pivot = new Vector2(0.5f, 0.5f);
-            itemRect.anchoredPosition = anchoredPosition;
-            itemRect.sizeDelta = size;
-            itemRect.localEulerAngles = new Vector3(0f, 0f, zRotation);
+            // Reused synchronously by item.Render below; no per-placement allocation needed.
+            _coveredSlotsBuffer.Clear();
+            for (int i = 0; i < placement.CoveredIndices.Count; i++)
+                _coveredSlotsBuffer.Add(_inventory.GetSlot(placement.CoveredIndices[i]));
+
+            return _coveredSlotsBuffer;
+        }
+        public float GetRotation(Placement placement)
+        {
+            var topology = GetPlacementTopology();
+            return topology.GetVisualAngleDegrees(placement.Orientation);
         }
 
-        private Vector2 GetPreRotatedSize(
-            Vector2 targetSize,
-            int orientation)
+        /// <summary>
+        /// Size the item must have <i>before</i> the visual rotation so that, once rotated, it spans
+        /// the covered-cell bounding box <paramref name="rotatedBoundsSize"/>. Derived from the shape's
+        /// orientation-0 footprint vs its rotated footprint (in cells), which generalizes the old
+        /// hardcoded 90-degree width/height swap to any orientation the topology defines.
+        /// </summary>
+        private Vector2 GetUnrotatedSize(Vector2 rotatedBoundsSize, Placement placement)
         {
-            float angle = GetPlacementTopology().GetVisualAngleDegrees(orientation);
-            return Mathf.Abs(Mathf.Abs(Mathf.DeltaAngle(0f, angle)) - 90f) < 0.01f
-                ? new Vector2(targetSize.y, targetSize.x)
-                : targetSize;
+            var topology = GetPlacementTopology();
+            var rotatedCells = PlacementShapeUtility.GetBoundingSize(placement.Shape, placement.Orientation, topology);
+            var unrotatedCells = PlacementShapeUtility.GetBoundingSize(placement.Shape, 0, topology);
+            if (rotatedCells.x <= 0 || rotatedCells.y <= 0)
+                return rotatedBoundsSize;
+
+            return new Vector2(
+                rotatedBoundsSize.x * unrotatedCells.x / rotatedCells.x,
+                rotatedBoundsSize.y * unrotatedCells.y / rotatedCells.y);
         }
 
         private IInventoryTopology GetPlacementTopology()
@@ -188,29 +197,12 @@ namespace UDND.UI
 
         private RectTransform ResolveOverlayRoot()
         {
-            if (_overlayRoot != null)
-            {
-                _overlayRoot.SetAsLastSibling();
-                return _overlayRoot;
-            }
-
-            if (_inventory == null || _inventory.transform is not RectTransform inventoryRect)
-                return null;
-
-            var overlayObject = new GameObject("Placement Overlay", typeof(RectTransform));
-            overlayObject.transform.SetParent(inventoryRect, false);
-
-            _overlayRoot = overlayObject.GetComponent<RectTransform>();
-            _overlayRoot.anchorMin = Vector2.zero;
-            _overlayRoot.anchorMax = Vector2.one;
-            _overlayRoot.offsetMin = Vector2.zero;
-            _overlayRoot.offsetMax = Vector2.zero;
-            _overlayRoot.pivot = new Vector2(0.5f, 0.5f);
-            _overlayRoot.SetAsLastSibling();
+            if (_overlayRoot == null)
+                _overlayRoot = transform as RectTransform;
             return _overlayRoot;
         }
 
-        private PlacementOverlayItem CreateItem(RectTransform root, Placement placement)
+        private PlacementOverlayItem GetItem(RectTransform root, Placement placement)
         {
             PlacementOverlayItem item = null;
             while (_itemPool.Count > 0)
@@ -229,6 +221,7 @@ namespace UDND.UI
             if (_itemPrefab != null)
             {
                 item = Instantiate(_itemPrefab, root);
+                item.Init(this);
             }
             else
             {
@@ -240,6 +233,7 @@ namespace UDND.UI
                     typeof(PlacementOverlayItem));
                 itemObject.transform.SetParent(root, false);
                 item = itemObject.GetComponent<PlacementOverlayItem>();
+                item.Init(this);
             }
 
             return item;

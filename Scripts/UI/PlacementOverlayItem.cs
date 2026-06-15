@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UDND.Core;
+using UDND.Slots;
 
 namespace UDND.UI
 {
@@ -20,25 +22,34 @@ namespace UDND.UI
     {
         [SerializeField] private Image _image;
         [Header("Stack count (optional)")]
-        [SerializeField] private GameObject _countContainer;
+        [SerializeField] private RectTransform _countContainer;
         [SerializeField] private Text _countText;
 
         public RectTransform RectTransform => transform as RectTransform;
         public Placement CurrentPlacement { get; private set; }
         public PlacementOverlayRenderState CurrentState { get; private set; }
+       
+        private IReadOnlyList<BaseSlot> _coveredSlots => _parentOverlay.CollectCoveredSlots(CurrentPlacement);
+        private float _rotation => _parentOverlay.GetRotation(CurrentPlacement);
 
-        /// <summary>
-        /// Whether this item displays the placement stack count. The overlay sets it so the count is
-        /// shown once per placement (on the anchor / spanning item), not on every covered cell.
-        /// See ShapedStacking-Plan.md (C6).
-        /// </summary>
-        public bool ShowStackCount { get; set; } = true;
-
-        public void Render(Placement placement, PlacementOverlayRenderState state, Color fallbackColor)
+        PlacementOverlay _parentOverlay;
+        
+        Vector2 startCounterAnchor;
+        public void Init(PlacementOverlay overlay)
+        {
+            _parentOverlay = overlay;
+            startCounterAnchor = _countContainer.anchoredPosition;
+        }
+        
+        public void Render(
+            Placement placement,
+            PlacementOverlayRenderState state,
+            Color fallbackColor)
         {
             CurrentPlacement = placement;
             CurrentState = state;
             _image.sprite = placement?.Stack?.Icon;
+            _image.transform.localEulerAngles = new Vector3(0, 0, _rotation);
 
             switch (state)
             {
@@ -54,9 +65,9 @@ namespace UDND.UI
             }
         }
 
-        protected virtual void RenderFilled(Placement placement, Color fallbackColor)
+        void RenderFilled(Placement placement, Color fallbackColor)
         {
-            RenderCount(placement);
+            RenderCount(placement, placement?.Stack.Count ?? 0);
 
             if (_image == null)
                 return;
@@ -66,35 +77,39 @@ namespace UDND.UI
             gameObject.SetActive(true);
         }
 
-        protected virtual void RenderFilledAndDraggedFrom(Placement placement, Color fallbackColor)
+        void RenderFilledAndDraggedFrom(Placement placement, Color fallbackColor)
         {
             bool shouldShow = placement?.Stack.Count > 1;
-            
+
             gameObject.SetActive(shouldShow);
-            _countContainer.SetActive(ShowStackCount && shouldShow);
-            
-            
-            if (shouldShow && _countText != null)
-                _countText.text = (placement?.Stack.Count-1).ToString();
+            _countContainer.gameObject.SetActive(shouldShow);
+
+            RenderCount(placement, placement?.Stack.Count - 1 ?? 0);
         }
+        
+        void RenderFilledAndDraggedTo(Placement placement, Color fallbackColor) => RenderFilled(placement, fallbackColor);
 
         /// <summary>Shows the placement stack count (when &gt; 1) on the count-bearing item only.</summary>
-        protected void RenderCount(Placement placement)
+        void RenderCount(Placement placement, int count)
         {
             if (_countContainer == null)
                 return;
+            bool shouldShow = count > 1;
+            
+            
+            _countContainer.gameObject.SetActive(shouldShow);
 
-            int count = placement?.Stack?.Count ?? 0;
-            bool shouldShow = ShowStackCount && count > 1;
-            _countContainer.SetActive(shouldShow);
-
-            if (shouldShow && _countText != null)
+            if (!shouldShow)
+                return;
+            
+            if (_countText != null)
                 _countText.text = count.ToString();
-        }
 
-        protected virtual void RenderFilledAndDraggedTo(Placement placement, Color fallbackColor)
-        {
-            RenderFilled(placement, fallbackColor);
+            var lastSlot = _coveredSlots[^1];
+            var contParent = _countContainer.parent;
+            _countContainer.SetParent(lastSlot.transform, worldPositionStays: false);
+            _countContainer.anchoredPosition = startCounterAnchor;
+            _countContainer.SetParent(contParent, worldPositionStays: true);
         }
     }
 }
