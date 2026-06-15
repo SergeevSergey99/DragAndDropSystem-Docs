@@ -20,21 +20,27 @@ namespace UDND.Rules
             // For batch operations TargetSlot is a UI hint, not the actual entry target; slot validation is handled by the execution pipeline
             if (!context.IsBatchDrag &&
                 entry.SourceBaseSlot == context.TargetBaseSlot &&
-                !IsChangedShapedPlacement(context, entry))
+                !IsChangedPlacement(context, entry))
                 return RuleResult.Failure("Cannot drop to the same slot");
 
             return RuleResult.Success();
         }
 
-        private static bool IsChangedShapedPlacement(DragContext context, DragEntry entry)
+        private static bool IsChangedPlacement(DragContext context, DragEntry entry)
         {
-            if (!entry.IsShaped ||
-                entry.SourcePlacement == null ||
+            if (entry.SourcePlacement == null ||
                 context.TargetBaseSlot == null ||
                 context.TargetInventory is not IShapedDragTargetResolver dragTargetResolver ||
                 !ReferenceEquals(context.TargetInventory, entry.SourceInventory) ||
                 !ReferenceEquals(context.TargetBaseSlot.Inventory, context.TargetInventory))
                 return false;
+
+            // An orientation change is a real change even for single-cell items, whose footprint is
+            // identical across orientations: without this a 1x1 item rotated in place is rejected as
+            // a same-slot drop and silently reverts to its original orientation. (Same inventory is
+            // guaranteed above, so both orientations share the placement's topology.)
+            if (entry.Orientation != entry.SourcePlacement.Orientation)
+                return true;
 
             if (!dragTargetResolver.TryResolveShapedPlacementAnchor(
                     context.TargetBaseSlot,
@@ -46,8 +52,7 @@ namespace UDND.Rules
                     out int anchorIndex))
                 return false;
 
-            return anchorIndex != entry.SourcePlacement.AnchorIndex ||
-                   entry.Orientation != entry.SourcePlacement.Orientation;
+            return anchorIndex != entry.SourcePlacement.AnchorIndex;
         }
     }
 
