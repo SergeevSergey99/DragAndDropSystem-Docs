@@ -174,7 +174,15 @@ namespace UDND.Core
                 normalizedFrom,
                 normalizedTo,
                 OrientationCount);
-            var rotated = offset;
+
+            // Offsets are anchored at the shape's first occupied cell, which can differ per
+            // orientation and need not be the bounding-box corner. The 90-degree turn formula below
+            // assumes bbox-corner coordinates, so convert into that space, rotate, then convert back
+            // to the target orientation's anchor. For rectangles both deltas are zero (no-op).
+            var anchorFrom = PlacementShapeUtility.GetAnchorOffsetInBounds(shape, normalizedFrom);
+            var anchorTo = PlacementShapeUtility.GetAnchorOffsetInBounds(shape, normalizedTo);
+
+            var rotated = offset + anchorFrom;
             var size = PlacementShapeUtility.GetBoundingSize(shape, normalizedFrom);
 
             for (int i = 0; i < turns; i++)
@@ -183,7 +191,7 @@ namespace UDND.Core
                 size = new Vector2Int(size.y, size.x);
             }
 
-            return rotated;
+            return rotated - anchorTo;
         }
 
         public IReadOnlyList<Vector2Int> GetPlacementOffsets(

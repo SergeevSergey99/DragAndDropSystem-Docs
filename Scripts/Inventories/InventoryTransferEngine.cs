@@ -649,8 +649,12 @@ namespace UDND.Inventories
             switch (candidate.Kind)
             {
                 case PlacementCandidateKind.Merge:
+                    // Resolve the merge target through a cell the placement actually covers, not its
+                    // anchor index: a complex shape's anchor (bbox origin) may be an empty notch or a
+                    // cell owned by an interlocking neighbor, so GetAt(anchorIndex) would miss the
+                    // placement and the merge would write to the wrong stack (or spawn a stray one).
                     anchorSlot = candidate.TargetPlacement != null
-                        ? placementInventory?.GetSlot(candidate.TargetPlacement.AnchorIndex)
+                        ? placementInventory?.GetSlot(ResolvePlacementPrimaryIndex(candidate.TargetPlacement))
                         : candidate.Anchor;
                     break;
                 case PlacementCandidateKind.Create:
@@ -710,7 +714,7 @@ namespace UDND.Inventories
 
             var transferredStack = subStack.CreateCopy();
 
-            if (!TryMutateTarget(candidate, targetInventory, placementInventory, geometry, anchorSlot, subStack))
+            if (!TryMutateTarget(candidate, targetInventory, placementInventory, geometry, anchorSlot, subStack, out var resultPlacement))
             {
                 RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
@@ -730,6 +734,14 @@ namespace UDND.Inventories
 
             domainContext.MarkCommitted(anchorSlot, transferredStack.PrimaryAdapter, amount);
 
+            // Snapshot the placement we actually created/merged, not a cell lookup at the anchor:
+            // a complex shape's anchor cell (bounding-box origin) may be empty or covered by a
+            // neighboring interlocking placement, so GetPlacementAt(anchor) would resolve the wrong
+            // placement (and thus the wrong anchor index / orientation) for the persisted event.
+            var targetPlacementSnapshot = resultPlacement != null
+                ? PlacementSnapshot.FromPlacement(resultPlacement, placementInventory.GetSlot)
+                : ResolvePlacementSnapshot(targetInventory, anchorSlot);
+
             var outcome = new PlacementTransferOutcome(
                 candidate.Kind == PlacementCandidateKind.Merge
                     ? PlacementTransferOutcomeKind.Merge
@@ -741,7 +753,7 @@ namespace UDND.Inventories
                 sourceRemovedStack,
                 transferredStack,
                 transaction.SourcePlacementSnapshot,
-                ResolvePlacementSnapshot(targetInventory, anchorSlot),
+                targetPlacementSnapshot,
                 targetWasEmpty);
 
             transaction.Committed.Add(new CommittedOutcome { Outcome = outcome, DomainContext = domainContext });
@@ -755,10 +767,21 @@ namespace UDND.Inventories
             IPlacementInventory placementInventory,
             InventoryPlacementGeometry geometry,
             BaseSlot anchorSlot,
-            ItemStack subStack)
+            ItemStack subStack,
+            out Placement resultPlacement)
         {
+            resultPlacement = null;
             if (candidate.Kind == PlacementCandidateKind.Merge)
-                return targetInventory.TryAddToSlotStack(anchorSlot, subStack);
+            {
+                if (!targetInventory.TryAddToSlotStack(anchorSlot, subStack))
+                    return false;
+
+                // The merge target's own placement is the source of truth for the snapshot;
+                // resolving it by the anchor cell is unreliable for complex (interlocking) shapes.
+                resultPlacement = candidate.TargetPlacement
+                    ?? placementInventory?.GetPlacementAt(anchorSlot);
+                return true;
+            }
 
             // Create / NewDynamicSlot: defend against custom strategies by re-validating the
             // footprint against the real topology right before mutation.
@@ -767,7 +790,7 @@ namespace UDND.Inventories
             {
                 var placementRequest = new PlacementRequest(subStack, anchorSlot.Index, candidate.Orientation, shape);
                 return placementInventory.CanPlace(placementRequest) &&
-                       placementInventory.TryPlace(placementRequest, out _);
+                       placementInventory.TryPlace(placementRequest, out resultPlacement);
             }
 
             return anchorSlot.IsEmpty && targetInventory.TrySetStackForSlot(anchorSlot, subStack);
@@ -1005,6 +1028,18 @@ namespace UDND.Inventories
             var targetHandler = context.TargetInventory?.DataBinding as ITransferDomainHandler;
             if (targetHandler != null && targetHandler != sourceHandler)
                 yield return targetHandler;
+        }
+
+        /// <summary>
+        /// The first cell a placement actually occupies. Reliable as a placement identity/lookup key
+        /// even for complex shapes, whose anchor index (bounding-box origin) need not be covered.
+        /// </summary>
+        private static int ResolvePlacementPrimaryIndex(Placement placement)
+        {
+            if (placement?.CoveredIndices != null && placement.CoveredIndices.Count > 0)
+                return placement.CoveredIndices[0];
+
+            return placement?.AnchorIndex ?? -1;
         }
 
         private static TransferKind DetermineTransferKind(PlacementCandidate candidate, BaseSlot sourceSlot, int amount)

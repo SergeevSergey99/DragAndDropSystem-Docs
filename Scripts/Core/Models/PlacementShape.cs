@@ -120,9 +120,22 @@ namespace UDND.Core
                 // Order cells row-major so covered indices stay ascending and deterministic,
                 // matching RectPlacementShape and the rest of the placement code.
                 Array.Sort(current, CompareCells);
-                _offsetsByOrientation[step] = Array.AsReadOnly(current);
+                // Anchor the footprint at its first occupied cell (row-major), not the bounding-box
+                // corner: the corner can be an empty notch, so anchoring there would let the anchor
+                // index name a cell the item doesn't occupy. The rotation chain below keeps operating
+                // on the bbox-normalized `current`; only the stored copy is rebased to first-occupied.
+                _offsetsByOrientation[step] = RebaseToFirstOccupied(current);
                 current = RotateClockwise(current);
             }
+        }
+
+        private static IReadOnlyList<Vector2Int> RebaseToFirstOccupied(Vector2Int[] sortedOffsets)
+        {
+            var origin = sortedOffsets[0];
+            var result = new Vector2Int[sortedOffsets.Length];
+            for (int i = 0; i < sortedOffsets.Length; i++)
+                result[i] = sortedOffsets[i] - origin;
+            return Array.AsReadOnly(result);
         }
 
         private static int CompareCells(Vector2Int a, Vector2Int b)
@@ -219,6 +232,27 @@ namespace UDND.Core
                 return GetBoundingSize(shape, orientation);
 
             return GetBoundingSize(topology.GetPlacementOffsets(shape, orientation));
+        }
+
+        /// <summary>
+        /// Position of the shape's anchor (its first occupied cell, at offset (0,0)) relative to the
+        /// bounding-box corner. Equals -min(offsets). Zero for rectangles. Used to convert between
+        /// anchor-relative and bbox-corner-relative coordinates when rotating offsets.
+        /// </summary>
+        public static Vector2Int GetAnchorOffsetInBounds(IPlacementShape shape, int orientation)
+        {
+            if (!TryGetOffsets(shape, orientation, out var offsets))
+                return Vector2Int.zero;
+
+            int minX = offsets[0].x;
+            int minY = offsets[0].y;
+            for (int i = 1; i < offsets.Count; i++)
+            {
+                minX = Math.Min(minX, offsets[i].x);
+                minY = Math.Min(minY, offsets[i].y);
+            }
+
+            return new Vector2Int(-minX, -minY);
         }
 
         public static Vector2Int GetBoundingSize(IReadOnlyList<Vector2Int> offsets)

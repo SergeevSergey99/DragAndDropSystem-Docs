@@ -777,6 +777,9 @@ namespace UDND.Tests.Inventories
             Assert.IsTrue(shape.SupportsOrientation(0));
             Assert.IsTrue(shape.SupportsOrientation(7));
 
+            // Offsets are anchored at each orientation's first occupied (row-major) cell, so the
+            // anchor offset is always (0,0). Orientation 2's first occupied cell is not the bbox
+            // corner, so its other offsets are rebased relative to it (negative x is expected).
             CollectionAssert.AreEquivalent(
                 new[] { new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(0, 1) },
                 shape.GetOffsets(0));
@@ -784,7 +787,7 @@ namespace UDND.Tests.Inventories
                 new[] { new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(1, 1) },
                 shape.GetOffsets(1));
             CollectionAssert.AreEquivalent(
-                new[] { new Vector2Int(1, 0), new Vector2Int(0, 1), new Vector2Int(1, 1) },
+                new[] { new Vector2Int(0, 0), new Vector2Int(-1, 1), new Vector2Int(0, 1) },
                 shape.GetOffsets(2));
             CollectionAssert.AreEquivalent(
                 new[] { new Vector2Int(0, 0), new Vector2Int(0, 1), new Vector2Int(1, 1) },
