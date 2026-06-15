@@ -9680,11 +9680,17 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 18f3714ce812bd640b59302cda84ad0a, type: 2}
     anchorIndex: 0
     orientation: 0
+  - item: {fileID: 11400000, guid: 4e9ad99a1bb66bc418d3f45d6df6cf1e, type: 2}
+    anchorIndex: 1
+    orientation: 0
   - item: {fileID: 11400000, guid: 832817f58622c614ebeda8440aac782f, type: 2}
     anchorIndex: 2
     orientation: 0
   - item: {fileID: 11400000, guid: 832817f58622c614ebeda8440aac782f, type: 2}
     anchorIndex: 3
+    orientation: 0
+  - item: {fileID: 11400000, guid: db6d6954584728843bcc74d6422b9390, type: 2}
+    anchorIndex: 4
     orientation: 0
 --- !u!114 &1317235741
 MonoBehaviour:
