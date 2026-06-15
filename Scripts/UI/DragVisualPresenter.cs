@@ -95,7 +95,10 @@ namespace UDND.UI
 
         private void UnsubscribeFromManager()
         {
-            if (!_subscribed || !DragAndDropManager.IsInstanceExist)
+            // OnDrag* are static events, so unsubscribe even when the manager singleton is already
+            // gone — otherwise a destroyed presenter stays subscribed and a later StartDrag invokes
+            // its handler on a destroyed object (MissingReferenceException).
+            if (!_subscribed)
                 return;
 
             DragAndDropManager.OnDragStarted -= HandleDragStarted;

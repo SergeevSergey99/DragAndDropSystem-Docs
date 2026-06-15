@@ -26,7 +26,7 @@ namespace UDND.Tests.Core
             Assert.IsInstanceOf<MergeFirstPlacementCandidateOrderer>(
                 resolved.AlternativeOrderer);
             Assert.AreEqual(PartialTransferMode.Allow, resolved.PartialTransferMode);
-            Assert.IsTrue(resolved.AllowSameInventoryAlternativePlacement);
+            Assert.IsFalse(resolved.AllowSameInventoryAlternativePlacement);
         }
 
         [Test]
