@@ -24,7 +24,7 @@ flowchart LR
 
 Ключевая идея: координаты **не прокидываются** через transfer pipeline (policy / strategy / движок переноса). Позиционирование --- чисто UI-задача, решаемая через два хука:
 
-1. `DragAndDropManager.OnDropAttempting` --- запоминаем позицию мыши.
+1. `UDNDEvents.OnDropAttempting` --- запоминаем позицию мыши.
 2. `UniversalInventory.OnSlotCreated` --- ставим новый слот в запомненную позицию.
 
 ---
@@ -122,9 +122,9 @@ layout.SetSlotPosition(slot, local);
 | Хук | Когда срабатывает | Для чего использовать |
 |-----|-------------------|----------------------|
 | `UniversalInventory.OnSlotCreated` | После создания слота (`Instantiate` + `Initialize`) | Позиционирование, инициализация визуалов |
-| `DragAndDropManager.OnDropAttempting` | Перед обработкой дропа | Захват координат мыши, подготовка состояния |
-| `DragAndDropManager.OnDropCompleted` | После успешного переноса | Пост-обработка, анимации, обновление расположения |
-| `DragAndDropManager.OnDragCancelled` | Дроп отменён | Сброс pending-состояния |
+| `UDNDEvents.OnDropAttempting` | Перед обработкой дропа | Захват координат мыши, подготовка состояния |
+| `UDNDEvents.OnDropCompleted` | После успешного переноса | Пост-обработка, анимации, обновление расположения |
+| `UDNDEvents.OnDragCancelled` | Дроп отменён | Сброс pending-состояния |
 | `UniversalInventory.OnItemAdded` | Предмет добавлен в слот | Реакция на изменение содержимого |
 
 ### Паттерн реализации

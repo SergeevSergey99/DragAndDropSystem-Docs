@@ -1,6 +1,6 @@
 # Event Reference
 
-Todos los eventos proporcionados por `DragAndDropManager` y `UniversalInventory`.
+Los eventos globales de drag / drop / auto-transferencia / swap viven en `UDNDEvents`; los eventos de cambio de contenido de cada inventario viven en `UniversalInventory`.
 
 ---
 
@@ -45,7 +45,9 @@ flowchart TD
 
 ---
 
-## Eventos de DragAndDropManager
+## Eventos globales (`UDNDEvents`)
+
+Son eventos `static`. Suscríbete con `UDNDEvents.OnX += handler` (y desuscríbete en tu teardown); los lanza `DragAndDropManager`. Los suscriptores de una sesión anterior se limpian automáticamente al inicio de cada sesión de Play (seguro para Fast Enter Play Mode).
 
 ### Dragging
 

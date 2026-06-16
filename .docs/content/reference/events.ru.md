@@ -1,6 +1,6 @@
 # Справочник событий
 
-Все события, предоставляемые `DragAndDropManager` и `UniversalInventory`.
+Глобальные события drag / drop / авто-переноса / обмена живут в `UDNDEvents`; события изменения содержимого конкретного инвентаря — в `UniversalInventory`.
 
 ---
 
@@ -46,7 +46,9 @@ flowchart TD
 
 ---
 
-## События DragAndDropManager
+## Глобальные события (`UDNDEvents`)
+
+Это `static`-события. Подписка — `UDNDEvents.OnX += handler` (и отписка в teardown); поднимает их `DragAndDropManager`. Подписчики из прошлой сессии автоматически очищаются на старте каждой Play-сессии (безопасно для Fast Enter Play Mode).
 
 ### Перетаскивание
 

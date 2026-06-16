@@ -24,7 +24,7 @@ flowchart LR
 
 Key idea: coordinates are **not passed** through the transfer pipeline (policy / strategy / transfer engine). Positioning is a pure UI concern, solved through two hooks:
 
-1. `DragAndDropManager.OnDropAttempting` --- capture mouse position.
+1. `UDNDEvents.OnDropAttempting` --- capture mouse position.
 2. `UniversalInventory.OnSlotCreated` --- position the new slot at the captured coordinates.
 
 ---
@@ -122,9 +122,9 @@ The example now includes built-in overlap resolution. If the drop point is alrea
 | Hook | When It Fires | What To Use It For |
 |------|---------------|-------------------|
 | `UniversalInventory.OnSlotCreated` | After slot creation (`Instantiate` + `Initialize`) | Positioning, visual initialization |
-| `DragAndDropManager.OnDropAttempting` | Before drop processing | Capture mouse coordinates, prepare state |
-| `DragAndDropManager.OnDropCompleted` | After successful transfer | Post-processing, animations, layout updates |
-| `DragAndDropManager.OnDragCancelled` | Drop cancelled | Reset pending state |
+| `UDNDEvents.OnDropAttempting` | Before drop processing | Capture mouse coordinates, prepare state |
+| `UDNDEvents.OnDropCompleted` | After successful transfer | Post-processing, animations, layout updates |
+| `UDNDEvents.OnDragCancelled` | Drop cancelled | Reset pending state |
 | `UniversalInventory.OnItemAdded` | Item added to a slot | React to content changes |
 
 ### Implementation Pattern

@@ -24,7 +24,7 @@ flowchart LR
 
 Idea clave: las coordenadas **no pasan** a través del transfer pipeline (policy / strategy / motor de transferencia). El posicionamiento es un problema puramente de UI, resuelto mediante dos hooks:
 
-1. `DragAndDropManager.OnDropAttempting` — capturar la posición del ratón.
+1. `UDNDEvents.OnDropAttempting` — capturar la posición del ratón.
 2. `UniversalInventory.OnSlotCreated` — colocar el nuevo slot en las coordenadas capturadas.
 
 ---
@@ -122,9 +122,9 @@ El ejemplo incluye ahora resolución integrada de solapamientos. Si el punto de 
 | Hook | Cuándo se dispara | Para qué usarlo |
 |------|---------------|-------------------|
 | `UniversalInventory.OnSlotCreated` | Después de crear el slot (`Instantiate` + `Initialize`) | Posicionamiento, inicialización visual |
-| `DragAndDropManager.OnDropAttempting` | Antes de procesar el drop | Capturar coordenadas del ratón, preparar estado |
-| `DragAndDropManager.OnDropCompleted` | Después de una transferencia exitosa | Post-procesado, animaciones, actualizaciones del layout |
-| `DragAndDropManager.OnDragCancelled` | Drop cancelado | Resetear estado pendiente |
+| `UDNDEvents.OnDropAttempting` | Antes de procesar el drop | Capturar coordenadas del ratón, preparar estado |
+| `UDNDEvents.OnDropCompleted` | Después de una transferencia exitosa | Post-procesado, animaciones, actualizaciones del layout |
+| `UDNDEvents.OnDragCancelled` | Drop cancelado | Resetear estado pendiente |
 | `UniversalInventory.OnItemAdded` | Item añadido a un slot | Reaccionar a cambios de contenido |
 
 ### Patrón de implementación
