@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UDND.Core;
 using UDND.Slots;
 
@@ -71,5 +70,4 @@ namespace UDND.Inventories
                 null,
                 false);
     }
-
 }
