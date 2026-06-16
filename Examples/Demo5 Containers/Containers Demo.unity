@@ -943,7 +943,7 @@ MonoBehaviour:
     _blockedTargetResolution: 1
     _alternativeOrderer:
       rid: 8490481047700242460
-    _allowSameInventoryAlternativePlacement: 1
+    _allowSameInventoryAlternativePlacement: 0
     _allowPartial: 1
   _slots:
   - {fileID: 2074890394}
@@ -964,9 +964,18 @@ MonoBehaviour:
   - {fileID: 2146818450}
   - {fileID: 1369556861}
   - {fileID: 552215055}
+  _useGridTopology: 0
+  _gridTopology:
+    _columns: 1
+    _rows: 1
+  _shapedPlacementAnchorStrategy:
+    rid: 8248672937040412673
   references:
     version: 2
     RefIds:
+    - rid: 8248672937040412673
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
     - rid: 8490480897462108206
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 
@@ -1597,12 +1606,21 @@ MonoBehaviour:
     _blockedTargetResolution: 1
     _alternativeOrderer:
       rid: 8490481047700242458
-    _allowSameInventoryAlternativePlacement: 1
+    _allowSameInventoryAlternativePlacement: 0
     _allowPartial: 1
   _slots: []
+  _useGridTopology: 0
+  _gridTopology:
+    _columns: 1
+    _rows: 1
+  _shapedPlacementAnchorStrategy:
+    rid: 8248672937040412672
   references:
     version: 2
     RefIds:
+    - rid: 8248672937040412672
+      type: {class: RotatedGrabOffsetAnchorStrategy, ns: UDND.Inventories, asm: UDND.Runtime}
+      data: 
     - rid: 8490480897462108208
       type: {class: FixedSlotManagementSettings, ns: UDND.Inventories, asm: UDND.Runtime}
       data: 

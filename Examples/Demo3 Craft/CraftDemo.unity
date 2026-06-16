@@ -614,7 +614,7 @@ MonoBehaviour:
     _blockedTargetResolution: 1
     _alternativeOrderer:
       rid: 8248672788823146515
-    _allowSameInventoryAlternativePlacement: 1
+    _allowSameInventoryAlternativePlacement: 0
     _allowPartial: 1
   _slots:
   - {fileID: 536631251}
@@ -2857,7 +2857,7 @@ MonoBehaviour:
     _blockedTargetResolution: 1
     _alternativeOrderer:
       rid: 8248672788823146521
-    _allowSameInventoryAlternativePlacement: 1
+    _allowSameInventoryAlternativePlacement: 0
     _allowPartial: 1
   _slots:
   - {fileID: 1080494723}
@@ -7520,7 +7520,7 @@ MonoBehaviour:
     _blockedTargetResolution: 1
     _alternativeOrderer:
       rid: 8248672788823146512
-    _allowSameInventoryAlternativePlacement: 1
+    _allowSameInventoryAlternativePlacement: 0
     _allowPartial: 1
   _slots:
   - {fileID: 451792798}
