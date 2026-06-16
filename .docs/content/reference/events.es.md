@@ -131,20 +131,21 @@ Importante:
 
 ## Cuándo se despachan los eventos
 
+El servicio de transferencia ejecuta cada entry como su propia transacción (batch secuencial best-effort). Dentro de una entry, los eventos y las notificaciones del data binding se difieren hasta conocer su resultado, y solo se despachan si hace commit.
+
 ```mermaid
 flowchart TB
-    PLAN["Pipeline executes the plan"] --> DEFER["Events are deferred"]
-    DEFER --> OK{"Plan completed\nsuccessfully?"}
-    OK -->|"Yes"| SEND["Dispatch all events"]
-    OK -->|"No, atomic mode"| ROLL["Rollback, no events dispatched"]
-    OK -->|"No, partial mode"| PART["Dispatch events\nonly for successful entries"]
+    ENTRY["Cada entry se ejecuta como su propia transacción"] --> DEFER["Eventos diferidos hasta el resultado de la entry"]
+    DEFER --> OK{"¿Entry confirmada (commit)?"}
+    OK -->|"Sí"| SEND["Despachar los eventos de esa entry"]
+    OK -->|"No — fallo, o RequireFull con remanente"| ROLL["Entry revertida — sin eventos"]
 
-    SEND --> DB["Data binding:\nnotified directly"]
-    SEND --> EXT["External subscribers:\nvia events"]
+    SEND --> DB["Data binding:\nnotificado directamente"]
+    SEND --> EXT["Subscribers externos:\nvía UDNDEvents"]
 ```
 
 !!! info "Safe by Default"
-    En modo atómico, no se despacha ningún evento hasta que toda la operación se completa con éxito. Esto evita que los subscribers reaccionen a cambios que luego puedan revertirse.
+    Los eventos solo se disparan tras el commit de una entry, cuando sus cambios ya son reales. Una entry fallida restaura sus snapshots y no emite nada, así que los subscribers nunca reaccionan a cambios revertidos. Las entries son independientes: un fallo posterior no revierte las entries que ya hicieron commit (batch best-effort).
 
 Consulta también:
 

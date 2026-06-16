@@ -131,20 +131,21 @@ Important:
 
 ## When Events Are Dispatched
 
+The transfer service runs each entry as its own transaction (sequential, best-effort batch). Within an entry, events and data-binding notifications are deferred until the entry's outcome is known, then dispatched only if it commits.
+
 ```mermaid
 flowchart TB
-    PLAN["Pipeline executes the plan"] --> DEFER["Events are deferred"]
-    DEFER --> OK{"Plan completed\nsuccessfully?"}
-    OK -->|"Yes"| SEND["Dispatch all events"]
-    OK -->|"No, atomic mode"| ROLL["Rollback, no events dispatched"]
-    OK -->|"No, partial mode"| PART["Dispatch events\nonly for successful entries"]
+    ENTRY["Each entry runs as its own transaction"] --> DEFER["Events deferred until the entry's result is known"]
+    DEFER --> OK{"Entry committed?"}
+    OK -->|"Yes"| SEND["Dispatch that entry's events"]
+    OK -->|"No — failed, or RequireFull with a leftover"| ROLL["Entry rolled back — no events for it"]
 
     SEND --> DB["Data binding:\nnotified directly"]
-    SEND --> EXT["External subscribers:\nvia events"]
+    SEND --> EXT["External subscribers:\nvia UDNDEvents"]
 ```
 
 !!! info "Safe by Default"
-    In atomic mode, no events are dispatched until the entire operation completes successfully. This prevents subscribers from reacting to changes that may be rolled back.
+    Events fire only after an entry commits, when its mutations are already real. A failed entry restores its snapshots and emits nothing, so subscribers never react to changes that were undone. Entries are independent: a later failure does not roll back entries that already committed (best-effort batch).
 
 See also:
 
