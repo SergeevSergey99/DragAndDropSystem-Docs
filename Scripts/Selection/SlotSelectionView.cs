@@ -16,7 +16,7 @@ namespace UDND.Selection
     /// </summary>
     public class SlotSelectionView : MonoBehaviour
     {
-        [FormerlySerializedAs("_slot")] [SerializeField] private BaseSlot baseSlot;
+        [SerializeField] private BaseSlot baseSlot;
 
         [Header("Visuals")]
         [SerializeField] private GameObject _selectionHighlight;
