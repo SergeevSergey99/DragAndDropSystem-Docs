@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UDND.Core;
 using UDND.Slots;
 
 namespace UDND.Interaction
 {
     /// <summary>
     /// Displays item amount while holding a slot (hold preview).
-    /// Subscribes to InputEventRouter.OnHoldPreviewChanged/OnHoldPreviewEnded.
+    /// Subscribes to UDNDEvents.OnHoldPreviewChanged/OnHoldPreviewEnded.
     /// Place it on a Canvas object with Text inside.
     /// </summary>
     public class HoldDragPreviewDisplay : MonoBehaviour
@@ -34,14 +35,14 @@ namespace UDND.Interaction
 
         private void OnEnable()
         {
-            InputEventRouter.OnHoldPreviewChanged += OnPreviewChanged;
-            InputEventRouter.OnHoldPreviewEnded += OnPreviewEnded;
+            UDNDEvents.OnHoldPreviewChanged += OnPreviewChanged;
+            UDNDEvents.OnHoldPreviewEnded += OnPreviewEnded;
         }
 
         private void OnDisable()
         {
-            InputEventRouter.OnHoldPreviewChanged -= OnPreviewChanged;
-            InputEventRouter.OnHoldPreviewEnded -= OnPreviewEnded;
+            UDNDEvents.OnHoldPreviewChanged -= OnPreviewChanged;
+            UDNDEvents.OnHoldPreviewEnded -= OnPreviewEnded;
         }
 
         private void OnPreviewChanged(BaseSlot baseSlot, int amount, int maxAmount)

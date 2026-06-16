@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CodeUtils;
+using UDND.Core;
 using UDND.Selection;
 using UDND.Tools;
 using UnityEngine;
@@ -70,16 +71,8 @@ namespace UDND.Interaction
 
         public HoldDragSettings HoldDragSettings => _holdDragSettings;
 
-        /// <summary>
-        /// Fired every frame while hold count is active.
-        /// Parameters: (slot, current amount, maximum stack amount).
-        /// </summary>
-        public static event Action<BaseSlot, int, int> OnHoldPreviewChanged;
-
-        /// <summary>
-        /// Fired when hold count ends (drag started or the button was released).
-        /// </summary>
-        public static event Action OnHoldPreviewEnded;
+        // Hold-preview events live on UDNDEvents (subscribe via UDNDEvents.OnHoldPreviewChanged/Ended);
+        // raised here through UDNDEvents.Raise*.
 
         protected override void Init()
         {
@@ -881,7 +874,7 @@ namespace UDND.Interaction
             if (amount != _holdCountLastAmount)
             {
                 _holdCountLastAmount = amount;
-                OnHoldPreviewChanged?.Invoke(_holdCountBaseSlot, amount, _holdCountBaseSlot.Stack.Count);
+                UDNDEvents.RaiseHoldPreviewChanged(_holdCountBaseSlot, amount, _holdCountBaseSlot.Stack.Count);
             }
         }
 
@@ -893,7 +886,7 @@ namespace UDND.Interaction
             _holdCountInventory = null;
             _holdCountBaseSlot = null;
             _holdCountLastAmount = -1;
-            OnHoldPreviewEnded?.Invoke();
+            UDNDEvents.RaiseHoldPreviewEnded();
         }
 
         private void MarkInventoryActive(IInventory inventory)

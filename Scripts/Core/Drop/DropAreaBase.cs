@@ -244,22 +244,22 @@ namespace UDND.Core
 
         private void SubscribeToStateEvents()
         {
-            DragAndDropManager.OnDragStarted += HandleDragStateChanged;
-            DragAndDropManager.OnDragCancelled += HandleDragStateChanged;
-            DragAndDropManager.OnDropCompleted += HandleDragStateChanged;
-            DragAndDropManager.OnDragEnded += HandleDragEnded;
+            UDNDEvents.OnDragStarted += HandleDragStateChanged;
+            UDNDEvents.OnDragCancelled += HandleDragStateChanged;
+            UDNDEvents.OnDropCompleted += HandleDragStateChanged;
+            UDNDEvents.OnDragEnded += HandleDragEnded;
 
-            InputModalityTracker.OnNavigationModeChanged += HandleNavigationModeChanged;
+            UDNDEvents.OnNavigationModeChanged += HandleNavigationModeChanged;
         }
 
         private void UnsubscribeFromStateEvents()
         {
-            DragAndDropManager.OnDragStarted -= HandleDragStateChanged;
-            DragAndDropManager.OnDragCancelled -= HandleDragStateChanged;
-            DragAndDropManager.OnDropCompleted -= HandleDragStateChanged;
-            DragAndDropManager.OnDragEnded -= HandleDragEnded;
+            UDNDEvents.OnDragStarted -= HandleDragStateChanged;
+            UDNDEvents.OnDragCancelled -= HandleDragStateChanged;
+            UDNDEvents.OnDropCompleted -= HandleDragStateChanged;
+            UDNDEvents.OnDragEnded -= HandleDragEnded;
 
-            InputModalityTracker.OnNavigationModeChanged -= HandleNavigationModeChanged;
+            UDNDEvents.OnNavigationModeChanged -= HandleNavigationModeChanged;
         }
 
         private void HandleDragStateChanged(DragContext _) => RefreshInteractionState();

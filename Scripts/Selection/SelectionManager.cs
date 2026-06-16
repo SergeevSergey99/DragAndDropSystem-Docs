@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CodeUtils;
 using UnityEngine;
+using UDND.Core;
 using UDND.Inventories;
 using UDND.Slots;
 
@@ -30,7 +31,7 @@ namespace UDND.Selection
         /// <summary>
         /// Called whenever selection changes
         /// </summary>
-        public static event Action<SelectionContext> OnSelectionChanged;
+        // Selection-changed event lives on UDNDEvents (UDNDEvents.OnSelectionChanged).
 
         // ===== Public API =====
 
@@ -158,7 +159,7 @@ namespace UDND.Selection
                 allSlots.AddRange(slots);
 
             CurrentContext = new SelectionContext(_byInventory, allSlots, _selected);
-            OnSelectionChanged?.Invoke(CurrentContext);
+            UDNDEvents.RaiseSelectionChanged(CurrentContext);
         }
     }
 }

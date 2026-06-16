@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UDND.Core;
 using UDND.Interaction;
 using UDND.Slots;
 using UDND.Tools;
@@ -55,15 +56,15 @@ namespace UDND.UI
         private void OnEnable()
         {
             // Subscribe to global static slot events
-            SlotInputAdapter.OnAnySlotHoverEnter += OnSlotHoverEnter;
-            SlotInputAdapter.OnAnySlotHoverExit += OnSlotHoverExit;
+            UDNDEvents.OnAnySlotHoverEnter += OnSlotHoverEnter;
+            UDNDEvents.OnAnySlotHoverExit += OnSlotHoverExit;
         }
 
         private void OnDisable()
         {
             // Unsubscribe from events
-            SlotInputAdapter.OnAnySlotHoverEnter -= OnSlotHoverEnter;
-            SlotInputAdapter.OnAnySlotHoverExit -= OnSlotHoverExit;
+            UDNDEvents.OnAnySlotHoverEnter -= OnSlotHoverEnter;
+            UDNDEvents.OnAnySlotHoverExit -= OnSlotHoverExit;
 
             // Stop coroutines
             StopAllTooltipCoroutines();

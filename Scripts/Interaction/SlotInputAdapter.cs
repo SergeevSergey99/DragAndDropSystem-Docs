@@ -18,8 +18,7 @@ namespace UDND.Interaction
     public class SlotInputAdapter : Selectable,
         IBeginDragHandler, IDropTarget
     {
-        public static event Action<SlotHoverEventArgs> OnAnySlotHoverEnter;
-        public static event Action<SlotHoverEventArgs> OnAnySlotHoverExit;
+        // Global slot-hover events live on UDNDEvents (UDNDEvents.OnAnySlotHoverEnter/Exit).
 
         [FormerlySerializedAs("_slot")] [SerializeField] private BaseSlot baseSlot;
         [Header("Pointer Down")]
@@ -222,7 +221,7 @@ namespace UDND.Interaction
                 return;
 
             _onSlotHoverEnter?.Invoke();
-            OnAnySlotHoverEnter?.Invoke(args);
+            UDNDEvents.RaiseAnySlotHoverEnter(args);
         }
 
         private void TryRaiseHoverExit(PointerEventData eventData)
@@ -237,7 +236,7 @@ namespace UDND.Interaction
                 return;
 
             _onSlotHoverExit?.Invoke();
-            OnAnySlotHoverExit?.Invoke(args);
+            UDNDEvents.RaiseAnySlotHoverExit(args);
         }
 
         private void ForceHoverExit()
@@ -249,7 +248,7 @@ namespace UDND.Interaction
                 return;
 
             _onSlotHoverExit?.Invoke();
-            OnAnySlotHoverExit?.Invoke(args);
+            UDNDEvents.RaiseAnySlotHoverExit(args);
         }
 
         private bool ShouldTriggerHoverEvent()

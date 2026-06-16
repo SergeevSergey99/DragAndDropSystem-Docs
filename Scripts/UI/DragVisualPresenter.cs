@@ -103,11 +103,11 @@ namespace UDND.UI
             if (_subscribed)
                 return;
 
-            DragAndDropManager.OnDragStarted += HandleDragStarted;
-            DragAndDropManager.OnDragStackChanged += HandleDragStackChanged;
-            DragAndDropManager.OnDragOrientationChanged += HandleDragStackChanged;
-            DragAndDropManager.OnDragCancelled += HandleDragFinished;
-            DragAndDropManager.OnDropCompleted += HandleDragFinished;
+            UDNDEvents.OnDragStarted += HandleDragStarted;
+            UDNDEvents.OnDragStackChanged += HandleDragStackChanged;
+            UDNDEvents.OnDragOrientationChanged += HandleDragStackChanged;
+            UDNDEvents.OnDragCancelled += HandleDragFinished;
+            UDNDEvents.OnDropCompleted += HandleDragFinished;
             _subscribed = true;
         }
 
@@ -119,11 +119,11 @@ namespace UDND.UI
             if (!_subscribed)
                 return;
 
-            DragAndDropManager.OnDragStarted -= HandleDragStarted;
-            DragAndDropManager.OnDragStackChanged -= HandleDragStackChanged;
-            DragAndDropManager.OnDragOrientationChanged -= HandleDragStackChanged;
-            DragAndDropManager.OnDragCancelled -= HandleDragFinished;
-            DragAndDropManager.OnDropCompleted -= HandleDragFinished;
+            UDNDEvents.OnDragStarted -= HandleDragStarted;
+            UDNDEvents.OnDragStackChanged -= HandleDragStackChanged;
+            UDNDEvents.OnDragOrientationChanged -= HandleDragStackChanged;
+            UDNDEvents.OnDragCancelled -= HandleDragFinished;
+            UDNDEvents.OnDropCompleted -= HandleDragFinished;
             _subscribed = false;
         }
 

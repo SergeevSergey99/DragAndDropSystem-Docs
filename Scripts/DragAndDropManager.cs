@@ -62,26 +62,8 @@ namespace UDND
         public float QuickClickTimeThreshold => _quickClickTimeThreshold;
         public float QuickClickDistanceThreshold => _quickClickDistanceThreshold;
 
-        // Drag-and-drop events
-        public static event Action<DragContext> OnDragAttempting;
-        public static event Action<DragContext> OnDragStarted;
-        public static event Action<DragContext> OnDragEnterSlot;
-        public static event Action<DragContext> OnDragExitSlot;
-        public static event Action<DragContext> OnDropAttempting;
-        public static event Action<DragContext> OnDropCompleted;
-        public static event Action<DragContext> OnDragCancelled;
-        public static event Action<DragContext> OnDragStackChanged;
-        public static event Action<DragContext> OnDragOrientationChanged;
-        public static event Action OnDragEnded;
-
-        // Auto-transfer events
-        public static event Action<DragContext> OnAutoTransferAttempting;
-        public static event Action<DragContext> OnAutoTransferCompleted;
-        public static event Action<DragContext> OnAutoTransferFailed;
-
-        // Item swap events
-        public static event Action<InventorySwapContext> OnSwapAttempting;
-        public static event Action<InventorySwapContext> OnSwapCompleted;
+        // Global drag/drop/auto-transfer/swap events now live on UDNDEvents (single subscription
+        // surface + one Fast-Enter-Play-Mode reset). This manager raises them via UDNDEvents.Raise*.
 
         protected override void Init()
         {
@@ -144,7 +126,7 @@ namespace UDND
             _currentContext = dragContext;
 
             // Event: starting
-            OnDragAttempting?.Invoke(_currentContext);
+            UDNDEvents.RaiseDragAttempting(_currentContext);
 
             // Per-entry validation
             foreach (var entry in _currentContext.Entries)
@@ -170,7 +152,7 @@ namespace UDND
             }
 
             SetDraggedState(_currentContext.Entries, true);
-            OnDragStarted?.Invoke(_currentContext);
+            UDNDEvents.RaiseDragStarted(_currentContext);
             ActivateDropTargetForSlot(_currentContext.Entries[0].SourceBaseSlot);
             Extensions.DragAndDropLog($"<color=green>Started dragging ({entries.Count} entries)</color>");
             return true;
@@ -326,11 +308,11 @@ namespace UDND
                 // Keep drag enter/exit events bound to active slot-like target transitions.
                 if (_activeDropTarget != null && !ReferenceEquals(_activeDropTarget, top))
                 {
-                    OnDragExitSlot?.Invoke(_currentContext);
+                    UDNDEvents.RaiseDragExitSlot(_currentContext);
                 }
                 if (!ReferenceEquals(_activeDropTarget, top))
                 {
-                    OnDragEnterSlot?.Invoke(_currentContext);
+                    UDNDEvents.RaiseDragEnterSlot(_currentContext);
                 }
 
                 _activeDropTarget = top;
@@ -345,7 +327,7 @@ namespace UDND
             {
                 if (_activeDropTarget != null)
                 {
-                    OnDragExitSlot?.Invoke(_currentContext);
+                    UDNDEvents.RaiseDragExitSlot(_currentContext);
                 }
                 _activeDropTarget = null;
                 _currentProcessor = null;
@@ -403,7 +385,7 @@ namespace UDND
 
             _currentContext = _currentContext.WithEntries(rotatedEntries);
             RefreshActiveDropPreview();
-            OnDragOrientationChanged?.Invoke(_currentContext);
+            UDNDEvents.RaiseDragOrientationChanged(_currentContext);
             return true;
         }
 
@@ -444,7 +426,7 @@ namespace UDND
             if (_isProcessingTransfer)
             {
                 Extensions.DragAndDropLog("<color=red>CompleteDrag: Another transfer is in progress</color>");
-                OnDragCancelled?.Invoke(_currentContext);
+                UDNDEvents.RaiseDragCancelled(_currentContext);
                 EndDrag();
                 return;
             }
@@ -460,7 +442,7 @@ namespace UDND
             {
                 if (processorToUse != null)
                 {
-                    OnDropAttempting?.Invoke(dragContext);
+                    UDNDEvents.RaiseDropAttempting(dragContext);
 
                     var requestProcessor = processorToUse as IDropRequestProcessor;
                     bool canDrop = processorToUse is InventoryDropProcessor ||
@@ -498,7 +480,7 @@ namespace UDND
                             if (dragContext.IsBatchDrag && SelectionManager.IsInstanceExist)
                                 SelectionManager.AutoCreateInstance.Clear();
 
-                            OnDropCompleted?.Invoke(dragContext);
+                            UDNDEvents.RaiseDropCompleted(dragContext);
                         }
                         else
                         {
@@ -513,7 +495,7 @@ namespace UDND
 
                 if (!success)
                 {
-                    OnDragCancelled?.Invoke(dragContext);
+                    UDNDEvents.RaiseDragCancelled(dragContext);
                 }
             }
             catch (System.Exception ex)
@@ -521,7 +503,7 @@ namespace UDND
                 Debug.LogException(ex);
                 if (!success)
                 {
-                    OnDragCancelled?.Invoke(dragContext);
+                    UDNDEvents.RaiseDragCancelled(dragContext);
                 }
             }
             finally
@@ -591,7 +573,7 @@ namespace UDND
                     return false;
                 }
 
-                OnDragStackChanged?.Invoke(_currentContext);
+                UDNDEvents.RaiseDragStackChanged(_currentContext);
                 return true;
             }
             finally
@@ -619,7 +601,7 @@ namespace UDND
             if (!IsDragging || _isCompletingDrag)
                 return;
 
-            OnDragCancelled?.Invoke(_currentContext);
+            UDNDEvents.RaiseDragCancelled(_currentContext);
             EndDrag();
         }
 
@@ -636,7 +618,7 @@ namespace UDND
 
             if (_activeDropTarget != null)
             {
-                OnDragExitSlot?.Invoke(_currentContext);
+                UDNDEvents.RaiseDragExitSlot(_currentContext);
             }
 
             SetDraggedState(dragContext?.Entries, false);
@@ -644,7 +626,7 @@ namespace UDND
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
-            OnDragEnded?.Invoke();
+            UDNDEvents.RaiseDragEnded();
         }
 
         private static void RefreshDragInventories(DragContext dragContext)
@@ -741,7 +723,7 @@ namespace UDND
                     return false;
                 }
 
-                OnAutoTransferAttempting?.Invoke(context);
+                UDNDEvents.RaiseAutoTransferAttempting(context);
 
                 var (dropResult, executionReport) = await _autoTransferService.ExecuteAsync(
                     context,
@@ -754,7 +736,7 @@ namespace UDND
                 if (!dropResult.Success)
                 {
                     Extensions.DragAndDropLog($"<color=red>TryAutoTransfer failed: {dropResult.FailureReason}</color>");
-                    OnAutoTransferFailed?.Invoke(context);
+                    UDNDEvents.RaiseAutoTransferFailed(context);
                     return false;
                 }
 
@@ -803,8 +785,8 @@ namespace UDND
             // We keep ownership of the lifecycle events and fire them once the flights complete.
             void FireCompleted()
             {
-                OnDropCompleted?.Invoke(context);
-                OnAutoTransferCompleted?.Invoke(context);
+                UDNDEvents.RaiseDropCompleted(context);
+                UDNDEvents.RaiseAutoTransferCompleted(context);
             }
 
             if (DragVisualPresenter.IsInstanceExist)
@@ -837,7 +819,7 @@ namespace UDND
                 target.EmitSwapAttempting(context);
 
             // Global event (general)
-            OnSwapAttempting?.Invoke(context);
+            UDNDEvents.RaiseSwapAttempting(context);
 
             return context != null && !context.Cancel;
         }
@@ -853,7 +835,7 @@ namespace UDND
                 target.EmitSwapCompleted(context);
 
             // Global event (general)
-            OnSwapCompleted?.Invoke(context);
+            UDNDEvents.RaiseSwapCompleted(context);
         }
     }
 }

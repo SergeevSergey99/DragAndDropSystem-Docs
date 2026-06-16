@@ -47,10 +47,10 @@ namespace UDND.UI
                 _inventory.OnContentRefreshed += HandleContentRefreshed;
             }
 
-            DragAndDropManager.OnDragStarted += HandleDragChanged;
-            DragAndDropManager.OnDragEnded += HandleDragEnded;
-            DragAndDropManager.OnDragCancelled += HandleDragChanged;
-            DragAndDropManager.OnDropCompleted += HandleDragChanged;
+            UDNDEvents.OnDragStarted += HandleDragChanged;
+            UDNDEvents.OnDragEnded += HandleDragEnded;
+            UDNDEvents.OnDragCancelled += HandleDragChanged;
+            UDNDEvents.OnDropCompleted += HandleDragChanged;
 
             ScheduleRefresh(dimensionsChanged: true);
         }
@@ -80,10 +80,10 @@ namespace UDND.UI
                 _inventory.OnContentRefreshed -= HandleContentRefreshed;
             }
 
-            DragAndDropManager.OnDragStarted -= HandleDragChanged;
-            DragAndDropManager.OnDragEnded -= HandleDragEnded;
-            DragAndDropManager.OnDragCancelled -= HandleDragChanged;
-            DragAndDropManager.OnDropCompleted -= HandleDragChanged;
+            UDNDEvents.OnDragStarted -= HandleDragChanged;
+            UDNDEvents.OnDragEnded -= HandleDragEnded;
+            UDNDEvents.OnDragCancelled -= HandleDragChanged;
+            UDNDEvents.OnDropCompleted -= HandleDragChanged;
 
             ReleaseAllActiveItems();
             _renderedPlacements.Clear();

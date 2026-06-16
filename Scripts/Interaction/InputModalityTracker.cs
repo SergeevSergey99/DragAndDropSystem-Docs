@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UDND.Core;
 #if UDND_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -11,11 +12,17 @@ namespace UDND.Interaction
         private const float LegacyMouseMoveThreshold = 0.01f;
         private const float LegacyNavigationAxisThreshold = 0.5f;
 
-        public static event Action<InputModality> OnModalityChanged;
-        public static event Action<bool> OnNavigationModeChanged;
-        
+        // Modality events live on UDNDEvents (UDNDEvents.OnModalityChanged / OnNavigationModeChanged).
         public static InputModality CurrentModality { get; private set; } = InputModality.Mouse;
         public static bool IsNavigationModeActive => CurrentModality == InputModality.Navigation;
+
+        // CurrentModality is static state that must start fresh each Play session ("Fast Enter Play
+        // Mode" keeps statics; the event subscribers are reset centrally in UDNDEvents).
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetState()
+        {
+            CurrentModality = InputModality.Mouse;
+        }
 
 
         private void Update()
@@ -46,8 +53,8 @@ namespace UDND.Interaction
                 return;
 
             CurrentModality = modality;
-            OnModalityChanged?.Invoke(modality);
-            OnNavigationModeChanged?.Invoke(modality == InputModality.Navigation);
+            UDNDEvents.RaiseModalityChanged(modality);
+            UDNDEvents.RaiseNavigationModeChanged(modality == InputModality.Navigation);
         }
 
         private static bool WasMouseInteractionThisFrame()

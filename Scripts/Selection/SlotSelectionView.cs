@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using UDND.Core;
 using UDND.Slots;
 
 namespace UDND.Selection
@@ -41,7 +42,7 @@ namespace UDND.Selection
 
         private void OnEnable()
         {
-            SelectionManager.OnSelectionChanged += Refresh;
+            UDNDEvents.OnSelectionChanged += Refresh;
             // Sync immediately because the component may have been enabled while selection was already active
             if (SelectionManager.IsInstanceExist)
                 Refresh(SelectionManager.AutoCreateInstance.CurrentContext);
@@ -49,7 +50,7 @@ namespace UDND.Selection
 
         private void OnDisable()
         {
-            SelectionManager.OnSelectionChanged -= Refresh;
+            UDNDEvents.OnSelectionChanged -= Refresh;
         }
 
         private void Refresh(SelectionContext context)

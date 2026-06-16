@@ -54,10 +54,10 @@ namespace UDND.UI
                 return;
 
             _inventory.OnSlotCreated += HandleSlotCreated;
-            DragAndDropManager.OnDragStarted += HandleDragStarted;
-            DragAndDropManager.OnDropAttempting += HandleDropAttempting;
-            DragAndDropManager.OnDropCompleted += HandleDropCompleted;
-            DragAndDropManager.OnDragCancelled += HandleDragCancelled;
+            UDNDEvents.OnDragStarted += HandleDragStarted;
+            UDNDEvents.OnDropAttempting += HandleDropAttempting;
+            UDNDEvents.OnDropCompleted += HandleDropCompleted;
+            UDNDEvents.OnDragCancelled += HandleDragCancelled;
         }
 
         private void OnDisable()
@@ -65,10 +65,10 @@ namespace UDND.UI
             if (_inventory != null)
                 _inventory.OnSlotCreated -= HandleSlotCreated;
 
-            DragAndDropManager.OnDragStarted -= HandleDragStarted;
-            DragAndDropManager.OnDropAttempting -= HandleDropAttempting;
-            DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
-            DragAndDropManager.OnDragCancelled -= HandleDragCancelled;
+            UDNDEvents.OnDragStarted -= HandleDragStarted;
+            UDNDEvents.OnDropAttempting -= HandleDropAttempting;
+            UDNDEvents.OnDropCompleted -= HandleDropCompleted;
+            UDNDEvents.OnDragCancelled -= HandleDragCancelled;
         }
 
         private void HandleDragStarted(DragContext context)

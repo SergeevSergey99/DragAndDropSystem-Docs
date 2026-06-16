@@ -88,7 +88,7 @@ namespace UDND.DataBinding
                 _inventory.OnSwapCompleted += HandleSwapCompleted;
             }
 
-            DragAndDropManager.OnDropCompleted += HandleDropCompleted;
+            UDNDEvents.OnDropCompleted += HandleDropCompleted;
             ReloadUI();
         }
 
@@ -100,7 +100,7 @@ namespace UDND.DataBinding
                 _inventory.OnSwapCompleted -= HandleSwapCompleted;
             }
 
-            DragAndDropManager.OnDropCompleted -= HandleDropCompleted;
+            UDNDEvents.OnDropCompleted -= HandleDropCompleted;
         }
 
         /// <summary>

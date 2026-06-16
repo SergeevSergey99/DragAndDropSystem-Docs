@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UDND.Core;
 using UDND.Selection;
 using UDND.Slots;
 
@@ -23,14 +24,14 @@ namespace UDND.Examples.Trading
 
         private void OnEnable()
         {
-            SelectionManager.OnSelectionChanged += Refresh;
+            UDNDEvents.OnSelectionChanged += Refresh;
             if (SelectionManager.IsInstanceExist)
                 Refresh(SelectionManager.AutoCreateInstance.CurrentContext);
         }
 
         private void OnDisable()
         {
-            SelectionManager.OnSelectionChanged -= Refresh;
+            UDNDEvents.OnSelectionChanged -= Refresh;
         }
 
         private void Refresh(SelectionContext context)
