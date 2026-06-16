@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Axe ComplexShapedItemExampleSO
   m_EditorClassIdentifier: 
   _itemName: Axe
-  _icon: {fileID: 21300000, guid: b33760fbf20dd814cb6d2a8669b6d505, type: 3}
+  _icon: {fileID: -282109968, guid: 4b155b99bcef0794f96967c7cdf04fca, type: 3}
   _width: 2
   _height: 3
   _cells: 010101010001

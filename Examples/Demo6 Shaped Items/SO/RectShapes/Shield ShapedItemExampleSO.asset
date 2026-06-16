@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Shield ShapedItemExampleSO
   m_EditorClassIdentifier: 
   _itemName: Shield
-  _icon: {fileID: 21300000, guid: e7622933720f33740ad4c0b268cd454e, type: 3}
+  _icon: {fileID: 21300000, guid: 55bf7484e4d7ffb4690889b4390a46d5, type: 3}
   _width: 2
   _height: 2

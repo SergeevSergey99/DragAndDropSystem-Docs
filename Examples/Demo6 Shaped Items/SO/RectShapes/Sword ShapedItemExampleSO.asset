@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Sword ShapedItemExampleSO
   m_EditorClassIdentifier: 
   _itemName: Sword
-  _icon: {fileID: 21300000, guid: d33c2fecfdc76f14dad647cf16efe3a2, type: 3}
-  _width: 2
-  _height: 1
+  _icon: {fileID: -1259840735, guid: 69b27f78b88b4d54e8381a27329d0cba, type: 3}
+  _width: 1
+  _height: 2

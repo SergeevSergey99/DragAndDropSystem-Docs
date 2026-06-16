@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a017ebe1924159347a8accf42e8395ee, type: 3}
-  m_Name: Slab SO
+  m_Name: Log SO
   m_EditorClassIdentifier: 
-  <DisplayName>k__BackingField: Planks
-  <Icon>k__BackingField: {fileID: 21300000, guid: 50e1bb6deb961d94ea99dc9695024416, type: 3}
+  <DisplayName>k__BackingField: Log
+  <Icon>k__BackingField: {fileID: 21300000, guid: 8e445e6ad0dd9074992c5f0962c52ac5, type: 3}
