@@ -530,6 +530,8 @@ namespace UDND
             var entry = _currentContext.Entries[0];
             if (entry.Stack.IsEmpty)
                 return false;
+            if (splitCount <= 0)
+                return false;
 
             if (entry.Stack.Count <= splitCount)
             {
@@ -537,12 +539,27 @@ namespace UDND
                 return true;
             }
 
+            _ = SplitDropAsync(requested, splitCount);
+            return true;
+        }
+
+        private async Task<bool> SplitDropAsync(DropRequestPolicy? requested, int splitCount)
+        {
             _isProcessingTransfer = true;
+            ItemStack splitStack = null;
+            DragEntry entry = default;
             try
             {
-                var splitStack = entry.Stack.Split(splitCount);
+                if (_currentContext?.Entries == null ||
+                    _currentContext.Entries.Count == 0 ||
+                    _currentProcessor == null)
+                    return false;
+
+                entry = _currentContext.Entries[0];
+                splitStack = entry.Stack.Split(splitCount);
                 if (splitStack.IsEmpty)
                     return false;
+                UDNDEvents.RaiseDragStackChanged(_currentContext);
 
                 var splitEntry = new DragEntry(
                     splitStack,
@@ -550,11 +567,19 @@ namespace UDND
                     entry.SourceInventory,
                     entry.SourcePlacement,
                     entry.GrabOffset,
-                    entry.Orientation);
+                    entry.Orientation,
+                    entry.OrientationTopology);
                 var splitContext = new DragContext(new[] { splitEntry });
 
                 bool success = false;
-                if (_currentProcessor is IDropRequestProcessor reqProcessor)
+                if (_currentProcessor is InventoryDropProcessor inventoryProcessor)
+                {
+                    var report = await inventoryProcessor.ProcessDropWithReportAsync(
+                        splitContext,
+                        requested);
+                    success = report.Success;
+                }
+                else if (_currentProcessor is IDropRequestProcessor reqProcessor)
                 {
                     if (reqProcessor.CanAcceptDrop(splitContext, requested))
                     {
@@ -570,11 +595,22 @@ namespace UDND
                 if (!success)
                 {
                     entry.Stack.TryAddToStack(splitStack);
+                    UDNDEvents.RaiseDragStackChanged(_currentContext);
                     return false;
                 }
 
-                UDNDEvents.RaiseDragStackChanged(_currentContext);
                 return true;
+            }
+            catch (Exception ex)
+            {
+                if (splitStack != null && !splitStack.IsEmpty && entry.Stack != null)
+                {
+                    entry.Stack.TryAddToStack(splitStack);
+                    UDNDEvents.RaiseDragStackChanged(_currentContext);
+                }
+
+                Debug.LogException(ex);
+                return false;
             }
             finally
             {
