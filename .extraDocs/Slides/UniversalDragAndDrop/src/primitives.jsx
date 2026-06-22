@@ -1,7 +1,7 @@
 /** Primitives: Slot, Grid, Tag, Frame, Arrow. Shared across slides. */
 
-const Slot = ({ children, size = 96, state = 'empty', highlight = false, style = {}, dragFrom = false, dragOver = false, selected = false }) => {
-  const bg = state === 'empty' ? 'var(--slot)' : 'var(--slot-hi)';
+const Slot = ({ children, size = 96, state = 'empty', highlight = false, color = null, style = {}, dragFrom = false, dragOver = false, selected = false }) => {
+  const bg = color ? color : (state === 'empty' ? 'var(--slot)' : 'var(--slot-hi)');
   const borderColor = dragOver ? 'var(--accent)' : selected ? 'var(--accent-2)' : dragFrom ? 'var(--accent)' : 'var(--border)';
   return (
     <div style={{
@@ -40,7 +40,7 @@ const SlotWithCount = ({ icon, count, size = 96, ...rest }) => (
   </Slot>
 );
 
-const Grid = ({ cols, rows, cells = [], size = 96, gap = 8, dragFrom, dragOver, selected = [] }) => {
+const Grid = ({ cols, rows, cells = [], size = 96, gap = 8, dragFrom, dragOver, selected = [], highlights = {}, overlays = [] }) => {
   const total = cols * rows;
   const arr = Array.from({length: total}, (_, i) => cells[i] || null);
   return (
@@ -49,6 +49,7 @@ const Grid = ({ cols, rows, cells = [], size = 96, gap = 8, dragFrom, dragOver, 
       gridTemplateColumns: `repeat(${cols}, ${size}px)`,
       gridTemplateRows: `repeat(${rows}, ${size}px)`,
       gap,
+      position: 'relative',
     }}>
       {arr.map((c, i) => (
         <SlotWithCount key={i} size={size}
@@ -56,8 +57,33 @@ const Grid = ({ cols, rows, cells = [], size = 96, gap = 8, dragFrom, dragOver, 
           dragFrom={dragFrom === i}
           dragOver={dragOver === i}
           selected={selected.includes(i)}
+          color={highlights[i] || null}
         />
       ))}
+      {overlays.map((o, i) => {
+        const ow = o.colSpan * size + (o.colSpan - 1) * gap;
+        const oh = o.rowSpan * size + (o.rowSpan - 1) * gap;
+        return (
+          <div key={i} style={{
+            position: 'absolute',
+            left: o.col * (size + gap),
+            top: o.row * (size + gap),
+            width: ow, height: oh,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: 2,
+          }}>
+            <span style={{
+              fontSize: oh * 0.85,
+              lineHeight: 1,
+              display: 'block',
+              transform: `scaleX(${ow / oh})`,
+              transformOrigin: 'center',
+            }}>{o.icon}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };

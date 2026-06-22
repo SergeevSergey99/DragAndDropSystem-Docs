@@ -1,6 +1,6 @@
 /** Slides 5-8 */
 
-// ============ SLIDE 5: 5 DEMOS ============
+// ============ SLIDE 5: 6 DEMOS ============
 function Slide5() {
   const demos = [
     {
@@ -39,19 +39,36 @@ function Slide5() {
         <Grid cols={2} rows={2} size={54} gap={5} cells={[{icon:'🧪'},{icon:'💎'},{icon:'🗝️'},null]}/>
       </div>
     },
+    {
+      n:'06', title:'Shaped Items', desc:'Items with custom shapes and layouts.', col:'#5E57FF',
+      preview: <div style={{display:'flex', gap:12}}>
+        <Grid cols={5} rows={3} size={36} gap={3}
+          highlights={{
+            0:'rgba(94,87,255,0.35)', 1:'rgba(94,87,255,0.35)', 5:'rgba(94,87,255,0.35)', 6:'rgba(94,87,255,0.35)',12:'rgba(94,87,255,0.35)',
+            2:'rgba(62,198,177,0.25)', 7:'rgba(62,198,177,0.25)',
+            3:'rgba(245,165,36,0.25)', 4:'rgba(245,165,36,0.25)', 8:'rgba(245,165,36,0.25)', 9:'rgba(245,165,36,0.25)',
+          }}
+          overlays={[
+            {col:0, row:0, colSpan:3, rowSpan:3, icon:'⛏'},
+            {col:2, row:0, colSpan:1, rowSpan:2, icon:'🗡'},
+            {col:3, row:0, colSpan:2, rowSpan:2, icon:'🛡️'},
+          ]}
+        />
+      </div>
+    },
   ];
 
   return (
     <SlideFrame className="bg-dots">
-      <PageTag n={5}/>
+      <PageTag n={6}/>
       <HeaderBar
         eyebrow="04 — Examples included"
-        title="5 production‑ready demo scenes."
+        title="6 production‑ready demo scenes."
         sub="Each demo is a complete integration pattern — copy, remix, or use as reference."
       />
 
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, flex:1}}>
-        {demos.slice(0,4).map((d,i)=>(
+        {demos.map((d,i)=>(
           <div key={i} style={{
             background:'var(--panel)', border:'1px solid var(--border)',
             borderRadius:14, padding:'24px 28px',
@@ -71,27 +88,9 @@ function Slide5() {
             </div>
           </div>
         ))}
-        {/* 5th demo spans both columns */}
-        <div style={{
-          gridColumn:'1 / -1',
-          background:'var(--panel)', border:'1px solid var(--border)',
-          borderRadius:14, padding:'24px 28px',
-          display:'flex', gap:24, alignItems:'center',
-          boxShadow:'0 10px 20px rgba(0,0,0,0.3)',
-        }}>
-          <div style={{flex:1, display:'flex', alignItems:'center', gap:18}}>
-            <span className="mono" style={{fontSize:34, fontWeight:700, color:demos[4].col, letterSpacing:'-0.03em'}}>{demos[4].n}</span>
-            <div style={{width:1, height:28, background:'var(--border-hi)'}}/>
-            <span style={{fontSize:26, fontWeight:600, letterSpacing:'-0.01em'}}>{demos[4].title}</span>
-            <span style={{fontSize:17, color:'var(--muted)', marginLeft:14, maxWidth:620}}>{demos[4].desc}</span>
-          </div>
-          <div style={{padding:14, background:'var(--ink)', borderRadius:10, border:'1px solid var(--border)'}}>
-            {demos[4].preview}
-          </div>
-        </div>
       </div>
 
-      <CornerMark>5 demos</CornerMark>
+      <CornerMark>6 demos</CornerMark>
     </SlideFrame>
   );
 }
@@ -321,7 +320,7 @@ function Slide8() {
           <Tag color="var(--accent-2)">Stacks • Swaps • Split</Tag>
           <Tag color="var(--accent-3)">Rules • Converters • Async</Tag>
           <Tag color="var(--green)">Multi‑select • Context menu</Tag>
-          <Tag color="var(--muted)">5 demos • full docs</Tag>
+          <Tag color="var(--muted)">6 demos • full docs</Tag>
         </div>
 
         <div style={{marginTop:70, display:'flex', alignItems:'center', gap:32}}>

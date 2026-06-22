@@ -34,7 +34,7 @@ function Slide1() {
           <Tag color="var(--accent)">Any data</Tag>
           <Tag color="var(--accent-2)">Stacks & swaps</Tag>
           <Tag color="var(--accent-3)">Rules • Converters</Tag>
-          <Tag color="var(--muted)">5 demos included</Tag>
+          <Tag color="var(--muted)">6 demos included</Tag>
         </div>
       </div>
 
