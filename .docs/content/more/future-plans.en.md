@@ -5,9 +5,6 @@ If the asset proves useful and interesting to enough people, I plan to keep expa
 At the moment, the most likely next directions are:
 
 - `UI Toolkit` support
-- support for complex item shapes
-
-By complex item shapes, I mean inventory scenarios where an item occupies more than a single cell and can have a non-trivial footprint, similar to grid-based inventory systems.
 
 ---
 

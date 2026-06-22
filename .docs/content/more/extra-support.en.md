@@ -1,4 +1,4 @@
-# Exra support
+# Extra support
 
 The asset also supports Odin Inspector to avoid conflicts between custom attributes and its Editor.
 

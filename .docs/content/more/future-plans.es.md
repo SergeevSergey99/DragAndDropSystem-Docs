@@ -5,9 +5,6 @@ Si el asset demuestra ser útil e interesante para suficientes personas, mi inte
 En este momento, las direcciones más probables son:
 
 - soporte para `UI Toolkit`
-- soporte para items con formas complejas
-
-Por formas complejas me refiero a escenarios de inventario donde un item ocupa más de una celda y puede tener una huella no trivial, similar a los sistemas de inventario basados en cuadrícula.
 
 ---
 
