@@ -22,14 +22,10 @@ function Slide1() {
     <SlideFrame className="bg-grid" style={{padding:0, overflow:'hidden'}}>
       
       {/* Left big text panel */}
-      <div style={{position:'absolute', left:170, top:0, bottom:0, width:900, display:'flex', flexDirection:'column', justifyContent:'center', zIndex:3}}>
+      <div style={{position:'absolute', left:280, top:0, bottom:0, width:900, display:'flex', flexDirection:'column', justifyContent:'center', zIndex:3}}>
         <h1 style={{fontSize:130, fontWeight:800, margin:0, letterSpacing:'-0.035em', lineHeight:0.95, textWrap:'balance'}}>
           Universal<br/>Drag<span style={{color:'var(--accent)'}}>&</span>Drop
         </h1>
-        <div style={{marginTop:36, fontSize:30, color:'var(--muted)', lineHeight:1.35, maxWidth:720}}>
-          Inventory & drag‑and‑drop for
-          <span style={{color:'var(--text)'}}> your existing data model</span>.
-        </div>
         <div style={{marginTop:44, display:'flex', gap:10, flexWrap:'wrap'}}>
           <Tag color="var(--accent)">Any data</Tag>
           <Tag color="var(--accent-2)">Stacks & swaps</Tag>
@@ -39,7 +35,7 @@ function Slide1() {
       </div>
 
       {/* Right: two inventories with drag-line */}
-      <div style={{position:'absolute', right:-40, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
+      <div style={{position:'absolute', right:70, top:120, bottom:120, width:1020, display:'flex', alignItems:'center', justifyContent:'center'}}>
         <div style={{position:'relative', transform:'rotate(-6deg)', transformOrigin:'center'}}>
           <Panel title="Backpack" style={{marginRight:240, marginBottom:200}}>
             <Grid cols={4} rows={3} cells={leftGrid} size={92} dragFrom={2}/>
