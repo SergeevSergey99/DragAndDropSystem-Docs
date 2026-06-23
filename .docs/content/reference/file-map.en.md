@@ -17,6 +17,19 @@ The tables below list every script file and describe the main class, interface, 
 
 ---
 
+## Quick Map
+
+| If you are looking for... | Look at |
+|---|---|
+| The main inventory component | `UniversalInventory`, `BaseSlot`, `UniversalSlot` |
+| UI-to-data synchronization | `InventoryDataBindingBase` and one of the list / slot-indexed / mapped bindings |
+| Transfer logic | `InventoryDropProcessor`, `InventoryTransferService`, `IStrategy` |
+| Acceptance rules | `IDragRule`, `BuiltInRules`, `RuleEvaluationService` |
+| Shaped items | `PlacementInventoryDataBinding`, `IPlacementInventory`, `IPlacementShape` |
+| Integration examples | Demo1-Demo6 pages in [Examples](../examples/index.md) |
+
+---
+
 ## Core Entry Points
 
 | File | Types | Role |
@@ -28,6 +41,9 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Base class that connects `UniversalInventory` to your game data source. |
 
 ---
+
+<details markdown="1">
+<summary>Full file list by subsystem</summary>
 
 ## Core Models And Contracts
 
@@ -440,6 +456,10 @@ The tables below list every script file and describe the main class, interface, 
 | `Examples/Demo6 Shaped Items/Adapters/ShapedItemAdapter.cs` | `ShapedItemAdapter` | Adapter that implements `IItemPlacementShapeProvider` and exposes a `ComplexPlacementShape`. |
 | `Examples/Demo6 Shaped Items/DataBindings/ShapedItemsInventoryDataBinding.cs` | `ShapedPlacementSeed`, `ShapedItemsInventoryDataBinding` | Placement-aware binding that stores item, anchor index, and orientation. |
 | `Examples/Demo6 Shaped Items/Editor/ComplexShapedItemExampleSOEditor.cs` | `ComplexShapedItemExampleSOEditor` | Custom inspector with a clickable grid for editing a complex footprint over the icon sprite. |
+
+---
+
+</details>
 
 ---
 

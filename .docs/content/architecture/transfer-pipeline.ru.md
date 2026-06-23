@@ -18,12 +18,34 @@
 
 ```mermaid
 flowchart TD
-    DROP["Отпускание предмета"] --> VETO["Вето на весь перенос<br/>CanStartTransfer"]
-    VETO -->|разрешено| LOOP["По каждой записи, по порядку"]
-    VETO -->|отклонено| STOP["Ничего не меняется"]
-    LOOP --> ENTRY["Перенос одной записи по текущему состоянию"]
-    ENTRY --> COMMIT["Фиксация: события + синхронизация данных"]
-    COMMIT --> LOOP
+    UI["UI / DropArea<br/>InventoryDropProcessor"] --> POLICY["ResolvedDropPolicy<br/>заблокированная цель, частичный перенос, упорядочиватель"]
+    POLICY --> START["Вето на весь перенос<br/>CanStartTransfer / CanStartTransferAsync"]
+    START -->|отклонено| STOP["Остановиться до мутаций"]
+    START -->|разрешено| ENTRY["Следующая DragEntry<br/>текущее реальное состояние"]
+    ENTRY --> CONVERT["Конвертация для превью<br/>адаптер в модели цели"]
+    CONVERT --> CHECKPOINT["Контрольная точка<br/>источник + цель"]
+    CHECKPOINT --> TARGET{"Есть явная цель?"}
+    TARGET -->|да| TRY["IStrategy.TryGetCandidate"]
+    TARGET -->|нет| ENUM["IStrategy.GetCandidates"]
+    TRY --> CANDIDATE{"Кандидат подходит?"}
+    CANDIDATE -->|заблокирован| BLOCKED["BlockedTargetResolution<br/>Reject / FindAlternative / Swap"]
+    BLOCKED -->|альтернатива| ENUM
+    BLOCKED -->|swap| SWAP["Путь swap"]
+    BLOCKED -->|reject| ROLLBACK["Откатить эту запись"]
+    ENUM --> ORDER["PlacementCandidateOrderer"]
+    ORDER --> PLACE["Выбранное размещение"]
+    CANDIDATE -->|подходит| PLACE
+    PLACE --> COMMITCHECK["CanCommitTransfer<br/>топология + доменные проверки"]
+    COMMITCHECK -->|отклонено| ROLLBACK
+    COMMITCHECK -->|разрешено| MUTATE["Изменить инвентарь<br/>merge / create / place"]
+    SWAP --> COMMITCHECK
+    MUTATE --> REMAINDER{"Есть остаток?"}
+    REMAINDER -->|да| ENUM
+    REMAINDER -->|нет| COMMIT["Зафиксировать запись<br/>события + синхронизация DataBinding"]
+    ROLLBACK --> NEXT{"Есть ещё записи?"}
+    COMMIT --> NEXT
+    NEXT -->|да| ENTRY
+    NEXT -->|нет| REPORT["Отчёт о переносе"]
 ```
 
 Ключевые идеи:

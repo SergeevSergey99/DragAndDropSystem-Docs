@@ -2,141 +2,38 @@
 
 This section describes the **demo scenes shipped in `Examples/`**: how they are composed, which patterns they demonstrate, and which files are worth reading first.
 
-The Examples section answers questions:
+Use this page as a chooser. If you already know what problem you are solving, jump straight to the matching demo; otherwise start with the table below.
 
-- how each demo is structured by layers
-- where data, adapters, bindings, and UI live
-- how the main interaction flow works
-- which files to inspect if you want to reuse the pattern in your own game
+## Quick chooser
 
----
+| Task | Start with | Key systems | Complexity |
+|---|---|---|---|
+| Basic inventory list, simple rules, and drop areas | [Demo1 Inventories](demo1-inventories.md) | `ListInventoryDataBinding`, local hooks, rules | Low |
+| Chest UI, pickup/drop, and world object integration | [Demo2 Loot](demo2-loot.md) | world interaction, chest binding, filters | Medium |
+| Hotbar, inventory, craft grid, and result slot | [Demo3 Craft](demo3-Craft.md) | `SlotIndexedInventoryDataBinding`, `CraftingManager`, craft result | Medium |
+| Trading, gold, equipment, and data model conversion | [Demo4 Trading](demo4-trading.md) | converters, domain checks, fixed equipment slots | High |
+| An item that contains its own nested inventory | [Demo5 Containers](demo5-containers.md) | context menu, nested binding, occupied-slot handler | High |
+| Multi-cell items, shapes, anchors, rotation, and cell preview | [Demo6 Shaped Items](demo6-shaped-items.md) | placement topology, shapes, rotation actions | High |
 
-## How to read this section
+## What each demo shows
 
-Each demo page explains:
+| Demo | What it shows | Start with these files |
+|---|---|---|
+| [Demo1 Inventories](demo1-inventories.md) | The simplest item list, basic binding, and local drag/drop checks. | `Examples/Demo1 Inventories/BasicListDataBinding.cs`, `Examples/Demo1 Inventories/ItemAdapterSoAdapter.cs` |
+| [Demo2 Loot](demo2-loot.md) | A "world -> event -> UI -> inventory" flow, chests, pickup/drop, and filters. | `Examples/Demo2 Loot/ChestInventoryController.cs`, `Examples/Demo2 Loot/WorldDropManager.cs` |
+| [Demo3 Craft](demo3-Craft.md) | Slot-indexed data, craft grid, hotbar, and a dedicated result inventory. | `Examples/Demo3 Craft/CraftingManager.cs`, `Examples/Demo3 Craft/Data/CraftResultDataBinding.cs` |
+| [Demo4 Trading](demo4-trading.md) | Transfers across different data models, prices, gold, and equipment slots. | `Examples/Demo4 Trading/Domain/TradeDomainHandler.cs`, `Examples/Demo4 Trading/Converters/*` |
+| [Demo5 Containers](demo5-containers.md) | A container as both an item and a data source, nested inventory, and cycle protection. | `Examples/Demo5 Containers/ContainerItemData.cs`, `Examples/Demo5 Containers/ContainerUIController.cs` |
+| [Demo6 Shaped Items](demo6-shaped-items.md) | Shaped grid items: footprint, anchor, orientation, rotation, and covered-cell preview. | `Examples/Demo6 Shaped Items/ShapedItemSO.cs`, `Examples/Demo6 Shaped Items/ShapedItemAdapter.cs` |
 
-1. **What the demo shows**
-2. **How it is structured**
-3. **How the main scenario works**
-4. **Which files to inspect**
+## How to read demo pages
 
-The goal is to help you understand the architectural shape of scene quickly.
+Each demo page answers four questions:
 
----
-
-## Included demos
-
-### [Demo1 Inventories](demo1-inventories.md)
-
-Use it for:
-
-- the simplest list-based inventory example
-- understanding `ListInventoryDataBinding` without extra domain complexity
-- local `CanStartDrag` and `CanDrop` overrides
-
-Shows:
-
-- `ListInventoryDataBinding<ItemExampleSO, ItemAdapterSoAdapter>`
-- loading a list into UI
-- drop areas
-- basic inventory rules
-
-`Examples/Demo1 Inventories/*`
-
-### [Demo2 Loot](demo2-loot.md)
-
-Use it for:
-
-- world -> event -> UI -> inventory flow
-- chests and interaction-driven UI opening
-- pickup / drop flows connected to world objects
-
-Shows:
-
-- changing the chest's data binding data source
-- world drop / pickup integration
-- item filters
-
-`Examples/Demo2 Loot/*`
-
-### [Demo3 Craft](demo3-Craft.md)
-
-Use it for:
-
-- slot-indexed inventories
-- a crafting grid plus a dedicated result slot
-- per-slot max stack rules
-
-Shows:
-
-- `SlotIndexedInventoryDataBinding`
-- separate hotbar / inventory / craft table bindings
-- `CraftingManager` as the domain source of truth
-- `CraftResultDataBinding` as a custom read-only output inventory
-
-`Examples/Demo3 Craft/*`
-
-### [Demo4 Trading](demo4-trading.md)
-
-Use it for:
-
-- data conversions between inventories are needed 
-- the operation depends on money, prices and checks at the time of transfer
-
-Shows:
-
-- player / merchants / equipment inventories
-- `ListInventoryDataBinding` and `MappedSlotInventoryDataBinding`
-- data models changes during cross-inventory transfers
-
-`Examples/Demo4 Trading/*`
-
-### [Demo5 Containers](demo5-containers.md)
-
-Use it for:
-
-- items that contain their own inventory
-- opening a nested container from a context menu
-- the item must drop into the slot occupied by the container item and must be protected from cycles
-
-Shows:
-
-- item instances instead of plain ScriptableObject rows
-- a container acting as both an item and a data source
-- `ContainerUIController` and active-container switching
-- safeguards such as "a container cannot be placed into itself"
-
-`Examples/Demo5 Containers/*`
-
-### [Demo6 Shaped Items](demo6-shaped-items.md)
-
-Use it for:
-
-- items that occupy multiple cells in an inventory grid
-- storing an item's anchor and orientation
-- drag-time rotation and non-rectangular footprints
-
-Shows:
-
-- `PlacementInventoryDataBinding`
-- `IItemPlacementShapeProvider`
-- `ComplexPlacementShape` and rectangular shapes
-- grid topology, covered-cell preview, and rotation actions
-
-`Examples/Demo6 Shaped Items/*`
-
----
-
-## How to choose a demo
-
-| If you need | Start with |
-|---|---|
-| Basic inventory list + simple hooks | [Demo1 Inventories](demo1-inventories.md) |
-| Chest UI and world interaction | [Demo2 Loot](demo2-loot.md) |
-| Crafting grid and slot-indexed data | [Demo3 Craft](demo3-Craft.md) |
-| Trading, conversion, and gold logic | [Demo4 Trading](demo4-trading.md) |
-| Nested containers and context menu | [Demo5 Containers](demo5-containers.md) |
-| Multi-cell items and grid rotation | [Demo6 Shaped Items](demo6-shaped-items.md) |
+- what the demo shows
+- which runtime objects participate
+- how the main scenario flows
+- which files to inspect if you want to reuse the pattern in your own project
 
 ---
 
@@ -153,3 +50,4 @@ Shows:
 - [Quick Start](../getting-started/quick-start.md) — for a basic setup from scratch
 - [Data Binding](../architecture/data-binding.md) — for the full lifecycle and hooks
 - [Transfer Pipeline](../architecture/transfer-pipeline.md) — for transfer order and rollback details
+- [File Map](../reference/file-map.md) — for quickly finding a concrete runtime or example type

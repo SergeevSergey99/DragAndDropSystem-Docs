@@ -18,12 +18,34 @@ Ver también:
 
 ```mermaid
 flowchart TD
-    DROP["Se suelta un objeto"] --> VETO["Veto de toda la transferencia<br/>CanStartTransfer"]
-    VETO -->|permitido| LOOP["Por cada entry, en orden"]
-    VETO -->|rechazado| STOP["No cambia nada"]
-    LOOP --> ENTRY["Transferir una entry contra el estado real actual"]
-    ENTRY --> COMMIT["Confirmar: eventos + sincronización de datos"]
-    COMMIT --> LOOP
+    UI["UI / DropArea<br/>InventoryDropProcessor"] --> POLICY["ResolvedDropPolicy<br/>destino bloqueado, modo parcial, ordenador"]
+    POLICY --> START["Veto de toda la transferencia<br/>CanStartTransfer / CanStartTransferAsync"]
+    START -->|rechazado| STOP["Parar antes de mutar"]
+    START -->|permitido| ENTRY["Siguiente DragEntry<br/>estado real actual"]
+    ENTRY --> CONVERT["Conversión para previsualización<br/>adaptador visto por el destino"]
+    CONVERT --> CHECKPOINT["Punto de control<br/>origen + destino"]
+    CHECKPOINT --> TARGET{"Destino explícito?"}
+    TARGET -->|sí| TRY["IStrategy.TryGetCandidate"]
+    TARGET -->|no| ENUM["IStrategy.GetCandidates"]
+    TRY --> CANDIDATE{"Candidato válido?"}
+    CANDIDATE -->|bloqueado| BLOCKED["BlockedTargetResolution<br/>Reject / FindAlternative / Swap"]
+    BLOCKED -->|alternativa| ENUM
+    BLOCKED -->|swap| SWAP["Ruta swap"]
+    BLOCKED -->|rechazar| ROLLBACK["Revertir esta entry"]
+    ENUM --> ORDER["PlacementCandidateOrderer"]
+    ORDER --> PLACE["Colocación elegida"]
+    CANDIDATE -->|válido| PLACE
+    PLACE --> COMMITCHECK["CanCommitTransfer<br/>topología + comprobaciones de dominio"]
+    COMMITCHECK -->|rechazado| ROLLBACK
+    COMMITCHECK -->|permitido| MUTATE["Modificar inventario<br/>merge / create / place"]
+    SWAP --> COMMITCHECK
+    MUTATE --> REMAINDER{"Resto?"}
+    REMAINDER -->|sí| ENUM
+    REMAINDER -->|no| COMMIT["Confirmar entry<br/>eventos + sincronización DataBinding"]
+    ROLLBACK --> NEXT{"Más entries?"}
+    COMMIT --> NEXT
+    NEXT -->|sí| ENTRY
+    NEXT -->|no| REPORT["Informe de transferencia"]
 ```
 
 Ideas clave:

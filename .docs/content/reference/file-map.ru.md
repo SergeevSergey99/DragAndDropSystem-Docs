@@ -17,6 +17,19 @@
 
 ---
 
+## Быстрая карта
+
+| Если вы ищете... | Смотрите |
+|---|---|
+| Главный компонент inventory | `UniversalInventory`, `BaseSlot`, `UniversalSlot` |
+| Связь UI с вашими данными | `InventoryDataBindingBase` и один из list / slot-indexed / mapped bindings |
+| Логику переноса | `InventoryDropProcessor`, `InventoryTransferService`, `IStrategy` |
+| Правила допуска | `IDragRule`, `BuiltInRules`, `RuleEvaluationService` |
+| Фигурные предметы | `PlacementInventoryDataBinding`, `IPlacementInventory`, `IPlacementShape` |
+| Примеры интеграции | страницы Demo1-Demo6 в разделе [Примеры](../examples/index.md) |
+
+---
+
 ## Главные точки входа
 
 | Файл | Types | Назначение |
@@ -28,6 +41,9 @@
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Базовый binding, связывающий `UniversalInventory` с вашим источником игровых данных. |
 
 ---
+
+<details markdown="1">
+<summary>Полный список файлов по подсистемам</summary>
 
 ## Базовые модели и контракты
 
@@ -440,6 +456,10 @@
 | `Examples/Demo6 Shaped Items/Adapters/ShapedItemAdapter.cs` | `ShapedItemAdapter` | Adapter, который реализует `IItemPlacementShapeProvider` и отдаёт `ComplexPlacementShape`. |
 | `Examples/Demo6 Shaped Items/DataBindings/ShapedItemsInventoryDataBinding.cs` | `ShapedPlacementSeed`, `ShapedItemsInventoryDataBinding` | Placement-aware binding, который хранит item, anchor index и orientation. |
 | `Examples/Demo6 Shaped Items/Editor/ComplexShapedItemExampleSOEditor.cs` | `ComplexShapedItemExampleSOEditor` | Custom inspector с clickable grid для редактирования complex footprint-а поверх icon sprite. |
+
+---
+
+</details>
 
 ---
 

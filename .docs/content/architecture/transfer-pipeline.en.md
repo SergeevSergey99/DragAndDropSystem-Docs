@@ -18,12 +18,34 @@ See also:
 
 ```mermaid
 flowchart TD
-    DROP["Drop happens"] --> VETO["Transfer-wide veto<br/>CanStartTransfer"]
-    VETO -->|allowed| LOOP["For each dragged entry, in order"]
-    VETO -->|rejected| STOP["Nothing changes"]
-    LOOP --> ENTRY["Transfer one entry against current real state"]
-    ENTRY --> COMMIT["Commit it: events + data sync"]
-    COMMIT --> LOOP
+    UI["UI / DropArea<br/>InventoryDropProcessor"] --> POLICY["ResolvedDropPolicy<br/>blocked target, partial mode, orderer"]
+    POLICY --> START["Transfer-wide veto<br/>CanStartTransfer / CanStartTransferAsync"]
+    START -->|rejected| STOP["Stop before mutation"]
+    START -->|allowed| ENTRY["Next DragEntry<br/>real current state"]
+    ENTRY --> CONVERT["Preview conversion<br/>target-side adapter"]
+    CONVERT --> CHECKPOINT["Checkpoint<br/>source + target"]
+    CHECKPOINT --> TARGET{"Explicit target?"}
+    TARGET -->|yes| TRY["IStrategy.TryGetCandidate"]
+    TARGET -->|no| ENUM["IStrategy.GetCandidates"]
+    TRY --> CANDIDATE{"Candidate valid?"}
+    CANDIDATE -->|blocked| BLOCKED["BlockedTargetResolution<br/>Reject / FindAlternative / Swap"]
+    BLOCKED -->|alternative| ENUM
+    BLOCKED -->|swap| SWAP["Swap path"]
+    BLOCKED -->|reject| ROLLBACK["Rollback this entry"]
+    ENUM --> ORDER["PlacementCandidateOrderer"]
+    ORDER --> PLACE["Selected placement"]
+    CANDIDATE -->|valid| PLACE
+    PLACE --> COMMITCHECK["CanCommitTransfer<br/>topology + domain checks"]
+    COMMITCHECK -->|rejected| ROLLBACK
+    COMMITCHECK -->|allowed| MUTATE["Mutate inventory<br/>merge / create / place"]
+    SWAP --> COMMITCHECK
+    MUTATE --> REMAINDER{"Remainder?"}
+    REMAINDER -->|yes| ENUM
+    REMAINDER -->|no| COMMIT["Commit entry<br/>events + DataBinding sync"]
+    ROLLBACK --> NEXT{"More entries?"}
+    COMMIT --> NEXT
+    NEXT -->|yes| ENTRY
+    NEXT -->|no| REPORT["Transfer report"]
 ```
 
 Key ideas:

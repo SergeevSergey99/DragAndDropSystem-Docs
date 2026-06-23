@@ -2,141 +2,38 @@
 
 Этот раздел описывает **demo-сцены из папки `Examples/`**: из каких частей они состоят, какие паттерны показывают и какие файлы смотреть в коде.
 
-Этот раздел примеров отвечает на вопросы:
+Используйте эту страницу как карту выбора. Если вы уже знаете, какую задачу решаете, переходите сразу к нужному demo; если нет — начните с таблицы ниже.
 
-- как конкретный demo устроен по слоям
-- где в нём находятся данные, адаптеры, биндинги и UI
-- как проходит основной процесс внутри сцены
-- какие файлы смотреть, если вы хотите вынести паттерн в свой проект
+## Быстрый выбор
 
----
+| Задача | Начните с | Ключевые системы | Сложность |
+|---|---|---|---|
+| Базовый inventory list, простые rules и drop areas | [Demo1 Inventories](demo1-inventories.md) | `ListInventoryDataBinding`, local hooks, rules | Низкая |
+| Сундук, pickup/drop и связь UI с объектами мира | [Demo2 Loot](demo2-loot.md) | world interaction, chest binding, filters | Средняя |
+| Hotbar, inventory, craft grid и result slot | [Demo3 Craft](demo3-Craft.md) | `SlotIndexedInventoryDataBinding`, `CraftingManager`, craft result | Средняя |
+| Торговля, золото, equipment и конвертация моделей | [Demo4 Trading](demo4-trading.md) | converters, domain checks, fixed equipment slots | Высокая |
+| Предмет-контейнер с собственным вложенным inventory | [Demo5 Containers](demo5-containers.md) | context menu, nested binding, occupied-slot handler | Высокая |
+| Multi-cell предметы, shape, anchor, rotation и preview клеток | [Demo6 Shaped Items](demo6-shaped-items.md) | placement topology, shapes, rotation actions | Высокая |
 
-## Как читать этот раздел
+## Что показывает каждое демо
 
-Каждая страница примера описывает:
+| Demo | Что показывает | Файлы, с которых начать |
+|---|---|---|
+| [Demo1 Inventories](demo1-inventories.md) | Самый простой список предметов, базовый binding и локальные проверки drag/drop. | `Examples/Demo1 Inventories/BasicListDataBinding.cs`, `Examples/Demo1 Inventories/ItemAdapterSoAdapter.cs` |
+| [Demo2 Loot](demo2-loot.md) | Поток "мир -> событие -> UI -> инвентарь", сундуки, pickup/drop и фильтры. | `Examples/Demo2 Loot/ChestInventoryController.cs`, `Examples/Demo2 Loot/WorldDropManager.cs` |
+| [Demo3 Craft](demo3-Craft.md) | Slot-indexed данные, craft grid, hotbar и отдельный result inventory. | `Examples/Demo3 Craft/CraftingManager.cs`, `Examples/Demo3 Craft/Data/CraftResultDataBinding.cs` |
+| [Demo4 Trading](demo4-trading.md) | Перенос между разными моделями данных, цены, золото и equipment slots. | `Examples/Demo4 Trading/Domain/TradeDomainHandler.cs`, `Examples/Demo4 Trading/Converters/*` |
+| [Demo5 Containers](demo5-containers.md) | Контейнер как item и как источник данных, nested inventory и защита от циклов. | `Examples/Demo5 Containers/ContainerItemData.cs`, `Examples/Demo5 Containers/ContainerUIController.cs` |
+| [Demo6 Shaped Items](demo6-shaped-items.md) | Фигурные предметы в grid: footprint, anchor, orientation, rotation и covered-cell preview. | `Examples/Demo6 Shaped Items/ShapedItemSO.cs`, `Examples/Demo6 Shaped Items/ShapedItemAdapter.cs` |
 
-1. **Что показывает демо**
-2. **Как оно устроено**
-3. **Как работает основной сценарий**
-4. **Какие файлы смотреть**
+## Как читать страницы demo
 
-Идея раздела в том, чтобы быстро понять архитектуру сцены.
+Каждая страница примера отвечает на четыре вопроса:
 
----
-
-## Какие демо входят в пакет
-
-### [Demo1 Inventories](demo1-inventories.md)
-
-Когда использовать:
-
-- нужен самый простой пример списка предметов
-- хотите посмотреть `ListInventoryDataBinding` без лишней логики
-- нужен пример локальных `CanStartDrag` и `CanDrop`
-
-Что показывает:
-
-- `ListInventoryDataBinding<ItemExampleSO, ItemAdapterSoAdapter>`
-- загрузку списка в UI
-- области дропа
-- базовые правила инвентаря
-
-`Examples/Demo1 Inventories/*`
-
-### [Demo2 Loot](demo2-loot.md)
-
-Когда использовать:
-
-- нужен пример "мир -> событие -> UI -> инвентарь"
-- нужны сундуки и открытие панели по взаимодействию
-- нужен pickup/drop предметов, связанных с миром
-
-Что показывает:
-
-- смена источника данных data binding-а сундука
-- интеграцию с world drop / pickup
-- фильтры предметов
-
-`Examples/Demo2 Loot/*`
-
-### [Demo3 Craft](demo3-Craft.md)
-
-Когда использовать:
-
-- нужен слот-индексированный инвентарь
-- нужен крафт по сетке и отдельный слот результата
-- нужен пример максимального размера стека на слот
-
-Что показывает:
-
-- `SlotIndexedInventoryDataBinding`
-- раздельные hotbar / inventory / craft table
-- `CraftingManager` как единый источник данных
-- `CraftResultDataBinding` как кастомный тип инвентаря для доставания результата
-
-`Examples/Demo3 Craft/*`
-
-### [Demo4 Trading](demo4-trading.md)
-
-Когда использовать:
-
-- нужны конвертации данных между инвентарями
-- операция зависит от денег, цен и проверок в момент переноса
-
-Что показывает:
-
-- инвентари игрок / продавцов / снаряжения
-- `ListInventoryDataBinding` и `MappedSlotInventoryDataBinding`
-- предметы при переносе меняют вид своих моделей данных
-
-`Examples/Demo4 Trading/*`
-
-### [Demo5 Containers](demo5-containers.md)
-
-Когда использовать:
-
-- предмет может сам содержать другой inventory
-- нужно открывать вложенный контейнер из контекстного меню
-- нужнен дроп предмета в занятый предметом-контейнером слот и защита от циклов
-
-Что показывает:
-
-- item instances вместо простых SO-элементов
-- контейнер как предмет и как источник данных одновременно
-- `ContainerUIController` и переключение активного контейнера
-- ограничения вида "контейнер нельзя положить в самого себя"
-
-`Examples/Demo5 Containers/*`
-
-### [Demo6 Shaped Items](demo6-shaped-items.md)
-
-Когда использовать:
-
-- предметы занимают несколько клеток inventory grid
-- нужно хранить anchor и orientation предмета
-- нужны поворот при drag и non-rectangular footprint-ы
-
-Что показывает:
-
-- `PlacementInventoryDataBinding`
-- `IItemPlacementShapeProvider`
-- `ComplexPlacementShape` и прямоугольные формы
-- grid topology, preview covered cells и rotation actions
-
-`Examples/Demo6 Shaped Items/*`
-
----
-
-## Как выбрать нужное демо
-
-| Если вам нужно | Начните с |
-|---|---|
-| Базовый inventory list + простые hooks | [Demo1 Inventories](demo1-inventories.md) |
-| UI для сундука и связь с миром | [Demo2 Loot](demo2-loot.md) |
-| Сетка крафта и slot-indexed data | [Demo3 Craft](demo3-Craft.md) |
-| Торговля, конвертация и золото | [Demo4 Trading](demo4-trading.md) |
-| Вложенные контейнеры и context menu | [Demo5 Containers](demo5-containers.md) |
-| Multi-cell предметы и поворот в grid | [Demo6 Shaped Items](demo6-shaped-items.md) |
+- что показывает demo
+- какие runtime-объекты участвуют
+- как проходит основной сценарий
+- какие файлы смотреть, если вы хотите перенести паттерн в свой проект
 
 ---
 
@@ -153,3 +50,4 @@
 - [Quick Start](../getting-started/quick-start.md) — если нужен базовый запуск с нуля
 - [Data Binding](../architecture/data-binding.md) — если нужен полный lifecycle hooks
 - [Transfer Pipeline](../architecture/transfer-pipeline.md) — если нужно понять порядок переноса и rollback
+- [Карта файлов](../reference/file-map.md) — если нужно быстро найти конкретный runtime- или example-тип
