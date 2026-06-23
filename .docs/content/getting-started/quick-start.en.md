@@ -160,7 +160,7 @@ flowchart LR
 
 ## What Next
 
-- [Examples](../examples/index.md) — if you want to choose from all 5 demos
+- [Examples](../examples/index.md) — if you want to choose from all 6 demos
 - [Data Binding](../architecture/data-binding.md) — if you need to understand the lifecycle and extension points
 - [Placement Strategies](../architecture/strategies.md) — if you want to add your own strategy or slot management mode
 - [Troubleshooting](../reference/troubleshooting.md) — if the basic scene does not work on the first try

@@ -161,7 +161,7 @@ flowchart LR
 
 ## Что дальше
 
-- [Примеры](../examples/index.md) — если хотите выбрать из всех 5 демо
+- [Примеры](../examples/index.md) — если хотите выбрать из всех 6 демо
 - [Привязка данных](../architecture/data-binding.md) — если нужно понять lifecycle и точки расширения
 - [Стратегии размещения](../architecture/strategies.md) — если хотите добавить свою стратегию или свой режим slot management
 - [Troubleshooting](../reference/troubleshooting.md) — если базовая сцена не завелась с первого раза

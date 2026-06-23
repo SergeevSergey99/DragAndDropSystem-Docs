@@ -83,6 +83,7 @@ nav:
     - examples/demo3-Craft.md
     - examples/demo4-trading.md
     - examples/demo5-containers.md
+    - examples/demo6-shaped-items.md
   - Core Concepts:
     - architecture/data-binding.md
     - architecture/binding-templates.md

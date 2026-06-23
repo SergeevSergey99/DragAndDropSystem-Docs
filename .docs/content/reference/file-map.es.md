@@ -386,6 +386,18 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 ---
 
+## Ejemplo: Demo6 Shaped Items
+
+| File | Types | Rol |
+|---|---|---|
+| `Examples/Demo6 Shaped Items/ShapedItemExampleSO.cs` | `ShapedItemExampleSO` | Definición ScriptableObject base para shaped items rectangulares mediante width/height. |
+| `Examples/Demo6 Shaped Items/ComplexShapedItemExampleSO.cs` | `ComplexShapedItemExampleSO` | Definición ScriptableObject para un footprint no rectangular mediante una máscara bool de celdas ocupadas. |
+| `Examples/Demo6 Shaped Items/Adapters/ShapedItemAdapter.cs` | `ShapedItemAdapter` | Adapter que implementa `IItemPlacementShapeProvider` y expone un `ComplexPlacementShape`. |
+| `Examples/Demo6 Shaped Items/DataBindings/ShapedItemsInventoryDataBinding.cs` | `ShapedPlacementSeed`, `ShapedItemsInventoryDataBinding` | Binding placement-aware que guarda item, anchor index y orientation. |
+| `Examples/Demo6 Shaped Items/Editor/ComplexShapedItemExampleSOEditor.cs` | `ComplexShapedItemExampleSOEditor` | Inspector personalizado con grid clickable para editar un footprint complejo sobre el icon sprite. |
+
+---
+
 ## Qué abrir primero para tareas comunes
 
 | Si necesitas... | Abre primero estos archivos |
@@ -400,3 +412,4 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | Añadir contenido de tooltip | `IDescribable.cs`, `TooltipManager.cs`, `DefaultTooltipView.cs` |
 | Entender la integración de world drop | `DropAreaBase.cs`, `InventoryDropArea.cs`, `WorldDropZone.cs` |
 | Implementar conversión de items entre inventarios | `IItemAdapterConverter.cs`, `TransferItemConversionUtility.cs`, converters de Demo4 |
+| Crear items multi-celda en un grid inventory | `PlacementInventoryDataBinding.cs`, `IPlacementInventory.cs`, `ShapedItemAdapter.cs`, Demo6 Shaped Items |

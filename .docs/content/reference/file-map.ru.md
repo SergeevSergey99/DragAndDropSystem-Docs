@@ -386,6 +386,18 @@
 
 ---
 
+## Пример: Demo6 Shaped Items
+
+| Файл | Types | Назначение |
+|---|---|---|
+| `Examples/Demo6 Shaped Items/ShapedItemExampleSO.cs` | `ShapedItemExampleSO` | Базовое ScriptableObject-описание rectangular shaped item через width/height. |
+| `Examples/Demo6 Shaped Items/ComplexShapedItemExampleSO.cs` | `ComplexShapedItemExampleSO` | ScriptableObject-описание non-rectangular footprint-а через bool-маску занятых клеток. |
+| `Examples/Demo6 Shaped Items/Adapters/ShapedItemAdapter.cs` | `ShapedItemAdapter` | Adapter, который реализует `IItemPlacementShapeProvider` и отдаёт `ComplexPlacementShape`. |
+| `Examples/Demo6 Shaped Items/DataBindings/ShapedItemsInventoryDataBinding.cs` | `ShapedPlacementSeed`, `ShapedItemsInventoryDataBinding` | Placement-aware binding, который хранит item, anchor index и orientation. |
+| `Examples/Demo6 Shaped Items/Editor/ComplexShapedItemExampleSOEditor.cs` | `ComplexShapedItemExampleSOEditor` | Custom inspector с clickable grid для редактирования complex footprint-а поверх icon sprite. |
+
+---
+
 ## Что открывать первым для типовых задач
 
 | Если вам нужно... | Сначала откройте |
@@ -400,3 +412,4 @@
 | Добавить tooltip content | `IDescribable.cs`, `TooltipManager.cs`, `DefaultTooltipView.cs` |
 | Понять world drop integration | `DropAreaBase.cs`, `InventoryDropArea.cs`, `WorldDropZone.cs` |
 | Реализовать конвертацию предметов между инвентарями | `IItemAdapterConverter.cs`, `TransferItemConversionUtility.cs`, конвертеры из Demo4 |
+| Сделать multi-cell предметы в grid inventory | `PlacementInventoryDataBinding.cs`, `IPlacementInventory.cs`, `ShapedItemAdapter.cs`, Demo6 Shaped Items |

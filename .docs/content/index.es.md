@@ -107,7 +107,7 @@ flowchart LR
 ## Sigue leyendo
 
 - [Quick Start](getting-started/quick-start.md) — tu primer inventario funcional
-- [Examples](examples/index.md) — visión general de las 5 demos y su arquitectura
+- [Examples](examples/index.md) — visión general de las 6 demos y su arquitectura
 - [Data Binding](architecture/data-binding.md) — dónde escribir sync, rules y business hooks
 - [Feedback](more/feedback.md) — dónde escribir sobre bugs, ideas y problemas de integración
 

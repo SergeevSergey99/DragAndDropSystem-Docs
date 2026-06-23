@@ -110,6 +110,6 @@ flowchart LR
 ## Читать далее
 
 - [Быстрый старт](getting-started/quick-start.md) — первый рабочий инвентарь
-- [Примеры](examples/index.md) — обзор всех 5 демо и их архитектуры
+- [Примеры](examples/index.md) — обзор всех 6 демо и их архитектуры
 - [Привязка данных](architecture/data-binding.md) — где писать sync, rules и business hooks
 - [Обратная связь](more/feedback.md) — куда писать о багах, идеях и проблемах интеграции

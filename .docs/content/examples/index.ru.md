@@ -108,6 +108,23 @@
 
 `Examples/Demo5 Containers/*`
 
+### [Demo6 Shaped Items](demo6-shaped-items.md)
+
+Когда использовать:
+
+- предметы занимают несколько клеток inventory grid
+- нужно хранить anchor и orientation предмета
+- нужны поворот при drag и non-rectangular footprint-ы
+
+Что показывает:
+
+- `PlacementInventoryDataBinding`
+- `IItemPlacementShapeProvider`
+- `ComplexPlacementShape` и прямоугольные формы
+- grid topology, preview covered cells и rotation actions
+
+`Examples/Demo6 Shaped Items/*`
+
 ---
 
 ## Как выбрать нужное демо
@@ -119,6 +136,7 @@
 | Сетка крафта и slot-indexed data | [Demo3 Craft](demo3-Craft.md) |
 | Торговля, конвертация и золото | [Demo4 Trading](demo4-trading.md) |
 | Вложенные контейнеры и context menu | [Demo5 Containers](demo5-containers.md) |
+| Multi-cell предметы и поворот в grid | [Demo6 Shaped Items](demo6-shaped-items.md) |
 
 ---
 

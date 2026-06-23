@@ -108,6 +108,23 @@ Shows:
 
 `Examples/Demo5 Containers/*`
 
+### [Demo6 Shaped Items](demo6-shaped-items.md)
+
+Use it for:
+
+- items that occupy multiple cells in an inventory grid
+- storing an item's anchor and orientation
+- drag-time rotation and non-rectangular footprints
+
+Shows:
+
+- `PlacementInventoryDataBinding`
+- `IItemPlacementShapeProvider`
+- `ComplexPlacementShape` and rectangular shapes
+- grid topology, covered-cell preview, and rotation actions
+
+`Examples/Demo6 Shaped Items/*`
+
 ---
 
 ## How to choose a demo
@@ -119,6 +136,7 @@ Shows:
 | Crafting grid and slot-indexed data | [Demo3 Craft](demo3-Craft.md) |
 | Trading, conversion, and gold logic | [Demo4 Trading](demo4-trading.md) |
 | Nested containers and context menu | [Demo5 Containers](demo5-containers.md) |
+| Multi-cell items and grid rotation | [Demo6 Shaped Items](demo6-shaped-items.md) |
 
 ---
 
