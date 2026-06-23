@@ -11,18 +11,22 @@
 
 `Examples/Demo6 Shaped Items/Shaped Items.unity`
 
-This sample demonstrates items that occupy a multi-cell footprint in a grid inventory instead of a single slot.
+This example shows items that occupy not one slot, but a footprint of several cells in
+a grid inventory.
 
-## What the demo shows
+## What The Demo Shows
 
-- rectangular items such as a sword, shield, and metal
-- complex non-rectangular shapes through an occupied-cell mask
+- rectangular items such as sword and shield
+- complex shapes through an occupied-cell mask, such as axe and scythe
 - `PlacementInventoryDataBinding` for item + anchor + orientation data
 - `IItemPlacementShapeProvider` on the item adapter
-- rotating an item during drag through `RotateDragAction`
-- covered-cell preview and placement validation against grid topology
+- item rotation during drag through `RotateDragAction`
+- occupied-cell preview and placement checks through topology
+- drawing items over slots
+- compatibility with regular inventories and strategies
+- bonus: an Editor for configuring item masks
 
-## How it is structured
+## How It Is Structured
 
 Item data:
 
@@ -36,63 +40,34 @@ Binding and adapter:
 - `Adapters/ShapedItemAdapter.cs`
 - `DataBindings/ShapedItemsInventoryDataBinding.cs`
 
-Editor tooling:
+Editor utility:
 
 - `Editor/ComplexShapedItemExampleSOEditor.cs`
 
-Main shape:
+## How It Works
 
-```mermaid
-flowchart TD
-    Data["ShapedPlacementSeed list"] <--> Binding["ShapedItemsInventoryDataBinding"]
-    Binding --> Adapter["ShapedItemAdapter"]
-    Adapter --> Shape["ComplexPlacementShape / Rect footprint"]
-    Binding <--> Inventory["UniversalInventory with grid topology"]
-    Inventory --> Store["PlacementStore"]
-    Store --> UI["Covered grid cells + preview"]
-```
+Transfer and rotation:
 
-## How it works
+1. During transfer, the system stores shape, anchor slot, and rotation in `DragEntry`.
+2. `Q` and `E` in the demo profile call `RotateDragAction` with rotation steps `-1` and `1`, which correspond to -90 and +90 in the grid.
+3. After a successful transfer, the binding writes item, anchor, and rotation back into the list.
 
-Loading initial items:
+## Rectangular And Complex Shapes
 
-1. `ShapedItemsInventoryDataBinding` reads the `ShapedPlacementSeed` list.
-2. It creates a `ShapedItemAdapter` for each seed.
-3. The adapter implements `IItemPlacementShapeProvider` and returns a `ComplexPlacementShape`.
-4. The binding creates `PlacementData` with `anchorIndex` and `orientation`.
-5. `PlacementInventoryDataBinding` calls `TryPlace(...)` on `IPlacementInventory`.
-6. `PlacementStore` checks that every footprint cell is inside the grid and unoccupied.
+`ShapedItemExampleSO` describes a regular rectangle through `Width` and `Height`. Its
+`GetOccupiedCells()` returns all cells inside the bounding box.
 
-Moving and rotating:
+`ComplexShapedItemExampleSO` adds the `_cells` bool mask. It allows L-, T-, cross- and
+other shapes where some cells inside the bounding box are empty. If the mask becomes
+empty by mistake, the item falls back to the base rectangle to avoid an item with no
+footprint.
 
-1. During drag, the system keeps shape, anchor, and orientation in `DragEntry`.
-2. The demo profile maps `Q` and `E` to `RotateDragAction` with steps `-1` and `1`.
-3. `RectGridTopology` normalizes orientation to 4 steps and recomputes covered cells.
-4. Drop preview shows the in-bounds part of the footprint even when the final drop is rejected.
-5. After a successful drop, the binding writes item, anchor, and orientation back to `_placements`.
+`ComplexShapedItemExampleSOEditor` draws a clickable grid over the item icon: enabled
+cells are occupied, disabled cells are empty.
 
-## Rectangular and complex shapes
+## When To Use This Example
 
-`ShapedItemExampleSO` describes a rectangle through `Width` and `Height`. Its `GetOccupiedCells()` returns every cell inside the bounding box.
-
-`ComplexShapedItemExampleSO` adds the `_cells` bool mask. It supports L, T, cross, and other shapes where part of the bounding box is empty. If the mask becomes empty, the item falls back to the base rectangle so it never has a footprint-less shape.
-
-The custom inspector `ComplexShapedItemExampleSOEditor` draws a clickable grid over the icon sprite: enabled cells are occupied, disabled cells are empty.
-
-## Files to inspect
-
-| File | Role |
-|---|---|
-| `ShapedItemExampleSO.cs` | base SO for rectangular shaped items |
-| `ComplexShapedItemExampleSO.cs` | SO with a complex occupied-cell mask |
-| `Adapters/ShapedItemAdapter.cs` | adapter with `IItemPlacementShapeProvider` |
-| `DataBindings/ShapedItemsInventoryDataBinding.cs` | placement-aware binding with anchor/orientation persistence |
-| `Editor/ComplexShapedItemExampleSOEditor.cs` | inspector for editing the footprint |
-| `SO/DefaultInteractionBindingsProfile 1.asset` | bindings for drag/drop and rotate keys |
-
-## When to use this as a starting point
-
-- items must occupy multiple cells in an inventory grid
-- you need to store item position and orientation in your own data
+- items must occupy several cells in an inventory grid
+- you need to store item position and orientation in your data
 - you need item rotation during drag
-- you need non-rectangular shapes, not only rectangles
+- you need custom shapes, not only rectangles

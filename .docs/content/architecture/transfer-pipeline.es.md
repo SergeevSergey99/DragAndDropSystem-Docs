@@ -1,251 +1,184 @@
 # Pipeline de transferencia
 
-Esta página explica qué ocurre cuando se suelta un objeto: el orden de los pasos, cómo
-se comporta cada caso común y todos los puntos donde puedes enchufar tu propia lógica.
+Esta página explica qué ocurre cuando el jugador suelta un objeto sobre un slot, un
+área de inventario o una drop zone.
 
-Está escrita para leerse sin conocer a fondo el código. Si solo recuerdas una cosa:
-**no hay un plan previo**. El sistema procesa una entrada (entry) cada vez contra el
-estado *real* del inventario y confirma sobre la marcha.
+El objetivo del pipeline es comprobar si la acción está permitida, elegir el
+comportamiento adecuado para el destino y mover el objeto o dejar los inventarios en
+un estado válido.
 
-Ver también:
-
-- [Matriz de drop policy](drop-policy-matrix.md) — los campos de la política en una tabla
-- [Estrategias de colocación](strategies.md) — cómo los objetos eligen huecos
-- [Recetario: conversión de objetos](item-conversion-cookbook.md)
-- [Logs y depuración](../reference/logs-and-debugging.md)
-
-## La idea general
+## Idea general
 
 ```mermaid
 flowchart TD
-    UI["UI / DropArea<br/>InventoryDropProcessor"] --> POLICY["ResolvedDropPolicy<br/>destino bloqueado, modo parcial, ordenador"]
-    POLICY --> START["Veto de toda la transferencia<br/>CanStartTransfer / CanStartTransferAsync"]
-    START -->|rechazado| STOP["Parar antes de mutar"]
-    START -->|permitido| ENTRY["Siguiente DragEntry<br/>estado real actual"]
-    ENTRY --> CONVERT["Conversión para previsualización<br/>adaptador visto por el destino"]
-    CONVERT --> CHECKPOINT["Punto de control<br/>origen + destino"]
-    CHECKPOINT --> TARGET{"Destino explícito?"}
-    TARGET -->|sí| TRY["IStrategy.TryGetCandidate"]
-    TARGET -->|no| ENUM["IStrategy.GetCandidates"]
-    TRY --> CANDIDATE{"Candidato válido?"}
-    CANDIDATE -->|bloqueado| BLOCKED["BlockedTargetResolution<br/>Reject / FindAlternative / Swap"]
-    BLOCKED -->|alternativa| ENUM
-    BLOCKED -->|swap| SWAP["Ruta swap"]
-    BLOCKED -->|rechazar| ROLLBACK["Revertir esta entry"]
-    ENUM --> ORDER["PlacementCandidateOrderer"]
-    ORDER --> PLACE["Colocación elegida"]
-    CANDIDATE -->|válido| PLACE
-    PLACE --> COMMITCHECK["CanCommitTransfer<br/>topología + comprobaciones de dominio"]
-    COMMITCHECK -->|rechazado| ROLLBACK
-    COMMITCHECK -->|permitido| MUTATE["Modificar inventario<br/>merge / create / place"]
-    SWAP --> COMMITCHECK
-    MUTATE --> REMAINDER{"Resto?"}
-    REMAINDER -->|sí| ENUM
-    REMAINDER -->|no| COMMIT["Confirmar entry<br/>eventos + sincronización DataBinding"]
-    ROLLBACK --> NEXT{"Más entries?"}
-    COMMIT --> NEXT
-    NEXT -->|sí| ENTRY
-    NEXT -->|no| REPORT["Informe de transferencia"]
+    DROP["El jugador suelta un objeto"] --> TARGET{"Dónde se soltó?"}
+    TARGET --> SLOT["Sobre un slot"]
+    TARGET --> AREA["Sobre un área de inventario"]
+    SLOT --> CHECK{"El slot puede aceptar el objeto?"}
+    AREA --> AUTO["Buscar un slot adecuado"]
+    AUTO --> CHECK
+    CHECK -->|sí| MOVE["Mover el objeto o unir el stack"]
+    CHECK -->|no| POLICY{"Qué permite la policy?"}
+    POLICY -->|Reject| REJECT["Rechazar la transferencia y devolver el objeto"]
+    POLICY -->|Swap| SWAP["Probar swap"]
+    POLICY -->|Find alternative| ALTERNATIVE["Probar otro slot"]
+    ALTERNATIVE --> CHECK
+    MOVE --> SYNC["Actualizar UI y datos del juego mediante DataBinding"]
+    SWAP --> SYNC
 ```
 
-Ideas clave:
+## Qué ocurre durante la transferencia
 
-- **No se precalcula nada.** El sistema no construye un plan ni una copia virtual del
-  inventario por adelantado; muta el estado real sobre la marcha.
-- **Secuencial y best-effort.** Las entries se manejan una a una; la entry N ve el
-  resultado de la entry N-1. Una entry fallida se revierte por sí sola y no deshace las
-  entries exitosas anteriores.
-- **Los objetos de una celda y los de forma usan el mismo camino.** Un objeto 1×1 es solo
-  una huella (footprint) de una celda. Nada se ramifica según "esto es una grid".
+Una transferencia típica funciona así:
 
-## Quién hace qué
-
-| Pieza | Rol en lenguaje claro |
-|---|---|
-| `InventoryDropProcessor` | La frontera. La UI y las zonas de drop la llaman; solo delega. |
-| `InventoryTransferService` | El motor. Ejecuta el bucle de entries, muta el inventario, revierte, emite eventos. |
-| `IStrategy` | Decide *qué* colocación puede usar un objeto y cuánto cabe (merge vs create, capacity, unique/stackable/separable). Es de solo lectura: nunca muta. |
-| `IPlacementGeometry` + topología | Decide *dónde* aterriza una huella: resuelve el hueco ancla, proyecta la forma orientada, comprueba límites y ocupación. |
-| Política (`ResolvedDropPolicy`) | Qué hacer cuando el destino elegido está bloqueado y si se permite una transferencia parcial. |
-| `ITransferDomainHandler` | Tu veto de lógica de negocio y efectos secundarios (dinero, servidor, propiedad). |
-
-## Una entry, paso a paso
-
-Para cada `DragEntry`, `InventoryTransferService` hace lo siguiente:
-
-1. **Resuelve el adaptador de preview del destino.** Si los dos inventarios representan
-   los objetos de forma distinta, el objeto se convierte a cómo lo ve el *destino*, sin
-   tocar aún el origen. (Ver [Conversión de objetos](item-conversion-cookbook.md).)
-2. **Construye una petición de aceptación** que describe qué se ofrece al destino.
-3. **Toma un checkpoint** del origen y el destino para poder deshacer la entry.
-4. **Elige una colocación:**
-   - Si el usuario soltó sobre un hueco concreto, pregunta a la estrategia directamente:
-     `IStrategy.TryGetCandidate(...)`. No interviene el ordenamiento.
-   - Si hace falta colocación automática, enumera `IStrategy.GetCandidates(...)` y elige
-     uno con un `PlacementCandidateOrderer`.
-5. **Antes de cada mutación revalida** topología/límites/ocupación y llama a la
-   comprobación de dominio por colocación (`CanCommitTransfer`). Luego aplica la mutación
-   (create, merge, place o swap).
-6. **Gestiona el resto.** Un stack grande puede llenar varias colocaciones; lo que no cabe
-   se devuelve al origen.
-7. **Confirma o revierte.** Si tiene éxito, emite los eventos y notificaciones de
-   DataBinding *de esta entry* antes de pasar a la siguiente. Si falla, restaura el
-   checkpoint: no se emiten eventos.
+1. El sistema resuelve el origen, el destino y la configuración activa de drop policy.
+2. Si los inventarios usan modelos de objeto distintos, el objeto se convierte al modelo
+   del inventario de destino.
+3. El sistema comprueba si el destino elegido puede aceptar el objeto.
+4. Si el destino es válido, el objeto se mueve o se une al stack del slot destino.
+5. Si el destino no es válido, `DropPolicySettings` decide qué ocurre después según las
+   opciones seleccionadas: rechazar la transferencia, buscar otro lugar o probar swap.
+6. Si tiene éxito, se envían eventos y se actualiza DataBinding. Si falla, el estado se
+   restaura desde un snapshot.
 
 ## Casos
 
-### Destino explícito válido
+### Destino bloqueado
 
-El usuario soltó sobre un hueco concreto y la estrategia lo acepta. El candidato de
-`TryGetCandidate` ya lleva la colocación/ancla resueltas y la cantidad exacta que cabe.
-El ordenamiento de candidatos **no** se usa.
-
-### Destino explícito bloqueado
-
-El hueco elegido no puede recibir el objeto (ocupado, incompatible, lleno). Lo que pasa a
-continuación lo decide `BlockedTargetResolutionKind`:
+El slot elegido no puede aceptar el objeto: está ocupado, es incompatible o está lleno.
+Lo que ocurre después lo define `BlockedTargetResolutionKind`:
 
 | Valor | Comportamiento |
 |---|---|
-| `Reject` | La entry falla. No se mueve nada. |
-| `FindAlternative` | El hueco indicado se deja intacto; el motor enumera el resto de candidatos y los ordena con el `PlacementCandidateOrderer` configurado. |
-| `Swap` | Se intenta un swap de una sola entry con el destino ocupado. |
+| `Reject` | La entrada de transferencia falla. No se mueve nada. |
+| `FindAlternative` | La estrategia devuelve candidatos disponibles y el `PlacementCandidateOrderer` configurado los ordena por prioridad. |
+| `Swap` | El sistema intenta un swap único con el destino ocupado. |
 
-`AllowSameInventoryAlternativePlacement` controla si `FindAlternative` puede elegir otro
-hueco dentro del *mismo* inventario.
+`AllowSameInventoryAlternativePlacement` controla si `FindAlternative`, al mover un
+objeto dentro del mismo inventario sobre un slot ocupado, puede elegir otro slot dentro
+de ese mismo inventario. Si no puede, el objeto permanece donde estaba antes del intento
+de transferencia.
 
 ### Drop en área / auto-transferencia
 
-No hay hueco concreto (el usuario soltó sobre el área del inventario, o un doble clic /
-auto-move disparó `AutoTransferService`). El motor se salta el paso de destino explícito y
-va directo a enumerar y ordenar candidatos.
+No hay un slot concreto: el jugador soltó el objeto sobre el área del inventario, o un
+doble clic / auto-transferencia inició `AutoTransferService`. El motor omite el destino
+explícito y pide candidatos directamente a la estrategia, luego los ordena.
 
-### Un stack grande que ocupa varias colocaciones
+### Stack grande repartido en varios lugares
 
-Un stack de 10 sigue siendo **una entry**, aunque el destino lo reparta en varias
-colocaciones. El motor:
+Un stack de 10 sigue siendo una sola entrada de transferencia aunque el destino lo
+reparta en varios lugares. El motor:
 
-1. crea un stack de trabajo del tamaño solicitado;
-2. pide a la estrategia candidatos con capacity (Unique → 1 cada uno, Stackable →
-   merge one-per-id, Separable → hasta el máximo por stack);
-3. separa exactamente esa cantidad y aplica el candidato;
-4. vuelve a enumerar candidatos contra el estado ya cambiado y repite;
+1. crea un stack de trabajo con la cantidad solicitada;
+2. pide a la estrategia slots candidatos con capacidad libre, por ejemplo un objeto por
+   slot para `UniqueItemStrategy`;
+3. toma exactamente esa cantidad y aplica el candidato;
+4. procesa los candidatos otra vez contra el estado ya cambiado y repite hasta que se
+   agote el stack o los slots del inventario;
 5. devuelve al origen lo que no cupo.
 
-Ejemplo: 10 objetos a un inventario Unique con 6 huecos libres → 6 transferidos, 4
-devueltos, reportado como `RequestedAmount = 10, TransferredAmount = 6`.
+Ejemplo: 10 objetos a un inventario Unique con 6 slots libres significa 6 transferidos y
+4 devueltos.
 
-### Parcial vs completo
+### Parcial o completo
 
-`PartialTransferMode` decide qué hacer cuando solo cabe parte de una entry:
+El parámetro `_allowPartial` de la policy del inventario decide qué ocurre cuando solo
+cabe parte de una entrada de transferencia:
 
-- `Allow` — confirma lo que cabe y devuelve el resto al origen.
-- `RequireFull` — si no se puede colocar todo, revierte la entry.
-
-Esto es **por entry**. `RequireFull` nunca deshace entries anteriores de un lote.
+- `true` = `Allow` — confirma lo que cabe y devuelve el resto al origen.
+- `false` = `RequireFull` — si no puede colocarse toda la cantidad, la entrada se revierte.
 
 ### Movimiento dentro del mismo inventario
 
-Al mover dentro de un inventario, la huella del origen no se libera a ciegas: un intento
-parcial mantiene el origen ocupado y lo excluye de la lista de candidatos, para que las
-colocaciones de destino no ocupen justo las celdas a las que el resto debería volver. Una
-reubicación completa puede hacer un intento aparte con el origen eliminado temporalmente, y
-debe mover toda la entry o revertir.
+Al mover dentro del mismo inventario, el origen no se libera a ciegas. Un intento parcial
+mantiene el origen ocupado y lo excluye de la lista de candidatos, para que los lugares de
+destino no ocupen justo las celdas a las que el resto debería volver. Un movimiento
+completo puede hacer un intento aparte con el origen eliminado temporalmente, y debe mover
+toda la entrada o revertirse.
 
-### Destino ocupado con un handler
+### Destino ocupado con handler
 
-Si el hueco de destino está ocupado y el inventario (o su binding) provee un
-`IOccupiedSlotDropHandler`, ese handler corre primero como una comprobación pura y luego se
-ejecuta de forma todo-o-nada. La prioridad es: handler de ocupado → merge/create normal →
-política de bloqueo. Un handler nunca dispara alternativas ni swaps por sí mismo.
+Si el slot destino está ocupado y el binding del inventario implementa
+`CanHandleOccupiedSlotDrop` y `ExecuteOccupiedSlotDrop`, ese handler corre primero,
+después de las reglas, como comprobación pura, y luego se ejecuta todo-o-nada. Si
+`ExecuteOccupiedSlotDrop` devuelve false, la transferencia se cancela y el estado se
+restaura. Si devuelve true, la transferencia termina; si los objetos movidos no fueron
+procesados, desaparecerán. El handler no inicia alternatives ni swap después.
 
-### Huecos dinámicos
-
-Un inventario dinámico puede crecer. La estrategia puede devolver un candidato
-`NewDynamicSlot`, pero **no** crea el hueco. El motor crea el hueco, intenta la colocación
-exacta y lo vuelve a eliminar si la colocación falla.
-
-### Swap (intercambio)
-
-El swap es un camino dedicado de una sola entry (ni estrategia ni plan). Solo corre cuando:
-hay exactamente una entry, un destino ocupado concreto, se mueve todo el origen, ambos
-lados convierten con éxito en ambas direcciones, ambos pasan la validación de reglas/dominio
-y las huellas resultantes caben (y no se solapan en un swap del mismo inventario). Captura
-ambos lados, elimina ambas colocaciones, coloca cada objeto convertido en el ancla del otro
-y confirma ambos o revierte ambos.
-
-El swap por lotes (varias entries sobre un mismo destino ocupado con `Swap`) se rechaza
-antes de cualquier mutación. Un "intercambio de grupo" grid-vs-grid es una función futura
-aparte, no un swap por lotes.
-
-### Lote (varias entries a la vez)
+### Batch
 
 ```mermaid
 flowchart TD
-    A["Validar la petición una vez<br/>CanStartTransfer / CanStartTransferAsync"] --> B["Entry 1"]
-    B --> C["La entry 2 ve el resultado confirmado de la entry 1"]
-    C --> D["Entry 3 ..."]
-    D --> E["Reporte: estado por entry + totales"]
+    A["Validar la petición una vez<br/>CanStartTransfer / CanStartTransferAsync"] --> B["Entrada commit 1"]
+    B --> C["La entrada 2 ve el resultado confirmado de la entrada 1"]
+    C --> D["Entrada 3 ..."]
+    D --> E["Fin de la transferencia"]
 ```
 
-- Las entries corren en el orden del drag-context; cada una ve el resultado confirmado de la anterior.
-- Una entry fallida se revierte sola; los éxitos previos permanecen.
-- Una *pista* de destino solo aplica a la primera entry; el resto se comporta como drop en área.
-- El lote tiene éxito si al menos una entry se movió; `IsPartial` significa que no todo lo hizo.
+- Las entradas de transferencia corren en el orden del drag-context; cada una ve el resultado confirmado de la anterior.
+- Una entrada fallida se revierte sola; las transferencias anteriores permanecen.
+- El slot destino elegido se aplica solo a la primera entrada; el resto se comporta como drop en área.
 
-## Dos tipos de validación
+El batch-swap, es decir, varios objetos arrastrados sobre un mismo destino ocupado con
+`Swap`, se rechaza antes de cualquier mutación.
 
-Es fácil confundir "reglas" con "lógica de negocio". Son capas distintas y corren en
-momentos distintos.
+La transferencia parcial se aplica **por entrada**. `RequireFull` nunca cancela entradas
+anteriores del batch.
 
-| Capa | Interfaz | Pregunta que responde | Cuándo corre |
+## Validación
+
+Hay varios tipos de comprobaciones que permiten o bloquean una transferencia, y se
+ejecutan en momentos distintos.
+
+| Capa | Interfaz | Pregunta | Cuándo se ejecuta |
 |---|---|---|---|
-| Reglas | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | *Mecánicamente*, ¿puede ir este objeto aquí? (filtro de tipo, hueco bloqueado, mismo hueco…) | inicio del arrastre y validación del destino |
-| Veto de toda la transferencia | `ITransferDomainHandler.CanStartTransfer` | ¿Puede empezar siquiera esta operación? | una vez, antes de la primera mutación |
-| Veto asíncrono | `IAsyncTransferDomainHandler.CanStartTransferAsync` | Lo mismo, pero hay que esperar algo (servidor, disco) | una vez, solo camino async, antes de la primera mutación |
-| Comprobación por commit | `ITransferDomainHandler.CanCommitTransfer` | ¿Puede confirmarse *esta* colocación concreta? (oro suficiente, propiedad) | justo antes de cada mutación de candidato |
-| Efectos del éxito | `ITransferDomainHandler.OnTransferSucceeded` | Reaccionar tras una colocación confirmada | tras un commit exitoso |
+| Reglas | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Puede este objeto ir aquí mecánicamente? Filtro de tipo, slot bloqueado, etc. | Inicio del drag y validación del destino |
+| Veto de toda la transferencia | `ITransferDomainHandler.CanStartTransfer` | Puede empezar esta operación? | Una vez, antes de la primera mutación |
+| Veto asíncrono | `IAsyncTransferDomainHandler.CanStartTransferAsync` | Lo mismo, pero hay que esperar algo como servidor o disco. | Una vez, solo camino async, antes de la primera mutación |
+| Comprobación de commit | `ITransferDomainHandler.CanCommitTransfer` | Puede confirmarse esta colocación concreta? Oro suficiente, propiedad, etc. | Justo antes de cada mutación de candidato |
+| Efectos de éxito | `ITransferDomainHandler.OnTransferSucceeded` | Reaccionar después de una colocación confirmada. | Después de un commit exitoso |
 
-Usa reglas para la mecánica. Usa el domain handler para dinero, servidores, propiedad y
-efectos secundarios; nunca los metas en las reglas.
+Las reglas se colocan directamente en objetos de slot o inventario. DataBinding también
+expone hooks similares por defecto: `CanStartDrag`, `CanDrop` y `CanSwap`. Los bindings
+pueden implementar `ITransferDomainHandler` y `IAsyncTransferDomainHandler` para añadir
+comprobaciones y acciones adicionales para toda la transferencia.
 
 ## Cuándo se disparan los eventos
 
-Los eventos y notificaciones de DataBinding de una entry se emiten **solo después de que esa
-entry se confirma**, y antes de que empiece la siguiente. Esto garantiza que la siguiente
-entry (y cualquier domain handler) vea un estado que coincide con el inventario en vivo.
+Los eventos y notificaciones de DataBinding de una entrada se envían **solo después de
+confirmar esa entrada** y antes de empezar la siguiente. Esto garantiza que la siguiente
+entrada vea el mismo estado que el inventario en vivo.
 
 Cada evento add/remove lleva el sub-stack exacto que realmente se movió, nunca el
-`DragEntry.Stack` crudo. Una entry de 10 que aterriza como `6 + 4` emite eventos por 10
-adaptadores en total; una entry de 10 donde se movieron 6 y volvieron 4 emite por 6.
+`DragEntry.Stack` crudo. Una entrada de 10 que cae como `6 + 4` envía eventos por 10
+adaptadores en total; una entrada de 10 donde se movieron 6 y volvieron 4 envía eventos
+por 6.
 
 ## Puntos de extensión
 
-Todo lo pensado para enchufar tu lógica, en un solo lugar:
+Todo lo destinado a conectar lógica propia está listado aquí:
 
 | Punto de extensión | Tipo | Para qué sirve |
 |---|---|---|
-| **Estrategia de colocación** | `IStrategy` / `InventoryStrategyBase` | Define cómo ocupan los objetos los huecos: unique, stackable, separable o tu propia lógica de merge/create/capacity. De solo lectura; produce candidatos. |
-| **Topología** | `IInventoryTopology` (`SlotTopology`, `RectGridTopology`, propia) | Define el espacio de celdas: cuántas, cómo se proyecta una forma, pasos de orientación y ángulos visuales. Un hex grid es solo una topología con 6 pasos. |
-| **Forma de colocación** | `IPlacementShape` (`RectPlacementShape`, `ComplexPlacementShape`) | Define la huella de un objeto, incluyendo formas no rectangulares (L/T/cruz) y sus rotaciones. |
-| **Ordenador de candidatos** | `PlacementCandidateOrderer` | Influye en qué hueco prefiere la colocación automática (merge-first, empty-first, etc.). Nunca se aplica a un destino explícito. |
-| **Política de destino bloqueado** | `BlockedTargetResolutionKind` + `DropPolicySettings` | Elige reject / find-alternative / swap, más opciones de transferencia parcial y mismo-inventario. Solo datos, se configura en el Inspector. |
-| **Veto de toda la transferencia** | `ITransferDomainHandler.CanStartTransfer` | Permitir o denegar toda la operación antes de que algo cambie (p. ej. "la tienda está cerrada"). |
-| **Veto asíncrono** | `IAsyncTransferDomainHandler.CanStartTransferAsync` | Lo mismo, cuando la respuesta requiere esperar a un servidor, fichero o base de datos. |
-| **Comprobación de negocio por commit** | `ITransferDomainHandler.CanCommitTransfer` | Permitir o denegar una colocación concreta (oro suficiente, propiedad). |
-| **Hook de éxito** | `ITransferDomainHandler.OnTransferSucceeded` | Efectos secundarios tras una colocación confirmada (cobrar oro, analítica). |
-| **Handler de hueco ocupado** | `IOccupiedSlotDropHandler` | Comportamiento propio al soltar sobre un hueco ocupado (equipar, meter en un contenedor). |
-| **Ciclo de vida de huecos dinámicos** | `IDynamicSlotLifecycle` | Permite al inventario crecer/encoger; el motor dirige la creación/eliminación. |
-| **Conversor de objetos** | `IItemAdapterConverter` (vía `CreateItemConverter()`) | Traduce objetos entre dos inventarios con modelos de adaptador distintos. |
-| **Reglas** | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Restricciones mecánicas declarativas en tres niveles. Ver [Reglas](rules.md). |
-| **Zonas de drop** | `DropAreaBase` | Destinos de drop propios (basura, venta, spawn en el mundo) sin tocar el pipeline. Ver [Zonas de drop](drop-areas.md). |
+| **Estrategia de colocación** | `IStrategy` / `InventoryStrategyBase` | Define cómo los objetos ocupan slots: unique, stackable, separable o lógica propia de merge/create/capacity. Solo lectura; devuelve candidatos. |
+| **Topología** | `IInventoryTopology` (`SlotTopology`, `RectGridTopology`, propia) | Define el espacio de celdas: número de celdas, proyección de formas, pasos de orientación y ángulos visuales. |
+| **Forma de colocación** | `IPlacementShape` (`RectPlacementShape`, `ComplexPlacementShape`) | Define el footprint de un objeto, incluidas formas no rectangulares y sus rotaciones. |
+| **Ordenador de candidatos** | `PlacementCandidateOrderer` | Controla qué slot prefiere la colocación automática, por ejemplo merge-first o empty-first. No se usa para un destino explícito. |
+| **Policy de destino bloqueado** | `BlockedTargetResolutionKind` + `DropPolicySettings` | Elige reject / find-alternative / swap, además de opciones de transferencia parcial y mismo inventario. Solo datos, configurado en Inspector. |
+| **Veto de toda la transferencia** | `ITransferDomainHandler.CanStartTransfer` | Permitir o denegar toda la operación antes de que algo cambie. |
+| **Veto asíncrono** | `IAsyncTransferDomainHandler.CanStartTransferAsync` | Lo mismo, cuando la respuesta requiere esperar a un servidor, archivo o base de datos. |
+| **Comprobación de negocio por commit** | `ITransferDomainHandler.CanCommitTransfer` | Permitir o denegar una colocación concreta, por ejemplo oro o propiedad. |
+| **Hook de éxito** | `ITransferDomainHandler.OnTransferSucceeded` | Aplicar efectos secundarios después de una colocación confirmada. |
+| **Handler de slot ocupado** | `IOccupiedSlotDropHandler` | Comportamiento propio al soltar sobre un slot ocupado, como equipar o meter en contenedor. |
+| **Ciclo de vida de slots dinámicos** | `IDynamicSlotLifecycle` | Permite que un inventario crezca o se reduzca; el motor controla la creación y eliminación. |
+| **Conversor de objetos** | `IItemAdapterConverter` mediante `CreateItemConverter()` | Convierte objetos entre inventarios con distintos modelos de adapter. |
+| **Reglas** | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Restricciones mecánicas declarativas en tres niveles. |
+| **Drop zones** | `DropAreaBase` | Destinos de drop propios, como basura, venta o spawn en mundo, sin cambiar el transfer pipeline. |
 
-## Lo que el pipeline *no* promete
+Ver también:
 
-- **No hay atomicidad de todo el lote.** No existe el modo `Atomic`. Cada entry se confirma
-  sola; un fallo posterior no deshace las entries anteriores.
-- **No hay reubicación implícita.** El motor nunca mueve objetos ajenos para hacer sitio.
-  Reempaquetar/ordenar es una acción aparte y explícita.
-- **El preview es orientativo.** Un `TransferProbe` describe lo que *ocurriría* para la
-  primera colocación; no reserva nada y la ejecución siempre revalida. El reporte de
-  ejecución es el único resultado autoritativo.
+- [Matriz de drop policy](drop-policy-matrix.md) — los campos de la policy en una tabla
+- [Estrategias de colocación](strategies.md) — cómo los objetos eligen slots
+- [Recetario: conversión de objetos](item-conversion-cookbook.md)
+- [Logs y depuración](../reference/logs-and-debugging.md)

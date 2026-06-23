@@ -1,82 +1,90 @@
 # Introduction
 
-A Unity asset that lets you integrate an inventory and drag-and-drop system into any project with any kind of data.
+A Unity asset for adding inventory and drag-and-drop systems to any project with any
+kind of data.
+
 It solves tasks such as:
 
 - displaying data in inventory UI
 - moving items between inventories
-- stacking, swapping, and quick transfer
-- syncing UI changes with your game data
-- adding checks and rules for whether a transfer is allowed
-- creating custom actions for inventories
+- stacking, swap, and quick transfer
+- synchronizing UI changes with your game data
+- adding checks and rules for whether transfer is allowed
+- creating custom inventory actions
 - context menu
-- multi-selection and transfer
+- multi-selection and multi-transfer
+- working with complex-shaped items
 
-It works both for simple inventory UIs and scenarios like equipment, and for more complex logic such as trading and server-side validation.
-
+It works for simple UI inventories and equipment scenarios, as well as more complex
+logic such as trading and server-side validation.
 
 ## What This Asset Is
 
-This is not just a set of UI slots, but a system that, unlike many alternative solutions that require your data to match a specific type, allows you to visualize almost any of your data in an inventory:
+This is not just a set of UI slots. Unlike many alternatives that require your data to
+match a specific type, it lets you visualize almost any data in an inventory:
 
 - `ScriptableObject`
 - runtime models
 - lists, dictionaries, and fixed fields
 - different representations of the same item in different inventories
 
-The key idea is that the visual inventory is separated from your game model. Because of this, the system can be expanded gradually:
+The key idea is that the visual inventory is separated from your game model.
+
+The system has many extension points, so it can grow gradually:
 
 - start with a simple backpack and chest
-- add fixed slots for equipment
-- add conversion between inventories
-- add trading, server checks, or domain hooks
+- reserve some slots for equipment
+- add rules that block dragging from or dropping into a slot under certain conditions
+- convert item types between inventories
+- implement trading, crafting, server checks, and similar logic
 
-So the asset is designed not only for a quick start, but also for further scaling without having to rewrite the entire inventory logic.
+The asset is designed not only for quick start, but also for scaling without rewriting
+the whole inventory logic.
 
 !!! warning Price of flexibility
     For your own data types, you usually need to write a small amount of integration code.
 
-It is important to understand this tradeoff immediately: for your own data types, you usually need to write a small amount of integration code.
+It is important to understand this cost immediately: for your own data types, you
+usually need to write a small amount of integration code.
 
 This is needed so the system understands:
 
 - how and which data to get from your classes
 - how to represent your data in inventory slots
-- how to write changes from UI interactions back into your data models
+- how to write UI interaction changes back into your data models
 
-For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.
+For any type to appear in inventory slots, you need to write an adapter: a small bridge
+from your data to the slot.
 
-Usually this is a small adapter and one `DataBinding`. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, transfers, and event flow are already handled by the asset.
+Usually this is a small adapter and one `DataBinding`. The more complex your data model
+is, the thicker this integration layer will be, but drag and drop, swap, stacking,
+transfers, and event flow are handled by the asset.
 
-For some common cases, template `DataBinding` classes are already provided, which makes most setups easier.
+For several common cases, template `DataBinding` classes are already provided.
 
 ## Dependencies
 
 - Required package: `Unity.ugui`
 - Optional package: `com.unity.inputsystem`
 
-The core asset compiles and works without `com.unity.inputsystem`.
-New Input System is only required for features built around `InputAction`.
-Pointer and navigation modality tracking also works in legacy-input projects.
-
+The base asset compiles and works without `com.unity.inputsystem`.
+The new Input System is required only for features built around `InputAction`.
+Pointer/navigation modality tracking also works in legacy-input projects.
 
 ## Basic Model
 
-<div class="showcase-media">
-    <img src="assets/showcase/basic-diagram.png" alt="Basic Diagram">
-</div>
-For most projects, it is useful to keep exactly this diagram in mind:
+For most projects, keep this model in mind:
 
 ```mermaid
 flowchart LR
     Inventory@{ shape: rounded, label: "<b>Universal Inventory</b>\nhandles UI states, transfers, and item distribution across slots" }
     
-    Slot@{ shape: rounded, label: "<b>Universal Slot</b>\nContains an adapter and the item count in the slot" }
+    Slot@{ shape: rounded, label: "<b>Universal Slot</b>\nContains an adapter and item count in the slot" }
 
-    Adapter@{ shape: rounded, label: "<b>IItem Adapter</b>\nStores a reference to the item data" }
+    Adapter@{ shape: rounded, label: "<b>IItem Adapter</b>\nStores a reference to item data" }
     style Adapter fill:#FF44
 
-    Binding@{ shape: rounded, label: "<b>Data Binding</b><br/>syncs your data with the UI" }
+    Binding@{ shape: rounded, label: "<b>Data Binding</b><br/>syncs your data with UI" }
     style Binding fill:#FF44
 
     Data@{ shape: rounded, label: "Your data models" }
@@ -85,28 +93,30 @@ flowchart LR
     Slot --> Adapter
     Binding <--> Data    
     Inventory <--> Binding
-
 ```
 
-- `IItemAdapter` needs to be defined so it stores data correctly
-- `DataBinding` needs to be defined so it edits data correctly
+- define `IItemAdapter` so a slot can store your data correctly
+- define `DataBinding` so data is edited according to UI changes
 
 ## Subsystems
-- Displaying data in the inventory
-- Transfer between inventories
-- Drop zones
-- Rules system
-- Configurable actions
-- Auto-transfer
-- Multi-selection
-- Multi-transfer
-- Context menu
-- Tooltip example
-- Example of type conversions during transfer
-- Example of nested inventories
-## Read Next
 
-- [Quick Start](getting-started/quick-start.md) — your first working inventory
+- displaying data in inventory
+- transfer between inventories
+- drop areas
+- rule system
+- configurable actions
+- auto-transfer
+- multi-selection
+- multi-transfer
+- context menu
+- tooltip example
+- type conversion example during transfer
+- nested inventory example
+- complex-shaped item example
+
+See also:
+
+- [Quick Start](getting-started/quick-start.md) — first working inventory
 - [Examples](examples/index.md) — overview of all 6 demos and their architecture
 - [Data Binding](architecture/data-binding.md) — where to write sync, rules, and business hooks
-- [Feedback](more/feedback.md) — where to write about bugs, ideas, and integration issues
+- [Feedback](more/feedback.md) — where to report bugs, ideas, and integration issues

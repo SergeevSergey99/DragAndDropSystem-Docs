@@ -11,18 +11,17 @@
 
 `Examples/Demo4 Trading/TradingDemo.unity`
 
-This is the most feature-rich demo in the package. It combines cross-model transfers, economy rules, and fixed-slot equipment in one scene.
+This demo shows transfer between different models, economy, and equipment with fixed
+slots in one scene.
 
-## What the demo shows
+## What The Demo Shows
 
 - player inventory, merchant inventory, and equipment slots
-- converters between different item models
-- price and gold validation at commit time
-- separation of mechanical validation and domain side effects
+- conversion between different item models
+- price and money checks during transfer
 - `MappedSlotInventoryDataBinding` for equipment
-- cross-inventory swap with bidirectional conversion
 
-## How it is structured
+## How It Is Structured
 
 Data and economy:
 
@@ -57,48 +56,28 @@ flowchart LR
     EquipmentBinding <--> EquipUI["Equipment UI"]
 ```
 
-## How it works
+## How It Works
 
 Buying from a merchant:
 
 1. Drag starts from the merchant inventory.
-2. Target-side preview and a converter prepare the item representation for the player inventory.
-3. Mechanical validation checks placement.
-4. Domain validation checks gold and trade constraints.
-5. After a successful commit the bindings update player and merchant data.
-6. Side effects update gold and related values.
-
-Swap between merchant and equipment/player inventory:
-
-1. With the `Swap` blocked-target policy, the engine takes the single-entry swap path for the occupied target.
-2. The engine validates both directions on target-side converted preview stacks.
-3. It then captures copies of both stacks and converts them in both directions.
-4. The opposite slots receive already converted stacks, not raw adapters.
-5. Because of that, the next drag from those slots does not fail with `Wrong item type`.
+2. On drop, the converter prepares the item representation for the player inventory.
+3. Validation checks money and trade restrictions.
+4. After a successful transfer, bindings update player and merchant data.
+5. Side effects change gold and related values.
 
 Equipment:
 
-1. An item is dropped onto a fixed slot.
+1. The item is dragged into a fixed slot.
 2. `EquipmentInventoryDataBinding` checks `PrimaryAdapter` and slot-specific `canDrop`.
-3. On success the matching field in `PlayerData` is synchronized with that slot.
+3. On success, the concrete field in `PlayerData` synchronizes with the target slot.
 
-## Files to inspect
+## When To Use This Example
 
-| File | Role |
-|---|---|
-| `Data/TradingEconomyManager.cs` | central economy |
-| `DataBindings/PlayerInventoryDataBinding.cs` | player inventory binding |
-| `DataBindings/MerchantInventoryDataBinding.cs` | merchant inventory binding |
-| `DataBindings/EquipmentInventoryDataBinding.cs` | fixed-slot equipment |
-| `DataBindings/TradingHelper.cs` | domain checks and side effects |
-| `Converters/*` | model conversion |
-
-## When to use this as a starting point
-
-- you need different data models on different sides of a transfer boundary
+- you need different data models on different sides of a transfer
 - you need item conversion during transfer
-- you need correct cross-inventory swap between different adapter models
-- you need prices, gold, and commit-time validation
+- you need correct exchange between inventories with different adapter models
+- you need prices, money, and transfer-time checks
 - you need fixed slots on top of a regular inventory
 
 Related pages:

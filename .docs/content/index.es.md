@@ -1,77 +1,88 @@
 # Introducción
 
-Un asset para Unity que te permite integrar un sistema de inventario y drag and drop en cualquier proyecto con cualquier tipo de datos.
+Asset para Unity que permite añadir un sistema de inventarios y drag and drop a
+cualquier proyecto con cualquier tipo de datos.
+
 Resuelve tareas como:
 
 - mostrar datos en la UI del inventario
 - mover objetos entre inventarios
-- stacking, swapping y transferencia rápida
-- sincronizar los cambios de la UI con los datos de tu juego
-- añadir comprobaciones y reglas para decidir si una transferencia está permitida
-- crear acciones personalizadas para inventarios
+- stacking, swap y transferencia rápida
+- sincronizar cambios de UI con los datos del juego
+- añadir comprobaciones y reglas para permitir o bloquear transferencias
+- crear acciones especiales para inventarios
 - menú contextual
 - selección múltiple y transferencia múltiple
+- trabajo con objetos de forma compleja
 
-Funciona tanto para interfaces de inventario sencillas y escenarios como equipamiento, como para lógicas más complejas como comercio y validación del lado del servidor.
-
+Sirve tanto para inventarios UI simples y escenarios como equipamiento, como para lógica
+más compleja como comercio y comprobaciones de servidor.
 
 ## Qué es este asset
 
-No es simplemente un conjunto de slots de UI, sino un sistema que, a diferencia de muchas soluciones alternativas que exigen que tus datos encajen en un tipo específico, te permite visualizar casi cualquier dato dentro de un inventario:
+No es solo un conjunto de slots de UI. A diferencia de muchas alternativas que requieren
+que tus datos tengan un tipo específico, permite visualizar casi cualquier dato en un
+inventario:
 
 - `ScriptableObject`
 - modelos runtime
 - listas, diccionarios y campos fijos
-- distintas representaciones del mismo objeto en inventarios diferentes
+- distintas representaciones del mismo objeto en distintos inventarios
 
-La idea clave es que el inventario visual está separado de tu modelo de juego. Gracias a eso, el sistema puede ampliarse gradualmente:
+La idea clave es que el inventario visual está separado de tu modelo de juego.
+
+El sistema tiene muchos puntos de extensión, por lo que puede crecer gradualmente:
 
 - empezar con una mochila y un cofre simples
-- añadir slots fijos para equipamiento
-- añadir conversión entre inventarios
-- añadir comercio, comprobaciones de servidor o hooks de dominio
+- reservar algunos slots para equipamiento
+- añadir reglas que bloqueen el drag desde un slot o el drop en un slot bajo ciertas condiciones
+- convertir tipos de objeto entre inventarios
+- implementar comercio, crafting, comprobaciones de servidor y lógica similar
 
-Por eso el asset está pensado no solo para un arranque rápido, sino también para escalar más adelante sin tener que reescribir toda la lógica del inventario.
+El asset está pensado no solo para empezar rápido, sino también para escalar sin
+reescribir toda la lógica de inventario.
 
 !!! warning Precio de la flexibilidad
-    Para tus propios tipos de datos normalmente tendrás que escribir una pequeña cantidad de código de integración.
+    Para tus propios tipos de datos normalmente necesitas escribir algo de código de integración.
 
-Es importante entender este coste desde el principio: para tus propios tipos de datos, normalmente tendrás que escribir una pequeña cantidad de código de integración.
+Conviene entender este coste desde el principio: para tus propios tipos de datos
+normalmente necesitas escribir algo de código de integración.
 
-Esto es necesario para que el sistema entienda:
+Esto permite que el sistema entienda:
 
 - cómo y qué datos obtener de tus clases
-- cómo representar esos datos en los slots del inventario
-- cómo escribir de vuelta en tus modelos de datos los cambios producidos por la interacción en la UI
+- cómo representar tus datos en slots de inventario
+- cómo escribir de vuelta en tus modelos los cambios producidos por la UI
 
-Para que cualquier tipo pueda mostrarse en los slots, debes escribir un adaptador especial que actúe de puente entre los datos y el slot.
+Para que cualquier tipo aparezca en slots de inventario, necesitas escribir un adapter:
+un pequeño puente entre tus datos y el slot.
 
-Normalmente esto se reduce a un pequeño adapter y un `DataBinding`. Cuanto más complejo sea tu modelo de datos, más gruesa será esa capa de integración, pero el drag and drop, el swapping, el stacking, las transferencias y el flujo de eventos ya los resuelve el asset.
+Normalmente es un adapter pequeño y un `DataBinding`. Cuanto más complejo sea tu modelo
+de datos, más gruesa será esta capa de integración, pero drag and drop, swap, stacking,
+transferencias y flujo de eventos ya los resuelve el asset.
 
-Para algunos casos comunes ya se proporcionan clases plantilla de `DataBinding`, lo que simplifica la mayoría de configuraciones.
+Para varios casos comunes ya existen clases plantilla de `DataBinding`.
 
 ## Dependencias
 
 - Paquete obligatorio: `Unity.ugui`
 - Paquete opcional: `com.unity.inputsystem`
 
-La parte principal del asset compila y funciona sin `com.unity.inputsystem`.
-El nuevo Input System solo es necesario para funciones construidas alrededor de `InputAction`.
-El seguimiento de modalidad pointer/navigation también funciona en proyectos con input legacy.
-
+La parte base del asset compila y funciona sin `com.unity.inputsystem`.
+El nuevo Input System solo es necesario para funciones construidas alrededor de
+`InputAction`.
+El seguimiento de modalidad pointer/navigation también funciona en proyectos con input
+legacy.
 
 ## Modelo básico
 
-<div class="showcase-media">
-    <img src="../assets/showcase/basic-diagram.png" alt="Basic Diagram">
-</div>
-Para la mayoría de proyectos conviene tener exactamente este esquema en mente:
+Para la mayoría de proyectos conviene tener este modelo en mente:
 
 ```mermaid
 flowchart LR
-    Inventory@{ shape: rounded, label: "<b>Universal Inventory</b>\nse encarga de los estados de UI, las transferencias y la distribución de objetos entre slots" }
+    Inventory@{ shape: rounded, label: "<b>Universal Inventory</b>\ngestiona estados de UI, transferencias y distribución de objetos por slots" }
     
-    Slot@{ shape: rounded, label: "<b>Universal Slot</b>\nContiene un adaptador y la cantidad de objetos del slot" }
+    Slot@{ shape: rounded, label: "<b>Universal Slot</b>\nContiene un adapter y la cantidad del objeto en el slot" }
 
     Adapter@{ shape: rounded, label: "<b>IItem Adapter</b>\nGuarda una referencia a los datos del objeto" }
     style Adapter fill:#FF44
@@ -85,16 +96,16 @@ flowchart LR
     Slot --> Adapter
     Binding <--> Data    
     Inventory <--> Binding
-
 ```
 
-- `IItemAdapter` debe definirse para que almacene correctamente los datos
-- `DataBinding` debe definirse para que edite correctamente los datos
+- define `IItemAdapter` para que el slot pueda guardar tus datos correctamente
+- define `DataBinding` para editar datos según los cambios de UI
 
 ## Subsistemas
-- visualización de datos en el inventario
+
+- visualización de datos en inventario
 - transferencia entre inventarios
-- zonas de drop
+- áreas de drop
 - sistema de reglas
 - acciones configurables
 - auto-transfer
@@ -102,12 +113,13 @@ flowchart LR
 - transferencia múltiple
 - menú contextual
 - ejemplo de tooltip
-- ejemplo de conversión de tipos durante la transferencia
+- ejemplo de conversión de tipos durante transferencia
 - ejemplo de inventarios anidados
-## Sigue leyendo
+- ejemplo de objetos de forma compleja
 
-- [Quick Start](getting-started/quick-start.md) — tu primer inventario funcional
-- [Examples](examples/index.md) — visión general de las 6 demos y su arquitectura
+Ver también:
+
+- [Quick Start](getting-started/quick-start.md) — primer inventario funcional
+- [Ejemplos](examples/index.md) — resumen de las 6 demos y su arquitectura
 - [Data Binding](architecture/data-binding.md) — dónde escribir sync, rules y business hooks
-- [Feedback](more/feedback.md) — dónde escribir sobre bugs, ideas y problemas de integración
-
+- [Feedback](more/feedback.md) — dónde enviar bugs, ideas y problemas de integración

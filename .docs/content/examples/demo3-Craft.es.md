@@ -11,18 +11,19 @@
 
 `Examples/Demo3 Craft/CraftDemo.unity`
 
-Esta es una muestra de inventario indexado por slot y crafting, donde la UI se sincroniza con arrays de dominio fijos en lugar de con una lista simple.
+Este es un ejemplo de inventario indexado por slot y crafting donde la UI se sincroniza
+con arrays de datos fijos, no con una lista.
 
 ## Qué muestra la demo
 
 - `SlotIndexedInventoryDataBinding`
-- paneles separados para hotbar, inventario principal y mesa de crafteo
-- límites de stack máximo por slot
-- `CraftResultDataBinding` como inventario de salida personalizado de solo lectura
+- mesa de crafting y slot de resultado
+- límite máximo de stack por slot
+- `CraftResultDataBinding` como tipo de inventario personalizado para tomar el resultado de crafting
 
 ## Cómo está estructurada
 
-El punto central de entrada del dominio es:
+El punto central de la lógica es:
 
 - `Crafting/CraftingManager.cs`
 
@@ -31,59 +32,36 @@ Almacena:
 - `_hotbarItems`
 - `_inventoryItems`
 - `_craftTableItems`
-- la lista de recetas
-- la receta actual y el multiplicador de craft
+- lista de recetas
+- resultado actual y multiplicador de crafting
 
-La UI se divide en cuatro bindings independientes:
+La UI está dividida en cuatro bindings independientes:
 
 - `MainInventoryDataBinding`
 - `HotbarDataBinding`
 - `CraftTableDataBinding`
 - `CraftResultDataBinding`
 
-```mermaid
-flowchart TB
-    Manager["CraftingManager"] --> Main["MainInventoryDataBinding"]
-    Manager --> Hotbar["HotbarDataBinding"]
-    Manager --> Table["CraftTableDataBinding"]
-    Manager --> Result["CraftResultDataBinding"]
-    Main <--> MainUI["Main Inventory UI"]
-    Hotbar <--> HotbarUI["Hotbar UI"]
-    Table <--> TableUI["Craft Table UI"]
-    Result <--> ResultUI["Craft Result UI"]
-```
-
 ## Cómo funciona
 
 Slots normales:
 
-1. Un binding enumera los índices ocupados mediante `GetOccupiedSlots()`.
+1. El binding enumera los índices ocupados mediante `GetOccupiedSlots()`.
 2. `AddToSlotData(...)` y `RemoveFromSlotData(...)` llaman a métodos de `CraftingManager`.
-3. En `Awake()` el inventario recibe `SetMaxStackSize(CraftingManager.MaxItemsPerSlot)`.
+3. En `Awake()`, los inventarios llaman a `SetMaxStackSize(CraftingManager.MaxItemsPerSlot)` para limitar la cantidad de objetos por slot.
 
 Crafting:
 
-1. Un cambio en la craft table actualiza `_craftTableItems`.
-2. `CraftingManager.RefreshCraftResult()` resuelve la receta coincidente.
-3. `CraftResultDataBinding.OnReloadUI()` muestra el resultado y configura el drag step size.
+1. Cambiar la craft table actualiza `_craftTableItems`.
+2. `CraftingManager.RefreshCraftResult()` busca una receta adecuada.
+3. `CraftResultDataBinding.OnReloadUI()` muestra el resultado y configura el paso de drag.
 4. Cuando el usuario toma el resultado, `OnItemRemovedFromUI(...)` llama a `ConsumeCraftIngredients(...)`.
 
-Este es un buen ejemplo de un slot de solo lectura que rechaza drops entrantes, pero aun así dispara un efecto de dominio tras una extracción exitosa.
+Es un buen ejemplo de slot de solo lectura que no acepta drop entrante, pero crea un
+objeto según lógica externa que se puede extraer.
 
-## Archivos para inspeccionar
-
-| Archivo | Rol |
-|---|---|
-| `Crafting/CraftingManager.cs` | datos de dominio y lógica de crafting |
-| `DataBindings/MainInventoryDataBinding.cs` | binding del inventario principal |
-| `DataBindings/HotbarDataBinding.cs` | binding del hotbar |
-| `DataBindings/CraftTableDataBinding.cs` | binding de la craft table |
-| `DataBindings/CraftResultDataBinding.cs` | binding del slot de resultado |
-| `Crafting/CraftingRecipeSO.cs` | receta y matching |
-
-## Cuándo usar esto como punto de partida
+## Cuándo usar este ejemplo como base
 
 - necesitas un inventario con índices fijos
-- necesitas crafting sobre varias secciones de inventario
-- quieres un ejemplo de slot de salida con un efecto de dominio posterior a la extracción
-
+- necesitas crafting
+- necesitas un slot de salida con un efecto después de extraer

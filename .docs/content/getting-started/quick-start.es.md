@@ -1,56 +1,59 @@
 # Quick Start
 
-Este recorrido crea dos inventarios normales que soportan drag & drop entre sí.
+Esta guía crea dos inventarios normales entre los que se pueden arrastrar objetos.
 
-Esto ya está implementado en el primer ejemplo, y allí puedes ver el resultado final.
+Esto ya está implementado en el primer ejemplo, donde puedes ver el resultado final.
 
-Incluso en el caso más básico, normalmente tendrás que escribir una pequeña cantidad de código de integración para tus propios datos. En esta guía eso será:
+Incluso en un escenario básico, normalmente necesitas algo de código de integración para
+tus datos. En esta guía será:
 
-- `ItemSO` como tus datos de item
+- `ItemSO` como datos del item
 - `ItemSOAdapter` como representación para el sistema de inventario
 - `SimpleBinding` como puente entre la UI y tu lista de datos
 
-## Requisitos
-
-- Paquete obligatorio: `Unity.ugui`
-- Paquete opcional: `com.unity.inputsystem`
-
-Este quick start **no** requiere el nuevo Input System. El drag and drop básico con puntero funciona sin él.
-Si quieres `InputAction` bindings o `InputActionSelectionTrigger`, instala `com.unity.inputsystem`.
-Los mixed setups también son válidos: un proyecto puede incluir el nuevo Input System mientras esta escena concreta sigue usando `StandaloneInputModule`.
-En ese caso, las funciones basadas en `InputAction` pueden no comportarse como esperas si esa escena o workflow no están configurados para el nuevo input pipeline.
-
 ## Paso 1. Preparar la escena
 
-1. Crea un `Canvas` donde se colocarán los inventarios, si aún no lo tienes.
-2. Añade `DragAndDropManager` a la escena. Puedes arrastrar el prefab desde `Prefabs/DragCanvas.prefab` a la escena.
-> La escena necesita un único `DragAndDropManager`. Gestiona todas las operaciones de transferencia y controla el objeto arrastrado.
-3. Asegúrate de que existe un `EventSystem` en la escena.
-   Si usas input legacy, el `EventSystem` debe tener `StandaloneInputModule`.
-
+1. Crea un `Canvas` para los inventarios si la escena aún no tiene uno.
+2. Añade `DragAndDropManager` a la escena. Puedes arrastrar el prefab desde
+   `Prefabs/DragCanvas.prefab`.
+> La escena necesita un `DragAndDropManager`. Gestiona todas las operaciones de
+> transferencia y controla el objeto arrastrado.
+3. Asegúrate de que la escena tenga un `EventSystem`.
+   Si el proyecto usa input legacy, el `EventSystem` debe tener `StandaloneInputModule`.
+   El asset también soporta New Input System. `DragAndDropManager` trae por defecto una
+   configuración mínima funcional de acciones. Puedes ajustarla o crear tu propia copia y
+   asignarla en la escena.
 
 ---
 
 ## Paso 2. Crear dos inventarios
 
-1. Crea un objeto llamado `Backpack` dentro del `Canvas`.
+1. Crea un objeto `Backpack` dentro de `Canvas`.
 2. Añade `UniversalInventory`.
 3. Configura:
 
     | Campo | Valor |
     |---|---|
-    | `Inventory Strategy` | `UniqueItemStrategy` para empezar de la forma más simple, de modo que cada item esté en un slot separado |
+    | `Slot Container` | Padre de los slots, preferiblemente con `GridLayout` u otro componente que controle el layout de hijos |
+    | `Slot Prefab` | Prefab de slot que quieras usar, por ejemplo `Prefabs/Slot.prefab` |
+    | `Initial Slot Count` | Por ejemplo `10`. Al iniciar, los slots se crean en `Slot Container`. Si ya los creaste manualmente, puedes cachearlos con el botón |
+    | `Inventory Strategy` | `UniqueItemStrategy` para el inicio más simple, donde cada item ocupa su propio slot |
     | `Slot Management` | `FixedSlotManagementSettings` para un número fijo de slots |
-    | `Initial Slot Count` | por ejemplo `10`. Se crearán en `Slot Container` al iniciar. Si ya los has creado manualmente allí, puedes almacenarlos en caché pulsando el botón |
-    | `Slot Prefab` | `Prefabs/Slot.prefab` |
-    | `Slot Container` | contenedor padre de los slots, preferiblemente con `GridLayout` u otro componente que controle el layout de los hijos |
 
 4. Duplica el objeto y crea un segundo inventario, por ejemplo `Chest`.
 
+!!! info Inicialización
+    Al iniciar, el inventario intenta encontrar slots ya creados debajo de `Slot Container`
+    y cachearlos. Si no hay suficientes, crea slots desde `Slot Prefab` hasta
+    `Initial Slot Count`. También puedes crear todos los slots manualmente en modo edición
+    y cachearlos con `Cache Slots`, para que esta operación no ocurra durante el juego.
+
 ---
 
-## Paso 3. Definir un tipo de item
-Supongamos que tienes un tipo de item como este:
+## Paso 3. Definir el tipo de item
+
+Supongamos que tienes un tipo de item:
+
 ```csharp
 [CreateAssetMenu(menuName = "Game/Item")]
 public class ItemSO : ScriptableObject
@@ -59,7 +62,8 @@ public class ItemSO : ScriptableObject
     [field: SerializeField] public Sprite Icon { get; private set; }
 }
 ```
-Para mostrar este tipo en los slots, necesitas crear un adapter que implemente `IItemAdapter`, por ejemplo:
+
+Para mostrar este tipo en slots, crea un adapter que implemente `IItemAdapter`:
 
 ```csharp
 using UDND.Core;
@@ -67,28 +71,35 @@ using UnityEngine;
 
 public class ItemSOAdapter : IItemAdapter
 {
-    // Referencia a los datos de tu tipo
+    // Referencia a los datos de tu tipo.
     public readonly ItemSO Data;
 
-    // Constructor
+    // Constructor.
     public ItemSOAdapter(ItemSO data) => Data = data;
 
-    // Campos requeridos por la interfaz
+    // Campos obligatorios de la interfaz.
     public string ItemId => Data.GetInstanceID().ToString();
     public Sprite Icon => Data.Icon;
     public string DisplayName => Data.ItemName;
 }
 ```
 
-Significado de los campos requeridos:
+Significado de los campos obligatorios:
 
-- `ItemId` sirve para determinar si los items pueden fusionarse en un mismo slot en los modos `Stackable` y `SeparableStacks`.
-- `Icon` se usa para mostrar la imagen del item en el slot.
-- `DisplayName` se usa en algunos sistemas adicionales. Puede ser una cadena vacía.
+- `ItemId` — sirve para decidir si los items pueden unirse en un slot para las
+  estrategias `Stackable` y `SeparableStacks`.
+- `Icon` — sirve para mostrar la imagen del item en el slot.
+- `DisplayName` — se usa principalmente en logs y algunos sistemas opcionales, como el
+  ejemplo de tooltips. Puede ser una cadena vacía.
 
 ---
 
 ## Paso 4. Añadir un binding simple
+
+Para mostrar tus datos en slots, debes dar acceso al sistema a esos datos y definir cómo
+puede interactuar con ellos. En proyectos reales, estos conjuntos de datos normalmente
+viven en scripts de jugador, personajes u objetos del mundo. En este ejemplo, la lista se
+guarda directamente en el componente.
 
 ```csharp
 using UDND.Core;
@@ -98,10 +109,10 @@ using UnityEngine;
 
 public class SimpleBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 {
-    // Tu lista de datos
+    // Tu lista de datos.
     [SerializeField] private List<ItemSO> _items;
 
-    // Funciones obligatorias a sobreescribir
+    // Overrides obligatorios.
     protected override IReadOnlyList<ItemSO> GetItems() => _items;
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
     protected override void AddToData(ItemSOAdapter adapter) => _items.Add(adapter.Data);
@@ -109,33 +120,38 @@ public class SimpleBinding : ListInventoryDataBinding<ItemSO, ItemSOAdapter>
 }
 ```
 
-Significado de los métodos requeridos:
+`ListInventoryDataBinding` es una plantilla de DataBinding para trabajar con datos
+guardados como lista. Al heredar de ella, indicas tu tipo de item y el tipo de adapter.
 
-- `GetItems` se usa para el renderizado inicial de los datos.
-- `CreateAdapter` sirve para crear el adapter y pasarle los parámetros necesarios desde tus datos.
-- `AddToData` se llama cuando un item se transfiere **a este** inventario.
-- `RemoveFromData` se llama cuando un item se transfiere **fuera de este** inventario.
+Significado de los métodos obligatorios:
 
-Adjunta este binding a ambos inventarios o a otros objetos de la escena.
+- `GetItems` — se usa para el render inicial de datos.
+- `CreateAdapter` — crea el adapter y le pasa los datos necesarios.
+- `AddToData` — se llama cuando un item se transfiere **a este** inventario.
+- `RemoveFromData` — se llama cuando un item se transfiere **fuera de este** inventario.
+
+Añade este binding a ambos inventarios o a otros objetos de la escena.
 Asigna referencias a los inventarios correspondientes.
-Cada uno tendrá su propia lista `_items`.
+Cada binding tendrá su propia lista `_items`.
 
-!!! info Data
-    En tus proyectos, en lugar de una simple lista `_items`, lo más probable es que interactúes con tus propios scripts que almacenan los datos. Puedes ver cómo se implementa esto en los ejemplos.
+!!! info Datos
+    En proyectos reales, en lugar de una lista simple `_items`, normalmente interactuarás
+    con tus propios scripts donde se almacenan los datos. Mira los ejemplos para ver cómo
+    se implementa este patrón.
 
 ---
 
-## Paso 5. Rellenar los datos iniciales
+## Paso 5. Rellenar datos iniciales
 
-1. Crea algunos assets `ItemSO`.
-2. Añádelos a las listas `_items` de tus componentes `SimpleBinding`.
+1. Crea varios assets `ItemSO`.
+2. Añádelos a `_items` en tus componentes `SimpleBinding`.
 3. Ejecuta la escena.
 
 Si todo está configurado correctamente:
 
-- ambos inventarios muestran items
-- los items pueden arrastrarse entre ellos
-- tu lista subyacente se actualiza automáticamente
+- ambos inventarios muestran objetos
+- un objeto se puede arrastrar de un inventario a otro
+- las listas de datos se actualizan automáticamente durante la transferencia
 
 ---
 
@@ -143,25 +159,25 @@ Si todo está configurado correctamente:
 
 ```mermaid
 flowchart LR
-    A["El jugador arrastra un item"] --> B["<b>UniversalInventory</b> gestiona la transferencia"]
+    A["El jugador arrastra un item"] --> B["<b>UniversalInventory</b> procesa la transferencia"]
     B --> C["Se llaman métodos en <b>DataBinding</b>"]
-    C --> D["Tu lista List<ItemSO> se actualiza"]
+    C --> D["Tu List<ItemSO> se actualiza"]
 ```
 
 ## Errores comunes del primer proyecto
 
-- `ItemId` no coincide con tu semántica de stacking, así que los items se fusionan o dejan de fusionarse inesperadamente
-- no hay `DragAndDropManager` en la escena, o hay varios managers
+- `ItemId` no coincide con tu lógica de stacking, y los items se unen o no se unen de forma inesperada
+- no hay `DragAndDropManager` en la escena
 - no hay `EventSystem` en la escena
-- la escena usa input legacy pero el `EventSystem` no tiene `StandaloneInputModule`
-- el binding apunta al `UniversalInventory` equivocado
-- `InventoryDataBinding` no tiene asignada la referencia al inventario
-- los datos cambian fuera del pipeline, pero nunca se llama a `ReloadUI()`. Añade una llamada a ReloadUI en tu DataBinding cuando cambien los datos.
+- el proyecto usa input legacy, pero `EventSystem` no tiene `StandaloneInputModule`
+- el binding está conectado al `UniversalInventory` equivocado
+- `InventoryDataBinding` no tiene asignada una referencia de inventory
+- los datos cambian fuera del pipeline, pero no se llama a `ReloadUI()`. Añade una llamada
+  a `ReloadUI` en tu DataBinding cuando cambien los datos
 
-## Qué sigue
+Ver también:
 
-- [Examples](../examples/index.md) — si quieres elegir entre las 6 demos
-- [Data Binding](../architecture/data-binding.md) — si necesitas entender el lifecycle y los puntos de extensión
-- [Placement Strategies](../architecture/strategies.md) — si quieres añadir tu propia strategy o modo de slot management
-- [Troubleshooting](../reference/troubleshooting.md) — si la escena básica no funciona a la primera
-
+- [Ejemplos](../examples/index.md) — si quieres elegir entre las 6 demos
+- [Data Binding](../architecture/data-binding.md) — si necesitas entender lifecycle y puntos de extensión
+- [Estrategias de colocación](../architecture/strategies.md) — si quieres añadir tu propia estrategia o modo de slot management
+- [Troubleshooting](../reference/troubleshooting.md) — si la escena básica no funciona al primer intento
