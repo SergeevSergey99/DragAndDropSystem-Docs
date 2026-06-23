@@ -146,7 +146,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject for configuring hold-to-drag timings and thresholds. |
 | `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Visual feedback component for hold-drag preparation state. |
 | `Scripts/Interaction/HoldDragActions.cs` | `StartHoldCountAction`, `StartHoldDragAction` | Slot interaction actions related to hold counting and hold-triggered drag start. |
-| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `DragSlotAction`, `CompleteDragAction`, `CancelDragAction`, `InventorySlotAction` | Core action types invoked by the input router for slot and inventory interaction flows. |
+| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `StartDragAction`, `CompleteDragAction`, `SplitDropAction`, `RotateDragAction`, `CancelDragAction`, `InventorySlotAction` | Core action types invoked by the input router for slot and inventory interaction flows. |
 
 ---
 
@@ -190,7 +190,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Selection/Operations/ClearSelectionOperation.cs` | `ClearSelectionOperation` | Clears the current selection. |
 | `Scripts/Selection/Operations/ClearAndSelectOperation.cs` | `ClearAndSelectOperation` | Clears previous selection and selects a new slot/set. |
 | `Scripts/Selection/Operations/SelectSlotOperation.cs` | `SelectSlotOperation` | Selects a specific slot. |
-| `Scripts/Selection/Operations/ToggleSlotOperation.cs` | `ToggleSlotOperation` | Toggles selection state for one slot. |
+| `Scripts/Selection/Operations/ToggleFilledSlotOperation.cs` | `ToggleFilledSlotOperation` | Toggles selection state for one non-empty slot. |
 | `Scripts/Selection/Operations/RangeSelectOperation.cs` | `RangeSelectOperation` | Selects a range of slots. |
 | `Scripts/Selection/Operations/SelectAllOperation.cs` | `SelectAllOperation` | Selects all available/eligible slots. |
 | `Scripts/Selection/Operations/SelectByConditionOperation.cs` | `SelectByConditionOperation` | Base class for condition-based bulk selection. |
@@ -293,6 +293,50 @@ The tables below list every script file and describe the main class, interface, 
 
 ---
 
+## Additional Runtime/UI Files
+
+| File | Types | Role |
+|---|---|---|
+| `Scripts/Core/Models/InventoryTopology.cs` | `IInventoryTopology`, `SlotTopology`, `RectGridTopology`, `SlotCountLimitedTopology`, `OrientationStepUtility` | Topology abstraction for slot/grid coordinates, orientation, and footprint projection. |
+| `Scripts/Core/Models/Placement.cs` | `GridTopology`, `PlacementRequest`, `Placement` | Core placement request, grid size, and placed-stack models. |
+| `Scripts/Core/Models/PlacementCellUtility.cs` | `PlacementBoundsMode`, `PlacementCellUtility` | Utility for calculating covered cells with different bounds modes. |
+| `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Item footprint models and shape/orientation helpers. |
+| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Single-placement snapshot for events, rollback, and data binding context. |
+| `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Global drag/drop/swap lifecycle events. |
+| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template for inventories that persist anchor/orientation placement data. |
+| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Current slot/inventory input-context snapshot for the action pipeline. |
+| `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Abstract MonoBehaviour base for inventory implementations. |
+| `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Manages covered-cell preview highlighting during hover/drag. |
+| `Scripts/Inventories/EntryTransferResult.cs` | `PlacementTransferOutcomeKind`, `EntryTransferStatus`, `PlacementTransferOutcome`, `EntryTransferResult`, `TransferExecutionReport` | Transfer execution result/report models. |
+| `Scripts/Inventories/IInventoryInteraction.cs` | `IInventoryInteraction` | Contract for inventory-side interaction state and auto-transfer slot resolution. |
+| `Scripts/Inventories/IInventorySlotCreationCapacity.cs` | `IInventorySlotCreationCapacity` | Internal capacity contract for dynamic slot creation. |
+| `Scripts/Inventories/IPlacementInventory.cs` | `IPlacementInventory`, `IShapedDragTargetResolver` | Placement-aware inventory contract and target-side anchor resolution for shaped drag. |
+| `Scripts/Inventories/InventoryPlacementGeometry.cs` | `InventoryPlacementGeometry` | Geometry-operation adapter over `IPlacementInventory` and topology. |
+| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Runtime capability interfaces used by the engine without a hard dependency on `UniversalInventory`. |
+| `Scripts/Inventories/PlacementCandidateSource.cs` | `PlacementCandidateSource` | Lazy enumerable source for placement candidates. |
+| `Scripts/Inventories/PlacementSnapshotCodec.cs` | `PlacementSnapshotCodec` | Internal codec for capturing/restoring placement state. |
+| `Scripts/Inventories/PlacementStore.cs` | `PlacementStore` | Placement storage and occupancy map for shaped/grid inventories. |
+| `Scripts/Inventories/ShapedPlacementAnchorStrategy.cs` | `ShapedPlacementAnchorContext`, `IShapedPlacementAnchorStrategy`, `RotatedGrabOffsetAnchorStrategy`, `SourceGrabOffsetAnchorStrategy`, `TargetSlotAnchorStrategy` | Strategies that convert a hovered slot into a shaped-item anchor. |
+| `Scripts/Slots/ISlot.cs` | `ISlot` | Minimal slot contract. |
+| `Scripts/Slots/ShapedColorSlot.cs` | `ShapedColorSlot` | Slot visual for shaped-placement preview/highlight. |
+| `Scripts/UI/PlacementOverlay.cs` | `PlacementOverlay` | Overlay renderer for multi-cell placement visuals. |
+| `Scripts/UI/PlacementOverlayItem.cs` | `PlacementOverlayRenderState`, `PlacementOverlayItem` | UI item inside the placement overlay. |
+| `Scripts/UI/SourceSizedDragVisual.cs` | `SourceSizedDragVisual` | Drag visual that preserves source/placement size. |
+| `Scripts/UI/Tooltip/FadeTooltipView.cs` | `FadeTooltipView` | Base tooltip view with fade animation. |
+| `Scripts/Filter/DelegateFilter.cs` | `DelegateFilter`, `DelegateSorter` | Internal delegate-backed filter/sorter wrappers. |
+| `Scripts/Filter/Filters/CategoryFilter.cs` | `CategoryFilter` | Built-in category filter. |
+| `Scripts/Filter/Filters/CompositeFilter.cs` | `CompositeFilter` | Built-in composite filter. |
+| `Scripts/Filter/Filters/NameSearchFilter.cs` | `NameSearchFilter` | Built-in name search filter. |
+| `Scripts/Filter/Filters/RarityRangeFilter.cs` | `RarityRangeFilter` | Built-in rarity range filter. |
+| `Scripts/Filter/Sorters/CategorySorter.cs` | `CategorySorter` | Built-in category sorter. |
+| `Scripts/Filter/Sorters/CompositeSorter.cs` | `CompositeSorter` | Built-in composite sorter. |
+| `Scripts/Filter/Sorters/NameSorter.cs` | `NameSorter` | Built-in name sorter. |
+| `Scripts/Filter/Sorters/RaritySorter.cs` | `RaritySorter` | Built-in rarity sorter. |
+| `Scripts/Filter/Sorters/SortValueSorter.cs` | `SortValueSorter` | Built-in sort-value sorter. |
+| `Scripts/Filter/Sorters/StackCountSorter.cs` | `StackCountSorter` | Built-in stack-count sorter. |
+
+---
+
 ## Example: Demo1 Inventories
 
 | File | Types | Role |
@@ -300,6 +344,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Examples/Demo1 Inventories/ItemExampleSO.cs` | `ItemExampleSO` | Simple ScriptableObject item data used by the introductory inventory demo. |
 | `Examples/Demo1 Inventories/Adapters/ItemAdapterSoAdapter.cs` | `ItemAdapterSoAdapter` | Adapter that exposes `ItemExampleSO` to the inventory system. |
 | `Examples/Demo1 Inventories/DataBindings/ItemsSOInventoryDataBinding.cs` | `ItemsSOInventoryDataBinding` | List-based binding connecting demo item lists to the UI inventory. |
+| `Examples/Demo1 Inventories/DataAmountInBinding.cs` | `DataAmountInBinding` | UI helper that displays the item count in the demo binding. |
 | `Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs` | `ItemTypeExampleFilterRule` | Demo-specific rule showing how to restrict drops by item category/type. |
 
 ---
@@ -328,9 +373,9 @@ The tables below list every script file and describe the main class, interface, 
 
 | File | Types | Role |
 |---|---|---|
-| `Examples/Demo3 Craft/Data/CraftItemSO.cs` | `CraftItemSO` | ScriptableObject item definition used by the crafting demo. |
+| `Examples/Demo3 Craft/Data/MinecraftItemSO.cs` | `CraftItemSO` | ScriptableObject item definition used by the crafting demo. |
 | `Examples/Demo3 Craft/Data/RuntimeItem.cs` | `RuntimeItem` | Runtime item wrapper/model used by the demo where needed. |
-| `Examples/Demo3 Craft/Adapters/CraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Adapter exposing crafting demo items to the inventory UI. |
+| `Examples/Demo3 Craft/Adapters/MinecraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Adapter exposing crafting demo items to the inventory UI. |
 | `Examples/Demo3 Craft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Serialized recipe grid/pattern definition. |
 | `Examples/Demo3 Craft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | ScriptableObject recipe asset. |
 | `Examples/Demo3 Craft/Crafting/CraftingManager.cs` | `CraftingManager` | Demo domain controller that evaluates recipes and owns craft result state. |

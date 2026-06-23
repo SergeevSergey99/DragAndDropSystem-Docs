@@ -146,7 +146,7 @@
 | `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject с настройками таймингов и порогов hold-to-drag. |
 | `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Компонент визуальной обратной связи для состояния подготовки hold-drag. |
 | `Scripts/Interaction/HoldDragActions.cs` | `StartHoldCountAction`, `StartHoldDragAction` | Slot actions, связанные с hold counting и запуском drag по удержанию. |
-| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `DragSlotAction`, `CompleteDragAction`, `CancelDragAction`, `InventorySlotAction` | Основные action-типы, которые input router вызывает для slot/inventory interaction flows. |
+| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `StartDragAction`, `CompleteDragAction`, `SplitDropAction`, `RotateDragAction`, `CancelDragAction`, `InventorySlotAction` | Основные action-типы, которые input router вызывает для slot/inventory interaction flows. |
 
 ---
 
@@ -190,7 +190,7 @@
 | `Scripts/Selection/Operations/ClearSelectionOperation.cs` | `ClearSelectionOperation` | Очищает текущее выделение. |
 | `Scripts/Selection/Operations/ClearAndSelectOperation.cs` | `ClearAndSelectOperation` | Сбрасывает прежний selection и выбирает новый слот/набор. |
 | `Scripts/Selection/Operations/SelectSlotOperation.cs` | `SelectSlotOperation` | Выбирает конкретный слот. |
-| `Scripts/Selection/Operations/ToggleSlotOperation.cs` | `ToggleSlotOperation` | Переключает состояние выделения у одного слота. |
+| `Scripts/Selection/Operations/ToggleFilledSlotOperation.cs` | `ToggleFilledSlotOperation` | Переключает состояние выделения у одного непустого слота. |
 | `Scripts/Selection/Operations/RangeSelectOperation.cs` | `RangeSelectOperation` | Выделяет диапазон слотов. |
 | `Scripts/Selection/Operations/SelectAllOperation.cs` | `SelectAllOperation` | Выделяет все доступные/подходящие слоты. |
 | `Scripts/Selection/Operations/SelectByConditionOperation.cs` | `SelectByConditionOperation` | Базовый класс для массового выделения по условию. |
@@ -293,6 +293,50 @@
 
 ---
 
+## Дополнительные runtime/UI файлы
+
+| Файл | Types | Назначение |
+|---|---|---|
+| `Scripts/Core/Models/InventoryTopology.cs` | `IInventoryTopology`, `SlotTopology`, `RectGridTopology`, `SlotCountLimitedTopology`, `OrientationStepUtility` | Topology abstraction для slot/grid координат, orientation и проекции footprint-ов. |
+| `Scripts/Core/Models/Placement.cs` | `GridTopology`, `PlacementRequest`, `Placement` | Базовые модели placement-запросов, grid-размера и размещённого стека. |
+| `Scripts/Core/Models/PlacementCellUtility.cs` | `PlacementBoundsMode`, `PlacementCellUtility` | Utility для вычисления covered cells с разными режимами проверки границ. |
+| `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Модели footprint-ов предметов и helpers для shape/orientation. |
+| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Snapshot одного placement-а для events, rollback и data binding context. |
+| `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Глобальные события drag/drop/swap lifecycle. |
+| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template для инвентарей, которые сохраняют anchor/orientation placement data. |
+| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Snapshot текущего slot/inventory input context для action pipeline. |
+| `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Абстрактная MonoBehaviour-база inventory implementations. |
+| `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Управляет preview подсветкой covered cells при наведении/drag. |
+| `Scripts/Inventories/EntryTransferResult.cs` | `PlacementTransferOutcomeKind`, `EntryTransferStatus`, `PlacementTransferOutcome`, `EntryTransferResult`, `TransferExecutionReport` | Result/report модели transfer execution. |
+| `Scripts/Inventories/IInventoryInteraction.cs` | `IInventoryInteraction` | Контракт для inventory-side interaction state и auto-transfer slot resolution. |
+| `Scripts/Inventories/IInventorySlotCreationCapacity.cs` | `IInventorySlotCreationCapacity` | Internal capacity contract для динамического создания слотов. |
+| `Scripts/Inventories/IPlacementInventory.cs` | `IPlacementInventory`, `IShapedDragTargetResolver` | Placement-aware inventory contract и target-side anchor resolution для shaped drag. |
+| `Scripts/Inventories/InventoryPlacementGeometry.cs` | `InventoryPlacementGeometry` | Адаптер geometry-операций поверх `IPlacementInventory` и topology. |
+| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Runtime capability interfaces, которые движок использует без жёсткой зависимости от `UniversalInventory`. |
+| `Scripts/Inventories/PlacementCandidateSource.cs` | `PlacementCandidateSource` | Lazy enumerable source для placement candidates. |
+| `Scripts/Inventories/PlacementSnapshotCodec.cs` | `PlacementSnapshotCodec` | Internal codec для capture/restore placement state. |
+| `Scripts/Inventories/PlacementStore.cs` | `PlacementStore` | Хранилище placement-ов и occupancy map для shaped/grid инвентарей. |
+| `Scripts/Inventories/ShapedPlacementAnchorStrategy.cs` | `ShapedPlacementAnchorContext`, `IShapedPlacementAnchorStrategy`, `RotatedGrabOffsetAnchorStrategy`, `SourceGrabOffsetAnchorStrategy`, `TargetSlotAnchorStrategy` | Стратегии преобразования hovered slot в anchor для shaped items. |
+| `Scripts/Slots/ISlot.cs` | `ISlot` | Минимальный slot contract. |
+| `Scripts/Slots/ShapedColorSlot.cs` | `ShapedColorSlot` | Slot visual для shaped-placement preview/highlight. |
+| `Scripts/UI/PlacementOverlay.cs` | `PlacementOverlay` | Overlay renderer для multi-cell placement visuals. |
+| `Scripts/UI/PlacementOverlayItem.cs` | `PlacementOverlayRenderState`, `PlacementOverlayItem` | UI item внутри placement overlay. |
+| `Scripts/UI/SourceSizedDragVisual.cs` | `SourceSizedDragVisual` | Drag visual, который сохраняет размер source/placement. |
+| `Scripts/UI/Tooltip/FadeTooltipView.cs` | `FadeTooltipView` | Базовый tooltip view с fade-анимацией. |
+| `Scripts/Filter/DelegateFilter.cs` | `DelegateFilter`, `DelegateSorter` | Internal delegate-backed filter/sorter wrappers. |
+| `Scripts/Filter/Filters/CategoryFilter.cs` | `CategoryFilter` | Built-in category filter. |
+| `Scripts/Filter/Filters/CompositeFilter.cs` | `CompositeFilter` | Built-in composite filter. |
+| `Scripts/Filter/Filters/NameSearchFilter.cs` | `NameSearchFilter` | Built-in name search filter. |
+| `Scripts/Filter/Filters/RarityRangeFilter.cs` | `RarityRangeFilter` | Built-in rarity range filter. |
+| `Scripts/Filter/Sorters/CategorySorter.cs` | `CategorySorter` | Built-in category sorter. |
+| `Scripts/Filter/Sorters/CompositeSorter.cs` | `CompositeSorter` | Built-in composite sorter. |
+| `Scripts/Filter/Sorters/NameSorter.cs` | `NameSorter` | Built-in name sorter. |
+| `Scripts/Filter/Sorters/RaritySorter.cs` | `RaritySorter` | Built-in rarity sorter. |
+| `Scripts/Filter/Sorters/SortValueSorter.cs` | `SortValueSorter` | Built-in sort-value sorter. |
+| `Scripts/Filter/Sorters/StackCountSorter.cs` | `StackCountSorter` | Built-in stack-count sorter. |
+
+---
+
 ## Пример: Demo1 Inventories
 
 | Файл | Types | Назначение |
@@ -300,6 +344,7 @@
 | `Examples/Demo1 Inventories/ItemExampleSO.cs` | `ItemExampleSO` | Простая ScriptableObject-модель предмета для вводного примера инвентаря. |
 | `Examples/Demo1 Inventories/Adapters/ItemAdapterSoAdapter.cs` | `ItemAdapterSoAdapter` | Адаптер, который представляет `ItemExampleSO` внутри inventory system. |
 | `Examples/Demo1 Inventories/DataBindings/ItemsSOInventoryDataBinding.cs` | `ItemsSOInventoryDataBinding` | List-based binding, связывающий demo-список предметов с UI-инвентарём. |
+| `Examples/Demo1 Inventories/DataAmountInBinding.cs` | `DataAmountInBinding` | UI-helper, показывающий количество элементов в demo binding. |
 | `Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs` | `ItemTypeExampleFilterRule` | Demo-правило, показывающее ограничение drop по категории/типу предмета. |
 
 ---
@@ -328,9 +373,9 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Examples/Demo3 Craft/Data/CraftItemSO.cs` | `CraftItemSO` | ScriptableObject-описание предмета для crafting demo. |
+| `Examples/Demo3 Craft/Data/MinecraftItemSO.cs` | `CraftItemSO` | ScriptableObject-описание предмета для crafting demo. |
 | `Examples/Demo3 Craft/Data/RuntimeItem.cs` | `RuntimeItem` | Runtime item wrapper/model, используемый в нужных местах примера. |
-| `Examples/Demo3 Craft/Adapters/CraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Адаптер, представляющий предметы crafting demo в inventory UI. |
+| `Examples/Demo3 Craft/Adapters/MinecraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Адаптер, представляющий предметы crafting demo в inventory UI. |
 | `Examples/Demo3 Craft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Сериализуемое описание recipe grid/pattern. |
 | `Examples/Demo3 Craft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | ScriptableObject-рецепт. |
 | `Examples/Demo3 Craft/Crafting/CraftingManager.cs` | `CraftingManager` | Domain-controller примера, который вычисляет рецепты и хранит craft result state. |

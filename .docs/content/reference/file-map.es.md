@@ -146,7 +146,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Interaction/HoldDragSettings.cs` | `HoldDragSettings` | ScriptableObject para configurar tiempos y umbrales de hold-to-drag. |
 | `Scripts/Interaction/HoldDragPreviewDisplay.cs` | `HoldDragPreviewDisplay` | Componente de feedback visual para el estado de preparación de hold-drag. |
 | `Scripts/Interaction/HoldDragActions.cs` | `StartHoldCountAction`, `StartHoldDragAction` | Slot interaction actions relacionadas con hold counting y el inicio de drag por pulsación mantenida. |
-| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `DragSlotAction`, `CompleteDragAction`, `CancelDragAction`, `InventorySlotAction` | Tipos de acción centrales invocados por el input router para los flujos de interacción de slot e inventario. |
+| `Scripts/Interaction/SlotInteractionActions.cs` | `SlotInteractionAction`, `AssetSafeSlotInteractionAction`, `StartDragAction`, `CompleteDragAction`, `SplitDropAction`, `RotateDragAction`, `CancelDragAction`, `InventorySlotAction` | Tipos de acción centrales invocados por el input router para los flujos de interacción de slot e inventario. |
 
 ---
 
@@ -190,7 +190,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Selection/Operations/ClearSelectionOperation.cs` | `ClearSelectionOperation` | Limpia la selección actual. |
 | `Scripts/Selection/Operations/ClearAndSelectOperation.cs` | `ClearAndSelectOperation` | Limpia la selección previa y selecciona un nuevo slot/conjunto. |
 | `Scripts/Selection/Operations/SelectSlotOperation.cs` | `SelectSlotOperation` | Selecciona un slot concreto. |
-| `Scripts/Selection/Operations/ToggleSlotOperation.cs` | `ToggleSlotOperation` | Alterna el estado de selección de un solo slot. |
+| `Scripts/Selection/Operations/ToggleFilledSlotOperation.cs` | `ToggleFilledSlotOperation` | Alterna el estado de selección de un slot no vacío. |
 | `Scripts/Selection/Operations/RangeSelectOperation.cs` | `RangeSelectOperation` | Selecciona un rango de slots. |
 | `Scripts/Selection/Operations/SelectAllOperation.cs` | `SelectAllOperation` | Selecciona todos los slots disponibles/elegibles. |
 | `Scripts/Selection/Operations/SelectByConditionOperation.cs` | `SelectByConditionOperation` | Clase base para selección en bloque basada en condiciones. |
@@ -293,6 +293,50 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 ---
 
+## Archivos Runtime/UI adicionales
+
+| File | Types | Rol |
+|---|---|---|
+| `Scripts/Core/Models/InventoryTopology.cs` | `IInventoryTopology`, `SlotTopology`, `RectGridTopology`, `SlotCountLimitedTopology`, `OrientationStepUtility` | Abstracción de topology para coordenadas slot/grid, orientation y proyección de footprints. |
+| `Scripts/Core/Models/Placement.cs` | `GridTopology`, `PlacementRequest`, `Placement` | Modelos base de placement request, tamaño de grid y stack colocado. |
+| `Scripts/Core/Models/PlacementCellUtility.cs` | `PlacementBoundsMode`, `PlacementCellUtility` | Utility para calcular celdas cubiertas con distintos modos de bounds. |
+| `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Modelos de footprint de items y helpers de shape/orientation. |
+| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Snapshot de un placement para eventos, rollback y contexto de data binding. |
+| `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Eventos globales del lifecycle drag/drop/swap. |
+| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template para inventarios que persisten datos de placement anchor/orientation. |
+| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Snapshot del contexto input slot/inventory actual para el action pipeline. |
+| `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Base MonoBehaviour abstracta para implementaciones de inventario. |
+| `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Gestiona el resaltado preview de celdas cubiertas durante hover/drag. |
+| `Scripts/Inventories/EntryTransferResult.cs` | `PlacementTransferOutcomeKind`, `EntryTransferStatus`, `PlacementTransferOutcome`, `EntryTransferResult`, `TransferExecutionReport` | Modelos de resultado/reporte de transfer execution. |
+| `Scripts/Inventories/IInventoryInteraction.cs` | `IInventoryInteraction` | Contrato para interaction state del inventario y resolución de auto-transfer slot. |
+| `Scripts/Inventories/IInventorySlotCreationCapacity.cs` | `IInventorySlotCreationCapacity` | Contrato interno de capacidad para creación dinámica de slots. |
+| `Scripts/Inventories/IPlacementInventory.cs` | `IPlacementInventory`, `IShapedDragTargetResolver` | Contrato placement-aware de inventario y resolución target-side de anchors para shaped drag. |
+| `Scripts/Inventories/InventoryPlacementGeometry.cs` | `InventoryPlacementGeometry` | Adapter de operaciones geometry sobre `IPlacementInventory` y topology. |
+| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Interfaces de capacidades runtime usadas por el motor sin depender directamente de `UniversalInventory`. |
+| `Scripts/Inventories/PlacementCandidateSource.cs` | `PlacementCandidateSource` | Fuente enumerable lazy para placement candidates. |
+| `Scripts/Inventories/PlacementSnapshotCodec.cs` | `PlacementSnapshotCodec` | Codec interno para capturar/restaurar placement state. |
+| `Scripts/Inventories/PlacementStore.cs` | `PlacementStore` | Almacenamiento de placements y occupancy map para inventarios shaped/grid. |
+| `Scripts/Inventories/ShapedPlacementAnchorStrategy.cs` | `ShapedPlacementAnchorContext`, `IShapedPlacementAnchorStrategy`, `RotatedGrabOffsetAnchorStrategy`, `SourceGrabOffsetAnchorStrategy`, `TargetSlotAnchorStrategy` | Estrategias que convierten un hovered slot en anchor para shaped items. |
+| `Scripts/Slots/ISlot.cs` | `ISlot` | Contrato mínimo de slot. |
+| `Scripts/Slots/ShapedColorSlot.cs` | `ShapedColorSlot` | Slot visual para preview/highlight de shaped placement. |
+| `Scripts/UI/PlacementOverlay.cs` | `PlacementOverlay` | Renderer overlay para visuals de placement multi-celda. |
+| `Scripts/UI/PlacementOverlayItem.cs` | `PlacementOverlayRenderState`, `PlacementOverlayItem` | UI item dentro del placement overlay. |
+| `Scripts/UI/SourceSizedDragVisual.cs` | `SourceSizedDragVisual` | Drag visual que conserva el tamaño source/placement. |
+| `Scripts/UI/Tooltip/FadeTooltipView.cs` | `FadeTooltipView` | Tooltip view base con animación fade. |
+| `Scripts/Filter/DelegateFilter.cs` | `DelegateFilter`, `DelegateSorter` | Wrappers internos filter/sorter basados en delegates. |
+| `Scripts/Filter/Filters/CategoryFilter.cs` | `CategoryFilter` | Filtro integrado por categoría. |
+| `Scripts/Filter/Filters/CompositeFilter.cs` | `CompositeFilter` | Filtro compuesto integrado. |
+| `Scripts/Filter/Filters/NameSearchFilter.cs` | `NameSearchFilter` | Filtro integrado de búsqueda por nombre. |
+| `Scripts/Filter/Filters/RarityRangeFilter.cs` | `RarityRangeFilter` | Filtro integrado por rango de rareza. |
+| `Scripts/Filter/Sorters/CategorySorter.cs` | `CategorySorter` | Sorter integrado por categoría. |
+| `Scripts/Filter/Sorters/CompositeSorter.cs` | `CompositeSorter` | Sorter compuesto integrado. |
+| `Scripts/Filter/Sorters/NameSorter.cs` | `NameSorter` | Sorter integrado por nombre. |
+| `Scripts/Filter/Sorters/RaritySorter.cs` | `RaritySorter` | Sorter integrado por rareza. |
+| `Scripts/Filter/Sorters/SortValueSorter.cs` | `SortValueSorter` | Sorter integrado por sort value. |
+| `Scripts/Filter/Sorters/StackCountSorter.cs` | `StackCountSorter` | Sorter integrado por cantidad en stack. |
+
+---
+
 ## Ejemplo: Demo1 Inventories
 
 | File | Types | Rol |
@@ -300,6 +344,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Examples/Demo1 Inventories/ItemExampleSO.cs` | `ItemExampleSO` | Datos simples de item mediante ScriptableObject usados por la demo introductoria del inventario. |
 | `Examples/Demo1 Inventories/Adapters/ItemAdapterSoAdapter.cs` | `ItemAdapterSoAdapter` | Adapter que expone `ItemExampleSO` al sistema de inventario. |
 | `Examples/Demo1 Inventories/DataBindings/ItemsSOInventoryDataBinding.cs` | `ItemsSOInventoryDataBinding` | Binding basado en listas que conecta las listas de items de la demo con la UI del inventario. |
+| `Examples/Demo1 Inventories/DataAmountInBinding.cs` | `DataAmountInBinding` | Helper UI que muestra la cantidad de elementos en el demo binding. |
 | `Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs` | `ItemTypeExampleFilterRule` | Rule específica de la demo que muestra cómo restringir drops por categoría/tipo de item. |
 
 ---
@@ -328,9 +373,9 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 | File | Types | Rol |
 |---|---|---|
-| `Examples/Demo3 Craft/Data/CraftItemSO.cs` | `CraftItemSO` | Definición de item en ScriptableObject usada por la crafting demo. |
+| `Examples/Demo3 Craft/Data/MinecraftItemSO.cs` | `CraftItemSO` | Definición de item en ScriptableObject usada por la crafting demo. |
 | `Examples/Demo3 Craft/Data/RuntimeItem.cs` | `RuntimeItem` | Wrapper/model runtime del item usado por la demo donde hace falta. |
-| `Examples/Demo3 Craft/Adapters/CraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Adapter que expone los items de la crafting demo a la UI del inventario. |
+| `Examples/Demo3 Craft/Adapters/MinecraftItemAdapterAdapter.cs` | `CraftItemAdapterAdapter` | Adapter que expone los items de la crafting demo a la UI del inventario. |
 | `Examples/Demo3 Craft/Crafting/CraftingRecipePattern.cs` | `CraftingRecipePattern` | Definición serializada del patrón/grid de receta. |
 | `Examples/Demo3 Craft/Crafting/CraftingRecipeSO.cs` | `CraftingRecipeSO` | Asset ScriptableObject de receta. |
 | `Examples/Demo3 Craft/Crafting/CraftingManager.cs` | `CraftingManager` | Controlador de dominio de la demo que evalúa recetas y mantiene el estado del resultado de craft. |

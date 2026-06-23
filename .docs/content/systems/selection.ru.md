@@ -80,7 +80,7 @@ Swap при batch-переносе не поддерживается — тол�
 | `SlotSelectionView` | Компонент на слоте: подсвечивает при выделении |
 | `SelectionOperationBase` | Базовый класс операций (наследуйте для кастомных) |
 | `ClearAndSelectOperation` | Обычный клик: снять всё + выбрать один |
-| `ToggleSlotOperation` | Ctrl+Клик: переключить |
+| `ToggleFilledSlotOperation` | Ctrl+Клик: переключить непустой слот |
 | `RangeSelectOperation` | Shift+Клик: диапазон |
 | `SelectAllOperation` | Ctrl+A: все непустые слоты |
 | `ClearSelectionOperation` | Escape: снять выделение |

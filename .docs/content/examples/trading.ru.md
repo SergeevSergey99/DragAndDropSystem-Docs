@@ -160,8 +160,8 @@ flowchart LR
 | `PlayerInventoryDataBinding.cs` | sync игрока и player-side domain hooks |
 | `MerchantInventoryDataBinding.cs` | sync торговца и merchant-side domain hooks |
 | `EquipmentInventoryDataBinding.cs` | fixed-slot экипировка |
-| `ModelInventoryItemConverter.cs` | converter в формат игрока |
-| `MerchantInventoryItemConverter.cs` | converter в формат торговца |
+| `ModelItemAdapterConverter.cs` | converter в формат игрока |
+| `MerchantItemAdapterConverter.cs` | converter в формат торговца |
 
 ---
 

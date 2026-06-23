@@ -80,7 +80,7 @@ After a successful batch transfer, the selection is automatically cleared.
 | `SlotSelectionView` | Component on a slot: highlights when selected |
 | `SelectionOperationBase` | Base class for operations (inherit for custom ones) |
 | `ClearAndSelectOperation` | Normal click: clear all + select one |
-| `ToggleSlotOperation` | Ctrl+Click: toggle |
+| `ToggleFilledSlotOperation` | Ctrl+Click: toggle a non-empty slot |
 | `RangeSelectOperation` | Shift+Click: range |
 | `SelectAllOperation` | Ctrl+A: all non-empty slots |
 | `ClearSelectionOperation` | Escape: clear selection |

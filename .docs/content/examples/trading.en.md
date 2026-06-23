@@ -121,8 +121,8 @@ flowchart TD
 | `PlayerInventoryDataBinding.cs` | player sync and player-side domain hooks |
 | `MerchantInventoryDataBinding.cs` | merchant sync and merchant-side domain hooks |
 | `EquipmentInventoryDataBinding.cs` | fixed-slot equipment |
-| `ModelInventoryItemConverter.cs` | converter into player format |
-| `MerchantInventoryItemConverter.cs` | converter into merchant format |
+| `ModelItemAdapterConverter.cs` | converter into player format |
+| `MerchantItemAdapterConverter.cs` | converter into merchant format |
 
 ---
 

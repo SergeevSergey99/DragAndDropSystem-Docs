@@ -80,7 +80,7 @@ Tras una transferencia por lotes exitosa, la selección se limpia automáticamen
 | `SlotSelectionView` | Componente en un slot: resalta cuando está seleccionado |
 | `SelectionOperationBase` | Clase base para operaciones (hereda para crear las tuyas) |
 | `ClearAndSelectOperation` | Click normal: limpiar todo + seleccionar uno |
-| `ToggleSlotOperation` | Ctrl+Click: alternar |
+| `ToggleFilledSlotOperation` | Ctrl+Click: alternar un slot no vacío |
 | `RangeSelectOperation` | Shift+Click: rango |
 | `SelectAllOperation` | Ctrl+A: todos los slots no vacíos |
 | `ClearSelectionOperation` | Escape: limpiar selección |
