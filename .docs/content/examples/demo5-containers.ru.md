@@ -11,12 +11,12 @@
 
 `Examples/Demo5 Containers/Containers Demo.unity`
 
-Это пример inventory-предметов, которые сами содержат вложенный inventory.
+Это пример предметов-инвентарей, которые сами содержат вложенный набор предмтов.
 
 ## Что показывает демо
 
 - item instances вместо простых записей списка
-- контейнер как обычный предмет в inventory игрока
+- контейнер как обычный предмет в инвентаре игрока
 - отдельную UI-панель для содержимого активного контейнера
 - context menu action для открытия контейнера
 - защиту от циклов при вложении контейнеров
@@ -37,49 +37,25 @@ Bindings и UI:
 - `Scripts/UI/ContainerUIController.cs`
 - `Scripts/ContextMenu/OpenContainerMenuEntrySO.cs`
 
-Главная схема:
-
-```mermaid
-flowchart TD
-    PlayerData["ContainerDemoManager.Items"] <--> PlayerBinding["PlayerContainerInventoryDataBinding"]
-    PlayerBinding <--> PlayerUI["Player Inventory UI"]
-    PlayerUI --> Menu["Context Menu / Open Container"]
-    Menu --> UIController["ContainerUIController"]
-    UIController --> ContainerBinding["ContainerInventoryDataBinding"]
-    ContainerBinding <--> ContainerUI["Container Inventory UI"]
-    ContainerBinding <--> ActiveContainer["Current ContainerItemInstance"]
-```
-
 ## Как работает
 
 Открытие контейнера:
 
-1. В inventory игрока лежит `ContainerItemInstance`.
+1. В инвентаре игрока лежит `ContainerItemInstance`.
 2. Контекстное меню вызывает `OpenContainerMenuEntrySO`.
 3. Через `Events.OnOpenClick` выбранный контейнер передаётся в `ContainerUIController`.
-4. Контроллер выставляет active container и вызывает `SetContainer(...)`.
+4. Контроллер выставляет активный контейнер.
 5. `ContainerInventoryDataBinding` перестраивает размер inventory и загружает содержимое контейнера.
 
 Перенос предметов:
 
-1. Между player inventory и container inventory работают обычные drag/drop операции.
-2. Binding-и синхронизируют перенос обратно в player list или в `ContainerItemInstance.Items`.
-3. При drop в занятый слот `PlayerContainerInventoryDataBinding` может выполнить custom occupied-slot поведение.
+1. Между инвентарем игрока и контейнера работают обычные drag/drop операции.
+2. Binding-и синхронизируют перенос в player list или в `ContainerItemInstance.Items`.
+3. При drop в занятый слот `PlayerContainerInventoryDataBinding` может выполнить дополнительное поведение.
 4. Перед помещением контейнера внутрь другого контейнера проверяется `WouldCreateCycle(...)`.
-
-## Что смотреть в коде
-
-| Файл | Роль |
-|---|---|
-| `Scripts/ContainerDemoManager.cs` | корневой список предметов игрока |
-| `Scripts/Bindings/PlayerContainerInventoryDataBinding.cs` | binding инвентаря игрока |
-| `Scripts/Bindings/ContainerInventoryDataBinding.cs` | binding активного контейнера |
-| `Scripts/UI/ContainerUIController.cs` | переключение активного контейнера и панели |
-| `Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | пункт контекстного меню |
-| `Scripts/Data/ContainerItemInstance.cs` | контейнер как item instance |
 
 ## Когда брать этот пример за основу
 
-- предмет должен содержать вложенный inventory
+- предмет должен содержать вложенный инвентарь
 - нужен context menu для операций над предметом
-- нужны custom drop-правила поверх стандартного pipeline
+- нужны свои drop-правила поверх стандартного процесса переноса

@@ -11,14 +11,14 @@
 
 `Examples/Demo3 Craft/CraftDemo.unity`
 
-Это пример slot-indexed inventory и крафта, где UI синхронизируется не со списком, а с фиксированными массивами доменных данных.
+Это пример slot-indexed inventory и крафта, где UI синхронизируется не со списком, а с фиксированными массивами данных.
 
 ## Что показывает демо
 
 - `SlotIndexedInventoryDataBinding`
-- отдельные панели для быстрого доступа, основной инвентарь и стола крафта
+- стол крафта и слот результата
 - ограничение максимального стека на слот
-- `CraftResultDataBinding` как кастомный тип инвентаря для доставания результата
+- `CraftResultDataBinding` как кастомный тип инвентаря для доставания результата крафта
 
 ## Как устроено
 
@@ -41,25 +41,13 @@ UI разбит на четыре независимых binding-а:
 - `CraftTableDataBinding`
 - `CraftResultDataBinding`
 
-```mermaid
-flowchart TB
-    Manager["CraftingManager"] --> Main["MainInventoryDataBinding"]
-    Manager --> Hotbar["HotbarDataBinding"]
-    Manager --> Table["CraftTableDataBinding"]
-    Manager --> Result["CraftResultDataBinding"]
-    Main <--> MainUI["Main Inventory UI"]
-    Hotbar <--> HotbarUI["Hotbar UI"]
-    Table <--> TableUI["Craft Table UI"]
-    Result <--> ResultUI["Craft Result UI"]
-```
-
 ## Как работает
 
 Обычные слоты:
 
 1. Binding перечисляет занятые индексы через `GetOccupiedSlots()`.
 2. `AddToSlotData(...)` и `RemoveFromSlotData(...)` вызывают методы `CraftingManager`.
-3. На `Awake()` inventory получает `SetMaxStackSize(CraftingManager.MaxItemsPerSlot)`.
+3. На `Awake()` инвентари получает `SetMaxStackSize(CraftingManager.MaxItemsPerSlot)` чтобы ограничить число предметов в слоте
 
 Крафт:
 
@@ -68,21 +56,10 @@ flowchart TB
 3. `CraftResultDataBinding.OnReloadUI()` показывает результат и настраивает шаг drag-а.
 4. Когда пользователь забирает результат, `OnItemRemovedFromUI(...)` вызывает `ConsumeCraftIngredients(...)`.
 
-Это хороший пример read-only слота, который не принимает входящий drop, но запускает доменный side effect на успешном извлечении.
-
-## Что смотреть в коде
-
-| Файл | Роль |
-|---|---|
-| `Crafting/CraftingManager.cs` | доменные данные и логика крафта |
-| `DataBindings/MainInventoryDataBinding.cs` | main inventory binding |
-| `DataBindings/HotbarDataBinding.cs` | hotbar binding |
-| `DataBindings/CraftTableDataBinding.cs` | craft table binding |
-| `DataBindings/CraftResultDataBinding.cs` | result slot binding |
-| `Crafting/CraftingRecipeSO.cs` | рецепт и matching |
+Это хороший пример read-only слота, который не принимает входящий drop, но в зависимости от внешней логики создает предмет который можно вытащить.
 
 ## Когда брать этот пример за основу
 
-- нужен inventory с жёсткими индексами
-- нужен крафт поверх нескольких inventory-секций
-- нужен пример output slot с доменным эффектом после извлечения
+- нужен инвентарь с жёсткими индексами
+- нужен крафт
+- нужен пример выходного слота с эффектом после извлечения

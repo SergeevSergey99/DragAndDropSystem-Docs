@@ -30,39 +30,24 @@
 - `DataBindings/ItemsSOInventoryDataBinding.cs` — binding между списком данных и inventory
 - `SO/Rules/*` — пример rule preset
 
-Архитектурно это самая короткая цепочка в проекте:
-
 ```mermaid
 flowchart LR
     Data["List<ItemExampleSO>"] <--> Binding["ItemsSOInventoryDataBinding"] <--> UI["UniversalInventory"]
 ```
 
-Здесь нет отдельного доменного сервиса. Сам binding читает список, создаёт адаптеры и синхронизирует изменения обратно в тот же список.
+Сам binding читает список, создаёт адаптеры и синхронизирует изменения обратно в тот же список.
 
 ## Как работает
 
 1. `GetItems()` отдаёт список `items`.
-2. `ReloadUI()` строит UI-стеки через `CreateAdapter(...)`.
-3. Drag and drop выполняется стандартным pipeline.
-4. После успешного переноса binding получает add/remove callbacks.
-5. `AddToData(...)` и `RemoveFromData(...)` обновляют исходный список.
+2. `ReloadUI()` строит изначальный UI-стеки из этого списка через `CreateAdapter(...)`. Эту функцию можно вызывать по событиям когда что то изменилось в данных для полной перерисоки, но для `ListInventoryDataBinding` не сохраняется позиция.
+3. После успешного переноса инвентарь вызывает у binding соответствующие `AddToData(...)` и `RemoveFromData(...)` - обновляет исходный список.
 
 Дополнительно пример показывает, где удобно добавлять простые локальные ограничения:
 
-- `CanStartDrag(...)` — запретить drag из конкретного inventory
-- `CanDrop(...)` — запретить drop в конкретный inventory
-
-## Что смотреть в коде
-
-| Файл | Роль |
-|---|---|
-| `DataBindings/ItemsSOInventoryDataBinding.cs` | основной binding примера |
-| `Adapters/ItemAdapterSoAdapter.cs` | адаптер для `ItemExampleSO` |
-| `ItemExampleSO.cs` | модель данных предмета |
-| `Scripts/DataBinding/ListInventoryDataBinding.cs` | базовый класс list-based binding |
+- `CanStartDrag(...)` — запретить перетаскивание из конкретного инвенторя
+- `CanDrop(...)` — запретить перетаскивание в конкретный инвентарь
 
 ## Когда брать этот пример за основу
 
-- нужен первый inventory без сложной доменной модели
-- нужно понять lifecycle `ListInventoryDataBinding`
-- нужно быстро проверить правила или визуальную настройку
+- нужен первый инвентарь без сложной модели
