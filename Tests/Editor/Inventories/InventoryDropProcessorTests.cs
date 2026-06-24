@@ -397,6 +397,85 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_PreRuleOccupiedHandler_BypassesRejectingDropRule()
+        {
+            // A pre-rule occupied-slot handler is consulted BEFORE the target drop rules.
+            // Even though the binding's CanDrop rejects every drop, the pre-rule handler
+            // must still fire and consume the source.
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "container"));
+
+            var binding = _target.gameObject.AddComponent<TestPreRuleOccupiedSlotBinding>();
+            binding.HandledSlot = _target.GetSlot(0);
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var report = processor.ProcessDropWithReport(
+                context,
+                DropRequestPolicy.WithAlternativeOrderer());
+
+            Assert.IsTrue(report.Success,
+                $"Pre-rule handler must bypass the rejecting drop rule, got: {report.FailureReason}");
+            Assert.AreEqual(1, binding.ExecuteCalls, "Pre-rule handler must execute despite the rejecting rule");
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source must be consumed by the pre-rule handler");
+            Assert.AreEqual("container", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Occupied target must stay untouched");
+            Assert.IsTrue(_target.GetSlot(1).IsEmpty, "FindAlternative must not move the item into the free slot");
+        }
+
+        [Test]
+        public void ProcessDrop_PostRuleOccupiedHandler_BlockedByRejectingDropRule()
+        {
+            // A post-rule occupied-slot handler is consulted only AFTER the target drop
+            // rules pass. With the binding's CanDrop rejecting every drop, the handler
+            // must never fire and nothing must move.
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(1)
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(2)
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "sword"));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "container"));
+
+            var binding = _target.gameObject.AddComponent<TestRejectingPostRuleOccupiedSlotBinding>();
+            binding.HandledSlot = _target.GetSlot(0);
+            _target.Initialize(binding);
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var report = processor.ProcessDropWithReport(
+                context,
+                DropRequestPolicy.WithAlternativeOrderer());
+
+            Assert.IsFalse(report.Success, "Rejecting drop rule must block a post-rule occupied-slot handler");
+            Assert.AreEqual(0, binding.ExecuteCalls, "Post-rule handler must not execute when rules reject the drop");
+            Assert.AreEqual("sword", _source.GetSlot(0).Stack.ItemAdapter.ItemId, "Source must stay untouched");
+            Assert.AreEqual("container", _target.GetSlot(0).Stack.ItemAdapter.ItemId, "Occupied target must stay untouched");
+            Assert.IsTrue(_target.GetSlot(1).IsEmpty, "No alternative slot must be filled");
+        }
+
+        [Test]
         public void ProcessDrop_RejectResolver_OccupiedTargetRejectedAndUnchanged()
         {
             _source = new InventoryBuilder()
@@ -669,6 +748,66 @@ namespace UDND.Tests.Inventories
         public int ExecuteCalls { get; private set; }
 
         protected override void Awake() { }
+
+        public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        {
+            CanHandleCalls++;
+            return ReferenceEquals(occupiedBaseSlot, HandledSlot);
+        }
+
+        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        {
+            ExecuteCalls++;
+            entry.SourceBaseSlot.Clear();
+            return true;
+        }
+
+        protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context) { }
+        protected override void OnReloadUI() { }
+    }
+
+    public sealed class TestPreRuleOccupiedSlotBinding : InventoryDataBindingBase, IPreRuleOccupiedSlotDropHandler
+    {
+        public BaseSlot HandledSlot { get; set; }
+        public int CanHandleCalls { get; private set; }
+        public int ExecuteCalls { get; private set; }
+
+        protected override void Awake() { }
+
+        // Reject every drop so only a pre-rule handler (consulted before rules) can succeed.
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+            => RuleResult.Failure("Drop rule rejects all drops");
+
+        public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        {
+            CanHandleCalls++;
+            return ReferenceEquals(occupiedBaseSlot, HandledSlot);
+        }
+
+        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        {
+            ExecuteCalls++;
+            entry.SourceBaseSlot.Clear();
+            return true;
+        }
+
+        protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
+        protected override void OnItemRemovedFromUI(InventoryItemEventContext context) { }
+        protected override void OnReloadUI() { }
+    }
+
+    public sealed class TestRejectingPostRuleOccupiedSlotBinding : InventoryDataBindingBase, IPostRuleOccupiedSlotDropHandler
+    {
+        public BaseSlot HandledSlot { get; set; }
+        public int CanHandleCalls { get; private set; }
+        public int ExecuteCalls { get; private set; }
+
+        protected override void Awake() { }
+
+        // Reject every drop; a post-rule handler must never fire because rules run first.
+        protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+            => RuleResult.Failure("Drop rule rejects all drops");
 
         public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
