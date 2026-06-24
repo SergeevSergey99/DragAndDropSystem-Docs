@@ -1,140 +1,100 @@
-# Example: Free-Form Layout
+# Layout libre de slots
 
-`FreeFormSlotLayout` es un componente de ejemplo que demuestra cómo construir un inventario con layout libre encima del core drag-and-drop pipeline. Los items aparecen donde el jugador los suelta, los slots se crean dinámicamente y los drops superpuestos se desplazan a la posición libre más cercana.
+`FreeFormSlotLayout` muestra cómo crear un inventario donde el objeto aparece cerca del punto de drop, no en la siguiente celda de una cuadrícula.
 
----
+Es un ejemplo de layout UI encima del comportamiento normal de transferencia. La transferencia de objetos no cambia: el inventario sigue decidiendo si puede aceptar el objeto, crea un slot y coloca el stack. `FreeFormSlotLayout` solo elige la posición en pantalla del slot creado.
+
+## Qué hace
+
+- el jugador suelta un objeto sobre el área del inventario
+- el inventario crea un slot dinámico
+- el slot se coloca cerca del punto de drop
+- si la posición está ocupada, el slot se mueve a la posición libre más cercana
+- al cargar o ejecutar `ReloadUI`, todos los slots se ordenan sin solaparse
 
 ## Cómo funciona
 
-```mermaid
-flowchart LR
-    subgraph Initialization
-        E["ReloadUI /\ndata load"] --> F["ArrangeAllSlots()"]
-        F --> G["Slots arranged\nin grid without overlap"]
-    end
+Las coordenadas del drop no se pasan a la lógica de transferencia. Se quedan en la capa UI.
 
-    subgraph Drop
-        A["Player drops\nitem on area"] --> B["Mouse coordinates\ncaptured"]
-        B --> C["Dynamic slot\ncreated"]
-        C --> D["Slot positioned\nat drop point"]
-    end
+El componente usa dos eventos:
 
-    Initialization ~~~ Drop
-```
+| Evento | Para qué sirve |
+|---|---|
+| `UDNDEvents.OnDropAttempting` | Recordar la posición del mouse antes de procesar el drop |
+| `UniversalInventory.OnSlotCreated` | Colocar el nuevo slot en la posición recordada |
 
-Idea clave: las coordenadas **no pasan** a través del transfer pipeline (policy / strategy / motor de transferencia). El posicionamiento es un problema puramente de UI, resuelto mediante dos hooks:
-
-1. `UDNDEvents.OnDropAttempting` — capturar la posición del ratón.
-2. `UniversalInventory.OnSlotCreated` — colocar el nuevo slot en las coordenadas capturadas.
-
----
+Si un slot se crea fuera de un flujo de drop, el componente lo coloca con el pase de layout por defecto.
 
 ## Componentes
 
 | Componente | Propósito |
-|-----------|---------|
-| **FreeFormSlotLayout** | Componente de ejemplo: posiciona slots creados dinámicamente en el punto de drop durante el drag, resuelve solapamientos y los ordena en una cuadrícula durante la inicialización |
-| **InventoryDropArea** | Drop area estándar: no necesita modificaciones |
-| **UniversalInventory** | Inventario con slots `Dynamic`. Proporciona el evento `OnSlotCreated` y acceso a `SlotContainer` |
-
----
+|---|---|
+| `FreeFormSlotLayout` | Posiciona slots creados dinámicamente y resuelve solapamientos |
+| `InventoryDropArea` | Acepta drops sobre el área del inventario |
+| `UniversalInventory` | Funciona en modo `Dynamic` y crea slots cuando hace falta |
 
 ## Configuración
 
-### 1. Configura el inventario
+### 1. Configura `UniversalInventory`
 
-En `UniversalInventory`, establece:
+Define:
 
 - **Slot Management** = `Dynamic`
-- **Max Free Slots** = `0` (los slots se crean solo al hacer drop, no por adelantado)
-- **Max Dynamic Slots** — número máximo de items
+- **Max Free Slots** = `0` si los slots deben aparecer solo después de drop
+- **Max Dynamic Slots** = cantidad máxima de objetos para este inventario
 
-### 2. Elimina LayoutGroup
+### 2. Quita `LayoutGroup`
 
-El contenedor de slots (`_slotContainer`) **no debe tener** componentes `LayoutGroup` (`HorizontalLayoutGroup`, `VerticalLayoutGroup`, `GridLayoutGroup`). Si no, el LayoutGroup sobrescribirá la posición de los slots.
+El contenedor de slots (`_slotContainer`) no debe tener `HorizontalLayoutGroup`, `VerticalLayoutGroup` ni `GridLayoutGroup`.
 
-### 3. Añade FreeFormSlotLayout
+Unity `LayoutGroup` sobrescribe las posiciones de los hijos, así que entra en conflicto con un layout libre.
 
-Añade el componente `FreeFormSlotLayout` al mismo GameObject que `UniversalInventory`. Configura:
+### 3. Añade `FreeFormSlotLayout`
 
-- **UI Camera** — cámara de UI. Déjalo vacío para Canvas en Screen Space - Overlay.
-- **Slot Spacing** — separación mínima entre slots durante el auto-layout.
-- **Bounds Override** — RectTransform que limita la posición de los slots. Si no se asigna, se usa el slot container.
+Añade el componente al mismo GameObject que `UniversalInventory`.
 
-### 4. Añade InventoryDropArea
+Opciones:
 
-`InventoryDropArea` estándar: no hacen falta subclases.
+| Campo | Qué hace |
+|---|---|
+| **UI Camera** | Cámara UI. Déjala vacía para Screen Space - Overlay |
+| **Slot Spacing** | Separación mínima entre slots |
+| **Bounds Override** | RectTransform que limita las posiciones. Si está vacío, se usa el contenedor de slots |
 
----
+### 4. Añade `InventoryDropArea`
 
-## Lifecycle
+El `InventoryDropArea` estándar es suficiente. No necesitas un drop target propio para este escenario.
 
-```mermaid
-flowchart LR
-    subgraph Drop["Item Drop"]
-        A["Player releases item"] --> B["InventoryDropArea calls CompleteDrag()"]
-        B --> C["DragAndDropManager: OnDropAttempting"]
-        C --> D["FreeFormSlotLayout stores Input.mousePosition"]
-        D --> E["UniversalInventory: ProcessDrop → motor de transferencia"]
-        E --> F["CreateSlot() for a dynamic slot"]
-        F --> G["OnSlotCreated(slot)"]
-        G --> H["Convert screen → local and ClampToBounds"]
-        H --> I["slot.anchoredPosition = dropPos"]
-    end
+## Guardar posiciones
 
-    subgraph Init["Initialization / ReloadUI"]
-        J["Call ArrangeAllSlots()"] --> K["FreeFormSlotLayout arranges slots in a grid"]
-    end
-```
-
----
-
-## Extensión: persistencia de posición
-
-`FreeFormSlotLayout` proporciona utilidades para trabajar con coordenadas normalizadas:
+`FreeFormSlotLayout` puede convertir posiciones a coordenadas normalizadas `0..1`. Son cómodas para guardarlas en tus datos.
 
 ```csharp
-// Save: get position as 0..1
+// Save: local position -> normalized 0..1
 Vector2 normalized = layout.GetNormalizedPosition(slot);
 myModel.SavePosition(slot.Index, normalized);
 
-// Restore: convert normalized back to local
+// Load: normalized 0..1 -> local position
 Vector2 local = layout.NormalizedToLocal(savedNormalized);
 layout.SetSlotPosition(slot, local);
 ```
 
-Las coordenadas normalizadas son independientes del tamaño del contenedor: las posiciones escalan correctamente entre distintas resoluciones.
+Las coordenadas normalizadas sobreviven a cambios de tamaño del contenedor: el slot se mantiene aproximadamente en el mismo lugar relativo al área del inventario.
 
----
+## Resolver solapamientos
 
-## Evitar solapamientos
+Si la posición de drop está ocupada, el componente revisa posiciones cercanas alrededor y elige la posición libre más cercana dentro de los límites permitidos.
 
-El ejemplo incluye ahora resolución integrada de solapamientos. Si el punto de drop ya está ocupado, `FreeFormSlotLayout` busca posiciones vecinas en anillos crecientes y elige la posición libre más cercana dentro de los límites.
+Este comportamiento es suficiente para el ejemplo y para inventarios pequeños. Si necesitas otro algoritmo, usa los mismos eventos y cambia el cálculo de posición.
 
----
+## Crear tu propio layout
 
-## Construir tu propio layout
+Un layout propio normalmente sigue este patrón:
 
-`FreeFormSlotLayout` se presenta deliberadamente como ejemplo, no como un modo de layout integrado obligatorio. Estos son los puntos de extensión a través de los cuales puede construirse cualquier lógica de layout:
-
-### Hooks disponibles
-
-| Hook | Cuándo se dispara | Para qué usarlo |
-|------|---------------|-------------------|
-| `UniversalInventory.OnSlotCreated` | Después de crear el slot (`Instantiate` + `Initialize`) | Posicionamiento, inicialización visual |
-| `UDNDEvents.OnDropAttempting` | Antes de procesar el drop | Capturar coordenadas del ratón, preparar estado |
-| `UDNDEvents.OnDropCompleted` | Después de una transferencia exitosa | Post-procesado, animaciones, actualizaciones del layout |
-| `UDNDEvents.OnDragCancelled` | Drop cancelado | Resetear estado pendiente |
-| `UniversalInventory.OnItemAdded` | Item añadido a un slot | Reaccionar a cambios de contenido |
-
-### Patrón de implementación
-
-Cualquier layout personalizado sigue el mismo principio:
-
-1. **Componente en el inventario** — `MonoBehaviour` con `[RequireComponent(typeof(UniversalInventory))]`.
-2. **Suscribirse a `OnSlotCreated`** — posicionar el slot inmediatamente después de crearlo.
-3. **Suscribirse a eventos globales** — capturar contexto (coordenadas, estado) antes del drop processing.
-4. **Método `ArrangeAllSlots()`** — para el layout inicial y el recálculo después de ReloadUI.
+1. Crear un componente junto a `UniversalInventory`.
+2. Suscribirse a `UniversalInventory.OnSlotCreated`.
+3. Opcionalmente suscribirse a `UDNDEvents.OnDropAttempting` para recordar la posición de drop.
+4. Recalcular todas las posiciones en `ArrangeAllSlots()` después de cargar o ejecutar `ReloadUI`.
 
 ```csharp
 [RequireComponent(typeof(UniversalInventory))]
@@ -147,7 +107,6 @@ public class MyCustomLayout : MonoBehaviour
     void OnEnable()
     {
         _inventory.OnSlotCreated += HandleSlotCreated;
-        // + subscribe to DragAndDropManager events as needed
     }
 
     void OnDisable()
@@ -157,42 +116,41 @@ public class MyCustomLayout : MonoBehaviour
 
     void HandleSlotCreated(BaseSlot slot)
     {
-        // Your positioning logic
-        var rt = slot.Transform as RectTransform;
-        rt.anchoredPosition = CalculatePosition(slot);
+        var rectTransform = slot.Transform as RectTransform;
+        rectTransform.anchoredPosition = CalculatePosition(slot);
     }
 
     public void ArrangeAllSlots()
     {
         foreach (var slot in _inventory.Slots)
         {
-            var rt = slot.Transform as RectTransform;
-            rt.anchoredPosition = CalculatePosition(slot);
+            var rectTransform = slot.Transform as RectTransform;
+            rectTransform.anchoredPosition = CalculatePosition(slot);
         }
     }
 
-    Vector2 CalculatePosition(BaseSlot slot) { /* ... */ return Vector2.zero; }
+    Vector2 CalculatePosition(BaseSlot slot)
+    {
+        return Vector2.zero;
+    }
 }
 ```
 
-### Ideas de layout personalizado
+## Ideas para otros layouts
 
-| Layout | Idea | Lógica clave |
-|--------|------|-----------|
-| **Circular** | Slots sobre un círculo | `angle = slot.Index * (360f / totalSlots)` |
-| **Snap Grid** | Drop libre, pero ajustado a cuadrícula | Redondear coordenadas de drop a la celda más cercana |
-| **Physics** | Los slots "caen" con físicas | Añadir `Rigidbody2D` a los slots, desactivar kinematic |
-| **Radial Menu** | Slots desplegados desde el centro | Posición = dirección desde el centro * radio |
-
----
+| Opción | Idea |
+|---|---|
+| Circular | Colocar slots alrededor de un círculo |
+| Snap Grid | Soltar libremente, pero ajustar la posición final a la celda más cercana |
+| Physics | Dar comportamiento físico a los slots |
+| Radial Menu | Colocar slots en abanico desde el centro |
 
 ## Referencia
 
 | Clase | Rol |
-|-------|------|
-| `FreeFormSlotLayout` | Componente de ejemplo para posicionamiento libre de slots con resolución de solapamientos |
-| `UniversalInventory.OnSlotCreated` | Evento de creación de slots: hook principal para sistemas de layout |
-| `UniversalInventory.SlotContainer` | Acceso al Transform contenedor para conversión de coordenadas |
-| `InventoryDropArea` | Drop area estándar, funciona sin modificaciones |
-| `DynamicSlotManagementSettings` | Modo de gestión de slots: crea slots automáticamente cuando hace falta |
-
+|---|---|
+| `FreeFormSlotLayout` | Componente de ejemplo para layout UI libre de slots |
+| `UniversalInventory.OnSlotCreated` | Hook principal para posicionar un slot nuevo |
+| `UniversalInventory.SlotContainer` | Contenedor usado para cálculos de coordenadas |
+| `InventoryDropArea` | Área de drop estándar del inventario |
+| `DynamicSlotManagementSettings` | Modo que crea slots cuando hace falta |

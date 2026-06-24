@@ -39,7 +39,7 @@ Una transferencia típica funciona así:
 5. Si el destino no es válido, `DropPolicySettings` decide qué ocurre después según las
    opciones seleccionadas: rechazar la transferencia, buscar otro lugar o probar swap.
 6. Si tiene éxito, se envían eventos y se actualiza DataBinding. Si falla, el estado se
-   restaura desde un snapshot.
+   restaura a la copia guardada antes del intento de transferencia.
 
 ## Casos
 

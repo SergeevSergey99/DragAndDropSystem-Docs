@@ -1,92 +1,77 @@
-# Selection
+# Selección
 
-El sistema de selección permite seleccionar varios items en un inventario y realizar operaciones de grupo sobre ellos, por ejemplo arrastrar todos los seleccionados a la vez.
-
----
+El sistema de selección permite elegir varios objetos y ejecutar una acción sobre ellos: arrastrar un grupo, limpiar la selección, seleccionar un rango o seleccionar todos los objetos de un inventario.
 
 ## Operaciones de selección
 
 | Acción | Qué ocurre |
-|--------|------------|
-| **Click** | Limpia la selección previa y selecciona un item |
-| **Ctrl + Click** | Alterna: añade a la selección o quita de ella |
-| **Shift + Click** | Selecciona un rango desde el último seleccionado hasta el actual |
-| **Ctrl + A** | Selecciona todos los slots no vacíos del inventario |
-| **Escape** | Limpia toda la selección |
+|---|---|
+| Click | Limpia la selección anterior y selecciona un objeto |
+| Ctrl + click | Añade el objeto a la selección o lo quita |
+| Shift + click | Selecciona el rango desde el último slot seleccionado hasta el actual |
+| Ctrl + A | Selecciona todos los slots no vacíos del inventario actual |
+| Escape | Limpia la selección |
 
----
+Los slots vacíos normalmente se ignoran. Así se evita seleccionar celdas vacías por accidente en vez de objetos.
 
-## Cómo se ve
+## Arrastre de grupo
 
-```mermaid
-flowchart TD
-    A["Click on slot"] --> B{"What type\nof operation?"}
-    B -->|Normal click| C["Clear all +\nselect this one"]
-    B -->|Ctrl + Click| D["Add to selection\nor remove"]
-    B -->|Shift + Click| E["Select range\nfrom last\nto current"]
-    B -->|Ctrl + A| F["Select all\nnon-empty slots"]
-    B -->|Escape| G["Clear selection"]
+Si el jugador arrastra un objeto seleccionado, el sistema transfiere el grupo seleccionado.
 
-```
+Comportamiento importante:
 
----
+- cada slot seleccionado se transfiere por separado
+- el slot de destino se usa como punto inicial para buscar colocación
+- los objetos que encuentran una posición válida se transfieren
+- los objetos que no caben o no pasan validación se quedan donde estaban
+- los objetos ya transferidos no se revierten porque falle un objeto posterior
 
-## Arrastre en grupo
+Si la transferencia parcial está activada, de un stack puede moverse solo la cantidad que quepa.
 
-Los items seleccionados pueden arrastrarse todos a la vez. El sistema crea automáticamente una transferencia para cada slot seleccionado.
+Swap no se usa para transferencias de grupo. El grupo se coloca en slots libres o compatibles.
 
-```mermaid
-flowchart LR
-    A["Selected\n3 items"] --> B["Started\ndragging"]
-    B --> C["System transfers\nall selected"]
-    C --> D["Each item\nis processed\nseparately"]
+Después de una transferencia de grupo exitosa, la selección se limpia automáticamente.
 
-```
+## Varios inventarios
 
-Si la selección está vacía, solo se arrastra el slot que se cogió. Las transferencias desde distintos inventarios pueden restringirse mediante el ajuste `_restrictToSameInventory`.
+Por defecto se pueden seleccionar objetos de varios inventarios si tus operaciones de selección lo permiten.
 
-### Cómo funciona la transferencia por lotes
-
-Durante el arrastre en grupo, el slot objetivo donde se sueltan los items se usa solo como pista. El sistema encuentra automáticamente slots adecuados para cada item.
-
-El batch siempre usa sequential best-effort. Cada entry se valida contra el estado
-actual del target: los entries válidos se confirman y los fallidos permanecen en
-source. Si la policy permite transferencia parcial, solo se mueve la cantidad que
-cabe.
-
-El swap no está soportado durante la transferencia por lotes, solo colocación en slots libres o compatibles.
-
-Tras una transferencia por lotes exitosa, la selección se limpia automáticamente.
-
----
+Si no necesitas este escenario, activa `_restrictToSameInventory`. Entonces el grupo se forma solo desde un inventario.
 
 ## Configuración
 
-1. **Añade `SelectionManager`** a la escena (singleton, uno por escena).
-2. **Añade `SlotSelectionView`** al prefab del slot: resalta los slots seleccionados. Configura colores y el objeto indicador en el inspector.
-3. **Configura triggers**: vincula operaciones de selección a input:
-    - mediante pointer bindings en `InteractionBindingsProfile` (Ctrl+Click, Shift+Click, como `SelectionSlotAction` con la operación adecuada).
-    - mediante `InputActionSelectionTrigger` para atajos de teclado (Ctrl+A, Escape).
-    - mediante `ButtonSelectionTrigger` para botones de UI ("Select All", "Clear Selection").
+1. Añade `SelectionManager` a la escena. Normalmente basta con una instancia por escena.
+2. Añade `SlotSelectionView` al prefab del slot. Muestra el resaltado del estado seleccionado.
+3. Configura las operaciones de selección mediante input:
+   - `SelectionSlotAction` en `InteractionBindingsProfile` para Ctrl + click y Shift + click.
+   - `InputActionSelectionTrigger` para hotkeys como Ctrl + A y Escape.
+   - `ButtonSelectionTrigger` para botones UI como "Seleccionar todo" y "Limpiar selección".
 
----
+## Qué comprobar
+
+| Síntoma | Comprueba |
+|---|---|
+| El objeto no se añade a la selección | Si hay un `SelectionManager` en la escena |
+| No se ve el resaltado | Si `SlotSelectionView` está en el prefab del slot |
+| Ctrl/Shift no funcionan | Si las entradas `SelectionSlotAction` necesarias están configuradas en el perfil de input |
+| Ctrl + A o Escape no funcionan | Si `InputActionSelectionTrigger` u otro trigger está conectado |
+| No se transfiere todo el grupo | Si hay espacio en el inventario de destino y las rules pasan para cada objeto |
 
 ## Referencia de clases
 
 | Clase | Rol |
-|-------|------|
-| `SelectionManager` | Singleton, guarda el estado de selección |
-| `SelectionContext` | Snapshot inmutable de la selección actual |
-| `SlotSelectionView` | Componente en un slot: resalta cuando está seleccionado |
-| `SelectionOperationBase` | Clase base para operaciones (hereda para crear las tuyas) |
-| `ClearAndSelectOperation` | Click normal: limpiar todo + seleccionar uno |
-| `ToggleFilledSlotOperation` | Ctrl+Click: alternar un slot no vacío |
-| `RangeSelectOperation` | Shift+Click: rango |
-| `SelectAllOperation` | Ctrl+A: todos los slots no vacíos |
+|---|---|
+| `SelectionManager` | Guarda la selección actual |
+| `SelectionContext` | Estado de selección en el momento de lectura |
+| `SlotSelectionView` | Resalta un slot cuando está seleccionado |
+| `SelectionOperationBase` | Clase base para operaciones de selección |
+| `ClearAndSelectOperation` | Click normal: limpiar todo y seleccionar un slot |
+| `ToggleFilledSlotOperation` | Ctrl + click: alternar un slot no vacío |
+| `RangeSelectOperation` | Shift + click: seleccionar un rango |
+| `SelectAllOperation` | Ctrl + A: seleccionar todos los slots no vacíos |
 | `ClearSelectionOperation` | Escape: limpiar selección |
-| `SelectByConditionOperation` | Selección por predicado (filtro personalizado) |
-| `SelectionSlotAction` | Acción para vincular a PointerBinding |
-| `StartMultiDragAction` | Arrastre en grupo de los seleccionados |
-| `ButtonSelectionTrigger` | Trigger mediante UI Button |
-| `InputActionSelectionTrigger` | Trigger mediante Input System Action |
-
+| `SelectByConditionOperation` | Seleccionar por predicado |
+| `SelectionSlotAction` | Acción de selección para pointer binding |
+| `StartMultiDragAction` | Empieza el arrastre del grupo seleccionado |
+| `ButtonSelectionTrigger` | Ejecuta una operación de selección desde un UI Button |
+| `InputActionSelectionTrigger` | Ejecuta una operación de selección desde una Input System Action |

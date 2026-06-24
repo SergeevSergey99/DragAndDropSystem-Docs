@@ -2,7 +2,7 @@
 
 Эта страница является полным справочником по коду пакета.
 
-Она специально длиннее других страниц документации: цель здесь не обучить системе с нуля, а помочь быстро найти нужный runtime-, editor- или example-тип без долгого просмотра исходников.
+Она специально длиннее других страниц документации: цель здесь не обучить системе с нуля, а помочь быстро найти нужный runtime-, editor- или примерный тип без долгого просмотра исходников.
 
 В таблицах ниже перечислены все script-файлы и указано назначение основных классов, интерфейсов, enum'ов и служебных типов, объявленных внутри.
 
@@ -49,7 +49,7 @@
 
 | Файл | Types | Назначение |
 |---|---|---|
-| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Минимальное представление предмета, которое хранится в слотах и передаётся через UI-конвейер. |
+| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Минимальное представление предмета, которое хранится в слотах и передаётся через UI. |
 | `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Опциональный интерфейс для адаптеров, которые отдают расширенное описание для UI, например tooltip. |
 | `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Опциональные интерфейсы для систем фильтрации и сортировки. |
 | `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Опциональное переопределение лимита стака на уровне конкретного предмета. |
@@ -71,13 +71,13 @@
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Стандартная drop-area инвентаря на основе `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Scalar policy модели JIT transfer pipeline. |
-| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Настройки blocked target, orderer, same-inventory fallback и partial transfer. |
-| `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемый helper для временных drop request override'ов в actions и triggers. |
-| `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемый helper для временного override количества предметов при старте drag. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Модели, описывающие поведение drop: отказ, поиск другого слота, swap и частичный перенос. |
+| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Настройки поведения при занятой цели, поиска другого слота и частичного переноса. |
+| `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемые настройки для временного переопределения drop behavior в actions и triggers. |
+| `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемые настройки для временного переопределения количества предметов при старте drag. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Интерфейс для объектов, которые отдают активные настройки drop policy. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Модель запроса на проверку, может ли инвентарь принять входящий предмет или стек. |
-| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing точка входа, которая resolve policy и запускает JIT transfer. |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | Точка входа из UI: определяет активную drop policy и запускает перенос. |
 
 ---
 
@@ -92,24 +92,24 @@
 
 ---
 
-## Inventory pipeline
+## Перенос и инвентари
 
 | Файл | Types | Назначение |
 |---|---|---|
 | `Scripts/Inventories/IInventory.cs` | `IInventory` | Базовый контракт инвентаря, который используют движок переноса, validator и сервисы. |
-| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Синхронные business hooks перед commit и после успешного переноса. |
-| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Асинхронные hooks для pre-commit проверок вроде серверной валидации. |
+| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Синхронные бизнес-проверки перед фиксацией переноса и hook после успеха. |
+| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Асинхронная проверка перед переносом, например серверная валидация. |
 | `Scripts/Inventories/IItemAdapterConverter.cs` | `IItemAdapterConverter` | Конвертирует item adapter при переносе между инвентарями с разными моделями данных. |
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Pass-through converter для случаев, когда конвертация не нужна. |
-| `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum, описывающий тип transfer flow. |
+| `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum, описывающий тип переноса. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Контекст, который передаётся в domain handlers. |
-| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Sequential JIT service с per-entry rollback, swap и automatic candidates. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Сервис переноса: обрабатывает записи по очереди, поддерживает откат неудачной записи, swap и автоматический поиск места. |
 | `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Совещательный probe-результат для preview и acceptance. |
-| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Канонический descriptor merge/create/dynamic target. |
-| `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Сортировка только для automatic placement. |
-| `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Topology-aware contract anchor, footprint, occupancy и covered slots. |
-| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Snapshot-модель и provider-интерфейс для безопасного чтения состояния инвентаря. |
-| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Вспомогательные методы для построения и чтения snapshot'ов. |
+| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Описание возможного размещения: объединить стек, занять существующий слот или создать динамический слот. |
+| `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Сортировка вариантов при автоматическом поиске места. |
+| `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Контракт геометрии фигурных предметов: anchor, footprint, занятость и покрытые слоты. |
+| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Снимок состояния инвентаря для безопасного чтения, preview, сортировки и отката неудачных операций. |
+| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Вспомогательные методы для построения и чтения снимков состояния. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Сервис для quick-transfer поведения между инвентарями. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Внутренний utility, который последовательно применяет конвертацию adapter'ов в preview и execution. |
 
@@ -128,7 +128,7 @@
 | `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Базовый класс для режимов жизненного цикла слотов, выбираемых прямо в `UniversalInventory`. |
 | `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Fixed-режим жизненного цикла слотов. |
 | `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Dynamic-режим с поддержкой свободных слотов и trimming hooks. |
-| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Runtime snapshot для refresh логики стратегии, slot management и merge policy. |
+| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Текущая конфигурация стратегии, управления слотами и правил объединения стеков. |
 
 ---
 
@@ -317,10 +317,10 @@
 | `Scripts/Core/Models/Placement.cs` | `GridTopology`, `PlacementRequest`, `Placement` | Базовые модели placement-запросов, grid-размера и размещённого стека. |
 | `Scripts/Core/Models/PlacementCellUtility.cs` | `PlacementBoundsMode`, `PlacementCellUtility` | Utility для вычисления covered cells с разными режимами проверки границ. |
 | `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Модели footprint-ов предметов и helpers для shape/orientation. |
-| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Snapshot одного placement-а для events, rollback и data binding context. |
+| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Снимок одного размещения для событий, отката и контекста DataBinding. |
 | `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Глобальные события drag/drop/swap lifecycle. |
 | `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template для инвентарей, которые сохраняют anchor/orientation placement data. |
-| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Snapshot текущего slot/inventory input context для action pipeline. |
+| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Снимок текущего input-контекста слота или инвентаря для actions. |
 | `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Абстрактная MonoBehaviour-база inventory implementations. |
 | `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Управляет preview подсветкой covered cells при наведении/drag. |
 | `Scripts/Inventories/EntryTransferResult.cs` | `PlacementTransferOutcomeKind`, `EntryTransferStatus`, `PlacementTransferOutcome`, `EntryTransferResult`, `TransferExecutionReport` | Result/report модели transfer execution. |

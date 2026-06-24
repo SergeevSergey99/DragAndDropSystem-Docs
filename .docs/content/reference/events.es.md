@@ -1,154 +1,123 @@
-# Event Reference
+# Referencia de eventos
 
-Los eventos globales de drag / drop / auto-transferencia / swap viven en `UDNDEvents`; los eventos de cambio de contenido de cada inventario viven en `UniversalInventory`.
+Los eventos globales de drag / drop / auto-transfer / swap están en `UDNDEvents`. Los eventos de cambio de contenido de un inventario concreto están en `UniversalInventory`.
 
----
+## Versión corta
 
-## Eventos del ciclo de vida del drag
+| Si necesitas... | Escucha |
+|---|---|
+| Saber cuándo el jugador empieza o termina un drag | `UDNDEvents.OnDragStarted`, `UDNDEvents.OnDragEnded` |
+| Reaccionar a un drop exitoso | `UDNDEvents.OnDropCompleted` |
+| Mostrar una razón de cancelación | `UDNDEvents.OnDragCancelled` |
+| Seguir una transferencia rápida por click | `UDNDEvents.OnAutoTransferCompleted`, `UDNDEvents.OnAutoTransferFailed` |
+| Seguir cambios de contenido del inventario | `UniversalInventory.OnItemAdded`, `UniversalInventory.OnItemRemoved` |
+| Bloquear swap antes de ejecutarlo | `UDNDEvents.OnSwapAttempting` |
 
-```mermaid
----
-config:
-  flowchart:
-    curve: monotoneY 
----
-flowchart TD
-    StartPoint@{ shape: sm-circ, label: "Start" }
-    NoTargetPoint@{ shape: sm-circ, label: "Start" }
-    OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
-    style OnDragAttempting fill:#FF44
-    OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
-    OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
-    style OnDragCancelled fill:#f444
-    DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
-    style DragOver fill:#8884, stroke-dasharray: 5 5
-    OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
-    style OnDropCompleted fill:#4F44
-    OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
-    style OnDragEnded fill:#f4f4
+## Drag / drop normal
 
-    StartPoint --> |Player begins dragging|OnDragAttempting
-    OnDragAttempting --> |Not cancelled| OnDragStarted
-    NoTargetPoint --> |No suitable target| OnDragCancelled
-    OnDragStarted --> |Dragging over slots| DragOver
-    DragOver --> |Released over target| OnDropAttempting
-    OnDragAttempting --- NoTargetPoint
-    OnDragStarted --- NoTargetPoint
-    DragOver --- NoTargetPoint
-    OnDragAttempting --> |Cancelled| OnDragCancelled
-    OnDropAttempting --> |Success| OnDropCompleted
-    OnDropAttempting --> |Failure| OnDragCancelled
-    OnDropCompleted --> OnDragEnded
-    OnDragCancelled --> OnDragEnded    
-```
+Orden típico cuando todo sale bien:
 
----
+1. `OnDragAttempting`
+2. `OnDragStarted`
+3. `OnDragEnterSlot` / `OnDragExitSlot` durante hover
+4. `OnDropAttempting`
+5. `OnDropCompleted`
+6. `OnDragEnded`
+
+Si el drag o el drop se cancela, se ejecuta `OnDragCancelled` en vez de `OnDropCompleted`, y después igualmente se ejecuta `OnDragEnded`.
+
+`OnDragEnded` es el lugar más seguro para limpiar UI temporal porque se ejecuta al final tanto de flujos exitosos como fallidos.
 
 ## Eventos globales (`UDNDEvents`)
 
-Son eventos `static`. Suscríbete con `UDNDEvents.OnX += handler` (y desuscríbete en tu teardown); los lanza `DragAndDropManager`. Los suscriptores de una sesión anterior se limpian automáticamente al inicio de cada sesión de Play (seguro para Fast Enter Play Mode).
+Son eventos `static`. Suscríbete con `UDNDEvents.OnX += handler`; cancela la suscripción en `OnDisable` u otro método de teardown.
 
-### Dragging
+`DragAndDropManager` limpia suscriptores de la Play session anterior al empezar una nueva Play session. Esto importa para Fast Enter Play Mode.
 
-| Evento | Cuándo se dispara | Nota |
-|-------|---------------|------|
-| `OnDragAttempting` | Antes de que comience el drag | Puede cancelarse mediante rules |
-| `OnDragStarted` | Drag confirmado | `DragContext` está disponible |
-| `OnDragEnterSlot` | El cursor entra en un slot | Información del slot objetivo |
-| `OnDragExitSlot` | El cursor sale de un slot | Información del slot previo |
-| `OnDropAttempting` | Antes de ejecutar el drop | El target ya está determinado |
-| `OnDropCompleted` | Drop ejecutado con éxito | Información del resultado |
-| `OnDragCancelled` | Drag cancelado o fallido | Motivo de cancelación |
-| `OnDragStackChanged` | El stack en el drag context cambió (split drop) | Usar para actualizar UI |
-| `OnDragEnded` | El ciclo de drag ha terminado | Siempre se dispara al final |
+### Drag
+
+| Evento | Cuándo se ejecuta | Nota |
+|---|---|---|
+| `OnDragAttempting` | Antes de empezar drag | Las rules pueden cancelar la operación |
+| `OnDragStarted` | Drag confirmado | `DragContext` ya está disponible |
+| `OnDragEnterSlot` | El puntero entra en un slot | Útil para hover UI |
+| `OnDragExitSlot` | El puntero sale de un slot | Útil para limpiar hover UI |
+| `OnDropAttempting` | Antes de procesar drop | El destino ya se conoce |
+| `OnDropCompleted` | Drop exitoso | Los cambios ya están aplicados |
+| `OnDragCancelled` | Drag o drop cancelado | Útil para mensajes de error o limpieza de UI |
+| `OnDragStackChanged` | Cambió la cantidad del drag stack | Por ejemplo después de split drop |
+| `OnDragEnded` | Terminó el ciclo de drag | Siempre se ejecuta al final |
 
 ### Auto-transfer
 
-| Evento | Cuándo se dispara |
-|-------|---------------|
-| `OnAutoTransferAttempting` | Antes del quick transfer al hacer clic |
-| `OnAutoTransferCompleted` | Quick transfer completado |
-| `OnAutoTransferFailed` | Quick transfer fallido |
+| Evento | Cuándo se ejecuta |
+|---|---|
+| `OnAutoTransferAttempting` | Antes de la transferencia rápida por click |
+| `OnAutoTransferCompleted` | Transferencia rápida exitosa |
+| `OnAutoTransferFailed` | Transferencia rápida fallida |
 
 ### Swap
 
-| Evento | Cuándo se dispara | Nota |
-|-------|---------------|------|
-| `OnSwapAttempting` | Antes de ejecutar el swap | Pon `Cancel = true` para cancelarlo |
-| `OnSwapCompleted` | Swap ejecutado | Los slots ya contienen los target-side stacks finales |
+| Evento | Cuándo se ejecuta | Nota |
+|---|---|---|
+| `OnSwapAttempting` | Antes del swap | Pon `Cancel = true` para bloquear el swap |
+| `OnSwapCompleted` | Swap exitoso | Los slots ya contienen los stacks resultantes |
 
----
+## Eventos de inventario
 
-## Eventos del inventario
+`UniversalInventory` envía eventos cuando su contenido realmente cambió.
 
-Eventos de `UniversalInventory` que se disparan cuando cambia el contenido.
+| Evento | Cuándo se ejecuta | Contexto |
+|---|---|---|
+| `OnItemAdded` | Se añadió un objeto al inventario | `InventoryItemEventContext` |
+| `OnItemRemoved` | Se quitó un objeto del inventario | `InventoryItemEventContext` |
 
-| Evento | Cuándo se dispara | Contexto |
-|-------|---------------|---------|
-| `OnItemAdded` | Item añadido al inventario | `InventoryItemEventContext` |
-| `OnItemRemoved` | Item eliminado del inventario | `InventoryItemEventContext` |
-
-### Campos de InventoryItemEventContext
+### Campos de `InventoryItemEventContext`
 
 | Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `Stack` | `ItemStack` | Stack completo del evento |
-| `SlotIndex` | `int` | Índice del slot objetivo/origen |
-| `SourceInventory` | `IInventory` | De dónde vino el item (null si no viene de otro inventario) |
-| `TargetInventory` | `IInventory` | Dónde se colocó el item (null si no fue hacia otro inventario) |
-| `SourceSlot` | `BaseSlot` | Slot de origen (null si es desconocido) |
-| `TargetSlot` | `BaseSlot` | Slot de destino (null si es desconocido) |
+|---|---|---|
+| `Stack` | `ItemStack` | Stack añadido o quitado |
+| `SlotIndex` | `int` | Índice del slot |
+| `SourceInventory` | `IInventory` | De dónde vino el objeto, si se conoce |
+| `TargetInventory` | `IInventory` | A dónde fue el objeto, si se conoce |
+| `SourceSlot` | `BaseSlot` | Slot de origen, si se conoce |
+| `TargetSlot` | `BaseSlot` | Slot de destino, si se conoce |
 
 En la práctica:
 
-- `context.Stack.PrimaryAdapter` da un adapter representativo
+- `context.Stack.PrimaryAdapter` da el adapter principal del objeto
 - `context.Stack.Count` da la cantidad
-- en una transferencia entre inventarios, remove suele publicar el stack previo a la conversión, mientras que add publica el stack posterior a la conversión
-
----
+- en transferencias entre tipos distintos de inventario, remove normalmente contiene el objeto antes de conversión, y add contiene el objeto después de conversión
 
 ## Contexto de swap
 
-### Campos de InventorySwapContext
+### Campos de `InventorySwapContext`
 
 | Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `SourceStack` | `ItemStack` | Stack pre-commit del slot de origen |
-| `TargetStack` | `ItemStack` | Stack pre-commit del slot objetivo |
-| `SourceSlot` | `BaseSlot` | Slot de origen (donde empezó el drag) |
-| `TargetSlot` | `BaseSlot` | Slot objetivo (donde se pretende soltar) |
+|---|---|---|
+| `SourceStack` | `ItemStack` | Stack en el slot de origen antes del swap |
+| `TargetStack` | `ItemStack` | Stack en el slot de destino antes del swap |
+| `SourceSlot` | `BaseSlot` | Slot desde el que empezó el drag |
+| `TargetSlot` | `BaseSlot` | Slot donde se soltó el objeto |
 | `SourceInventory` | `IInventory` | Inventario de origen |
-| `TargetInventory` | `IInventory` | Inventario objetivo |
-| `Cancel` | `bool` | Ponlo a `true` para cancelar el swap |
+| `TargetInventory` | `IInventory` | Inventario de destino |
+| `Cancel` | `bool` | Pon `true` para cancelar el swap |
 
-Importante:
+En swap entre tipos distintos de inventario, los adapters finales en los slots pueden ser distintos de los que había en `SourceStack` y `TargetStack` antes de ejecutar. Es lo esperado: los objetos se convierten para el inventario de destino.
 
-- en un swap entre inventarios, estos no son necesariamente los mismos adapters que permanecen en los slots después del commit
-- los slots finales ya contienen target-side converted stacks
+## Cuándo se envían eventos
 
----
+Los eventos se envían solo después de que el inventario cambie con éxito.
 
-## Cuándo se despachan los eventos
+Si la validación de transferencia falla, no hay espacio o la operación se cancela, no se envían eventos add/remove. Los suscriptores no ven un estado temporal que el sistema después revertiría.
 
-El servicio de transferencia ejecuta cada entry como su propia transacción (batch secuencial best-effort). Dentro de una entry, los eventos y las notificaciones del data binding se difieren hasta conocer su resultado, y solo se despachan si hace commit.
+Para transferencia de grupo, cada objeto se procesa por separado:
 
-```mermaid
-flowchart TB
-    ENTRY["Cada entry se ejecuta como su propia transacción"] --> DEFER["Eventos diferidos hasta el resultado de la entry"]
-    DEFER --> OK{"¿Entry confirmada (commit)?"}
-    OK -->|"Sí"| SEND["Despachar los eventos de esa entry"]
-    OK -->|"No — fallo, o RequireFull con remanente"| ROLL["Entry revertida — sin eventos"]
+- un objeto exitoso envía sus propios eventos
+- un objeto fallido se queda donde estaba y no envía eventos
+- el fallo de un objeto no cancela los eventos de objetos que ya se transfirieron con éxito
 
-    SEND --> DB["Data binding:\nnotificado directamente"]
-    SEND --> EXT["Subscribers externos:\nvía UDNDEvents"]
-```
+Ver también:
 
-!!! info "Safe by Default"
-    Los eventos solo se disparan tras el commit de una entry, cuando sus cambios ya son reales. Una entry fallida restaura sus snapshots y no emite nada, así que los subscribers nunca reaccionan a cambios revertidos. Las entries son independientes: un fallo posterior no revierte las entries que ya hicieron commit (batch best-effort).
-
-Consulta también:
-
-- [Transfer Pipeline](../architecture/transfer-pipeline.md)
-- [Logs and Debugging](logs-and-debugging.md)
-
+- [Pipeline de transferencia](../architecture/transfer-pipeline.md)
+- [Logs y depuración](logs-and-debugging.md)

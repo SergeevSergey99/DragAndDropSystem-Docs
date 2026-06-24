@@ -39,7 +39,7 @@ A typical transfer works like this:
 5. If the target is not valid, `DropPolicySettings` decides what happens next according
    to the selected options: reject the transfer, find another place, or try swap.
 6. On success, events are sent and DataBinding is updated. On failure, the state is
-   restored from a snapshot.
+   restored to the saved copy that was made before the transfer attempt.
 
 ## Cases
 

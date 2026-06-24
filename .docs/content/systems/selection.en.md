@@ -1,91 +1,77 @@
 # Selection
 
-The selection system allows selecting multiple items in an inventory and performing group operations on them --- for example, dragging all selected items at once.
-
----
+The selection system lets the player select several items and perform one action with them: drag a group, clear selection, select a range, or select every item in an inventory.
 
 ## Selection Operations
 
-| Action | What Happens |
-|--------|--------------|
-| **Click** | Clear previous selection, select one item |
-| **Ctrl + Click** | Toggle: add to selection or remove from it |
-| **Shift + Click** | Select range from last selected to current |
-| **Ctrl + A** | Select all non-empty inventory slots |
-| **Escape** | Clear all selection |
+| Action | What happens |
+|---|---|
+| Click | Clears the previous selection and selects one item |
+| Ctrl + click | Adds the item to the selection or removes it |
+| Shift + click | Selects the range from the last selected slot to the current slot |
+| Ctrl + A | Selects all non-empty slots in the current inventory |
+| Escape | Clears selection |
 
----
+Empty slots are usually ignored by selection operations. This prevents accidental selection of empty cells instead of items.
 
-## How It Looks
+## Group Drag
 
-```mermaid
-flowchart TD
-    A["Click on slot"] --> B{"What type\nof operation?"}
-    B -->|Normal click| C["Clear all +\nselect this one"]
-    B -->|Ctrl + Click| D["Add to selection\nor remove"]
-    B -->|Shift + Click| E["Select range\nfrom last\nto current"]
-    B -->|Ctrl + A| F["Select all\nnon-empty slots"]
-    B -->|Escape| G["Clear selection"]
+When the player drags a selected item, the system transfers the selected group.
 
-```
+Important behavior:
 
----
+- each selected slot is transferred separately
+- the target slot is used as the starting point for placement search
+- items that find a valid place are transferred
+- items that do not fit or fail validation stay where they are
+- already transferred items are not rolled back because a later item failed
 
-## Group Dragging
+If partial transfer is enabled, only the amount that fits can move from a stack.
 
-Selected items can be dragged all at once. The system automatically creates a transfer for each selected slot.
+Swap is not used for group transfer. The group is placed into free or compatible slots.
 
-```mermaid
-flowchart LR
-    A["Selected\n3 items"] --> B["Started\ndragging"]
-    B --> C["System transfers\nall selected"]
-    C --> D["Each item\nis processed\nseparately"]
+After a successful group transfer, selection is cleared automatically.
 
-```
+## Multiple Inventories
 
-If the selection is empty, only the slot that was grabbed is dragged. Transfers from different inventories can be restricted via the `_restrictToSameInventory` setting.
+By default, items can be selected from multiple inventories if your selection operations allow it.
 
-### How batch transfer works
-
-During group dragging, the target slot (where items are dropped) is used only as a hint. The system finds suitable slots for each item automatically.
-
-Batch transfer is always sequential best-effort. Each entry is checked against the
-current target state; entries that fit are committed, while failed entries remain
-in their source. A partial stack may transfer only the amount that fits when the
-target policy allows partial transfer.
-
-Swap is not supported during batch transfer — only placement into free or compatible slots.
-
-After a successful batch transfer, the selection is automatically cleared.
-
----
+If you do not need this scenario, enable `_restrictToSameInventory`. Then a group is built from one inventory only.
 
 ## Setup
 
-1. **Add `SelectionManager`** to the scene (singleton, one per scene).
-2. **Add `SlotSelectionView`** to the slot prefab --- it highlights selected slots. Configure colors and the indicator object in the inspector.
-3. **Configure triggers** --- bind selection operations to input:
-    - Via pointer bindings in `InteractionBindingsProfile` (Ctrl+Click, Shift+Click --- as `SelectionSlotAction` with the appropriate operation).
-    - Via `InputActionSelectionTrigger` for hotkeys (Ctrl+A, Escape).
-    - Via `ButtonSelectionTrigger` for UI buttons ("Select All", "Clear Selection").
+1. Add `SelectionManager` to the scene. Usually one instance per scene is enough.
+2. Add `SlotSelectionView` to the slot prefab. It displays the selected-state highlight.
+3. Configure selection operations through input:
+   - `SelectionSlotAction` in `InteractionBindingsProfile` for Ctrl + click and Shift + click.
+   - `InputActionSelectionTrigger` for hotkeys such as Ctrl + A and Escape.
+   - `ButtonSelectionTrigger` for UI buttons like "Select All" and "Clear Selection".
 
----
+## What To Check
+
+| Symptom | Check |
+|---|---|
+| Item is not added to selection | Is there a `SelectionManager` in the scene |
+| No highlight is visible | Is `SlotSelectionView` on the slot prefab |
+| Ctrl/Shift do not work | Are the required `SelectionSlotAction` entries configured in the input profile |
+| Ctrl + A or Escape do not work | Is `InputActionSelectionTrigger` or another trigger connected |
+| The whole group does not transfer | Is there enough space in the target inventory and do rules pass for each item |
 
 ## Class Reference
 
 | Class | Role |
-|-------|------|
-| `SelectionManager` | Singleton, stores selection state |
-| `SelectionContext` | Immutable snapshot of the current selection |
-| `SlotSelectionView` | Component on a slot: highlights when selected |
-| `SelectionOperationBase` | Base class for operations (inherit for custom ones) |
-| `ClearAndSelectOperation` | Normal click: clear all + select one |
-| `ToggleFilledSlotOperation` | Ctrl+Click: toggle a non-empty slot |
-| `RangeSelectOperation` | Shift+Click: range |
-| `SelectAllOperation` | Ctrl+A: all non-empty slots |
+|---|---|
+| `SelectionManager` | Stores current selection |
+| `SelectionContext` | Selection state at the moment it is read |
+| `SlotSelectionView` | Highlights a slot when it is selected |
+| `SelectionOperationBase` | Base class for selection operations |
+| `ClearAndSelectOperation` | Normal click: clear all and select one slot |
+| `ToggleFilledSlotOperation` | Ctrl + click: toggle a non-empty slot |
+| `RangeSelectOperation` | Shift + click: select a range |
+| `SelectAllOperation` | Ctrl + A: select all non-empty slots |
 | `ClearSelectionOperation` | Escape: clear selection |
-| `SelectByConditionOperation` | Selection by predicate (custom filter) |
-| `SelectionSlotAction` | Action for binding to PointerBinding |
-| `StartMultiDragAction` | Group dragging of selected items |
-| `ButtonSelectionTrigger` | Trigger via UI Button |
-| `InputActionSelectionTrigger` | Trigger via Input System Action |
+| `SelectByConditionOperation` | Select by predicate |
+| `SelectionSlotAction` | Selection action for pointer binding |
+| `StartMultiDragAction` | Starts dragging the selected group |
+| `ButtonSelectionTrigger` | Runs a selection operation from a UI Button |
+| `InputActionSelectionTrigger` | Runs a selection operation from an Input System Action |

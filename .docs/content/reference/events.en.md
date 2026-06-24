@@ -1,153 +1,123 @@
-# Event Reference
+# Events Reference
 
-Global drag / drop / auto-transfer / swap events live on `UDNDEvents`; per-inventory content events live on `UniversalInventory`.
+Global drag / drop / auto-transfer / swap events live in `UDNDEvents`. Content-change events for a specific inventory live in `UniversalInventory`.
 
----
+## Short Version
 
-## Drag Lifecycle Events
+| If you need to... | Listen to |
+|---|---|
+| Know when the player starts or ends a drag | `UDNDEvents.OnDragStarted`, `UDNDEvents.OnDragEnded` |
+| React to a successful drop | `UDNDEvents.OnDropCompleted` |
+| Show a cancellation reason | `UDNDEvents.OnDragCancelled` |
+| Track quick-click transfer | `UDNDEvents.OnAutoTransferCompleted`, `UDNDEvents.OnAutoTransferFailed` |
+| Track inventory content changes | `UniversalInventory.OnItemAdded`, `UniversalInventory.OnItemRemoved` |
+| Block swap before it runs | `UDNDEvents.OnSwapAttempting` |
 
-```mermaid
----
-config:
-  flowchart:
-    curve: monotoneY 
----
-flowchart TD
-    StartPoint@{ shape: sm-circ, label: "Start" }
-    NoTargetPoint@{ shape: sm-circ, label: "Start" }
-    OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
-    style OnDragAttempting fill:#FF44
-    OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
-    OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
-    style OnDragCancelled fill:#f444
-    DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
-    style DragOver fill:#8884, stroke-dasharray: 5 5
-    OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
-    style OnDropCompleted fill:#4F44
-    OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
-    style OnDragEnded fill:#f4f4
+## Normal Drag / Drop
 
-    StartPoint --> |Player begins dragging|OnDragAttempting
-    OnDragAttempting --> |Not cancelled| OnDragStarted
-    NoTargetPoint --> |No suitable target| OnDragCancelled
-    OnDragStarted --> |Dragging over slots| DragOver
-    DragOver --> |Released over target| OnDropAttempting
-    OnDragAttempting --- NoTargetPoint
-    OnDragStarted --- NoTargetPoint
-    DragOver --- NoTargetPoint
-    OnDragAttempting --> |Cancelled| OnDragCancelled
-    OnDropAttempting --> |Success| OnDropCompleted
-    OnDropAttempting --> |Failure| OnDragCancelled
-    OnDropCompleted --> OnDragEnded
-    OnDragCancelled --> OnDragEnded    
-```
+Typical successful order:
 
----
+1. `OnDragAttempting`
+2. `OnDragStarted`
+3. `OnDragEnterSlot` / `OnDragExitSlot` while hovering
+4. `OnDropAttempting`
+5. `OnDropCompleted`
+6. `OnDragEnded`
+
+If drag or drop is cancelled, `OnDragCancelled` runs instead of `OnDropCompleted`, and `OnDragEnded` still runs after it.
+
+`OnDragEnded` is the safest place for cleaning up temporary UI because it runs at the end of both successful and failed flows.
 
 ## Global Events (`UDNDEvents`)
 
-These are `static` events. Subscribe via `UDNDEvents.OnX += handler` (and unsubscribe in your teardown); they are raised by `DragAndDropManager`. Subscribers from a previous session are cleared automatically on each Play session start (Fast Enter Play Mode safe).
+These are `static` events. Subscribe with `UDNDEvents.OnX += handler`; unsubscribe in `OnDisable` or another teardown method.
 
-### Dragging
+`DragAndDropManager` clears subscribers from the previous Play session at the start of a new Play session. This matters for Fast Enter Play Mode.
 
-| Event | When it fires | Note |
-|-------|---------------|------|
-| `OnDragAttempting` | Before dragging begins | Can be cancelled via rules |
-| `OnDragStarted` | Dragging confirmed | `DragContext` is available |
-| `OnDragEnterSlot` | Cursor enters a slot | Target slot information |
-| `OnDragExitSlot` | Cursor leaves a slot | Previous slot information |
-| `OnDropAttempting` | Before drop execution | Target determined |
-| `OnDropCompleted` | Drop executed successfully | Result information |
-| `OnDragCancelled` | Dragging cancelled or failed | Cancellation reason |
-| `OnDragStackChanged` | Stack in drag context changed (split drop) | Use to update UI |
-| `OnDragEnded` | Drag cycle finished | Always fires, at the end |
+### Drag
 
-### Auto-transfer
+| Event | When it runs | Note |
+|---|---|---|
+| `OnDragAttempting` | Before drag starts | Rules can cancel the operation |
+| `OnDragStarted` | Drag is confirmed | `DragContext` is available |
+| `OnDragEnterSlot` | Pointer enters a slot | Useful for hover UI |
+| `OnDragExitSlot` | Pointer leaves a slot | Useful for clearing hover UI |
+| `OnDropAttempting` | Before drop processing | Target is already known |
+| `OnDropCompleted` | Drop succeeded | Changes are already applied |
+| `OnDragCancelled` | Drag or drop was cancelled | Use for error messages or UI cleanup |
+| `OnDragStackChanged` | Drag stack amount changed | For example after split drop |
+| `OnDragEnded` | Drag cycle ended | Always runs at the end |
 
-| Event | When it fires |
-|-------|---------------|
-| `OnAutoTransferAttempting` | Before quick transfer on click |
-| `OnAutoTransferCompleted` | Quick transfer completed |
-| `OnAutoTransferFailed` | Quick transfer failed |
+### Auto-Transfer
+
+| Event | When it runs |
+|---|---|
+| `OnAutoTransferAttempting` | Before quick-click transfer |
+| `OnAutoTransferCompleted` | Quick-click transfer succeeded |
+| `OnAutoTransferFailed` | Quick-click transfer failed |
 
 ### Swap
 
-| Event | When it fires | Note |
-|-------|---------------|------|
-| `OnSwapAttempting` | Before swap execution | Set `Cancel = true` to cancel |
-| `OnSwapCompleted` | Swap executed | Slots already contain final target-side stacks |
-
----
+| Event | When it runs | Note |
+|---|---|---|
+| `OnSwapAttempting` | Before swap | Set `Cancel = true` to block swap |
+| `OnSwapCompleted` | Swap succeeded | Slots already contain the resulting stacks |
 
 ## Inventory Events
 
-`UniversalInventory` events that fire when contents change.
+`UniversalInventory` sends events when its content actually changed.
 
-| Event | When it fires | Context |
-|-------|---------------|---------|
-| `OnItemAdded` | Item added to inventory | `InventoryItemEventContext` |
-| `OnItemRemoved` | Item removed from inventory | `InventoryItemEventContext` |
+| Event | When it runs | Context |
+|---|---|---|
+| `OnItemAdded` | Item was added to the inventory | `InventoryItemEventContext` |
+| `OnItemRemoved` | Item was removed from the inventory | `InventoryItemEventContext` |
 
-### InventoryItemEventContext Fields
+### `InventoryItemEventContext` Fields
 
 | Field | Type | Description |
-|-------|------|-------------|
-| `Stack` | `ItemStack` | Full event stack |
-| `SlotIndex` | `int` | Target/source slot index |
-| `SourceInventory` | `IInventory` | Where the item came from (null if not from another inventory) |
-| `TargetInventory` | `IInventory` | Where the item was placed (null if not into another inventory) |
-| `SourceSlot` | `BaseSlot` | Source slot (null if unknown) |
-| `TargetSlot` | `BaseSlot` | Destination slot (null if unknown) |
+|---|---|---|
+| `Stack` | `ItemStack` | Stack that was added or removed |
+| `SlotIndex` | `int` | Slot index |
+| `SourceInventory` | `IInventory` | Where the item came from, if known |
+| `TargetInventory` | `IInventory` | Where the item went, if known |
+| `SourceSlot` | `BaseSlot` | Source slot, if known |
+| `TargetSlot` | `BaseSlot` | Target slot, if known |
 
 In practice:
 
-- `context.Stack.PrimaryAdapter` gives a representative adapter
+- `context.Stack.PrimaryAdapter` gives the main item adapter
 - `context.Stack.Count` gives the amount
-- for cross-inventory transfer, remove usually publishes the pre-conversion stack, while add publishes the post-conversion stack
-
----
+- for transfers between different inventory types, remove usually contains the item before conversion, and add contains the item after conversion
 
 ## Swap Context
 
-### InventorySwapContext Fields
+### `InventorySwapContext` Fields
 
 | Field | Type | Description |
-|-------|------|-------------|
-| `SourceStack` | `ItemStack` | Pre-commit stack from the source slot |
-| `TargetStack` | `ItemStack` | Pre-commit stack from the target slot |
-| `SourceSlot` | `BaseSlot` | Source slot (where dragging started) |
-| `TargetSlot` | `BaseSlot` | Target slot (where the drop is intended) |
+|---|---|---|
+| `SourceStack` | `ItemStack` | Stack in the source slot before swap |
+| `TargetStack` | `ItemStack` | Stack in the target slot before swap |
+| `SourceSlot` | `BaseSlot` | Slot where dragging started |
+| `TargetSlot` | `BaseSlot` | Slot where the item was dropped |
 | `SourceInventory` | `IInventory` | Source inventory |
 | `TargetInventory` | `IInventory` | Target inventory |
-| `Cancel` | `bool` | Set to `true` to cancel the swap |
+| `Cancel` | `bool` | Set `true` to cancel swap |
 
-Important:
+For swap between different inventory types, the final adapter objects in slots may differ from the ones in `SourceStack` and `TargetStack` before execution. That is expected: items are converted for the target inventory.
 
-- for cross-inventory swap, these are not necessarily the same adapter objects that remain in the slots after commit
-- final slots already contain target-side converted stacks
+## When Events Are Sent
 
----
+Events are sent only after the inventory was changed successfully.
 
-## When Events Are Dispatched
+If transfer validation fails, there is no space, or the operation is cancelled, add/remove events are not sent. Subscribers do not see temporary state that the system later rolled back.
 
-The transfer service runs each entry as its own transaction (sequential, best-effort batch). Within an entry, events and data-binding notifications are deferred until the entry's outcome is known, then dispatched only if it commits.
+For group transfer, each item is processed separately:
 
-```mermaid
-flowchart TB
-    ENTRY["Each entry runs as its own transaction"] --> DEFER["Events deferred until the entry's result is known"]
-    DEFER --> OK{"Entry committed?"}
-    OK -->|"Yes"| SEND["Dispatch that entry's events"]
-    OK -->|"No — failed, or RequireFull with a leftover"| ROLL["Entry rolled back — no events for it"]
-
-    SEND --> DB["Data binding:\nnotified directly"]
-    SEND --> EXT["External subscribers:\nvia UDNDEvents"]
-```
-
-!!! info "Safe by Default"
-    Events fire only after an entry commits, when its mutations are already real. A failed entry restores its snapshots and emits nothing, so subscribers never react to changes that were undone. Entries are independent: a later failure does not roll back entries that already committed (best-effort batch).
+- a successful item sends its own events
+- a failed item stays where it was and sends no events
+- failure of one item does not cancel events from items that were already transferred successfully
 
 See also:
 
 - [Transfer Pipeline](../architecture/transfer-pipeline.md)
-- [Logs and Debugging](logs-and-debugging.md)
+- [Logs And Debugging](logs-and-debugging.md)

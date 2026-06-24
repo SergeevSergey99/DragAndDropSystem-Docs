@@ -49,7 +49,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 
 | File | Types | Rol |
 |---|---|---|
-| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Representación mínima del item almacenada en los slots y transferida a través del pipeline de UI. |
+| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Representación mínima del item almacenada en los slots y usada por la UI. |
 | `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Interface opcional para adapters que aportan datos descriptivos ampliados para UI como tooltips. |
 | `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Interfaces opcionales para sistemas de filtrado y ordenación. |
 | `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Override opcional del tamaño máximo de stack por item. |
@@ -71,13 +71,13 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Interface de processor especializada usada por el drop handling basado en requests. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Clase base para targets de drop no basados en slot, como áreas de inventario o world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Target de drop estándar para áreas de inventario construido sobre `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Valores escalares de policy usados por el pipeline JIT. |
-| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Defaults de blocked target, orderer, same-inventory fallback y transferencia parcial. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Modelos que describen el comportamiento de drop: rechazar, buscar otro slot, swap y transferencia parcial. |
+| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Ajustes para targets ocupados, colocación alternativa y transferencia parcial. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Helper serializable para overrides temporales de drop request en acciones y triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Helper serializable para overrides temporales de cantidad al iniciar un drag. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Interface para objetos que exponen settings de drop policy. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Modelo de request usado al comprobar si un inventario puede aceptar un item/stack entrante. |
-| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | Punto de entrada desde la UI que resuelve policy e inicia transferencia JIT. |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | Punto de entrada desde la UI: resuelve la drop policy activa e inicia la transferencia. |
 
 ---
 
@@ -97,19 +97,19 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | File | Types | Rol |
 |---|---|---|
 | `Scripts/Inventories/IInventory.cs` | `IInventory` | Contrato base de inventario consumido por el motor de transferencia, validators y services. |
-| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Interface de business hooks síncronos antes del commit y después del éxito. |
-| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Interface de validación asíncrona para comprobaciones de commit tipo servidor/fichero/red. |
+| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Comprobaciones de negocio síncronas antes de confirmar la transferencia y hook después del éxito. |
+| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Comprobación asíncrona antes de transferir, por ejemplo validación de servidor. |
 | `Scripts/Inventories/IItemAdapterConverter.cs` | `IItemAdapterConverter` | Convierte item adapters al cruzar límites entre inventarios con distintos modelos de item. |
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Converter pass-through usado cuando no se necesita conversión de modelo. |
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum que describe el tipo de flujo de transferencia que se está ejecutando. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Objeto de contexto pasado a los domain handlers. |
-| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Servicio JIT secuencial con rollback por entry, swap y candidates automáticos. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Servicio de transferencia: procesa entradas una por una, soporta rollback de entradas fallidas, swap y búsqueda automática de posición. |
 | `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Resultado de sondeo orientativo para preview y aceptación. |
-| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Descriptor canónico de target merge/create/dynamic. |
+| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Descripción de una posible colocación: unir stack, usar un slot existente o crear un slot dinámico. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Orden usado solo para colocación automática. |
 | `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Contrato topology-aware para anchor, footprint, occupancy y covered slots. |
-| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Modelo snapshot e interface provider usados para inspección estable del inventario y operaciones como sort o preview. |
-| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Métodos helper para construir y leer snapshots. |
+| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Estado guardado del inventario para lectura segura, preview, sorting y rollback de operaciones fallidas. |
+| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Métodos helper para construir y leer estado guardado del inventario. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Servicio que realiza movimientos de estilo quick-transfer entre inventarios. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Utility interna que aplica de forma consistente la conversión de adapters de origen/target en preview y execution. |
 
@@ -128,7 +128,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Clase base para modos de ciclo de vida de slots seleccionados directamente en `UniversalInventory`. |
 | `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Modo fijo de ciclo de vida de slots. |
 | `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Modo dinámico con mantenimiento de slots libres y hooks de trimming. |
-| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Snapshot de runtime usado para refrescar strategy, slot management y merge policy. |
+| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Configuración actual de strategy, slot management y reglas de merge de stacks. |
 
 ---
 
@@ -317,10 +317,10 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Core/Models/Placement.cs` | `GridTopology`, `PlacementRequest`, `Placement` | Modelos base de placement request, tamaño de grid y stack colocado. |
 | `Scripts/Core/Models/PlacementCellUtility.cs` | `PlacementBoundsMode`, `PlacementCellUtility` | Utility para calcular celdas cubiertas con distintos modos de bounds. |
 | `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Modelos de footprint de items y helpers de shape/orientation. |
-| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Snapshot de un placement para eventos, rollback y contexto de data binding. |
+| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Estado guardado de un placement para eventos, rollback y contexto de DataBinding. |
 | `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Eventos globales del lifecycle drag/drop/swap. |
 | `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template para inventarios que persisten datos de placement anchor/orientation. |
-| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Snapshot del contexto input slot/inventory actual para el action pipeline. |
+| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Contexto input actual guardado de un slot o inventario para actions. |
 | `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Base MonoBehaviour abstracta para implementaciones de inventario. |
 | `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Gestiona el resaltado preview de celdas cubiertas durante hover/drag. |
 | `Scripts/Inventories/EntryTransferResult.cs` | `PlacementTransferOutcomeKind`, `EntryTransferStatus`, `PlacementTransferOutcome`, `EntryTransferResult`, `TransferExecutionReport` | Modelos de resultado/reporte de transfer execution. |

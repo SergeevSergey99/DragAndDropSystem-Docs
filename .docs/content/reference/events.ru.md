@@ -1,152 +1,121 @@
 # Справочник событий
 
-Глобальные события drag / drop / авто-переноса / обмена живут в `UDNDEvents`; события изменения содержимого конкретного инвентаря — в `UniversalInventory`.
+Глобальные события drag / drop / auto-transfer / swap находятся в `UDNDEvents`. События изменения содержимого конкретного инвентаря находятся в `UniversalInventory`.
 
----
+## Коротко
 
-## События жизненного цикла перетаскивания
+| Если нужно... | Слушайте |
+|---|---|
+| Узнать, что игрок начал или закончил drag | `UDNDEvents.OnDragStarted`, `UDNDEvents.OnDragEnded` |
+| Отреагировать на успешный drop | `UDNDEvents.OnDropCompleted` |
+| Показать причину отмены | `UDNDEvents.OnDragCancelled` |
+| Отследить быстрый перенос по клику | `UDNDEvents.OnAutoTransferCompleted`, `UDNDEvents.OnAutoTransferFailed` |
+| Отследить изменение содержимого инвентаря | `UniversalInventory.OnItemAdded`, `UniversalInventory.OnItemRemoved` |
+| Запретить swap перед выполнением | `UDNDEvents.OnSwapAttempting` |
 
-```mermaid
----
-config:
-  flowchart:
-    curve: monotoneY 
----
-flowchart TD
-    StartPoint@{ shape: sm-circ, label: "Start" }
-    NoTargetPoint@{ shape: sm-circ, label: "Start" }
-    OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
-    style OnDragAttempting fill:#FF44
-    OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
-    OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
-    style OnDragCancelled fill:#f444
-    DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
-    style DragOver fill:#8884, stroke-dasharray: 5 5
-    OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
-    style OnDropCompleted fill:#4F44
-    OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
-    style OnDragEnded fill:#f4f4
+## Обычный drag / drop
 
-    StartPoint --> |Игрок начинает перетаскивание|OnDragAttempting
-    OnDragAttempting --> |Не отменено| OnDragStarted
-    NoTargetPoint --> |Нет подходящей цели| OnDragCancelled
-    OnDragStarted --> |Перетаскивание над слотами| DragOver
-    DragOver --> |Отпускание над слотом| OnDropAttempting
-    OnDragAttempting --- NoTargetPoint
-    OnDragStarted --- NoTargetPoint
-    DragOver --- NoTargetPoint
-    OnDragAttempting --> |Отменено| OnDragCancelled
-    OnDropAttempting --> |Успешно| OnDropCompleted
-    OnDropAttempting --> |Неудача| OnDragCancelled
-    OnDropCompleted --> OnDragEnded
-    OnDragCancelled --> OnDragEnded
-    
-```
+Типичный успешный сценарий:
 
----
+1. `OnDragAttempting`
+2. `OnDragStarted`
+3. `OnDragEnterSlot` / `OnDragExitSlot` во время наведения
+4. `OnDropAttempting`
+5. `OnDropCompleted`
+6. `OnDragEnded`
+
+Если drag или drop отменён, вместо `OnDropCompleted` вызывается `OnDragCancelled`, а затем всё равно вызывается `OnDragEnded`.
+
+`OnDragEnded` удобен для очистки временного UI, потому что он срабатывает в конце и успешного, и неуспешного сценария.
 
 ## Глобальные события (`UDNDEvents`)
 
-Это `static`-события. Подписка — `UDNDEvents.OnX += handler` (и отписка в teardown); поднимает их `DragAndDropManager`. Подписчики из прошлой сессии автоматически очищаются на старте каждой Play-сессии (безопасно для Fast Enter Play Mode).
+Это `static`-события. Подписка выглядит как `UDNDEvents.OnX += handler`; отписку делайте в `OnDisable` или другом teardown-методе.
+
+`DragAndDropManager` очищает подписчиков из прошлой Play-сессии на старте новой Play-сессии. Это важно для Fast Enter Play Mode.
 
 ### Перетаскивание
 
 | Событие | Когда срабатывает | Примечание |
-|---------|-------------------|------------|
+|---|---|---|
 | `OnDragAttempting` | Перед началом перетаскивания | Можно отменить через правила |
-| `OnDragStarted` | Перетаскивание подтверждено | `DragContext` доступен |
-| `OnDragEnterSlot` | Курсор входит в слот | Информация о целевом слоте |
-| `OnDragExitSlot` | Курсор покидает слот | Информация о предыдущем слоте |
-| `OnDropAttempting` | Перед выполнением сброса | Цель определена |
-| `OnDropCompleted` | Сброс выполнен успешно | Информация о результате |
-| `OnDragCancelled` | Перетаскивание отменено или не удалось | Причина отмены |
-| `OnDragStackChanged` | Стек в drag context изменился (split drop) | Используйте для обновления UI |
-| `OnDragEnded` | Цикл перетаскивания завершён | Срабатывает всегда, в конце |
+| `OnDragStarted` | Перетаскивание подтверждено | `DragContext` уже доступен |
+| `OnDragEnterSlot` | Курсор входит в слот | Можно обновить hover UI |
+| `OnDragExitSlot` | Курсор покидает слот | Можно сбросить hover UI |
+| `OnDropAttempting` | Перед обработкой drop | Цель уже определена |
+| `OnDropCompleted` | Drop выполнен успешно | Изменения уже применены |
+| `OnDragCancelled` | Drag или drop отменён | Используйте для сообщения об ошибке или сброса UI |
+| `OnDragStackChanged` | Количество в drag stack изменилось | Например после split drop |
+| `OnDragEnded` | Цикл drag завершён | Срабатывает всегда в конце |
 
 ### Автоперенос
 
 | Событие | Когда срабатывает |
-|---------|-------------------|
+|---|---|
 | `OnAutoTransferAttempting` | Перед быстрым переносом по клику |
 | `OnAutoTransferCompleted` | Быстрый перенос выполнен |
 | `OnAutoTransferFailed` | Быстрый перенос не удался |
 
-### Обмен (swap)
+### Swap
 
 | Событие | Когда срабатывает | Примечание |
-|---------|-------------------|------------|
-| `OnSwapAttempting` | Перед выполнением обмена | Установите `Cancel = true` для отмены |
-| `OnSwapCompleted` | Обмен выполнен | Слоты уже содержат итоговые target-side стеки |
-
----
+|---|---|---|
+| `OnSwapAttempting` | Перед обменом | Установите `Cancel = true`, чтобы отменить swap |
+| `OnSwapCompleted` | Обмен выполнен | Слоты уже содержат итоговые стеки |
 
 ## События инвентаря
 
-События `UniversalInventory`, срабатывающие при изменении содержимого.
+`UniversalInventory` отправляет события, когда его содержимое действительно изменилось.
 
 | Событие | Когда срабатывает | Контекст |
-|---------|-------------------|----------|
+|---|---|---|
 | `OnItemAdded` | Предмет добавлен в инвентарь | `InventoryItemEventContext` |
 | `OnItemRemoved` | Предмет удалён из инвентаря | `InventoryItemEventContext` |
 
-### Поля InventoryItemEventContext
+### Поля `InventoryItemEventContext`
 
 | Поле | Тип | Описание |
-|------|-----|----------|
-| `Stack` | `ItemStack` | Полный стек события |
-| `SlotIndex` | `int` | Индекс целевого/исходного слота |
-| `SourceInventory` | `IInventory` | Откуда взяли предмет (null если не из другого инвентаря) |
-| `TargetInventory` | `IInventory` | Куда положили предмет (null если не в другой инвентарь) |
-| `SourceSlot` | `BaseSlot` | Слот-источник (null если неизвестен) |
-| `TargetSlot` | `BaseSlot` | Слот-назначение (null если неизвестен) |
+|---|---|---|
+| `Stack` | `ItemStack` | Стек, который добавили или удалили |
+| `SlotIndex` | `int` | Индекс слота |
+| `SourceInventory` | `IInventory` | Откуда пришёл предмет, если известно |
+| `TargetInventory` | `IInventory` | Куда ушёл предмет, если известно |
+| `SourceSlot` | `BaseSlot` | Исходный слот, если известен |
+| `TargetSlot` | `BaseSlot` | Целевой слот, если известен |
 
 Практически:
 
-- `context.Stack.PrimaryAdapter` даёт representative adapter
+- `context.Stack.PrimaryAdapter` даёт основной adapter предмета
 - `context.Stack.Count` даёт количество
-- для cross-inventory переноса remove обычно публикует stack до conversion, а add — stack после conversion
+- при переносе между разными типами инвентарей remove обычно содержит предмет до конвертации, а add — предмет после конвертации
 
----
+## Контекст swap
 
-## Контекст обмена
-
-### Поля InventorySwapContext
+### Поля `InventorySwapContext`
 
 | Поле | Тип | Описание |
-|------|-----|----------|
-| `SourceStack` | `ItemStack` | Pre-commit стак из исходного слота |
-| `TargetStack` | `ItemStack` | Pre-commit стак из целевого слота |
-| `SourceSlot` | `BaseSlot` | Исходный слот (откуда начали перетаскивание) |
-| `TargetSlot` | `BaseSlot` | Целевой слот (куда хотим бросить) |
+|---|---|---|
+| `SourceStack` | `ItemStack` | Стек в исходном слоте перед swap |
+| `TargetStack` | `ItemStack` | Стек в целевом слоте перед swap |
+| `SourceSlot` | `BaseSlot` | Слот, откуда начали перетаскивание |
+| `TargetSlot` | `BaseSlot` | Слот, куда бросили предмет |
 | `SourceInventory` | `IInventory` | Исходный инвентарь |
 | `TargetInventory` | `IInventory` | Целевой инвентарь |
-| `Cancel` | `bool` | Установите в `true` чтобы отменить обмен |
+| `Cancel` | `bool` | Установите `true`, чтобы отменить swap |
 
-Важно:
+Для swap между разными типами инвентарей итоговые adapter-объекты в слотах могут отличаться от тех, что были в `SourceStack` и `TargetStack` до выполнения. Это нормально: предметы проходят конвертацию под целевой инвентарь.
 
-- для cross-inventory swap это не обязательно те же adapter-объекты, которые будут лежать в слотах после commit
-- итоговые слоты уже содержат target-side converted stacks
+## Когда события отправляются
 
----
+События отправляются только после успешного изменения инвентаря.
 
-## Когда отправляются события
+Если перенос не прошёл проверку, не хватило места или операция была отменена, события добавления и удаления не отправляются. Подписчики не увидят временное состояние, которое система затем откатила.
 
-Сервис переноса выполняет каждую запись как отдельную транзакцию (последовательный best-effort батч). Внутри записи события и уведомления привязки данных откладываются до тех пор, пока не станет известен её исход, и отправляются только при коммите.
+Для группового переноса каждый предмет обрабатывается отдельно:
 
-```mermaid
-flowchart TB
-    ЗАПИСЬ["Каждая запись — отдельная транзакция"] --> ОТКЛ["События отложены до результата записи"]
-    ОТКЛ --> УСПЕХ{"Запись закоммичена?"}
-    УСПЕХ -->|"Да"| ОТПР["Отправить события этой записи"]
-    УСПЕХ -->|"Нет — ошибка или RequireFull с остатком"| ОТКАТ["Запись откатывается — событий нет"]
-
-    ОТПР --> ПД["Привязка данных:\nуведомляется напрямую"]
-    ОТПР --> ВП["Внешние подписчики:\nчерез UDNDEvents"]
-```
-
-!!! info "Безопасность по умолчанию"
-    События срабатывают только после коммита записи, когда её изменения уже реальны. Неудавшаяся запись восстанавливает свои снапшоты и не отправляет ничего, поэтому подписчики никогда не реагируют на откаченные изменения. Записи независимы: более поздняя ошибка не откатывает уже закоммиченные записи (best-effort батч).
+- успешный предмет отправляет свои события
+- неуспешный предмет остаётся на месте и не отправляет события
+- ошибка одного предмета не отменяет события уже успешно перенесённых предметов
 
 См. также:
 

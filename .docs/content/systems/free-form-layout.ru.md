@@ -1,140 +1,100 @@
-# Пример: свободное размещение
+# Свободное размещение слотов
 
-`FreeFormSlotLayout` --- примерный компонент, показывающий, как построить свободное размещение слотов поверх основного drag-and-drop pipeline. Предмет появляется в точке дропа, слот создаётся динамически, а при наложении компонент сдвигает его в ближайшую свободную позицию.
+`FreeFormSlotLayout` показывает, как сделать инвентарь, где предмет появляется примерно в точке drop, а не в очередной ячейке сетки.
 
----
+Это пример UI-раскладки поверх обычного переноса. Сам перенос предметов не меняется: инвентарь всё так же решает, можно ли принять предмет, создаёт слот и кладёт туда стек. `FreeFormSlotLayout` только выбирает позицию созданного слота на экране.
 
-## Как это работает
+## Что получается
 
-```mermaid
-flowchart LR
-    subgraph Initialization["Инициализация"]
-        E["ReloadUI /\nзагрузка данных"] --> F["ArrangeAllSlots()"]
-        F --> G["Слоты раскладываются\nсеткой без перекрытий"]
-    end
+- игрок бросает предмет на область инвентаря
+- инвентарь создаёт динамический слот
+- слот ставится рядом с точкой drop
+- если место занято, слот сдвигается в ближайшее свободное место
+- при загрузке или `ReloadUI` все слоты раскладываются без наложений
 
-    subgraph Drop["Дроп"]
-        A["Игрок бросает\nпредмет на область"] --> B["Захватываются\nкоординаты мыши"]
-        B --> C["Динамический слот\nсоздаётся"]
-        C --> D["Слот позиционируется\nв точке дропа"]
-    end
-    
-    Initialization ~~~ Drop
-```
+## Как это устроено
 
-Ключевая идея: координаты **не прокидываются** через transfer pipeline (policy / strategy / движок переноса). Позиционирование --- чисто UI-задача, решаемая через два хука:
+Координаты drop не передаются внутрь логики переноса. Это остаётся задачей UI.
 
-1. `UDNDEvents.OnDropAttempting` --- запоминаем позицию мыши.
-2. `UniversalInventory.OnSlotCreated` --- ставим новый слот в запомненную позицию.
+Компонент использует два события:
 
----
+| Событие | Для чего |
+|---|---|
+| `UDNDEvents.OnDropAttempting` | Запомнить позицию мыши перед обработкой drop |
+| `UniversalInventory.OnSlotCreated` | Поставить новый слот в запомненную позицию |
+
+Если слот создаётся не из drop-сценария, компонент раскладывает его стандартным способом.
 
 ## Компоненты
 
 | Компонент | Назначение |
-|-----------|------------|
-| **FreeFormSlotLayout** | Example-компонент: позиционирует динамически создаваемые слоты в точке дропа, устраняет наложения и раскладывает их сеткой при инициализации |
-| **InventoryDropArea** | Стандартная область дропа --- изменений не требует |
-| **UniversalInventory** | Инвентарь с `Dynamic` слотами. Предоставляет событие `OnSlotCreated` и доступ к `SlotContainer` |
-
----
+|---|---|
+| `FreeFormSlotLayout` | Позиционирует динамически созданные слоты и убирает наложения |
+| `InventoryDropArea` | Принимает drop на область инвентаря |
+| `UniversalInventory` | Работает в режиме `Dynamic` и создаёт слоты по необходимости |
 
 ## Настройка
 
-### 1. Настройте инвентарь
+### 1. Настройте `UniversalInventory`
 
-На `UniversalInventory` установите:
+Установите:
 
 - **Slot Management** = `Dynamic`
-- **Max Free Slots** = `0` (слоты создаются только при дропе, не заранее)
-- **Max Dynamic Slots** --- максимальное количество предметов
+- **Max Free Slots** = `0`, если слоты должны появляться только при drop
+- **Max Dynamic Slots** = максимальное количество предметов в этом инвентаре
 
-### 2. Уберите LayoutGroup
+### 2. Уберите `LayoutGroup`
 
-На контейнере слотов (`_slotContainer`) **не должно быть** компонентов `LayoutGroup` (`HorizontalLayoutGroup`, `VerticalLayoutGroup`, `GridLayoutGroup`). Иначе LayoutGroup будет перезаписывать позиции.
+На контейнере слотов (`_slotContainer`) не должно быть `HorizontalLayoutGroup`, `VerticalLayoutGroup` или `GridLayoutGroup`.
 
-### 3. Добавьте FreeFormSlotLayout
+Unity `LayoutGroup` перезаписывает позиции детей, поэтому свободная раскладка с ним конфликтует.
 
-Добавьте компонент `FreeFormSlotLayout` на тот же GameObject, что и `UniversalInventory`. Настройте:
+### 3. Добавьте `FreeFormSlotLayout`
 
-- **UI Camera** --- камера для UI. Оставить пустым для Screen Space - Overlay Canvas.
-- **Slot Spacing** --- минимальный отступ между слотами при авто-раскладке.
-- **Bounds Override** --- RectTransform, ограничивающий позиции. Если не задан --- используется контейнер слотов.
+Добавьте компонент на тот же GameObject, где находится `UniversalInventory`.
 
-### 4. Добавьте InventoryDropArea
+Настройки:
 
-Стандартный `InventoryDropArea` --- никаких подклассов не нужно.
+| Поле | Что делает |
+|---|---|
+| **UI Camera** | Камера для UI. Оставьте пустым для Screen Space - Overlay |
+| **Slot Spacing** | Минимальный отступ между слотами |
+| **Bounds Override** | RectTransform, внутри которого должны оставаться слоты. Если не задан, используется контейнер слотов |
 
----
+### 4. Добавьте `InventoryDropArea`
 
-## Жизненный цикл
+Стандартного `InventoryDropArea` достаточно. Писать отдельный drop target для этого сценария не нужно.
 
-```mermaid
-flowchart LR
-    subgraph Drop["Дроп предмета"]
-        A["Игрок отпускает предмет"] --> B["InventoryDropArea вызывает CompleteDrag()"]
-        B --> C["DragAndDropManager: OnDropAttempting"]
-        C --> D["FreeFormSlotLayout запоминает Input.mousePosition"]
-        D --> E["UniversalInventory: ProcessDrop → движок переноса"]
-        E --> F["CreateSlot() для Dynamic-слота"]
-        F --> G["OnSlotCreated(slot)"]
-        G --> H["screen → local + ClampToBounds"]
-        H --> I["slot.anchoredPosition = dropPos"]
-    end
+## Сохранение позиций
 
-    subgraph Init["Инициализация / ReloadUI"]
-        J["Вызов ArrangeAllSlots()"] --> K["FreeFormSlotLayout раскладывает слоты сеткой"]
-    end
-```
-
----
-
-## Расширение: сохранение позиций
-
-`FreeFormSlotLayout` предоставляет утилиты для работы с нормализованными координатами:
+`FreeFormSlotLayout` умеет переводить позиции в нормализованные координаты `0..1`. Их удобно хранить в ваших данных.
 
 ```csharp
-// Сохранение: получить позицию 0..1
+// Save: local position -> normalized 0..1
 Vector2 normalized = layout.GetNormalizedPosition(slot);
 myModel.SavePosition(slot.Index, normalized);
 
-// Восстановление: из нормализованных обратно в локальные
+// Load: normalized 0..1 -> local position
 Vector2 local = layout.NormalizedToLocal(savedNormalized);
 layout.SetSlotPosition(slot, local);
 ```
 
-Нормализованные координаты не зависят от размера контейнера --- позиции корректно масштабируются при изменении разрешения.
+Нормализованные координаты переживают изменение размера контейнера: позиция остаётся примерно в том же месте относительно области инвентаря.
 
----
+## Как убираются наложения
 
-## Предотвращение наложений
+Если точка drop занята, компонент проверяет соседние позиции вокруг неё и выбирает ближайшую свободную позицию внутри допустимых границ.
 
-В примере уже встроено устранение наложений. Если точка дропа занята, `FreeFormSlotLayout` перебирает соседние позиции расширяющимися кольцами и выбирает ближайшую свободную позицию внутри допустимых границ.
+Это поведение подходит для примера и небольших инвентарей. Если вам нужен другой алгоритм, используйте те же события и замените расчёт позиции.
 
----
+## Как сделать свою раскладку
 
-## Создание своей системы размещения
+Обычно достаточно такого паттерна:
 
-`FreeFormSlotLayout` намеренно оформлен как example, а не как обязательный встроенный режим layout. Вот точки расширения, через которые можно построить любую логику размещения:
-
-### Доступные хуки
-
-| Хук | Когда срабатывает | Для чего использовать |
-|-----|-------------------|----------------------|
-| `UniversalInventory.OnSlotCreated` | После создания слота (`Instantiate` + `Initialize`) | Позиционирование, инициализация визуалов |
-| `UDNDEvents.OnDropAttempting` | Перед обработкой дропа | Захват координат мыши, подготовка состояния |
-| `UDNDEvents.OnDropCompleted` | После успешного переноса | Пост-обработка, анимации, обновление расположения |
-| `UDNDEvents.OnDragCancelled` | Дроп отменён | Сброс pending-состояния |
-| `UniversalInventory.OnItemAdded` | Предмет добавлен в слот | Реакция на изменение содержимого |
-
-### Паттерн реализации
-
-Любая кастомная система размещения строится по одному принципу:
-
-1. **Компонент на инвентаре** --- `MonoBehaviour` с `[RequireComponent(typeof(UniversalInventory))]`.
-2. **Подписка на `OnSlotCreated`** --- позиционировать слот сразу после создания.
-3. **Подписка на глобальные события** --- захватывать контекст (координаты, состояние) перед обработкой дропа.
-4. **Метод `ArrangeAllSlots()`** --- для начальной раскладки и пересчёта после ReloadUI.
+1. Создать компонент рядом с `UniversalInventory`.
+2. Подписаться на `UniversalInventory.OnSlotCreated`.
+3. При необходимости подписаться на `UDNDEvents.OnDropAttempting`, чтобы запомнить позицию drop.
+4. В `ArrangeAllSlots()` пересчитать позиции всех слотов после загрузки или `ReloadUI`.
 
 ```csharp
 [RequireComponent(typeof(UniversalInventory))]
@@ -147,7 +107,6 @@ public class MyCustomLayout : MonoBehaviour
     void OnEnable()
     {
         _inventory.OnSlotCreated += HandleSlotCreated;
-        // + подписки на события DragAndDropManager при необходимости
     }
 
     void OnDisable()
@@ -157,41 +116,41 @@ public class MyCustomLayout : MonoBehaviour
 
     void HandleSlotCreated(BaseSlot slot)
     {
-        // Ваша логика позиционирования
-        var rt = slot.Transform as RectTransform;
-        rt.anchoredPosition = CalculatePosition(slot);
+        var rectTransform = slot.Transform as RectTransform;
+        rectTransform.anchoredPosition = CalculatePosition(slot);
     }
 
     public void ArrangeAllSlots()
     {
         foreach (var slot in _inventory.Slots)
         {
-            var rt = slot.Transform as RectTransform;
-            rt.anchoredPosition = CalculatePosition(slot);
+            var rectTransform = slot.Transform as RectTransform;
+            rectTransform.anchoredPosition = CalculatePosition(slot);
         }
     }
 
-    Vector2 CalculatePosition(BaseSlot slot) { /* ... */ return Vector2.zero; }
+    Vector2 CalculatePosition(BaseSlot slot)
+    {
+        return Vector2.zero;
+    }
 }
 ```
 
-### Примеры кастомных систем размещения
+## Идеи для других раскладок
 
-| Вариант | Идея | Ключевая логика |
-|--------|------|-----------------|
-| **Circular** | Слоты по окружности | `angle = slot.Index * (360f / totalSlots)` |
-| **Snap Grid** | Свободный дроп, но привязка к сетке | Округлить координаты дропа до ближайшей ячейки |
-| **Physics** | Слоты «падают» с физикой | Добавить Rigidbody2D на слоты, отключить кинематику |
-| **Radial Menu** | Слоты веером от центра | Позиция = направление от центра * радиус |
-
----
+| Вариант | Идея |
+|---|---|
+| Circular | Расставить слоты по окружности |
+| Snap Grid | Бросать свободно, но привязывать позицию к ближайшей ячейке |
+| Physics | Дать слотам физическое поведение |
+| Radial Menu | Раскладывать слоты веером от центра |
 
 ## Справочник
 
 | Класс | Роль |
-|-------|------|
-| `FreeFormSlotLayout` | Example-компонент для свободного размещения слотов с устранением наложений |
-| `UniversalInventory.OnSlotCreated` | Событие создания слота --- основной хук для layout-систем |
-| `UniversalInventory.SlotContainer` | Доступ к Transform-контейнеру для конвертации координат |
-| `InventoryDropArea` | Стандартная область дропа, работает без изменений |
-| `DynamicSlotManagementSettings` | Режим управления слотами: автоматически создаёт слоты при нехватке |
+|---|---|
+| `FreeFormSlotLayout` | Пример компонента для свободной UI-раскладки слотов |
+| `UniversalInventory.OnSlotCreated` | Главная точка для позиционирования нового слота |
+| `UniversalInventory.SlotContainer` | Контейнер, относительно которого считаются координаты |
+| `InventoryDropArea` | Стандартная область drop для инвентаря |
+| `DynamicSlotManagementSettings` | Режим, который создаёт слоты по необходимости |

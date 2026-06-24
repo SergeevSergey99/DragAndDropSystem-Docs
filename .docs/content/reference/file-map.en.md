@@ -49,7 +49,7 @@ The tables below list every script file and describe the main class, interface, 
 
 | File | Types | Role |
 |---|---|---|
-| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Minimal item representation stored in slots and transferred through the UI pipeline. |
+| `Scripts/Core/Contracts/IItemAdapter.cs` | `IItemAdapter` | Minimal item representation stored in slots and passed through UI. |
 | `Scripts/Core/Contracts/IDescribable.cs` | `IDescribable` | Optional interface for adapters that provide extended description data for UI such as tooltips. |
 | `Scripts/Core/Contracts/IFilterable.cs` | `IFilterable`, `ISortable` | Optional interfaces for filter and sort systems. |
 | `Scripts/Core/Contracts/IStackSizeLimitable.cs` | `IStackSizeLimitable` | Optional per-item stack size override. |
@@ -71,13 +71,13 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Specialized processor interface used by request-driven drop handling. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Base class for non-slot drop targets such as inventory areas or world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Standard inventory area drop target built on top of `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Scalar policy values used by the JIT transfer pipeline. |
-| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Inventory-level blocked-target, orderer, same-inventory, and partial-transfer defaults. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Models that describe drop behavior: reject, find another slot, swap, and partial transfer. |
+| `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Settings for occupied targets, alternative placement, and partial transfer. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Serializable authoring helper for one-off drop request overrides in actions and triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Serializable authoring helper for temporary drag-amount overrides when starting a drag. |
 | `Scripts/Inventories/IDropPolicyProvider.cs` | `IDropPolicyProvider` | Interface for objects that expose drop policy settings. |
 | `Scripts/Inventories/InventoryAcceptanceRequest.cs` | `InventoryAcceptanceRequest` | Request model used when checking whether an inventory can accept an incoming item/stack. |
-| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI-facing entry point that resolves policy and starts JIT transfer execution. |
+| `Scripts/Inventories/InventoryDropProcessor.cs` | `InventoryDropProcessor` | UI entry point that resolves active drop policy and starts transfer. |
 
 ---
 
@@ -97,19 +97,19 @@ The tables below list every script file and describe the main class, interface, 
 | File | Types | Role |
 |---|---|---|
 | `Scripts/Inventories/IInventory.cs` | `IInventory` | Base inventory contract consumed by the transfer engine, validators, and services. |
-| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Sync pre-commit and post-success business hook interface. |
-| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Async validation hook interface for server/file/network-like commit checks. |
+| `Scripts/Inventories/ITransferDomainHandler.cs` | `ITransferDomainHandler` | Sync business checks before transfer commit and a hook after success. |
+| `Scripts/Inventories/IAsyncTransferDomainHandler.cs` | `IAsyncTransferDomainHandler` | Async check before transfer, for example server validation. |
 | `Scripts/Inventories/IItemAdapterConverter.cs` | `IItemAdapterConverter` | Converts item adapters when crossing inventory boundaries with different item models. |
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Pass-through converter used when no model conversion is needed. |
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum describing the type of transfer flow being executed. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Context object passed into domain handlers. |
-| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Sequential JIT transfer service with per-entry rollback, swap, and automatic candidate handling. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Transfer service: processes entries one by one, supports rollback for failed entries, swap, and automatic placement search. |
 | `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Advisory probe result used for preview and acceptance. |
-| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Canonical merge/create/dynamic target descriptor. |
+| `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Description of a possible placement: merge stack, use an existing slot, or create a dynamic slot. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Ordering policies used only for automatic placement. |
 | `Scripts/Inventories/IPlacementGeometry.cs` | `IPlacementGeometry` | Topology-aware anchor, footprint, occupancy, and covered-slot contract. |
-| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Snapshot model and provider interface used for stable inventory inspection and operations such as sorting or previewing. |
-| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Helper methods for building and reading snapshots. |
+| `Scripts/Inventories/InventorySnapshot.cs` | `InventorySnapshot`, `IInventorySnapshotProvider` | Saved inventory state used for safe reading, preview, sorting, and failed-operation rollback. |
+| `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Helper methods for building and reading saved inventory state. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Service that performs quick-transfer style moves between inventories. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Internal utility that applies target/source adapter conversion consistently across preview and execution. |
 
@@ -128,7 +128,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Inventories/Strategies/SlotManagementSettingsBase.cs` | `SlotManagementSettingsBase` | Base class for direct slot lifecycle modes selected in `UniversalInventory`. |
 | `Scripts/Inventories/Strategies/FixedSlotManagementSettings.cs` | `FixedSlotManagementSettings` | Fixed slot lifecycle mode. |
 | `Scripts/Inventories/Strategies/DynamicSlotManagementSettings.cs` | `DynamicSlotManagementSettings` | Dynamic slot lifecycle mode with free-slot maintenance and trimming hooks. |
-| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Runtime refresh snapshot for strategy, slot management, and merge-policy configuration. |
+| `Scripts/Inventories/Strategies/StrategyConfiguration.cs` | strategy configuration types | Current strategy, slot management, and stack-merge configuration. |
 
 ---
 
@@ -317,10 +317,10 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Models/Placement.cs` | `GridTopology`, `PlacementRequest`, `Placement` | Core placement request, grid size, and placed-stack models. |
 | `Scripts/Core/Models/PlacementCellUtility.cs` | `PlacementBoundsMode`, `PlacementCellUtility` | Utility for calculating covered cells with different bounds modes. |
 | `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Item footprint models and shape/orientation helpers. |
-| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Single-placement snapshot for events, rollback, and data binding context. |
+| `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Saved state of one placement for events, rollback, and DataBinding context. |
 | `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Global drag/drop/swap lifecycle events. |
 | `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template for inventories that persist anchor/orientation placement data. |
-| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Current slot/inventory input-context snapshot for the action pipeline. |
+| `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Saved current input context of a slot or inventory for actions. |
 | `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Abstract MonoBehaviour base for inventory implementations. |
 | `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Manages covered-cell preview highlighting during hover/drag. |
 | `Scripts/Inventories/EntryTransferResult.cs` | `PlacementTransferOutcomeKind`, `EntryTransferStatus`, `PlacementTransferOutcome`, `EntryTransferResult`, `TransferExecutionReport` | Transfer execution result/report models. |
