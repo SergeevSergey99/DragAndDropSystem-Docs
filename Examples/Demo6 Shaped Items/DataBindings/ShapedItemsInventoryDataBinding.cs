@@ -47,21 +47,27 @@ namespace UDND.Examples.ShapedItems
 
         protected override void AddPlacementData(PlacementCommitContext<ShapedItemExampleSO, ShapedItemAdapter> context)
         {
-            if (context.Data == null)
-                return;
+            foreach (var item in context.Data)
+            {
+                if (item == null)
+                    continue;
 
-            _placements.Add(new ShapedPlacementSeed(
-                context.Data,
-                Mathf.Max(0, context.AnchorIndex),
-                context.Orientation));
+                _placements.Add(new ShapedPlacementSeed(
+                    item,
+                    Mathf.Max(0, context.AnchorIndex),
+                    context.Orientation));
+            }
         }
 
         protected override void RemovePlacementData(PlacementCommitContext<ShapedItemExampleSO, ShapedItemAdapter> context)
         {
-            if (context.Data == null)
-                return;
+            foreach (var item in context.Data)
+            {
+                if (item == null)
+                    continue;
 
-            RemoveFirstPlacement(context.Data, context.AnchorIndex, context.Orientation);
+                RemoveFirstPlacement(item, context.AnchorIndex, context.Orientation);
+            }
         }
 
         protected override RuleResult CanStartDrag(DragContext context, DragEntry entry)

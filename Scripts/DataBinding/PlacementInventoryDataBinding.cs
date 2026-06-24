@@ -8,46 +8,89 @@ namespace UDND.DataBinding
 {
     /// <summary>
     /// Serializable placement payload used by placement-aware inventory bindings.
+    /// A placement is described by the full list of item instances it holds, so stacks made of
+    /// distinct adapter instances (for example, items carrying per-instance state) are preserved
+    /// without data loss.
     /// </summary>
     public readonly struct PlacementData<TData>
     {
+        private readonly IReadOnlyList<TData> _items;
+
+        /// <summary>
+        /// Placement made of distinct item instances. Preserves every instance in the stack.
+        /// </summary>
+        public PlacementData(
+            IReadOnlyList<TData> items,
+            int anchorIndex,
+            int orientation = 0)
+        {
+            _items = items;
+            AnchorIndex = anchorIndex;
+            Orientation = orientation;
+        }
+
+        /// <summary>
+        /// Convenience for homogeneous placements: a single item repeated <paramref name="count"/> times.
+        /// Use the list constructor when each item instance must be preserved individually.
+        /// </summary>
         public PlacementData(
             TData item,
             int anchorIndex,
             int count = 1,
             int orientation = 0)
         {
-            Item = item;
+            var items = new TData[Math.Max(1, count)];
+            for (int i = 0; i < items.Length; i++)
+                items[i] = item;
+
+            _items = items;
             AnchorIndex = anchorIndex;
-            Count = count;
             Orientation = orientation;
         }
 
-        public TData Item { get; }
+        /// <summary>All item instances stored at this placement.</summary>
+        public IReadOnlyList<TData> Items => _items ?? Array.Empty<TData>();
+
+        /// <summary>First item instance, for single-item placements.</summary>
+        public TData Item => Items.Count > 0 ? Items[0] : default;
+
         public int AnchorIndex { get; }
-        public int Count { get; }
+        public int Count => Items.Count;
         public int Orientation { get; }
     }
 
     /// <summary>
     /// Context passed when a placement-aware binding commits a UI change back to external data.
+    /// Exposes every adapter (and its extracted data) in the committed stack so heterogeneous or
+    /// per-instance stacks are not collapsed to a single primary item.
     /// </summary>
     public readonly struct PlacementCommitContext<TData, TAdapter>
         where TAdapter : class, IItemAdapter
     {
         public PlacementCommitContext(
             InventoryItemEventContext eventContext,
-            TData data,
-            TAdapter adapter)
+            IReadOnlyList<TData> data,
+            IReadOnlyList<TAdapter> adapters)
         {
             EventContext = eventContext;
-            Data = data;
-            Adapter = adapter;
+            Data = data ?? Array.Empty<TData>();
+            Adapters = adapters ?? Array.Empty<TAdapter>();
         }
 
         public InventoryItemEventContext EventContext { get; }
-        public TData Data { get; }
-        public TAdapter Adapter { get; }
+
+        /// <summary>Extracted data for every adapter in the committed stack.</summary>
+        public IReadOnlyList<TData> Data { get; }
+
+        /// <summary>Every typed adapter in the committed stack.</summary>
+        public IReadOnlyList<TAdapter> Adapters { get; }
+
+        /// <summary>First adapter, for single-item placements.</summary>
+        public TAdapter Adapter => Adapters.Count > 0 ? Adapters[0] : null;
+
+        /// <summary>First extracted data item, for single-item placements.</summary>
+        public TData PrimaryData => Data.Count > 0 ? Data[0] : default;
+
         public ItemStack Stack => EventContext?.Stack ?? ItemStack.Empty();
         public int Count => Stack.Count;
         public int AnchorIndex => EventContext?.AnchorIndex ?? -1;
@@ -61,6 +104,8 @@ namespace UDND.DataBinding
     /// <summary>
     /// DataBinding template for inventories that persist anchor/orientation placement data.
     /// Slot inventories use the same data shape and collapse placements into one slot.
+    /// Each placement is described by its full list of item instances, so stacks made of distinct
+    /// adapter instances are preserved without data loss.
     /// </summary>
     public abstract class PlacementInventoryDataBinding<TData, TAdapter> : InventoryDataBindingBase
         where TAdapter : class, IItemAdapter
@@ -86,30 +131,55 @@ namespace UDND.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context?.Stack?.PrimaryAdapter is not TAdapter adapter)
+            if (!TryCollectCommit(context, out var commit))
                 return;
 
-            AddPlacementData(new PlacementCommitContext<TData, TAdapter>(
-                context,
-                ExtractData(adapter),
-                adapter));
+            AddPlacementData(commit);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context?.Stack?.PrimaryAdapter is not TAdapter adapter)
+            if (!TryCollectCommit(context, out var commit))
                 return;
 
-            RemovePlacementData(new PlacementCommitContext<TData, TAdapter>(
-                context,
-                ExtractData(adapter),
-                adapter));
+            RemovePlacementData(commit);
+        }
+
+        private bool TryCollectCommit(
+            InventoryItemEventContext context,
+            out PlacementCommitContext<TData, TAdapter> commit)
+        {
+            commit = default;
+
+            var stack = context?.Stack;
+            if (stack?.Adapters == null)
+                return false;
+
+            var adapters = new List<TAdapter>(stack.Adapters.Count);
+            var data = new List<TData>(stack.Adapters.Count);
+            for (int i = 0; i < stack.Adapters.Count; i++)
+            {
+                if (stack.Adapters[i] is TAdapter typed)
+                {
+                    adapters.Add(typed);
+                    data.Add(ExtractData(typed));
+                }
+            }
+
+            if (adapters.Count == 0)
+                return false;
+
+            commit = new PlacementCommitContext<TData, TAdapter>(context, data, adapters);
+            return true;
         }
 
         private void ReloadPlacement(PlacementData<TData> placement, IPlacementInventory placementInventory)
         {
-            int count = Math.Max(1, placement.Count);
-            if (placement.AnchorIndex >= 0 && TryCreateStack(placement.Item, count, out var stack))
+            var items = placement.Items;
+            if (items.Count == 0)
+                return;
+
+            if (placement.AnchorIndex >= 0 && TryCreateStack(items, out var stack))
             {
                 var request = new PlacementRequest(
                     stack,
@@ -123,26 +193,32 @@ namespace UDND.DataBinding
                 return;
             }
 
-            AddToUIQuiet(() => CreateAdapter(placement.Item), count, -1);
+            var adapters = CreateAdapters(items);
+            if (adapters.Count > 0)
+                AddToUIQuiet(adapters, -1);
         }
 
-        private bool TryCreateStack(TData item, int count, out ItemStack stack)
+        private bool TryCreateStack(IReadOnlyList<TData> items, out ItemStack stack)
         {
             stack = ItemStack.Empty();
-            if (count <= 0)
+            var adapters = CreateAdapters(items);
+            if (adapters.Count == 0)
                 return false;
 
-            var adapters = new List<IItemAdapter>(count);
-            for (int i = 0; i < count; i++)
-            {
-                var adapter = CreateAdapter(item);
-                if (adapter == null)
-                    return false;
+            return ItemStack.TryCreate(adapters, out stack);
+        }
 
-                adapters.Add(adapter);
+        private List<IItemAdapter> CreateAdapters(IReadOnlyList<TData> items)
+        {
+            var adapters = new List<IItemAdapter>(items.Count);
+            for (int i = 0; i < items.Count; i++)
+            {
+                var adapter = CreateAdapter(items[i]);
+                if (adapter != null)
+                    adapters.Add(adapter);
             }
 
-            return ItemStack.TryCreate(adapters, out stack);
+            return adapters;
         }
 
         protected virtual void OnPlacementReloadFailed(PlacementData<TData> placement, IItemAdapter adapter)
