@@ -28,6 +28,7 @@ Because of that separation, the asset can work with:
 - world loot / drop support
 - item conversion between different inventory models
 - nested container example
+- shaped items example
 
 ## Included Demos
 
@@ -36,6 +37,7 @@ Because of that separation, the asset can work with:
 - `Demo3 Craft`: slot-indexed inventory and crafting grid
 - `Demo4 Trading`: trading, equipment slots, converters, and money checks
 - `Demo5 Containers`: nested inventories and container items
+- `Demo6 Shaped Items`: items that take up more than one slot
 
 ## Package Layout
 
@@ -93,4 +95,5 @@ Legacy input setup notes:
 
 ## Full Documentation
 
-Full documentation can be found at https://sergeevsergey99.github.io/DragAndDropSystem-Docs/
+Full documentation can be found at https://sergeevsergey99.github.io/UniversalDragAndDrop-Docs/
+Discord server for questions, bug reports and feedback https://discord.gg/HXf6Wv6UTx
