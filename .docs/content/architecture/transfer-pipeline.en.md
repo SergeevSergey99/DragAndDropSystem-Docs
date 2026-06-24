@@ -173,10 +173,3 @@ Everything intended for plugging in custom logic is listed here:
 | **Item converter** | `IItemAdapterConverter` via `CreateItemConverter()` | Converts items between inventories with different adapter models. |
 | **Rules** | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Declarative mechanical constraints on three levels. |
 | **Drop zones** | `DropAreaBase` | Custom drop targets, such as trash, sale, or spawn in world, without changing the transfer pipeline. |
-
-See also:
-
-- [Drop Policy Matrix](drop-policy-matrix.md) — policy fields in one table
-- [Placement Strategies](strategies.md) — how items choose slots
-- [Cookbook: Item Conversion](item-conversion-cookbook.md)
-- [Logs and Debugging](../reference/logs-and-debugging.md)

@@ -175,10 +175,3 @@ Todo lo destinado a conectar lógica propia está listado aquí:
 | **Conversor de objetos** | `IItemAdapterConverter` mediante `CreateItemConverter()` | Convierte objetos entre inventarios con distintos modelos de adapter. |
 | **Reglas** | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Restricciones mecánicas declarativas en tres niveles. |
 | **Drop zones** | `DropAreaBase` | Destinos de drop propios, como basura, venta o spawn en mundo, sin cambiar el transfer pipeline. |
-
-Ver también:
-
-- [Matriz de drop policy](drop-policy-matrix.md) — los campos de la policy en una tabla
-- [Estrategias de colocación](strategies.md) — cómo los objetos eligen slots
-- [Recetario: conversión de objetos](item-conversion-cookbook.md)
-- [Logs y depuración](../reference/logs-and-debugging.md)
