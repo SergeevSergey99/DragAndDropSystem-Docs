@@ -6,7 +6,10 @@ namespace UDND.DataBinding
     /// <summary>
     /// Template DataBinding for inventories with fixed slots.
     /// Automatically handles ReloadUI, OnItemAdded, and OnItemRemoved.
-    /// Derived classes only need to implement 5 primitive methods.
+    /// Derived classes only need to implement 4 primitive methods.
+    ///
+    /// Each slot is described by its full list of adapters, so stacks made of
+    /// distinct adapter instances are preserved without data loss.
     ///
     /// TData is the data item type (for example, ItemSO or ItemModel)
     /// TAdapter is the adapter type implementing IItemAdapter (for example, ItemAdapterSoAdapter)
@@ -17,16 +20,15 @@ namespace UDND.DataBinding
     /// {
     ///     [SerializeField] private PlayerInventoryData _playerData;
     ///
-    ///     protected override IEnumerable&lt;(int index, ItemSO itemAdapter, int count)&gt; GetOccupiedSlots()
+    ///     protected override IEnumerable&lt;(int index, IReadOnlyList&lt;ItemSO&gt; items)&gt; GetOccupiedSlots()
     ///     {
     ///         var slots = _playerData.Slots;
     ///         for (int i = 0; i &lt; slots.Count; i++)
-    ///             if (slots[i] != null) yield return (i, slots[i], 1);
+    ///             if (slots[i] != null) yield return (i, new[] { slots[i] });
     ///     }
     ///     protected override ItemAdapterSoAdapter CreateAdapter(ItemSO itemAdapter) => new ItemAdapterSoAdapter(itemAdapter);
-    ///     protected override ItemSO ExtractData(ItemAdapterSoAdapter adapter) => adapter.itemAdapter;
-    ///     protected override void AddToSlotData(int index, ItemSO itemAdapter, int count) => _playerData.SetItem(index, itemAdapter);
-    ///     protected override void RemoveFromSlotData(int index, ItemSO itemAdapter, int count) => _playerData.ClearSlot(index);
+    ///     protected override void AddToSlotData(int index, IReadOnlyList&lt;ItemAdapterSoAdapter&gt; adapters) => _playerData.SetItem(index, adapters[0].itemAdapter);
+    ///     protected override void RemoveFromSlotData(int index, IReadOnlyList&lt;ItemAdapterSoAdapter&gt; adapters) => _playerData.ClearSlot(index);
     /// }
     /// </code>
     /// </summary>
@@ -34,10 +36,10 @@ namespace UDND.DataBinding
         where TAdapter : class, IItemAdapter
     {
         /// <summary>
-        /// Get occupied slots with their indices, data, and counts.
+        /// Get occupied slots with their indices and the full list of items in each slot.
         /// Empty slots may be omitted.
         /// </summary>
-        protected abstract IEnumerable<(int index, TData item, int count)> GetOccupiedSlots();
+        protected abstract IEnumerable<(int index, IReadOnlyList<TData> items)> GetOccupiedSlots();
 
         /// <summary>
         /// Create an adapter (IItemAdapter) from a data item.
@@ -46,45 +48,73 @@ namespace UDND.DataBinding
         protected abstract TAdapter CreateAdapter(TData item);
 
         /// <summary>
-        /// Update slot data when an item is added.
-        /// Called when an item is added to the slot via drag&amp;drop.
+        /// Update slot data when items are added.
+        /// Called when a stack is added to the slot via drag&amp;drop.
+        /// The list contains every adapter in the dropped stack.
         /// </summary>
-        protected abstract void AddToSlotData(int index, TAdapter adapter, int count);
+        protected abstract void AddToSlotData(int index, IReadOnlyList<TAdapter> adapters);
 
         /// <summary>
-        /// Update slot data when an item is removed.
-        /// Called when an item is removed from the slot via drag&amp;drop.
+        /// Update slot data when items are removed.
+        /// Called when a stack is removed from the slot via drag&amp;drop.
+        /// The list contains every adapter in the removed stack.
         /// </summary>
-        protected abstract void RemoveFromSlotData(int index, TAdapter item, int count);
+        protected abstract void RemoveFromSlotData(int index, IReadOnlyList<TAdapter> adapters);
 
         protected override void OnReloadUI()
         {
-            foreach (var (index, item, count) in GetOccupiedSlots())
+            foreach (var (index, items) in GetOccupiedSlots())
             {
-                if (item == null) continue;
+                if (items == null || items.Count == 0) continue;
 
-                AddToUIQuiet(() => CreateAdapter(item), count, index);
+                var adapters = new List<IItemAdapter>(items.Count);
+                foreach (var item in items)
+                {
+                    if (item == null) continue;
+                    adapters.Add(CreateAdapter(item));
+                }
+
+                if (adapters.Count == 0) continue;
+
+                AddToUIQuiet(adapters, index);
             }
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
-
             int index = context.AnchorIndex;
             if (index < 0) return;
 
-            AddToSlotData(index, adapter, context.Stack.Count);
+            var adapters = CollectAdapters(context.Stack);
+            if (adapters.Count == 0) return;
+
+            AddToSlotData(index, adapters);
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context.Stack.PrimaryAdapter is not TAdapter adapter) return;
-
             int index = context.AnchorIndex;
             if (index < 0) return;
 
-            RemoveFromSlotData(index, adapter, context.Stack.Count);
+            var adapters = CollectAdapters(context.Stack);
+            if (adapters.Count == 0) return;
+
+            RemoveFromSlotData(index, adapters);
+        }
+
+        private static List<TAdapter> CollectAdapters(ItemStack stack)
+        {
+            var result = new List<TAdapter>();
+            if (stack?.Adapters == null)
+                return result;
+
+            for (int i = 0; i < stack.Adapters.Count; i++)
+            {
+                if (stack.Adapters[i] is TAdapter adapter)
+                    result.Add(adapter);
+            }
+
+            return result;
         }
     }
 }
