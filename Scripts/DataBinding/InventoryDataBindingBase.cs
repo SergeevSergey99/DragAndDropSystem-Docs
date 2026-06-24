@@ -327,12 +327,6 @@ namespace UDND.DataBinding
             return CanStartDrag(context, entry);
         }
 
-        internal bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
-            => CanHandleOccupiedSlotDrop(entry, occupiedBaseSlot);
-
-        internal bool DoOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
-            => ExecuteOccupiedSlotDrop(entry, occupiedBaseSlot);
-
         /// <summary>
         /// Check DataBinding drop conditions
         /// </summary>
@@ -414,20 +408,6 @@ namespace UDND.DataBinding
             // Do nothing by default
             // OnItemAdded/OnItemRemoved events have already been emitted for both inventories
         }
-
-        /// <summary>
-        /// Called when an item is dropped onto an occupied slot, before swap or alternative-slot handling.
-        /// Return true if this DataBinding can handle such a drop (for example, putting an item inside a container).
-        /// If false, the pipeline continues with the default logic (swap, findAlternative, reject).
-        /// </summary>
-        protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
-
-        /// <summary>
-        /// Executes a drop onto an occupied slot when CanHandleOccupiedSlotDrop returned true.
-        /// The implementation must handle the transfer fully: add the item to the target place,
-        /// clear the source slot, and update the data.
-        /// </summary>
-        protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot) => false;
 
         #endregion
     }

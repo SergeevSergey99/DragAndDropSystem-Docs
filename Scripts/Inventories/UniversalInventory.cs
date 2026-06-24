@@ -17,7 +17,7 @@ namespace UDND.Inventories
     /// Universal inventory built around composition
     /// Does not require inheritance and is configured through strategies and rules
     /// </summary>
-    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IOccupiedSlotDropHandler, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction, IInventorySlotCreationCapacity
+    public class UniversalInventory : BaseInventory, IPlacementInventory, IShapedDragTargetResolver, IInventorySnapshotProvider, IDropPolicyProvider, IInventoryRuleEvaluator, IDynamicSlotLifecycle, IInventoryEventSink, IInventoryInteraction, IInventorySlotCreationCapacity
     {
         [FoldoutGroup("Slot Setup", expanded: true)]
         [SerializeField, Required, Tooltip("Slot container")]
@@ -99,12 +99,6 @@ namespace UDND.Inventories
         }
 
         public override InventoryDataBindingBase DataBinding { get; protected set; }
-
-        public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
-            => DataBinding != null && DataBinding.CheckOccupiedSlotDrop(entry, occupiedBaseSlot);
-
-        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
-            => DataBinding != null && DataBinding.DoOccupiedSlotDrop(entry, occupiedBaseSlot);
 
         /// <summary>
         /// Event raised when a new slot is created (after Instantiate + Initialize).

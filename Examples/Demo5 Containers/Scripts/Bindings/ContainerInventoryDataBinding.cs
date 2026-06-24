@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using UDND.Core;
 using UDND.DataBinding;
+using UDND.Inventories;
 using UDND.Rules;
 using UDND.Slots;
 
 namespace UDND.Examples.Containers
 {
-    public class ContainerInventoryDataBinding : ListInventoryDataBinding<IContainerizeItemInstance, ContainerItemAdapterAdapter>
+    public class ContainerInventoryDataBinding : ListInventoryDataBinding<IContainerizeItemInstance, ContainerItemAdapterAdapter>, IPreRuleOccupiedSlotDropHandler
     {
         public ContainerItemInstance currentContainer { get; private set; }
 
@@ -15,7 +16,7 @@ namespace UDND.Examples.Containers
         protected override void AddToData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.AddItem(adapterAdapter.Instance);
         protected override void RemoveFromData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.RemoveItem(adapterAdapter.Instance);
         
-        protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
@@ -32,7 +33,7 @@ namespace UDND.Examples.Containers
             return true;
         }
 
-        protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;

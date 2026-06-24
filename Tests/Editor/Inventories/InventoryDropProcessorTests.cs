@@ -662,7 +662,7 @@ namespace UDND.Tests.Inventories
 
     }
 
-    public sealed class TestOccupiedSlotBinding : InventoryDataBindingBase
+    public sealed class TestOccupiedSlotBinding : InventoryDataBindingBase, IPostRuleOccupiedSlotDropHandler
     {
         public BaseSlot HandledSlot { get; set; }
         public int CanHandleCalls { get; private set; }
@@ -670,13 +670,13 @@ namespace UDND.Tests.Inventories
 
         protected override void Awake() { }
 
-        protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             CanHandleCalls++;
             return ReferenceEquals(occupiedBaseSlot, HandledSlot);
         }
 
-        protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             ExecuteCalls++;
             entry.SourceBaseSlot.Clear();

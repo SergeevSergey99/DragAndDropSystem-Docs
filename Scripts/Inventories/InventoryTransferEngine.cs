@@ -110,6 +110,21 @@ namespace UDND.Inventories
                 var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
                 var entryTargetSlot = i == 0 ? targetBaseSlot : null;
                 var entryContext = context.WithTarget(entryTargetSlot, targetInventory);
+
+                // Pre-rule occupied-slot handler: a different destination (e.g. a container),
+                // so it is consulted before and bypasses the target drop/placement rules.
+                if (entryTargetSlot != null && !entryTargetSlot.IsEmpty &&
+                    ResolvePreRuleOccupiedHandler(targetInventory) is { } preRuleHandler &&
+                    preRuleHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
+                {
+                    return TransferProbe.Accepted(
+                        i,
+                        entry,
+                        anchorSlot: entryTargetSlot,
+                        coveredSlots: new[] { entryTargetSlot },
+                        isExplicitTargetCandidate: true);
+                }
+
                 var rules = new RuleEvaluationService().ValidateEntryDrop(entryContext, entry, globalRules);
                 if (!rules.IsValid || sourceInventory == null || entry.Stack?.PrimaryAdapter == null)
                 {
@@ -118,9 +133,10 @@ namespace UDND.Inventories
                     continue;
                 }
 
+                // Post-rule occupied-slot handler: runs only after the target drop rules pass.
                 if (entryTargetSlot != null && !entryTargetSlot.IsEmpty &&
-                    targetInventory is IOccupiedSlotDropHandler occupiedHandler &&
-                    occupiedHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
+                    ResolvePostRuleOccupiedHandler(targetInventory) is { } postRuleHandler &&
+                    postRuleHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
                 {
                     return TransferProbe.Accepted(
                         i,
@@ -354,6 +370,20 @@ namespace UDND.Inventories
                 return EntryTransferResult.Failed(requestedAmount, "Target inventory is null");
 
             var validationContext = request.Context.WithTarget(request.TargetBaseSlot, targetInventory);
+
+            // Pre-rule occupied-slot handler: bypasses the target drop rules (different destination).
+            if (request.TargetBaseSlot != null &&
+                !request.TargetBaseSlot.IsEmpty &&
+                ResolvePreRuleOccupiedHandler(targetInventory) is { } preRuleHandler &&
+                preRuleHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
+            {
+                return TryExecuteOccupiedHandler(
+                    request,
+                    sourceInventory,
+                    targetInventory,
+                    preRuleHandler);
+            }
+
             var ruleResult = new RuleEvaluationService()
                 .ValidateEntryDrop(validationContext, entry, request.GlobalRules);
             if (!ruleResult.IsValid)
@@ -365,16 +395,17 @@ namespace UDND.Inventories
                         : ruleResult.FailureReason);
             }
 
+            // Post-rule occupied-slot handler: runs only after the target drop rules pass.
             if (request.TargetBaseSlot != null &&
                 !request.TargetBaseSlot.IsEmpty &&
-                targetInventory is IOccupiedSlotDropHandler occupiedHandler &&
-                occupiedHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
+                ResolvePostRuleOccupiedHandler(targetInventory) is { } postRuleHandler &&
+                postRuleHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
             {
                 return TryExecuteOccupiedHandler(
                     request,
                     sourceInventory,
                     targetInventory,
-                    occupiedHandler);
+                    postRuleHandler);
             }
 
             // Single-entry swap path bypasses the candidate-loop machinery after common rules.
@@ -486,6 +517,18 @@ namespace UDND.Inventories
 
             return CommitEntry(transaction);
         }
+
+        /// <summary>
+        /// Occupied-slot drop behavior lives on the DataBinding, not the inventory.
+        /// The pipeline resolves it through the target's DataBinding so inventories stay
+        /// free of the IOccupiedSlotDropHandler contract. The timing variant decides whether
+        /// the handler is consulted before or after the target drop rules.
+        /// </summary>
+        private static IPreRuleOccupiedSlotDropHandler ResolvePreRuleOccupiedHandler(IInventory inventory)
+            => inventory?.DataBinding as IPreRuleOccupiedSlotDropHandler;
+
+        private static IPostRuleOccupiedSlotDropHandler ResolvePostRuleOccupiedHandler(IInventory inventory)
+            => inventory?.DataBinding as IPostRuleOccupiedSlotDropHandler;
 
         private static EntryTransferResult TryExecuteOccupiedHandler(
             TransferEntryRequest request,
