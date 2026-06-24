@@ -14,7 +14,7 @@
         <link rel="prev" href="../demo4-trading/">
       
       
-        <link rel="next" href="../../architecture/data-binding/">
+        <link rel="next" href="../demo6-shaped-items/">
       
       
         
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -663,14 +667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -815,17 +819,6 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что смотреть в коде
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
         Когда брать этот пример за основу
       
     </span>
@@ -837,6 +830,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -973,7 +994,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Пайплайн переноса
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Конвертация предметов
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Пример: свободное размещение
+    Свободное размещение слотов
   
 
     
@@ -1828,17 +1849,6 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что смотреть в коде
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
         Когда брать этот пример за основу
       
     </span>
@@ -1874,11 +1884,11 @@
 </div>
 
 <p><code>Examples/Demo5 Containers/Containers Demo.unity</code></p>
-<p>Это пример inventory-предметов, которые сами содержат вложенный inventory.</p>
+<p>Это пример предметов-инвентарей, которые сами содержат вложенный набор предмтов.</p>
 <h2 id="_1">Что показывает демо</h2>
 <ul>
 <li>item instances вместо простых записей списка</li>
-<li>контейнер как обычный предмет в inventory игрока</li>
+<li>контейнер как обычный предмет в инвентаре игрока</li>
 <li>отдельную UI-панель для содержимого активного контейнера</li>
 <li>context menu action для открытия контейнера</li>
 <li>защиту от циклов при вложении контейнеров</li>
@@ -1898,71 +1908,27 @@
 <li><code>Scripts/UI/ContainerUIController.cs</code></li>
 <li><code>Scripts/ContextMenu/OpenContainerMenuEntrySO.cs</code></li>
 </ul>
-<p>Главная схема:</p>
-<pre class="mermaid"><code>flowchart TD
-    PlayerData["ContainerDemoManager.Items"] &lt;--&gt; PlayerBinding["PlayerContainerInventoryDataBinding"]
-    PlayerBinding &lt;--&gt; PlayerUI["Player Inventory UI"]
-    PlayerUI --&gt; Menu["Context Menu / Open Container"]
-    Menu --&gt; UIController["ContainerUIController"]
-    UIController --&gt; ContainerBinding["ContainerInventoryDataBinding"]
-    ContainerBinding &lt;--&gt; ContainerUI["Container Inventory UI"]
-    ContainerBinding &lt;--&gt; ActiveContainer["Current ContainerItemInstance"]</code></pre>
 <h2 id="_3">Как работает</h2>
 <p>Открытие контейнера:</p>
 <ol>
-<li>В inventory игрока лежит <code>ContainerItemInstance</code>.</li>
+<li>В инвентаре игрока лежит <code>ContainerItemInstance</code>.</li>
 <li>Контекстное меню вызывает <code>OpenContainerMenuEntrySO</code>.</li>
 <li>Через <code>Events.OnOpenClick</code> выбранный контейнер передаётся в <code>ContainerUIController</code>.</li>
-<li>Контроллер выставляет active container и вызывает <code>SetContainer(...)</code>.</li>
+<li>Контроллер выставляет активный контейнер.</li>
 <li><code>ContainerInventoryDataBinding</code> перестраивает размер inventory и загружает содержимое контейнера.</li>
 </ol>
 <p>Перенос предметов:</p>
 <ol>
-<li>Между player inventory и container inventory работают обычные drag/drop операции.</li>
-<li>Binding-и синхронизируют перенос обратно в player list или в <code>ContainerItemInstance.Items</code>.</li>
-<li>При drop в занятый слот <code>PlayerContainerInventoryDataBinding</code> может выполнить custom occupied-slot поведение.</li>
+<li>Между инвентарем игрока и контейнера работают обычные drag/drop операции.</li>
+<li>Binding-и синхронизируют перенос в player list или в <code>ContainerItemInstance.Items</code>.</li>
+<li>При drop в занятый слот <code>PlayerContainerInventoryDataBinding</code> может выполнить дополнительное поведение.</li>
 <li>Перед помещением контейнера внутрь другого контейнера проверяется <code>WouldCreateCycle(...)</code>.</li>
 </ol>
-<h2 id="_4">Что смотреть в коде</h2>
-<table>
-<thead>
-<tr>
-<th>Файл</th>
-<th>Роль</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Scripts/ContainerDemoManager.cs</code></td>
-<td>корневой список предметов игрока</td>
-</tr>
-<tr>
-<td><code>Scripts/Bindings/PlayerContainerInventoryDataBinding.cs</code></td>
-<td>binding инвентаря игрока</td>
-</tr>
-<tr>
-<td><code>Scripts/Bindings/ContainerInventoryDataBinding.cs</code></td>
-<td>binding активного контейнера</td>
-</tr>
-<tr>
-<td><code>Scripts/UI/ContainerUIController.cs</code></td>
-<td>переключение активного контейнера и панели</td>
-</tr>
-<tr>
-<td><code>Scripts/ContextMenu/OpenContainerMenuEntrySO.cs</code></td>
-<td>пункт контекстного меню</td>
-</tr>
-<tr>
-<td><code>Scripts/Data/ContainerItemInstance.cs</code></td>
-<td>контейнер как item instance</td>
-</tr>
-</tbody>
-</table>
-<h2 id="_5">Когда брать этот пример за основу</h2>
+<h2 id="_4">Когда брать этот пример за основу</h2>
 <ul>
-<li>предмет должен содержать вложенный inventory</li>
+<li>предмет должен содержать вложенный инвентарь</li>
 <li>нужен context menu для операций над предметом</li>
-<li>нужны custom drop-правила поверх стандартного pipeline</li>
+<li>нужны свои drop-правила поверх стандартного процесса переноса</li>
 </ul>
 
 
@@ -2019,7 +1985,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -899,7 +931,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -927,7 +959,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1063,10 +1095,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dynamic-slots" class="md-nav__link">
+  <a href="#slot-management-fixed-vs-dynamic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dynamic Slots
+        Slot management (fixed vs dynamic)
       
     </span>
   </a>
@@ -1425,7 +1457,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1570,7 +1602,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1598,7 +1630,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1743,7 +1775,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1902,10 +1934,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dynamic-slots" class="md-nav__link">
+  <a href="#slot-management-fixed-vs-dynamic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dynamic Slots
+        Slot management (fixed vs dynamic)
       
     </span>
   </a>
@@ -1974,7 +2006,11 @@
 
 
 <h1 id="placement-strategies">Placement Strategies</h1>
-<p>Each inventory chooses a strategy that determines how items are placed and merged in slots. The strategy is set in the Inspector and affects all add and move operations.</p>
+<p>Each inventory chooses a <strong>strategy</strong> that decides how items occupy and merge in
+slots. The strategy is selected in the Inspector and applies to every add and move.</p>
+<p>A strategy is <strong>read-only</strong>: it answers "where may this item go and how much fits?"
+by producing <em>placement candidates</em>. It never adds, removes, or mutates anything —
+the transfer engine performs all mutation. See <a href="../transfer-pipeline/">Transfer Pipeline</a>.</p>
 <hr />
 <h2 id="strategy-comparison">Strategy Comparison</h2>
 <table>
@@ -2021,44 +2057,52 @@
     Q2 --&gt;|No| SEP["Separable Stacks"]</code></pre>
 <hr />
 <h2 id="unique">Unique</h2>
-<p>Each item occupies exactly one slot. Stacking is not supported --- when transferring multiple instances, each is placed in a separate slot.</p>
+<p>Each item occupies exactly one slot; stacking is not supported. When several
+instances are transferred, each one takes a separate slot.</p>
 <pre class="mermaid"><code>flowchart TD
     A["Item"] --&gt; B{"Slot free?"}
     B --&gt;|Yes| C["Place"]
-    B --&gt;|No| D["Search for another free slot"]
+    B --&gt;|No| D["Look for another free slot"]
     D --&gt; E{"Found?"}
     E --&gt;|Yes| C
     E --&gt;|No| F["Reject"]</code></pre>
 <p>Typical use: equipment inventory, collection of unique artifacts.</p>
 <hr />
 <h2 id="stackable">Stackable</h2>
-<p>Identical items are automatically combined into one stack. When adding, the system first looks for an existing stack with the same item, then for a free slot.</p>
+<p>Identical items are automatically combined into one stack. When adding, the strategy
+first offers a merge candidate for an existing stack of the same item, then a create
+candidate for a free slot.</p>
 <pre class="mermaid"><code>flowchart TD
-    A["Item"] --&gt; B{"Same item in a slot?"}
+    A["Item"] --&gt; B{"Same item already in a slot?"}
     B --&gt;|Yes| C["Merge stacks"]
     B --&gt;|No| D{"Free slot?"}
     D --&gt;|Yes| E["Create stack"]
     D --&gt;|No| F["Reject"]</code></pre>
-<p>Typical use: consumable items (potions, arrows), resources.</p>
+<p>Typical use: consumables (potions, arrows), resources.</p>
 <hr />
 <h2 id="separable-stacks">Separable Stacks</h2>
-<p>Items can stack but are NOT automatically merged. You can have multiple stacks of the same item in different slots. Merging only occurs on an explicit drop onto the same item (if allowed by the <code>allowMergeOnDrop</code> setting).</p>
+<p>Items can stack but are <strong>not</strong> merged automatically. You can keep several stacks of
+the same item in different slots. A merge happens only on an explicit drop onto the
+same item, when merging is allowed.</p>
 <pre class="mermaid"><code>flowchart TD
     A["Item"] --&gt; B{"Empty slot?"}
-    B --&gt;|Yes| C["Create new stack"]
+    B --&gt;|Yes| C["Create a new stack"]
     B --&gt;|No| D{"Same item + merge allowed?"}
     D --&gt;|Yes| E["Merge"]
     D --&gt;|No| F["Reject"]</code></pre>
 <p>Typical use: Heroes of Might &amp; Magic style (squads with independent stacks).</p>
 <hr />
-<h2 id="dynamic-slots">Dynamic Slots</h2>
-<p>A decorator that wraps any strategy and adds automatic slot creation/removal:</p>
+<h2 id="slot-management-fixed-vs-dynamic">Slot management (fixed vs dynamic)</h2>
+<p>Strategy decides <em>placement</em>; <strong>slot management</strong> decides whether the slot set is
+fixed or can grow and shrink. It is a separate setting on the inventory.</p>
 <ul>
-<li>Creates new slots as needed (up to a specified limit).</li>
-<li>Maintains a minimum number of free slots.</li>
-<li>Removes excess empty slots when items are removed.</li>
+<li><code>FixedSlotManagementSettings</code> — a fixed number of slots.</li>
+<li><code>DynamicSlotManagementSettings</code> — creates new slots as needed (up to a limit),
+  keeps a minimum number of free slots, and removes excess empties on removal.</li>
 </ul>
-<p>Works with any of the three strategies.</p>
+<p>Dynamic slots work with any of the three strategies. The strategy only returns a
+<code>NewDynamicSlot</code> candidate when growth is allowed; the engine drives the actual
+slot creation and removal through <code>IDynamicSlotLifecycle</code>.</p>
 <hr />
 <h2 id="inspector-configuration">Inspector Configuration</h2>
 <table>
@@ -2073,90 +2117,119 @@
 <tr>
 <td><strong>Inventory Strategy</strong></td>
 <td><code>UniqueItemStrategy</code> / <code>StackableItemStrategy</code> / <code>SeparableStacksStrategy</code></td>
-<td>Item placement strategy selected directly through <code>[SerializeReference]</code></td>
+<td>Placement strategy, selected through <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Slot Management</strong></td>
 <td><code>FixedSlotManagementSettings</code> / <code>DynamicSlotManagementSettings</code></td>
-<td>Slot lifecycle mode selected directly through <code>[SerializeReference]</code></td>
+<td>Slot lifecycle mode, selected through <code>[SerializeReference]</code></td>
 </tr>
 <tr>
 <td><strong>Max Slots</strong></td>
 <td>number</td>
-<td>Maximum slots (for Dynamic)</td>
+<td>Maximum slots (Dynamic only)</td>
 </tr>
 <tr>
 <td><strong>Max Free Slots</strong></td>
 <td>number</td>
-<td>How many empty slots to maintain (for Dynamic)</td>
+<td>Empty slots to keep available (Dynamic only)</td>
 </tr>
 <tr>
 <td><strong>Drag Amount</strong></td>
-<td><code>One</code> / <code>Half</code> / <code>All</code> / <code>Custom</code></td>
+<td><code>All</code> / <code>HalfDown</code> / <code>HalfUp</code> / <code>One</code> / <code>Custom</code></td>
 <td>How many items to drag from a stack</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="custom-strategy">Custom Strategy</h2>
-<p>To create your own placement strategy:</p>
+<p>A custom strategy is read-only: it produces candidates, it does not mutate.</p>
 <ol>
-<li>Create a class inheriting from <code>InventoryStrategyBase</code>.</li>
-<li>Mark it <code>[Serializable]</code>.</li>
-<li>It appears automatically in the <code>UniversalInventory</code> strategy picker.</li>
-<li>Override the key methods:</li>
+<li>Inherit from <code>InventoryStrategyBase</code>.</li>
+<li>Mark it <code>[Serializable]</code> so it appears in the <code>UniversalInventory</code> strategy picker.</li>
+<li>Override the candidate methods:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryStrategyBase</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="c1">// Add an item to the inventory</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">TryAdd</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">BaseSlot</span><span class="o">&gt;</span><span class="w"> </span><span class="n">slots</span><span class="p">,</span><span class="w"> </span><span class="n">ItemStack</span><span class="w"> </span><span class="n">stack</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">targetIndex</span><span class="p">)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="c1">// Your placement logic</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="c1">// Add an item to a specific slot</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">TryAddToSlot</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">BaseSlot</span><span class="o">&gt;</span><span class="w"> </span><span class="n">slots</span><span class="p">,</span><span class="w"> </span><span class="n">ItemStack</span><span class="w"> </span><span class="n">stack</span><span class="p">,</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">targetSlot</span><span class="p">,</span><span class="w"> </span><span class="n">Action</span><span class="w"> </span><span class="n">ensureFreeSlots</span><span class="p">,</span><span class="w"> </span><span class="n">SlotOperationContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">)</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="c1">// Your logic for a specific slot</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="c1">// Remove an item</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">TryRemove</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">BaseSlot</span><span class="o">&gt;</span><span class="w"> </span><span class="n">slots</span><span class="p">,</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="w"> </span><span class="n">item</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sourceIndex</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="na">[Serializable]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomStrategy</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryStrategyBase</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="c1">// Validate a directly chosen slot and return its candidate (kind + capacity).</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">TryGetCandidate</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="n">IPlacementGeometry</span><span class="w"> </span><span class="n">geometry</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="n">InventoryAcceptanceRequest</span><span class="w"> </span><span class="n">request</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">        </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">targetBaseSlot</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">        </span><span class="k">out</span><span class="w"> </span><span class="n">PlacementCandidate</span><span class="w"> </span><span class="n">candidate</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="c1">// Resolve the anchor, decide merge vs create, compute capacity.</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="c1">// Helpers like TryCreatePlacementCandidate(...) and PassesRules(...) are available.</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="c1">// Enumerate candidates for automatic placement (area drop / auto-transfer).</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">PlacementCandidateSource</span><span class="w"> </span><span class="nf">GetCandidates</span><span class="p">(</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="n">IPlacementGeometry</span><span class="w"> </span><span class="n">geometry</span><span class="p">,</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="n">InventoryAcceptanceRequest</span><span class="w"> </span><span class="n">request</span><span class="p">)</span>
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="c1">// Your removal logic</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="c1">// Return a lazy, re-enumerable source of candidates.</span>
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="c1">// How many items the inventory can accept</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">GetAcceptableCount</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">BaseSlot</span><span class="o">&gt;</span><span class="w"> </span><span class="n">slots</span><span class="p">,</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">        </span><span class="n">InventoryAcceptanceRequest</span><span class="w"> </span><span class="n">request</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">canCreateNewSlot</span><span class="p">,</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">potentialNewSlots</span><span class="p">,</span><span class="w"> </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">slotPrefab</span><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="c1">// How many items the inventory can accept right now (read-only count).</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">GetAcceptableCount</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">        </span><span class="n">IPlacementGeometry</span><span class="w"> </span><span class="n">geometry</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">        </span><span class="n">InventoryAcceptanceRequest</span><span class="w"> </span><span class="n">request</span><span class="p">)</span>
 <a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">        </span><span class="c1">// Your counting logic</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">        </span><span class="c1">// Your counting logic.</span>
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="c1">// Can the inventory accept the item</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">CanAcceptItem</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">BaseSlot</span><span class="o">&gt;</span><span class="w"> </span><span class="n">slots</span><span class="p">,</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">        </span><span class="n">InventoryAcceptanceRequest</span><span class="w"> </span><span class="n">request</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">canCreateNewSlot</span><span class="p">,</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">potentialNewSlots</span><span class="p">,</span><span class="w"> </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">slotPrefab</span><span class="p">,</span><span class="w"> </span><span class="k">out</span><span class="w"> </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">suggestedSlot</span><span class="p">)</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">        </span><span class="c1">// Your validation logic</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="p">}</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="p">}</span>
 </code></pre></div>
 <div class="admonition tip">
-<p class="admonition-title">Rule Validation</p>
-<p>Use the <code>PassesRules(slot, item, count)</code> method from the base class to validate slot rules before placement.</p>
+<p class="admonition-title">Helpers on the base class</p>
+<p><code>PassesRules(slot, item, count)</code> validates slot rules, and
+<code>TryCreatePlacementCandidate(...)</code> builds a validated create candidate against the
+topology. Geometry (<code>IPlacementGeometry</code>) gives you anchor resolution, bounds and
+occupancy checks, and covered slots — your strategy never needs to know it is a grid.</p>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Strategies do not mutate</p>
+<p>There are no <code>TryAdd</code>/<code>TryRemove</code>/<code>TryAddToSlot</code> methods anymore. If you are looking
+for where items are actually placed, that is the transfer engine, not the strategy.</p>
+</div>
+<hr />
 <h2 id="custom-slot-management">Custom Slot Management</h2>
 <p>To create your own slot lifecycle mode:</p>
 <ol>
-<li>Create a class inheriting from <code>SlotManagementSettingsBase</code>.</li>
-<li>Mark it <code>[Serializable]</code>.</li>
-<li>Override the hooks you need, for example <code>WrapRuntimeStrategy</code>, <code>EnsureFreeSlots</code>, or <code>HandleSlotEmptied</code>.</li>
-<li>It appears automatically in the <code>UniversalInventory</code> slot management picker.</li>
+<li>Inherit from <code>SlotManagementSettingsBase</code>.</li>
+<li>Mark it <code>[Serializable]</code> so it appears in the slot-management picker.</li>
+<li>Override the hooks you need:</li>
 </ol>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CanCreateNewSlot(...)</code></td>
+<td>May the inventory grow right now?</td>
+</tr>
+<tr>
+<td><code>GetPotentialNewSlots(...)</code></td>
+<td>How many more slots could be created</td>
+</tr>
+<tr>
+<td><code>EnsureFreeSlots(...)</code></td>
+<td>Pre-create the configured number of free slots</td>
+</tr>
+<tr>
+<td><code>CanRemoveAnotherSlot(...)</code></td>
+<td>May an excess empty slot be removed?</td>
+</tr>
+<tr>
+<td><code>HandleSlotEmptied(...)</code></td>
+<td>React when a slot becomes empty (e.g. trim)</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="key-classes">Key Classes</h2>
 <table>
@@ -2169,14 +2242,19 @@
 </thead>
 <tbody>
 <tr>
+<td>Strategy contract</td>
+<td><code>IStrategy</code></td>
+<td>Read-only: candidates, capacity, max stack size</td>
+</tr>
+<tr>
 <td>Base class</td>
 <td><code>InventoryStrategyBase</code></td>
-<td>Common methods for all strategies</td>
+<td>Shared candidate helpers and rule checks</td>
 </tr>
 <tr>
 <td>Shared stack base</td>
 <td><code>StackBasedInventoryStrategyBase</code></td>
-<td>Shared stack size and per-item override support for stack-oriented strategies</td>
+<td>Stack-size and per-item override support for stacking strategies</td>
 </tr>
 <tr>
 <td>Unique</td>
@@ -2194,24 +2272,29 @@
 <td>Independent stacks with optional merging</td>
 </tr>
 <tr>
-<td>Capabilities</td>
-<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
-<td>Optional semantic interfaces for custom code</td>
+<td>Candidate</td>
+<td><code>PlacementCandidate</code>, <code>PlacementCandidateSource</code></td>
+<td>Topology-neutral merge/create/new-slot intent</td>
+</tr>
+<tr>
+<td>Ordering</td>
+<td><code>PlacementCandidateOrderer</code></td>
+<td>Orders candidates for automatic placement only</td>
 </tr>
 <tr>
 <td>Slot management base</td>
 <td><code>SlotManagementSettingsBase</code></td>
-<td>Base class for fixed, dynamic, and custom slot lifecycle modes</td>
+<td>Base for fixed, dynamic, and custom slot lifecycle</td>
 </tr>
 <tr>
-<td>Dynamic slots</td>
-<td><code>DynamicSlotManagementSettings</code>, <code>DynamicSlotDecorator</code></td>
-<td>Dynamic slot mode and its runtime decorator</td>
+<td>Slot management modes</td>
+<td><code>FixedSlotManagementSettings</code>, <code>DynamicSlotManagementSettings</code></td>
+<td>Fixed vs growing slot sets</td>
 </tr>
 <tr>
-<td>Interface</td>
-<td><code>IInventoryStrategy</code></td>
-<td>Contract for all strategies</td>
+<td>Dynamic lifecycle</td>
+<td><code>IDynamicSlotLifecycle</code></td>
+<td>Engine-driven slot creation/removal</td>
 </tr>
 </tbody>
 </table>
@@ -2270,7 +2353,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -14,7 +14,7 @@
         <link rel="prev" href="../demo1-inventories/">
       
       
-        <link rel="next" href="../demo3-minecraft/">
+        <link rel="next" href="../demo3-Craft/">
       
       
         
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -728,21 +732,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -765,14 +758,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -973,7 +994,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1057,7 +1078,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1202,7 +1223,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1459,7 +1480,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -1874,87 +1884,40 @@
 </div>
 
 <p><code>Examples/Demo2 Loot/LootDemo.unity</code></p>
-<p>Este es un ejemplo de inventario indexado por slot y de cómo conectar eventos del mundo de juego con la UI.</p>
+<p>Este es un ejemplo de inventario indexado por slot y de conexión entre el mundo del
+juego, eventos y UI.</p>
 <h2 id="que-muestra-la-demo">Qué muestra la demo</h2>
 <ul>
 <li>cofres como objetos interactivos del mundo</li>
-<li>bindings separados para el jugador y el cofre</li>
+<li>bindings separados para jugador y cofre</li>
 <li>cambio de distintas fuentes de datos para DataBinding</li>
-<li>flujos de pickup/drop conectados al mundo</li>
-<li>un enfoque de mediador: los objetos del mundo no conocen directamente la UI</li>
+<li>escenarios de pickup/drop conectados con el mundo</li>
+<li>el mundo no conoce directamente la UI</li>
 </ul>
 <h2 id="como-esta-estructurada">Cómo está estructurada</h2>
-<p>Capas principales:</p>
-<ul>
-<li><code>Scripts/Core/*</code> — <code>Chest</code>, <code>ItemController</code>, <code>IInteractable</code></li>
-<li><code>Scripts/Player/*</code> — <code>PlayerController</code>, <code>PlayerInteraction</code>, <code>PlayerInventoryData</code></li>
-<li><code>Scripts/DataBinding/*</code> — bindings del jugador y del cofre</li>
-<li><code>Scripts/UI/LootUIController.cs</code> — mediador entre la capa de mundo y la UI</li>
-</ul>
-<p>Forma principal:</p>
-<pre class="mermaid"><code>flowchart LR
-    World["Chest / ItemController / PlayerInteraction"] --&gt; UIController["LootUIController"]
-    UIController --&gt; ChestBinding["ChestInventoryDataBinding"]
-    UIController --&gt; PlayerBinding["PlayerInventoryDataBinding"]
-    ChestBinding &lt;--&gt; ChestInv["Chest UniversalInventory"]
-    PlayerBinding &lt;--&gt; PlayerInv["Player UniversalInventory"]</code></pre>
-<p>El punto clave es que <code>Chest</code> y <code>PlayerInteraction</code> viven en la capa de mundo y no conocen paneles concretos de UI. Solo <code>LootUIController</code> abre y conecta la UI.</p>
+<p>El punto clave es que <code>Chest</code> y <code>PlayerInteraction</code> viven en el mundo del juego y no
+conocen paneles de UI concretos. La apertura y vinculación de UI la gestiona
+<code>LootUIController</code>.</p>
 <h2 id="como-funciona">Cómo funciona</h2>
-<p>Apertura de un cofre:</p>
+<p>Apertura de cofre:</p>
 <ol>
 <li><code>PlayerInteraction</code> encuentra un <code>IInteractable</code>.</li>
-<li>Una acción del jugador llama a <code>Interact(...)</code>.</li>
-<li><code>Chest</code> cambia de estado y emite un evento.</li>
-<li><code>LootUIController</code> recibe ese evento.</li>
-<li>El controlador muestra el panel y llama a <code>BindToChest(...)</code>.</li>
+<li>La acción del jugador llama a <code>Interact(...)</code>.</li>
+<li><code>Chest</code> cambia de estado y publica un evento.</li>
+<li><code>LootUIController</code> recibe el evento.</li>
+<li>El controller activa el panel y llama a <code>BindToChest(...)</code>.</li>
 <li><code>ChestInventoryDataBinding</code> carga el contenido del cofre en la UI.</li>
 </ol>
-<p>Mover items:</p>
+<p>Movimiento de objetos:</p>
 <ol>
-<li>El usuario arrastra un item entre los inventarios del jugador y del cofre.</li>
-<li>El transfer pipeline estándar ejecuta el movimiento.</li>
-<li>Tras un commit exitoso, los bindings actualizan <code>Chest</code> y <code>PlayerInventoryData</code>.</li>
+<li>El jugador arrastra objetos entre el inventario del jugador y el inventario del cofre.</li>
+<li>El transfer pipeline estándar realiza la transferencia.</li>
+<li>Tras el commit exitoso, los bindings actualizan <code>Chest</code> y <code>PlayerInventoryData</code>.</li>
 </ol>
-<h2 id="archivos-para-inspeccionar">Archivos para inspeccionar</h2>
-<table>
-<thead>
-<tr>
-<th>Archivo</th>
-<th>Rol</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Scripts/UI/LootUIController.cs</code></td>
-<td>mediador mundo -&gt; UI</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Chest.cs</code></td>
-<td>contenedor del lado del mundo</td>
-</tr>
-<tr>
-<td><code>Scripts/Player/PlayerInteraction.cs</code></td>
-<td>detección y disparo de interacción</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/ChestInventoryDataBinding.cs</code></td>
-<td>binding del cofre</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/PlayerInventoryDataBinding.cs</code></td>
-<td>binding del jugador</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/ItemController.cs</code></td>
-<td>flujo de item del mundo / pickup</td>
-</tr>
-</tbody>
-</table>
-<h2 id="cuando-usar-esto-como-punto-de-partida">Cuándo usar esto como punto de partida</h2>
+<h2 id="cuando-usar-este-ejemplo-como-base">Cuándo usar este ejemplo como base</h2>
 <ul>
-<li>necesitas UI impulsada por eventos del mundo</li>
 <li>necesitas cofres que se abren mediante interacción</li>
-<li>quieres una referencia para separar la lógica del mundo de la UI del inventario</li>
+<li>necesitas un ejemplo de separación entre lógica del mundo y UI de inventario</li>
 </ul>
 
 
@@ -2011,7 +1974,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

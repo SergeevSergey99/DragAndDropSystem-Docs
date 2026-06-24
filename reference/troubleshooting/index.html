@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1265,7 +1297,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1413,7 +1445,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1441,7 +1473,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1522,10 +1554,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#wrong-item-type" class="md-nav__link">
+  <a href="#item-cannot-be-picked-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Wrong item type
+        Item Cannot Be Picked Up
       
     </span>
   </a>
@@ -1533,10 +1565,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#warnings-for-other-slots-while-dropping-into-one-slot" class="md-nav__link">
+  <a href="#item-cannot-be-dropped-into-a-slot" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Warnings for other slots while dropping into one slot
+        Item Cannot Be Dropped Into A Slot
       
     </span>
   </a>
@@ -1544,10 +1576,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#preview-passes-but-commit-fails" class="md-nav__link">
+  <a href="#item-is-placed-in-a-different-slot" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preview passes, but commit fails
+        Item Is Placed In A Different Slot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-did-not-update-after-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Did Not Update After Transfer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrong-item-type-appears" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrong Item Type Appears
       
     </span>
   </a>
@@ -1558,40 +1612,7 @@
   <a href="#first-swap-works-second-swap-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        First swap works, second swap breaks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drag-does-not-start-at-all" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drag does not start at all
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-did-not-sync-after-a-successful-transfer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data did not sync after a successful transfer
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#a-stack-behaves-like-one-repeated-item-but-instances-should-be-different" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A stack behaves like one repeated item, but instances should be different
+        First Swap Works, Second Swap Breaks
       
     </span>
   </a>
@@ -1602,7 +1623,18 @@
   <a href="#candrop-is-called-many-times" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CanDrop is called many times
+        CanDrop Is Called Many Times
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-behaves-like-the-same-item" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack Behaves Like The Same Item
       
     </span>
   </a>
@@ -1613,18 +1645,7 @@
   <a href="#where-to-start-debugging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to start debugging
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-pages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related pages
+        Where To Start Debugging
       
     </span>
   </a>
@@ -1743,7 +1764,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1847,10 +1868,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#wrong-item-type" class="md-nav__link">
+  <a href="#item-cannot-be-picked-up" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Wrong item type
+        Item Cannot Be Picked Up
       
     </span>
   </a>
@@ -1858,10 +1879,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#warnings-for-other-slots-while-dropping-into-one-slot" class="md-nav__link">
+  <a href="#item-cannot-be-dropped-into-a-slot" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Warnings for other slots while dropping into one slot
+        Item Cannot Be Dropped Into A Slot
       
     </span>
   </a>
@@ -1869,10 +1890,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#preview-passes-but-commit-fails" class="md-nav__link">
+  <a href="#item-is-placed-in-a-different-slot" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preview passes, but commit fails
+        Item Is Placed In A Different Slot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-did-not-update-after-transfer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Did Not Update After Transfer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrong-item-type-appears" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrong Item Type Appears
       
     </span>
   </a>
@@ -1883,40 +1926,7 @@
   <a href="#first-swap-works-second-swap-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        First swap works, second swap breaks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drag-does-not-start-at-all" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drag does not start at all
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-did-not-sync-after-a-successful-transfer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data did not sync after a successful transfer
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#a-stack-behaves-like-one-repeated-item-but-instances-should-be-different" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A stack behaves like one repeated item, but instances should be different
+        First Swap Works, Second Swap Breaks
       
     </span>
   </a>
@@ -1927,7 +1937,18 @@
   <a href="#candrop-is-called-many-times" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CanDrop is called many times
+        CanDrop Is Called Many Times
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-behaves-like-the-same-item" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack Behaves Like The Same Item
       
     </span>
   </a>
@@ -1938,18 +1959,7 @@
   <a href="#where-to-start-debugging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to start debugging
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-pages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related pages
+        Where To Start Debugging
       
     </span>
   </a>
@@ -1974,153 +1984,117 @@
 
 
 <h1 id="troubleshooting">Troubleshooting</h1>
-<p>This page is organized by symptom.</p>
-<p>Format:</p>
-<ul>
-<li>what you see</li>
-<li>what it usually means</li>
-<li>where to look in code and setup</li>
-</ul>
-<hr />
-<h2 id="wrong-item-type"><code>Wrong item type</code></h2>
-<p>This usually means a binding received an adapter from the wrong inventory boundary.</p>
-<p>Typical causes:</p>
-<ul>
-<li>target-side conversion did not happen</li>
-<li>swap was committed as a raw exchange</li>
-<li>after a previous operation, the slot still stores a foreign adapter type</li>
-</ul>
-<p>Where to look:</p>
-<ul>
-<li><code>CreateItemConverter()</code> in the binding</li>
-<li><code>TransferItemConversionUtility</code></li>
-<li><code>MappedSlotInventoryDataBinding.CanDrop()</code></li>
-<li><code>MappedSlotInventoryDataBinding.CanStartDrag()</code></li>
-</ul>
-<hr />
-<h2 id="warnings-for-other-slots-while-dropping-into-one-slot">Warnings for other slots while dropping into one slot</h2>
-<p>This usually means the system fell into inventory-wide search when you expected a direct slot path.</p>
-<p>Typical causes:</p>
-<ul>
-<li>the operation used <code>FindAlternative</code></li>
-<li>area-drop was activated instead of slot-drop</li>
-<li>executor called <code>GetAcceptableCount()</code> again</li>
-<li>planner did not receive a concrete <code>targetSlotHint</code></li>
-</ul>
-<p>Where to look:</p>
-<ul>
-<li><code>DropPolicySettings</code></li>
-<li>active blocked-target resolver</li>
-<li><code>InventoryDropProcessor</code></li>
-<li><code>TransferPlanner</code></li>
-<li><code>GetAcceptableCount</code> logs</li>
-</ul>
-<hr />
-<h2 id="preview-passes-but-commit-fails">Preview passes, but commit fails</h2>
-<p>Usually the problem is not in rules, but in execution or domain hooks.</p>
-<p>Typical causes:</p>
-<ul>
-<li><code>CanCommitTransfer</code> veto</li>
-<li><code>CanCommitTransferAsync</code> veto</li>
-<li>conversion failed during execution</li>
-<li>placement failed after split</li>
-</ul>
-<p>Where to look:</p>
-<ul>
-<li><code>ITransferDomainHandler</code></li>
-<li><code>IAsyncTransferDomainHandler</code></li>
-<li><code>TransferPlanExecutor</code></li>
-</ul>
-<hr />
-<h2 id="first-swap-works-second-swap-breaks">First swap works, second swap breaks</h2>
-<p>This almost always means the slot stores the wrong adapter type after the first swap.</p>
-<p>Typical causes:</p>
-<ul>
-<li>swap was a raw exchange</li>
-<li>conversion was applied in preview but not in commit</li>
-<li>add/remove events synchronized one format while the slot physically stores another</li>
-</ul>
-<p>Where to look:</p>
-<ul>
-<li>swap execution path</li>
-<li><code>ValidateSwapRules</code></li>
-<li>conversion in both directions</li>
-</ul>
-<hr />
-<h2 id="drag-does-not-start-at-all">Drag does not start at all</h2>
-<p>Typical causes:</p>
+<p>This page helps diagnose problems by symptom: what you see, what it usually means, and what to check.</p>
+<h2 id="item-cannot-be-picked-up">Item Cannot Be Picked Up</h2>
+<p>Common causes:</p>
 <ul>
 <li>source slot is empty</li>
 <li><code>CanStartDrag</code> returned failure</li>
-<li>the slot stores the wrong adapter type</li>
-<li>the binding did not load data into UI</li>
+<li>data was not loaded into UI</li>
+<li>slot contains an adapter of the wrong type</li>
 </ul>
-<p>Where to look:</p>
+<p>Check:</p>
 <ul>
-<li><code>OnDragAttempting</code></li>
-<li><code>ValidateStartDrag</code></li>
-<li><code>ReloadUI()</code></li>
-<li><code>GetItems()</code></li>
+<li>whether <code>DataBinding</code> is assigned to the correct <code>UniversalInventory</code></li>
+<li>whether <code>ReloadUI()</code> is called</li>
+<li>what <code>GetItems()</code> / <code>GetOccupiedSlots()</code> returns</li>
+<li>whether a rule blocks drag from this slot or inventory</li>
 </ul>
-<hr />
-<h2 id="data-did-not-sync-after-a-successful-transfer">Data did not sync after a successful transfer</h2>
-<p>Typical causes:</p>
+<h2 id="item-cannot-be-dropped-into-a-slot">Item Cannot Be Dropped Into A Slot</h2>
+<p>Common causes:</p>
 <ul>
-<li>execution never reached deferred events</li>
-<li>the binding is attached to the wrong inventory</li>
-<li><code>AddToData</code> / <code>RemoveFromData</code> work against the wrong backing source</li>
+<li>the slot forbids this item type</li>
+<li>the target stack is already full</li>
+<li><code>CanDrop</code> returned failure</li>
+<li><code>DropPolicySettings</code> is set to <code>Reject</code></li>
+<li>the item was converted to the wrong adapter type</li>
 </ul>
-<p>Where to look:</p>
+<p>Check:</p>
 <ul>
-<li><code>DispatchTransferEvents</code></li>
-<li><code>DispatchSwapEvents</code></li>
-<li><code>OnItemAdded</code> / <code>OnItemRemoved</code></li>
-<li>the concrete binding</li>
+<li>rules on the slot and inventory</li>
+<li><code>CanDrop</code> in your binding</li>
+<li><code>DropPolicySettings</code></li>
+<li>converter, if transfer goes between different inventory types</li>
 </ul>
-<hr />
-<h2 id="a-stack-behaves-like-one-repeated-item-but-instances-should-be-different">A stack behaves like one repeated item, but instances should be different</h2>
-<p>Typical causes:</p>
+<h2 id="item-is-placed-in-a-different-slot">Item Is Placed In A Different Slot</h2>
+<p>This is usually not a bug, but policy behavior.</p>
+<p>Check:</p>
 <ul>
-<li>one adapter instance is reused as a representative for the whole stack</li>
-<li>conversion does not preserve instance state</li>
-<li><code>ItemId</code> does not match real stacking semantics</li>
+<li>whether <code>FindAlternative</code> is enabled</li>
+<li>whether alternative placement inside the same inventory is enabled</li>
+<li>whether the item was dropped on the inventory area instead of a concrete slot</li>
+<li>which <code>PlacementCandidateOrderer</code> is selected</li>
 </ul>
-<p>Where to look:</p>
+<p>If you need strict “only this slot” behavior, use <code>Reject</code> for blocked target.</p>
+<h2 id="data-did-not-update-after-transfer">Data Did Not Update After Transfer</h2>
+<p>If UI changed but your game data did not, the problem is almost always in the binding.</p>
+<p>Check:</p>
 <ul>
-<li>adapter implementation</li>
-<li>conversion cookbook</li>
-<li><code>ItemId</code></li>
+<li>whether the binding is assigned to the correct inventory</li>
+<li>whether <code>AddToData</code> / <code>RemoveFromData</code> are implemented</li>
+<li>whether those methods modify the exact list or object you expect</li>
+<li>whether you change data directly and forget to call <code>ReloadUI()</code></li>
 </ul>
-<hr />
-<h2 id="candrop-is-called-many-times"><code>CanDrop</code> is called many times</h2>
-<p>This can be normal when:</p>
+<h2 id="wrong-item-type-appears"><code>Wrong Item Type</code> Appears</h2>
+<p>This usually means an inventory received an adapter that belongs to another data model.</p>
+<p>Common causes:</p>
 <ul>
-<li>preview candidate search is running</li>
-<li><code>FindAlternative</code> is active</li>
-<li>area-drop is active</li>
-<li>swap validates both directions</li>
+<li><code>CreateItemConverter()</code> is not configured</li>
+<li>converter returns the wrong adapter</li>
+<li>swap left another inventory's adapter in the slot</li>
+<li>data after transfer is synchronized in one format, while the slot stores another</li>
 </ul>
-<p>This is not normal when:</p>
+<p>Check:</p>
 <ul>
-<li>you are doing a direct slot drop into a concrete slot without <code>FindAlternative</code></li>
-<li>and logs still show neighboring slots being checked</li>
+<li>converter on source and target bindings</li>
+<li><code>CanDrop</code> / <code>CanStartDrag</code> in fixed-slot or equipment binding</li>
+<li>which adapter is actually stored in the slot after transfer</li>
 </ul>
-<p>In that case, look for a route/policy problem.</p>
-<hr />
-<h2 id="where-to-start-debugging">Where to start debugging</h2>
+<h2 id="first-swap-works-second-swap-breaks">First Swap Works, Second Swap Breaks</h2>
+<p>Almost always, after the first swap one of the slots stores an item with the wrong adapter type.</p>
+<p>Check:</p>
+<ul>
+<li>whether conversion exists in both directions</li>
+<li>whether you are exchanging two stacks directly without conversion</li>
+<li>whether data and UI update with the same adapter type</li>
+</ul>
+<h2 id="candrop-is-called-many-times"><code>CanDrop</code> Is Called Many Times</h2>
+<p>This is normal when the system is searching for a suitable place:</p>
+<ul>
+<li>drop was on an inventory area</li>
+<li><code>FindAlternative</code> is enabled</li>
+<li>swap is being checked</li>
+<li>the system iterates slots for auto placement</li>
+</ul>
+<p>It is suspicious if you are definitely dropping into a concrete slot and policy does not allow alternative search.</p>
+<p>In that case, check:</p>
+<ul>
+<li>whether the pointer hits the slot</li>
+<li>whether <code>InventoryDropArea</code> is placed over slots</li>
+<li>which <code>BlockedTargetResolutionKind</code> is used</li>
+</ul>
+<h2 id="stack-behaves-like-the-same-item">Stack Behaves Like The Same Item</h2>
+<p>This happens when several instances in a stack reuse the same adapter object, even though they should be different items.</p>
+<p>Check:</p>
+<ul>
+<li>whether a separate adapter is created for each unique instance</li>
+<li>whether converter preserves runtime item state</li>
+<li>whether <code>ItemId</code> matches your stacking logic</li>
+</ul>
+<h2 id="where-to-start-debugging">Where To Start Debugging</h2>
 <ol>
-<li>Identify the phase: drag start, preview/planning, domain validation, execution, or swap.</li>
-<li>Look at the first meaningful log in the stack, not the last one.</li>
-<li>Check whether a concrete <code>targetSlot</code> exists.</li>
-<li>Check which adapter type is physically stored in the slot after the operation.</li>
+<li>Name the symptom: cannot pick up, cannot drop, data did not update, swap breaks.</li>
+<li>Check Inspector settings: strategy, slot management, drop policy, rules.</li>
+<li>Check binding: data loading, <code>CanStartDrag</code>, <code>CanDrop</code>, add/remove methods.</li>
+<li>If inventories use different data models, check converter.</li>
+<li>If the issue is only with trading, server validation, or gold, check domain handler.</li>
 </ol>
-<hr />
-<h2 id="related-pages">Related pages</h2>
+<p>See also:</p>
 <ul>
 <li><a href="../logs-and-debugging/">Logs and Debugging</a></li>
+<li><a href="../../architecture/drop-policy-matrix/">Drop Policy</a></li>
+<li><a href="../../architecture/item-conversion-cookbook/">Item Conversion</a></li>
 <li><a href="../../architecture/transfer-pipeline/">Transfer Pipeline</a></li>
-<li><a href="../../architecture/item-conversion-cookbook/">Cookbook: Item Conversion</a></li>
-<li><a href="../../architecture/drop-policy-matrix/">Drop Policy Matrix</a></li>
 </ul>
 
 
@@ -2177,7 +2151,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

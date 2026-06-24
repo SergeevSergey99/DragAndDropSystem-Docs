@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -868,7 +900,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Пайплайн переноса
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Конвертация предметов
   
 
     
@@ -1167,7 +1199,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как это выглядит
+        Групповое перетаскивание
       
     </span>
   </a>
@@ -1178,27 +1210,10 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Групповое перетаскивание
+        Перенос из разных инвентарей
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Групповое перетаскивание">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#batch-" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Как работает batch-перенос
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1215,6 +1230,17 @@
       
         <li class="md-nav__item">
   <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что проверять при проблемах
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         Справочник классов
@@ -1387,7 +1413,7 @@
   <span class="md-ellipsis">
     
   
-    Пример: свободное размещение
+    Свободное размещение слотов
   
 
     
@@ -1823,7 +1849,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как это выглядит
+        Групповое перетаскивание
       
     </span>
   </a>
@@ -1834,27 +1860,10 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Групповое перетаскивание
+        Перенос из разных инвентарей
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Групповое перетаскивание">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#batch-" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Как работает batch-перенос
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1871,6 +1880,17 @@
       
         <li class="md-nav__item">
   <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что проверять при проблемах
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         Справочник классов
@@ -1898,8 +1918,7 @@
 
 
 <h1 id="_1">Выделение</h1>
-<p>Система выделения позволяет выбирать несколько предметов в инвентаре и выполнять над ними групповые операции --- например, перетащить все выделенные предметы разом.</p>
-<hr />
+<p>Система выделения позволяет выбрать несколько предметов и выполнить с ними одно действие: перетащить группу, снять выделение, выделить диапазон или выбрать все предметы в инвентаре.</p>
 <h2 id="_2">Операции выделения</h2>
 <table>
 <thead>
@@ -1910,83 +1929,85 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Клик</strong></td>
-<td>Снять предыдущее выделение, выбрать один предмет</td>
+<td>Клик</td>
+<td>Снимает предыдущее выделение и выбирает один предмет</td>
 </tr>
 <tr>
-<td><strong>Ctrl + Клик</strong></td>
-<td>Переключить: добавить к выделению или убрать из него</td>
+<td>Ctrl + клик</td>
+<td>Добавляет предмет к выделению или убирает его</td>
 </tr>
 <tr>
-<td><strong>Shift + Клик</strong></td>
-<td>Выделить диапазон от последнего выделенного до текущего</td>
+<td>Shift + клик</td>
+<td>Выделяет диапазон от последнего выбранного слота до текущего</td>
 </tr>
 <tr>
-<td><strong>Ctrl + A</strong></td>
-<td>Выделить все непустые слоты инвентаря</td>
+<td>Ctrl + A</td>
+<td>Выделяет все непустые слоты текущего инвентаря</td>
 </tr>
 <tr>
-<td><strong>Escape</strong></td>
-<td>Снять всё выделение</td>
+<td>Escape</td>
+<td>Снимает выделение</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="_3">Как это выглядит</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Клик по слоту"] --&gt; B{"Какой тип\nоперации?"}
-    B --&gt;|Обычный клик| C["Снять всё +\nвыбрать этот"]
-    B --&gt;|Ctrl + Клик| D["Добавить к выделению\nили убрать"]
-    B --&gt;|Shift + Клик| E["Выбрать диапазон\nот последнего\nдо текущего"]
-    B --&gt;|Ctrl + A| F["Выделить все\nнепустые слоты"]
-    B --&gt;|Escape| G["Снять выделение"]
-</code></pre>
-<hr />
-<h2 id="_4">Групповое перетаскивание</h2>
-<p>Выделенные предметы можно перетащить все разом. Система автоматически создаёт перенос для каждого выделенного слота.</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Выделили\n3 предмета"] --&gt; B["Начали\nперетаскивание"]
-    B --&gt; C["Система переносит\nвсе выделенные"]
-    C --&gt; D["Каждый предмет\nобрабатывается\nотдельно"]
-</code></pre>
-<p>Если выделение пусто, при перетаскивании берётся только тот слот, за который потянули. Переносы из разных инвентарей можно ограничить через настройку <code>_restrictToSameInventory</code>.</p>
-<h3 id="batch-">Как работает batch-перенос</h3>
-<p>При групповом перетаскивании целевой слот (тот, на который бросили) используется только как подсказка. Система сама находит подходящие слоты для каждого предмета.</p>
-<p>Поведение определяется <code>DropPolicy</code> целевого инвентаря:</p>
+<p>Если слот пустой, операции выбора обычно его игнорируют. Это не даёт случайно выделять пустые ячейки вместо предметов.</p>
+<h2 id="_3">Групповое перетаскивание</h2>
+<p>Если потянуть выделенный предмет, система переносит всю выбранную группу.</p>
+<p>Важно понимать поведение:</p>
+<ul>
+<li>каждый выбранный слот переносится отдельно</li>
+<li>целевой слот используется как стартовая точка поиска места</li>
+<li>предметы, для которых место найдено, переносятся</li>
+<li>предметы, для которых места нет или проверка не прошла, остаются на месте</li>
+<li>уже перенесённые предметы не откатываются из-за ошибки следующего предмета</li>
+</ul>
+<p>Если включён частичный перенос, из стека может перейти только то количество, которое помещается в цель.</p>
+<p>Swap для группового переноса не используется. Группа раскладывается в свободные или совместимые слоты.</p>
+<p>После успешного группового переноса выделение автоматически снимается.</p>
+<h2 id="_4">Перенос из разных инвентарей</h2>
+<p>По умолчанию можно выделить предметы из нескольких инвентарей, если ваши операции выбора это позволяют.</p>
+<p>Если такой сценарий не нужен, включите <code>_restrictToSameInventory</code>. Тогда группа будет собираться только из одного инвентаря.</p>
+<h2 id="_5">Настройка</h2>
+<ol>
+<li>Добавьте <code>SelectionManager</code> на сцену. Обычно нужен один экземпляр на сцену.</li>
+<li>Добавьте <code>SlotSelectionView</code> на префаб слота. Он отвечает за визуальную подсветку выбранного слота.</li>
+<li>Настройте операции выбора через ввод:</li>
+<li><code>SelectionSlotAction</code> в <code>InteractionBindingsProfile</code> для Ctrl + клик и Shift + клик.</li>
+<li><code>InputActionSelectionTrigger</code> для горячих клавиш вроде Ctrl + A и Escape.</li>
+<li><code>ButtonSelectionTrigger</code> для UI-кнопок "Выделить всё" и "Снять выделение".</li>
+</ol>
+<h2 id="_6">Что проверять при проблемах</h2>
 <table>
 <thead>
 <tr>
-<th>Политика</th>
-<th>Поведение</th>
+<th>Симптом</th>
+<th>Что проверить</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Atomic</strong> (по умолчанию для batch)</td>
-<td>Все предметы должны влезть. Если хоть один не проходит — вся операция отменяется, ничего не переносится</td>
+<td>Предмет не добавляется к выделению</td>
+<td>Есть ли <code>SelectionManager</code> на сцене</td>
 </tr>
 <tr>
-<td><strong>BestEffort</strong></td>
-<td>Переносится всё что влезло, остальное остаётся в источнике</td>
+<td>Нет подсветки</td>
+<td>Есть ли <code>SlotSelectionView</code> на префабе слота</td>
+</tr>
+<tr>
+<td>Ctrl/Shift не работают</td>
+<td>Настроены ли нужные <code>SelectionSlotAction</code> в профиле ввода</td>
+</tr>
+<tr>
+<td>Ctrl + A или Escape не работают</td>
+<td>Подключён ли <code>InputActionSelectionTrigger</code> или другой trigger</td>
+</tr>
+<tr>
+<td>Группа переносится не вся</td>
+<td>Есть ли место в целевом инвентаре и проходят ли rules для каждого предмета</td>
 </tr>
 </tbody>
 </table>
-<p>Swap при batch-переносе не поддерживается — только размещение в свободные или совместимые слоты.</p>
-<p>После успешного batch-переноса выделение автоматически снимается.</p>
-<hr />
-<h2 id="_5">Настройка</h2>
-<ol>
-<li><strong>Добавьте <code>SelectionManager</code></strong> на сцену (синглтон, один на всю сцену).</li>
-<li><strong>Добавьте <code>SlotSelectionView</code></strong> на префаб слота --- он подсвечивает выделенные слоты. Настройте цвета и объект-индикатор в инспекторе.</li>
-<li><strong>Настройте триггеры</strong> --- привяжите операции выделения к вводу:<ul>
-<li>Через привязки указателя в <code>InteractionBindingsProfile</code> (Ctrl+Клик, Shift+Клик --- как <code>SelectionSlotAction</code> с нужной операцией).</li>
-<li>Через <code>InputActionSelectionTrigger</code> для горячих клавиш (Ctrl+A, Escape).</li>
-<li>Через <code>ButtonSelectionTrigger</code> для UI-кнопок ("Выделить всё", "Снять выделение").</li>
-</ul>
-</li>
-</ol>
-<hr />
-<h2 id="_6">Справочник классов</h2>
+<h2 id="_7">Справочник классов</h2>
 <table>
 <thead>
 <tr>
@@ -1997,35 +2018,35 @@
 <tbody>
 <tr>
 <td><code>SelectionManager</code></td>
-<td>Синглтон, хранит состояние выделения</td>
+<td>Хранит текущее выделение</td>
 </tr>
 <tr>
 <td><code>SelectionContext</code></td>
-<td>Неизменяемый снимок текущего выделения</td>
+<td>Состояние выделения на момент чтения</td>
 </tr>
 <tr>
 <td><code>SlotSelectionView</code></td>
-<td>Компонент на слоте: подсвечивает при выделении</td>
+<td>Подсвечивает слот, если он выбран</td>
 </tr>
 <tr>
 <td><code>SelectionOperationBase</code></td>
-<td>Базовый класс операций (наследуйте для кастомных)</td>
+<td>Базовый класс операций выбора</td>
 </tr>
 <tr>
 <td><code>ClearAndSelectOperation</code></td>
-<td>Обычный клик: снять всё + выбрать один</td>
+<td>Обычный клик: снять всё и выбрать один слот</td>
 </tr>
 <tr>
-<td><code>ToggleSlotOperation</code></td>
-<td>Ctrl+Клик: переключить</td>
+<td><code>ToggleFilledSlotOperation</code></td>
+<td>Ctrl + клик: переключить непустой слот</td>
 </tr>
 <tr>
 <td><code>RangeSelectOperation</code></td>
-<td>Shift+Клик: диапазон</td>
+<td>Shift + клик: выбрать диапазон</td>
 </tr>
 <tr>
 <td><code>SelectAllOperation</code></td>
-<td>Ctrl+A: все непустые слоты</td>
+<td>Ctrl + A: выбрать все непустые слоты</td>
 </tr>
 <tr>
 <td><code>ClearSelectionOperation</code></td>
@@ -2033,23 +2054,23 @@
 </tr>
 <tr>
 <td><code>SelectByConditionOperation</code></td>
-<td>Выбор по предикату (кастомный фильтр)</td>
+<td>Выбор по условию</td>
 </tr>
 <tr>
 <td><code>SelectionSlotAction</code></td>
-<td>Действие для привязки к PointerBinding</td>
+<td>Действие выбора для pointer binding</td>
 </tr>
 <tr>
 <td><code>StartMultiDragAction</code></td>
-<td>Групповое перетаскивание выделенных</td>
+<td>Запускает перетаскивание выделенной группы</td>
 </tr>
 <tr>
 <td><code>ButtonSelectionTrigger</code></td>
-<td>Триггер через UI Button</td>
+<td>Запускает операцию выбора через UI Button</td>
 </tr>
 <tr>
 <td><code>InputActionSelectionTrigger</code></td>
-<td>Триггер через Input System Action</td>
+<td>Запускает операцию выбора через Input System Action</td>
 </tr>
 </tbody>
 </table>
@@ -2108,7 +2129,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

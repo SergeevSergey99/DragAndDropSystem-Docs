@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -1129,7 +1161,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -1157,7 +1189,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1185,7 +1217,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1213,7 +1245,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1358,7 +1390,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1526,7 +1558,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1615,7 +1647,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1671,7 +1703,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1699,7 +1731,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -2490,7 +2522,7 @@
 <h3 id="ejemplo-craft-result-slot">Ejemplo: Craft Result Slot</h3>
 <p>Receta <code>3×A → 6×B</code>. El slot contiene 384×B. El jugador arrastra a un inventario con stack máximo 64.</p>
 <ul>
-<li>El planner distribuye en 6 slots: <code>64+64+64+64+64+64 = 384</code></li>
+<li>La transferencia se reparte en 6 slots: <code>64+64+64+64+64+64 = 384</code></li>
 <li><code>OnItemRemovedFromUI</code> se dispara 6 veces con <code>Count = 64</code></li>
 <li><code>64 / 6 = 10</code> (división entera): se pierde el resto en cada llamada</li>
 </ul>
@@ -2515,10 +2547,10 @@
 <a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="dragamountstep">DragAmountStep</h3>
-<p>El transfer planner respeta el <code>DragAmountStep</code> del inventario de origen: el número <strong>total</strong> de items transferidos se redondea hacia abajo a un múltiplo del step. Esto garantiza que la suma de todas las allocations sea divisible por el step, aunque las allocations individuales no lo sean.</p>
+<p>La transferencia respeta el <code>DragAmountStep</code> del inventario de origen: el número <strong>total</strong> de items transferidos se redondea hacia abajo a un múltiplo del step. Esto garantiza que la suma de todas las colocaciones sea divisible por el step, aunque las colocaciones individuales no lo sean.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// In the source inventory:</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Planner: total = floor(total / step) * step</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Transferencia: total = floor(total / step) * step</span>
 </code></pre></div>
 
 
@@ -2575,7 +2607,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

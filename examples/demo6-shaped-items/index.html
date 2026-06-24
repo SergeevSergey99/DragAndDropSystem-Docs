@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="es" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -11,30 +11,34 @@
       
       
       
+        <link rel="prev" href="../demo5-containers/">
+      
+      
+        <link rel="next" href="../../architecture/data-binding/">
       
       
         
-          <link rel="alternate" href="../../../examples/trading/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../../ru/examples/trading/" hreflang="ru">
+          <link rel="alternate" href="../../ru/examples/demo6-shaped-items/" hreflang="ru">
         
-          <link rel="alternate" href="./" hreflang="es">
+          <link rel="alternate" href="../../es/examples/demo6-shaped-items/" hreflang="es">
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Trading - Drag & Drop Inventory System</title>
+        <title>Demo6 Shaped Items - Drag & Drop Inventory System</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +57,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,8 +84,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#trading" class="md-skip">
-          Saltar a contenido
+        <a href="#demo6-shaped-items" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -89,12 +93,16 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Cabecera">
-    <a href="../../" title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
@@ -114,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Trading
+              Demo6 Shaped Items
             
           </span>
         </div>
@@ -154,26 +162,26 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Seleccionar idioma">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../examples/trading/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../../ru/examples/trading/" hreflang="ru" class="md-select__link">
+            <a href="../../ru/examples/demo6-shaped-items/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="es" class="md-select__link">
+            <a href="../../es/examples/demo6-shaped-items/" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -194,16 +202,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Buscar">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -214,7 +222,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Inicializando búsqueda
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +243,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,11 +255,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../" class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
-  Inicio
+  Home
 
         </a>
       </li>
@@ -263,15 +271,17 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../" class="md-tabs__link">
           
   
   
-  Ejemplos
+  Examples
 
         </a>
       </li>
@@ -291,7 +301,7 @@
           
   
   
-  Conceptos clave
+  Core Concepts
 
         </a>
       </li>
@@ -311,7 +321,7 @@
           
   
   
-  Sistemas avanzados
+  Advanced Systems
 
         </a>
       </li>
@@ -331,7 +341,7 @@
           
   
   
-  Referencia
+  Reference
 
         </a>
       </li>
@@ -351,7 +361,7 @@
           
   
   
-  Más
+  More
 
         </a>
       </li>
@@ -379,9 +389,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
+    <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
@@ -424,7 +434,7 @@
   <span class="md-ellipsis">
     
   
-    Inicio
+    Home
   
 
     
@@ -440,7 +450,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Inicio
+    Home
   
 
           </label>
@@ -453,14 +463,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Introducción
+    Introduction
   
 
     
@@ -513,35 +523,38 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Ejemplos
+    Examples
   
 
     
@@ -552,12 +565,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Ejemplos
+    Examples
   
 
           </label>
@@ -577,7 +590,7 @@
   <span class="md-ellipsis">
     
   
-    Ejemplos
+    Examples
   
 
     
@@ -654,14 +667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -731,6 +744,136 @@
 
               
             
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-demo-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The Demo Shows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-structured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Is Structured
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rectangular-and-complex-shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rectangular And Complex Shapes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-this-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When To Use This Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -770,7 +913,7 @@
   <span class="md-ellipsis">
     
   
-    Conceptos clave
+    Core Concepts
   
 
     
@@ -786,7 +929,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Conceptos clave
+    Core Concepts
   
 
           </label>
@@ -890,7 +1033,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -918,7 +1061,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1055,7 +1198,7 @@
   <span class="md-ellipsis">
     
   
-    Sistemas avanzados
+    Advanced Systems
   
 
     
@@ -1071,7 +1214,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Sistemas avanzados
+    Advanced Systems
   
 
           </label>
@@ -1259,7 +1402,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1312,7 +1455,7 @@
   <span class="md-ellipsis">
     
   
-    Referencia
+    Reference
   
 
     
@@ -1328,7 +1471,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Referencia
+    Reference
   
 
           </label>
@@ -1376,7 +1519,7 @@
   <span class="md-ellipsis">
     
   
-    Mapa de archivos
+    File Map
   
 
     
@@ -1404,7 +1547,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1432,7 +1575,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1513,7 +1656,7 @@
   <span class="md-ellipsis">
     
   
-    Más
+    More
   
 
     
@@ -1529,7 +1672,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Más
+    More
   
 
           </label>
@@ -1577,7 +1720,7 @@
   <span class="md-ellipsis">
     
   
-    Soporte adicional
+    Extra support
   
 
     
@@ -1605,7 +1748,7 @@
   <span class="md-ellipsis">
     
   
-    Planes futuros
+    Future Plans
   
 
     
@@ -1667,7 +1810,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1676,15 +1819,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Tabla de contenidos
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#que-participa-en-la-operacion" class="md-nav__link">
+  <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qué participa en la operación
+        What The Demo Shows
       
     </span>
   </a>
@@ -1692,10 +1835,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#la-separacion-importante" class="md-nav__link">
+  <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        La separación importante
+        How It Is Structured
       
     </span>
   </a>
@@ -1703,10 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#como-esta-estructurado-el-ejemplo" class="md-nav__link">
+  <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cómo está estructurado el ejemplo
+        How It Works
       
     </span>
   </a>
@@ -1714,10 +1857,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#flujo-de-compra" class="md-nav__link">
+  <a href="#rectangular-and-complex-shapes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Flujo de compra
+        Rectangular And Complex Shapes
       
     </span>
   </a>
@@ -1725,54 +1868,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#donde-va-cada-pieza" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dónde va cada pieza
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#nota-sobre-la-conversion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nota sobre la conversión
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#que-inspeccionar-en-codigo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Qué inspeccionar en código
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flujo-de-compra-exitosa" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flujo de compra exitosa
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#donde-continuar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dónde continuar
+        When To Use This Example
       
     </span>
   </a>
@@ -1796,167 +1895,70 @@
 
 
 
-<h1 id="trading">Trading</h1>
-<p>Este ejemplo muestra un caso donde dos inventarios usan modelos de item distintos y una transferencia también cambia el oro.</p>
-<p>Ubicación real en el proyecto:
-- <code>Examples/Demo4 Trading/*</code></p>
-<p>Este es el ejemplo principal para casos donde:
-- origen y destino usan modelos de dominio distintos
-- un item se convierte al cruzar el límite entre inventarios
-- el éxito de la transferencia depende de reglas de negocio, no solo de la mecánica del slot</p>
-<hr />
-<h2 id="que-participa-en-la-operacion">Qué participa en la operación</h2>
-<pre class="mermaid"><code>flowchart TB
-    Merchant["Merchant inventory&lt;br/&gt;ScriptableObject items"]
-    Player["Player inventory&lt;br/&gt;Runtime model items"]
-    Equipment["Equipment slots"]
-    Economy["Economy&lt;br/&gt;gold and prices"]
+<h1 id="demo6-shaped-items">Demo6 Shaped Items</h1>
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/r6hML-y5wLg"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
 
-    Merchant &lt;--&gt;|buy / sell| Player
-    Player &lt;--&gt;|equip| Equipment
-    Economy --- Merchant
-    Economy --- Player</code></pre>
-<hr />
-<h2 id="la-separacion-importante">La separación importante</h2>
-<p>Hay tres responsabilidades distintas:</p>
-<ol>
-<li>mecánica de inventario y slots</li>
-<li>conversión del item entre dos modelos de datos</li>
-<li>lógica de negocio de la operación: suficiente oro, qué hacer después de comprar/vender</li>
-</ol>
-<p>No deben mezclarse.</p>
-<hr />
-<h2 id="como-esta-estructurado-el-ejemplo">Cómo está estructurado el ejemplo</h2>
-<pre class="mermaid"><code>flowchart LR
-    subgraph Merchant Side
-        MInv["Merchant Inventory UI"]
-        MDB["MerchantInventoryDataBinding"]
-        MData["MerchantData"]
-    end
-
-    subgraph Player Side
-        PInv["Player Inventory UI"]
-        PDB["PlayerInventoryDataBinding"]
-        PData["PlayerData"]
-    end
-
-    Conv["Item Converters"]
-    Trade["TradingHelper / domain hooks"]
-
-    MInv &lt;--&gt; MDB
-    MDB &lt;--&gt; MData
-    PInv &lt;--&gt; PDB
-    PDB &lt;--&gt; PData
-    MDB --- Conv
-    PDB --- Conv
-    MDB --- Trade
-    PDB --- Trade</code></pre>
-<p>Separación de responsabilidades:
-- inventario y strategies manejan la mecánica de colocación
-- los converters manejan la transición entre modelos
-- los domain hooks manejan oro, precios y side effects
-- los bindings sincronizan la UI con los datos del dominio</p>
-<hr />
-<h2 id="flujo-de-compra">Flujo de compra</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Player drops merchant item"] --&gt; B["Player Inventory: CanDrop\nmechanics and compatibility"]
-    B --&gt; C["Merchant Inventory → Player Inventory\nconvert item into player format"]
-    C --&gt; D["Domain Hook: CanCommitTransfer\nenough gold?"]
-    D --&gt; E["Execute transfer"]
-    E --&gt; F["Domain Hook: OnTransferSucceeded\nupdate gold"]
-    F --&gt; G["Player / Merchant Data\nAddToData / RemoveFromData"]</code></pre>
-<hr />
-<h2 id="donde-va-cada-pieza">Dónde va cada pieza</h2>
-<table>
-<thead>
-<tr>
-<th>Tarea</th>
-<th>Dónde corresponde</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Solo un tipo de item válido en el slot de equipamiento</td>
-<td><code>canDrop</code> o <code>CanDrop</code></td>
-</tr>
-<tr>
-<td>Comprobar oro disponible</td>
-<td><code>CanCommitTransfer</code></td>
-</tr>
-<tr>
-<td>Aplicar cambios de oro</td>
-<td><code>OnTransferSucceeded</code></td>
-</tr>
-<tr>
-<td>Convertir <code>SO &lt;-&gt; Model</code></td>
-<td><code>CreateItemConverter()</code></td>
-</tr>
-<tr>
-<td>Sincronizar listas y campos</td>
-<td><code>AddToData</code> / <code>RemoveFromData</code></td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="nota-sobre-la-conversion">Nota sobre la conversión</h2>
+<p><code>Examples/Demo6 Shaped Items/Shaped Items.unity</code></p>
+<p>This example shows items that occupy not one slot, but a footprint of several cells in
+a grid inventory.</p>
+<h2 id="what-the-demo-shows">What The Demo Shows</h2>
 <ul>
-<li>el lado del comerciante almacena una representación más estática del item</li>
-<li>el lado del jugador almacena un runtime model</li>
-<li>cruzar el límite entre inventarios dispara la conversión automáticamente</li>
-<li><code>ItemStack</code> en runtime puede contener una lista de adapters concretos, pero rules/bindings/converters siguen usando el adapter representativo a través de <code>PrimaryAdapter</code></li>
+<li>rectangular items such as sword and shield</li>
+<li>complex shapes through an occupied-cell mask, such as axe and scythe</li>
+<li><code>PlacementInventoryDataBinding</code> for item + anchor + orientation data</li>
+<li><code>IItemPlacementShapeProvider</code> on the item adapter</li>
+<li>item rotation during drag through <code>RotateDragAction</code></li>
+<li>occupied-cell preview and placement checks through topology</li>
+<li>drawing items over slots</li>
+<li>compatibility with regular inventories and strategies</li>
+<li>bonus: an Editor for configuring item masks</li>
 </ul>
-<hr />
-<h2 id="que-inspeccionar-en-codigo">Qué inspeccionar en código</h2>
-<table>
-<thead>
-<tr>
-<th>Archivo</th>
-<th>Rol</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>TradingHelper.cs</code></td>
-<td>comprobaciones de comercio y side effects</td>
-</tr>
-<tr>
-<td><code>PlayerInventoryDataBinding.cs</code></td>
-<td>sync del jugador y player-side domain hooks</td>
-</tr>
-<tr>
-<td><code>MerchantInventoryDataBinding.cs</code></td>
-<td>sync del comerciante y merchant-side domain hooks</td>
-</tr>
-<tr>
-<td><code>EquipmentInventoryDataBinding.cs</code></td>
-<td>equipamiento con slots fijos</td>
-</tr>
-<tr>
-<td><code>ModelInventoryItemConverter.cs</code></td>
-<td>converter hacia el formato del jugador</td>
-</tr>
-<tr>
-<td><code>MerchantInventoryItemConverter.cs</code></td>
-<td>converter hacia el formato del comerciante</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="flujo-de-compra-exitosa">Flujo de compra exitosa</h2>
-<ol>
-<li>El jugador empieza un drag desde el inventario del comerciante.</li>
-<li>El planner construye un target-side preview item a través del converter.</li>
-<li>Las player-side rules validan la compatibilidad mecánica.</li>
-<li>Un domain hook comprueba si hay suficiente oro para confirmar.</li>
-<li>El executor realiza la transferencia y solo entonces dispara los side effects.</li>
-<li>DataBinding actualiza las listas de datos del jugador y del comerciante.</li>
-</ol>
-<hr />
-<h2 id="donde-continuar">Dónde continuar</h2>
+<h2 id="how-it-is-structured">How It Is Structured</h2>
+<p>Item data:</p>
 <ul>
-<li><a href="../../architecture/data-binding/">Data Binding</a> — lifecycle hooks completos</li>
-<li><a href="../equipment/">Equipment</a> — si solo necesitas slots fijos sin trading</li>
-<li><a href="../">Examples Overview</a> — para comparar otros escenarios</li>
+<li><code>ShapedItemExampleSO.cs</code></li>
+<li><code>ComplexShapedItemExampleSO.cs</code></li>
+<li><code>SO/RectShapes/*</code></li>
+<li><code>SO/ComplexShapes/*</code></li>
+</ul>
+<p>Binding and adapter:</p>
+<ul>
+<li><code>Adapters/ShapedItemAdapter.cs</code></li>
+<li><code>DataBindings/ShapedItemsInventoryDataBinding.cs</code></li>
+</ul>
+<p>Editor utility:</p>
+<ul>
+<li><code>Editor/ComplexShapedItemExampleSOEditor.cs</code></li>
+</ul>
+<h2 id="how-it-works">How It Works</h2>
+<p>Transfer and rotation:</p>
+<ol>
+<li>During transfer, the system stores shape, anchor slot, and rotation in <code>DragEntry</code>.</li>
+<li><code>Q</code> and <code>E</code> in the demo profile call <code>RotateDragAction</code> with rotation steps <code>-1</code> and <code>1</code>, which correspond to -90 and +90 in the grid.</li>
+<li>After a successful transfer, the binding writes item, anchor, and rotation back into the list.</li>
+</ol>
+<h2 id="rectangular-and-complex-shapes">Rectangular And Complex Shapes</h2>
+<p><code>ShapedItemExampleSO</code> describes a regular rectangle through <code>Width</code> and <code>Height</code>. Its
+<code>GetOccupiedCells()</code> returns all cells inside the bounding box.</p>
+<p><code>ComplexShapedItemExampleSO</code> adds the <code>_cells</code> bool mask. It allows L-, T-, cross- and
+other shapes where some cells inside the bounding box are empty. If the mask becomes
+empty by mistake, the item falls back to the base rectangle to avoid an item with no
+footprint.</p>
+<p><code>ComplexShapedItemExampleSOEditor</code> draws a clickable grid over the item icon: enabled
+cells are occupied, disabled cells are empty.</p>
+<h2 id="when-to-use-this-example">When To Use This Example</h2>
+<ul>
+<li>items must occupy several cells in an inventory grid</li>
+<li>you need to store item position and orientation in your data</li>
+<li>you need item rotation during drag</li>
+<li>you need custom shapes, not only rectangles</li>
 </ul>
 
 
@@ -1981,7 +1983,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Volver al principio
+  Back to top
 </button>
         
       </main>
@@ -2013,12 +2015,12 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../../../javascripts/lang-switch-prefix-fix.js"></script>
+        <script src="../../javascripts/lang-switch-prefix-fix.js"></script>
       
     
   </body>

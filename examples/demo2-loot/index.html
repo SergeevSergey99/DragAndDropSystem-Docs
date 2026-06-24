@@ -14,7 +14,7 @@
         <link rel="prev" href="../demo1-inventories/">
       
       
-        <link rel="next" href="../demo3-minecraft/">
+        <link rel="next" href="../demo3-Craft/">
       
       
         
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -698,7 +702,7 @@
   <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the demo shows
+        What The Demo Shows
       
     </span>
   </a>
@@ -709,7 +713,7 @@
   <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it is structured
+        How It Is Structured
       
     </span>
   </a>
@@ -720,7 +724,7 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
+        How It Works
       
     </span>
   </a>
@@ -728,21 +732,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#files-to-inspect" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files to inspect
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-to-use-this-as-a-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use this as a starting point
+        When To Use This Example
       
     </span>
   </a>
@@ -765,14 +758,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1688,7 +1709,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1795,7 +1816,7 @@
   <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the demo shows
+        What The Demo Shows
       
     </span>
   </a>
@@ -1806,7 +1827,7 @@
   <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it is structured
+        How It Is Structured
       
     </span>
   </a>
@@ -1817,7 +1838,7 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
+        How It Works
       
     </span>
   </a>
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#files-to-inspect" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files to inspect
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-to-use-this-as-a-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use this as a starting point
+        When To Use This Example
       
     </span>
   </a>
@@ -1874,87 +1884,39 @@
 </div>
 
 <p><code>Examples/Demo2 Loot/LootDemo.unity</code></p>
-<p>This is an example of slot-indexed inventory and wiring game world events to UI.</p>
-<h2 id="what-the-demo-shows">What the demo shows</h2>
+<p>This is an example of a slot-indexed inventory and a connection between the game world,
+events, and UI.</p>
+<h2 id="what-the-demo-shows">What The Demo Shows</h2>
 <ul>
 <li>chests as interactive world objects</li>
-<li>separate bindings for the player and the chest</li>
+<li>separate bindings for player and chest</li>
 <li>switching different data sources for DataBinding</li>
-<li>pickup/drop flows connected to the world</li>
-<li>a mediator approach: world objects do not know about UI directly</li>
+<li>pickup/drop scenarios connected to the world</li>
+<li>the world does not know about UI directly</li>
 </ul>
-<h2 id="how-it-is-structured">How it is structured</h2>
-<p>Main layers:</p>
-<ul>
-<li><code>Scripts/Core/*</code> — <code>Chest</code>, <code>ItemController</code>, <code>IInteractable</code></li>
-<li><code>Scripts/Player/*</code> — <code>PlayerController</code>, <code>PlayerInteraction</code>, <code>PlayerInventoryData</code></li>
-<li><code>Scripts/DataBinding/*</code> — player and chest bindings</li>
-<li><code>Scripts/UI/LootUIController.cs</code> — mediator between world layer and UI</li>
-</ul>
-<p>Main shape:</p>
-<pre class="mermaid"><code>flowchart LR
-    World["Chest / ItemController / PlayerInteraction"] --&gt; UIController["LootUIController"]
-    UIController --&gt; ChestBinding["ChestInventoryDataBinding"]
-    UIController --&gt; PlayerBinding["PlayerInventoryDataBinding"]
-    ChestBinding &lt;--&gt; ChestInv["Chest UniversalInventory"]
-    PlayerBinding &lt;--&gt; PlayerInv["Player UniversalInventory"]</code></pre>
-<p>The key point is that <code>Chest</code> and <code>PlayerInteraction</code> live in the world layer and do not know about specific UI panels. Only <code>LootUIController</code> opens and wires the UI.</p>
-<h2 id="how-it-works">How it works</h2>
+<h2 id="how-it-is-structured">How It Is Structured</h2>
+<p>The key point is that <code>Chest</code> and <code>PlayerInteraction</code> live in the game world and do not
+know about concrete UI panels. UI opening and binding are handled by <code>LootUIController</code>.</p>
+<h2 id="how-it-works">How It Works</h2>
 <p>Opening a chest:</p>
 <ol>
 <li><code>PlayerInteraction</code> finds an <code>IInteractable</code>.</li>
-<li>A player action calls <code>Interact(...)</code>.</li>
-<li><code>Chest</code> changes state and emits an event.</li>
-<li><code>LootUIController</code> receives that event.</li>
-<li>The controller shows the panel and calls <code>BindToChest(...)</code>.</li>
-<li><code>ChestInventoryDataBinding</code> loads the chest content into UI.</li>
+<li>The player action calls <code>Interact(...)</code>.</li>
+<li><code>Chest</code> changes state and publishes an event.</li>
+<li><code>LootUIController</code> receives the event.</li>
+<li>The controller activates the panel and calls <code>BindToChest(...)</code>.</li>
+<li><code>ChestInventoryDataBinding</code> loads chest contents into UI.</li>
 </ol>
 <p>Moving items:</p>
 <ol>
-<li>The user drags an item between the player and chest inventories.</li>
-<li>The standard transfer pipeline executes the move.</li>
-<li>After a successful commit the bindings update <code>Chest</code> and <code>PlayerInventoryData</code>.</li>
+<li>The player drags items between player inventory and chest inventory.</li>
+<li>The standard transfer pipeline performs the transfer.</li>
+<li>After successful commit, bindings update <code>Chest</code> and <code>PlayerInventoryData</code>.</li>
 </ol>
-<h2 id="files-to-inspect">Files to inspect</h2>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Scripts/UI/LootUIController.cs</code></td>
-<td>world -&gt; UI mediator</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Chest.cs</code></td>
-<td>world-side container</td>
-</tr>
-<tr>
-<td><code>Scripts/Player/PlayerInteraction.cs</code></td>
-<td>interaction discovery and trigger</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/ChestInventoryDataBinding.cs</code></td>
-<td>chest binding</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/PlayerInventoryDataBinding.cs</code></td>
-<td>player binding</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/ItemController.cs</code></td>
-<td>world item / pickup flow</td>
-</tr>
-</tbody>
-</table>
-<h2 id="when-to-use-this-as-a-starting-point">When to use this as a starting point</h2>
+<h2 id="when-to-use-this-example">When To Use This Example</h2>
 <ul>
-<li>you need world-driven UI</li>
-<li>you need chests that open through interaction</li>
-<li>you want a reference for separating world logic from inventory UI</li>
+<li>you need chests opened through interaction</li>
+<li>you need an example of separating game-world logic from inventory UI</li>
 </ul>
 
 
@@ -2011,7 +1973,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

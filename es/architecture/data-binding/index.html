@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../examples/demo5-containers/">
+        <link rel="prev" href="../../examples/demo6-shaped-items/">
       
       
         <link rel="next" href="../binding-templates/">
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -934,10 +966,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validacion-asincrona-previa-al-commit" class="md-nav__link">
+  <a href="#veto-async-de-toda-la-transferencia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validación asíncrona previa al commit
+        Veto async de toda la transferencia
       
     </span>
   </a>
@@ -1028,7 +1060,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -1056,7 +1088,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1084,7 +1116,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1112,7 +1144,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1257,7 +1289,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1425,7 +1457,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1514,7 +1546,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1570,7 +1602,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1598,7 +1630,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1913,10 +1945,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validacion-asincrona-previa-al-commit" class="md-nav__link">
+  <a href="#veto-async-de-toda-la-transferencia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validación asíncrona previa al commit
+        Veto async de toda la transferencia
       
     </span>
   </a>
@@ -2044,18 +2076,23 @@
 </tr>
 <tr>
 <td><code>CanDrop</code></td>
-<td>durante preview y planning</td>
+<td>durante preview y validación del objetivo</td>
 <td>restricciones mecánicas, compatibilidad de slot</td>
 </tr>
 <tr>
-<td><code>CanCommitTransfer</code></td>
-<td>antes del commit real</td>
-<td>comprobaciones rápidas locales previas al commit, dinero, veto de dominio</td>
+<td><code>CanStartTransfer</code></td>
+<td>una vez, antes de la primera mutación</td>
+<td>veto de toda la operación (tienda cerrada, propiedad)</td>
 </tr>
 <tr>
-<td><code>CanCommitTransferAsync</code></td>
-<td>opcionalmente después del pre-commit síncrono y antes del commit</td>
-<td>servidor, fichero, base de datos, perfil externo, cualquier comprobación asíncrona externa</td>
+<td><code>CanCommitTransfer</code></td>
+<td>antes de confirmar cada colocación concreta</td>
+<td>comprobaciones locales por colocación, dinero, veto de dominio</td>
+</tr>
+<tr>
+<td><code>CanStartTransferAsync</code></td>
+<td>una vez, antes de la primera mutación (solo camino async)</td>
+<td>veto async de toda la transferencia: servidor, fichero, base de datos, perfil externo</td>
 </tr>
 <tr>
 <td><code>OnTransferSucceeded</code></td>
@@ -2072,16 +2109,14 @@
 <p>La separación importante es:</p>
 <ul>
 <li><code>CanDrop</code> es para la mecánica</li>
-<li><code>CanCommitTransfer</code> y <code>CanCommitTransferAsync</code> juntos gestionan la validación de negocio previa al commit</li>
+<li><code>CanStartTransfer</code> / <code>CanStartTransferAsync</code> vetan <strong>toda</strong> la operación antes de que empiece</li>
+<li><code>CanCommitTransfer</code> valida cada colocación <strong>concreta</strong> antes de confirmarla</li>
 <li><code>AddToData/RemoveFromData</code> son solo para sincronización</li>
 </ul>
-<p>Si un binding implementa ambas versiones, el orden es:</p>
-<ol>
-<li><code>CanCommitTransfer</code></li>
-<li><code>CanCommitTransferAsync</code></li>
-<li>commit real</li>
-</ol>
-<p>Si la comprobación síncrona falla, la comprobación asíncrona no se ejecuta.</p>
+<p><code>CanStartTransfer</code> y <code>CanStartTransferAsync</code> son de toda la transferencia y se ejecutan una
+vez, antes de la primera mutación. <code>CanStartTransferAsync</code> solo corre en el camino de
+ejecución asíncrono; si hay un handler async, una transferencia síncrona se rechaza en lugar
+de saltarse la comprobación.</p>
 <p>Para más sobre los tres tipos de comprobaciones (rules, business checks, notifications), consulta la página <a href="../transfer-pipeline/">Transfer Pipeline</a>.</p>
 <hr />
 <h2 id="ejemplo-de-binding-de-lista-normal">Ejemplo de binding de lista normal</h2>
@@ -2102,63 +2137,82 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ShopInventoryBinding</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">ITransferDomainHandler</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">{</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanCommitTransfer</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nf">ValidateBusinessRules</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;La transferencia no está permitida&quot;</span><span class="p">);</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnTransferSucceeded</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="n">ApplyDomainEffects</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">}</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="c1">// Veto de toda la transferencia, una vez antes de cualquier mutación.</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanStartTransfer</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">IInventory</span><span class="w"> </span><span class="n">targetInventory</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">_shopIsOpen</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;La tienda está cerrada&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="c1">// Comprobación por colocación, antes de confirmarla.</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanCommitTransfer</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nf">ValidateBusinessRules</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;La transferencia no está permitida&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnTransferSucceeded</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="n">ApplyDomainEffects</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="p">}</span>
 </code></pre></div>
 <hr />
-<h2 id="validacion-asincrona-previa-al-commit">Validación asíncrona previa al commit</h2>
-<p>Si una transferencia debe esperar a una comprobación externa antes del commit, por ejemplo:</p>
+<h2 id="veto-async-de-toda-la-transferencia">Veto async de toda la transferencia</h2>
+<p>Si <em>toda</em> la transferencia debe esperar una respuesta externa antes de que algo se mueva, por ejemplo:</p>
 <ul>
 <li>una respuesta del servidor</li>
 <li>leer un fichero</li>
 <li>una consulta a base de datos</li>
 <li>cargar un perfil externo o datos de guardado</li>
 </ul>
-<p>implementa también <code>IAsyncTransferDomainHandler</code> en el binding.</p>
+<p>implementa también <code>IAsyncTransferDomainHandler</code> en el binding. Su único método,
+<code>CanStartTransferAsync</code>, es un veto de toda la transferencia que se ejecuta una vez antes de
+la primera mutación: la contraparte asíncrona de <code>CanStartTransfer</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ServerBackedInventoryBinding</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">ListInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span><span class="n">ITransferDomainHandler</span><span class="p">,</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="n">IAsyncTransferDomainHandler</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">{</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanCommitTransfer</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nf">ValidateLocalState</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;La validación local ha fallado&quot;</span><span class="p">);</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">RuleResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CanCommitTransferAsync</span><span class="p">(</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">        </span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">cancellationToken</span><span class="p">)</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">allowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="n">_serverApi</span><span class="p">.</span><span class="n">ValidateTransferAsync</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">cancellationToken</span><span class="p">);</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">allowed</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;El servidor rechazó la transferencia&quot;</span><span class="p">);</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="p">}</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="c1">// Comprobación local por colocación, sigue siendo síncrona.</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanCommitTransfer</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nf">ValidateLocalState</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;La validación local ha fallado&quot;</span><span class="p">);</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnTransferSucceeded</span><span class="p">(</span><span class="n">TransferDomainContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="c1">// Veto síncrono de toda la transferencia. Requerido por ITransferDomainHandler.</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">CanStartTransfer</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">IInventory</span><span class="w"> </span><span class="n">targetInventory</span><span class="p">)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">();</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="c1">// Veto asíncrono de toda la transferencia, una vez antes de la primera mutación.</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">RuleResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CanStartTransferAsync</span><span class="p">(</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">        </span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">,</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">        </span><span class="n">IInventory</span><span class="w"> </span><span class="n">targetInventory</span><span class="p">,</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">        </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">cancellationToken</span><span class="p">)</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">        </span><span class="kt">bool</span><span class="w"> </span><span class="n">allowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="n">_serverApi</span><span class="p">.</span><span class="n">ValidateTransferAsync</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">cancellationToken</span><span class="p">);</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">allowed</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">()</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Failure</span><span class="p">(</span><span class="s">&quot;El servidor rechazó la transferencia&quot;</span><span class="p">);</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="p">}</span>
 </code></pre></div>
 <p>Cómo funciona:</p>
 <ul>
 <li><code>CanDrop</code> sigue siendo un hook síncrono y rápido para preview</li>
-<li><code>CanCommitTransfer</code> gestiona comprobaciones locales previas al commit</li>
-<li><code>CanCommitTransferAsync</code> no sustituye a la versión síncrona, la amplía</li>
-<li>si el binding implementa ambas, <code>CanCommitTransfer</code> se ejecuta primero y <code>CanCommitTransferAsync</code> después</li>
-<li><code>CanCommitTransferAsync</code> se ejecuta una sola vez antes del commit real si el binding implementa la interfaz</li>
-<li>si la validación asíncrona devuelve <code>RuleResult.Failure(...)</code>, la transferencia se cancela</li>
+<li><code>CanCommitTransfer</code> gestiona comprobaciones locales por colocación</li>
+<li><code>CanStartTransferAsync</code> es de toda la transferencia y se ejecuta una vez, antes de la primera mutación</li>
+<li>solo corre en el camino de ejecución asíncrono; una transferencia síncrona se rechaza cuando hay un handler async, así que la comprobación nunca se salta</li>
+<li>si la validación asíncrona devuelve <code>RuleResult.Failure(...)</code>, se cancela toda la transferencia</li>
 </ul>
 <p>Usa <code>IAsyncTransferDomainHandler</code> cuando la respuesta no pueda producirse inmediatamente.
-Si la comprobación es local y rápida, <code>CanCommitTransfer</code> normal es suficiente.</p>
+Si la comprobación es local y rápida, <code>CanStartTransfer</code> / <code>CanCommitTransfer</code> bastan.</p>
 <p>Para ver el orden exacto de llamadas, el papel de <code>TransferDomainContext</code> y la diferencia entre <code>ITransferDomainHandler</code> y las rules, consulta <a href="../../reference/optional-interfaces/">Optional Interfaces</a>.</p>
 <hr />
 <h2 id="conversion-de-items">Conversión de items</h2>
@@ -2183,8 +2237,8 @@ Si la comprobación es local y rápida, <code>CanCommitTransfer</code> normal es
 <p>En un proyecto típico no hace falta profundizar en:</p>
 <ul>
 <li>eventos internos del inventario</li>
-<li>estructuras helper internas del planning layer</li>
-<li>clases low-level del execution layer</li>
+<li>el motor de transferencia interno</li>
+<li>clases low-level de colocación y almacenamiento</li>
 </ul>
 <p>Normalmente basta con:</p>
 <ol>
@@ -2248,7 +2302,7 @@ Si la comprobación es local y rápida, <code>CanCommitTransfer</code> normal es
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -1157,7 +1189,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -1185,7 +1217,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1526,7 +1558,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1671,7 +1703,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1699,7 +1731,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1844,7 +1876,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -2490,7 +2522,7 @@
 <h3 id="example-craft-result-slot">Example: Craft Result Slot</h3>
 <p>Recipe <code>3×A → 6×B</code>. Slot contains 384×B. Player drags into an inventory with max stack 64.</p>
 <ul>
-<li>Planner distributes across 6 slots: <code>64+64+64+64+64+64 = 384</code></li>
+<li>The transfer spreads across 6 slots: <code>64+64+64+64+64+64 = 384</code></li>
 <li><code>OnItemRemovedFromUI</code> fires 6 times with <code>Count = 64</code></li>
 <li><code>64 / 6 = 10</code> (integer division) — remainder lost on each call</li>
 </ul>
@@ -2515,10 +2547,10 @@
 <a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="dragamountstep">DragAmountStep</h3>
-<p>The transfer planner respects the source inventory's <code>DragAmountStep</code>: the <strong>total</strong> number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all allocations is divisible by the step, even if individual allocations are not.</p>
+<p>The transfer respects the source inventory's <code>DragAmountStep</code>: the <strong>total</strong> number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all placements is divisible by the step, even if individual placements are not.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// In the source inventory:</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Planner: total = floor(total / step) * step</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Transfer: total = floor(total / step) * step</span>
 </code></pre></div>
 
 
@@ -2575,7 +2607,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

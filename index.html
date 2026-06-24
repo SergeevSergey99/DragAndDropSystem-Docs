@@ -91,6 +91,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -563,17 +567,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#read-next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Read Next
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -763,14 +756,14 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/demo3-minecraft/" class="md-nav__link">
+      <a href="examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -827,6 +820,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -999,7 +1020,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -1027,7 +1048,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1368,7 +1389,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1513,7 +1534,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1541,7 +1562,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1686,7 +1707,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1833,17 +1854,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#read-next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Read Next
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1862,71 +1872,79 @@
 
 
 <h1 id="introduction">Introduction</h1>
-<p>A Unity asset that lets you integrate an inventory and drag-and-drop system into any project with any kind of data.
-It solves tasks such as:</p>
+<p>A Unity asset for adding inventory and drag-and-drop systems to any project with any
+kind of data.</p>
+<p>It solves tasks such as:</p>
 <ul>
 <li>displaying data in inventory UI</li>
 <li>moving items between inventories</li>
-<li>stacking, swapping, and quick transfer</li>
-<li>syncing UI changes with your game data</li>
-<li>adding checks and rules for whether a transfer is allowed</li>
-<li>creating custom actions for inventories</li>
+<li>stacking, swap, and quick transfer</li>
+<li>synchronizing UI changes with your game data</li>
+<li>adding checks and rules for whether transfer is allowed</li>
+<li>creating custom inventory actions</li>
 <li>context menu</li>
-<li>multi-selection and transfer</li>
+<li>multi-selection and multi-transfer</li>
+<li>working with complex-shaped items</li>
 </ul>
-<p>It works both for simple inventory UIs and scenarios like equipment, and for more complex logic such as trading and server-side validation.</p>
+<p>It works for simple UI inventories and equipment scenarios, as well as more complex
+logic such as trading and server-side validation.</p>
 <h2 id="what-this-asset-is">What This Asset Is</h2>
-<p>This is not just a set of UI slots, but a system that, unlike many alternative solutions that require your data to match a specific type, allows you to visualize almost any of your data in an inventory:</p>
+<p>This is not just a set of UI slots. Unlike many alternatives that require your data to
+match a specific type, it lets you visualize almost any data in an inventory:</p>
 <ul>
 <li><code>ScriptableObject</code></li>
 <li>runtime models</li>
 <li>lists, dictionaries, and fixed fields</li>
 <li>different representations of the same item in different inventories</li>
 </ul>
-<p>The key idea is that the visual inventory is separated from your game model. Because of this, the system can be expanded gradually:</p>
+<p>The key idea is that the visual inventory is separated from your game model.</p>
+<p>The system has many extension points, so it can grow gradually:</p>
 <ul>
 <li>start with a simple backpack and chest</li>
-<li>add fixed slots for equipment</li>
-<li>add conversion between inventories</li>
-<li>add trading, server checks, or domain hooks</li>
+<li>reserve some slots for equipment</li>
+<li>add rules that block dragging from or dropping into a slot under certain conditions</li>
+<li>convert item types between inventories</li>
+<li>implement trading, crafting, server checks, and similar logic</li>
 </ul>
-<p>So the asset is designed not only for a quick start, but also for further scaling without having to rewrite the entire inventory logic.</p>
+<p>The asset is designed not only for quick start, but also for scaling without rewriting
+the whole inventory logic.</p>
 <div class="admonition warning price of flexibility">
 <p class="admonition-title">Warning</p>
 <p>For your own data types, you usually need to write a small amount of integration code.</p>
 </div>
-<p>It is important to understand this tradeoff immediately: for your own data types, you usually need to write a small amount of integration code.</p>
+<p>It is important to understand this cost immediately: for your own data types, you
+usually need to write a small amount of integration code.</p>
 <p>This is needed so the system understands:</p>
 <ul>
 <li>how and which data to get from your classes</li>
 <li>how to represent your data in inventory slots</li>
-<li>how to write changes from UI interactions back into your data models</li>
+<li>how to write UI interaction changes back into your data models</li>
 </ul>
-<p>For any type to be displayed in slots, you need to write a special adapter that bridges the data to the slot.</p>
-<p>Usually this is a small adapter and one <code>DataBinding</code>. The more complex your data model is, the thicker this integration layer will be, but drag and drop, swapping, stacking, planning, and event flow are already handled by the asset.</p>
-<p>For some common cases, template <code>DataBinding</code> classes are already provided, which makes most setups easier.</p>
+<p>For any type to appear in inventory slots, you need to write an adapter: a small bridge
+from your data to the slot.</p>
+<p>Usually this is a small adapter and one <code>DataBinding</code>. The more complex your data model
+is, the thicker this integration layer will be, but drag and drop, swap, stacking,
+transfers, and event flow are handled by the asset.</p>
+<p>For several common cases, template <code>DataBinding</code> classes are already provided.</p>
 <h2 id="dependencies">Dependencies</h2>
 <ul>
 <li>Required package: <code>Unity.ugui</code></li>
 <li>Optional package: <code>com.unity.inputsystem</code></li>
 </ul>
-<p>The core asset compiles and works without <code>com.unity.inputsystem</code>.
-New Input System is only required for features built around <code>InputAction</code>.
-Pointer and navigation modality tracking also works in legacy-input projects.</p>
+<p>The base asset compiles and works without <code>com.unity.inputsystem</code>.
+The new Input System is required only for features built around <code>InputAction</code>.
+Pointer/navigation modality tracking also works in legacy-input projects.</p>
 <h2 id="basic-model">Basic Model</h2>
-<div class="showcase-media">
-    <img src="assets/showcase/basic-diagram.png" alt="Basic Diagram">
-</div>
-<p>For most projects, it is useful to keep exactly this diagram in mind:</p>
+<p>For most projects, keep this model in mind:</p>
 <pre class="mermaid"><code>flowchart LR
     Inventory@{ shape: rounded, label: "&lt;b&gt;Universal Inventory&lt;/b&gt;\nhandles UI states, transfers, and item distribution across slots" }
 
-    Slot@{ shape: rounded, label: "&lt;b&gt;Universal Slot&lt;/b&gt;\nContains an adapter and the item count in the slot" }
+    Slot@{ shape: rounded, label: "&lt;b&gt;Universal Slot&lt;/b&gt;\nContains an adapter and item count in the slot" }
 
-    Adapter@{ shape: rounded, label: "&lt;b&gt;IItem Adapter&lt;/b&gt;\nStores a reference to the item data" }
+    Adapter@{ shape: rounded, label: "&lt;b&gt;IItem Adapter&lt;/b&gt;\nStores a reference to item data" }
     style Adapter fill:#FF44
 
-    Binding@{ shape: rounded, label: "&lt;b&gt;Data Binding&lt;/b&gt;&lt;br/&gt;syncs your data with the UI" }
+    Binding@{ shape: rounded, label: "&lt;b&gt;Data Binding&lt;/b&gt;&lt;br/&gt;syncs your data with UI" }
     style Binding fill:#FF44
 
     Data@{ shape: rounded, label: "Your data models" }
@@ -1934,33 +1952,33 @@ Pointer and navigation modality tracking also works in legacy-input projects.</p
     Inventory --&gt; Slot    
     Slot --&gt; Adapter
     Binding &lt;--&gt; Data    
-    Inventory &lt;--&gt; Binding
-</code></pre>
+    Inventory &lt;--&gt; Binding</code></pre>
 <ul>
-<li><code>IItemAdapter</code> needs to be defined so it stores data correctly</li>
-<li><code>DataBinding</code> needs to be defined so it edits data correctly</li>
+<li>define <code>IItemAdapter</code> so a slot can store your data correctly</li>
+<li>define <code>DataBinding</code> so data is edited according to UI changes</li>
 </ul>
 <h2 id="subsystems">Subsystems</h2>
 <ul>
-<li>Displaying data in the inventory</li>
-<li>Transfer between inventories</li>
-<li>Drop zones</li>
-<li>Rules system</li>
-<li>Configurable actions</li>
-<li>Auto-transfer</li>
-<li>Multi-selection</li>
-<li>Multi-transfer</li>
-<li>Context menu</li>
-<li>Tooltip example</li>
-<li>Example of type conversions during transfer</li>
-<li>Example of nested inventories</li>
+<li>displaying data in inventory</li>
+<li>transfer between inventories</li>
+<li>drop areas</li>
+<li>rule system</li>
+<li>configurable actions</li>
+<li>auto-transfer</li>
+<li>multi-selection</li>
+<li>multi-transfer</li>
+<li>context menu</li>
+<li>tooltip example</li>
+<li>type conversion example during transfer</li>
+<li>nested inventory example</li>
+<li>complex-shaped item example</li>
 </ul>
-<h2 id="read-next">Read Next</h2>
+<p>See also:</p>
 <ul>
-<li><a href="getting-started/quick-start/">Quick Start</a> — your first working inventory</li>
-<li><a href="examples/">Examples</a> — overview of all 5 demos and their architecture</li>
+<li><a href="getting-started/quick-start/">Quick Start</a> — first working inventory</li>
+<li><a href="examples/">Examples</a> — overview of all 6 demos and their architecture</li>
 <li><a href="architecture/data-binding/">Data Binding</a> — where to write sync, rules, and business hooks</li>
-<li><a href="more/feedback/">Feedback</a> — where to write about bugs, ideas, and integration issues</li>
+<li><a href="more/feedback/">Feedback</a> — where to report bugs, ideas, and integration issues</li>
 </ul>
 
 
@@ -2017,7 +2035,7 @@ Pointer and navigation modality tracking also works in legacy-input projects.</p
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -14,7 +14,7 @@
         <link rel="prev" href="../demo1-inventories/">
       
       
-        <link rel="next" href="../demo3-minecraft/">
+        <link rel="next" href="../demo3-Craft/">
       
       
         
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -731,17 +735,6 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что смотреть в коде
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
         Когда брать этот пример за основу
       
     </span>
@@ -765,14 +758,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -973,7 +994,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Пайплайн переноса
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Конвертация предметов
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Пример: свободное размещение
+    Свободное размещение слотов
   
 
     
@@ -1828,17 +1849,6 @@
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что смотреть в коде
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
         Когда брать этот пример за основу
       
     </span>
@@ -1880,24 +1890,10 @@
 <li>сундуки как интерактивные world-объекты</li>
 <li>отдельные bindings для игрока и сундука</li>
 <li>переключения разных источников данных для DataBinding</li>
-<li>pickup/drop сценарии, связанные с миром</li>
-<li>mediator-подход: мир не знает о UI напрямую</li>
+<li>подбор/выбрасывание сценарии, связанные с миром</li>
+<li>мир не знает о UI напрямую</li>
 </ul>
 <h2 id="_2">Как устроено</h2>
-<p>Основные слои:</p>
-<ul>
-<li><code>Scripts/Core/*</code> — <code>Chest</code>, <code>ItemController</code>, <code>IInteractable</code></li>
-<li><code>Scripts/Player/*</code> — <code>PlayerController</code>, <code>PlayerInteraction</code>, <code>PlayerInventoryData</code></li>
-<li><code>Scripts/DataBinding/*</code> — bindings игрока и сундука</li>
-<li><code>Scripts/UI/LootUIController.cs</code> — посредник между world layer и UI</li>
-</ul>
-<p>Главная схема:</p>
-<pre class="mermaid"><code>flowchart LR
-    World["Chest / ItemController / PlayerInteraction"] --&gt; UIController["LootUIController"]
-    UIController --&gt; ChestBinding["ChestInventoryDataBinding"]
-    UIController --&gt; PlayerBinding["PlayerInventoryDataBinding"]
-    ChestBinding &lt;--&gt; ChestInv["Chest UniversalInventory"]
-    PlayerBinding &lt;--&gt; PlayerInv["Player UniversalInventory"]</code></pre>
 <p>Ключевой момент примера: <code>Chest</code> и <code>PlayerInteraction</code> живут в игровом мире и не знают о конкретных UI-панелях. UI открывает и связывает только <code>LootUIController</code>.</p>
 <h2 id="_3">Как работает</h2>
 <p>Открытие сундука:</p>
@@ -1915,46 +1911,10 @@
 <li>Стандартный transfer pipeline выполняет перенос.</li>
 <li>После успешного commit binding-и обновляют <code>Chest</code> и <code>PlayerInventoryData</code>.</li>
 </ol>
-<h2 id="_4">Что смотреть в коде</h2>
-<table>
-<thead>
-<tr>
-<th>Файл</th>
-<th>Роль</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Scripts/UI/LootUIController.cs</code></td>
-<td>посредник world -&gt; UI</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Chest.cs</code></td>
-<td>контейнер игрового мира</td>
-</tr>
-<tr>
-<td><code>Scripts/Player/PlayerInteraction.cs</code></td>
-<td>обнаружение и запуск взаимодействия</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/ChestInventoryDataBinding.cs</code></td>
-<td>binding сундука</td>
-</tr>
-<tr>
-<td><code>DataBinding/PlayerInventoryDataBinding.cs</code></td>
-<td>binding игрока</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/ItemController.cs</code></td>
-<td>world item / pickup flow</td>
-</tr>
-</tbody>
-</table>
-<h2 id="_5">Когда брать этот пример за основу</h2>
+<h2 id="_4">Когда брать этот пример за основу</h2>
 <ul>
-<li>нужен world-driven UI</li>
 <li>нужны сундуки, открывающиеся по взаимодействию</li>
-<li>нужен пример разделения world logic и inventory UI</li>
+<li>нужен пример разделения логики игрового мира и UI инвентаря</li>
 </ul>
 
 
@@ -2011,7 +1971,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

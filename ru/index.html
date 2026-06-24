@@ -91,6 +91,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -563,17 +567,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Читать далее
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -763,14 +756,14 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/demo3-minecraft/" class="md-nav__link">
+      <a href="examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -827,6 +820,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -971,7 +992,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Пайплайн переноса
   
 
     
@@ -999,7 +1020,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy
   
 
     
@@ -1027,7 +1048,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Конвертация предметов
   
 
     
@@ -1368,7 +1389,7 @@
   <span class="md-ellipsis">
     
   
-    Пример: свободное размещение
+    Свободное размещение слотов
   
 
     
@@ -1833,17 +1854,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Читать далее
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1873,6 +1883,7 @@
 <li>создание специальных действий для инвентарей</li>
 <li>контекстное меню</li>
 <li>множественное выделение и перенос</li>
+<li>работа с предметами сложной формы</li>
 </ul>
 <p>Он подходит и как для простых UI-инвентарей и сценариев вроде экипировки, так и для реализации сложной логики вроде торговли и поддержки серверных проверок.</p>
 <h2 id="_2">Что это за ассет</h2>
@@ -1883,12 +1894,14 @@
 <li>списки, словари и фиксированные поля</li>
 <li>разные представления одного и того же предмета в разных инвентарях</li>
 </ul>
-<p>Ключевая идея в том, что визуальный инвентарь отделён от вашей игровой модели. Благодаря этому систему можно постепенно наращивать:</p>
+<p>Ключевая идея в том, что визуальный инвентарь отделён от вашей игровой модели. </p>
+<p>В системе предусмотрено множество точек расширеня, благодаря этому систему можно постепенно наращивать:</p>
 <ul>
 <li>начать с простого рюкзака и сундука</li>
-<li>добавить fixed slots для экипировки</li>
-<li>добавить конвертацию между инвентарями</li>
-<li>добавить торговлю, серверные проверки или доменные хуки</li>
+<li>зарезервировать некоторые слоты для экипировки</li>
+<li>добавить правила, запрещающие перетаскивание из или в слот при определенных условиях</li>
+<li>сделать конвертацию типов между инвентарями</li>
+<li>реализовать торговлю, крафт, серверные проверки и тд.</li>
 </ul>
 <p>То есть ассет рассчитан не только на быстрый старт, но и на дальнейшее масштабирование без полного переписывания инвентарной логики.</p>
 <div class="admonition warning цена гибкости">
@@ -1903,7 +1916,7 @@
 <li>как записать изменения от UI взаимодействий обратно в ваши модели данных</li>
 </ul>
 <p>Чтобы любой тип мог отображаться в слотах инвентаря нужно написать специальный переходник для него от данных к слоту - адаптер.</p>
-<p>Обычно это небольшой адаптер и один <code>DataBinding</code>. Чем более сложная у вас модель данных, тем толще будет этот слой интеграции, но сам drag &amp; drop, swap, stacking, planning и event flow уже берёт на себя ассет.</p>
+<p>Обычно это небольшой адаптер и один <code>DataBinding</code>. Чем более сложная у вас модель данных, тем толще будет этот слой интеграции, но сам drag &amp; drop, swap, stacking, переносы и event flow уже берёт на себя ассет.</p>
 <p>Для некоторых распространенных вариантов уже есть шаблонные классы <code>DataBinding</code> с которыми будет проще настроить большинство вариантов.</p>
 <h2 id="_3">Зависимости</h2>
 <ul>
@@ -1914,9 +1927,6 @@
 Новый Input System нужен только для функций, построенных вокруг <code>InputAction</code>.
 Отслеживание pointer/navigation-модальности тоже работает в проектах на legacy input.</p>
 <h2 id="_4">Базовая модель</h2>
-<div class="showcase-media">
-    <img src="../assets/showcase/basic-diagram.png" alt="Basic Diagram">
-</div>
 <p>Для большинства проектов полезно держать в голове ровно эту схему:</p>
 <pre class="mermaid"><code>flowchart LR
     Inventory@{ shape: rounded, label: "&lt;b&gt;Universal Inventory&lt;/b&gt;\nзанимается обработкой UI состояний, переносов и распределением предметов по слотам" }
@@ -1937,8 +1947,8 @@
     Inventory &lt;--&gt; Binding
 </code></pre>
 <ul>
-<li><code>IItemAdapter</code> нужно определить чтобы корректно хранил данные</li>
-<li><code>DataBinding</code> нужно определить чтобы корректно редактировал данные</li>
+<li><code>IItemAdapter</code> нужно определить чтобы слот корректно хранил данные</li>
+<li><code>DataBinding</code> нужно определить чтобы корректно редактировал данные в соответсвии с изменениями в UI</li>
 </ul>
 <h2 id="_5">Подсистемы</h2>
 <ul>
@@ -1954,11 +1964,12 @@
 <li>Пример tooltip</li>
 <li>Пример конвертаций типов при переносе</li>
 <li>Пример вложенных инвентарей</li>
+<li>Пример предметов сложной формы</li>
 </ul>
-<h2 id="_6">Читать далее</h2>
+<p>См. также:</p>
 <ul>
 <li><a href="getting-started/quick-start/">Быстрый старт</a> — первый рабочий инвентарь</li>
-<li><a href="examples/">Примеры</a> — обзор всех 5 демо и их архитектуры</li>
+<li><a href="examples/">Примеры</a> — обзор всех 6 демо и их архитектуры</li>
 <li><a href="architecture/data-binding/">Привязка данных</a> — где писать sync, rules и business hooks</li>
 <li><a href="more/feedback/">Обратная связь</a> — куда писать о багах, идеях и проблемах интеграции</li>
 </ul>
@@ -2017,7 +2028,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1164,10 +1196,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-it-looks" class="md-nav__link">
+  <a href="#group-drag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How It Looks
+        Group Drag
       
     </span>
   </a>
@@ -1175,30 +1207,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#group-dragging" class="md-nav__link">
+  <a href="#multiple-inventories" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Group Dragging
+        Multiple Inventories
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Group Dragging">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#how-batch-transfer-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How batch transfer works
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1207,6 +1222,17 @@
     <span class="md-ellipsis">
       
         Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What To Check
       
     </span>
   </a>
@@ -1387,7 +1413,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1532,7 +1558,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1560,7 +1586,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1705,7 +1731,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1820,10 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-it-looks" class="md-nav__link">
+  <a href="#group-drag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How It Looks
+        Group Drag
       
     </span>
   </a>
@@ -1831,30 +1857,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#group-dragging" class="md-nav__link">
+  <a href="#multiple-inventories" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Group Dragging
+        Multiple Inventories
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Group Dragging">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#how-batch-transfer-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How batch transfer works
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1863,6 +1872,17 @@
     <span class="md-ellipsis">
       
         Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What To Check
       
     </span>
   </a>
@@ -1898,94 +1918,95 @@
 
 
 <h1 id="selection">Selection</h1>
-<p>The selection system allows selecting multiple items in an inventory and performing group operations on them --- for example, dragging all selected items at once.</p>
-<hr />
+<p>The selection system lets the player select several items and perform one action with them: drag a group, clear selection, select a range, or select every item in an inventory.</p>
 <h2 id="selection-operations">Selection Operations</h2>
 <table>
 <thead>
 <tr>
 <th>Action</th>
-<th>What Happens</th>
+<th>What happens</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Click</strong></td>
-<td>Clear previous selection, select one item</td>
+<td>Click</td>
+<td>Clears the previous selection and selects one item</td>
 </tr>
 <tr>
-<td><strong>Ctrl + Click</strong></td>
-<td>Toggle: add to selection or remove from it</td>
+<td>Ctrl + click</td>
+<td>Adds the item to the selection or removes it</td>
 </tr>
 <tr>
-<td><strong>Shift + Click</strong></td>
-<td>Select range from last selected to current</td>
+<td>Shift + click</td>
+<td>Selects the range from the last selected slot to the current slot</td>
 </tr>
 <tr>
-<td><strong>Ctrl + A</strong></td>
-<td>Select all non-empty inventory slots</td>
+<td>Ctrl + A</td>
+<td>Selects all non-empty slots in the current inventory</td>
 </tr>
 <tr>
-<td><strong>Escape</strong></td>
-<td>Clear all selection</td>
+<td>Escape</td>
+<td>Clears selection</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="how-it-looks">How It Looks</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Click on slot"] --&gt; B{"What type\nof operation?"}
-    B --&gt;|Normal click| C["Clear all +\nselect this one"]
-    B --&gt;|Ctrl + Click| D["Add to selection\nor remove"]
-    B --&gt;|Shift + Click| E["Select range\nfrom last\nto current"]
-    B --&gt;|Ctrl + A| F["Select all\nnon-empty slots"]
-    B --&gt;|Escape| G["Clear selection"]
-</code></pre>
-<hr />
-<h2 id="group-dragging">Group Dragging</h2>
-<p>Selected items can be dragged all at once. The system automatically creates a transfer for each selected slot.</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Selected\n3 items"] --&gt; B["Started\ndragging"]
-    B --&gt; C["System transfers\nall selected"]
-    C --&gt; D["Each item\nis processed\nseparately"]
-</code></pre>
-<p>If the selection is empty, only the slot that was grabbed is dragged. Transfers from different inventories can be restricted via the <code>_restrictToSameInventory</code> setting.</p>
-<h3 id="how-batch-transfer-works">How batch transfer works</h3>
-<p>During group dragging, the target slot (where items are dropped) is used only as a hint. The system finds suitable slots for each item automatically.</p>
-<p>Behavior is determined by the target inventory's <code>DropPolicy</code>:</p>
+<p>Empty slots are usually ignored by selection operations. This prevents accidental selection of empty cells instead of items.</p>
+<h2 id="group-drag">Group Drag</h2>
+<p>When the player drags a selected item, the system transfers the selected group.</p>
+<p>Important behavior:</p>
+<ul>
+<li>each selected slot is transferred separately</li>
+<li>the target slot is used as the starting point for placement search</li>
+<li>items that find a valid place are transferred</li>
+<li>items that do not fit or fail validation stay where they are</li>
+<li>already transferred items are not rolled back because a later item failed</li>
+</ul>
+<p>If partial transfer is enabled, only the amount that fits can move from a stack.</p>
+<p>Swap is not used for group transfer. The group is placed into free or compatible slots.</p>
+<p>After a successful group transfer, selection is cleared automatically.</p>
+<h2 id="multiple-inventories">Multiple Inventories</h2>
+<p>By default, items can be selected from multiple inventories if your selection operations allow it.</p>
+<p>If you do not need this scenario, enable <code>_restrictToSameInventory</code>. Then a group is built from one inventory only.</p>
+<h2 id="setup">Setup</h2>
+<ol>
+<li>Add <code>SelectionManager</code> to the scene. Usually one instance per scene is enough.</li>
+<li>Add <code>SlotSelectionView</code> to the slot prefab. It displays the selected-state highlight.</li>
+<li>Configure selection operations through input:</li>
+<li><code>SelectionSlotAction</code> in <code>InteractionBindingsProfile</code> for Ctrl + click and Shift + click.</li>
+<li><code>InputActionSelectionTrigger</code> for hotkeys such as Ctrl + A and Escape.</li>
+<li><code>ButtonSelectionTrigger</code> for UI buttons like "Select All" and "Clear Selection".</li>
+</ol>
+<h2 id="what-to-check">What To Check</h2>
 <table>
 <thead>
 <tr>
-<th>Policy</th>
-<th>Behavior</th>
+<th>Symptom</th>
+<th>Check</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Atomic</strong> (default for batch)</td>
-<td>All items must fit. If any item fails — the entire operation is cancelled, nothing is moved</td>
+<td>Item is not added to selection</td>
+<td>Is there a <code>SelectionManager</code> in the scene</td>
 </tr>
 <tr>
-<td><strong>BestEffort</strong></td>
-<td>Whatever fits is transferred, the rest stays in source</td>
+<td>No highlight is visible</td>
+<td>Is <code>SlotSelectionView</code> on the slot prefab</td>
+</tr>
+<tr>
+<td>Ctrl/Shift do not work</td>
+<td>Are the required <code>SelectionSlotAction</code> entries configured in the input profile</td>
+</tr>
+<tr>
+<td>Ctrl + A or Escape do not work</td>
+<td>Is <code>InputActionSelectionTrigger</code> or another trigger connected</td>
+</tr>
+<tr>
+<td>The whole group does not transfer</td>
+<td>Is there enough space in the target inventory and do rules pass for each item</td>
 </tr>
 </tbody>
 </table>
-<p>Swap is not supported during batch transfer — only placement into free or compatible slots.</p>
-<p>After a successful batch transfer, the selection is automatically cleared.</p>
-<hr />
-<h2 id="setup">Setup</h2>
-<ol>
-<li><strong>Add <code>SelectionManager</code></strong> to the scene (singleton, one per scene).</li>
-<li><strong>Add <code>SlotSelectionView</code></strong> to the slot prefab --- it highlights selected slots. Configure colors and the indicator object in the inspector.</li>
-<li><strong>Configure triggers</strong> --- bind selection operations to input:<ul>
-<li>Via pointer bindings in <code>InteractionBindingsProfile</code> (Ctrl+Click, Shift+Click --- as <code>SelectionSlotAction</code> with the appropriate operation).</li>
-<li>Via <code>InputActionSelectionTrigger</code> for hotkeys (Ctrl+A, Escape).</li>
-<li>Via <code>ButtonSelectionTrigger</code> for UI buttons ("Select All", "Clear Selection").</li>
-</ul>
-</li>
-</ol>
-<hr />
 <h2 id="class-reference">Class Reference</h2>
 <table>
 <thead>
@@ -1997,35 +2018,35 @@
 <tbody>
 <tr>
 <td><code>SelectionManager</code></td>
-<td>Singleton, stores selection state</td>
+<td>Stores current selection</td>
 </tr>
 <tr>
 <td><code>SelectionContext</code></td>
-<td>Immutable snapshot of the current selection</td>
+<td>Selection state at the moment it is read</td>
 </tr>
 <tr>
 <td><code>SlotSelectionView</code></td>
-<td>Component on a slot: highlights when selected</td>
+<td>Highlights a slot when it is selected</td>
 </tr>
 <tr>
 <td><code>SelectionOperationBase</code></td>
-<td>Base class for operations (inherit for custom ones)</td>
+<td>Base class for selection operations</td>
 </tr>
 <tr>
 <td><code>ClearAndSelectOperation</code></td>
-<td>Normal click: clear all + select one</td>
+<td>Normal click: clear all and select one slot</td>
 </tr>
 <tr>
-<td><code>ToggleSlotOperation</code></td>
-<td>Ctrl+Click: toggle</td>
+<td><code>ToggleFilledSlotOperation</code></td>
+<td>Ctrl + click: toggle a non-empty slot</td>
 </tr>
 <tr>
 <td><code>RangeSelectOperation</code></td>
-<td>Shift+Click: range</td>
+<td>Shift + click: select a range</td>
 </tr>
 <tr>
 <td><code>SelectAllOperation</code></td>
-<td>Ctrl+A: all non-empty slots</td>
+<td>Ctrl + A: select all non-empty slots</td>
 </tr>
 <tr>
 <td><code>ClearSelectionOperation</code></td>
@@ -2033,23 +2054,23 @@
 </tr>
 <tr>
 <td><code>SelectByConditionOperation</code></td>
-<td>Selection by predicate (custom filter)</td>
+<td>Select by predicate</td>
 </tr>
 <tr>
 <td><code>SelectionSlotAction</code></td>
-<td>Action for binding to PointerBinding</td>
+<td>Selection action for pointer binding</td>
 </tr>
 <tr>
 <td><code>StartMultiDragAction</code></td>
-<td>Group dragging of selected items</td>
+<td>Starts dragging the selected group</td>
 </tr>
 <tr>
 <td><code>ButtonSelectionTrigger</code></td>
-<td>Trigger via UI Button</td>
+<td>Runs a selection operation from a UI Button</td>
 </tr>
 <tr>
 <td><code>InputActionSelectionTrigger</code></td>
-<td>Trigger via Input System Action</td>
+<td>Runs a selection operation from an Input System Action</td>
 </tr>
 </tbody>
 </table>
@@ -2108,7 +2129,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

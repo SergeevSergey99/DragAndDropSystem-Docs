@@ -31,7 +31,7 @@
     
     
       
-        <title>Event Reference - Drag & Drop Inventory System</title>
+        <title>Referencia de eventos - Drag & Drop Inventory System</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#event-reference" class="md-skip">
+        <a href="#referencia-de-eventos" class="md-skip">
           Saltar a contenido
         </a>
       
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -118,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Event Reference
+              Referencia de eventos
             
           </span>
         </div>
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -868,7 +900,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -952,7 +984,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1097,7 +1129,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1265,7 +1297,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1357,7 +1389,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1422,7 +1454,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1440,7 +1472,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1466,10 +1498,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#eventos-del-ciclo-de-vida-del-drag" class="md-nav__link">
+  <a href="#version-corta" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Eventos del ciclo de vida del drag
+        Versión corta
       
     </span>
   </a>
@@ -1477,22 +1509,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#eventos-de-draganddropmanager" class="md-nav__link">
+  <a href="#drag-drop-normal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Eventos de DragAndDropManager
+        Drag / drop normal
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Eventos de DragAndDropManager">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eventos-globales-udndevents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eventos globales (UDNDEvents)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Eventos globales (UDNDEvents)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dragging" class="md-nav__link">
+  <a href="#drag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dragging
+        Drag
       
     </span>
   </a>
@@ -1527,15 +1570,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#eventos-del-inventario" class="md-nav__link">
+  <a href="#eventos-de-inventario" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Eventos del inventario
+        Eventos de inventario
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Eventos del inventario">
+    <nav class="md-nav" aria-label="Eventos de inventario">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1583,10 +1626,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cuando-se-despachan-los-eventos" class="md-nav__link">
+  <a href="#cuando-se-envian-eventos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cuándo se despachan los eventos
+        Cuándo se envían eventos
       
     </span>
   </a>
@@ -1616,7 +1659,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1865,10 +1908,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#eventos-del-ciclo-de-vida-del-drag" class="md-nav__link">
+  <a href="#version-corta" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Eventos del ciclo de vida del drag
+        Versión corta
       
     </span>
   </a>
@@ -1876,22 +1919,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#eventos-de-draganddropmanager" class="md-nav__link">
+  <a href="#drag-drop-normal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Eventos de DragAndDropManager
+        Drag / drop normal
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Eventos de DragAndDropManager">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eventos-globales-udndevents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eventos globales (UDNDEvents)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Eventos globales (UDNDEvents)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dragging" class="md-nav__link">
+  <a href="#drag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dragging
+        Drag
       
     </span>
   </a>
@@ -1926,15 +1980,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#eventos-del-inventario" class="md-nav__link">
+  <a href="#eventos-de-inventario" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Eventos del inventario
+        Eventos de inventario
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Eventos del inventario">
+    <nav class="md-nav" aria-label="Eventos de inventario">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1982,10 +2036,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cuando-se-despachan-los-eventos" class="md-nav__link">
+  <a href="#cuando-se-envian-eventos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cuándo se despachan los eventos
+        Cuándo se envían eventos
       
     </span>
   </a>
@@ -2009,100 +2063,112 @@
 
 
 
-<h1 id="event-reference">Event Reference</h1>
-<p>Todos los eventos proporcionados por <code>DragAndDropManager</code> y <code>UniversalInventory</code>.</p>
-<hr />
-<h2 id="eventos-del-ciclo-de-vida-del-drag">Eventos del ciclo de vida del drag</h2>
-<pre class="mermaid"><code>---
-config:
-  flowchart:
-    curve: monotoneY 
----
-flowchart TD
-    StartPoint@{ shape: sm-circ, label: "Start" }
-    NoTargetPoint@{ shape: sm-circ, label: "Start" }
-    OnDragAttempting@{ shape: rounded, label: "OnDragAttempting" }
-    style OnDragAttempting fill:#FF44
-    OnDragStarted@{ shape: rounded, label: "OnDragStarted" }
-    OnDragCancelled@{ shape: rounded, label: "OnDragCancelled" }
-    style OnDragCancelled fill:#f444
-    DragOver@{ shape: rounded, label: "OnDragEnterSlot/OnDragExitSlot" }
-    style DragOver fill:#8884, stroke-dasharray: 5 5
-    OnDropAttempting@{ shape: rounded, label: "OnDropAttempting" }
-    OnDropCompleted@{ shape: rounded, label: "OnDropCompleted" }
-    style OnDropCompleted fill:#4F44
-    OnDragEnded@{ shape: rounded, label: "OnDragEnded" }
-    style OnDragEnded fill:#f4f4
-
-    StartPoint --&gt; |Player begins dragging|OnDragAttempting
-    OnDragAttempting --&gt; |Not cancelled| OnDragStarted
-    NoTargetPoint --&gt; |No suitable target| OnDragCancelled
-    OnDragStarted --&gt; |Dragging over slots| DragOver
-    DragOver --&gt; |Released over target| OnDropAttempting
-    OnDragAttempting --- NoTargetPoint
-    OnDragStarted --- NoTargetPoint
-    DragOver --- NoTargetPoint
-    OnDragAttempting --&gt; |Cancelled| OnDragCancelled
-    OnDropAttempting --&gt; |Success| OnDropCompleted
-    OnDropAttempting --&gt; |Failure| OnDragCancelled
-    OnDropCompleted --&gt; OnDragEnded
-    OnDragCancelled --&gt; OnDragEnded    </code></pre>
-<hr />
-<h2 id="eventos-de-draganddropmanager">Eventos de DragAndDropManager</h2>
-<h3 id="dragging">Dragging</h3>
+<h1 id="referencia-de-eventos">Referencia de eventos</h1>
+<p>Los eventos globales de drag / drop / auto-transfer / swap están en <code>UDNDEvents</code>. Los eventos de cambio de contenido de un inventario concreto están en <code>UniversalInventory</code>.</p>
+<h2 id="version-corta">Versión corta</h2>
+<table>
+<thead>
+<tr>
+<th>Si necesitas...</th>
+<th>Escucha</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Saber cuándo el jugador empieza o termina un drag</td>
+<td><code>UDNDEvents.OnDragStarted</code>, <code>UDNDEvents.OnDragEnded</code></td>
+</tr>
+<tr>
+<td>Reaccionar a un drop exitoso</td>
+<td><code>UDNDEvents.OnDropCompleted</code></td>
+</tr>
+<tr>
+<td>Mostrar una razón de cancelación</td>
+<td><code>UDNDEvents.OnDragCancelled</code></td>
+</tr>
+<tr>
+<td>Seguir una transferencia rápida por click</td>
+<td><code>UDNDEvents.OnAutoTransferCompleted</code>, <code>UDNDEvents.OnAutoTransferFailed</code></td>
+</tr>
+<tr>
+<td>Seguir cambios de contenido del inventario</td>
+<td><code>UniversalInventory.OnItemAdded</code>, <code>UniversalInventory.OnItemRemoved</code></td>
+</tr>
+<tr>
+<td>Bloquear swap antes de ejecutarlo</td>
+<td><code>UDNDEvents.OnSwapAttempting</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="drag-drop-normal">Drag / drop normal</h2>
+<p>Orden típico cuando todo sale bien:</p>
+<ol>
+<li><code>OnDragAttempting</code></li>
+<li><code>OnDragStarted</code></li>
+<li><code>OnDragEnterSlot</code> / <code>OnDragExitSlot</code> durante hover</li>
+<li><code>OnDropAttempting</code></li>
+<li><code>OnDropCompleted</code></li>
+<li><code>OnDragEnded</code></li>
+</ol>
+<p>Si el drag o el drop se cancela, se ejecuta <code>OnDragCancelled</code> en vez de <code>OnDropCompleted</code>, y después igualmente se ejecuta <code>OnDragEnded</code>.</p>
+<p><code>OnDragEnded</code> es el lugar más seguro para limpiar UI temporal porque se ejecuta al final tanto de flujos exitosos como fallidos.</p>
+<h2 id="eventos-globales-udndevents">Eventos globales (<code>UDNDEvents</code>)</h2>
+<p>Son eventos <code>static</code>. Suscríbete con <code>UDNDEvents.OnX += handler</code>; cancela la suscripción en <code>OnDisable</code> u otro método de teardown.</p>
+<p><code>DragAndDropManager</code> limpia suscriptores de la Play session anterior al empezar una nueva Play session. Esto importa para Fast Enter Play Mode.</p>
+<h3 id="drag">Drag</h3>
 <table>
 <thead>
 <tr>
 <th>Evento</th>
-<th>Cuándo se dispara</th>
+<th>Cuándo se ejecuta</th>
 <th>Nota</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>OnDragAttempting</code></td>
-<td>Antes de que comience el drag</td>
-<td>Puede cancelarse mediante rules</td>
+<td>Antes de empezar drag</td>
+<td>Las rules pueden cancelar la operación</td>
 </tr>
 <tr>
 <td><code>OnDragStarted</code></td>
 <td>Drag confirmado</td>
-<td><code>DragContext</code> está disponible</td>
+<td><code>DragContext</code> ya está disponible</td>
 </tr>
 <tr>
 <td><code>OnDragEnterSlot</code></td>
-<td>El cursor entra en un slot</td>
-<td>Información del slot objetivo</td>
+<td>El puntero entra en un slot</td>
+<td>Útil para hover UI</td>
 </tr>
 <tr>
 <td><code>OnDragExitSlot</code></td>
-<td>El cursor sale de un slot</td>
-<td>Información del slot previo</td>
+<td>El puntero sale de un slot</td>
+<td>Útil para limpiar hover UI</td>
 </tr>
 <tr>
 <td><code>OnDropAttempting</code></td>
-<td>Antes de ejecutar el drop</td>
-<td>El target ya está determinado</td>
+<td>Antes de procesar drop</td>
+<td>El destino ya se conoce</td>
 </tr>
 <tr>
 <td><code>OnDropCompleted</code></td>
-<td>Drop ejecutado con éxito</td>
-<td>Información del resultado</td>
+<td>Drop exitoso</td>
+<td>Los cambios ya están aplicados</td>
 </tr>
 <tr>
 <td><code>OnDragCancelled</code></td>
-<td>Drag cancelado o fallido</td>
-<td>Motivo de cancelación</td>
+<td>Drag o drop cancelado</td>
+<td>Útil para mensajes de error o limpieza de UI</td>
 </tr>
 <tr>
 <td><code>OnDragStackChanged</code></td>
-<td>El stack en el drag context cambió (split drop)</td>
-<td>Usar para actualizar UI</td>
+<td>Cambió la cantidad del drag stack</td>
+<td>Por ejemplo después de split drop</td>
 </tr>
 <tr>
 <td><code>OnDragEnded</code></td>
-<td>El ciclo de drag ha terminado</td>
-<td>Siempre se dispara al final</td>
+<td>Terminó el ciclo de drag</td>
+<td>Siempre se ejecuta al final</td>
 </tr>
 </tbody>
 </table>
@@ -2111,21 +2177,21 @@ flowchart TD
 <thead>
 <tr>
 <th>Evento</th>
-<th>Cuándo se dispara</th>
+<th>Cuándo se ejecuta</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>OnAutoTransferAttempting</code></td>
-<td>Antes del quick transfer al hacer clic</td>
+<td>Antes de la transferencia rápida por click</td>
 </tr>
 <tr>
 <td><code>OnAutoTransferCompleted</code></td>
-<td>Quick transfer completado</td>
+<td>Transferencia rápida exitosa</td>
 </tr>
 <tr>
 <td><code>OnAutoTransferFailed</code></td>
-<td>Quick transfer fallido</td>
+<td>Transferencia rápida fallida</td>
 </tr>
 </tbody>
 </table>
@@ -2134,48 +2200,47 @@ flowchart TD
 <thead>
 <tr>
 <th>Evento</th>
-<th>Cuándo se dispara</th>
+<th>Cuándo se ejecuta</th>
 <th>Nota</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>OnSwapAttempting</code></td>
-<td>Antes de ejecutar el swap</td>
-<td>Pon <code>Cancel = true</code> para cancelarlo</td>
+<td>Antes del swap</td>
+<td>Pon <code>Cancel = true</code> para bloquear el swap</td>
 </tr>
 <tr>
 <td><code>OnSwapCompleted</code></td>
-<td>Swap ejecutado</td>
-<td>Los slots ya contienen los target-side stacks finales</td>
+<td>Swap exitoso</td>
+<td>Los slots ya contienen los stacks resultantes</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="eventos-del-inventario">Eventos del inventario</h2>
-<p>Eventos de <code>UniversalInventory</code> que se disparan cuando cambia el contenido.</p>
+<h2 id="eventos-de-inventario">Eventos de inventario</h2>
+<p><code>UniversalInventory</code> envía eventos cuando su contenido realmente cambió.</p>
 <table>
 <thead>
 <tr>
 <th>Evento</th>
-<th>Cuándo se dispara</th>
+<th>Cuándo se ejecuta</th>
 <th>Contexto</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>OnItemAdded</code></td>
-<td>Item añadido al inventario</td>
+<td>Se añadió un objeto al inventario</td>
 <td><code>InventoryItemEventContext</code></td>
 </tr>
 <tr>
 <td><code>OnItemRemoved</code></td>
-<td>Item eliminado del inventario</td>
+<td>Se quitó un objeto del inventario</td>
 <td><code>InventoryItemEventContext</code></td>
 </tr>
 </tbody>
 </table>
-<h3 id="campos-de-inventoryitemeventcontext">Campos de InventoryItemEventContext</h3>
+<h3 id="campos-de-inventoryitemeventcontext">Campos de <code>InventoryItemEventContext</code></h3>
 <table>
 <thead>
 <tr>
@@ -2188,44 +2253,43 @@ flowchart TD
 <tr>
 <td><code>Stack</code></td>
 <td><code>ItemStack</code></td>
-<td>Stack completo del evento</td>
+<td>Stack añadido o quitado</td>
 </tr>
 <tr>
 <td><code>SlotIndex</code></td>
 <td><code>int</code></td>
-<td>Índice del slot objetivo/origen</td>
+<td>Índice del slot</td>
 </tr>
 <tr>
 <td><code>SourceInventory</code></td>
 <td><code>IInventory</code></td>
-<td>De dónde vino el item (null si no viene de otro inventario)</td>
+<td>De dónde vino el objeto, si se conoce</td>
 </tr>
 <tr>
 <td><code>TargetInventory</code></td>
 <td><code>IInventory</code></td>
-<td>Dónde se colocó el item (null si no fue hacia otro inventario)</td>
+<td>A dónde fue el objeto, si se conoce</td>
 </tr>
 <tr>
 <td><code>SourceSlot</code></td>
 <td><code>BaseSlot</code></td>
-<td>Slot de origen (null si es desconocido)</td>
+<td>Slot de origen, si se conoce</td>
 </tr>
 <tr>
 <td><code>TargetSlot</code></td>
 <td><code>BaseSlot</code></td>
-<td>Slot de destino (null si es desconocido)</td>
+<td>Slot de destino, si se conoce</td>
 </tr>
 </tbody>
 </table>
 <p>En la práctica:</p>
 <ul>
-<li><code>context.Stack.PrimaryAdapter</code> da un adapter representativo</li>
+<li><code>context.Stack.PrimaryAdapter</code> da el adapter principal del objeto</li>
 <li><code>context.Stack.Count</code> da la cantidad</li>
-<li>en una transferencia entre inventarios, remove suele publicar el stack previo a la conversión, mientras que add publica el stack posterior a la conversión</li>
+<li>en transferencias entre tipos distintos de inventario, remove normalmente contiene el objeto antes de conversión, y add contiene el objeto después de conversión</li>
 </ul>
-<hr />
 <h2 id="contexto-de-swap">Contexto de swap</h2>
-<h3 id="campos-de-inventoryswapcontext">Campos de InventorySwapContext</h3>
+<h3 id="campos-de-inventoryswapcontext">Campos de <code>InventorySwapContext</code></h3>
 <table>
 <thead>
 <tr>
@@ -2238,22 +2302,22 @@ flowchart TD
 <tr>
 <td><code>SourceStack</code></td>
 <td><code>ItemStack</code></td>
-<td>Stack pre-commit del slot de origen</td>
+<td>Stack en el slot de origen antes del swap</td>
 </tr>
 <tr>
 <td><code>TargetStack</code></td>
 <td><code>ItemStack</code></td>
-<td>Stack pre-commit del slot objetivo</td>
+<td>Stack en el slot de destino antes del swap</td>
 </tr>
 <tr>
 <td><code>SourceSlot</code></td>
 <td><code>BaseSlot</code></td>
-<td>Slot de origen (donde empezó el drag)</td>
+<td>Slot desde el que empezó el drag</td>
 </tr>
 <tr>
 <td><code>TargetSlot</code></td>
 <td><code>BaseSlot</code></td>
-<td>Slot objetivo (donde se pretende soltar)</td>
+<td>Slot donde se soltó el objeto</td>
 </tr>
 <tr>
 <td><code>SourceInventory</code></td>
@@ -2263,39 +2327,29 @@ flowchart TD
 <tr>
 <td><code>TargetInventory</code></td>
 <td><code>IInventory</code></td>
-<td>Inventario objetivo</td>
+<td>Inventario de destino</td>
 </tr>
 <tr>
 <td><code>Cancel</code></td>
 <td><code>bool</code></td>
-<td>Ponlo a <code>true</code> para cancelar el swap</td>
+<td>Pon <code>true</code> para cancelar el swap</td>
 </tr>
 </tbody>
 </table>
-<p>Importante:</p>
+<p>En swap entre tipos distintos de inventario, los adapters finales en los slots pueden ser distintos de los que había en <code>SourceStack</code> y <code>TargetStack</code> antes de ejecutar. Es lo esperado: los objetos se convierten para el inventario de destino.</p>
+<h2 id="cuando-se-envian-eventos">Cuándo se envían eventos</h2>
+<p>Los eventos se envían solo después de que el inventario cambie con éxito.</p>
+<p>Si la validación de transferencia falla, no hay espacio o la operación se cancela, no se envían eventos add/remove. Los suscriptores no ven un estado temporal que el sistema después revertiría.</p>
+<p>Para transferencia de grupo, cada objeto se procesa por separado:</p>
 <ul>
-<li>en un swap entre inventarios, estos no son necesariamente los mismos adapters que permanecen en los slots después del commit</li>
-<li>los slots finales ya contienen target-side converted stacks</li>
+<li>un objeto exitoso envía sus propios eventos</li>
+<li>un objeto fallido se queda donde estaba y no envía eventos</li>
+<li>el fallo de un objeto no cancela los eventos de objetos que ya se transfirieron con éxito</li>
 </ul>
-<hr />
-<h2 id="cuando-se-despachan-los-eventos">Cuándo se despachan los eventos</h2>
-<pre class="mermaid"><code>flowchart TB
-    PLAN["Pipeline executes the plan"] --&gt; DEFER["Events are deferred"]
-    DEFER --&gt; OK{"Plan completed\nsuccessfully?"}
-    OK --&gt;|"Yes"| SEND["Dispatch all events"]
-    OK --&gt;|"No, atomic mode"| ROLL["Rollback, no events dispatched"]
-    OK --&gt;|"No, partial mode"| PART["Dispatch events\nonly for successful entries"]
-
-    SEND --&gt; DB["Data binding:\nnotified directly"]
-    SEND --&gt; EXT["External subscribers:\nvia events"]</code></pre>
-<div class="admonition info">
-<p class="admonition-title">Safe by Default</p>
-<p>En modo atómico, no se despacha ningún evento hasta que toda la operación se completa con éxito. Esto evita que los subscribers reaccionen a cambios que luego puedan revertirse.</p>
-</div>
-<p>Consulta también:</p>
+<p>Ver también:</p>
 <ul>
-<li><a href="../../architecture/transfer-pipeline/">Transfer Pipeline</a></li>
-<li><a href="../logs-and-debugging/">Logs and Debugging</a></li>
+<li><a href="../../architecture/transfer-pipeline/">Pipeline de transferencia</a></li>
+<li><a href="../logs-and-debugging/">Logs y depuración</a></li>
 </ul>
 
 
@@ -2352,7 +2406,7 @@ flowchart TD
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

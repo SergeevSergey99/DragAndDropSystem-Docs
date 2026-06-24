@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -700,21 +704,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -765,14 +758,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -973,7 +994,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1057,7 +1078,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1202,7 +1223,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1459,7 +1480,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -1874,72 +1884,44 @@
 </div>
 
 <p><code>Examples/Demo1 Inventories/InventoriesDemo.unity</code></p>
-<p>Esta es la muestra más básica del asset. Muestra un inventario sin lógica de juego separada, economía o integración con el mundo.</p>
+<p>Este es el ejemplo más básico del asset. Muestra un inventario sin lógica de juego
+separada, economía o integración con el mundo.</p>
 <h2 id="que-muestra-la-demo">Qué muestra la demo</h2>
 <ul>
-<li>una simple <code>List&lt;ItemExampleSO&gt;</code></li>
+<li>una lista simple de <code>ItemExampleSO</code></li>
 <li><code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code></li>
-<li>cargar una lista en <code>UniversalInventory</code></li>
-<li>sincronizar los cambios de la UI de vuelta a los datos</li>
+<li>carga de una lista en <code>UniversalInventory</code></li>
+<li>sincronización de cambios de UI de vuelta a los datos</li>
 <li>overrides locales de <code>CanStartDrag</code> y <code>CanDrop</code></li>
 </ul>
 <h2 id="como-esta-estructurada">Cómo está estructurada</h2>
-<p>Piezas principales:</p>
+<p>Partes principales:</p>
 <ul>
 <li><code>ItemExampleSO.cs</code> — datos del item</li>
 <li><code>Adapters/ItemAdapterSoAdapter.cs</code> — adapter de la capa UI</li>
 <li><code>DataBindings/ItemsSOInventoryDataBinding.cs</code> — binding entre la lista de datos y el inventario</li>
 <li><code>SO/Rules/*</code> — preset de reglas de ejemplo</li>
 </ul>
-<p>Arquitectónicamente, esta es la cadena más corta del proyecto:</p>
 <pre class="mermaid"><code>flowchart LR
     Data["List&lt;ItemExampleSO&gt;"] &lt;--&gt; Binding["ItemsSOInventoryDataBinding"] &lt;--&gt; UI["UniversalInventory"]</code></pre>
-<p>Aquí no existe un servicio de dominio separado. El binding lee la lista, crea adapters y sincroniza los cambios de vuelta a la misma lista.</p>
+<p>El binding lee la lista, crea adapters y sincroniza los cambios de vuelta a la misma lista.</p>
 <h2 id="como-funciona">Cómo funciona</h2>
 <ol>
 <li><code>GetItems()</code> devuelve la lista <code>items</code>.</li>
-<li><code>ReloadUI()</code> construye stacks de UI mediante <code>CreateAdapter(...)</code>.</li>
-<li>El drag and drop pasa por el pipeline estándar.</li>
-<li>Tras una transferencia exitosa, el binding recibe callbacks de add/remove.</li>
-<li><code>AddToData(...)</code> y <code>RemoveFromData(...)</code> actualizan la lista de origen.</li>
+<li><code>ReloadUI()</code> construye los stacks iniciales de UI desde esa lista mediante
+   <code>CreateAdapter(...)</code>. Puedes llamarlo cuando cambien los datos para redibujar el
+   inventario, pero <code>ListInventoryDataBinding</code> no conserva posiciones.</li>
+<li>Después de una transferencia exitosa, el inventario llama a <code>AddToData(...)</code> y
+   <code>RemoveFromData(...)</code> del binding, actualizando la lista original.</li>
 </ol>
-<p>La demo también muestra dónde encajan mejor las restricciones locales sencillas:</p>
+<p>El ejemplo también muestra dónde añadir restricciones locales simples:</p>
 <ul>
 <li><code>CanStartDrag(...)</code> — bloquear el drag desde un inventario concreto</li>
 <li><code>CanDrop(...)</code> — bloquear el drop en un inventario concreto</li>
 </ul>
-<h2 id="archivos-para-inspeccionar">Archivos para inspeccionar</h2>
-<table>
-<thead>
-<tr>
-<th>Archivo</th>
-<th>Rol</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DataBindings/ItemsSOInventoryDataBinding.cs</code></td>
-<td>binding principal del ejemplo</td>
-</tr>
-<tr>
-<td><code>Adapters/ItemAdapterSoAdapter.cs</code></td>
-<td>adapter para <code>ItemExampleSO</code></td>
-</tr>
-<tr>
-<td><code>ItemExampleSO.cs</code></td>
-<td>modelo de datos del item</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/ListInventoryDataBinding.cs</code></td>
-<td>clase base para bindings basados en listas</td>
-</tr>
-</tbody>
-</table>
-<h2 id="cuando-usar-esto-como-punto-de-partida">Cuándo usar esto como punto de partida</h2>
+<h2 id="cuando-usar-este-ejemplo-como-base">Cuándo usar este ejemplo como base</h2>
 <ul>
-<li>necesitas un primer inventario sin un modelo de dominio complejo</li>
-<li>quieres entender el lifecycle de <code>ListInventoryDataBinding</code></li>
-<li>quieres un lugar rápido donde probar reglas o configuración visual</li>
+<li>necesitas un primer inventario sin un modelo complejo</li>
 </ul>
 
 
@@ -1996,7 +1978,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

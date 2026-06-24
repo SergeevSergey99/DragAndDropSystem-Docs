@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1265,7 +1297,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1449,6 +1481,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#quick-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#core-entry-points" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1647,6 +1690,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#additional-runtimeui-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Runtime/UI Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-demo1-inventories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1669,10 +1723,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-demo3-minecraft" class="md-nav__link">
+  <a href="#example-demo3-craft" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Demo3 Minecraft
+        Example: Demo3 Craft
       
     </span>
   </a>
@@ -1695,6 +1749,17 @@
     <span class="md-ellipsis">
       
         Example: Demo5 Containers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-demo6-shaped-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Demo6 Shaped Items
       
     </span>
   </a>
@@ -1735,7 +1800,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1763,7 +1828,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1908,7 +1973,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -2016,6 +2081,17 @@
     <span class="md-ellipsis">
       
         How to use this page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Map
       
     </span>
   </a>
@@ -2221,6 +2297,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#additional-runtimeui-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Runtime/UI Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-demo1-inventories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2243,10 +2330,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-demo3-minecraft" class="md-nav__link">
+  <a href="#example-demo3-craft" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Demo3 Minecraft
+        Example: Demo3 Craft
       
     </span>
   </a>
@@ -2269,6 +2356,17 @@
     <span class="md-ellipsis">
       
         Example: Demo5 Containers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-demo6-shaped-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Demo6 Shaped Items
       
     </span>
   </a>
@@ -2316,6 +2414,42 @@
 <li>Treat example scripts as reference integrations, not mandatory architecture.</li>
 </ul>
 <hr />
+<h2 id="quick-map">Quick Map</h2>
+<table>
+<thead>
+<tr>
+<th>If you are looking for...</th>
+<th>Look at</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The main inventory component</td>
+<td><code>UniversalInventory</code>, <code>BaseSlot</code>, <code>UniversalSlot</code></td>
+</tr>
+<tr>
+<td>UI-to-data synchronization</td>
+<td><code>InventoryDataBindingBase</code> and one of the list / slot-indexed / mapped bindings</td>
+</tr>
+<tr>
+<td>Transfer logic</td>
+<td><code>InventoryDropProcessor</code>, <code>InventoryTransferService</code>, <code>IStrategy</code></td>
+</tr>
+<tr>
+<td>Acceptance rules</td>
+<td><code>IDragRule</code>, <code>BuiltInRules</code>, <code>RuleEvaluationService</code></td>
+</tr>
+<tr>
+<td>Shaped items</td>
+<td><code>PlacementInventoryDataBinding</code>, <code>IPlacementInventory</code>, <code>IPlacementShape</code></td>
+</tr>
+<tr>
+<td>Integration examples</td>
+<td>Demo1-Demo6 pages in <a href="../../examples/">Examples</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="core-entry-points">Core Entry Points</h2>
 <table>
 <thead>
@@ -2339,7 +2473,7 @@
 <tr>
 <td><code>Scripts/Slots/BaseSlot.cs</code></td>
 <td><code>BaseSlot</code></td>
-<td>Abstract slot base used by inventories and planning/execution code.</td>
+<td>Abstract slot base used by inventories and the transfer engine.</td>
 </tr>
 <tr>
 <td><code>Scripts/Slots/UniversalSlot.cs</code></td>
@@ -2354,6 +2488,8 @@
 </tbody>
 </table>
 <hr />
+<details>
+<summary>Full file list by subsystem</summary>
 <h2 id="core-models-and-contracts">Core Models And Contracts</h2>
 <table>
 <thead>
@@ -2367,7 +2503,7 @@
 <tr>
 <td><code>Scripts/Core/Contracts/IItemAdapter.cs</code></td>
 <td><code>IItemAdapter</code></td>
-<td>Minimal item representation stored in slots and transferred through the UI pipeline.</td>
+<td>Minimal item representation stored in slots and passed through UI.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Contracts/IDescribable.cs</code></td>
@@ -2387,7 +2523,7 @@
 <tr>
 <td><code>Scripts/Core/Models/ItemStack.cs</code></td>
 <td><code>ItemStack</code></td>
-<td>Runtime stack model used by slots, planning, swapping, and execution.</td>
+<td>Runtime stack model used by slots, transfer, and swapping.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Models/DragContext.cs</code></td>
@@ -2454,13 +2590,13 @@
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicy.cs</code></td>
-<td><code>DragAmount</code>, <code>DragAmountStepRounding</code>, <code>BatchMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
-<td>Core drop policy value types used by planning and execution.</td>
+<td><code>BlockedTargetResolutionKind</code>, <code>PartialTransferMode</code>, <code>ResolvedDropPolicy</code>, <code>DropRequestPolicy</code>, <code>DragRequestPolicy</code></td>
+<td>Models that describe drop behavior: reject, find another slot, swap, and partial transfer.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropPolicySettings.cs</code></td>
 <td><code>DropPolicySettings</code></td>
-<td>Inventory-level drop policy defaults, including the blocked-target resolver and batch/partial settings.</td>
+<td>Settings for occupied targets, alternative placement, and partial transfer.</td>
 </tr>
 <tr>
 <td><code>Scripts/Core/Drop/DropRequestPolicySettings.cs</code></td>
@@ -2471,66 +2607,6 @@
 <td><code>Scripts/Core/Drop/DragRequestPolicySettings.cs</code></td>
 <td><code>DragRequestPolicySettings</code></td>
 <td>Serializable authoring helper for temporary drag-amount overrides when starting a drag.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/BlockedTargetResolverBase.cs</code></td>
-<td><code>BlockedTargetResolverBase</code>, <code>BlockedTargetResolution</code>, <code>BlockedTargetResolutionContext</code></td>
-<td>Base contract for blocked-target behavior. Resolvers return <code>Reject</code>, <code>AlternativeSlots</code>, or <code>SwapTargets</code> resolutions.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/RejectBlockedTargetResolver.cs</code></td>
-<td><code>RejectBlockedTargetResolver</code></td>
-<td>Resolver that rejects a blocked target immediately.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/SwapBlockedTargetResolver.cs</code></td>
-<td><code>SwapBlockedTargetResolver</code></td>
-<td>Resolver that turns nested swap strategy candidates into <code>SwapTargets</code> resolutions.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/ISwapStrategy.cs</code></td>
-<td><code>ISwapStrategy</code></td>
-<td>Contract for object-based swap target enumeration used by <code>SwapBlockedTargetResolver</code>.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/SwapSearchContext.cs</code></td>
-<td><code>SwapSearchContext</code></td>
-<td>Context passed into swap strategies so they can inspect drag state, target inventory, and the hinted slot.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/HintedTargetSwapStrategy.cs</code></td>
-<td><code>HintedTargetSwapStrategy</code></td>
-<td>Default swap strategy that only considers the currently hinted target slot.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/FindAlternativeBlockedTargetResolver.cs</code></td>
-<td><code>FindAlternativeBlockedTargetResolver</code></td>
-<td>Resolver that turns alternative placement candidates into <code>AlternativeSlots</code> resolutions and can disable same-inventory fallback.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/IAlternativePlacementStrategy.cs</code></td>
-<td><code>IAlternativePlacementStrategy</code></td>
-<td>Contract for object-based alternative slot enumeration used by <code>FindAlternativeBlockedTargetResolver</code>.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/MergeFirstAlternativePlacementStrategy.cs</code></td>
-<td><code>MergeFirstAlternativePlacementStrategy</code></td>
-<td>Alternative placement strategy that prefers merge candidates first.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/EmptyFirstAlternativePlacementStrategy.cs</code></td>
-<td><code>EmptyFirstAlternativePlacementStrategy</code></td>
-<td>Alternative placement strategy that prefers empty slots first.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/MergeOnlyAlternativePlacementStrategy.cs</code></td>
-<td><code>MergeOnlyAlternativePlacementStrategy</code></td>
-<td>Alternative placement strategy that considers only merge candidates.</td>
-</tr>
-<tr>
-<td><code>Scripts/Core/Drop/EmptyOnlyAlternativePlacementStrategy.cs</code></td>
-<td><code>EmptyOnlyAlternativePlacementStrategy</code></td>
-<td>Alternative placement strategy that considers only empty slots.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/IDropPolicyProvider.cs</code></td>
@@ -2545,7 +2621,7 @@
 <tr>
 <td><code>Scripts/Inventories/InventoryDropProcessor.cs</code></td>
 <td><code>InventoryDropProcessor</code></td>
-<td>UI-facing entry point that translates drop attempts into planning and execution calls.</td>
+<td>UI entry point that resolves active drop policy and starts transfer.</td>
 </tr>
 </tbody>
 </table>
@@ -2596,17 +2672,17 @@
 <tr>
 <td><code>Scripts/Inventories/IInventory.cs</code></td>
 <td><code>IInventory</code></td>
-<td>Base inventory contract consumed by planners, validators, and services.</td>
+<td>Base inventory contract consumed by the transfer engine, validators, and services.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/ITransferDomainHandler.cs</code></td>
 <td><code>ITransferDomainHandler</code></td>
-<td>Sync pre-commit and post-success business hook interface.</td>
+<td>Sync business checks before transfer commit and a hook after success.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/IAsyncTransferDomainHandler.cs</code></td>
 <td><code>IAsyncTransferDomainHandler</code></td>
-<td>Async validation hook interface for server/file/network-like commit checks.</td>
+<td>Async check before transfer, for example server validation.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/IItemAdapterConverter.cs</code></td>
@@ -2629,19 +2705,39 @@
 <td>Context object passed into domain handlers.</td>
 </tr>
 <tr>
+<td><code>Scripts/Inventories/InventoryTransferEngine.cs</code></td>
+<td><code>InventoryTransferService</code>, <code>TransferEntryRequest</code></td>
+<td>Transfer service: processes entries one by one, supports rollback for failed entries, swap, and automatic placement search.</td>
+</tr>
+<tr>
 <td><code>Scripts/Inventories/InventoryTransferService.cs</code></td>
-<td>runtime transfer request/result models</td>
-<td>Shared transfer service models used across the pipeline.</td>
+<td><code>TransferProbe</code></td>
+<td>Advisory probe result used for preview and acceptance.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/PlacementCandidate.cs</code></td>
+<td><code>PlacementCandidate</code>, <code>PlacementCandidateKind</code></td>
+<td>Description of a possible placement: merge stack, use an existing slot, or create a dynamic slot.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/PlacementCandidateOrderer.cs</code></td>
+<td>placement candidate orderers</td>
+<td>Ordering policies used only for automatic placement.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/IPlacementGeometry.cs</code></td>
+<td><code>IPlacementGeometry</code></td>
+<td>Topology-aware anchor, footprint, occupancy, and covered-slot contract.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/InventorySnapshot.cs</code></td>
 <td><code>InventorySnapshot</code>, <code>IInventorySnapshotProvider</code></td>
-<td>Snapshot model and provider interface used for stable inventory inspection and operations such as sorting or previewing.</td>
+<td>Saved inventory state used for safe reading, preview, sorting, and failed-operation rollback.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/InventorySnapshotUtility.cs</code></td>
 <td><code>InventorySnapshotUtility</code></td>
-<td>Helper methods for building and reading snapshots.</td>
+<td>Helper methods for building and reading saved inventory state.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/AutoTransferService.cs</code></td>
@@ -2649,49 +2745,9 @@
 <td>Service that performs quick-transfer style moves between inventories.</td>
 </tr>
 <tr>
-<td><code>Scripts/Inventories/SlotOperationContext.cs</code></td>
-<td><code>SlotOperationContext</code></td>
-<td>Low-level context object shared by placement and execution helpers.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/SwapOperationResult.cs</code></td>
-<td><code>SwapOperationResult</code></td>
-<td>Result model for swap planning/execution helpers.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/EntryPlanningOperation.cs</code></td>
-<td>planning operation types</td>
-<td>Internal planning helper for one drag entry.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/TargetPlacementOperation.cs</code></td>
-<td>placement operation types</td>
-<td>Internal helper that models target-side placement decisions.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/SlotRelocationService.cs</code></td>
-<td><code>SlotRelocationService</code></td>
-<td>Fallback helper that tries to free or reorganize slots when a direct placement path is blocked.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/VirtualSlotState.cs</code></td>
-<td><code>VirtualSlotState</code></td>
-<td>Internal virtual slot representation used while planning without mutating live UI state.</td>
-</tr>
-<tr>
 <td><code>Scripts/Inventories/TransferItemConversionUtility.cs</code></td>
 <td><code>TransferItemConversionUtility</code></td>
-<td>Internal utility that applies target/source adapter conversion consistently across planning and execution.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/TransferPlanExecutor.cs</code></td>
-<td><code>TransferExecutionSummary</code>, <code>TransferExecutionOptions</code>, <code>TransferPlanExecutor</code></td>
-<td>Executes transfer plans, applies mutations, runs commit hooks, handles rollback, and dispatches deferred events.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/TransferPlanner.cs</code></td>
-<td><code>TransferPlanFailureCode</code>, <code>PlanFailure</code>, <code>PlannedSwapData</code>, <code>PlannedEntryTransfer</code>, <code>TransferPlan</code>, <code>TransferPlanner</code></td>
-<td>Builds a transfer plan without mutating inventories. Consumes blocked-target resolver results and handles preview allocation, swap planning, and failure reporting.</td>
+<td>Internal utility that applies target/source adapter conversion consistently across preview and execution.</td>
 </tr>
 </tbody>
 </table>
@@ -2707,44 +2763,19 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Scripts/Inventories/Strategies/IPlacementStrategy.cs</code></td>
-<td><code>IPlacementStrategy</code></td>
-<td>Placement-specific strategy contract.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/Strategies/IAcceptanceStrategy.cs</code></td>
-<td><code>IAcceptanceStrategy</code></td>
-<td>Acceptance/capacity evaluation strategy contract.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/Strategies/IDragPolicy.cs</code></td>
-<td><code>IDragPolicy</code></td>
-<td>Strategy contract for drag amount and drag policy related decisions.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/Strategies/IInventoryQueryStrategy.cs</code></td>
-<td><code>IInventoryQueryStrategy</code></td>
-<td>Read/query-oriented strategy contract used by higher-level inventory code.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/Strategies/IInventoryStrategy.cs</code></td>
-<td><code>IInventoryStrategy</code></td>
-<td>Combined strategy interface implemented by concrete inventory behaviors.</td>
+<td><code>Scripts/Inventories/Strategies/IStrategy.cs</code></td>
+<td><code>IStrategy</code></td>
+<td>Read-only contract: explicit-target validation, automatic candidate enumeration, and capacity.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/Strategies/InventoryStrategyBase.cs</code></td>
 <td><code>InventoryStrategyBase</code></td>
-<td>Base class for inventory placement/acceptance strategy implementations.</td>
+<td>Base class for read-only candidate-producing strategies.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/Strategies/StackBasedInventoryStrategyBase.cs</code></td>
 <td><code>StackBasedInventoryStrategyBase</code></td>
 <td>Shared stack-aware base with max stack size and per-item override support.</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/Strategies/StrategyCapabilities.cs</code></td>
-<td><code>IUniqueInventoryStrategy</code>, <code>IStackBasedInventoryStrategy</code>, <code>ISeparableStacksInventoryStrategy</code></td>
-<td>Optional semantic capability interfaces for custom code.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/Strategies/UniqueItemStrategy.cs</code></td>
@@ -2777,14 +2808,9 @@
 <td>Dynamic slot lifecycle mode with free-slot maintenance and trimming hooks.</td>
 </tr>
 <tr>
-<td><code>Scripts/Inventories/Strategies/DynamicSlotDecorator.cs</code></td>
-<td><code>DynamicSlotDecorator</code></td>
-<td>Decorator that adds dynamic slot creation/management behavior around another strategy.</td>
-</tr>
-<tr>
 <td><code>Scripts/Inventories/Strategies/StrategyConfiguration.cs</code></td>
 <td>strategy configuration types</td>
-<td>Runtime refresh snapshot for strategy, slot management, and merge-policy configuration.</td>
+<td>Current strategy, slot management, and stack-merge configuration.</td>
 </tr>
 </tbody>
 </table>
@@ -2909,7 +2935,7 @@
 </tr>
 <tr>
 <td><code>Scripts/Interaction/SlotInteractionActions.cs</code></td>
-<td><code>SlotInteractionAction</code>, <code>AssetSafeSlotInteractionAction</code>, <code>DragSlotAction</code>, <code>CompleteDragAction</code>, <code>CancelDragAction</code>, <code>InventorySlotAction</code></td>
+<td><code>SlotInteractionAction</code>, <code>AssetSafeSlotInteractionAction</code>, <code>StartDragAction</code>, <code>CompleteDragAction</code>, <code>SplitDropAction</code>, <code>RotateDragAction</code>, <code>CancelDragAction</code>, <code>InventorySlotAction</code></td>
 <td>Core action types invoked by the input router for slot and inventory interaction flows.</td>
 </tr>
 </tbody>
@@ -2936,6 +2962,11 @@
 <td>Runtime legacy key binding definition.</td>
 </tr>
 <tr>
+<td><code>Scripts/Interaction/Bindings/LegacyInputActionBinding.cs</code></td>
+<td><code>LegacyInputActionBinding</code></td>
+<td>Runtime old Input Manager button-name binding definition.</td>
+</tr>
+<tr>
 <td><code>Scripts/Interaction/Bindings/InputActionBinding.cs</code></td>
 <td><code>InputActionBinding</code></td>
 <td>Runtime Input System binding definition.</td>
@@ -2949,6 +2980,11 @@
 <td><code>Scripts/Interaction/Bindings/AssetKeyBinding.cs</code></td>
 <td><code>AssetKeyBinding</code></td>
 <td>Serialized legacy key binding asset/profile entry.</td>
+</tr>
+<tr>
+<td><code>Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs</code></td>
+<td><code>AssetLegacyInputActionBinding</code></td>
+<td>Serialized old Input Manager button-name binding asset/profile entry.</td>
 </tr>
 <tr>
 <td><code>Scripts/Interaction/Bindings/AssetInputActionBinding.cs</code></td>
@@ -3052,9 +3088,9 @@
 <td>Selects a specific slot.</td>
 </tr>
 <tr>
-<td><code>Scripts/Selection/Operations/ToggleSlotOperation.cs</code></td>
-<td><code>ToggleSlotOperation</code></td>
-<td>Toggles selection state for one slot.</td>
+<td><code>Scripts/Selection/Operations/ToggleFilledSlotOperation.cs</code></td>
+<td><code>ToggleFilledSlotOperation</code></td>
+<td>Toggles selection state for one non-empty slot.</td>
 </tr>
 <tr>
 <td><code>Scripts/Selection/Operations/RangeSelectOperation.cs</code></td>
@@ -3400,6 +3436,204 @@
 </tbody>
 </table>
 <hr />
+<h2 id="additional-runtimeui-files">Additional Runtime/UI Files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Types</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Scripts/Core/Models/InventoryTopology.cs</code></td>
+<td><code>IInventoryTopology</code>, <code>SlotTopology</code>, <code>RectGridTopology</code>, <code>SlotCountLimitedTopology</code>, <code>OrientationStepUtility</code></td>
+<td>Topology abstraction for slot/grid coordinates, orientation, and footprint projection.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Models/Placement.cs</code></td>
+<td><code>GridTopology</code>, <code>PlacementRequest</code>, <code>Placement</code></td>
+<td>Core placement request, grid size, and placed-stack models.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Models/PlacementCellUtility.cs</code></td>
+<td><code>PlacementBoundsMode</code>, <code>PlacementCellUtility</code></td>
+<td>Utility for calculating covered cells with different bounds modes.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Models/PlacementShape.cs</code></td>
+<td><code>IPlacementShape</code>, <code>IItemPlacementShapeProvider</code>, <code>RectPlacementShape</code>, <code>OffsetPlacementShape</code>, <code>ComplexPlacementShape</code>, <code>PlacementShapeUtility</code></td>
+<td>Item footprint models and shape/orientation helpers.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/Models/PlacementSnapshot.cs</code></td>
+<td><code>PlacementSnapshot</code></td>
+<td>Saved state of one placement for events, rollback, and DataBinding context.</td>
+</tr>
+<tr>
+<td><code>Scripts/Core/UDNDEvents.cs</code></td>
+<td><code>UDNDEvents</code></td>
+<td>Global drag/drop/swap lifecycle events.</td>
+</tr>
+<tr>
+<td><code>Scripts/DataBinding/PlacementInventoryDataBinding.cs</code></td>
+<td><code>PlacementData&lt;TData&gt;</code>, <code>PlacementCommitContext&lt;TData,TAdapter&gt;</code>, <code>PlacementInventoryDataBinding&lt;TData,TAdapter&gt;</code></td>
+<td>Binding template for inventories that persist anchor/orientation placement data.</td>
+</tr>
+<tr>
+<td><code>Scripts/Interaction/RuntimeInteractionSnapshot.cs</code></td>
+<td><code>InteractionInputKind</code>, <code>RuntimeInteractionSnapshot</code></td>
+<td>Saved current input context of a slot or inventory for actions.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/BaseInventory.cs</code></td>
+<td><code>BaseInventory</code></td>
+<td>Abstract MonoBehaviour base for inventory implementations.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/DropPreviewController.cs</code></td>
+<td><code>DropPreviewController</code></td>
+<td>Manages covered-cell preview highlighting during hover/drag.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/EntryTransferResult.cs</code></td>
+<td><code>PlacementTransferOutcomeKind</code>, <code>EntryTransferStatus</code>, <code>PlacementTransferOutcome</code>, <code>EntryTransferResult</code>, <code>TransferExecutionReport</code></td>
+<td>Transfer execution result/report models.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/IInventoryInteraction.cs</code></td>
+<td><code>IInventoryInteraction</code></td>
+<td>Contract for inventory-side interaction state and auto-transfer slot resolution.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/IInventorySlotCreationCapacity.cs</code></td>
+<td><code>IInventorySlotCreationCapacity</code></td>
+<td>Internal capacity contract for dynamic slot creation.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/IPlacementInventory.cs</code></td>
+<td><code>IPlacementInventory</code>, <code>IShapedDragTargetResolver</code></td>
+<td>Placement-aware inventory contract and target-side anchor resolution for shaped drag.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/InventoryPlacementGeometry.cs</code></td>
+<td><code>InventoryPlacementGeometry</code></td>
+<td>Geometry-operation adapter over <code>IPlacementInventory</code> and topology.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/InventoryRuntimeCapabilities.cs</code></td>
+<td><code>IInventoryRuleEvaluator</code>, <code>IOccupiedSlotDropHandler</code>, <code>IDynamicSlotLifecycle</code>, <code>IInventoryEventSink</code></td>
+<td>Runtime capability interfaces used by the engine without a hard dependency on <code>UniversalInventory</code>.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/PlacementCandidateSource.cs</code></td>
+<td><code>PlacementCandidateSource</code></td>
+<td>Lazy enumerable source for placement candidates.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/PlacementSnapshotCodec.cs</code></td>
+<td><code>PlacementSnapshotCodec</code></td>
+<td>Internal codec for capturing/restoring placement state.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/PlacementStore.cs</code></td>
+<td><code>PlacementStore</code></td>
+<td>Placement storage and occupancy map for shaped/grid inventories.</td>
+</tr>
+<tr>
+<td><code>Scripts/Inventories/ShapedPlacementAnchorStrategy.cs</code></td>
+<td><code>ShapedPlacementAnchorContext</code>, <code>IShapedPlacementAnchorStrategy</code>, <code>RotatedGrabOffsetAnchorStrategy</code>, <code>SourceGrabOffsetAnchorStrategy</code>, <code>TargetSlotAnchorStrategy</code></td>
+<td>Strategies that convert a hovered slot into a shaped-item anchor.</td>
+</tr>
+<tr>
+<td><code>Scripts/Slots/ISlot.cs</code></td>
+<td><code>ISlot</code></td>
+<td>Minimal slot contract.</td>
+</tr>
+<tr>
+<td><code>Scripts/Slots/ShapedColorSlot.cs</code></td>
+<td><code>ShapedColorSlot</code></td>
+<td>Slot visual for shaped-placement preview/highlight.</td>
+</tr>
+<tr>
+<td><code>Scripts/UI/PlacementOverlay.cs</code></td>
+<td><code>PlacementOverlay</code></td>
+<td>Overlay renderer for multi-cell placement visuals.</td>
+</tr>
+<tr>
+<td><code>Scripts/UI/PlacementOverlayItem.cs</code></td>
+<td><code>PlacementOverlayRenderState</code>, <code>PlacementOverlayItem</code></td>
+<td>UI item inside the placement overlay.</td>
+</tr>
+<tr>
+<td><code>Scripts/UI/SourceSizedDragVisual.cs</code></td>
+<td><code>SourceSizedDragVisual</code></td>
+<td>Drag visual that preserves source/placement size.</td>
+</tr>
+<tr>
+<td><code>Scripts/UI/Tooltip/FadeTooltipView.cs</code></td>
+<td><code>FadeTooltipView</code></td>
+<td>Base tooltip view with fade animation.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/DelegateFilter.cs</code></td>
+<td><code>DelegateFilter</code>, <code>DelegateSorter</code></td>
+<td>Internal delegate-backed filter/sorter wrappers.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Filters/CategoryFilter.cs</code></td>
+<td><code>CategoryFilter</code></td>
+<td>Built-in category filter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Filters/CompositeFilter.cs</code></td>
+<td><code>CompositeFilter</code></td>
+<td>Built-in composite filter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Filters/NameSearchFilter.cs</code></td>
+<td><code>NameSearchFilter</code></td>
+<td>Built-in name search filter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Filters/RarityRangeFilter.cs</code></td>
+<td><code>RarityRangeFilter</code></td>
+<td>Built-in rarity range filter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/CategorySorter.cs</code></td>
+<td><code>CategorySorter</code></td>
+<td>Built-in category sorter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/CompositeSorter.cs</code></td>
+<td><code>CompositeSorter</code></td>
+<td>Built-in composite sorter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/NameSorter.cs</code></td>
+<td><code>NameSorter</code></td>
+<td>Built-in name sorter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/RaritySorter.cs</code></td>
+<td><code>RaritySorter</code></td>
+<td>Built-in rarity sorter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/SortValueSorter.cs</code></td>
+<td><code>SortValueSorter</code></td>
+<td>Built-in sort-value sorter.</td>
+</tr>
+<tr>
+<td><code>Scripts/Filter/Sorters/StackCountSorter.cs</code></td>
+<td><code>StackCountSorter</code></td>
+<td>Built-in stack-count sorter.</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="example-demo1-inventories">Example: Demo1 Inventories</h2>
 <table>
 <thead>
@@ -3424,6 +3658,11 @@
 <td><code>Examples/Demo1 Inventories/DataBindings/ItemsSOInventoryDataBinding.cs</code></td>
 <td><code>ItemsSOInventoryDataBinding</code></td>
 <td>List-based binding connecting demo item lists to the UI inventory.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo1 Inventories/DataAmountInBinding.cs</code></td>
+<td><code>DataAmountInBinding</code></td>
+<td>UI helper that displays the item count in the demo binding.</td>
 </tr>
 <tr>
 <td><code>Examples/Demo1 Inventories/ItemTypeExampleFilterRule.cs</code></td>
@@ -3511,7 +3750,7 @@
 </tbody>
 </table>
 <hr />
-<h2 id="example-demo3-minecraft">Example: Demo3 Minecraft</h2>
+<h2 id="example-demo3-craft">Example: Demo3 Craft</h2>
 <table>
 <thead>
 <tr>
@@ -3522,57 +3761,57 @@
 </thead>
 <tbody>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Data/MinecraftItemSO.cs</code></td>
-<td><code>MinecraftItemSO</code></td>
+<td><code>Examples/Demo3 Craft/Data/MinecraftItemSO.cs</code></td>
+<td><code>CraftItemSO</code></td>
 <td>ScriptableObject item definition used by the crafting demo.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Data/RuntimeItem.cs</code></td>
+<td><code>Examples/Demo3 Craft/Data/RuntimeItem.cs</code></td>
 <td><code>RuntimeItem</code></td>
 <td>Runtime item wrapper/model used by the demo where needed.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Adapters/MinecraftItemAdapterAdapter.cs</code></td>
-<td><code>MinecraftItemAdapterAdapter</code></td>
+<td><code>Examples/Demo3 Craft/Adapters/MinecraftItemAdapterAdapter.cs</code></td>
+<td><code>CraftItemAdapterAdapter</code></td>
 <td>Adapter exposing crafting demo items to the inventory UI.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingRecipePattern.cs</code></td>
+<td><code>Examples/Demo3 Craft/Crafting/CraftingRecipePattern.cs</code></td>
 <td><code>CraftingRecipePattern</code></td>
 <td>Serialized recipe grid/pattern definition.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingRecipeSO.cs</code></td>
+<td><code>Examples/Demo3 Craft/Crafting/CraftingRecipeSO.cs</code></td>
 <td><code>CraftingRecipeSO</code></td>
 <td>ScriptableObject recipe asset.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Crafting/CraftingManager.cs</code></td>
+<td><code>Examples/Demo3 Craft/Crafting/CraftingManager.cs</code></td>
 <td><code>CraftingManager</code></td>
 <td>Demo domain controller that evaluates recipes and owns craft result state.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/MainInventoryDataBinding.cs</code></td>
+<td><code>Examples/Demo3 Craft/DataBindings/MainInventoryDataBinding.cs</code></td>
 <td><code>MainInventoryDataBinding</code></td>
 <td>Binding for the main player inventory.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/HotbarDataBinding.cs</code></td>
+<td><code>Examples/Demo3 Craft/DataBindings/HotbarDataBinding.cs</code></td>
 <td><code>HotbarDataBinding</code></td>
 <td>Binding for the hotbar.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/CraftTableDataBinding.cs</code></td>
+<td><code>Examples/Demo3 Craft/DataBindings/CraftTableDataBinding.cs</code></td>
 <td><code>CraftTableDataBinding</code></td>
 <td>Binding for the crafting grid input slots.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/DataBindings/CraftResultDataBinding.cs</code></td>
+<td><code>Examples/Demo3 Craft/DataBindings/CraftResultDataBinding.cs</code></td>
 <td><code>CraftResultDataBinding</code></td>
 <td>Read-oriented binding for the crafting output slot.</td>
 </tr>
 <tr>
-<td><code>Examples/Demo3 Minecraft/Editor/CraftingRecipePatternPropertyDrawer.cs</code></td>
+<td><code>Examples/Demo3 Craft/Editor/CraftingRecipePatternPropertyDrawer.cs</code></td>
 <td><code>CraftingRecipePatternPropertyDrawer</code></td>
 <td>Custom editor drawer for recipe pattern authoring.</td>
 </tr>
@@ -3755,6 +3994,46 @@
 </tbody>
 </table>
 <hr />
+<h2 id="example-demo6-shaped-items">Example: Demo6 Shaped Items</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Types</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Examples/Demo6 Shaped Items/ShapedItemExampleSO.cs</code></td>
+<td><code>ShapedItemExampleSO</code></td>
+<td>Base ScriptableObject definition for rectangular shaped items through width/height.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo6 Shaped Items/ComplexShapedItemExampleSO.cs</code></td>
+<td><code>ComplexShapedItemExampleSO</code></td>
+<td>ScriptableObject definition for a non-rectangular footprint through a bool occupied-cell mask.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo6 Shaped Items/Adapters/ShapedItemAdapter.cs</code></td>
+<td><code>ShapedItemAdapter</code></td>
+<td>Adapter that implements <code>IItemPlacementShapeProvider</code> and exposes a <code>ComplexPlacementShape</code>.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo6 Shaped Items/DataBindings/ShapedItemsInventoryDataBinding.cs</code></td>
+<td><code>ShapedPlacementSeed</code>, <code>ShapedItemsInventoryDataBinding</code></td>
+<td>Placement-aware binding that stores item, anchor index, and orientation.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo6 Shaped Items/Editor/ComplexShapedItemExampleSOEditor.cs</code></td>
+<td><code>ComplexShapedItemExampleSOEditor</code></td>
+<td>Custom inspector with a clickable grid for editing a complex footprint over the icon sprite.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</details>
+<hr />
 <h2 id="what-to-open-first-for-common-tasks">What to open first for common tasks</h2>
 <table>
 <thead>
@@ -3773,8 +4052,8 @@
 <td><code>MappedSlotInventoryDataBinding.cs</code>, <code>EquipmentInventoryDataBinding.cs</code></td>
 </tr>
 <tr>
-<td>Understand drag/drop planning</td>
-<td><code>TransferPlanner.cs</code>, <code>TransferPlanExecutor.cs</code>, <code>InventoryDropProcessor.cs</code></td>
+<td>Understand drag/drop transfer</td>
+<td><code>InventoryDropProcessor.cs</code>, <code>InventoryTransferEngine.cs</code>, <code>IStrategy.cs</code>, <code>PlacementCandidate.cs</code></td>
 </tr>
 <tr>
 <td>Add custom drag rules</td>
@@ -3803,6 +4082,10 @@
 <tr>
 <td>Implement item conversion across inventories</td>
 <td><code>IItemAdapterConverter.cs</code>, <code>TransferItemConversionUtility.cs</code>, Demo4 converters</td>
+</tr>
+<tr>
+<td>Build multi-cell items in a grid inventory</td>
+<td><code>PlacementInventoryDataBinding.cs</code>, <code>IPlacementInventory.cs</code>, <code>ShapedItemAdapter.cs</code>, Demo6 Shaped Items</td>
 </tr>
 </tbody>
 </table>
@@ -3861,7 +4144,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

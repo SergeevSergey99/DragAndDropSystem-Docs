@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -550,17 +554,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Зависимости
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -616,7 +609,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит под капотом
@@ -627,21 +620,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Частые ошибки в первом проекте
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что дальше
       
     </span>
   </a>
@@ -809,14 +791,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -873,6 +855,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -1017,7 +1027,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Пайплайн переноса
   
 
     
@@ -1045,7 +1055,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy
   
 
     
@@ -1073,7 +1083,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Конвертация предметов
   
 
     
@@ -1414,7 +1424,7 @@
   <span class="md-ellipsis">
     
   
-    Пример: свободное размещение
+    Свободное размещение слотов
   
 
     
@@ -1836,17 +1846,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Зависимости
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1902,7 +1901,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Что происходит под капотом
@@ -1913,21 +1912,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Частые ошибки в первом проекте
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что дальше
       
     </span>
   </a>
@@ -1960,15 +1948,6 @@
 <li><code>ItemSOAdapter</code> как представление для системы инвентаря</li>
 <li><code>SimpleBinding</code> как мост между UI и вашим списком данных</li>
 </ul>
-<h2 id="_2">Зависимости</h2>
-<ul>
-<li>Обязательный пакет: <code>Unity.ugui</code></li>
-<li>Опциональный пакет: <code>com.unity.inputsystem</code></li>
-</ul>
-<p>Для этого quick start новый Input System <strong>не требуется</strong>. Базовый drag and drop через указатель работает без него.
-Если вам нужны <code>InputAction</code> bindings или <code>InputActionSelectionTrigger</code>, установите <code>com.unity.inputsystem</code>.
-Mixed setup тоже допустим: в проекте может быть установлен новый Input System, а конкретная сцена всё ещё использовать <code>StandaloneInputModule</code>.
-В таком случае <code>InputAction</code>-зависимые функции могут работать не так, как ожидается, если сама сцена/flow не настроены под новый input pipeline.</p>
 <h2 id="1">Шаг 1. Подготовьте сцену</h2>
 <ol>
 <li>Создайте <code>Canvas</code> на котором будут располагаться инвентрари, если его ещё нет.</li>
@@ -1977,7 +1956,7 @@ Mixed setup тоже допустим: в проекте может быть у�
 </blockquote>
 </li>
 <li>Убедитесь, что на сцене есть <code>EventSystem</code>.
-   Если проект использует legacy input, на <code>EventSystem</code> должен быть <code>StandaloneInputModule</code>.</li>
+   Если проект использует legacy input, на <code>EventSystem</code> должен быть <code>StandaloneInputModule</code>. Также ассет поддерживает New Input System. В <code>DragAndDropManager</code> по умолчанию указан минимальный рабочий конфиг действий. Можете его поправить под себя или создать свою копию, не забыв заменить её в сцене.</li>
 </ol>
 <hr />
 <h2 id="2">Шаг 2. Создайте два инвентаря</h2>
@@ -1995,24 +1974,24 @@ Mixed setup тоже допустим: в проекте может быть у�
 </thead>
 <tbody>
 <tr>
-<td><code>Inventory Strategy</code></td>
-<td><code>UniqueItemStrategy</code> для самого простого старта, чтобы каждый предмет был в отдельном слоте</td>
+<td><code>Slot Container</code></td>
+<td>родитель для слотов (желательно с <code>GridLayout</code> или другим компонентом управляющим расположением дочерних объектов)</td>
 </tr>
 <tr>
-<td><code>Slot Management</code></td>
-<td><code>FixedSlotManagementSettings</code> для фиксированного количества слотов</td>
+<td><code>Slot Prefab</code></td>
+<td>Префаб который вы хотите использовать для слотов <code>Prefabs/Slot.prefab</code></td>
 </tr>
 <tr>
 <td><code>Initial Slot Count</code></td>
 <td>например <code>10</code>. При запуске они создасться в <code>Slot Container</code>. Если вы сами их там уже создали, можете их закешировать нажав на кнопку</td>
 </tr>
 <tr>
-<td><code>Slot Prefab</code></td>
-<td><code>Prefabs/Slot.prefab</code></td>
+<td><code>Inventory Strategy</code></td>
+<td><code>UniqueItemStrategy</code> для самого простого старта, чтобы каждый предмет был в отдельном слоте</td>
 </tr>
 <tr>
-<td><code>Slot Container</code></td>
-<td>родитель для слотов (желательно с <code>GridLayout</code> или другим компонентом управляющим расположением дочерних объектов)</td>
+<td><code>Slot Management</code></td>
+<td><code>FixedSlotManagementSettings</code> для фиксированного количества слотов</td>
 </tr>
 </tbody>
 </table>
@@ -2021,6 +2000,10 @@ Mixed setup тоже допустим: в проекте может быть у�
 <p>Скопируйте объект и сделайте второй инвентарь, например <code>Chest</code>.</p>
 </li>
 </ol>
+<div class="admonition info инициализация">
+<p class="admonition-title">Info</p>
+<p>Инвентарь на старте пробует найти уже созданные слоты, дочерные к <code>Slot Container</code> и закэшировать их для управления. Если их оказалось не достаточно создаст слоты <code>Slot Prefab</code> в указанном до <code>Initial Slot Count</code> количестве. Вы также можете создать все сдоты вручную в режиме редактирования и закэшировать их кнопкой <code>Cache Slots</code> чтобы этой операции не происходило во время игры</p>
+</div>
 <hr />
 <h2 id="3">Шаг 3. Опишите тип предмета</h2>
 <p>Допустим у вас есть тип предметов
@@ -2032,7 +2015,7 @@ Mixed setup тоже допустим: в проекте может быть у�
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </code></pre></div>
 Чтобы такой тип можно было отображать в слотах для него нужно сделать адаптер, который реализует <code>IItemAdapter</code>, например:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UDND.Core</span><span class="p">;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemSOAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span>
@@ -2051,14 +2034,15 @@ Mixed setup тоже допустим: в проекте может быть у�
 </code></pre></div>
 <p>Значения обязательных полей:</p>
 <ul>
-<li><code>ItemId</code> - Нужен чтобы различать можно ли объеденить предметы в один слот для режимов <code>Stackable</code> и <code>SeparableStacks</code>.</li>
+<li><code>ItemId</code> - Нужен чтобы различать можно ли объеденить предметы в один слот для стратегий <code>Stackable</code> и <code>SeparableStacks</code>.</li>
 <li><code>Icon</code> - Нужно чтобы отображать карткинку предмета в слоте</li>
-<li><code>DisplayName</code> - Используется в некоторых дополнительных системах. Можно оставить равным пустой строке</li>
+<li><code>DisplayName</code> - Используется в основном в логах и некоторых дополнительных системах вроде примера подсказок. Можно оставить равным пустой строке</li>
 </ul>
 <hr />
 <h2 id="4-binding">Шаг 4. Добавьте простой binding</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.DataBinding</span><span class="p">;</span>
+<p>Чтобы отобразить ваши данные в слотах нужно системе показать эти данные и дать возможности взаимодействия с ними. Обычно это будут наборы данных хранящиеся где то в ваших скриптах игрока, персонажей и объектов. Тут в примере будет просто список в самом этом компоненте</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UDND.Core</span><span class="p">;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UDND.DataBinding</span><span class="p">;</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">using</span><span class="w"> </span><span class="nn">System.Collections.Generic</span><span class="p">;</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">using</span><span class="w"> </span><span class="nn">UnityEngine</span><span class="p">;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
@@ -2074,6 +2058,7 @@ Mixed setup тоже допустим: в проекте может быть у�
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">}</span>
 </code></pre></div>
+<code>ListInventoryDataBinding</code> это специальный шаблон DataBinding для работы с данными хранящемися в виде списка. У него при наследовании указывается тип вашего предмета и адаптера для него.</p>
 <p>Значения обязательных методов:</p>
 <ul>
 <li><code>GetItems</code> - Используется для первичного рендера данных</li>
@@ -2102,24 +2087,24 @@ Mixed setup тоже допустим: в проекте может быть у�
 <li>списки данных обновится автоматически при переносе</li>
 </ul>
 <hr />
-<h2 id="_3">Что происходит под капотом</h2>
+<h2 id="_2">Что происходит под капотом</h2>
 <pre class="mermaid"><code>flowchart LR
     A["Игрок тащит предмет"] --&gt; B["&lt;b&gt;UniversalInventory&lt;/b&gt; обрабатывает перенос"]
     B --&gt; C["В &lt;b&gt;DataBinding&lt;/b&gt; вызываются методы"]
     C --&gt; D["Ваш List&lt;ItemSO&gt; обновляется"]</code></pre>
-<h2 id="_4">Частые ошибки в первом проекте</h2>
+<h2 id="_3">Частые ошибки в первом проекте</h2>
 <ul>
 <li><code>ItemId</code> не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно</li>
-<li>на сцене нет <code>DragAndDropManager</code> или их несколько</li>
+<li>на сцене нет <code>DragAndDropManager</code></li>
 <li>на сцене нет <code>EventSystem</code></li>
 <li>проект использует legacy input, но на <code>EventSystem</code> нет <code>StandaloneInputModule</code></li>
 <li>binding привязан не к тому <code>UniversalInventory</code></li>
 <li>у <code>InventoryDataBinding</code> не назначена ссылка на inventory</li>
 <li>данные меняются вне pipeline, но <code>ReloadUI()</code> не вызывается. Добавьте в вашем DataBinding вызов ReloadUI по событию изменения данных</li>
 </ul>
-<h2 id="_5">Что дальше</h2>
+<p>См. также:</p>
 <ul>
-<li><a href="../../examples/">Примеры</a> — если хотите выбрать из всех 5 демо</li>
+<li><a href="../../examples/">Примеры</a> — если хотите выбрать из всех 6 демо</li>
 <li><a href="../../architecture/data-binding/">Привязка данных</a> — если нужно понять lifecycle и точки расширения</li>
 <li><a href="../../architecture/strategies/">Стратегии размещения</a> — если хотите добавить свою стратегию или свой режим slot management</li>
 <li><a href="../../reference/troubleshooting/">Troubleshooting</a> — если базовая сцена не завелась с первого раза</li>
@@ -2179,7 +2164,7 @@ Mixed setup тоже допустим: в проекте может быть у�
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

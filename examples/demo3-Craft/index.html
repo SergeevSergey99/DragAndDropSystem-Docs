@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="es" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -11,30 +11,34 @@
       
       
       
+        <link rel="prev" href="../demo2-loot/">
+      
+      
+        <link rel="next" href="../demo4-trading/">
       
       
         
-          <link rel="alternate" href="../../../examples/loot/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../../../ru/examples/loot/" hreflang="ru">
+          <link rel="alternate" href="../../ru/examples/demo3-Craft/" hreflang="ru">
         
-          <link rel="alternate" href="./" hreflang="es">
+          <link rel="alternate" href="../../es/examples/demo3-Craft/" hreflang="es">
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Loot and 3D World - Drag & Drop Inventory System</title>
+        <title>Demo3 Craft - Drag & Drop Inventory System</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +57,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,8 +84,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#loot-and-3d-world" class="md-skip">
-          Saltar a contenido
+        <a href="#demo3-craft" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -89,12 +93,16 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Cabecera">
-    <a href="../../" title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
@@ -114,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Loot and 3D World
+              Demo3 Craft
             
           </span>
         </div>
@@ -154,26 +162,26 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Seleccionar idioma">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../examples/loot/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../../ru/examples/loot/" hreflang="ru" class="md-select__link">
+            <a href="../../ru/examples/demo3-Craft/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="es" class="md-select__link">
+            <a href="../../es/examples/demo3-Craft/" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -194,16 +202,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Buscar">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -214,7 +222,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Inicializando búsqueda
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +243,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -247,11 +255,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../" class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
-  Inicio
+  Home
 
         </a>
       </li>
@@ -263,15 +271,17 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../" class="md-tabs__link">
           
   
   
-  Ejemplos
+  Examples
 
         </a>
       </li>
@@ -291,7 +301,7 @@
           
   
   
-  Conceptos clave
+  Core Concepts
 
         </a>
       </li>
@@ -311,7 +321,7 @@
           
   
   
-  Sistemas avanzados
+  Advanced Systems
 
         </a>
       </li>
@@ -331,7 +341,7 @@
           
   
   
-  Referencia
+  Reference
 
         </a>
       </li>
@@ -351,7 +361,7 @@
           
   
   
-  Más
+  More
 
         </a>
       </li>
@@ -379,9 +389,9 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
+    <a href="../.." title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5 12 10.85l1.96-1.1-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
@@ -424,7 +434,7 @@
   <span class="md-ellipsis">
     
   
-    Inicio
+    Home
   
 
     
@@ -440,7 +450,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Inicio
+    Home
   
 
           </label>
@@ -453,14 +463,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Introducción
+    Introduction
   
 
     
@@ -513,35 +523,38 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Ejemplos
+    Examples
   
 
     
@@ -552,12 +565,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Ejemplos
+    Examples
   
 
           </label>
@@ -577,7 +590,7 @@
   <span class="md-ellipsis">
     
   
-    Ejemplos
+    Examples
   
 
     
@@ -651,17 +664,44 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo3 Craft
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -670,6 +710,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-demo-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The Demo Shows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-structured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Is Structured
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-this-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When To Use This Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -731,6 +835,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -770,7 +902,7 @@
   <span class="md-ellipsis">
     
   
-    Conceptos clave
+    Core Concepts
   
 
     
@@ -786,7 +918,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Conceptos clave
+    Core Concepts
   
 
           </label>
@@ -890,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -918,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1055,7 +1187,7 @@
   <span class="md-ellipsis">
     
   
-    Sistemas avanzados
+    Advanced Systems
   
 
     
@@ -1071,7 +1203,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Sistemas avanzados
+    Advanced Systems
   
 
           </label>
@@ -1259,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1312,7 +1444,7 @@
   <span class="md-ellipsis">
     
   
-    Referencia
+    Reference
   
 
     
@@ -1328,7 +1460,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Referencia
+    Reference
   
 
           </label>
@@ -1376,7 +1508,7 @@
   <span class="md-ellipsis">
     
   
-    Mapa de archivos
+    File Map
   
 
     
@@ -1404,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1432,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1513,7 +1645,7 @@
   <span class="md-ellipsis">
     
   
-    Más
+    More
   
 
     
@@ -1529,7 +1661,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Más
+    More
   
 
           </label>
@@ -1577,7 +1709,7 @@
   <span class="md-ellipsis">
     
   
-    Soporte adicional
+    Extra support
   
 
     
@@ -1605,7 +1737,7 @@
   <span class="md-ellipsis">
     
   
-    Planes futuros
+    Future Plans
   
 
     
@@ -1667,7 +1799,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -1676,15 +1808,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Tabla de contenidos
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#vision-general" class="md-nav__link">
+  <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Visión general
+        What The Demo Shows
       
     </span>
   </a>
@@ -1692,10 +1824,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interaccion-con-cofres" class="md-nav__link">
+  <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interacción con cofres
+        How It Is Structured
       
     </span>
   </a>
@@ -1703,10 +1835,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#arquitectura-separacion-de-responsabilidades" class="md-nav__link">
+  <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Arquitectura: separación de responsabilidades
+        How It Works
       
     </span>
   </a>
@@ -1714,65 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#como-esta-estructurado-el-ejemplo" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cómo está estructurado el ejemplo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#soltar-items-al-mundo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Soltar items al mundo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#comparacion-con-otros-ejemplos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Comparación con otros ejemplos
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#archivos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Archivos
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#como-leer-este-ejemplo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cómo leer este ejemplo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#donde-continuar" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dónde continuar
+        When To Use This Example
       
     </span>
   </a>
@@ -1796,219 +1873,67 @@
 
 
 
-<h1 id="loot-and-3d-world">Loot and 3D World</h1>
-<p>Un sistema de loot completo: cofres en un mundo 3D, interacción del jugador, recoger y soltar items.</p>
-<p>Ubicación en el proyecto real:
-- <code>Examples/Demo2 Loot/*</code></p>
-<p>Este ejemplo no trata principalmente de un tipo especial de inventario. Trata de integrar el inventory pipeline con el mundo del juego, la UI y los objetos 3D.</p>
-<hr />
-<h2 id="vision-general">Visión general</h2>
-<pre class="mermaid"><code>flowchart TB
-    subgraph World ["3D world"]
-        C["Chests"]
-        I["Items on the ground"]
-    end
+<h1 id="demo3-craft">Demo3 Craft</h1>
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/lbcTdQGJTIs"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
 
-    subgraph Mediator
-        UC["UI controller"]
-    end
-
-    subgraph Interface ["UI"]
-        CI["Chest inventory"]
-        PI["Player inventory"]
-    end
-
-    C --&gt;|"interaction"| UC
-    I --&gt;|"pickup"| PI
-    UC --&gt; CI
-    UC --&gt; PI
-    CI &lt;--&gt;|"drag and drop"| PI
-    PI --&gt;|"drop into world"| I</code></pre>
-<hr />
-<h2 id="interaccion-con-cofres">Interacción con cofres</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Player approaches the chest"] --&gt; B["Detection system finds the interactive object"]
-    B --&gt; C["Player presses the interaction button"]
-    C --&gt; D["Chest: Interact()"]
-    D --&gt; E["UI controller receives the open event"]
-    E --&gt; F["Show inventories\nchest + player"]
-    F --&gt; G["Player drags items"]
-    G --&gt; H["Player closes the UI"]
-    H --&gt; I["UI controller hides the inventories"]</code></pre>
-<p>Secuencia de acciones:</p>
-<ol>
-<li>El jugador se acerca a un cofre: el sistema de detección identifica el objeto interactivo más cercano.</li>
-<li>Al pulsar el botón de interacción, el cofre cambia de estado (abierto/cerrado).</li>
-<li>El UI controller (mediador) reacciona al evento de apertura y muestra el panel del inventario.</li>
-<li>El jugador arrastra items entre inventarios usando drag &amp; drop estándar.</li>
-<li>Al cerrar (botón o salir de la zona), la UI se oculta y el control vuelve al jugador.</li>
-</ol>
-<hr />
-<h2 id="arquitectura-separacion-de-responsabilidades">Arquitectura: separación de responsabilidades</h2>
-<pre class="mermaid"><code>flowchart LR
-    subgraph "Game world"
-        C["Chest"]
-        PD["Player data"]
-    end
-
-    subgraph "Mediator"
-        UC["UI controller"]
-    end
-
-    subgraph "UI"
-        I["Inventory"]
-        DB["Data binding"]
-    end
-
-    C --&gt; UC
-    PD --&gt; UC
-    UC --&gt; DB
-    DB &lt;--&gt; I</code></pre>
+<p><code>Examples/Demo3 Craft/CraftDemo.unity</code></p>
+<p>This is a slot-indexed inventory and crafting example where UI synchronizes with
+fixed data arrays instead of a list.</p>
+<h2 id="what-the-demo-shows">What The Demo Shows</h2>
 <ul>
-<li><strong>Game world</strong> gestiona el contenido del cofre y los datos del jugador. No sabe nada de la UI.</li>
-<li><strong>Mediator</strong> (UI controller) es el único componente que conoce ambas capas. Abre y cierra la UI, y conecta los datos con los bindings.</li>
-<li><strong>UI</strong> trabaja solo con <code>UniversalInventory</code> y data bindings. No sabe nada de la lógica del juego.</li>
+<li><code>SlotIndexedInventoryDataBinding</code></li>
+<li>crafting table and result slot</li>
+<li>maximum stack limit per slot</li>
+<li><code>CraftResultDataBinding</code> as a custom inventory type for taking the crafting result</li>
 </ul>
-<p>Esta separación permite cambiar la UI o la lógica del juego de forma independiente.</p>
-<hr />
-<h2 id="como-esta-estructurado-el-ejemplo">Cómo está estructurado el ejemplo</h2>
-<p>Hay cuatro zonas de responsabilidad separadas en este escenario:</p>
-<ol>
-<li><strong>World</strong>: cofres, items 3D, objetos interactivos</li>
-<li><strong>Mediator</strong>: el UI controller que conecta mundo y UI</li>
-<li><strong>UI and inventories</strong>: <code>UniversalInventory</code>, drag/drop, world drop zone</li>
-<li><strong>Bindings and data</strong>: contenido del cofre y contenido del jugador</li>
-</ol>
-<p>Esto importa porque:
-- el cofre no debería conocer componentes concretos de UI
-- la UI no debería saber nada de raycasts, apertura de cofres o lógica de interacción del jugador
-- la lógica de pickup/drop del mundo debería conectarse mediante adapters y boundary components</p>
-<hr />
-<h2 id="soltar-items-al-mundo">Soltar items al mundo</h2>
-<pre class="mermaid"><code>flowchart TB
-    PI["Player inventory"] --&gt;|"drag"| WZ["World zone"]
-    WZ --&gt;|"create"| O["3D object in the world"]
-    O --&gt;|"approach and pick up"| PI</code></pre>
-<p>Proceso:</p>
-<ol>
-<li>El jugador arrastra un item del inventario a la zona del mundo (<code>WorldDropZone</code>).</li>
-<li>El sistema comprueba si el adapter del item es aceptado por <code>WorldDropZone</code> y si tiene <code>WorldPrefab</code>.</li>
-<li>Si es así, el item se elimina del inventario y aparece como objeto 3D en el mundo.</li>
-<li>Ese objeto puede volver a recogerse al acercarse y pulsar el botón de interacción.</li>
-</ol>
-<p>A nivel de código esto suele ser:
-- la UI envía un <code>ItemStack</code> a <code>WorldDropZone</code>
-- <code>WorldDropZone</code> comprueba <code>ItemAdapterSoWith3DAdapter</code> y su <code>WorldPrefab</code>
-- si tiene éxito, se crea un objeto del mundo y se reduce el source stack
-- al recogerlo, el objeto del mundo vuelve a añadir el item a los datos/UI del inventario</p>
-<hr />
-<h2 id="comparacion-con-otros-ejemplos">Comparación con otros ejemplos</h2>
-<table>
-<thead>
-<tr>
-<th>Aspecto</th>
-<th>Configuración básica</th>
-<th>Trading</th>
-<th>Loot and 3D world</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Fuente de datos</td>
-<td>Lista simple</td>
-<td>Economía + adapters</td>
-<td>Objetos del mundo</td>
-</tr>
-<tr>
-<td>Tipo de transferencia</td>
-<td>Drag and drop directo</td>
-<td>Comprar/vender con oro</td>
-<td>Loot + pickup</td>
-</tr>
-<tr>
-<td>Cuándo se muestra la UI</td>
-<td>Siempre visible</td>
-<td>Siempre visible</td>
-<td>Se abre por evento</td>
-</tr>
-<tr>
-<td>Integración 3D</td>
-<td>No</td>
-<td>No</td>
-<td>Sí</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="archivos">Archivos</h2>
-<table>
-<thead>
-<tr>
-<th>Archivo</th>
-<th>Rol</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Chest.cs</code></td>
-<td>Chest: almacena items y lanza eventos de open/close</td>
-</tr>
-<tr>
-<td><code>IInteractable.cs</code></td>
-<td>Interface para objetos interactivos</td>
-</tr>
-<tr>
-<td><code>ItemController.cs</code></td>
-<td>Controlador del item 3D en el suelo (pickup)</td>
-</tr>
-<tr>
-<td><code>PlayerController.cs</code></td>
-<td>Control del jugador (movimiento, bloqueo de input)</td>
-</tr>
-<tr>
-<td><code>PlayerInteraction.cs</code></td>
-<td>Detección de objetos interactivos (raycast)</td>
-</tr>
-<tr>
-<td><code>PlayerInventoryData.cs</code></td>
-<td>Datos del inventario del jugador (capa de juego)</td>
-</tr>
-<tr>
-<td><code>LootUIController.cs</code></td>
-<td>Mediador entre mundo y UI</td>
-</tr>
-<tr>
-<td><code>ChestInventoryDataBinding.cs</code></td>
-<td>Binding de datos del cofre hacia la UI</td>
-</tr>
-<tr>
-<td><code>PlayerInventoryDataBinding.cs</code></td>
-<td>Binding de datos del jugador hacia la UI (preserva posición de slots)</td>
-</tr>
-<tr>
-<td><code>ItemExampleWith3DSO.cs</code></td>
-<td>ScriptableObject item con referencia a prefab 3D</td>
-</tr>
-<tr>
-<td><code>ItemAdapterSoWith3DAdapter.cs</code></td>
-<td>Adapter que enlaza el item con un prefab 3D</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="como-leer-este-ejemplo">Cómo leer este ejemplo</h2>
-<p>Si solo quieres una parte del escenario:</p>
+<h2 id="how-it-is-structured">How It Is Structured</h2>
+<p>The central logic point is:</p>
 <ul>
-<li>para una UI de cofre orientada a eventos: inspecciona <code>LootUIController</code> y los bindings</li>
-<li>para soltar items del inventario al mundo: inspecciona <code>WorldDropZone</code> y <code>ItemAdapterSoWith3DAdapter</code></li>
-<li>para recoger items del suelo: inspecciona <code>ItemController</code>, <code>PlayerInteraction</code> y la sync de datos del jugador</li>
+<li><code>Crafting/CraftingManager.cs</code></li>
 </ul>
-<hr />
-<h2 id="donde-continuar">Dónde continuar</h2>
+<p>It stores:</p>
 <ul>
-<li><a href="../../systems/world-3d/">World 3D</a> — para una mirada centrada en la integración con el mundo</li>
-<li><a href="../../architecture/transfer-pipeline/">Transfer Pipeline</a> — para ver cómo world drop encaja en el flujo normal de transferencia</li>
-<li><a href="../">Examples Overview</a> — para comparar otros escenarios</li>
+<li><code>_hotbarItems</code></li>
+<li><code>_inventoryItems</code></li>
+<li><code>_craftTableItems</code></li>
+<li>recipe list</li>
+<li>current result and crafting multiplier</li>
+</ul>
+<p>UI is split into four independent bindings:</p>
+<ul>
+<li><code>MainInventoryDataBinding</code></li>
+<li><code>HotbarDataBinding</code></li>
+<li><code>CraftTableDataBinding</code></li>
+<li><code>CraftResultDataBinding</code></li>
+</ul>
+<h2 id="how-it-works">How It Works</h2>
+<p>Regular slots:</p>
+<ol>
+<li>Binding enumerates occupied indices through <code>GetOccupiedSlots()</code>.</li>
+<li><code>AddToSlotData(...)</code> and <code>RemoveFromSlotData(...)</code> call <code>CraftingManager</code> methods.</li>
+<li>On <code>Awake()</code>, inventories call <code>SetMaxStackSize(CraftingManager.MaxItemsPerSlot)</code> to limit item count per slot.</li>
+</ol>
+<p>Crafting:</p>
+<ol>
+<li>Changing the craft table updates <code>_craftTableItems</code>.</li>
+<li><code>CraftingManager.RefreshCraftResult()</code> searches for a matching recipe.</li>
+<li><code>CraftResultDataBinding.OnReloadUI()</code> shows the result and configures the drag step.</li>
+<li>When the user takes the result, <code>OnItemRemovedFromUI(...)</code> calls <code>ConsumeCraftIngredients(...)</code>.</li>
+</ol>
+<p>This is a useful example of a read-only slot that does not accept incoming drop, but
+creates an item based on external logic that can be taken out.</p>
+<h2 id="when-to-use-this-example">When To Use This Example</h2>
+<ul>
+<li>you need an inventory with fixed indices</li>
+<li>you need crafting</li>
+<li>you need an output slot with an effect after extraction</li>
 </ul>
 
 
@@ -2033,7 +1958,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Volver al principio
+  Back to top
 </button>
         
       </main>
@@ -2065,12 +1990,12 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../../../javascripts/lang-switch-prefix-fix.js"></script>
+        <script src="../../javascripts/lang-switch-prefix-fix.js"></script>
       
     
   </body>

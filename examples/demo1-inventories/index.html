@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -670,7 +674,7 @@
   <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the demo shows
+        What The Demo Shows
       
     </span>
   </a>
@@ -681,7 +685,7 @@
   <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it is structured
+        How It Is Structured
       
     </span>
   </a>
@@ -692,7 +696,7 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
+        How It Works
       
     </span>
   </a>
@@ -700,21 +704,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#files-to-inspect" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files to inspect
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-to-use-this-as-a-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use this as a starting point
+        When To Use This Example
       
     </span>
   </a>
@@ -765,14 +758,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1688,7 +1709,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1795,7 +1816,7 @@
   <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the demo shows
+        What The Demo Shows
       
     </span>
   </a>
@@ -1806,7 +1827,7 @@
   <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it is structured
+        How It Is Structured
       
     </span>
   </a>
@@ -1817,7 +1838,7 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
+        How It Works
       
     </span>
   </a>
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#files-to-inspect" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files to inspect
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-to-use-this-as-a-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use this as a starting point
+        When To Use This Example
       
     </span>
   </a>
@@ -1874,72 +1884,45 @@
 </div>
 
 <p><code>Examples/Demo1 Inventories/InventoriesDemo.unity</code></p>
-<p>This is the most basic sample in the asset. It shows an inventory without separate game logic, economy, or world integration.</p>
-<h2 id="what-the-demo-shows">What the demo shows</h2>
+<p>This is the most basic asset example. It shows an inventory without separate game
+logic, economy, or world integration.</p>
+<h2 id="what-the-demo-shows">What The Demo Shows</h2>
 <ul>
-<li>a simple <code>List&lt;ItemExampleSO&gt;</code></li>
+<li>a simple <code>ItemExampleSO</code> list</li>
 <li><code>ListInventoryDataBinding&lt;ItemExampleSO, ItemAdapterSoAdapter&gt;</code></li>
 <li>loading a list into <code>UniversalInventory</code></li>
-<li>syncing UI changes back into data</li>
+<li>synchronizing UI changes back to data</li>
 <li>local <code>CanStartDrag</code> and <code>CanDrop</code> overrides</li>
 </ul>
-<h2 id="how-it-is-structured">How it is structured</h2>
-<p>Main pieces:</p>
+<h2 id="how-it-is-structured">How It Is Structured</h2>
+<p>Main parts:</p>
 <ul>
 <li><code>ItemExampleSO.cs</code> — item data</li>
 <li><code>Adapters/ItemAdapterSoAdapter.cs</code> — UI-layer adapter</li>
-<li><code>DataBindings/ItemsSOInventoryDataBinding.cs</code> — binding between the data list and the inventory</li>
+<li><code>DataBindings/ItemsSOInventoryDataBinding.cs</code> — binding between the data list and inventory</li>
 <li><code>SO/Rules/*</code> — example rule preset</li>
 </ul>
-<p>Architecturally this is the shortest chain in the project:</p>
 <pre class="mermaid"><code>flowchart LR
     Data["List&lt;ItemExampleSO&gt;"] &lt;--&gt; Binding["ItemsSOInventoryDataBinding"] &lt;--&gt; UI["UniversalInventory"]</code></pre>
-<p>There is no separate domain service here. The binding reads the list, creates adapters, and syncs changes back into the same list.</p>
-<h2 id="how-it-works">How it works</h2>
+<p>The binding reads the list, creates adapters, and synchronizes changes back into the
+same list.</p>
+<h2 id="how-it-works">How It Works</h2>
 <ol>
 <li><code>GetItems()</code> returns the <code>items</code> list.</li>
-<li><code>ReloadUI()</code> builds UI stacks via <code>CreateAdapter(...)</code>.</li>
-<li>Drag and drop runs through the standard pipeline.</li>
-<li>After a successful transfer the binding receives add/remove callbacks.</li>
-<li><code>AddToData(...)</code> and <code>RemoveFromData(...)</code> update the source list.</li>
+<li><code>ReloadUI()</code> builds the initial UI stacks from that list through <code>CreateAdapter(...)</code>.
+   You can call it when data changes to redraw the inventory, but <code>ListInventoryDataBinding</code>
+   does not preserve positions.</li>
+<li>After a successful transfer, the inventory calls the binding's <code>AddToData(...)</code> and
+   <code>RemoveFromData(...)</code>, updating the source list.</li>
 </ol>
-<p>The demo also shows where simple local restrictions fit best:</p>
+<p>The example also shows where to add simple local restrictions:</p>
 <ul>
-<li><code>CanStartDrag(...)</code> — block drag from a specific inventory</li>
-<li><code>CanDrop(...)</code> — block drop into a specific inventory</li>
+<li><code>CanStartDrag(...)</code> — block dragging from a specific inventory</li>
+<li><code>CanDrop(...)</code> — block dropping into a specific inventory</li>
 </ul>
-<h2 id="files-to-inspect">Files to inspect</h2>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DataBindings/ItemsSOInventoryDataBinding.cs</code></td>
-<td>main binding of the sample</td>
-</tr>
-<tr>
-<td><code>Adapters/ItemAdapterSoAdapter.cs</code></td>
-<td>adapter for <code>ItemExampleSO</code></td>
-</tr>
-<tr>
-<td><code>ItemExampleSO.cs</code></td>
-<td>item data model</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/ListInventoryDataBinding.cs</code></td>
-<td>base class for list-based bindings</td>
-</tr>
-</tbody>
-</table>
-<h2 id="when-to-use-this-as-a-starting-point">When to use this as a starting point</h2>
+<h2 id="when-to-use-this-example">When To Use This Example</h2>
 <ul>
-<li>you need a first inventory without a complex domain model</li>
-<li>you want to understand the <code>ListInventoryDataBinding</code> lifecycle</li>
-<li>you want a quick place to test rules or visual setup</li>
+<li>you need a first inventory without a complex model</li>
 </ul>
 
 
@@ -1996,7 +1979,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

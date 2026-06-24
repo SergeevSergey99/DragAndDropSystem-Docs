@@ -31,7 +31,7 @@
     
     
       
-        <title>Example: Free-Form Layout - Drag & Drop Inventory System</title>
+        <title>Free-Form Slot Layout - Drag & Drop Inventory System</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#example-free-form-layout" class="md-skip">
+        <a href="#free-form-slot-layout" class="md-skip">
           Skip to content
         </a>
       
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -118,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Example: Free-Form Layout
+              Free-Form Slot Layout
             
           </span>
         </div>
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1277,7 +1309,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1295,7 +1327,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1319,6 +1351,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Does
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
@@ -1355,10 +1398,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-configure-the-inventory" class="md-nav__link">
+  <a href="#1-configure-universalinventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Configure the inventory
+        1. Configure UniversalInventory
       
     </span>
   </a>
@@ -1404,10 +1447,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lifecycle" class="md-nav__link">
+  <a href="#saving-positions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Lifecycle
+        Saving Positions
       
     </span>
   </a>
@@ -1415,21 +1458,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extension-position-persistence" class="md-nav__link">
+  <a href="#overlap-resolution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extension: Position Persistence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#overlap-avoidance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overlap Avoidance
+        Overlap Resolution
       
     </span>
   </a>
@@ -1445,44 +1477,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Building Your Own Layout">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#available-hooks" class="md-nav__link">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ideas-for-other-layouts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Available Hooks
+        Ideas For Other Layouts
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#implementation-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation Pattern
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-layout-ideas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom Layout Ideas
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1637,7 +1641,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1665,7 +1669,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1810,7 +1814,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1914,6 +1918,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1948,10 +1963,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-configure-the-inventory" class="md-nav__link">
+  <a href="#1-configure-universalinventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Configure the inventory
+        1. Configure UniversalInventory
       
     </span>
   </a>
@@ -1997,10 +2012,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lifecycle" class="md-nav__link">
+  <a href="#saving-positions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Lifecycle
+        Saving Positions
       
     </span>
   </a>
@@ -2008,21 +2023,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extension-position-persistence" class="md-nav__link">
+  <a href="#overlap-resolution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extension: Position Persistence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#overlap-avoidance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overlap Avoidance
+        Overlap Resolution
       
     </span>
   </a>
@@ -2038,44 +2042,16 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Building Your Own Layout">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#available-hooks" class="md-nav__link">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ideas-for-other-layouts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Available Hooks
+        Ideas For Other Layouts
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#implementation-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation Pattern
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-layout-ideas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom Layout Ideas
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2107,29 +2083,39 @@
 
 
 
-<h1 id="example-free-form-layout">Example: Free-Form Layout</h1>
-<p><code>FreeFormSlotLayout</code> is an example component that demonstrates how to build a free-form inventory layout on top of the core drag-and-drop pipeline. Items appear where the player drops them, slots are created dynamically, and overlapping drops are shifted to the nearest free position.</p>
-<hr />
+<h1 id="free-form-slot-layout">Free-Form Slot Layout</h1>
+<p><code>FreeFormSlotLayout</code> shows how to build an inventory where an item appears near the drop point instead of the next grid cell.</p>
+<p>This is a UI layout example on top of normal transfer behavior. Item transfer does not change: the inventory still decides whether it can accept the item, creates a slot, and places the stack. <code>FreeFormSlotLayout</code> only chooses the screen position for the created slot.</p>
+<h2 id="what-it-does">What It Does</h2>
+<ul>
+<li>the player drops an item on the inventory area</li>
+<li>the inventory creates a dynamic slot</li>
+<li>the slot is placed near the drop point</li>
+<li>if the position is occupied, the slot is moved to the nearest free position</li>
+<li>on load or <code>ReloadUI</code>, all slots are arranged without overlap</li>
+</ul>
 <h2 id="how-it-works">How It Works</h2>
-<pre class="mermaid"><code>flowchart LR
-    subgraph Initialization
-        E["ReloadUI /\ndata load"] --&gt; F["ArrangeAllSlots()"]
-        F --&gt; G["Slots arranged\nin grid without overlap"]
-    end
-
-    subgraph Drop
-        A["Player drops\nitem on area"] --&gt; B["Mouse coordinates\ncaptured"]
-        B --&gt; C["Dynamic slot\ncreated"]
-        C --&gt; D["Slot positioned\nat drop point"]
-    end
-
-    Initialization ~~~ Drop</code></pre>
-<p>Key idea: coordinates are <strong>not passed</strong> through the transfer pipeline (policy / planner / executor). Positioning is a pure UI concern, solved through two hooks:</p>
-<ol>
-<li><code>DragAndDropManager.OnDropAttempting</code> --- capture mouse position.</li>
-<li><code>UniversalInventory.OnSlotCreated</code> --- position the new slot at the captured coordinates.</li>
-</ol>
-<hr />
+<p>Drop coordinates are not passed into transfer logic. They stay in the UI layer.</p>
+<p>The component uses two events:</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UDNDEvents.OnDropAttempting</code></td>
+<td>Remember the mouse position before drop processing</td>
+</tr>
+<tr>
+<td><code>UniversalInventory.OnSlotCreated</code></td>
+<td>Place the new slot at the remembered position</td>
+</tr>
+</tbody>
+</table>
+<p>If a slot is created outside a drop flow, the component arranges it with the default layout pass.</p>
 <h2 id="components">Components</h2>
 <table>
 <thead>
@@ -2140,118 +2126,78 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>FreeFormSlotLayout</strong></td>
-<td>Example component: positions dynamically created slots at the drop point during drag, resolves overlap, and arranges them in a grid during initialization</td>
+<td><code>FreeFormSlotLayout</code></td>
+<td>Positions dynamically created slots and resolves overlap</td>
 </tr>
 <tr>
-<td><strong>InventoryDropArea</strong></td>
-<td>Standard drop area --- no modifications needed</td>
+<td><code>InventoryDropArea</code></td>
+<td>Accepts drops on the inventory area</td>
 </tr>
 <tr>
-<td><strong>UniversalInventory</strong></td>
-<td>Inventory with <code>Dynamic</code> slots. Provides the <code>OnSlotCreated</code> event and access to <code>SlotContainer</code></td>
+<td><code>UniversalInventory</code></td>
+<td>Runs in <code>Dynamic</code> mode and creates slots when needed</td>
 </tr>
 </tbody>
 </table>
-<hr />
 <h2 id="setup">Setup</h2>
-<h3 id="1-configure-the-inventory">1. Configure the inventory</h3>
-<p>On <code>UniversalInventory</code>, set:</p>
+<h3 id="1-configure-universalinventory">1. Configure <code>UniversalInventory</code></h3>
+<p>Set:</p>
 <ul>
 <li><strong>Slot Management</strong> = <code>Dynamic</code></li>
-<li><strong>Max Free Slots</strong> = <code>0</code> (slots are created only on drop, not in advance)</li>
-<li><strong>Max Dynamic Slots</strong> --- maximum number of items</li>
+<li><strong>Max Free Slots</strong> = <code>0</code> if slots should appear only after drop</li>
+<li><strong>Max Dynamic Slots</strong> = maximum item count for this inventory</li>
 </ul>
-<h3 id="2-remove-layoutgroup">2. Remove LayoutGroup</h3>
-<p>The slot container (<code>_slotContainer</code>) <strong>must not have</strong> any <code>LayoutGroup</code> components (<code>HorizontalLayoutGroup</code>, <code>VerticalLayoutGroup</code>, <code>GridLayoutGroup</code>). Otherwise, the LayoutGroup will overwrite slot positions.</p>
-<h3 id="3-add-freeformslotlayout">3. Add FreeFormSlotLayout</h3>
-<p>Add the <code>FreeFormSlotLayout</code> component to the same GameObject as <code>UniversalInventory</code>. Configure:</p>
-<ul>
-<li><strong>UI Camera</strong> --- camera for UI. Leave empty for Screen Space - Overlay Canvas.</li>
-<li><strong>Slot Spacing</strong> --- minimum spacing between slots during auto-layout.</li>
-<li><strong>Bounds Override</strong> --- RectTransform that constrains slot positions. If not set --- the slot container is used.</li>
-</ul>
-<h3 id="4-add-inventorydroparea">4. Add InventoryDropArea</h3>
-<p>Standard <code>InventoryDropArea</code> --- no subclasses needed.</p>
-<hr />
-<h2 id="lifecycle">Lifecycle</h2>
-<pre class="mermaid"><code>flowchart LR
-    subgraph Drop["Item Drop"]
-        A["Player releases item"] --&gt; B["InventoryDropArea calls CompleteDrag()"]
-        B --&gt; C["DragAndDropManager: OnDropAttempting"]
-        C --&gt; D["FreeFormSlotLayout stores Input.mousePosition"]
-        D --&gt; E["UniversalInventory: ProcessDrop → Planner → Executor"]
-        E --&gt; F["CreateSlot() for a dynamic slot"]
-        F --&gt; G["OnSlotCreated(slot)"]
-        G --&gt; H["Convert screen → local and ClampToBounds"]
-        H --&gt; I["slot.anchoredPosition = dropPos"]
-    end
-
-    subgraph Init["Initialization / ReloadUI"]
-        J["Call ArrangeAllSlots()"] --&gt; K["FreeFormSlotLayout arranges slots in a grid"]
-    end</code></pre>
-<hr />
-<h2 id="extension-position-persistence">Extension: Position Persistence</h2>
-<p><code>FreeFormSlotLayout</code> provides utilities for working with normalized coordinates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// Save: get position as 0..1</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">normalized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">layout</span><span class="p">.</span><span class="n">GetNormalizedPosition</span><span class="p">(</span><span class="n">slot</span><span class="p">);</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">myModel</span><span class="p">.</span><span class="n">SavePosition</span><span class="p">(</span><span class="n">slot</span><span class="p">.</span><span class="n">Index</span><span class="p">,</span><span class="w"> </span><span class="n">normalized</span><span class="p">);</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1">// Restore: convert normalized back to local</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">layout</span><span class="p">.</span><span class="n">NormalizedToLocal</span><span class="p">(</span><span class="n">savedNormalized</span><span class="p">);</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">layout</span><span class="p">.</span><span class="n">SetSlotPosition</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="n">local</span><span class="p">);</span>
-</code></pre></div>
-<p>Normalized coordinates are independent of container size --- positions scale correctly across resolutions.</p>
-<hr />
-<h2 id="overlap-avoidance">Overlap Avoidance</h2>
-<p>The example now includes built-in overlap resolution. If the drop point is already occupied, <code>FreeFormSlotLayout</code> searches neighboring positions in expanding rings and picks the nearest free slot position inside bounds.</p>
-<hr />
-<h2 id="building-your-own-layout">Building Your Own Layout</h2>
-<p><code>FreeFormSlotLayout</code> is intentionally presented as an example, not as a required built-in layout mode. Here are the extension points through which any layout logic can be built:</p>
-<h3 id="available-hooks">Available Hooks</h3>
+<h3 id="2-remove-layoutgroup">2. Remove <code>LayoutGroup</code></h3>
+<p>The slot container (<code>_slotContainer</code>) must not have <code>HorizontalLayoutGroup</code>, <code>VerticalLayoutGroup</code>, or <code>GridLayoutGroup</code>.</p>
+<p>Unity <code>LayoutGroup</code> overwrites child positions, so it conflicts with free-form layout.</p>
+<h3 id="3-add-freeformslotlayout">3. Add <code>FreeFormSlotLayout</code></h3>
+<p>Add the component to the same GameObject as <code>UniversalInventory</code>.</p>
+<p>Settings:</p>
 <table>
 <thead>
 <tr>
-<th>Hook</th>
-<th>When It Fires</th>
-<th>What To Use It For</th>
+<th>Field</th>
+<th>What it does</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>UniversalInventory.OnSlotCreated</code></td>
-<td>After slot creation (<code>Instantiate</code> + <code>Initialize</code>)</td>
-<td>Positioning, visual initialization</td>
+<td><strong>UI Camera</strong></td>
+<td>UI camera. Leave empty for Screen Space - Overlay</td>
 </tr>
 <tr>
-<td><code>DragAndDropManager.OnDropAttempting</code></td>
-<td>Before drop processing</td>
-<td>Capture mouse coordinates, prepare state</td>
+<td><strong>Slot Spacing</strong></td>
+<td>Minimum spacing between slots</td>
 </tr>
 <tr>
-<td><code>DragAndDropManager.OnDropCompleted</code></td>
-<td>After successful transfer</td>
-<td>Post-processing, animations, layout updates</td>
-</tr>
-<tr>
-<td><code>DragAndDropManager.OnDragCancelled</code></td>
-<td>Drop cancelled</td>
-<td>Reset pending state</td>
-</tr>
-<tr>
-<td><code>UniversalInventory.OnItemAdded</code></td>
-<td>Item added to a slot</td>
-<td>React to content changes</td>
+<td><strong>Bounds Override</strong></td>
+<td>RectTransform that bounds slot positions. If empty, the slot container is used</td>
 </tr>
 </tbody>
 </table>
-<h3 id="implementation-pattern">Implementation Pattern</h3>
-<p>Any custom layout follows the same principle:</p>
+<h3 id="4-add-inventorydroparea">4. Add <code>InventoryDropArea</code></h3>
+<p>The standard <code>InventoryDropArea</code> is enough. You do not need a custom drop target for this scenario.</p>
+<h2 id="saving-positions">Saving Positions</h2>
+<p><code>FreeFormSlotLayout</code> can convert positions to normalized <code>0..1</code> coordinates. These are convenient to store in your data.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// Save: local position -&gt; normalized 0..1</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">normalized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">layout</span><span class="p">.</span><span class="n">GetNormalizedPosition</span><span class="p">(</span><span class="n">slot</span><span class="p">);</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">myModel</span><span class="p">.</span><span class="n">SavePosition</span><span class="p">(</span><span class="n">slot</span><span class="p">.</span><span class="n">Index</span><span class="p">,</span><span class="w"> </span><span class="n">normalized</span><span class="p">);</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1">// Load: normalized 0..1 -&gt; local position</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">layout</span><span class="p">.</span><span class="n">NormalizedToLocal</span><span class="p">(</span><span class="n">savedNormalized</span><span class="p">);</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">layout</span><span class="p">.</span><span class="n">SetSlotPosition</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="n">local</span><span class="p">);</span>
+</code></pre></div>
+<p>Normalized coordinates survive container size changes: the slot stays in roughly the same place relative to the inventory area.</p>
+<h2 id="overlap-resolution">Overlap Resolution</h2>
+<p>If the drop position is occupied, the component checks nearby positions around it and chooses the nearest free position inside the allowed bounds.</p>
+<p>This behavior is suitable for the example and small inventories. If you need another algorithm, use the same events and replace the position calculation.</p>
+<h2 id="building-your-own-layout">Building Your Own Layout</h2>
+<p>A custom layout usually follows this pattern:</p>
 <ol>
-<li><strong>Component on the inventory</strong> --- <code>MonoBehaviour</code> with <code>[RequireComponent(typeof(UniversalInventory))]</code>.</li>
-<li><strong>Subscribe to <code>OnSlotCreated</code></strong> --- position the slot immediately after creation.</li>
-<li><strong>Subscribe to global events</strong> --- capture context (coordinates, state) before drop processing.</li>
-<li><strong><code>ArrangeAllSlots()</code> method</strong> --- for initial layout and recalculation after ReloadUI.</li>
+<li>Create a component next to <code>UniversalInventory</code>.</li>
+<li>Subscribe to <code>UniversalInventory.OnSlotCreated</code>.</li>
+<li>Optionally subscribe to <code>UDNDEvents.OnDropAttempting</code> to remember the drop position.</li>
+<li>Recalculate all slot positions in <code>ArrangeAllSlots()</code> after load or <code>ReloadUI</code>.</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">[RequireComponent(typeof(UniversalInventory))]</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomLayout</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MonoBehaviour</span>
@@ -2263,66 +2209,61 @@
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">OnEnable</span><span class="p">()</span>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="n">_inventory</span><span class="p">.</span><span class="n">OnSlotCreated</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">HandleSlotCreated</span><span class="p">;</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">        </span><span class="c1">// + subscribe to DragAndDropManager events as needed</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDisable</span><span class="p">()</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">        </span><span class="n">_inventory</span><span class="p">.</span><span class="n">OnSlotCreated</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">HandleSlotCreated</span><span class="p">;</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">HandleSlotCreated</span><span class="p">(</span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">slot</span><span class="p">)</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="c1">// Your positioning logic</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">        </span><span class="kt">var</span><span class="w"> </span><span class="n">rt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slot</span><span class="p">.</span><span class="n">Transform</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RectTransform</span><span class="p">;</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">        </span><span class="n">rt</span><span class="p">.</span><span class="n">anchoredPosition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CalculatePosition</span><span class="p">(</span><span class="n">slot</span><span class="p">);</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">ArrangeAllSlots</span><span class="p">()</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">slot</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">_inventory</span><span class="p">.</span><span class="n">Slots</span><span class="p">)</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">        </span><span class="p">{</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">            </span><span class="kt">var</span><span class="w"> </span><span class="n">rt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slot</span><span class="p">.</span><span class="n">Transform</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RectTransform</span><span class="p">;</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">            </span><span class="n">rt</span><span class="p">.</span><span class="n">anchoredPosition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CalculatePosition</span><span class="p">(</span><span class="n">slot</span><span class="p">);</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">    </span><span class="n">Vector2</span><span class="w"> </span><span class="nf">CalculatePosition</span><span class="p">(</span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">slot</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* ... */</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">Vector2</span><span class="p">.</span><span class="n">zero</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="p">}</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDisable</span><span class="p">()</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="n">_inventory</span><span class="p">.</span><span class="n">OnSlotCreated</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">HandleSlotCreated</span><span class="p">;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">HandleSlotCreated</span><span class="p">(</span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">slot</span><span class="p">)</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="kt">var</span><span class="w"> </span><span class="n">rectTransform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slot</span><span class="p">.</span><span class="n">Transform</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RectTransform</span><span class="p">;</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="n">rectTransform</span><span class="p">.</span><span class="n">anchoredPosition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CalculatePosition</span><span class="p">(</span><span class="n">slot</span><span class="p">);</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">ArrangeAllSlots</span><span class="p">()</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">slot</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">_inventory</span><span class="p">.</span><span class="n">Slots</span><span class="p">)</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">        </span><span class="p">{</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">            </span><span class="kt">var</span><span class="w"> </span><span class="n">rectTransform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slot</span><span class="p">.</span><span class="n">Transform</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RectTransform</span><span class="p">;</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">            </span><span class="n">rectTransform</span><span class="p">.</span><span class="n">anchoredPosition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CalculatePosition</span><span class="p">(</span><span class="n">slot</span><span class="p">);</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">    </span><span class="n">Vector2</span><span class="w"> </span><span class="nf">CalculatePosition</span><span class="p">(</span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">slot</span><span class="p">)</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">Vector2</span><span class="p">.</span><span class="n">zero</span><span class="p">;</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="p">}</span>
 </code></pre></div>
-<h3 id="custom-layout-ideas">Custom Layout Ideas</h3>
+<h2 id="ideas-for-other-layouts">Ideas For Other Layouts</h2>
 <table>
 <thead>
 <tr>
-<th>Layout</th>
+<th>Option</th>
 <th>Idea</th>
-<th>Key Logic</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Circular</strong></td>
-<td>Slots along a circle</td>
-<td><code>angle = slot.Index * (360f / totalSlots)</code></td>
+<td>Circular</td>
+<td>Place slots around a circle</td>
 </tr>
 <tr>
-<td><strong>Snap Grid</strong></td>
-<td>Free drop, but snap to grid</td>
-<td>Round drop coordinates to nearest cell</td>
+<td>Snap Grid</td>
+<td>Drop freely, but snap the final position to the nearest cell</td>
 </tr>
 <tr>
-<td><strong>Physics</strong></td>
-<td>Slots "fall" with physics</td>
-<td>Add Rigidbody2D to slots, disable kinematic</td>
+<td>Physics</td>
+<td>Give slots physics behavior</td>
 </tr>
 <tr>
-<td><strong>Radial Menu</strong></td>
-<td>Slots fanning out from center</td>
-<td>Position = direction from center * radius</td>
+<td>Radial Menu</td>
+<td>Place slots in a fan from the center</td>
 </tr>
 </tbody>
 </table>
-<hr />
 <h2 id="reference">Reference</h2>
 <table>
 <thead>
@@ -2334,23 +2275,23 @@
 <tbody>
 <tr>
 <td><code>FreeFormSlotLayout</code></td>
-<td>Example component for free-form slot placement with overlap resolution</td>
+<td>Example component for free-form slot UI layout</td>
 </tr>
 <tr>
 <td><code>UniversalInventory.OnSlotCreated</code></td>
-<td>Slot creation event --- the main hook for layout systems</td>
+<td>Main hook for positioning a new slot</td>
 </tr>
 <tr>
 <td><code>UniversalInventory.SlotContainer</code></td>
-<td>Access to the Transform container for coordinate conversion</td>
+<td>Container used for coordinate calculations</td>
 </tr>
 <tr>
 <td><code>InventoryDropArea</code></td>
-<td>Standard drop area, works without modifications</td>
+<td>Standard inventory drop area</td>
 </tr>
 <tr>
-<td><code>DynamicSlotDecorator</code></td>
-<td>Strategy decorator: automatically creates slots when needed</td>
+<td><code>DynamicSlotManagementSettings</code></td>
+<td>Mode that creates slots when needed</td>
 </tr>
 </tbody>
 </table>
@@ -2409,7 +2350,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

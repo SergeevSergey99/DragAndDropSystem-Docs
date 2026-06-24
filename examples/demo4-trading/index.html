@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../demo3-minecraft/">
+        <link rel="prev" href="../demo3-Craft/">
       
       
         <link rel="next" href="../demo5-containers/">
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -663,14 +667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -754,7 +758,7 @@
   <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the demo shows
+        What The Demo Shows
       
     </span>
   </a>
@@ -765,7 +769,7 @@
   <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it is structured
+        How It Is Structured
       
     </span>
   </a>
@@ -776,7 +780,7 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
+        How It Works
       
     </span>
   </a>
@@ -784,21 +788,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#files-to-inspect" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files to inspect
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-to-use-this-as-a-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use this as a starting point
+        When To Use This Example
       
     </span>
   </a>
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1688,7 +1709,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1795,7 +1816,7 @@
   <a href="#what-the-demo-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the demo shows
+        What The Demo Shows
       
     </span>
   </a>
@@ -1806,7 +1827,7 @@
   <a href="#how-it-is-structured" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it is structured
+        How It Is Structured
       
     </span>
   </a>
@@ -1817,7 +1838,7 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
+        How It Works
       
     </span>
   </a>
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#files-to-inspect" class="md-nav__link">
+  <a href="#when-to-use-this-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Files to inspect
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-to-use-this-as-a-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When to use this as a starting point
+        When To Use This Example
       
     </span>
   </a>
@@ -1874,17 +1884,16 @@
 </div>
 
 <p><code>Examples/Demo4 Trading/TradingDemo.unity</code></p>
-<p>This is the most feature-rich demo in the package. It combines cross-model transfers, economy rules, and fixed-slot equipment in one scene.</p>
-<h2 id="what-the-demo-shows">What the demo shows</h2>
+<p>This demo shows transfer between different models, economy, and equipment with fixed
+slots in one scene.</p>
+<h2 id="what-the-demo-shows">What The Demo Shows</h2>
 <ul>
 <li>player inventory, merchant inventory, and equipment slots</li>
-<li>converters between different item models</li>
-<li>price and gold validation at commit time</li>
-<li>separation of mechanical validation and domain side effects</li>
+<li>conversion between different item models</li>
+<li>price and money checks during transfer</li>
 <li><code>MappedSlotInventoryDataBinding</code> for equipment</li>
-<li>cross-inventory swap with bidirectional conversion</li>
 </ul>
-<h2 id="how-it-is-structured">How it is structured</h2>
+<h2 id="how-it-is-structured">How It Is Structured</h2>
 <p>Data and economy:</p>
 <ul>
 <li><code>Data/PlayerData.cs</code></li>
@@ -1915,71 +1924,27 @@
     PlayerBinding === Domain
     PlayerBinding &lt;--&gt; PlayerUI["Player Inventory UI"]
     EquipmentBinding &lt;--&gt; EquipUI["Equipment UI"]</code></pre>
-<h2 id="how-it-works">How it works</h2>
+<h2 id="how-it-works">How It Works</h2>
 <p>Buying from a merchant:</p>
 <ol>
 <li>Drag starts from the merchant inventory.</li>
-<li>Target-side preview and a converter prepare the item representation for the player inventory.</li>
-<li>Mechanical validation checks placement.</li>
-<li>Domain validation checks gold and trade constraints.</li>
-<li>After a successful commit the bindings update player and merchant data.</li>
-<li>Side effects update gold and related values.</li>
-</ol>
-<p>Swap between merchant and equipment/player inventory:</p>
-<ol>
-<li>The planner detects that normal placement is impossible and marks the entry as <code>RequiresSwap</code>.</li>
-<li>The executor validates both directions on target-side converted preview stacks.</li>
-<li>It then captures copies of both stacks and converts them in both directions.</li>
-<li>The opposite slots receive already converted stacks, not raw adapters.</li>
-<li>Because of that, the next drag from those slots does not fail with <code>Wrong item type</code>.</li>
+<li>On drop, the converter prepares the item representation for the player inventory.</li>
+<li>Validation checks money and trade restrictions.</li>
+<li>After a successful transfer, bindings update player and merchant data.</li>
+<li>Side effects change gold and related values.</li>
 </ol>
 <p>Equipment:</p>
 <ol>
-<li>An item is dropped onto a fixed slot.</li>
+<li>The item is dragged into a fixed slot.</li>
 <li><code>EquipmentInventoryDataBinding</code> checks <code>PrimaryAdapter</code> and slot-specific <code>canDrop</code>.</li>
-<li>On success the matching field in <code>PlayerData</code> is synchronized with that slot.</li>
+<li>On success, the concrete field in <code>PlayerData</code> synchronizes with the target slot.</li>
 </ol>
-<h2 id="files-to-inspect">Files to inspect</h2>
-<table>
-<thead>
-<tr>
-<th>File</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Data/TradingEconomyManager.cs</code></td>
-<td>central economy</td>
-</tr>
-<tr>
-<td><code>DataBindings/PlayerInventoryDataBinding.cs</code></td>
-<td>player inventory binding</td>
-</tr>
-<tr>
-<td><code>DataBindings/MerchantInventoryDataBinding.cs</code></td>
-<td>merchant inventory binding</td>
-</tr>
-<tr>
-<td><code>DataBindings/EquipmentInventoryDataBinding.cs</code></td>
-<td>fixed-slot equipment</td>
-</tr>
-<tr>
-<td><code>DataBindings/TradingHelper.cs</code></td>
-<td>domain checks and side effects</td>
-</tr>
-<tr>
-<td><code>Converters/*</code></td>
-<td>model conversion</td>
-</tr>
-</tbody>
-</table>
-<h2 id="when-to-use-this-as-a-starting-point">When to use this as a starting point</h2>
+<h2 id="when-to-use-this-example">When To Use This Example</h2>
 <ul>
-<li>you need different data models on different sides of a transfer boundary</li>
+<li>you need different data models on different sides of a transfer</li>
 <li>you need item conversion during transfer</li>
-<li>you need correct cross-inventory swap between different adapter models</li>
-<li>you need prices, gold, and commit-time validation</li>
+<li>you need correct exchange between inventories with different adapter models</li>
+<li>you need prices, money, and transfer-time checks</li>
 <li>you need fixed slots on top of a regular inventory</li>
 </ul>
 <p>Related pages:</p>
@@ -2042,7 +2007,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

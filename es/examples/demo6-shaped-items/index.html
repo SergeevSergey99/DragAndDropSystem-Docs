@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="ru" class="no-js">
+<html lang="es" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -11,14 +11,18 @@
       
       
       
+        <link rel="prev" href="../demo5-containers/">
+      
+      
+        <link rel="next" href="../../architecture/data-binding/">
       
       
         
-          <link rel="alternate" href="../../../examples/equipment/" hreflang="en">
+          <link rel="alternate" href="../../../examples/demo6-shaped-items/" hreflang="en">
         
-          <link rel="alternate" href="./" hreflang="ru">
+          <link rel="alternate" href="../../../ru/examples/demo6-shaped-items/" hreflang="ru">
         
-          <link rel="alternate" href="../../../es/examples/equipment/" hreflang="es">
+          <link rel="alternate" href="./" hreflang="es">
         
       
       
@@ -27,7 +31,7 @@
     
     
       
-        <title>Экипировка - Drag & Drop Inventory System</title>
+        <title>Demo6 Shaped Items - Drag & Drop Inventory System</title>
       
     
     
@@ -80,8 +84,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
-          Перейти к содержанию
+        <a href="#demo6-shaped-items" class="md-skip">
+          Saltar a contenido
         </a>
       
     </div>
@@ -89,11 +93,15 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
     <a href="../../" title="Drag &amp; Drop Inventory System" class="md-header__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
   
@@ -114,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Экипировка
+              Demo6 Shaped Items
             
           </span>
         </div>
@@ -154,26 +162,26 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Выберите язык">
+    <button class="md-header__button md-icon" aria-label="Seleccionar idioma">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../examples/equipment/" hreflang="en" class="md-select__link">
+            <a href="../../../examples/demo6-shaped-items/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="ru" class="md-select__link">
+            <a href="../../../ru/examples/demo6-shaped-items/" hreflang="ru" class="md-select__link">
               Русский
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../../es/examples/equipment/" hreflang="es" class="md-select__link">
+            <a href="./" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -194,16 +202,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Buscar">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -214,7 +222,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Inicializando búsqueda
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +243,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -251,7 +259,7 @@
           
   
   
-  Главная
+  Inicio
 
         </a>
       </li>
@@ -263,15 +271,17 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../" class="md-tabs__link">
           
   
   
-  Примеры
+  Ejemplos
 
         </a>
       </li>
@@ -291,7 +301,7 @@
           
   
   
-  Основные концепции
+  Conceptos clave
 
         </a>
       </li>
@@ -311,7 +321,7 @@
           
   
   
-  Продвинутые системы
+  Sistemas avanzados
 
         </a>
       </li>
@@ -331,7 +341,7 @@
           
   
   
-  Справочник
+  Referencia
 
         </a>
       </li>
@@ -351,7 +361,7 @@
           
   
   
-  Еще
+  Más
 
         </a>
       </li>
@@ -379,7 +389,7 @@
   
 
 
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../../" title="Drag &amp; Drop Inventory System" class="md-nav__button md-logo" aria-label="Drag & Drop Inventory System" data-md-component="logo">
       
@@ -424,7 +434,7 @@
   <span class="md-ellipsis">
     
   
-    Главная
+    Inicio
   
 
     
@@ -440,7 +450,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Главная
+    Inicio
   
 
           </label>
@@ -460,7 +470,7 @@
   <span class="md-ellipsis">
     
   
-    Введение
+    Introducción
   
 
     
@@ -488,7 +498,7 @@
   <span class="md-ellipsis">
     
   
-    Быстрый старт
+    Quick Start
   
 
     
@@ -513,35 +523,38 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Примеры
+    Ejemplos
   
 
     
@@ -552,12 +565,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Примеры
+    Ejemplos
   
 
           </label>
@@ -577,7 +590,7 @@
   <span class="md-ellipsis">
     
   
-    Примеры
+    Ejemplos
   
 
     
@@ -654,14 +667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -731,6 +744,136 @@
 
               
             
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#que-muestra-la-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qué muestra la demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#como-esta-estructurada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo está estructurada
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#como-funciona" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo funciona
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#formas-rectangulares-y-complejas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formas rectangulares y complejas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cuándo usar este ejemplo como base
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -770,7 +913,7 @@
   <span class="md-ellipsis">
     
   
-    Основные концепции
+    Conceptos clave
   
 
     
@@ -786,7 +929,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Основные концепции
+    Conceptos clave
   
 
           </label>
@@ -806,7 +949,7 @@
   <span class="md-ellipsis">
     
   
-    Привязка данных (DataBinding)
+    Data Binding
   
 
     
@@ -834,7 +977,7 @@
   <span class="md-ellipsis">
     
   
-    Шаблоны DataBinding
+    Binding Templates
   
 
     
@@ -862,7 +1005,7 @@
   <span class="md-ellipsis">
     
   
-    Конвейер переноса
+    Pipeline de transferencia
   
 
     
@@ -890,7 +1033,7 @@
   <span class="md-ellipsis">
     
   
-    Матрица Drop Policy
+    Drop Policy
   
 
     
@@ -918,7 +1061,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: конвертация предметов
+    Conversión de objetos
   
 
     
@@ -946,7 +1089,7 @@
   <span class="md-ellipsis">
     
   
-    Стратегии размещения
+    Estrategias de colocación
   
 
     
@@ -974,7 +1117,7 @@
   <span class="md-ellipsis">
     
   
-    Правила (Rules)
+    Rules
   
 
     
@@ -1002,7 +1145,7 @@
   <span class="md-ellipsis">
     
   
-    Зоны дропа (DropAreaBase)
+    Drop Areas (DropAreaBase)
   
 
     
@@ -1055,7 +1198,7 @@
   <span class="md-ellipsis">
     
   
-    Продвинутые системы
+    Sistemas avanzados
   
 
     
@@ -1071,7 +1214,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Продвинутые системы
+    Sistemas avanzados
   
 
           </label>
@@ -1091,7 +1234,7 @@
   <span class="md-ellipsis">
     
   
-    Выделение
+    Selección
   
 
     
@@ -1119,7 +1262,7 @@
   <span class="md-ellipsis">
     
   
-    Контекстное меню
+    Context Menu
   
 
     
@@ -1147,7 +1290,7 @@
   <span class="md-ellipsis">
     
   
-    Тултипы
+    Tooltips
   
 
     
@@ -1175,7 +1318,7 @@
   <span class="md-ellipsis">
     
   
-    Фильтрация и сортировка
+    Filtering and Sorting
   
 
     
@@ -1203,7 +1346,7 @@
   <span class="md-ellipsis">
     
   
-    Ввод и взаимодействие
+    Input and Interaction
   
 
     
@@ -1231,7 +1374,7 @@
   <span class="md-ellipsis">
     
   
-    3D мир
+    3D World
   
 
     
@@ -1259,7 +1402,7 @@
   <span class="md-ellipsis">
     
   
-    Пример: свободное размещение
+    Layout libre de slots
   
 
     
@@ -1312,7 +1455,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник
+    Referencia
   
 
     
@@ -1328,7 +1471,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Справочник
+    Referencia
   
 
           </label>
@@ -1348,7 +1491,7 @@
   <span class="md-ellipsis">
     
   
-    Опциональные интерфейсы
+    Interfaces opcionales
   
 
     
@@ -1376,7 +1519,7 @@
   <span class="md-ellipsis">
     
   
-    Карта файлов
+    Mapa de archivos
   
 
     
@@ -1404,7 +1547,7 @@
   <span class="md-ellipsis">
     
   
-    Справочник событий
+    Referencia de eventos
   
 
     
@@ -1432,7 +1575,7 @@
   <span class="md-ellipsis">
     
   
-    Логи и отладка
+    Logs y depuración
   
 
     
@@ -1513,7 +1656,7 @@
   <span class="md-ellipsis">
     
   
-    Еще
+    Más
   
 
     
@@ -1529,7 +1672,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Еще
+    Más
   
 
           </label>
@@ -1549,7 +1692,7 @@
   <span class="md-ellipsis">
     
   
-    Обратная связь
+    Feedback
   
 
     
@@ -1577,7 +1720,7 @@
   <span class="md-ellipsis">
     
   
-    Дополнительная поддержка
+    Soporte adicional
   
 
     
@@ -1605,7 +1748,7 @@
   <span class="md-ellipsis">
     
   
-    Планы на будущее
+    Planes futuros
   
 
     
@@ -1633,7 +1776,7 @@
   <span class="md-ellipsis">
     
   
-    Витрина проектов
+    Showcase
   
 
     
@@ -1667,7 +1810,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
   
   
   
@@ -1676,15 +1819,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Содержание
+      Tabla de contenidos
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#que-muestra-la-demo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Когда использовать
+        Qué muestra la demo
       
     </span>
   </a>
@@ -1692,10 +1835,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#como-esta-estructurada" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как это выглядит
+        Cómo está estructurada
       
     </span>
   </a>
@@ -1703,10 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#como-funciona" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Как пример устроен
+        Cómo funciona
       
     </span>
   </a>
@@ -1714,10 +1857,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#formas-rectangulares-y-complejas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Базовый шаблон
+        Formas rectangulares y complejas
       
     </span>
   </a>
@@ -1725,54 +1868,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Что здесь важно
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Как проходит перенос
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Типичный поток
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Что смотреть в коде
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Когда идти дальше
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -1796,178 +1895,69 @@
 
 
 
-<h1 id="_1">Экипировка</h1>
-<p>Этот сценарий нужен, когда у вас есть фиксированные слоты с назначением: оружие, броня, аксессуары, quickbar.</p>
-<p>В проекте этот паттерн показан на базе торгового демо:
-- <code>Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs</code></p>
-<p>Главная идея примера:
-- один UI-слот соответствует одному конкретному полю доменных данных
-- слот сам знает, какие предметы механически допустимы
-- drag/drop pipeline остаётся общим, а binding только синхронизирует fixed fields</p>
-<hr />
-<h2 id="_2">Когда использовать</h2>
-<p>Используйте <code>MappedSlotInventoryDataBinding</code>, если:</p>
+<h1 id="demo6-shaped-items">Demo6 Shaped Items</h1>
+<div class="showcase-video">
+    <iframe
+    src="https://www.youtube.com/embed/r6hML-y5wLg"
+    title="Project showcase video"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+    </iframe>
+</div>
+
+<p><code>Examples/Demo6 Shaped Items/Shaped Items.unity</code></p>
+<p>Este ejemplo muestra items que no ocupan un solo slot, sino un footprint de varias
+celdas en un inventario de grid.</p>
+<h2 id="que-muestra-la-demo">Qué muestra la demo</h2>
 <ul>
-<li>каждый слот соответствует конкретному полю данных</li>
-<li>слот может принимать только определённый тип предметов</li>
-<li>порядок слотов важен и не должен меняться автоматически</li>
+<li>items rectangulares como espada y escudo</li>
+<li>formas complejas mediante una máscara de celdas ocupadas, como hacha y guadaña</li>
+<li><code>PlacementInventoryDataBinding</code> para datos item + anchor + orientation</li>
+<li><code>IItemPlacementShapeProvider</code> en el adapter del item</li>
+<li>rotación del item durante drag mediante <code>RotateDragAction</code></li>
+<li>preview de celdas ocupadas y comprobación de placement mediante topología</li>
+<li>dibujo de items sobre los slots</li>
+<li>compatibilidad con inventarios y estrategias normales</li>
+<li>bonus: Editor para configurar máscaras de items</li>
 </ul>
-<p>Если вам нужен обычный список предметов без жёсткого назначения слотов, используйте <code>ListInventoryDataBinding</code> из <a href="../../getting-started/quick-start/">быстрого старта</a>.</p>
-<hr />
-<h2 id="_3">Как это выглядит</h2>
-<pre class="mermaid"><code>flowchart LR
-    W["Поле данных: Weapon"] &lt;--&gt; SW["Слот оружия"]
-    A["Поле данных: Armor"] &lt;--&gt; SA["Слот брони"]
-    R["Поле данных: Ring"] &lt;--&gt; SR["Слот кольца"]</code></pre>
-<hr />
-<h2 id="_4">Как пример устроен</h2>
-<p>В этом сценарии участвуют три слоя:</p>
+<h2 id="como-esta-estructurada">Cómo está estructurada</h2>
+<p>Datos de item:</p>
+<ul>
+<li><code>ShapedItemExampleSO.cs</code></li>
+<li><code>ComplexShapedItemExampleSO.cs</code></li>
+<li><code>SO/RectShapes/*</code></li>
+<li><code>SO/ComplexShapes/*</code></li>
+</ul>
+<p>Binding y adapter:</p>
+<ul>
+<li><code>Adapters/ShapedItemAdapter.cs</code></li>
+<li><code>DataBindings/ShapedItemsInventoryDataBinding.cs</code></li>
+</ul>
+<p>Utilidad de Editor:</p>
+<ul>
+<li><code>Editor/ComplexShapedItemExampleSOEditor.cs</code></li>
+</ul>
+<h2 id="como-funciona">Cómo funciona</h2>
+<p>Transferencia y rotación:</p>
 <ol>
-<li><code>UniversalInventory</code> и slot UI</li>
-<li><code>MappedSlotInventoryDataBinding</code></li>
-<li>доменная модель экипировки игрока</li>
+<li>Durante la transferencia, el sistema guarda forma, slot ancla y rotación en <code>DragEntry</code>.</li>
+<li><code>Q</code> y <code>E</code> en el perfil de la demo llaman a <code>RotateDragAction</code> con pasos de rotación <code>-1</code> y <code>1</code>, que en la grid corresponden a -90 y +90.</li>
+<li>Tras una transferencia exitosa, el binding escribe item, anchor y rotación de vuelta a la lista.</li>
 </ol>
-<pre class="mermaid"><code>flowchart LR
-    subgraph UI
-        INV["UniversalInventory"]
-        WS["Weapon Slot"]
-        AS["Armor Slot"]
-    end
-
-    subgraph Binding
-        B["EquipmentInventoryDataBinding"]
-    end
-
-    subgraph Domain
-        W["PlayerData.Weapon"]
-        A["PlayerData.Armor"]
-    end
-
-    INV --&gt; B
-    WS --&gt; B
-    AS --&gt; B
-    B &lt;--&gt; W
-    B &lt;--&gt; A</code></pre>
-<p>Как это работает:
-- UI хранит реальные <code>ItemStack</code> и даёт обычный drag/drop
-- binding знает, как сопоставить каждый слот конкретному полю
-- доменная модель не знает о UI-компонентах и не содержит логики drag/drop</p>
-<hr />
-<h2 id="_5">Базовый шаблон</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.DataBinding</span><span class="p">;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Rules</span><span class="p">;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Slots</span><span class="p">;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">EquipmentBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MappedSlotInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">{</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">UniversalSlot</span><span class="w"> </span><span class="n">_weaponSlot</span><span class="p">;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">UniversalSlot</span><span class="w"> </span><span class="n">_armorSlot</span><span class="p">;</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="p">;</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">;</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">Dictionary</span><span class="o">&lt;</span><span class="n">BaseSlot</span><span class="p">,</span><span class="w"> </span><span class="n">SlotBinding</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">CreateBindingMap</span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">()</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="na">[_weaponSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="p">,</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">EquipWeapon</span><span class="p">(</span><span class="n">adapter</span><span class="p">),</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedWeapon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">            </span><span class="n">canDrop</span><span class="p">:</span><span class="w"> </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ValidateWeapon</span><span class="p">(</span><span class="n">adapter</span><span class="p">)),</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="na">[_armorSlot]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">            </span><span class="k">get</span><span class="p">:</span><span class="w">   </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="p">,</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">            </span><span class="k">set</span><span class="p">:</span><span class="w">   </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">EquipArmor</span><span class="p">(</span><span class="n">adapter</span><span class="p">),</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">            </span><span class="n">clear</span><span class="p">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_equippedArmor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">,</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">            </span><span class="n">canDrop</span><span class="p">:</span><span class="w"> </span><span class="n">adapter</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ValidateArmor</span><span class="p">(</span><span class="n">adapter</span><span class="p">)),</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p">};</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">EquipWeapon</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* записать в модель данных */</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">EquipArmor</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* записать в модель данных */</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">ValidateWeapon</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="cm">/* проверить тип */</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">();</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">RuleResult</span><span class="w"> </span><span class="nf">ValidateArmor</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="cm">/* проверить тип */</span><span class="w"> </span><span class="n">RuleResult</span><span class="p">.</span><span class="n">Success</span><span class="p">();</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="p">}</span>
-</code></pre></div>
-<hr />
-<h2 id="_6">Что здесь важно</h2>
+<h2 id="formas-rectangulares-y-complejas">Formas rectangulares y complejas</h2>
+<p><code>ShapedItemExampleSO</code> describe un rectángulo normal mediante <code>Width</code> y <code>Height</code>. Su
+<code>GetOccupiedCells()</code> devuelve todas las celdas dentro del bounding box.</p>
+<p><code>ComplexShapedItemExampleSO</code> añade la máscara bool <code>_cells</code>. Permite formas L, T, cruz y
+otras donde algunas celdas dentro del bounding box están vacías. Si la máscara queda
+vacía por error, el item vuelve al rectángulo base para evitar un item sin footprint.</p>
+<p><code>ComplexShapedItemExampleSOEditor</code> dibuja una grid clicable sobre el icono del item: las
+celdas activadas cuentan como ocupadas, las desactivadas como vacías.</p>
+<h2 id="cuando-usar-este-ejemplo-como-base">Cuándo usar este ejemplo como base</h2>
 <ul>
-<li><code>get</code> читает текущее значение из вашей модели данных</li>
-<li><code>set</code> записывает предмет в конкретное поле</li>
-<li><code>clear</code> очищает поле, когда слот освобождается</li>
-<li><code>canDrop</code> отвечает только за механическую совместимость слота</li>
-</ul>
-<p><code>canDrop</code> подходит для правил вроде:</p>
-<ul>
-<li>только оружие в слот оружия</li>
-<li>только броня в слот брони</li>
-<li>только артефакты в два специальных слота</li>
-</ul>
-<p>Если вам нужна бизнес-логика уровня всей операции, например цена экипировки, серверная проверка или особые доменные ограничения, не помещайте её в <code>canDrop</code> или <code>CanDrop</code>. Для этого используйте transfer-level hooks, описанные в <a href="../../architecture/data-binding/">Data Binding Lifecycle</a>.</p>
-<hr />
-<h2 id="_7">Как проходит перенос</h2>
-<ol>
-<li>Игрок перетаскивает предмет в фиксированный слот.</li>
-<li><code>MappedSlotInventoryDataBinding.CanDrop(...)</code> берёт representative adapter (<code>PrimaryAdapter</code>) из стека.</li>
-<li>Binding находит <code>SlotBinding</code> для целевого слота.</li>
-<li><code>canDrop</code> проверяет механическую совместимость.</li>
-<li>Если перенос успешен, <code>OnItemRemovedFromUI</code> и <code>OnItemAddedToUI</code> обновляют конкретные поля доменной модели.</li>
-</ol>
-<hr />
-<h2 id="_8">Типичный поток</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Инвентарь игрока: CanDrop"] --&gt; B["EquipmentBinding вызывает canDrop(adapter)"]
-    B --&gt; C{"SlotBinding вернул успех или отказ"}
-    C --&gt;|Успех| D["Перенос выполнен"]
-    D --&gt; E["OnItemRemoved / OnItemAdded"]
-    E --&gt; F["Обновить поля Weapon / Armor в данных игрока"]</code></pre>
-<hr />
-<h2 id="_9">Что смотреть в коде</h2>
-<table>
-<thead>
-<tr>
-<th>Файл</th>
-<th>Роль</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Examples/Demo4 Trading/DataBindings/EquipmentInventoryDataBinding.cs</code></td>
-<td>fixed-slot binding</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/MappedSlotInventoryDataBinding.cs</code></td>
-<td>базовый шаблон slot-mapped binding</td>
-</tr>
-<tr>
-<td><code>Scripts/DataBinding/InventoryDataBindingBase.cs</code></td>
-<td>общий lifecycle hooks</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/InventoryDropProcessor.cs</code></td>
-<td>drop boundary между UI и transfer core</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/TransferPlanner.cs</code></td>
-<td>planner фаза</td>
-</tr>
-<tr>
-<td><code>Scripts/Inventories/TransferPlanExecutor.cs</code></td>
-<td>execution + rollback + events</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="_10">Когда идти дальше</h2>
-<ul>
-<li><a href="../../architecture/data-binding/">Привязка данных</a> — полный lifecycle и hooks</li>
-<li><a href="../trading/">Торговля</a> — если предметы ещё и конвертируются между разными моделями</li>
-<li><a href="../">Обзор раздела примеров</a> — если хотите выбрать другой сценарий</li>
+<li>los items deben ocupar varias celdas en un inventory grid</li>
+<li>necesitas guardar posición y orientación del item en tus datos</li>
+<li>necesitas rotación de items durante drag</li>
+<li>necesitas formas personalizadas, no solo rectángulos</li>
 </ul>
 
 
@@ -1992,7 +1982,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  К началу
+  Volver al principio
 </button>
         
       </main>
@@ -2024,7 +2014,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1310,6 +1342,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#legacy-input-manager-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Input Manager Bindings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#input-action-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1448,7 +1491,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1593,7 +1636,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1621,7 +1664,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1766,7 +1809,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1908,6 +1951,17 @@
     <span class="md-ellipsis">
       
         Pointer Bindings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-input-manager-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Input Manager Bindings
       
     </span>
   </a>
@@ -2075,7 +2129,7 @@
 <p>Thresholds are configured in <code>InputEventRouter</code>: <code>_longClickThresholdSeconds</code> (default 0.35 sec) and <code>_clickMoveTolerancePixels</code> (default 8 pixels).</p>
 <hr />
 <h2 id="binding-profiles">Binding Profiles</h2>
-<p>Bindings are configured via the ScriptableObject <code>InteractionBindingsProfile</code>. It contains pointer bindings, legacy key bindings, and optional Input Action bindings.</p>
+<p>Bindings are configured via the ScriptableObject <code>InteractionBindingsProfile</code>. It contains pointer bindings, legacy <code>KeyCode</code> bindings, legacy Input Manager button-name bindings, and optional Input Action bindings.</p>
 <h3 id="pointer-bindings">Pointer Bindings</h3>
 <p>Each binding consists of: mouse button + modifier + phase + action.</p>
 <table>
@@ -2126,6 +2180,32 @@
 </tr>
 </tbody>
 </table>
+<h3 id="legacy-input-manager-bindings">Legacy Input Manager Bindings</h3>
+<p>Use <code>LegacyInputActionBinding</code> when a project still relies on the old Input Manager and you want to bind by button name instead of <code>KeyCode</code>.
+Typical names are <code>Submit</code>, <code>Cancel</code>, or any custom button configured in <strong>Project Settings &gt; Input Manager</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Button Name</th>
+<th>Phase</th>
+<th>Typical Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Submit</td>
+<td>Down</td>
+<td>Auto-transfer or complete drag</td>
+</tr>
+<tr>
+<td>Cancel</td>
+<td>Down</td>
+<td>Cancel drag or close UI</td>
+</tr>
+</tbody>
+</table>
+<p>These bindings are polled by <code>InputEventRouter</code> and require Legacy Input Manager support to be enabled in Player Settings.
+They are separate from <code>InputActionBinding</code>, which belongs to the new Input System package.</p>
 <h3 id="input-action-bindings">Input Action Bindings</h3>
 <p>For optional hotkeys and gamepad-specific setups: bind an Input System Action to an inventory action.
 Mixed setups are supported, but keep in mind that <code>InputAction</code>-driven features still expect the new input pipeline to be configured for that scene/workflow.
@@ -2212,7 +2292,7 @@ If a scene intentionally stays on <code>StandaloneInputModule</code>, pointer an
 <ol>
 <li>Player picks up a stack of 10 items (normal drag).</li>
 <li>Holds Shift and clicks an empty slot.</li>
-<li>1 item is transferred through the standard pipeline (planner → executor → events).</li>
+<li>1 item is transferred through the standard pipeline (transfer engine → events).</li>
 <li>Dragging continues with 9 items, visual updates.</li>
 <li>When only 1 item remains, Shift+Click performs a regular <code>CompleteDrag</code>.</li>
 </ol>
@@ -2233,7 +2313,7 @@ If a scene intentionally stays on <code>StandaloneInputModule</code>, pointer an
 </tr>
 <tr>
 <td><code>InteractionBindingsProfile</code></td>
-<td>SO profile with pointer and Input Action bindings</td>
+<td>SO profile with pointer, legacy, and Input Action bindings</td>
 </tr>
 <tr>
 <td><code>SlotInputAdapter</code></td>
@@ -2246,6 +2326,14 @@ If a scene intentionally stays on <code>StandaloneInputModule</code>, pointer an
 <tr>
 <td><code>PointerBinding</code></td>
 <td>Binding: button + modifier + phase + action</td>
+</tr>
+<tr>
+<td><code>KeyBinding</code></td>
+<td>Legacy <code>KeyCode</code> binding to an action</td>
+</tr>
+<tr>
+<td><code>LegacyInputActionBinding</code></td>
+<td>Old Input Manager button-name binding to an action</td>
 </tr>
 <tr>
 <td><code>InputActionBinding</code></td>
@@ -2320,7 +2408,7 @@ If a scene intentionally stays on <code>StandaloneInputModule</code>, pointer an
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../demo3-minecraft/">
+        <link rel="prev" href="../demo3-Craft/">
       
       
         <link rel="next" href="../demo5-containers/">
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -663,14 +667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -784,21 +788,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -829,6 +822,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -973,7 +994,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1057,7 +1078,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1202,7 +1223,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1459,7 +1480,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -1874,15 +1884,14 @@
 </div>
 
 <p><code>Examples/Demo4 Trading/TradingDemo.unity</code></p>
-<p>Esta es la demo más rica en funcionalidades del paquete. Combina transferencias entre modelos distintos, reglas de economía y equipamiento con slots fijos en una sola escena.</p>
+<p>Esta demo muestra transferencia entre distintos modelos, economía y equipamiento con
+slots fijos en una sola escena.</p>
 <h2 id="que-muestra-la-demo">Qué muestra la demo</h2>
 <ul>
 <li>inventario del jugador, inventario del comerciante y slots de equipamiento</li>
-<li>converters entre distintos modelos de item</li>
-<li>validación de precio y oro en tiempo de commit</li>
-<li>separación entre validación mecánica y side effects de dominio</li>
+<li>conversión entre distintos modelos de item</li>
+<li>comprobación de precios y dinero durante la transferencia</li>
 <li><code>MappedSlotInventoryDataBinding</code> para equipamiento</li>
-<li>swap entre inventarios con conversión bidireccional</li>
 </ul>
 <h2 id="como-esta-estructurada">Cómo está estructurada</h2>
 <p>Datos y economía:</p>
@@ -1916,75 +1925,31 @@
     PlayerBinding &lt;--&gt; PlayerUI["Player Inventory UI"]
     EquipmentBinding &lt;--&gt; EquipUI["Equipment UI"]</code></pre>
 <h2 id="como-funciona">Cómo funciona</h2>
-<p>Comprar a un comerciante:</p>
+<p>Compra a un comerciante:</p>
 <ol>
-<li>El drag empieza en el inventario del comerciante.</li>
-<li>El preview del lado objetivo y un converter preparan la representación del item para el inventario del jugador.</li>
-<li>La validación mecánica comprueba la colocación.</li>
-<li>La validación de dominio comprueba el oro y las restricciones de comercio.</li>
-<li>Tras un commit exitoso, los bindings actualizan los datos del jugador y del comerciante.</li>
-<li>Los side effects actualizan el oro y valores relacionados.</li>
-</ol>
-<p>Swap entre inventario del comerciante y equipo/inventario del jugador:</p>
-<ol>
-<li>El planner detecta que la colocación normal es imposible y marca la entrada como <code>RequiresSwap</code>.</li>
-<li>El executor valida ambas direcciones usando preview stacks convertidos al lado objetivo.</li>
-<li>Luego captura copias de ambos stacks y los convierte en ambas direcciones.</li>
-<li>Los slots opuestos reciben stacks ya convertidos, no raw adapters.</li>
-<li>Gracias a eso, el siguiente drag desde esos slots no falla con <code>Wrong item type</code>.</li>
+<li>El drag empieza desde el inventario del comerciante.</li>
+<li>Al soltar, el converter prepara la representación del item para el inventario del jugador.</li>
+<li>La validación comprueba dinero y restricciones de la operación.</li>
+<li>Tras una transferencia exitosa, los bindings actualizan datos del jugador y del comerciante.</li>
+<li>Los efectos secundarios cambian el oro y otros valores relacionados.</li>
 </ol>
 <p>Equipamiento:</p>
 <ol>
-<li>Un item se suelta sobre un slot fijo.</li>
-<li><code>EquipmentInventoryDataBinding</code> comprueba <code>PrimaryAdapter</code> y el <code>canDrop</code> específico del slot.</li>
-<li>Si tiene éxito, el campo correspondiente en <code>PlayerData</code> se sincroniza con ese slot.</li>
+<li>El item se arrastra a un slot fijo.</li>
+<li><code>EquipmentInventoryDataBinding</code> comprueba <code>PrimaryAdapter</code> y el <code>canDrop</code> específico de cada slot.</li>
+<li>Si tiene éxito, el campo concreto de <code>PlayerData</code> se sincroniza con el slot objetivo.</li>
 </ol>
-<h2 id="archivos-para-inspeccionar">Archivos para inspeccionar</h2>
-<table>
-<thead>
-<tr>
-<th>Archivo</th>
-<th>Rol</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Data/TradingEconomyManager.cs</code></td>
-<td>economía central</td>
-</tr>
-<tr>
-<td><code>DataBindings/PlayerInventoryDataBinding.cs</code></td>
-<td>binding del inventario del jugador</td>
-</tr>
-<tr>
-<td><code>DataBindings/MerchantInventoryDataBinding.cs</code></td>
-<td>binding del inventario del comerciante</td>
-</tr>
-<tr>
-<td><code>DataBindings/EquipmentInventoryDataBinding.cs</code></td>
-<td>equipamiento con slots fijos</td>
-</tr>
-<tr>
-<td><code>DataBindings/TradingHelper.cs</code></td>
-<td>comprobaciones de dominio y side effects</td>
-</tr>
-<tr>
-<td><code>Converters/*</code></td>
-<td>conversión de modelos</td>
-</tr>
-</tbody>
-</table>
-<h2 id="cuando-usar-esto-como-punto-de-partida">Cuándo usar esto como punto de partida</h2>
+<h2 id="cuando-usar-este-ejemplo-como-base">Cuándo usar este ejemplo como base</h2>
 <ul>
-<li>necesitas distintos modelos de datos a ambos lados de un límite de transferencia</li>
+<li>necesitas modelos de datos distintos en los lados de una transferencia</li>
 <li>necesitas conversión de items durante la transferencia</li>
-<li>necesitas swap correcto entre inventarios con distintos modelos de adapter</li>
-<li>necesitas precios, oro y validación en tiempo de commit</li>
+<li>necesitas intercambio correcto entre inventarios con distintos modelos de adapter</li>
+<li>necesitas precios, dinero y comprobaciones durante la transferencia</li>
 <li>necesitas slots fijos encima de un inventario normal</li>
 </ul>
 <p>Páginas relacionadas:</p>
 <ul>
-<li><a href="../../architecture/item-conversion-cookbook/">Cookbook: Item Conversion</a></li>
+<li><a href="../../architecture/item-conversion-cookbook/">Recetario: conversión de objetos</a></li>
 <li><a href="../../reference/troubleshooting/">Troubleshooting</a></li>
 </ul>
 
@@ -2042,7 +2007,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

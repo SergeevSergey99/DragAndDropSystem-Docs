@@ -31,7 +31,7 @@
     
     
       
-        <title>Logs and Debugging - Drag & Drop Inventory System</title>
+        <title>Logs And Debugging - Drag & Drop Inventory System</title>
       
     
     
@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -118,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Logs and Debugging
+              Logs And Debugging
             
           </span>
         </div>
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1265,7 +1297,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1413,7 +1445,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1450,7 +1482,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1468,7 +1500,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1494,10 +1526,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#short-log-map" class="md-nav__link">
+  <a href="#quick-map" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Short log map
+        Quick Map
       
     </span>
   </a>
@@ -1505,193 +1537,76 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-to-read-common-logs" class="md-nav__link">
+  <a href="#what-logs-usually-mean" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to read common logs
+        What Logs Usually Mean
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="How to read common logs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ruleresult-validation-failed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [RuleResult] Validation failed: ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inventorydropprocessor-plan-failed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [InventoryDropProcessor] plan failed: ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transferplanexecutor" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [TransferPlanExecutor] ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inventoryname-getacceptablecount" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [InventoryName] GetAcceptableCount: ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#fast-diagnosis-by-phase" class="md-nav__link">
+  <a href="#if-warnings-mention-other-slots" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fast diagnosis by phase
+        If Warnings Mention Other Slots
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Fast diagnosis by phase">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-drag-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Drag start
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-preview-planning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Preview / planning
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-domain-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Domain validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-execution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Execution
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-swap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Swap
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#practical-patterns" class="md-nav__link">
+  <a href="#if-the-log-mentions-a-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Practical patterns
+        If The Log Mentions A Rule
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Practical patterns">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#preview-passed-commit-failed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Preview passed, commit failed
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#warnings-appear-for-other-slots" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Warnings appear for other slots
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#first-swap-succeeds-second-swap-fails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        First swap succeeds, second swap fails
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#read-this-together-with" class="md-nav__link">
+  <a href="#if-the-problem-is-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Read this together with
+        If The Problem Is Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-the-problem-is-between-different-inventories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If The Problem Is Between Different Inventories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-the-problem-is-trading-or-external-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If The Problem Is Trading Or External Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-check-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful Check Order
       
     </span>
   </a>
@@ -1838,7 +1753,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1942,10 +1857,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#short-log-map" class="md-nav__link">
+  <a href="#quick-map" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Short log map
+        Quick Map
       
     </span>
   </a>
@@ -1953,193 +1868,76 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-to-read-common-logs" class="md-nav__link">
+  <a href="#what-logs-usually-mean" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to read common logs
+        What Logs Usually Mean
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="How to read common logs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ruleresult-validation-failed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [RuleResult] Validation failed: ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inventorydropprocessor-plan-failed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [InventoryDropProcessor] plan failed: ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transferplanexecutor" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [TransferPlanExecutor] ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#inventoryname-getacceptablecount" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        [InventoryName] GetAcceptableCount: ...
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#fast-diagnosis-by-phase" class="md-nav__link">
+  <a href="#if-warnings-mention-other-slots" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fast diagnosis by phase
+        If Warnings Mention Other Slots
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Fast diagnosis by phase">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-drag-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Drag start
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-preview-planning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Preview / planning
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-domain-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Domain validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-execution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Execution
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-swap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Swap
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#practical-patterns" class="md-nav__link">
+  <a href="#if-the-log-mentions-a-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Practical patterns
+        If The Log Mentions A Rule
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Practical patterns">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#preview-passed-commit-failed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Preview passed, commit failed
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#warnings-appear-for-other-slots" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Warnings appear for other slots
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#first-swap-succeeds-second-swap-fails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        First swap succeeds, second swap fails
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#read-this-together-with" class="md-nav__link">
+  <a href="#if-the-problem-is-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Read this together with
+        If The Problem Is Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-the-problem-is-between-different-inventories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If The Problem Is Between Different Inventories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-the-problem-is-trading-or-external-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If The Problem Is Trading Or External Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-check-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful Check Order
       
     </span>
   </a>
@@ -2163,192 +1961,154 @@
 
 
 
-<h1 id="logs-and-debugging">Logs and Debugging</h1>
-<p>This page helps you quickly identify which phase of the pipeline failed.</p>
-<p>Core idea:</p>
+<h1 id="logs-and-debugging">Logs And Debugging</h1>
+<p>This page helps you find where to look when a transfer does not work.</p>
+<p>Start from what you see in the game, not from an internal phase name:</p>
 <ul>
-<li><code>planner</code> chooses a valid plan</li>
-<li><code>executor</code> handles commit, conversion, and rollback</li>
-<li><code>rules</code> handle mechanical constraints</li>
-<li><code>domain hooks</code> handle business veto right before commit</li>
+<li>the item cannot be picked up</li>
+<li>the item cannot be dropped</li>
+<li>the item returns back</li>
+<li>data did not change after transfer</li>
+<li>swap behaves incorrectly</li>
+<li>Console shows many warnings</li>
 </ul>
-<hr />
-<h2 id="short-log-map">Short log map</h2>
+<h2 id="quick-map">Quick Map</h2>
 <table>
 <thead>
 <tr>
-<th>Where the log appears</th>
-<th>What it usually means</th>
+<th>What you see</th>
+<th>Start with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Item cannot be picked up</td>
+<td><code>CanStartDrag</code>, rules on the source slot, data loading into UI</td>
+</tr>
+<tr>
+<td>Item cannot be dropped</td>
+<td><code>CanDrop</code>, rules on the target slot, <code>DropPolicySettings</code></td>
+</tr>
+<tr>
+<td>Item goes to another slot</td>
+<td><code>FindAlternative</code>, <code>PlacementCandidateOrderer</code>, drop on inventory area</td>
+</tr>
+<tr>
+<td>UI changed, data did not</td>
+<td><code>AddToData</code>, <code>RemoveFromData</code>, correct binding</td>
+</tr>
+<tr>
+<td>Wrong item type error</td>
+<td><code>CreateItemConverter()</code>, adapter type in source and target</td>
+</tr>
+<tr>
+<td>Swap breaks after the first time</td>
+<td>conversion in both directions and adapter type in slots after swap</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-logs-usually-mean">What Logs Usually Mean</h2>
+<table>
+<thead>
+<tr>
+<th>Log or class</th>
+<th>Usually means</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>RuleResult</code></td>
-<td>one specific rule check was rejected</td>
+<td>A rule blocked drag or drop.</td>
 </tr>
 <tr>
-<td><code>TransferPlanner</code></td>
-<td>planning or target-selection problem</td>
+<td><code>CanStartDrag</code></td>
+<td>Binding blocked drag start.</td>
+</tr>
+<tr>
+<td><code>CanDrop</code></td>
+<td>Binding blocked drop into target inventory or slot.</td>
 </tr>
 <tr>
 <td><code>InventoryDropProcessor</code></td>
-<td>planner failed to build a valid plan</td>
+<td>Drop was rejected before the actual transfer. Often policy or target slot is the reason.</td>
 </tr>
 <tr>
-<td><code>TransferPlanExecutor</code></td>
-<td>commit, conversion, swap, or rollback problem</td>
+<td><code>InventoryTransferService</code></td>
+<td>The problem happened during transfer: placement, swap, conversion, or rollback.</td>
 </tr>
 <tr>
 <td><code>GetAcceptableCount</code></td>
-<td>inventory-wide slot search</td>
+<td>The system is iterating slots and searching for a place to put the item.</td>
 </tr>
 <tr>
-<td><code>CanCommitTransfer</code> / domain validation</td>
-<td>business logic vetoed the commit</td>
+<td><code>CanCommitTransfer</code></td>
+<td>Business logic blocked the transfer right before commit, for example not enough gold.</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="how-to-read-common-logs">How to read common logs</h2>
-<h3 id="ruleresult-validation-failed"><code>[RuleResult] Validation failed: ...</code></h3>
-<p>This is the rejection of one concrete rule branch.</p>
-<p>Important:</p>
+<h2 id="if-warnings-mention-other-slots">If Warnings Mention Other Slots</h2>
+<p>This is often normal. The system may check more than the selected slot when:</p>
 <ul>
-<li>by itself it does not always mean a bug</li>
-<li>sometimes it is a normal rejection of a trial candidate slot</li>
-<li>the call stack matters: look at who initiated the check</li>
+<li>the item was dropped on an inventory area</li>
+<li><code>FindAlternative</code> is enabled</li>
+<li>a large stack needs space</li>
+<li>swap is being checked</li>
 </ul>
-<p>If the log comes from:</p>
+<p>If you expected only one slot to be checked, verify:</p>
 <ul>
-<li><code>MappedSlotInventoryDataBinding.CanDrop()</code> -&gt; usually adapter type or slot compatibility</li>
-<li><code>CanStartDrag()</code> -&gt; wrong adapter type in the source slot or source-side drag veto</li>
+<li>the pointer really hits the slot, not <code>InventoryDropArea</code></li>
+<li>policy does not allow <code>FindAlternative</code></li>
+<li>the selected slot is not covered by another UI element</li>
 </ul>
-<h3 id="inventorydropprocessor-plan-failed"><code>[InventoryDropProcessor] plan failed: ...</code></h3>
-<p>The planner failed to produce a valid plan.
-Execution has not started yet.</p>
-<p>Common causes:</p>
+<h2 id="if-the-log-mentions-a-rule">If The Log Mentions A Rule</h2>
+<p>A rule log does not always mean a bug. Sometimes the system checks several options and
+one of them is correctly rejected.</p>
+<p>Look at the context:</p>
 <ul>
-<li>target slot is invalid</li>
-<li>policy does not allow a fallback</li>
-<li>there is no valid candidate slot</li>
+<li>which slot was checked</li>
+<li>which item was checked</li>
+<li>whether it was the selected slot or an alternative one</li>
+<li>whether the transfer still succeeded afterward</li>
 </ul>
-<h3 id="transferplanexecutor"><code>[TransferPlanExecutor] ...</code></h3>
-<p>This is execution-stage logging.
-Planning already succeeded, and the problem happened during:</p>
+<h2 id="if-the-problem-is-data">If The Problem Is Data</h2>
+<p>When UI and game data differ after a transfer, check the binding:</p>
 <ul>
-<li>domain validation</li>
-<li>split/remove</li>
-<li>outgoing/incoming conversion</li>
-<li>placement into the target inventory</li>
-<li>swap commit</li>
-<li>rollback</li>
+<li>does <code>GetItems()</code> / <code>GetOccupiedSlots()</code> load the correct data?</li>
+<li>does <code>AddToData(...)</code> add to the correct list?</li>
+<li>does <code>RemoveFromData(...)</code> remove from the correct list?</li>
+<li>do external data changes call <code>ReloadUI()</code>?</li>
 </ul>
-<h3 id="inventoryname-getacceptablecount"><code>[InventoryName] GetAcceptableCount: ...</code></h3>
-<p>This is inventory-wide acceptance search.</p>
-<p>If you expected a direct slot drop and still see this log, usually check:</p>
-<ul>
-<li>whether a concrete <code>targetSlot</code> actually existed</li>
-<li>whether the operation fell into <code>FindAlternative</code></li>
-<li>whether this was an area-drop path</li>
-</ul>
-<hr />
-<h2 id="fast-diagnosis-by-phase">Fast diagnosis by phase</h2>
-<h3 id="1-drag-start">1. Drag start</h3>
-<p>Look at:</p>
-<ul>
-<li><code>OnDragAttempting</code></li>
-<li><code>ValidateStartDrag</code></li>
-<li>binding <code>CanStartDrag</code></li>
-</ul>
-<p>Typical causes:</p>
-<ul>
-<li>source slot is empty</li>
-<li>slot contains the wrong adapter type</li>
-<li>source binding forbids dragging</li>
-</ul>
-<h3 id="2-preview-planning">2. Preview / planning</h3>
-<p>Look at:</p>
-<ul>
-<li><code>TransferPlanner</code></li>
-<li><code>ValidateDrop</code></li>
-<li><code>InventoryAcceptanceRequest</code></li>
-<li><code>GetAcceptableCount</code></li>
-</ul>
-<p>Typical causes:</p>
-<ul>
-<li>target-side conversion failed</li>
-<li>slot rules reject the target adapter</li>
-<li>planner searches candidates more broadly than expected</li>
-</ul>
-<h3 id="3-domain-validation">3. Domain validation</h3>
-<p>Look at:</p>
-<ul>
-<li><code>CanCommitTransfer</code></li>
-<li><code>CanCommitTransferAsync</code></li>
-<li><code>ValidateDomainHandlers</code></li>
-</ul>
-<p>Typical causes:</p>
-<ul>
-<li>money</li>
-<li>access rights</li>
-<li>server veto</li>
-<li>external synchronous/asynchronous validation</li>
-</ul>
-<h3 id="4-execution">4. Execution</h3>
-<p>Look at:</p>
-<ul>
-<li><code>TransferPlanExecutor</code></li>
-<li>conversion utility</li>
-<li><code>TryAddToSlot</code> / <code>TryAddStack</code></li>
-</ul>
-<p>Typical causes:</p>
-<ul>
-<li>conversion failed during commit</li>
-<li>placement failed</li>
-<li>rollback restored the previous state</li>
-</ul>
-<h3 id="5-swap">5. Swap</h3>
-<p>Look at:</p>
-<ul>
-<li><code>RequiresSwap</code></li>
-<li><code>ValidateSwapRules</code></li>
-<li><code>OnSwapAttempting</code></li>
-<li><code>OnSwapCompleted</code></li>
-</ul>
-<p>Typical causes:</p>
-<ul>
-<li>one swap direction does not pass rules</li>
-<li>swap was implemented as a raw exchange instead of a conversion-aware commit</li>
-<li>after the first swap, a slot still contains a foreign adapter type</li>
-</ul>
-<hr />
-<h2 id="practical-patterns">Practical patterns</h2>
-<h3 id="preview-passed-commit-failed">Preview passed, commit failed</h3>
-<p>That usually means the issue is not in rules, but in execution or domain hooks.</p>
+<h2 id="if-the-problem-is-between-different-inventories">If The Problem Is Between Different Inventories</h2>
+<p>For example: merchant, player, equipment, or container use different data models.</p>
 <p>Check:</p>
 <ul>
-<li><code>CanCommitTransfer</code></li>
-<li><code>CanCommitTransferAsync</code></li>
-<li>executor conversion</li>
-<li>placement / rollback</li>
+<li>whether the right binding has <code>CreateItemConverter()</code></li>
+<li>which adapter is in the source slot</li>
+<li>which adapter should be in the target slot</li>
+<li>whether the converter preserves unique item data</li>
 </ul>
-<h3 id="warnings-appear-for-other-slots">Warnings appear for other slots</h3>
-<p>That usually means some path triggered inventory-wide search.</p>
-<p>Check:</p>
+<h2 id="if-the-problem-is-trading-or-external-validation">If The Problem Is Trading Or External Validation</h2>
+<p>Check the domain handler:</p>
 <ul>
-<li><code>GetAcceptableCount</code></li>
-<li><code>FindAlternative</code></li>
-<li>area-drop</li>
-<li>incorrect routing for a direct slot drop</li>
+<li><code>CanStartTransfer</code> — whether transfer may start at all</li>
+<li><code>CanStartTransferAsync</code> — whether a server or another external check rejected transfer</li>
+<li><code>CanCommitTransfer</code> — whether a specific placement may be committed</li>
+<li><code>OnTransferSucceeded</code> — whether a side effect breaks data after successful transfer</li>
 </ul>
-<h3 id="first-swap-succeeds-second-swap-fails">First swap succeeds, second swap fails</h3>
-<p>This almost always means the slot stores the wrong adapter type after the first swap.</p>
-<hr />
-<h2 id="read-this-together-with">Read this together with</h2>
+<h2 id="useful-check-order">Useful Check Order</h2>
+<ol>
+<li>Make sure the item is actually loaded into UI.</li>
+<li>Check rules and <code>CanStartDrag</code>.</li>
+<li>Check target slot, <code>CanDrop</code>, and drop policy.</li>
+<li>If transfer goes between different models, check converter.</li>
+<li>If there is money, server, access rights, or ownership logic, check domain handler.</li>
+<li>If UI and data diverged, check binding add/remove methods.</li>
+</ol>
+<p>See also:</p>
 <ul>
-<li><a href="../troubleshooting/">Troubleshooting</a> — symptom -&gt; cause -&gt; where to look</li>
-<li><a href="../../architecture/transfer-pipeline/">Transfer Pipeline</a> — phase order</li>
-<li><a href="../../architecture/item-conversion-cookbook/">Cookbook: Item Conversion</a> — adapter-boundary problems</li>
+<li><a href="../troubleshooting/">Troubleshooting</a></li>
+<li><a href="../../architecture/drop-policy-matrix/">Drop Policy</a></li>
+<li><a href="../../architecture/item-conversion-cookbook/">Item Conversion</a></li>
 </ul>
 
 
@@ -2405,7 +2165,7 @@ Planning already succeeded, and the problem happened during:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -14,7 +14,7 @@
         <link rel="prev" href="../demo4-trading/">
       
       
-        <link rel="next" href="../../architecture/data-binding/">
+        <link rel="next" href="../demo6-shaped-items/">
       
       
         
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -663,14 +667,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../demo3-minecraft/" class="md-nav__link">
+      <a href="../demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -812,21 +816,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -837,6 +830,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -973,7 +994,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -1001,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1029,7 +1050,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1057,7 +1078,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1202,7 +1223,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1370,7 +1391,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1459,7 +1480,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1515,7 +1536,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1543,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1825,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#archivos-para-inspeccionar" class="md-nav__link">
+  <a href="#cuando-usar-este-ejemplo-como-base" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archivos para inspeccionar
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cuando-usar-esto-como-punto-de-partida" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cuándo usar esto como punto de partida
+        Cuándo usar este ejemplo como base
       
     </span>
   </a>
@@ -1874,14 +1884,14 @@
 </div>
 
 <p><code>Examples/Demo5 Containers/Containers Demo.unity</code></p>
-<p>Esta muestra demuestra items de inventario que contienen su propio inventario anidado.</p>
+<p>Este es un ejemplo de items-inventario que contienen su propio conjunto de items anidado.</p>
 <h2 id="que-muestra-la-demo">Qué muestra la demo</h2>
 <ul>
 <li>item instances en lugar de simples filas de lista</li>
-<li>un contenedor como item normal dentro del inventario del jugador</li>
-<li>un panel de UI separado para el contenedor actualmente abierto</li>
-<li>una acción de menú contextual que abre un contenedor</li>
-<li>prevención de ciclos en contenedores anidados</li>
+<li>un contenedor como item normal en el inventario del jugador</li>
+<li>un panel de UI separado para el contenido del contenedor activo</li>
+<li>acción de context menu para abrir un contenedor</li>
+<li>protección contra ciclos al anidar contenedores</li>
 </ul>
 <h2 id="como-esta-estructurada">Cómo está estructurada</h2>
 <p>Datos:</p>
@@ -1898,71 +1908,27 @@
 <li><code>Scripts/UI/ContainerUIController.cs</code></li>
 <li><code>Scripts/ContextMenu/OpenContainerMenuEntrySO.cs</code></li>
 </ul>
-<p>Forma principal:</p>
-<pre class="mermaid"><code>flowchart TD
-    PlayerData["ContainerDemoManager.Items"] &lt;--&gt; PlayerBinding["PlayerContainerInventoryDataBinding"]
-    PlayerBinding &lt;--&gt; PlayerUI["Player Inventory UI"]
-    PlayerUI --&gt; Menu["Context Menu / Open Container"]
-    Menu --&gt; UIController["ContainerUIController"]
-    UIController --&gt; ContainerBinding["ContainerInventoryDataBinding"]
-    ContainerBinding &lt;--&gt; ContainerUI["Container Inventory UI"]
-    ContainerBinding &lt;--&gt; ActiveContainer["Current ContainerItemInstance"]</code></pre>
 <h2 id="como-funciona">Cómo funciona</h2>
-<p>Apertura de un contenedor:</p>
+<p>Apertura de contenedor:</p>
 <ol>
-<li>El inventario del jugador contiene un <code>ContainerItemInstance</code>.</li>
-<li>Una acción del menú contextual dispara <code>OpenContainerMenuEntrySO</code>.</li>
-<li>A través de <code>Events.OnOpenClick</code>, el contenedor seleccionado se pasa a <code>ContainerUIController</code>.</li>
-<li>El controlador establece el contenedor activo y llama a <code>SetContainer(...)</code>.</li>
-<li><code>ContainerInventoryDataBinding</code> redimensiona el inventario y carga el contenido de ese contenedor.</li>
+<li><code>ContainerItemInstance</code> está en el inventario del jugador.</li>
+<li>El context menu llama a <code>OpenContainerMenuEntrySO</code>.</li>
+<li>Mediante <code>Events.OnOpenClick</code>, el contenedor seleccionado se pasa a <code>ContainerUIController</code>.</li>
+<li>El controller establece el contenedor activo.</li>
+<li><code>ContainerInventoryDataBinding</code> reconstruye el tamaño del inventario y carga el contenido del contenedor.</li>
 </ol>
-<p>Mover items:</p>
+<p>Movimiento de objetos:</p>
 <ol>
-<li>Las operaciones normales de drag/drop funcionan entre el inventario del jugador y el inventario del contenedor.</li>
-<li>Los bindings sincronizan el movimiento de vuelta a la lista del jugador o a <code>ContainerItemInstance.Items</code>.</li>
-<li>En drops sobre un slot ocupado, <code>PlayerContainerInventoryDataBinding</code> puede ejecutar un comportamiento personalizado para slot ocupado.</li>
-<li>Antes de colocar un contenedor dentro de otro, <code>WouldCreateCycle(...)</code> evita anidamientos inválidos.</li>
+<li>Las operaciones drag/drop normales funcionan entre el inventario del jugador y el del contenedor.</li>
+<li>Los bindings sincronizan la transferencia con la lista del jugador o <code>ContainerItemInstance.Items</code>.</li>
+<li>Al hacer drop en un slot ocupado, <code>PlayerContainerInventoryDataBinding</code> puede ejecutar comportamiento adicional.</li>
+<li>Antes de colocar un contenedor dentro de otro contenedor se comprueba <code>WouldCreateCycle(...)</code>.</li>
 </ol>
-<h2 id="archivos-para-inspeccionar">Archivos para inspeccionar</h2>
-<table>
-<thead>
-<tr>
-<th>Archivo</th>
-<th>Rol</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Scripts/ContainerDemoManager.cs</code></td>
-<td>lista raíz de items del jugador</td>
-</tr>
-<tr>
-<td><code>Scripts/Bindings/PlayerContainerInventoryDataBinding.cs</code></td>
-<td>binding del inventario del jugador</td>
-</tr>
-<tr>
-<td><code>Scripts/Bindings/ContainerInventoryDataBinding.cs</code></td>
-<td>binding del contenedor activo</td>
-</tr>
-<tr>
-<td><code>Scripts/UI/ContainerUIController.cs</code></td>
-<td>contenedor activo y cambio de paneles</td>
-</tr>
-<tr>
-<td><code>Scripts/ContextMenu/OpenContainerMenuEntrySO.cs</code></td>
-<td>entrada de menú contextual</td>
-</tr>
-<tr>
-<td><code>Scripts/Data/ContainerItemInstance.cs</code></td>
-<td>contenedor como item instance</td>
-</tr>
-</tbody>
-</table>
-<h2 id="cuando-usar-esto-como-punto-de-partida">Cuándo usar esto como punto de partida</h2>
+<h2 id="cuando-usar-este-ejemplo-como-base">Cuándo usar este ejemplo como base</h2>
 <ul>
 <li>un item debe contener un inventario anidado</li>
-<li>necesitas un menú contextual para acciones sobre items</li>
-<li>necesitas reglas de drop personalizadas sobre el pipeline estándar</li>
+<li>necesitas context menu para operaciones sobre items</li>
+<li>necesitas reglas de drop propias encima del proceso de transferencia estándar</li>
 </ul>
 
 
@@ -2019,7 +1985,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

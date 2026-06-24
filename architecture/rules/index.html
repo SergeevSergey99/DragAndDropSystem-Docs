@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -899,7 +931,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -927,7 +959,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -1392,7 +1424,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1537,7 +1569,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1565,7 +1597,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1710,7 +1742,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1915,7 +1947,7 @@
 <div class="admonition note">
 <p class="admonition-title">Rules are not the same as business hooks</p>
 <p>Rules handle mechanical transfer constraints: can the item be dragged, can it be dropped into this target, does the slot accept this type.
-If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (<code>CanCommitTransfer</code>, <code>CanCommitTransferAsync</code>, <code>OnTransferSucceeded</code>) instead of <code>CanDrop</code>.
+If you need operation-level checks such as enough gold, server authorization, or post-success side effects, use transfer-level hooks (<code>CanStartTransfer</code>, <code>CanStartTransferAsync</code>, <code>CanCommitTransfer</code>, <code>OnTransferSucceeded</code>) instead of <code>CanDrop</code>.
 For a compact comparison, also see <a href="../transfer-pipeline/">Transfer Pipeline</a> and <a href="../drop-policy-matrix/">Drop Policy Matrix</a>.</p>
 </div>
 <hr />
@@ -2005,8 +2037,8 @@ For a compact comparison, also see <a href="../transfer-pipeline/">Transfer Pipe
 </table>
 <hr />
 <h2 id="creating-your-own-rule">Creating Your Own Rule</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Core</span><span class="p">;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UniversalDragAndDrop.Rules</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">UDND.Core</span><span class="p">;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">using</span><span class="w"> </span><span class="nn">UDND.Rules</span><span class="p">;</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1">// Rule: items of a certain level</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="na">[Serializable]</span>
@@ -2059,7 +2091,7 @@ A single rule can implement multiple interfaces (e.g., <code>IInventoryRule, ISl
 <h2 id="where-rules-are-validated">Where Rules Are Validated</h2>
 <pre class="mermaid"><code>flowchart TD
     START["When drag starts"] --&gt; CHECK1["Check CanStartDrag"]
-    CHECK1 --&gt;|Allowed| PLAN["When planning transfer"]
+    CHECK1 --&gt;|Allowed| PLAN["When validating the target"]
     CHECK1 --&gt;|Denied| CANCEL["Drag cancelled"]
 
     PLAN --&gt; CHECK2["Check CanDrop"]
@@ -2074,7 +2106,7 @@ A single rule can implement multiple interfaces (e.g., <code>IInventoryRule, ISl
 <p>Specific validation points:</p>
 <ol>
 <li><strong>Drag start</strong> --- global + inventory + slot rules of the source.</li>
-<li><strong>Transfer planning</strong> --- global + inventory + slot rules of the target.</li>
+<li><strong>Target validation</strong> --- global + inventory + slot rules of the target.</li>
 <li><strong>Swap</strong> --- rules are validated in both directions (A&rarr;B and B&rarr;A).</li>
 </ol>
 <p>If rules seem to fire "too often", start with <a href="../../reference/logs-and-debugging/">Logs and Debugging</a> and <a href="../../reference/troubleshooting/">Troubleshooting</a>.</p>
@@ -2181,7 +2213,7 @@ A single rule can implement multiple interfaces (e.g., <code>IInventoryRule, ISl
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

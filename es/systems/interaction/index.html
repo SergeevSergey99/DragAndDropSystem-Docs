@@ -93,6 +93,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -868,7 +900,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -896,7 +928,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -924,7 +956,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -952,7 +984,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1100,7 +1132,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1310,6 +1342,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bindings-del-input-manager-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bindings del Input Manager legacy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#input-action-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1448,7 +1491,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1537,7 +1580,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1593,7 +1636,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1621,7 +1664,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1915,6 +1958,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#bindings-del-input-manager-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bindings del Input Manager legacy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#input-action-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2075,7 +2129,7 @@
 <p>Los umbrales se configuran en <code>InputEventRouter</code>: <code>_longClickThresholdSeconds</code> (por defecto 0.35 s) y <code>_clickMoveTolerancePixels</code> (por defecto 8 píxeles).</p>
 <hr />
 <h2 id="binding-profiles">Binding Profiles</h2>
-<p>Los bindings se configuran mediante el ScriptableObject <code>InteractionBindingsProfile</code>. Contiene pointer bindings, key bindings legacy y Input Action bindings opcionales.</p>
+<p>Los bindings se configuran mediante el ScriptableObject <code>InteractionBindingsProfile</code>. Contiene pointer bindings, bindings legacy <code>KeyCode</code>, bindings del Input Manager legacy por nombre de botón y bindings Input Action opcionales.</p>
 <h3 id="pointer-bindings">Pointer Bindings</h3>
 <p>Cada binding consiste en: botón de ratón + modificador + fase + acción.</p>
 <table>
@@ -2126,6 +2180,32 @@
 </tr>
 </tbody>
 </table>
+<h3 id="bindings-del-input-manager-legacy">Bindings del Input Manager legacy</h3>
+<p>Usa <code>LegacyInputActionBinding</code> cuando el proyecto todavía dependa del Input Manager antiguo y quieras vincular por nombre de botón en vez de <code>KeyCode</code>.
+Nombres típicos: <code>Submit</code>, <code>Cancel</code> o cualquier botón personalizado configurado en <strong>Project Settings &gt; Input Manager</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Nombre del botón</th>
+<th>Fase</th>
+<th>Acción típica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Submit</td>
+<td>Down</td>
+<td>Auto-transfer o terminar drag</td>
+</tr>
+<tr>
+<td>Cancel</td>
+<td>Down</td>
+<td>Cancelar drag o cerrar UI</td>
+</tr>
+</tbody>
+</table>
+<p>Estos bindings son consultados por <code>InputEventRouter</code> y requieren que el soporte Legacy Input Manager esté habilitado en Player Settings.
+Son independientes de <code>InputActionBinding</code>, que pertenece al nuevo paquete Input System.</p>
 <h3 id="input-action-bindings">Input Action Bindings</h3>
 <p>Para atajos opcionales y configuraciones específicas de gamepad: vincular una Input System Action con una acción de inventario.
 Los mixed setups están soportados, pero recuerda que las funciones basadas en <code>InputAction</code> siguen esperando que esa escena o workflow estén configurados para el nuevo input pipeline.
@@ -2212,7 +2292,7 @@ Si una escena permanece intencionadamente en <code>StandaloneInputModule</code>,
 <ol>
 <li>El jugador toma un stack de 10 items (drag normal).</li>
 <li>Mantiene Shift y hace clic en un slot vacío.</li>
-<li>1 item se transfiere a través del pipeline estándar (planner → executor → eventos).</li>
+<li>1 item se transfiere a través del pipeline estándar (motor de transferencia → eventos).</li>
 <li>El drag continúa con 9 items, el visual se actualiza.</li>
 <li>Cuando queda 1 solo item, Shift+Click ejecuta un <code>CompleteDrag</code> normal.</li>
 </ol>
@@ -2233,7 +2313,7 @@ Si una escena permanece intencionadamente en <code>StandaloneInputModule</code>,
 </tr>
 <tr>
 <td><code>InteractionBindingsProfile</code></td>
-<td>SO profile con pointer bindings y Input Action bindings</td>
+<td>SO profile con pointer, legacy e Input Action bindings</td>
 </tr>
 <tr>
 <td><code>SlotInputAdapter</code></td>
@@ -2246,6 +2326,14 @@ Si una escena permanece intencionadamente en <code>StandaloneInputModule</code>,
 <tr>
 <td><code>PointerBinding</code></td>
 <td>Binding: botón + modificador + fase + acción</td>
+</tr>
+<tr>
+<td><code>KeyBinding</code></td>
+<td>Binding legacy <code>KeyCode</code> hacia una acción</td>
+</tr>
+<tr>
+<td><code>LegacyInputActionBinding</code></td>
+<td>Binding del Input Manager antiguo por nombre de botón hacia una acción</td>
 </tr>
 <tr>
 <td><code>InputActionBinding</code></td>
@@ -2320,7 +2408,7 @@ Si una escena permanece intencionadamente en <code>StandaloneInputModule</code>,
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

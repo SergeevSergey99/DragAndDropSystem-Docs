@@ -31,7 +31,7 @@
     
     
       
-        <title>Transfer Pipeline - Drag & Drop Inventory System</title>
+        <title>Pipeline de transferencia - Drag & Drop Inventory System</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#transfer-pipeline" class="md-skip">
+        <a href="#pipeline-de-transferencia" class="md-skip">
           Saltar a contenido
         </a>
       
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -118,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Transfer Pipeline
+              Pipeline de transferencia
             
           </span>
         </div>
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -880,7 +912,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -898,7 +930,7 @@
   <span class="md-ellipsis">
     
   
-    Transfer Pipeline
+    Pipeline de transferencia
   
 
     
@@ -924,10 +956,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#version-corta" class="md-nav__link">
+  <a href="#idea-general" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Versión corta
+        Idea general
       
     </span>
   </a>
@@ -935,10 +967,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#que-ocurre-en-un-drop-normal" class="md-nav__link">
+  <a href="#que-ocurre-durante-la-transferencia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qué ocurre en un drop normal
+        Qué ocurre durante la transferencia
       
     </span>
   </a>
@@ -946,44 +978,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#por-que-existe-el-planning" class="md-nav__link">
+  <a href="#casos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Por qué existe el planning
+        Casos
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#planning-vs-commit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Planning vs commit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tres-tipos-de-comprobaciones" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tres tipos de comprobaciones
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tres tipos de comprobaciones">
+    <nav class="md-nav" aria-label="Casos">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rules-esta-permitido-en-absoluto" class="md-nav__link">
+  <a href="#destino-bloqueado" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rules — "¿está permitido en absoluto?"
+        Destino bloqueado
       
     </span>
   </a>
@@ -991,10 +1001,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-checks-cancommittransfer-podemos-hacer-esto-ahora-mismo" class="md-nav__link">
+  <a href="#drop-en-area-auto-transferencia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Business checks (CanCommitTransfer) — "¿podemos hacer esto ahora mismo?"
+        Drop en área / auto-transferencia
       
     </span>
   </a>
@@ -1002,10 +1012,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#success-notification-ontransfersucceeded-que-hacer-despues" class="md-nav__link">
+  <a href="#stack-grande-repartido-en-varios-lugares" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Success notification (OnTransferSucceeded) — "¿qué hacer después?"
+        Stack grande repartido en varios lugares
       
     </span>
   </a>
@@ -1013,10 +1023,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cuando-usar-cada-una" class="md-nav__link">
+  <a href="#parcial-o-completo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cuándo usar cada una
+        Parcial o completo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#movimiento-dentro-del-mismo-inventario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Movimiento dentro del mismo inventario
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destino-ocupado-con-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destino ocupado con handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch
       
     </span>
   </a>
@@ -1029,10 +1072,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conversion-de-items" class="md-nav__link">
+  <a href="#validacion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conversión de items
+        Validación
       
     </span>
   </a>
@@ -1040,10 +1083,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#orden-detallado-de-ejecucion" class="md-nav__link">
+  <a href="#cuando-se-disparan-los-eventos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Orden detallado de ejecución
+        Cuándo se disparan los eventos
       
     </span>
   </a>
@@ -1051,76 +1094,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#que-ocurre-si-hay-fallo" class="md-nav__link">
+  <a href="#puntos-de-extension" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qué ocurre si hay fallo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#override-temporal-a-traves-de-acciones" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Override temporal a través de acciones
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#extensiones-personalizadas-de-drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Extensiones personalizadas de Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#orden-de-procesamiento-de-drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Orden de procesamiento de Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#operaciones-por-lotes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Operaciones por lotes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#el-swap-forma-parte-del-mismo-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        El swap forma parte del mismo pipeline
+        Puntos de extensión
       
     </span>
   </a>
@@ -1150,7 +1127,7 @@
   <span class="md-ellipsis">
     
   
-    Matriz de Drop Policy
+    Drop Policy
   
 
     
@@ -1178,7 +1155,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Conversión de objetos
   
 
     
@@ -1206,7 +1183,7 @@
   <span class="md-ellipsis">
     
   
-    Placement Strategies
+    Estrategias de colocación
   
 
     
@@ -1351,7 +1328,7 @@
   <span class="md-ellipsis">
     
   
-    Selection
+    Selección
   
 
     
@@ -1519,7 +1496,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Layout libre de slots
   
 
     
@@ -1608,7 +1585,7 @@
   <span class="md-ellipsis">
     
   
-    Optional Interfaces
+    Interfaces opcionales
   
 
     
@@ -1664,7 +1641,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Referencia de eventos
   
 
     
@@ -1692,7 +1669,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs y depuración
   
 
     
@@ -1941,10 +1918,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#version-corta" class="md-nav__link">
+  <a href="#idea-general" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Versión corta
+        Idea general
       
     </span>
   </a>
@@ -1952,10 +1929,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#que-ocurre-en-un-drop-normal" class="md-nav__link">
+  <a href="#que-ocurre-durante-la-transferencia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qué ocurre en un drop normal
+        Qué ocurre durante la transferencia
       
     </span>
   </a>
@@ -1963,44 +1940,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#por-que-existe-el-planning" class="md-nav__link">
+  <a href="#casos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Por qué existe el planning
+        Casos
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#planning-vs-commit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Planning vs commit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tres-tipos-de-comprobaciones" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tres tipos de comprobaciones
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tres tipos de comprobaciones">
+    <nav class="md-nav" aria-label="Casos">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#rules-esta-permitido-en-absoluto" class="md-nav__link">
+  <a href="#destino-bloqueado" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rules — "¿está permitido en absoluto?"
+        Destino bloqueado
       
     </span>
   </a>
@@ -2008,10 +1963,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-checks-cancommittransfer-podemos-hacer-esto-ahora-mismo" class="md-nav__link">
+  <a href="#drop-en-area-auto-transferencia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Business checks (CanCommitTransfer) — "¿podemos hacer esto ahora mismo?"
+        Drop en área / auto-transferencia
       
     </span>
   </a>
@@ -2019,10 +1974,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#success-notification-ontransfersucceeded-que-hacer-despues" class="md-nav__link">
+  <a href="#stack-grande-repartido-en-varios-lugares" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Success notification (OnTransferSucceeded) — "¿qué hacer después?"
+        Stack grande repartido en varios lugares
       
     </span>
   </a>
@@ -2030,10 +1985,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cuando-usar-cada-una" class="md-nav__link">
+  <a href="#parcial-o-completo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cuándo usar cada una
+        Parcial o completo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#movimiento-dentro-del-mismo-inventario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Movimiento dentro del mismo inventario
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#destino-ocupado-con-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Destino ocupado con handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batch
       
     </span>
   </a>
@@ -2046,10 +2034,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conversion-de-items" class="md-nav__link">
+  <a href="#validacion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conversión de items
+        Validación
       
     </span>
   </a>
@@ -2057,10 +2045,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#orden-detallado-de-ejecucion" class="md-nav__link">
+  <a href="#cuando-se-disparan-los-eventos" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Orden detallado de ejecución
+        Cuándo se disparan los eventos
       
     </span>
   </a>
@@ -2068,76 +2056,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#que-ocurre-si-hay-fallo" class="md-nav__link">
+  <a href="#puntos-de-extension" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Qué ocurre si hay fallo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#override-temporal-a-traves-de-acciones" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Override temporal a través de acciones
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#extensiones-personalizadas-de-drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Extensiones personalizadas de Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#orden-de-procesamiento-de-drop-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Orden de procesamiento de Drop Policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#operaciones-por-lotes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Operaciones por lotes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#el-swap-forma-parte-del-mismo-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        El swap forma parte del mismo pipeline
+        Puntos de extensión
       
     </span>
   </a>
@@ -2161,354 +2083,264 @@
 
 
 
-<h1 id="transfer-pipeline">Transfer Pipeline</h1>
-<p>Esta página explica la transferencia desde la perspectiva del usuario del asset.</p>
-<p>La pregunta aquí no es "¿qué helper classes existen?", sino "¿en qué orden decide el sistema, y dónde puedo engancharme?"</p>
-<p>Para seguimientos prácticos, consulta también:</p>
-<ul>
-<li><a href="../drop-policy-matrix/">Drop Policy Matrix</a></li>
-<li><a href="../item-conversion-cookbook/">Cookbook: Item Conversion</a></li>
-<li><a href="../../reference/logs-and-debugging/">Logs and Debugging</a></li>
-</ul>
-<hr />
-<h2 id="version-corta">Versión corta</h2>
-<pre class="mermaid"><code>flowchart LR
-    A["Player drops an item"] --&gt; B["Rule checks"]
-    B --&gt; C["Planning without mutation"]
-    C --&gt; D["Execution"]
-    D --&gt; E["Events and sync"]</code></pre>
-<hr />
-<h2 id="que-ocurre-en-un-drop-normal">Qué ocurre en un drop normal</h2>
+<h1 id="pipeline-de-transferencia">Pipeline de transferencia</h1>
+<p>Esta página explica qué ocurre cuando el jugador suelta un objeto sobre un slot, un
+área de inventario o una drop zone.</p>
+<p>El objetivo del pipeline es comprobar si la acción está permitida, elegir el
+comportamiento adecuado para el destino y mover el objeto o dejar los inventarios en
+un estado válido.</p>
+<h2 id="idea-general">Idea general</h2>
 <pre class="mermaid"><code>flowchart TD
-    A["Player releases item\nover target slot"] --&gt; B["CanDrop and\nmechanical rule checks"]
-    B --&gt;|Failed| X1["Item returns\nto source"]
-    B --&gt;|Passed| C["Build plan:\nwhere and how much to place"]
-    C --&gt; D["Business checks:\nCanCommitTransfer"]
-    D --&gt;|Failed| X2["Item returns\nto source"]
-    D --&gt;|Passed| E["Execute transfer:\nsplit → conversion → placement"]
-    E --&gt; F["OnTransferSucceeded\n(business side effects)"]
-    F --&gt; G["OnItemRemoved / OnItemAdded\n→ AddToData / RemoveFromData"]</code></pre>
-<p>Para drops directos sobre slot esto tiene una consecuencia importante:</p>
-<ul>
-<li>cuando la operación ya tiene un <code>target slot</code> concreto y la policy no es <code>FindAlternative</code>, planner/executor no deben escanear el resto del inventario</li>
-<li>el <code>GetAcceptableCount()</code> a nivel de inventario solo es necesario para area-drop, deferred placement y búsqueda de slots alternativos</li>
-</ul>
-<hr />
-<h2 id="por-que-existe-el-planning">Por qué existe el planning</h2>
-<p>Antes de cualquier mutación real, el sistema decide:</p>
-<ul>
-<li>si el item cabe</li>
-<li>si hace falta partial transfer</li>
-<li>si se requiere swap</li>
-<li>si existe un target slot válido</li>
-<li>si el item necesita conversión para el inventario objetivo</li>
-</ul>
-<p>Esto permite:</p>
-<ul>
-<li>no corromper el estado en operaciones inválidas</li>
-<li>ejecución atómica con rollback</li>
-<li>manejo uniforme de drag, quick transfer y swap</li>
-</ul>
-<hr />
-<h2 id="planning-vs-commit">Planning vs commit</h2>
-<ul>
-<li>el planning no muta el estado del inventario</li>
-<li>el commit aplica cambios reales</li>
-</ul>
-<p>Por eso las comprobaciones se dividen en varios tipos, cada una con su papel.</p>
-<hr />
-<h2 id="tres-tipos-de-comprobaciones">Tres tipos de comprobaciones</h2>
-<p>El transfer pipeline tiene tres mecanismos de comprobación distintos. Se disparan en momentos diferentes y sirven para propósitos distintos:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Player releases item"] --&gt; B["Rules"]
-    B --&gt;|Rejected| X["Denied"]
-    B --&gt;|OK| C["Planning"]
-    C --&gt; D["Business checks\n(CanCommitTransfer)"]
-    D --&gt;|Rejected| X
-    D --&gt;|OK| E["Execute transfer"]
-    E --&gt; F["Success notification\n(OnTransferSucceeded)"]</code></pre>
-<h3 id="rules-esta-permitido-en-absoluto">Rules — "¿está permitido en absoluto?"</h3>
-<p>Las rules se comprueban <strong>durante la fase de planning</strong>, antes de cualquier intento de transferencia. Son restricciones mecánicas: si el tipo de item encaja, si el slot está permitido, si el inventario está bloqueado.</p>
-<p>Las rules funcionan a tres niveles: la primera denegación detiene la operación:</p>
+    DROP["El jugador suelta un objeto"] --&gt; TARGET{"Dónde se soltó?"}
+    TARGET --&gt; SLOT["Sobre un slot"]
+    TARGET --&gt; AREA["Sobre un área de inventario"]
+    SLOT --&gt; CHECK{"El slot puede aceptar el objeto?"}
+    AREA --&gt; AUTO["Buscar un slot adecuado"]
+    AUTO --&gt; CHECK
+    CHECK --&gt;|sí| MOVE["Mover el objeto o unir el stack"]
+    CHECK --&gt;|no| POLICY{"Qué permite la policy?"}
+    POLICY --&gt;|Reject| REJECT["Rechazar la transferencia y devolver el objeto"]
+    POLICY --&gt;|Swap| SWAP["Probar swap"]
+    POLICY --&gt;|Find alternative| ALTERNATIVE["Probar otro slot"]
+    ALTERNATIVE --&gt; CHECK
+    MOVE --&gt; SYNC["Actualizar UI y datos del juego mediante DataBinding"]
+    SWAP --&gt; SYNC</code></pre>
+<h2 id="que-ocurre-durante-la-transferencia">Qué ocurre durante la transferencia</h2>
+<p>Una transferencia típica funciona así:</p>
+<ol>
+<li>El sistema resuelve el origen, el destino y la configuración activa de drop policy.</li>
+<li>Si los inventarios usan modelos de objeto distintos, el objeto se convierte al modelo
+   del inventario de destino.</li>
+<li>El sistema comprueba si el destino elegido puede aceptar el objeto.</li>
+<li>Si el destino es válido, el objeto se mueve o se une al stack del slot destino.</li>
+<li>Si el destino no es válido, <code>DropPolicySettings</code> decide qué ocurre después según las
+   opciones seleccionadas: rechazar la transferencia, buscar otro lugar o probar swap.</li>
+<li>Si tiene éxito, se envían eventos y se actualiza DataBinding. Si falla, el estado se
+   restaura a la copia guardada antes del intento de transferencia.</li>
+</ol>
+<h2 id="casos">Casos</h2>
+<h3 id="destino-bloqueado">Destino bloqueado</h3>
+<p>El slot elegido no puede aceptar el objeto: está ocupado, es incompatible o está lleno.
+Lo que ocurre después lo define <code>BlockedTargetResolutionKind</code>:</p>
 <table>
 <thead>
 <tr>
-<th>Nivel</th>
-<th>Qué comprueba</th>
-<th>Ejemplo</th>
+<th>Valor</th>
+<th>Comportamiento</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Global</strong></td>
-<td>Toda la aplicación</td>
-<td>Impedir drop en el mismo slot</td>
+<td><code>Reject</code></td>
+<td>La entrada de transferencia falla. No se mueve nada.</td>
 </tr>
 <tr>
-<td><strong>Inventory</strong></td>
-<td>Inventario concreto</td>
-<td>Límite de items únicos</td>
+<td><code>FindAlternative</code></td>
+<td>La estrategia devuelve candidatos disponibles y el <code>PlacementCandidateOrderer</code> configurado los ordena por prioridad.</td>
 </tr>
 <tr>
-<td><strong>Slot</strong></td>
-<td>Slot concreto</td>
-<td>Solo armas en el slot de arma</td>
+<td><code>Swap</code></td>
+<td>El sistema intenta un swap único con el destino ocupado.</td>
 </tr>
 </tbody>
 </table>
-<p>DataBinding también participa en las rules: su <code>CanDrop</code> se llama como parte de las inventory rules durante el planning.</p>
-<p>Para más sobre las rules, consulta la sección <a href="../rules/">Rules</a>.</p>
-<h3 id="business-checks-cancommittransfer-podemos-hacer-esto-ahora-mismo">Business checks (CanCommitTransfer) — "¿podemos hacer esto ahora mismo?"</h3>
-<p>Las business checks se ejecutan <strong>inmediatamente antes de la ejecución</strong>, cuando el plan ya está construido. Son necesarias para comprobaciones que dependen del estado actual y pueden cambiar entre el planning y la ejecución.</p>
-<p>Orden:</p>
+<p><code>AllowSameInventoryAlternativePlacement</code> controla si <code>FindAlternative</code>, al mover un
+objeto dentro del mismo inventario sobre un slot ocupado, puede elegir otro slot dentro
+de ese mismo inventario. Si no puede, el objeto permanece donde estaba antes del intento
+de transferencia.</p>
+<h3 id="drop-en-area-auto-transferencia">Drop en área / auto-transferencia</h3>
+<p>No hay un slot concreto: el jugador soltó el objeto sobre el área del inventario, o un
+doble clic / auto-transferencia inició <code>AutoTransferService</code>. El motor omite el destino
+explícito y pide candidatos directamente a la estrategia, luego los ordena.</p>
+<h3 id="stack-grande-repartido-en-varios-lugares">Stack grande repartido en varios lugares</h3>
+<p>Un stack de 10 sigue siendo una sola entrada de transferencia aunque el destino lo
+reparta en varios lugares. El motor:</p>
 <ol>
-<li><code>CanCommitTransfer</code> — comprobación síncrona y rápida</li>
-<li><code>CanCommitTransferAsync</code> — comprobación asíncrona (si el binding implementa la interface)</li>
-<li>commit</li>
+<li>crea un stack de trabajo con la cantidad solicitada;</li>
+<li>pide a la estrategia slots candidatos con capacidad libre, por ejemplo un objeto por
+   slot para <code>UniqueItemStrategy</code>;</li>
+<li>toma exactamente esa cantidad y aplica el candidato;</li>
+<li>procesa los candidatos otra vez contra el estado ya cambiado y repite hasta que se
+   agote el stack o los slots del inventario;</li>
+<li>devuelve al origen lo que no cupo.</li>
 </ol>
-<p>Se comprueban los DataBindings de <strong>ambos</strong> inventarios (origen y destino).</p>
-<p>Ejemplos típicos:</p>
+<p>Ejemplo: 10 objetos a un inventario Unique con 6 slots libres significa 6 transferidos y
+4 devueltos.</p>
+<h3 id="parcial-o-completo">Parcial o completo</h3>
+<p>El parámetro <code>_allowPartial</code> de la policy del inventario decide qué ocurre cuando solo
+cabe parte de una entrada de transferencia:</p>
 <ul>
-<li>si el jugador tiene suficiente oro para la compra</li>
-<li>si el servidor confirmó la operación</li>
-<li>si el estado cambió entre el planning y la ejecución</li>
+<li><code>true</code> = <code>Allow</code> — confirma lo que cabe y devuelve el resto al origen.</li>
+<li><code>false</code> = <code>RequireFull</code> — si no puede colocarse toda la cantidad, la entrada se revierte.</li>
 </ul>
-<h3 id="success-notification-ontransfersucceeded-que-hacer-despues">Success notification (OnTransferSucceeded) — "¿qué hacer después?"</h3>
-<p><code>OnTransferSucceeded</code> se dispara <strong>después de que todas las entries se completen</strong>, y solo en caso de éxito. No es una comprobación, sino un callback para side effects.</p>
-<p>Ejemplos:</p>
+<h3 id="movimiento-dentro-del-mismo-inventario">Movimiento dentro del mismo inventario</h3>
+<p>Al mover dentro del mismo inventario, el origen no se libera a ciegas. Un intento parcial
+mantiene el origen ocupado y lo excluye de la lista de candidatos, para que los lugares de
+destino no ocupen justo las celdas a las que el resto debería volver. Un movimiento
+completo puede hacer un intento aparte con el origen eliminado temporalmente, y debe mover
+toda la entrada o revertirse.</p>
+<h3 id="destino-ocupado-con-handler">Destino ocupado con handler</h3>
+<p>Si el slot destino está ocupado y el binding del inventario implementa
+<code>CanHandleOccupiedSlotDrop</code> y <code>ExecuteOccupiedSlotDrop</code>, ese handler corre primero,
+después de las reglas, como comprobación pura, y luego se ejecuta todo-o-nada. Si
+<code>ExecuteOccupiedSlotDrop</code> devuelve false, la transferencia se cancela y el estado se
+restaura. Si devuelve true, la transferencia termina; si los objetos movidos no fueron
+procesados, desaparecerán. El handler no inicia alternatives ni swap después.</p>
+<h3 id="batch">Batch</h3>
+<pre class="mermaid"><code>flowchart TD
+    A["Validar la petición una vez&lt;br/&gt;CanStartTransfer / CanStartTransferAsync"] --&gt; B["Entrada commit 1"]
+    B --&gt; C["La entrada 2 ve el resultado confirmado de la entrada 1"]
+    C --&gt; D["Entrada 3 ..."]
+    D --&gt; E["Fin de la transferencia"]</code></pre>
 <ul>
-<li>descontar moneda</li>
-<li>actualizar logros</li>
-<li>registrar estadísticas</li>
+<li>Las entradas de transferencia corren en el orden del drag-context; cada una ve el resultado confirmado de la anterior.</li>
+<li>Una entrada fallida se revierte sola; las transferencias anteriores permanecen.</li>
+<li>El slot destino elegido se aplica solo a la primera entrada; el resto se comporta como drop en área.</li>
 </ul>
-<h3 id="cuando-usar-cada-una">Cuándo usar cada una</h3>
+<p>El batch-swap, es decir, varios objetos arrastrados sobre un mismo destino ocupado con
+<code>Swap</code>, se rechaza antes de cualquier mutación.</p>
+<p>La transferencia parcial se aplica <strong>por entrada</strong>. <code>RequireFull</code> nunca cancela entradas
+anteriores del batch.</p>
+<h2 id="validacion">Validación</h2>
+<p>Hay varios tipos de comprobaciones que permiten o bloquean una transferencia, y se
+ejecutan en momentos distintos.</p>
 <table>
 <thead>
 <tr>
-<th>Tarea</th>
-<th>Dónde escribirla</th>
+<th>Capa</th>
+<th>Interfaz</th>
+<th>Pregunta</th>
+<th>Cuándo se ejecuta</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>"Este tipo de item no puede ir aquí"</td>
-<td>Rule (<code>CanDrop</code>)</td>
+<td>Reglas</td>
+<td><code>IGlobalRule</code> / <code>IInventoryRule</code> / <code>ISlotRule</code></td>
+<td>Puede este objeto ir aquí mecánicamente? Filtro de tipo, slot bloqueado, etc.</td>
+<td>Inicio del drag y validación del destino</td>
 </tr>
 <tr>
-<td>"Solo armas en el slot de arma"</td>
-<td>Slot rule</td>
+<td>Veto de toda la transferencia</td>
+<td><code>ITransferDomainHandler.CanStartTransfer</code></td>
+<td>Puede empezar esta operación?</td>
+<td>Una vez, antes de la primera mutación</td>
 </tr>
 <tr>
-<td>"Máximo 5 items únicos"</td>
-<td>Inventory rule</td>
+<td>Veto asíncrono</td>
+<td><code>IAsyncTransferDomainHandler.CanStartTransferAsync</code></td>
+<td>Lo mismo, pero hay que esperar algo como servidor o disco.</td>
+<td>Una vez, solo camino async, antes de la primera mutación</td>
 </tr>
 <tr>
-<td>"¿Tiene el jugador suficiente oro?"</td>
-<td><code>CanCommitTransfer</code></td>
+<td>Comprobación de commit</td>
+<td><code>ITransferDomainHandler.CanCommitTransfer</code></td>
+<td>Puede confirmarse esta colocación concreta? Oro suficiente, propiedad, etc.</td>
+<td>Justo antes de cada mutación de candidato</td>
 </tr>
 <tr>
-<td>"Esperar respuesta del servidor"</td>
-<td><code>CanCommitTransferAsync</code></td>
-</tr>
-<tr>
-<td>"Descontar dinero tras la compra"</td>
-<td><code>OnTransferSucceeded</code></td>
+<td>Efectos de éxito</td>
+<td><code>ITransferDomainHandler.OnTransferSucceeded</code></td>
+<td>Reaccionar después de una colocación confirmada.</td>
+<td>Después de un commit exitoso</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="conversion-de-items">Conversión de items</h2>
-<p>Cuando origen y destino usan representaciones distintas del item, la conversión ocurre en dos etapas:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Item split from\nsource slot"] --&gt; B["Outgoing conversion:\nsource releases item\nin its format"]
-    B --&gt; C["Incoming conversion:\ntarget accepts item\nin its format"]
-    C --&gt; D["Item placed\nin target slot"]</code></pre>
-<p>Ejemplo: un comerciante almacena items como ScriptableObjects y el jugador usa runtime models. En una compra:</p>
-<ol>
-<li>El item se separa del slot del comerciante</li>
-<li><strong>Outgoing</strong>: el comerciante libera el item (SO → formato intermedio)</li>
-<li><strong>Incoming</strong>: el inventario del jugador acepta el item (formato intermedio → runtime model)</li>
-<li>El item se coloca en el slot del jugador</li>
-</ol>
-<p>Importante para quien use el asset:</p>
-<ul>
-<li>cada adapter del stack se convierte individualmente (los datos runtime únicos se conservan)</li>
-<li>si algún adapter falla durante la conversión, toda la operación hace rollback</li>
-<li>el inventario objetivo recibe el item ya en su propio formato</li>
-</ul>
-<hr />
-<h2 id="orden-detallado-de-ejecucion">Orden detallado de ejecución</h2>
-<p>Para cada planned entry, ocurre lo siguiente:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Capture snapshots\nof source and target"] --&gt; B["Check CanCommitTransfer\non both inventories"]
-    B --&gt;|Rejected| X["Rollback: restore\nfrom snapshot"]
-    B --&gt;|OK| C["Take items from\nsource slot"]
-    C --&gt; D["Outgoing conversion\n(each adapter individually)"]
-    D --&gt;|Error| X
-    D --&gt;|OK| E["Place into target\ninventory (incoming\nconversion inside)"]
-    E --&gt;|Didn't fit| F["Return remainder\nto source"]
-    E --&gt;|Fits| G["Record outcome"]
-    F --&gt; G</code></pre>
-<p>Después de que <strong>todas</strong> las entries se hayan ejecutado:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["All entries\ncompleted"] --&gt; B["OnTransferSucceeded\non each DataBinding"]
-    B --&gt; C["OnItemRemoved — source\n(with original adapters)"]
-    C --&gt; D["OnItemAdded — target\n(with final adapters)"]
-    D --&gt; E["OnDropCompleted"]</code></pre>
-<p>Importante: los eventos se disparan <strong>después de que termine toda la operación</strong>, no uno por cada entry. Esto evita eventos falsos cuando ocurre un rollback posterior en modo Atomic.</p>
-<p>Nota adicional:</p>
-<ul>
-<li>si la ejecución ya apunta a un <code>targetSlot</code> concreto, el executor no debe volver a lanzar una búsqueda de capacidad a nivel de inventario</li>
-<li>en esa rama debe confiar en el plan y confirmar la colocación solo en el slot solicitado</li>
-</ul>
-<hr />
-<h2 id="que-ocurre-si-hay-fallo">Qué ocurre si hay fallo</h2>
-<p>Si una comprobación o un commit falla, el comportamiento depende de la policy:</p>
+<p>Las reglas se colocan directamente en objetos de slot o inventario. DataBinding también
+expone hooks similares por defecto: <code>CanStartDrag</code>, <code>CanDrop</code> y <code>CanSwap</code>. Los bindings
+pueden implementar <code>ITransferDomainHandler</code> y <code>IAsyncTransferDomainHandler</code> para añadir
+comprobaciones y acciones adicionales para toda la transferencia.</p>
+<h2 id="cuando-se-disparan-los-eventos">Cuándo se disparan los eventos</h2>
+<p>Los eventos y notificaciones de DataBinding de una entrada se envían <strong>solo después de
+confirmar esa entrada</strong> y antes de empezar la siguiente. Esto garantiza que la siguiente
+entrada vea el mismo estado que el inventario en vivo.</p>
+<p>Cada evento add/remove lleva el sub-stack exacto que realmente se movió, nunca el
+<code>DragEntry.Stack</code> crudo. Una entrada de 10 que cae como <code>6 + 4</code> envía eventos por 10
+adaptadores en total; una entrada de 10 donde se movieron 6 y volvieron 4 envía eventos
+por 6.</p>
+<h2 id="puntos-de-extension">Puntos de extensión</h2>
+<p>Todo lo destinado a conectar lógica propia está listado aquí:</p>
 <table>
 <thead>
 <tr>
-<th>Situación</th>
-<th>Qué ocurre</th>
+<th>Punto de extensión</th>
+<th>Tipo</th>
+<th>Para qué sirve</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>CanDrop</code> devuelve fallo</td>
-<td>la transferencia no empieza, el item vuelve al origen</td>
+<td><strong>Estrategia de colocación</strong></td>
+<td><code>IStrategy</code> / <code>InventoryStrategyBase</code></td>
+<td>Define cómo los objetos ocupan slots: unique, stackable, separable o lógica propia de merge/create/capacity. Solo lectura; devuelve candidatos.</td>
 </tr>
 <tr>
-<td><code>CanCommitTransfer</code> devuelve fallo</td>
-<td>la transferencia se cancela antes del commit, el estado no cambia</td>
+<td><strong>Topología</strong></td>
+<td><code>IInventoryTopology</code> (<code>SlotTopology</code>, <code>RectGridTopology</code>, propia)</td>
+<td>Define el espacio de celdas: número de celdas, proyección de formas, pasos de orientación y ángulos visuales.</td>
 </tr>
 <tr>
-<td><code>CanCommitTransferAsync</code> devuelve fallo</td>
-<td>la transferencia se cancela antes del commit, el estado no cambia</td>
+<td><strong>Forma de colocación</strong></td>
+<td><code>IPlacementShape</code> (<code>RectPlacementShape</code>, <code>ComplexPlacementShape</code>)</td>
+<td>Define el footprint de un objeto, incluidas formas no rectangulares y sus rotaciones.</td>
 </tr>
 <tr>
-<td>Batch atómico: falla un item</td>
-<td>se cancela toda la operación y no se mueve ningún item</td>
+<td><strong>Ordenador de candidatos</strong></td>
+<td><code>PlacementCandidateOrderer</code></td>
+<td>Controla qué slot prefiere la colocación automática, por ejemplo merge-first o empty-first. No se usa para un destino explícito.</td>
 </tr>
 <tr>
-<td>Batch BestEffort: falla un item</td>
-<td>el resto se transfiere y los que fallan permanecen en origen</td>
+<td><strong>Policy de destino bloqueado</strong></td>
+<td><code>BlockedTargetResolutionKind</code> + <code>DropPolicySettings</code></td>
+<td>Elige reject / find-alternative / swap, además de opciones de transferencia parcial y mismo inventario. Solo datos, configurado en Inspector.</td>
+</tr>
+<tr>
+<td><strong>Veto de toda la transferencia</strong></td>
+<td><code>ITransferDomainHandler.CanStartTransfer</code></td>
+<td>Permitir o denegar toda la operación antes de que algo cambie.</td>
+</tr>
+<tr>
+<td><strong>Veto asíncrono</strong></td>
+<td><code>IAsyncTransferDomainHandler.CanStartTransferAsync</code></td>
+<td>Lo mismo, cuando la respuesta requiere esperar a un servidor, archivo o base de datos.</td>
+</tr>
+<tr>
+<td><strong>Comprobación de negocio por commit</strong></td>
+<td><code>ITransferDomainHandler.CanCommitTransfer</code></td>
+<td>Permitir o denegar una colocación concreta, por ejemplo oro o propiedad.</td>
+</tr>
+<tr>
+<td><strong>Hook de éxito</strong></td>
+<td><code>ITransferDomainHandler.OnTransferSucceeded</code></td>
+<td>Aplicar efectos secundarios después de una colocación confirmada.</td>
+</tr>
+<tr>
+<td><strong>Handler de slot ocupado</strong></td>
+<td><code>IOccupiedSlotDropHandler</code></td>
+<td>Comportamiento propio al soltar sobre un slot ocupado, como equipar o meter en contenedor.</td>
+</tr>
+<tr>
+<td><strong>Ciclo de vida de slots dinámicos</strong></td>
+<td><code>IDynamicSlotLifecycle</code></td>
+<td>Permite que un inventario crezca o se reduzca; el motor controla la creación y eliminación.</td>
+</tr>
+<tr>
+<td><strong>Conversor de objetos</strong></td>
+<td><code>IItemAdapterConverter</code> mediante <code>CreateItemConverter()</code></td>
+<td>Convierte objetos entre inventarios con distintos modelos de adapter.</td>
+</tr>
+<tr>
+<td><strong>Reglas</strong></td>
+<td><code>IGlobalRule</code> / <code>IInventoryRule</code> / <code>ISlotRule</code></td>
+<td>Restricciones mecánicas declarativas en tres niveles.</td>
+</tr>
+<tr>
+<td><strong>Drop zones</strong></td>
+<td><code>DropAreaBase</code></td>
+<td>Destinos de drop propios, como basura, venta o spawn en mundo, sin cambiar el transfer pipeline.</td>
 </tr>
 </tbody>
 </table>
-<p>La idea clave es: si una comprobación falla, los inventarios permanecen en su estado original. El planning construye el plan sin mutaciones, y el commit solo se aplica después de que todas las comprobaciones hayan pasado.</p>
-<hr />
-<h2 id="drop-policy">Drop Policy</h2>
-<p>El modelo actual tiene tres capas:</p>
-<ul>
-<li><code>DropRequestPolicy</code></li>
-<li>override temporal por operación</li>
-<li>puede sobrescribir:<ul>
-<li><code>BlockedTargetResolverBase</code></li>
-<li><code>AllowPartial</code></li>
-</ul>
-</li>
-<li><code>DropPolicySettings</code></li>
-<li>valores por defecto a nivel de inventario en <code>UniversalInventory</code></li>
-<li>define:<ul>
-<li>blocked target resolver</li>
-<li>permitir merge on drop</li>
-<li>permitir parcial</li>
-<li>batch mode</li>
-</ul>
-</li>
-<li><code>ResolvedDropPolicy</code></li>
-<li>policy final no anulable que usa el planner</li>
-<li>contiene el blocked-target resolver concreto usado por esta transferencia</li>
-</ul>
-<p>Resolvers integrados para blocked target:
-- <code>Reject</code>
-- <code>Swap</code>
-- <code>FindAlternative</code></p>
-<p>Cuando se selecciona <code>Swap</code>, contiene internamente una <code>[SerializeReference]</code> <code>ISwapStrategy</code>.
-Cuando se selecciona <code>FindAlternative</code>, contiene internamente una <code>[SerializeReference]</code> <code>IAlternativePlacementStrategy</code>.</p>
-<p>Internamente, el manejo de blocked-target pasa por un contrato único:
-<code>BlockedTargetResolverBase.Resolve(...)</code>. El resolver devuelve un <code>BlockedTargetResolution</code>
-como <code>Reject</code>, <code>AlternativeSlots</code> o <code>SwapTargets</code>. El planner consume ese resultado;
-no inspecciona directamente las strategies anidadas del resolver.</p>
-<h2 id="override-temporal-a-traves-de-acciones">Override temporal a través de acciones</h2>
-<p>El override temporal de drop policy se hace mediante la request policy de la acción, no mutando <code>DragContext</code>.</p>
-<p>Ejemplo:
-- <code>CompleteDragAction</code> por defecto llama a <code>CompleteDrag(null)</code>
-- la variante con <code>Ctrl</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithSwap())</code>
-- la variante con <code>Shift</code> de <code>CompleteDragAction</code> llama a <code>CompleteDrag(DropRequestPolicy.WithFindAlternative())</code>
-- las acciones también pueden sobrescribir <code>AllowPartial</code>
-- si hace falta, también pueden pasar un resolver propio o una placement strategy propia con <code>DropRequestPolicy.WithResolver(...)</code> o <code>DropRequestPolicy.WithFindAlternative(...)</code></p>
-<p>Una variante separada es <code>SplitDropAction</code>: llama a <code>SplitDrop(policy, count)</code> en lugar de <code>CompleteDrag</code>. Esto permite soltar parte del stack (p. ej., 1 item) sin terminar el drag. La transferencia pasa por el mismo pipeline (planner → executor → eventos). Ver <a href="../../systems/interaction/#split-drop">Input and Interaction</a> para más detalles.</p>
-<p>Importante:
-- el override solo se aplica a la operación de transferencia actual
-- <code>DropPolicySettings</code> a nivel de inventario no cambian
-- el <code>ResolvedDropPolicy</code> final se monta en este orden:
-  1. action request override
-  2. drop-target override
-  3. inventory defaults</p>
-<h2 id="extensiones-personalizadas-de-drop-policy">Extensiones personalizadas de Drop Policy</h2>
-<p>Para crear tu propio comportamiento de blocked target:</p>
-<ol>
-<li>Crea una clase que herede de <code>BlockedTargetResolverBase</code>.</li>
-<li>Márquela con <code>[Serializable]</code>.</li>
-<li>Sobrescribe <code>Resolve(BlockedTargetResolutionContext context)</code>.</li>
-<li>Devuelve <code>BlockedTargetResolution.Reject()</code>, <code>AlternativeSlots(...)</code> o <code>SwapTargets(...)</code>.</li>
-<li>La clase aparecerá automáticamente en el managed reference picker de <code>DropPolicySettings</code>.</li>
-</ol>
-<p>Para crear tu propia swap strategy:</p>
-<ol>
-<li>Crea una clase que implemente <code>ISwapStrategy</code>.</li>
-<li>Márquela con <code>[Serializable]</code>.</li>
-<li>Implementa <code>EnumerateSwapTargets(...)</code> y devuelve los swap candidates en el orden exacto que necesites.</li>
-<li>La clase aparecerá automáticamente dentro de <code>SwapBlockedTargetResolver</code>.</li>
-</ol>
-<p>Para crear tu propia strategy de colocación alternativa:</p>
-<ol>
-<li>Crea una clase que implemente <code>IAlternativePlacementStrategy</code>.</li>
-<li>Márquela con <code>[Serializable]</code>.</li>
-<li>Implementa <code>EnumerateAlternativeSlots(...)</code> y devuelve los slots en el orden exacto que necesites.</li>
-<li>La clase aparecerá automáticamente dentro de <code>FindAlternativeBlockedTargetResolver</code>.</li>
-</ol>
-<h2 id="orden-de-procesamiento-de-drop-policy">Orden de procesamiento de Drop Policy</h2>
-<p>Para una sola drag entry:</p>
-<ol>
-<li>Resolver <code>ResolvedDropPolicy</code></li>
-<li>Intentar colocar en el target slot si existe</li>
-<li>Si cabe todo, la entry tiene éxito</li>
-<li>Si solo cabe una parte:</li>
-<li><code>AllowPartial = false</code> -&gt; fallo</li>
-<li><code>AllowPartial = true</code> -&gt; éxito parcial</li>
-<li>el resto puede buscar alternativas solo cuando el resolver activo devuelve <code>AlternativeSlots</code></li>
-<li>Si no cabe nada en el objetivo:</li>
-<li><code>Reject</code> -&gt; fallo</li>
-<li>el resolver devuelve <code>SwapTargets</code> -&gt; el planner crea una swap entry</li>
-<li>el resolver devuelve <code>AlternativeSlots</code> -&gt; el planner prueba esos candidate slots</li>
-<li>La colocación alternativa dentro del mismo inventario es configurable en <code>FindAlternativeBlockedTargetResolver</code>. Por defecto puede usar otro slot válido; desactiva <code>AllowSameInventoryAlternativePlacement</code> si un drop sobre un slot bloqueado del mismo inventario debe dejar el item en su slot original.</li>
-</ol>
-<h2 id="operaciones-por-lotes">Operaciones por lotes</h2>
-<p>Al transferir varios items a la vez, el comportamiento viene determinado por <code>BatchMode</code> dentro de <code>DropPolicy</code>:</p>
-<pre class="mermaid"><code>flowchart TD
-    A["Transferring multiple\nitems"] --&gt; B{"Which policy?"}
-    B --&gt;|Atomic| C["All or nothing:\nif any item fails,\ncancel everything"]
-    B --&gt;|BestEffort| D["Transfer what fits,\nleave the rest\nin source"]</code></pre>
-<p>Por defecto, el batch mode proviene de <code>DropPolicySettings</code> del inventario objetivo, mientras que los request overrides solo afectan al comportamiento temporal en runtime.</p>
-<hr />
-<h2 id="el-swap-forma-parte-del-mismo-pipeline">El swap forma parte del mismo pipeline</h2>
-<pre class="mermaid"><code>flowchart TD
-    A["Target slot is occupied"] --&gt; B{"Resolver returns SwapTargets?"}
-    B --&gt;|No| C["Reject"]
-    B --&gt;|Yes| D["Validate both directions\non target-side preview stacks"]
-    D --&gt; E["Capture copies of both stacks"]
-    E --&gt; F["source -&gt; target:\noutgoing -&gt; incoming"]
-    E --&gt; G["target -&gt; source:\noutgoing -&gt; incoming"]
-    F --&gt; H["Commit converted stacks\ninto opposite slots"]
-    G --&gt; H</code></pre>
-<p>En la práctica esto significa:</p>
-<ul>
-<li>el swap entre inventarios no debe ser un raw stack exchange</li>
-<li>ambas direcciones se convierten al formato del inventario opuesto antes del commit</li>
-<li><code>OnItemRemoved</code> publica stacks <code>before</code>, mientras que <code>OnItemAdded</code> publica stacks <code>after</code></li>
-<li>de lo contrario queda un adapter extranjero dentro del slot y la siguiente operación falla en <code>CanStartDrag</code> / <code>CanDrop</code></li>
-</ul>
 
 
 
@@ -2564,7 +2396,7 @@ no inspecciona directamente las strategies anidadas del resolver.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -31,7 +31,7 @@
     
     
       
-        <title>Cookbook: Item Conversion - Drag & Drop Inventory System</title>
+        <title>Item Conversion - Drag & Drop Inventory System</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cookbook-item-conversion" class="md-skip">
+        <a href="#item-conversion" class="md-skip">
           Skip to content
         </a>
       
@@ -92,6 +92,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -118,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Cookbook: Item Conversion
+              Item Conversion
             
           </span>
         </div>
@@ -660,14 +664,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/demo3-minecraft/" class="md-nav__link">
+      <a href="../../examples/demo3-Craft/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Demo3 Minecraft
+    Demo3 Craft
   
 
     
@@ -724,6 +728,34 @@
     
   
     Demo5 Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/demo6-shaped-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo6 Shaped Items
   
 
     
@@ -899,7 +931,7 @@
   <span class="md-ellipsis">
     
   
-    Drop Policy Matrix
+    Drop Policy
   
 
     
@@ -936,7 +968,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -954,7 +986,7 @@
   <span class="md-ellipsis">
     
   
-    Cookbook: Item Conversion
+    Item Conversion
   
 
     
@@ -983,7 +1015,7 @@
   <a href="#when-a-converter-is-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        When a converter is needed
+        When A Converter Is Needed
       
     </span>
   </a>
@@ -991,10 +1023,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-the-converter-lives" class="md-nav__link">
+  <a href="#where-to-configure-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where the converter lives
+        Where To Configure It
       
     </span>
   </a>
@@ -1002,22 +1034,66 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#who-calls-conversion" class="md-nav__link">
+  <a href="#simple-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Who calls conversion
+        Simple Model
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Who calls conversion">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-converter-must-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What A Converter Must Preserve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-between-different-inventories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap Between Different Inventories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-return-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When To Return null
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-mistakes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Mistakes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Mistakes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#preview-planning" class="md-nav__link">
+  <a href="#wrong-item-type-appears-after-transfer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preview / planning
+        Wrong Item Type Appears After Transfer
       
     </span>
   </a>
@@ -1025,10 +1101,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#normal-execution" class="md-nav__link">
+  <a href="#first-swap-works-second-swap-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Normal execution
+        First Swap Works, Second Swap Breaks
       
     </span>
   </a>
@@ -1036,10 +1112,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#swap" class="md-nav__link">
+  <a href="#item-data-was-lost" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Swap
+        Item Data Was Lost
       
     </span>
   </a>
@@ -1052,154 +1128,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#correct-mental-model" class="md-nav__link">
+  <a href="#checklist-for-a-new-converter" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Correct mental model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-an-adapter-must-preserve" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What an adapter must preserve
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-not-to-do" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What not to do
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="What not to do">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#do-not-use-one-adapter-as-a-representative-for-the-entire-stack" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Do not use one adapter as a representative for the entire stack
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Do not implement cross-inventory swap as a raw stack exchange
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do-not-rely-on-preview-and-execution-sharing-the-same-object-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Do not rely on preview and execution sharing the same object reference
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-a-converter-should-return-null" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When a converter should return null
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-diagnose-conversion-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to diagnose conversion errors
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How to diagnose conversion errors">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#symptom-wrong-item-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Symptom: Wrong item type
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symptom-first-swap-works-second-swap-breaks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Symptom: first swap works, second swap breaks
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symptom-preview-passes-commit-fails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Symptom: preview passes, commit fails
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#mini-checklist-for-new-converters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Mini checklist for new converters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-to-continue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where to continue
+        Checklist For A New Converter
       
     </span>
   </a>
@@ -1542,7 +1474,7 @@
   <span class="md-ellipsis">
     
   
-    Example: Free-Form Layout
+    Free-Form Slot Layout
   
 
     
@@ -1687,7 +1619,7 @@
   <span class="md-ellipsis">
     
   
-    Event Reference
+    Events Reference
   
 
     
@@ -1715,7 +1647,7 @@
   <span class="md-ellipsis">
     
   
-    Logs and Debugging
+    Logs And Debugging
   
 
     
@@ -1860,7 +1792,7 @@
   <span class="md-ellipsis">
     
   
-    Exra support
+    Extra support
   
 
     
@@ -1967,7 +1899,7 @@
   <a href="#when-a-converter-is-needed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        When a converter is needed
+        When A Converter Is Needed
       
     </span>
   </a>
@@ -1975,10 +1907,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-the-converter-lives" class="md-nav__link">
+  <a href="#where-to-configure-it" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where the converter lives
+        Where To Configure It
       
     </span>
   </a>
@@ -1986,22 +1918,66 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#who-calls-conversion" class="md-nav__link">
+  <a href="#simple-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Who calls conversion
+        Simple Model
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Who calls conversion">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-converter-must-preserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What A Converter Must Preserve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-between-different-inventories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swap Between Different Inventories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-return-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When To Return null
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-mistakes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Mistakes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Mistakes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#preview-planning" class="md-nav__link">
+  <a href="#wrong-item-type-appears-after-transfer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Preview / planning
+        Wrong Item Type Appears After Transfer
       
     </span>
   </a>
@@ -2009,10 +1985,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#normal-execution" class="md-nav__link">
+  <a href="#first-swap-works-second-swap-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Normal execution
+        First Swap Works, Second Swap Breaks
       
     </span>
   </a>
@@ -2020,10 +1996,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#swap" class="md-nav__link">
+  <a href="#item-data-was-lost" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Swap
+        Item Data Was Lost
       
     </span>
   </a>
@@ -2036,154 +2012,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#correct-mental-model" class="md-nav__link">
+  <a href="#checklist-for-a-new-converter" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Correct mental model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-an-adapter-must-preserve" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What an adapter must preserve
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-not-to-do" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What not to do
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="What not to do">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#do-not-use-one-adapter-as-a-representative-for-the-entire-stack" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Do not use one adapter as a representative for the entire stack
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Do not implement cross-inventory swap as a raw stack exchange
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do-not-rely-on-preview-and-execution-sharing-the-same-object-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Do not rely on preview and execution sharing the same object reference
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-a-converter-should-return-null" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        When a converter should return null
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-diagnose-conversion-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to diagnose conversion errors
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How to diagnose conversion errors">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#symptom-wrong-item-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Symptom: Wrong item type
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symptom-first-swap-works-second-swap-breaks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Symptom: first swap works, second swap breaks
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symptom-preview-passes-commit-fails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Symptom: preview passes, commit fails
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#mini-checklist-for-new-converters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Mini checklist for new converters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-to-continue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where to continue
+        Checklist For A New Converter
       
     </span>
   </a>
@@ -2207,149 +2039,105 @@
 
 
 
-<h1 id="cookbook-item-conversion">Cookbook: Item Conversion</h1>
-<p>This page answers a practical question:
-"how should I configure conversion between two inventories that use different adapter models?"</p>
-<p>The architectural overview already exists in <a href="../transfer-pipeline/">Transfer Pipeline</a>.
-This page focuses on working rules and common mistakes.</p>
-<hr />
-<h2 id="when-a-converter-is-needed">When a converter is needed</h2>
-<p>A converter is needed when two inventories use different representations of the same item.</p>
-<p>Typical examples:</p>
+<h1 id="item-conversion">Item Conversion</h1>
+<p>This page explains how to move items between inventories that use different data models.</p>
+<p>Example: a merchant stores goods as <code>ScriptableObject</code>, the player stores purchased
+items as runtime models, and equipment uses fixed slots with its own checks.</p>
+<h2 id="when-a-converter-is-needed">When A Converter Is Needed</h2>
+<p>A converter is needed when an item must move from one adapter type to another.</p>
+<p>Typical cases:</p>
 <ul>
-<li>a merchant stores <code>ScriptableObject</code>s while the player uses runtime models</li>
-<li>a UI-facing inventory uses lightweight adapters while the domain model uses rich instances</li>
-<li>an inventory boundary inside a container item uses another adapter model</li>
+<li>merchant and player store items in different models</li>
+<li>equipment inventory accepts only special adapters</li>
+<li>a container inside an item stores runtime instances</li>
+<li>the same item should look different in different inventories</li>
 </ul>
-<p>If both sides already use the same adapter type, a converter is usually unnecessary.</p>
-<hr />
-<h2 id="where-the-converter-lives">Where the converter lives</h2>
-<p>The converter is declared on the inventory binding side:</p>
+<p>If both inventories use the same adapter type, a converter is usually not needed.</p>
+<h2 id="where-to-configure-it">Where To Configure It</h2>
+<p>The converter is configured in the binding:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IItemAdapterConverter</span><span class="w"> </span><span class="nf">CreateItemConverter</span><span class="p">()</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">MyItemAdapterConverter</span><span class="p">();</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">}</span>
 </code></pre></div>
-<p>So the binding defines:</p>
+<p>The binding tells the system:</p>
 <ul>
-<li>how this inventory exports an item</li>
-<li>how this inventory imports an item</li>
+<li>how items from this inventory look when they leave it</li>
+<li>how items should look when they enter this inventory</li>
 </ul>
-<p>By default, the system uses an identity converter.</p>
-<hr />
-<h2 id="who-calls-conversion">Who calls conversion</h2>
-<h3 id="preview-planning">Preview / planning</h3>
-<p>During preview and planning, conversion is orchestrated by <code>TransferItemConversionUtility</code>.</p>
-<p>This is required so target rules and binding hooks see a target-side adapter rather than the original source-side adapter.</p>
-<h3 id="normal-execution">Normal execution</h3>
-<p>For a regular transfer, the chain is:</p>
-<ol>
-<li>the item is taken from the source slot</li>
-<li><code>source outgoing</code> runs</li>
-<li>then <code>target incoming</code> runs</li>
-<li>only after that is the item placed into the target inventory</li>
-</ol>
-<h3 id="swap">Swap</h3>
-<p>Swap is not one symmetric conversion.
-It is two separate chains:</p>
-<ul>
-<li><code>A -&gt; B</code></li>
-<li><code>B -&gt; A</code></li>
-</ul>
-<p>Each one runs through its own <code>outgoing -&gt; incoming</code>.</p>
-<hr />
-<h2 id="correct-mental-model">Correct mental model</h2>
-<p>Do not think in terms of "the source inventory gives the final target object".</p>
-<p>Think instead:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>source adapter
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -&gt; source outgoing
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  -&gt; intermediate representation
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  -&gt; target incoming
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  -&gt; target adapter
+<p>If no converter is configured, the item is left as-is.</p>
+<h2 id="simple-model">Simple Model</h2>
+<p>When an item moves from one inventory to another, the system needs an adapter that the
+target inventory understands.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>source inventory adapter
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -&gt; converter
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  -&gt; target inventory adapter
 </code></pre></div>
-<p>The intermediate representation does not need to be a dedicated type.
-What matters is that source and target boundaries stay independent.</p>
-<hr />
-<h2 id="what-an-adapter-must-preserve">What an adapter must preserve</h2>
-<p>If your items have instance state, the adapter must carry it safely through conversion:</p>
+<p>The converter's main job is to keep the meaning of the item when it crosses from one data model to another.</p>
+<h2 id="what-a-converter-must-preserve">What A Converter Must Preserve</h2>
+<p>If items are unique, the converter must preserve more than icon and name.</p>
+<p>Check that it preserves:</p>
 <ul>
-<li>a stable <code>ItemId</code>, if stacking semantics depend on it</li>
-<li>runtime fields of the specific instance</li>
-<li>a reference to the domain entity, if the item is unique</li>
-<li>data later used by <code>CanStartDrag</code>, <code>CanDrop</code>, tooltips, and side effects</li>
+<li><code>ItemId</code>, if it affects stacking</li>
+<li>item count in the stack</li>
+<li>unique runtime state</li>
+<li>reference to a domain model, if the item is not just a <code>ScriptableObject</code></li>
+<li>data needed by <code>CanDrop</code>, tooltip, price, rarity, or equipment checks</li>
 </ul>
-<p>If the item "looks right after transfer but drag breaks later", the usual cause is that the target received the wrong adapter type or the wrong instance state.</p>
-<hr />
-<h2 id="what-not-to-do">What not to do</h2>
-<h3 id="do-not-use-one-adapter-as-a-representative-for-the-entire-stack">Do not use one adapter as a representative for the entire stack</h3>
-<p>If a stack contains different runtime instances, do not clone one adapter through <code>Repeat</code>.</p>
-<p>That causes:</p>
-<ul>
-<li>loss of instance state</li>
-<li>preview and execution diverging</li>
-<li>distorted remove/add payloads</li>
-</ul>
-<h3 id="do-not-implement-cross-inventory-swap-as-a-raw-stack-exchange">Do not implement cross-inventory swap as a raw stack exchange</h3>
-<p>If swap merely swaps two <code>ItemStack</code> objects:</p>
-<ul>
-<li>the target slot receives a foreign adapter type</li>
-<li>the next <code>CanStartDrag</code> or <code>CanDrop</code> starts failing on type checks</li>
-</ul>
-<h3 id="do-not-rely-on-preview-and-execution-sharing-the-same-object-reference">Do not rely on preview and execution sharing the same object reference</h3>
-<p>The preview stack and the execution stack may be different objects.
-Stability must come from data and conversion semantics, not reference equality.</p>
-<hr />
-<h2 id="when-a-converter-should-return-null">When a converter should return <code>null</code></h2>
-<p><code>null</code> means not "I do not want to do it right now", but "this boundary cannot export/import this item".</p>
+<p>If after transfer “the item looks correct, but can no longer be dragged”, the target slot most likely received the wrong adapter type or lost required data.</p>
+<h2 id="swap-between-different-inventories">Swap Between Different Inventories</h2>
+<p>Swap between different inventory types is not a simple exchange of two stacks.</p>
+<p>Each item must be converted to the model of the inventory it is entering:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>item A -&gt; inventory B model
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>item B -&gt; inventory A model
+</code></pre></div>
+<p>If you simply swap two adapters, the next drag/drop may break because a slot stores an item in the wrong format.</p>
+<h2 id="when-to-return-null">When To Return <code>null</code></h2>
+<p>A converter may return <code>null</code> if the item cannot be safely converted to the required model.</p>
 <p>That is appropriate when:</p>
 <ul>
-<li>the item must never cross this boundary</li>
-<li>the binding cannot materialize the required target adapter</li>
-<li>data loss would be unacceptable</li>
+<li>the item must not enter this inventory</li>
+<li>the target adapter type cannot be created</li>
+<li>conversion would lose important data</li>
 </ul>
-<p>If the operation is only temporarily forbidden by business logic, that is not the converter's job.
-Use:</p>
+<p>Do not use <code>null</code> for temporary blocks such as “not enough money” or “shop is closed”.
+Use rules or <code>ITransferDomainHandler</code> for that.</p>
+<h2 id="common-mistakes">Common Mistakes</h2>
+<h3 id="wrong-item-type-appears-after-transfer"><code>Wrong Item Type</code> Appears After Transfer</h3>
+<p>Check:</p>
 <ul>
-<li>rules</li>
-<li><code>CanCommitTransfer</code></li>
-<li><code>CanCommitTransferAsync</code></li>
+<li>whether <code>CreateItemConverter()</code> is implemented</li>
+<li>whether the converter returns the target inventory adapter</li>
+<li>whether the source inventory adapter remained in the slot</li>
 </ul>
-<hr />
-<h2 id="how-to-diagnose-conversion-errors">How to diagnose conversion errors</h2>
-<h3 id="symptom-wrong-item-type">Symptom: <code>Wrong item type</code></h3>
-<p>Usually means:</p>
+<h3 id="first-swap-works-second-swap-breaks">First Swap Works, Second Swap Breaks</h3>
+<p>Check:</p>
 <ul>
-<li>the target binding received the source adapter type</li>
-<li>swap was committed as a raw exchange</li>
-<li>preview converted correctly, but execution did not</li>
+<li>whether conversion exists in both directions</li>
+<li>whether two stacks are being swapped directly without converter</li>
+<li>which adapter is stored in each slot after the first swap</li>
 </ul>
-<h3 id="symptom-first-swap-works-second-swap-breaks">Symptom: first swap works, second swap breaks</h3>
-<p>Usually means:</p>
+<h3 id="item-data-was-lost">Item Data Was Lost</h3>
+<p>Check:</p>
 <ul>
-<li>commit succeeded with the wrong adapter type stored in the slot</li>
-<li>after the first swap, the slot physically contains an object from the other inventory boundary</li>
+<li>whether runtime instance state is transferred</li>
+<li>whether all items in a stack are created from one adapter</li>
+<li>whether price, rarity, durability, owner, or other model fields are lost</li>
 </ul>
-<h3 id="symptom-preview-passes-commit-fails">Symptom: preview passes, commit fails</h3>
-<p>Usually means:</p>
+<h2 id="checklist-for-a-new-converter">Checklist For A New Converter</h2>
 <ul>
-<li>the preview stack was assembled correctly</li>
-<li>but execution used a different conversion route</li>
+<li>source and target inventories really use different adapter types</li>
+<li>binding overrides <code>CreateItemConverter()</code></li>
+<li>converter creates the adapter type expected by the target inventory</li>
+<li>each unique item keeps its own state</li>
+<li>swap is tested in both directions</li>
+<li>after transfer, the next drag/drop from the target slot works</li>
 </ul>
-<hr />
-<h2 id="mini-checklist-for-new-converters">Mini checklist for new converters</h2>
+<p>See also:</p>
 <ul>
-<li>the binding really overrides <code>CreateItemConverter()</code></li>
-<li>outgoing and incoming are as symmetric as your domain model requires</li>
-<li>each adapter in a stack is converted individually</li>
-<li>the target stores its own inventory-specific adapter type after commit</li>
-<li>swap runs as two independent conversion chains</li>
-</ul>
-<hr />
-<h2 id="where-to-continue">Where to continue</h2>
-<ul>
-<li><a href="../transfer-pipeline/">Transfer Pipeline</a> — full planning/execution order</li>
-<li><a href="../../examples/demo4-trading/">Demo4 Trading</a> — working example of merchant/player/equipment conversion</li>
-<li><a href="../../reference/troubleshooting/">Troubleshooting</a> — symptoms and common causes</li>
+<li><a href="../../examples/demo4-trading/">Demo4 Trading</a></li>
+<li><a href="../../reference/troubleshooting/">Troubleshooting</a></li>
+<li><a href="../transfer-pipeline/">Transfer Pipeline</a></li>
 </ul>
 
 
@@ -2406,7 +2194,7 @@ Use:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tabs", "content.code.copy", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"alias": true, "default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
