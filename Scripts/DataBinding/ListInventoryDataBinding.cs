@@ -68,16 +68,20 @@ namespace UDND.DataBinding
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context)
         {
-            if (context.Stack.PrimaryAdapter is not TAdapter) return;
             for (int i = 0; i < context.Stack.Count; i++)
-                AddToData(context.Stack.Adapters[i] as TAdapter);
+            {
+                if (context.Stack.Adapters[i] is TAdapter adapter)
+                    AddToData(adapter);
+            }
         }
 
         protected override void OnItemRemovedFromUI(InventoryItemEventContext context)
         {
-            if (context.Stack.PrimaryAdapter is not TAdapter) return;
             for (int i = 0; i < context.Stack.Count; i++)
-                RemoveFromData(context.Stack.Adapters[i] as TAdapter);
+            {
+                if  (context.Stack.Adapters[i] is TAdapter adapter)
+                    RemoveFromData(adapter);
+            }
         }
     }
 }
