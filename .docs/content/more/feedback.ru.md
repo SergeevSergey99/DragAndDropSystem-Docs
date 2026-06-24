@@ -14,8 +14,7 @@
 
 ## Как связаться
 
-- Email: `sergey.sergeev.v.99@gmail.com`
-- GitHub: [github.com/SergeevSergey99](https://github.com/SergeevSergey99)
+- Discord: [https://discord.gg/HXf6Wv6UTx](https://discord.gg/HXf6Wv6UTx)
 
 ---
 
