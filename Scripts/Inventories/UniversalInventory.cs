@@ -1024,31 +1024,15 @@ namespace UDND.Inventories
 
             var context = request?.CreateValidationContext(baseSlot, previewStack.Count, previewStack.PrimaryAdapter)
                 ?? new DragContext(previewStack, null, null, baseSlot, this);
-            var entry = context.Entries[0];
 
-            if (_ruleValidator != null)
-            {
-                var inventoryResult = _ruleValidator.ValidateDrop(context, entry);
-                if (!inventoryResult.IsValid)
-                    return false;
-            }
+            // Force this inventory and slot as the drop target so the shared evaluator consults
+            // this inventory's rules, this binding's CanDrop, and this slot's rules — the single
+            // source of truth for drop validation (RuleEvaluationService.ValidateEntryDrop).
+            context = context.WithTarget(baseSlot, this);
 
-            var binding = DataBinding;
-            if (binding != null)
-            {
-                var bindingResult = binding.ValidateDropRules(context, entry);
-                if (!bindingResult.IsValid)
-                    return false;
-            }
-
-            if (baseSlot.SlotRuleValidator != null)
-            {
-                var slotResult = baseSlot.SlotRuleValidator.ValidateDrop(context, entry);
-                if (!slotResult.IsValid)
-                    return false;
-            }
-
-            return true;
+            return new RuleEvaluationService()
+                .ValidateEntryDrop(context, context.Entries[0])
+                .IsValid;
         }
 
         public InventorySnapshot CaptureSnapshot()
