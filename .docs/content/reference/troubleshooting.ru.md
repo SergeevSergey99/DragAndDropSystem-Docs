@@ -1,173 +1,129 @@
 # Troubleshooting
 
-Эта страница собрана как справочник симптомов.
+Эта страница помогает разбирать проблемы по симптомам: что вы видите, что это обычно значит и что проверить.
 
-Формат простой:
+## Предмет не берётся
 
-- что вы видите
-- что это обычно значит
-- где смотреть в коде и в настройках
+Чаще всего причина одна из этих:
 
----
+- исходный слот пуст
+- `CanStartDrag` вернул отказ
+- данные не загрузились в UI
+- в слоте лежит adapter не того типа
 
-## `Неверный тип предмета`
+Что проверить:
 
-Обычно значит, что до binding дошёл adapter не того inventory-boundary.
+- назначен ли `DataBinding` на нужный `UniversalInventory`
+- вызывается ли `ReloadUI()`
+- что возвращает `GetItems()` / `GetOccupiedSlots()`
+- нет ли правила, запрещающего drag из этого слота или инвентаря
 
-Типовые причины:
-
-- target-side conversion не сработал
-- swap был выполнен как raw exchange
-- slot хранит adapter чужого инвентаря после предыдущей операции
-
-Где смотреть:
-
-- `CreateItemConverter()` в binding
-- `TransferItemConversionUtility`
-- `MappedSlotInventoryDataBinding.CanDrop()`
-- `MappedSlotInventoryDataBinding.CanStartDrag()`
-
----
-
-## Warning-и про другие слоты при дропе в один слот
-
-Обычно значит, что система ушла в inventory-wide search, хотя вы ожидали direct slot path.
+## Предмет не кладётся в слот
 
 Типовые причины:
 
-- операция пошла через `FindAlternative`
-- активировался area-drop вместо slot-drop
-- движок переноса повторно вычислил `GetAcceptableCount()`
-- движок переноса не получил concrete target hint
+- слот запрещает этот тип предмета
+- стек в целевом слоте уже полный
+- `CanDrop` вернул отказ
+- `DropPolicySettings` настроен на `Reject`
+- предмет был сконвертирован не в тот adapter-тип
 
-Где смотреть:
+Что проверить:
 
-- `DropPolicySettings`
-- результирующий `BlockedTargetResolutionKind`
-- `InventoryDropProcessor`
-- `InventoryTransferService`
-- логи `GetAcceptableCount`
+- правила на слоте и инвентаре
+- `CanDrop` в вашем binding-е
+- настройки `DropPolicySettings`
+- конвертер, если перенос идёт между разными типами инвентарей
 
----
+## Предмет кладётся не в выбранный слот
 
-## Preview проходит, а commit падает
+Обычно это не ошибка, а результат policy.
 
-Обычно проблема не в rules, а в execution или domain hooks.
+Проверьте:
 
-Типовые причины:
+- включён ли `FindAlternative`
+- включён ли поиск другого слота внутри того же инвентаря
+- не отпускается ли предмет на область инвентаря вместо конкретного слота
+- какой `PlacementCandidateOrderer` выбран
 
-- `CanStartTransfer` / `CanCommitTransfer` veto
-- `CanStartTransferAsync` veto
-- conversion failed during execution
-- placement failed after split
+Если вам нужно строгое поведение “только в этот слот”, используйте `Reject` для заблокированной цели.
 
-Где смотреть:
+## После переноса данные не обновились
 
-- `ITransferDomainHandler`
-- `IAsyncTransferDomainHandler`
-- `InventoryTransferService`
+Если UI изменился, а ваши игровые данные нет, почти всегда проблема в binding-е.
 
----
+Проверьте:
+
+- назначен ли binding на правильный inventory
+- реализованы ли `AddToData` / `RemoveFromData`
+- меняют ли эти методы именно тот список или объект, который вы ожидаете
+- не меняете ли вы данные напрямую, забывая вызвать `ReloadUI()`
+
+## Появляется `Неверный тип предмета`
+
+Обычно это значит, что инвентарь получил adapter, который относится к другой модели данных.
+
+Частые причины:
+
+- не настроен `CreateItemConverter()`
+- конвертер возвращает не тот adapter
+- swap оставил в слоте adapter чужого инвентаря
+- данные после переноса синхронизировались в одном формате, а слот хранит другой
+
+Что проверить:
+
+- converter у source и target binding-ов
+- `CanDrop` / `CanStartDrag` в fixed-slot или equipment binding-е
+- какой adapter реально лежит в слоте после переноса
 
 ## Первый swap работает, второй ломается
 
-Почти всегда это означает, что после первого swap в slot остался adapter чужого типа.
+Почти всегда после первого swap один из слотов хранит предмет в неправильном adapter-типе.
 
-Типовые причины:
+Проверьте:
 
-- swap был raw exchange
-- conversion применился только к preview, но не к commit
-- add/remove events синхронизировали данные в одном формате, а slot физически хранит другой
-
-Где смотреть:
-
-- swap execution path
-- `ValidateSwapRules`
-- conversion in both directions
-
----
-
-## Drag вообще не стартует
-
-Типовые причины:
-
-- source slot пуст
-- `CanStartDrag` вернул отказ
-- slot содержит не тот adapter-type
-- binding не загрузил данные в UI
-
-Где смотреть:
-
-- `OnDragAttempting`
-- `ValidateStartDrag`
-- `ReloadUI()`
-- `GetItems()`
-
----
-
-## Данные не синхронизировались после успешного переноса
-
-Типовые причины:
-
-- до deferred events дело не дошло
-- binding не подключён к правильному inventory
-- `AddToData` / `RemoveFromData` работают не с тем backing source
-
-Где смотреть:
-
-- `DispatchTransferEvents`
-- `DispatchSwapEvents`
-- `OnItemAdded` / `OnItemRemoved`
-- конкретный binding
-
----
-
-## Стак ведёт себя как один и тот же предмет, хотя экземпляры должны быть разными
-
-Типовые причины:
-
-- один adapter повторно используется как representative для всего stack
-- конвертация не сохраняет instance-state
-- `ItemId` не соответствует реальной логике stacking
-
-Где смотреть:
-
-- adapter implementation
-- conversion cookbook
-- `ItemId`
-
----
+- есть ли конвертация в обе стороны
+- не делаете ли вы обмен как простую замену двух стеков
+- обновляются ли данные и UI одним и тем же типом adapter-а
 
 ## `CanDrop` вызывается много раз
 
-Это может быть нормой, если:
+Это нормально, если система ищет подходящее место:
 
-- идёт preview candidate search
-- работает `FindAlternative`
-- идёт area-drop
-- правила проверяются в обе стороны для swap
+- drop был на область инвентаря
+- включён `FindAlternative`
+- проверяется swap
+- система перебирает слоты для auto placement
 
-Это не норма, если:
+Это подозрительно, если вы точно отпускаете предмет в конкретный слот и policy не разрешает поиск альтернативы.
 
-- вы делаете direct slot drop в конкретный слот без `FindAlternative`
-- а в логах всё равно видно обход соседних slots
+В таком случае проверьте:
 
-Тогда искать нужно route/policy ошибку.
+- попадает ли pointer именно на слот
+- есть ли `InventoryDropArea` поверх слотов
+- какой `BlockedTargetResolutionKind` используется
 
----
+## Стек ведёт себя как один и тот же предмет
+
+Так бывает, когда несколько экземпляров в стеке используют один и тот же adapter-объект, хотя должны быть разными предметами.
+
+Проверьте:
+
+- создаётся ли отдельный adapter для каждого уникального экземпляра
+- сохраняет ли converter runtime-состояние предмета
+- соответствует ли `ItemId` вашей логике stacking
 
 ## С чего начать отладку
 
-1. Определите фазу: drag start, preview, domain validation, execution, swap.
-2. Посмотрите первый meaningful лог в стеке, а не последний.
-3. Проверьте, есть ли concrete `targetSlot`.
-4. Проверьте, какой adapter-type реально лежит в slot после операции.
+1. Сформулируйте симптом: не берётся, не кладётся, данные не обновились, swap ломается.
+2. Проверьте настройки в инспекторе: strategy, slot management, drop policy, rules.
+3. Проверьте binding: загрузка данных, `CanStartDrag`, `CanDrop`, add/remove методы.
+4. Если инвентари используют разные модели данных, проверьте converter.
+5. Если проблема только при торговле, серверной проверке или золоте, проверьте domain handler.
 
----
-
-## Связанные страницы
+См. также:
 
 - [Логи и отладка](logs-and-debugging.md)
-- [Конвейер переноса](../architecture/transfer-pipeline.md)
-- [Cookbook: конвертация предметов](../architecture/item-conversion-cookbook.md)
-- [Матрица Drop Policy](../architecture/drop-policy-matrix.md)
+- [Drop Policy](../architecture/drop-policy-matrix.md)
+- [Конвертация предметов](../architecture/item-conversion-cookbook.md)
+- [Пайплайн переноса](../architecture/transfer-pipeline.md)

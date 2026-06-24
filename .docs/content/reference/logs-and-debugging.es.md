@@ -1,188 +1,106 @@
-# Logs and Debugging
+# Logs y depuración
 
-Esta página te ayuda a identificar rápidamente qué fase del pipeline ha fallado.
+Esta página ayuda a encontrar dónde mirar cuando una transferencia no funciona.
 
-Idea central:
+Empieza por lo que ves en el juego, no por el nombre de una fase interna:
 
-- `InventoryTransferService` valida candidatos contra el estado actual y confirma una entry cada vez
-- `rules` manejan restricciones mecánicas
-- `domain hooks` pueden vetar toda la transferencia antes de procesar las entries
+- el objeto no se puede tomar
+- el objeto no se puede soltar
+- el objeto vuelve atrás
+- los datos no cambiaron después de la transferencia
+- swap se comporta mal
+- Console muestra muchos warnings
 
----
+## Mapa rápido
 
-## Mapa corto de logs
-
-| Dónde aparece el log | Qué suele significar |
+| Qué ves | Empieza por |
 |---|---|
-| `RuleResult` | una comprobación concreta de una rule fue rechazada |
-| `InventoryTransferService` | problema de selección del target, conversión, placement, swap o rollback |
-| `InventoryDropProcessor` | resolución de policy o rechazo de la transferencia |
-| `GetAcceptableCount` | búsqueda de slots a nivel de inventario |
-| `CanCommitTransfer` / domain validation | la lógica de negocio vetó el commit |
+| El objeto no se puede tomar | `CanStartDrag`, reglas del slot origen, carga de datos en UI |
+| El objeto no se puede soltar | `CanDrop`, reglas del slot destino, `DropPolicySettings` |
+| El objeto va a otro slot | `FindAlternative`, `PlacementCandidateOrderer`, drop sobre área de inventario |
+| La UI cambió, los datos no | `AddToData`, `RemoveFromData`, binding correcto |
+| Error de tipo de objeto | `CreateItemConverter()`, tipo de adapter en origen y destino |
+| Swap se rompe después de la primera vez | conversión en ambas direcciones y tipo de adapter en los slots tras swap |
 
----
+## Qué suelen significar los logs
 
-## Cómo leer logs comunes
+| Log o clase | Normalmente significa |
+|---|---|
+| `RuleResult` | Una regla bloqueó drag o drop. |
+| `CanStartDrag` | El binding bloqueó el inicio del drag. |
+| `CanDrop` | El binding bloqueó drop en el inventario o slot destino. |
+| `InventoryDropProcessor` | Drop fue rechazado antes de la transferencia real. A menudo la causa es policy o target slot. |
+| `InventoryTransferService` | El problema ocurrió durante la transferencia: placement, swap, conversión o rollback. |
+| `GetAcceptableCount` | El sistema está iterando slots y buscando dónde poner el objeto. |
+| `CanCommitTransfer` | La lógica de negocio bloqueó la transferencia justo antes del commit, por ejemplo por falta de oro. |
 
-### `[RuleResult] Validation failed: ...`
+## Si los warnings mencionan otros slots
 
-Esto es el rechazo de una rama concreta de rules.
+Esto a menudo es normal. El sistema puede comprobar más que el slot seleccionado cuando:
 
-Importante:
+- el objeto se soltó sobre un área de inventario
+- `FindAlternative` está activado
+- un stack grande necesita espacio
+- se está comprobando swap
 
-- por sí solo no siempre significa un bug
-- a veces es un rechazo normal de un slot candidato de prueba
-- la call stack importa: mira quién inició la comprobación
+Si esperabas que solo se comprobara un slot, revisa:
 
-Si el log viene de:
+- que el pointer realmente llegue al slot y no a `InventoryDropArea`
+- que la policy no permita `FindAlternative`
+- que el slot seleccionado no esté cubierto por otro elemento UI
 
-- `MappedSlotInventoryDataBinding.CanDrop()` -> normalmente tipo de adapter o compatibilidad del slot
-- `CanStartDrag()` -> tipo de adapter incorrecto en el source slot o veto de drag del lado de origen
+## Si el log menciona una regla
 
-### `[InventoryDropProcessor] ...`
+Un log de regla no siempre significa un bug. A veces el sistema comprueba varias opciones
+y una de ellas se rechaza correctamente.
 
-El drop fue rechazado antes de que una entry se confirmara.
+Mira el contexto:
 
-Causas comunes:
+- qué slot se comprobó
+- qué objeto se comprobó
+- si era el slot seleccionado o una alternativa
+- si la transferencia terminó funcionando después
 
-- el target slot es inválido
-- la policy no permite fallback
-- no existe ningún candidate slot válido
+## Si el problema son los datos
 
-### `[InventoryTransferService] ...`
+Cuando UI y datos del juego difieren tras una transferencia, revisa el binding:
 
-Esto es logging de la fase de execution.
-El preview ya tuvo éxito, y el problema ocurrió durante:
+- `GetItems()` / `GetOccupiedSlots()` cargan los datos correctos?
+- `AddToData(...)` añade a la lista correcta?
+- `RemoveFromData(...)` elimina de la lista correcta?
+- los cambios externos de datos llaman a `ReloadUI()`?
 
-- validación de dominio
-- split/remove
-- outgoing/incoming conversion
-- colocación en el inventario objetivo
-- commit de swap
-- rollback
+## Si el problema aparece entre inventarios distintos
 
-### `[InventoryName] GetAcceptableCount: ...`
+Por ejemplo: comerciante, jugador, equipo o contenedor usan modelos de datos distintos.
 
-Esto es una búsqueda de aceptación a nivel de inventario.
+Revisa:
 
-Si esperabas un direct slot drop y aun así ves este log, normalmente revisa:
+- si el binding correcto tiene `CreateItemConverter()`
+- qué adapter hay en el slot origen
+- qué adapter debería quedar en el slot destino
+- si el converter conserva los datos únicos del objeto
 
-- si realmente existía un `targetSlot` concreto
-- si la operación cayó en `FindAlternative`
-- si este era un area-drop path
+## Si el problema está en comercio o validación externa
 
----
+Revisa el domain handler:
 
-## Diagnóstico rápido por fase
+- `CanStartTransfer` — si la transferencia puede empezar
+- `CanStartTransferAsync` — si servidor u otra comprobación externa rechazó la transferencia
+- `CanCommitTransfer` — si una colocación concreta puede confirmarse
+- `OnTransferSucceeded` — si un efecto secundario rompe datos tras una transferencia exitosa
 
-### 1. Inicio del drag
+## Orden útil de comprobación
 
-Mira:
+1. Asegúrate de que el objeto realmente se cargó en UI.
+2. Revisa rules y `CanStartDrag`.
+3. Revisa target slot, `CanDrop` y drop policy.
+4. Si la transferencia va entre modelos distintos, revisa converter.
+5. Si hay dinero, servidor, permisos o ownership, revisa domain handler.
+6. Si UI y datos se separaron, revisa métodos add/remove del binding.
 
-- `OnDragAttempting`
-- `ValidateStartDrag`
-- el `CanStartDrag` del binding
+Ver también:
 
-Causas típicas:
-
-- el source slot está vacío
-- el slot contiene el tipo de adapter incorrecto
-- el source binding prohíbe el drag
-
-### 2. Preview / resolución de candidatos
-
-Mira:
-
-- `InventoryTransferService`
-- `ValidateDrop`
-- `InventoryAcceptanceRequest`
-- `GetAcceptableCount`
-
-Causas típicas:
-
-- falló la conversión del lado objetivo
-- las slot rules rechazan el target adapter
-- el motor de transferencia busca candidatos de forma más amplia de lo esperado
-
-### 3. Validación de dominio
-
-Mira:
-
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
-- `ValidateDomainHandlers`
-
-Causas típicas:
-
-- dinero
-- permisos de acceso
-- veto del servidor
-- validación externa síncrona/asíncrona
-
-### 4. Execution
-
-Mira:
-
-- `InventoryTransferService`
-- utility de conversión
-- `TryAddStack` / primitivas de mutación de placement
-
-Causas típicas:
-
-- la conversión falló durante el commit
-- la colocación falló
-- el rollback restauró el estado previo
-
-### 5. Swap
-
-Mira:
-
-- `RequiresSwap`
-- `ValidateSwapRules`
-- `OnSwapAttempting`
-- `OnSwapCompleted`
-
-Causas típicas:
-
-- una dirección del swap no supera las rules
-- el swap se implementó como raw exchange en lugar de como conversion-aware commit
-- después del primer swap, un slot sigue conteniendo un adapter extranjero
-
----
-
-## Patrones prácticos
-
-### El preview pasó, pero el commit falló
-
-Eso suele significar que el problema no está en las rules, sino en la execution o en los domain hooks.
-
-Comprueba:
-
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
-- conversión
-- placement / rollback
-
-### Aparecen warnings para otros slots
-
-Eso suele significar que alguna ruta disparó una búsqueda a nivel de inventario.
-
-Comprueba:
-
-- `GetAcceptableCount`
-- `FindAlternative`
-- area-drop
-- routing incorrecto para un direct slot drop
-
-### El primer swap tiene éxito y el segundo falla
-
-Esto casi siempre significa que el slot almacena el tipo de adapter incorrecto después del primer swap.
-
----
-
-## Léelo junto con
-
-- [Troubleshooting](troubleshooting.md) — síntoma -> causa -> dónde mirar
-- [Transfer Pipeline](../architecture/transfer-pipeline.md) — orden de fases
-- [Cookbook: Item Conversion](../architecture/item-conversion-cookbook.md) — problemas en límites de adapters
-
+- [Troubleshooting](troubleshooting.md)
+- [Drop Policy](../architecture/drop-policy-matrix.md)
+- [Conversión de objetos](../architecture/item-conversion-cookbook.md)

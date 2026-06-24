@@ -1,187 +1,105 @@
 # Логи и отладка
 
-Эта страница помогает быстро понять, в какой фазе конвейера произошёл отказ.
+Эта страница помогает понять, где искать причину, если перенос не сработал.
 
-Главная идея:
+Начинайте не с названия внутренней фазы, а с того, что вы видите в игре:
 
-- `InventoryTransferService` валидирует кандидатов по текущему состоянию и коммитит по одной записи
-- `rules` отвечают за механические ограничения
-- `domain hooks` могут наложить вето на весь перенос до обработки записей
+- предмет не берётся
+- предмет не кладётся
+- предмет возвращается обратно
+- данные после переноса не изменились
+- swap работает неправильно
+- в Console много предупреждений
 
----
+## Быстрая карта
 
-## Короткая карта логов
-
-| Где появился лог | Что это обычно значит |
+| Что видно | С чего начать |
 |---|---|
-| `RuleResult` | отказ конкретной rule-проверки |
-| `InventoryTransferService` | проблема выбора target, conversion, placement, swap или rollback |
-| `InventoryDropProcessor` | разрешение policy или отказ переноса |
-| `GetAcceptableCount` | inventory-wide search по слотам |
-| `CanCommitTransfer` / domain validation | бизнес-логика запретила commit |
+| Предмет не берётся | `CanStartDrag`, rules на исходном слоте, загрузка данных в UI |
+| Предмет не кладётся | `CanDrop`, rules на целевом слоте, `DropPolicySettings` |
+| Предмет кладётся в другой слот | `FindAlternative`, `PlacementCandidateOrderer`, drop на область инвентаря |
+| UI изменился, данные нет | `AddToData`, `RemoveFromData`, правильный binding |
+| Ошибка типа предмета | `CreateItemConverter()`, adapter-тип в source и target |
+| Swap ломается после первого раза | конвертация в обе стороны и тип adapter-а в слотах после swap |
 
----
+## Какие логи что означают
 
-## Как читать типовые логи
+| Лог или класс | Обычно означает |
+|---|---|
+| `RuleResult` | Сработало правило, которое запретило drag или drop. |
+| `CanStartDrag` | Binding запретил начать перетаскивание. |
+| `CanDrop` | Binding запретил drop в целевой inventory или slot. |
+| `InventoryDropProcessor` | Drop был отклонён до фактического переноса. Часто причина в policy или target slot. |
+| `InventoryTransferService` | Проблема возникла во время самого переноса: размещение, swap, конвертация или откат. |
+| `GetAcceptableCount` | Система перебирает слоты и ищет, куда можно положить предмет. |
+| `CanCommitTransfer` | Бизнес-логика запретила перенос прямо перед фиксацией. Например, не хватает золота. |
 
-### `[RuleResult] Validation failed: ...`
+## Если предупреждения идут по другим слотам
 
-Это лог отказа одной конкретной rule-ветки.
+Это часто нормально. Система может проверять не только выбранный слот, если:
 
-Важно:
+- предмет отпустили на область инвентаря
+- включён `FindAlternative`
+- нужно найти место для большого стека
+- проверяется возможность swap
 
-- сам по себе он ещё не гарантирует баг
-- иногда это нормальный отказ пробного candidate slot
-- смотреть надо на стек вызовов: кто именно запустил эту проверку
+Если вы ожидали проверку только одного слота, проверьте:
 
-Если лог идёт из:
+- pointer действительно попадает в слот, а не в `InventoryDropArea`
+- policy не разрешает `FindAlternative`
+- выбранный slot не перекрыт другим UI-элементом
 
-- `MappedSlotInventoryDataBinding.CanDrop()` -> обычно проблема типа adapter или slot compatibility
-- `CanStartDrag()` -> в source slot лежит не тот adapter-type или drag запрещён логикой binding
+## Если лог говорит про rule
 
-### `[InventoryDropProcessor] ...`
+Rule-лог не всегда означает баг. Иногда система просто проверяет несколько вариантов и один из них закономерно не подходит.
 
-Drop отклонён до того, как зафиксировалась запись.
+Смотрите не только сообщение, но и контекст:
 
-Чаще всего причины:
+- какой слот проверялся
+- какой предмет проверялся
+- это был выбранный слот или один из альтернативных
+- после этого перенос всё-таки прошёл или нет
 
-- target slot не подходит
-- policy не позволяет fallback
-- нет допустимого candidate slot
+## Если проблема в данных
 
-### `[InventoryTransferService] ...`
+Когда после переноса данные не совпадают с UI, смотрите binding:
 
-Это уже execution-stage.
-Значит preview прошёл, но проблема возникла при:
+- `GetItems()` / `GetOccupiedSlots()` загружают правильные данные?
+- `AddToData(...)` добавляет в правильный список?
+- `RemoveFromData(...)` удаляет из правильного списка?
+- внешние изменения данных вызывают `ReloadUI()`?
 
-- domain validation
-- split/remove
-- outgoing/incoming conversion
-- placement в target inventory
-- swap commit
-- rollback
+## Если проблема между разными инвентарями
 
-### `[InventoryName] GetAcceptableCount: ...`
+Например: торговец, игрок, экипировка или контейнер используют разные модели данных.
 
-Это inventory-wide acceptance search.
+Проверьте:
 
-Если ты ожидал direct slot drop, а видишь этот лог, почти всегда стоит проверить:
+- есть ли `CreateItemConverter()` у нужного binding-а
+- какой adapter лежит в исходном слоте
+- какой adapter должен лежать в целевом слоте
+- сохраняет ли converter уникальные данные предмета
 
-- действительно ли был concrete `targetSlot`
-- не ушла ли операция в `FindAlternative`
-- не срабатывает ли area-drop path
+## Если проблема в торговле или внешней проверке
 
----
+Проверьте domain handler:
 
-## Быстрая диагностика по фазам
+- `CanStartTransfer` — можно ли вообще начинать перенос
+- `CanStartTransferAsync` — не отклонил ли перенос сервер или другая внешняя проверка
+- `CanCommitTransfer` — можно ли зафиксировать конкретное размещение
+- `OnTransferSucceeded` — не ломает ли побочный эффект данные после успешного переноса
 
-### 1. Drag start
+## Полезный порядок проверки
 
-Смотреть:
+1. Убедитесь, что предмет реально загружен в UI.
+2. Проверьте rules и `CanStartDrag`.
+3. Проверьте target slot, `CanDrop` и drop policy.
+4. Если перенос между разными моделями, проверьте converter.
+5. Если есть деньги, сервер, права доступа или владение предметом, проверьте domain handler.
+6. Если UI и данные разъехались, проверьте add/remove методы binding-а.
 
-- `OnDragAttempting`
-- `ValidateStartDrag`
-- binding `CanStartDrag`
+См. также:
 
-Типовые причины:
-
-- source slot пуст
-- slot содержит не тот adapter-type
-- source binding запрещает drag
-
-### 2. Preview / разрешение кандидатов
-
-Смотреть:
-
-- `InventoryTransferService`
-- `ValidateDrop`
-- `InventoryAcceptanceRequest`
-- `GetAcceptableCount`
-
-Типовые причины:
-
-- target-side conversion не сработал
-- slot rules отклоняют target adapter
-- движок переноса ищет candidates шире, чем ты ожидал
-
-### 3. Domain validation
-
-Смотреть:
-
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
-- `ValidateDomainHandlers`
-
-Типовые причины:
-
-- деньги
-- права доступа
-- серверный veto
-- внешняя синхронная/асинхронная проверка
-
-### 4. Execution
-
-Смотреть:
-
-- `InventoryTransferService`
-- conversion utility
-- `TryAddStack` / примитивы мутации placement
-
-Типовые причины:
-
-- conversion failed during commit
-- placement не удался
-- rollback вернул исходное состояние
-
-### 5. Swap
-
-Смотреть:
-
-- `RequiresSwap`
-- `ValidateSwapRules`
-- `OnSwapAttempting`
-- `OnSwapCompleted`
-
-Типовые причины:
-
-- один из направлений swap не проходит rules
-- swap сделан как raw exchange, а не conversion-aware commit
-- после первого swap в slot остался чужой adapter-type
-
----
-
-## Практические паттерны
-
-### Preview прошёл, commit упал
-
-Значит проблема не в rules, а в execution или domain hooks.
-
-Ищи в:
-
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
-- conversion
-- placement / rollback
-
-### Сыпятся warning-и по другим слотам
-
-Значит где-то пошёл inventory-wide search.
-
-Ищи в:
-
-- `GetAcceptableCount`
-- `FindAlternative`
-- area-drop
-- неправильный route для direct slot drop
-
-### Первый swap успешен, второй ломается
-
-Почти всегда это означает, что после первого swap slot хранит не свой adapter-type.
-
----
-
-## Что смотреть вместе с этой страницей
-
-- [Troubleshooting](troubleshooting.md) — симптом -> причина -> куда смотреть
-- [Конвейер переноса](../architecture/transfer-pipeline.md) — порядок фаз
-- [Cookbook: конвертация предметов](../architecture/item-conversion-cookbook.md) — если проблема в adapter boundary
+- [Troubleshooting](troubleshooting.md)
+- [Drop Policy](../architecture/drop-policy-matrix.md)
+- [Конвертация предметов](../architecture/item-conversion-cookbook.md)

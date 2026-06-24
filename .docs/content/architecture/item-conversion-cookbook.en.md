@@ -1,30 +1,26 @@
-# Cookbook: Item Conversion
+# Item Conversion
 
-This page answers a practical question:
-"how should I configure conversion between two inventories that use different adapter models?"
+This page explains how to move items between inventories that use different data models.
 
-The architectural overview already exists in [Transfer Pipeline](transfer-pipeline.md).
-This page focuses on working rules and common mistakes.
+Example: a merchant stores goods as `ScriptableObject`, the player stores purchased
+items as runtime models, and equipment uses fixed slots with its own checks.
 
----
+## When A Converter Is Needed
 
-## When a converter is needed
+A converter is needed when an item must move from one adapter type to another.
 
-A converter is needed when two inventories use different representations of the same item.
+Typical cases:
 
-Typical examples:
+- merchant and player store items in different models
+- equipment inventory accepts only special adapters
+- a container inside an item stores runtime instances
+- the same item should look different in different inventories
 
-- a merchant stores `ScriptableObject`s while the player uses runtime models
-- a UI-facing inventory uses lightweight adapters while the domain model uses rich instances
-- an inventory boundary inside a container item uses another adapter model
+If both inventories use the same adapter type, a converter is usually not needed.
 
-If both sides already use the same adapter type, a converter is usually unnecessary.
+## Where To Configure It
 
----
-
-## Where the converter lives
-
-The converter is declared on the inventory binding side:
+The converter is configured in the binding:
 
 ```csharp
 protected override IItemAdapterConverter CreateItemConverter()
@@ -33,159 +29,103 @@ protected override IItemAdapterConverter CreateItemConverter()
 }
 ```
 
-So the binding defines:
+The binding tells the system:
 
-- how this inventory exports an item
-- how this inventory imports an item
+- how items from this inventory look when they leave it
+- how items should look when they enter this inventory
 
-By default, the system uses an identity converter.
+If no converter is configured, the item is left as-is.
 
----
+## Simple Model
 
-## Who calls conversion
-
-### Preview
-
-During preview, conversion is orchestrated by `TransferItemConversionUtility`.
-
-This is required so target rules and binding hooks see a target-side adapter rather than the original source-side adapter.
-
-### Normal execution
-
-For a regular transfer, the chain is:
-
-1. the item is taken from the source slot
-2. `source outgoing` runs
-3. then `target incoming` runs
-4. only after that is the item placed into the target inventory
-
-### Swap
-
-Swap is not one symmetric conversion.
-It is two separate chains:
-
-- `A -> B`
-- `B -> A`
-
-Each one runs through its own `outgoing -> incoming`.
-
----
-
-## Correct mental model
-
-Do not think in terms of "the source inventory gives the final target object".
-
-Think instead:
+When an item moves from one inventory to another, the system needs an adapter that the
+target inventory understands.
 
 ```text
-source adapter
-  -> source outgoing
-  -> intermediate representation
-  -> target incoming
-  -> target adapter
+source inventory adapter
+  -> converter
+  -> target inventory adapter
 ```
 
-The intermediate representation does not need to be a dedicated type.
-What matters is that source and target boundaries stay independent.
+The converter's main job is to keep the meaning of the item when it crosses from one data model to another.
 
----
+## What A Converter Must Preserve
 
-## What an adapter must preserve
+If items are unique, the converter must preserve more than icon and name.
 
-If your items have instance state, the adapter must carry it safely through conversion:
+Check that it preserves:
 
-- a stable `ItemId`, if stacking semantics depend on it
-- runtime fields of the specific instance
-- a reference to the domain entity, if the item is unique
-- data later used by `CanStartDrag`, `CanDrop`, tooltips, and side effects
+- `ItemId`, if it affects stacking
+- item count in the stack
+- unique runtime state
+- reference to a domain model, if the item is not just a `ScriptableObject`
+- data needed by `CanDrop`, tooltip, price, rarity, or equipment checks
 
-If the item "looks right after transfer but drag breaks later", the usual cause is that the target received the wrong adapter type or the wrong instance state.
+If after transfer “the item looks correct, but can no longer be dragged”, the target slot most likely received the wrong adapter type or lost required data.
 
----
+## Swap Between Different Inventories
 
-## What not to do
+Swap between different inventory types is not a simple exchange of two stacks.
 
-### Do not use one adapter as a representative for the entire stack
+Each item must be converted to the model of the inventory it is entering:
 
-If a stack contains different runtime instances, do not clone one adapter through `Repeat`.
+```text
+item A -> inventory B model
+item B -> inventory A model
+```
 
-That causes:
+If you simply swap two adapters, the next drag/drop may break because a slot stores an item in the wrong format.
 
-- loss of instance state
-- preview and execution diverging
-- distorted remove/add payloads
+## When To Return `null`
 
-### Do not implement cross-inventory swap as a raw stack exchange
-
-If swap merely swaps two `ItemStack` objects:
-
-- the target slot receives a foreign adapter type
-- the next `CanStartDrag` or `CanDrop` starts failing on type checks
-
-### Do not rely on preview and execution sharing the same object reference
-
-The preview stack and the execution stack may be different objects.
-Stability must come from data and conversion semantics, not reference equality.
-
----
-
-## When a converter should return `null`
-
-`null` means not "I do not want to do it right now", but "this boundary cannot export/import this item".
+A converter may return `null` if the item cannot be safely converted to the required model.
 
 That is appropriate when:
 
-- the item must never cross this boundary
-- the binding cannot materialize the required target adapter
-- data loss would be unacceptable
+- the item must not enter this inventory
+- the target adapter type cannot be created
+- conversion would lose important data
 
-If the operation is only temporarily forbidden by business logic, that is not the converter's job.
-Use:
+Do not use `null` for temporary blocks such as “not enough money” or “shop is closed”.
+Use rules or `ITransferDomainHandler` for that.
 
-- rules
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
+## Common Mistakes
 
----
+### `Wrong Item Type` Appears After Transfer
 
-## How to diagnose conversion errors
+Check:
 
-### Symptom: `Wrong item type`
+- whether `CreateItemConverter()` is implemented
+- whether the converter returns the target inventory adapter
+- whether the source inventory adapter remained in the slot
 
-Usually means:
+### First Swap Works, Second Swap Breaks
 
-- the target binding received the source adapter type
-- swap was committed as a raw exchange
-- preview converted correctly, but execution did not
+Check:
 
-### Symptom: first swap works, second swap breaks
+- whether conversion exists in both directions
+- whether two stacks are being swapped directly without converter
+- which adapter is stored in each slot after the first swap
 
-Usually means:
+### Item Data Was Lost
 
-- commit succeeded with the wrong adapter type stored in the slot
-- after the first swap, the slot physically contains an object from the other inventory boundary
+Check:
 
-### Symptom: preview passes, commit fails
+- whether runtime instance state is transferred
+- whether all items in a stack are created from one adapter
+- whether price, rarity, durability, owner, or other model fields are lost
 
-Usually means:
+## Checklist For A New Converter
 
-- the preview stack was assembled correctly
-- but execution used a different conversion route
+- source and target inventories really use different adapter types
+- binding overrides `CreateItemConverter()`
+- converter creates the adapter type expected by the target inventory
+- each unique item keeps its own state
+- swap is tested in both directions
+- after transfer, the next drag/drop from the target slot works
 
----
+See also:
 
-## Mini checklist for new converters
-
-- the binding really overrides `CreateItemConverter()`
-- outgoing and incoming are as symmetric as your domain model requires
-- each adapter in a stack is converted individually
-- the target stores its own inventory-specific adapter type after commit
-- swap runs as two independent conversion chains
-
----
-
-## Where to continue
-
-- [Transfer Pipeline](transfer-pipeline.md) — the full transfer order
-- [Demo4 Trading](../examples/demo4-trading.md) — working example of merchant/player/equipment conversion
-- [Troubleshooting](../reference/troubleshooting.md) — symptoms and common causes
+- [Demo4 Trading](../examples/demo4-trading.md)
+- [Troubleshooting](../reference/troubleshooting.md)
+- [Transfer Pipeline](transfer-pipeline.md)

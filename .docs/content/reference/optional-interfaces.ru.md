@@ -1,47 +1,39 @@
 # Опциональные интерфейсы
 
-Эти интерфейсы не нужны для базового drag & drop.
-Они подключают дополнительные возможности, когда конкретный subsystem умеет их читать.
+Эти интерфейсы не нужны для базового drag & drop. Они подключаются, когда вам нужно добавить поведение поверх обычного переноса.
 
-Обычно это один из двух сценариев:
+## Что выбрать
 
-- binding хочет участвовать в бизнес-логике переноса
-- item adapter хочет отдать дополнительную метаинформацию для UI или стратегий
-
----
-
-## Короткая карта
-
-| Интерфейс | Где реализуется | Когда используется | Для чего нужен |
-|---|---|---|---|
-| `ITransferDomainHandler` | обычно на `InventoryDataBinding` | один раз до первой мутации (`CanStartTransfer`), перед фиксацией каждого размещения (`CanCommitTransfer`) и после успешного commit (`OnTransferSucceeded`) | бизнес-валидация и side effects уровня переноса |
-| `IAsyncTransferDomainHandler` | обычно на `InventoryDataBinding` | один раз до первой мутации, только async-путь (`CanStartTransferAsync`) | внешнее async-вето на весь перенос: сервер, файл, БД |
-| `IStackSizeLimitable` | на `IItemAdapter` | когда стратегия считает лимит стака | per-item лимит стака |
-| `IDescribable` | на `IItemAdapter` | когда UI хочет показать описание | дополнительная метаинформация для tooltip и похожих систем |
-
----
+| Если нужно... | Используйте |
+|---|---|
+| Запретить перенос из-за денег, прав доступа, владельца предмета или состояния магазина | `ITransferDomainHandler` |
+| Спросить сервер или другую внешнюю систему перед переносом | `IAsyncTransferDomainHandler` |
+| Задать разный лимит стека для разных предметов | `IStackSizeLimitable` |
+| Показать описание предмета в tooltip или другом UI | `IDescribable` |
 
 ## ITransferDomainHandler
 
-`ITransferDomainHandler` нужен для domain-логики вокруг переноса.
-Это не замена rules и не ещё один generic validation layer.
+Используйте `ITransferDomainHandler`, когда решение зависит не только от слота и предмета, а от игровой логики.
 
-У интерфейса три метода: вето на весь перенос (`CanStartTransfer`), проверка на каждое
-размещение (`CanCommitTransfer`) и хук успеха (`OnTransferSucceeded`). Реализовать нужно все три.
+Примеры:
 
-Реализуется обычно на binding'е:
+- хватает ли золота для покупки
+- можно ли продавать этот предмет
+- принадлежит ли предмет игроку
+- открыт ли магазин
+- можно ли переносить предмет между этими контейнерами
+
+Обычно интерфейс реализуют на DataBinding:
 
 ```csharp
 public class ShopInventoryBinding
     : ListInventoryDataBinding<ItemModel, ItemModelAdapter>, ITransferDomainHandler
 {
-    // Вето на весь перенос, один раз до любых мутаций.
     public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
     {
-        return _shopIsOpen ? RuleResult.Success() : RuleResult.Failure("Магазин закрыт");
+        return _shopIsOpen ? RuleResult.Success() : RuleResult.Failure("Shop is closed");
     }
 
-    // Проверка на конкретное размещение, перед его фиксацией.
     public RuleResult CanCommitTransfer(TransferDomainContext context)
     {
         return HasEnoughMoney(context)
@@ -56,120 +48,46 @@ public class ShopInventoryBinding
 }
 ```
 
-### Точный порядок в конвейере
+Методы:
 
-Движок переноса обрабатывает записи последовательно по реальному состоянию инвентаря,
-ничего не вычисляя заранее. Для одной записи порядок такой:
+| Метод | Когда вызывается | Для чего |
+|---|---|---|
+| `CanStartTransfer` | один раз перед переносом | запретить всю операцию целиком |
+| `CanCommitTransfer` | перед фиксацией конкретного размещения | проверить деньги, права, владельца и похожую логику |
+| `OnTransferSucceeded` | после успешного размещения | списать деньги, отправить аналитику, обновить внешнюю систему |
 
-1. `CanDrop` и остальные rules проверяют механическую допустимость drop.
-2. `CanStartTransfer` вызывается один раз, до первой мутации, и может отклонить всю
-   операцию. `CanStartTransferAsync` делает то же на асинхронном пути.
-3. движок резолвит конкретного кандидата размещения и создаёт для него `TransferDomainContext`.
-4. `CanCommitTransfer` вызывается до мутации этого размещения (сначала source binding, затем target binding, если они реализуют `ITransferDomainHandler`).
-5. только после этого выполняется реальный commit: split, conversion, placement, rollback при необходимости.
-6. после фиксации размещения вызывается `OnTransferSucceeded`.
-7. только потом dispatch'атся inventory add/remove notifications и остальные deferred events.
-
-То есть:
-
-- `CanStartTransfer` происходит один раз, до любых мутаций всей операции
-- `CanCommitTransfer` происходит раньше любых мутаций конкретного размещения
-- `OnTransferSucceeded` происходит уже после успешного commit, но раньше `OnItemRemoved` / `OnItemAdded`
-
-### Что лежит в TransferDomainContext
-
-`TransferDomainContext` даёт binding'у контекст именно transfer-level операции:
-
-- `SourceInventory` / `TargetInventory`
-- `SourceBinding` / `TargetBinding`
-- `SourceBaseSlot`
-- `PlannedTargetBaseSlot`
-- `TargetBaseSlot` после commit
-- `SourceItemAdapter`
-- `PreviewTargetItemAdapter`
-- `TargetItemAdapter` после commit
-- `RequestedAmount`
-- `CommittedAmount`
-- `Kind`
-- `IsCommitted`
-
-Это важно для сценариев, где бизнес-решение зависит не только от "какой item лежит в слоте", но и от смысла операции:
-
-- покупка у торговца
-- продажа предмета
-- перенос между faction/container/authority boundaries
-- проверка внешних ограничений перед commit
-
-### Что сюда стоит класть
-
-- проверку валюты
-- проверку прав доступа
-- валидацию у сервера
-- side effects, которые не являются обычным sync данных
-
-### Что сюда класть не стоит
-
-- slot compatibility
-- типовые inventory restrictions
-- обычный sync `AddToData` / `RemoveFromData`
-- UI preview-логику
-
-Если вопрос звучит как "можно ли вообще класть такой предмет в этот слот?", это почти всегда rules.
-Если вопрос звучит как "можно ли именно сейчас коммитить уже спланированную операцию?", это кандидат для `ITransferDomainHandler`.
-
----
+Не кладите сюда обычную проверку “можно ли этот тип предмета в этот слот”. Для этого лучше подходят rules, `CanDrop` или fixed-slot настройки.
 
 ## IAsyncTransferDomainHandler
 
-`IAsyncTransferDomainHandler` дополняет `ITransferDomainHandler` асинхронным вето на
-**весь перенос** — `CanStartTransferAsync` — когда ответ нельзя получить мгновенно. Это
-async-аналог `CanStartTransfer`, а не `CanCommitTransfer`.
+`IAsyncTransferDomainHandler` нужен, когда перед переносом нужно дождаться внешнего ответа.
+
+Например:
+
+- сервер подтверждает перенос
+- save-data проверяется с диска
+- внешняя система проверяет права доступа
 
 ```csharp
-public class ServerInventoryBinding
-    : ListInventoryDataBinding<ItemModel, ItemModelAdapter>,
-      ITransferDomainHandler,
-      IAsyncTransferDomainHandler
+public async Task<RuleResult> CanStartTransferAsync(
+    DragContext context,
+    IInventory targetInventory,
+    CancellationToken cancellationToken)
 {
-    public RuleResult CanCommitTransfer(TransferDomainContext context)
-        => ValidateLocalState(context);
-
-    public void OnTransferSucceeded(TransferDomainContext context) { }
-
-    public RuleResult CanStartTransfer(DragContext context, IInventory targetInventory)
-        => RuleResult.Success();
-
-    public async Task<RuleResult> CanStartTransferAsync(
-        DragContext context,
-        IInventory targetInventory,
-        CancellationToken cancellationToken)
-    {
-        return await _serverApi.ValidateTransferAsync(context, cancellationToken);
-    }
+    return await _serverApi.ValidateTransferAsync(context, cancellationToken);
 }
 ```
 
-Используйте его, когда нужно дождаться:
+Важные правила:
 
-- ответа сервера
-- файла или save-data
-- базы данных
-- внешнего профиля или authority layer
-
-Важно:
-
-- `CanStartTransferAsync` — transfer-wide и срабатывает один раз, до первой мутации
-- он работает только на асинхронном пути; если async-обработчик есть, синхронный перенос
-  отклоняется, так что проверка не пропускается молча
-- отказ на async-стадии отменяет весь перенос без мутации инвентарей
-
-Если проверка чисто локальная и быстрая, достаточно `CanStartTransfer` / `CanCommitTransfer`.
-
----
+- проверка относится ко всему переносу
+- она выполняется до изменения инвентарей
+- если проверка отказала, перенос не начинается
+- если проверка быстрая и локальная, обычно достаточно `ITransferDomainHandler`
 
 ## IStackSizeLimitable
 
-`IStackSizeLimitable` позволяет item adapter'у задать собственный лимит стака:
+`IStackSizeLimitable` позволяет конкретному предмету задать свой лимит стека.
 
 ```csharp
 public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
@@ -178,50 +96,29 @@ public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
 }
 ```
 
-Обычно это нужно для систем в стиле:
+Примеры:
 
-- Craft: разные типы предметов имеют разные stack caps
-- RPG: зелья стакаются по 20, стрелы по 999, оружие по 1
-- survival/crafting: контейнеры и инструменты не стакаются, ресурсы стакаются
+- зелья стакаются по 20
+- стрелы по 999
+- оружие по 1
+- ресурсы и инструменты имеют разные лимиты
 
-### Где это реально учитывается
+Чтобы этот лимит учитывался, в `UniversalInventory` должна быть включена настройка `_allowItemStackOverride`.
 
-Интерфейс читает стратегия инвентаря при расчёте вместимости стака:
-
-- `StackableItemStrategy`
-- `SeparableStacksStrategy`
-- движок переноса через `UniversalInventory.GetMaxStackSizeForItem(...)`
-
-### Важное уточнение про _allowItemStackOverride
-
-В текущей реализации `IStackSizeLimitable` применяется только если в `UniversalInventory` включён `_allowItemStackOverride`.
-
-Поведение сейчас такое:
-
-- если `_allowItemStackOverride == false`, используется только inventory `_maxStackSize`
-- если `_allowItemStackOverride == true` и item реализует `IStackSizeLimitable`, `MaxStackSize` предмета полностью заменяет inventory `_maxStackSize`
-
-То есть в текущем коде это не "item может только поднять потолок".
-Это полная подмена лимита предметом, и он может быть:
-
-- меньше inventory лимита
-- равен inventory лимиту
-- больше inventory лимита
+Если `_allowItemStackOverride` выключен, используется общий `_maxStackSize` инвентаря.
+Если включён и item реализует `IStackSizeLimitable`, лимит предмета заменяет общий лимит.
 
 Примеры:
 
-- inventory `_maxStackSize = 20`, `_allowItemStackOverride = false`, item `MaxStackSize = 99` -> фактический лимит всё равно `20`
-- inventory `_maxStackSize = 20`, `_allowItemStackOverride = true`, item `MaxStackSize = 99` -> фактический лимит `99`
-- inventory `_maxStackSize = 20`, `_allowItemStackOverride = true`, item `MaxStackSize = 5` -> фактический лимит `5`
-
-Если вам нужна другая семантика, например "item может только уменьшать лимит" или "item может превышать потолок только вверх", это уже отдельная кастомизация стратегии.
-
----
+| Настройки | Итог |
+|---|---|
+| inventory `_maxStackSize = 20`, override выключен, item `MaxStackSize = 99` | лимит `20` |
+| inventory `_maxStackSize = 20`, override включён, item `MaxStackSize = 99` | лимит `99` |
+| inventory `_maxStackSize = 20`, override включён, item `MaxStackSize = 5` | лимит `5` |
 
 ## IDescribable
 
-`IDescribable` не влияет на core transfer pipeline.
-Это простой пример того, как можно доопределить `IItemAdapter` дополнительными данными для UI.
+`IDescribable` нужен, чтобы adapter мог отдать описание предмета для UI.
 
 ```csharp
 public class ItemAdapter : IItemAdapter, IDescribable
@@ -230,27 +127,23 @@ public class ItemAdapter : IItemAdapter, IDescribable
 }
 ```
 
-Стандартный use case в ассете сейчас один:
+В стандартном примере `DefaultTooltipView` показывает `Description`, если adapter реализует `IDescribable`.
 
-- `DefaultTooltipView` показывает `Description`, если adapter реализует `IDescribable`
+Этот интерфейс можно использовать и для своего UI:
 
-Но смысл интерфейса шире:
-
-- custom tooltip
+- tooltip
 - inspect panel
 - hover card
 - context menu details
-- любая другая optional UI-система
 
-То есть `IDescribable` стоит воспринимать не как "специальный обязательный интерфейс для тултипов",
-а как паттерн расширения adapter'а маленькими дополнительными интерфейсами.
+## Собственные маленькие интерфейсы
 
-Если базового `IItemAdapter` уже недостаточно, вы можете добавлять такие интерфейсы под свой UI:
+Если базового `IItemAdapter` не хватает, можно добавить свои интерфейсы под нужды проекта.
 
-- `IDescribable`
-- `IFilterable`
-- `ISortable`
-- любые свои `IItemStatsProvider`, `IRarityProvider`, `IFlavorTextProvider` и т.д.
+Например:
 
-Core inventory от них не зависит.
-Их читают только те системы, которым они действительно нужны.
+- `IItemStatsProvider`
+- `IRarityProvider`
+- `IFlavorTextProvider`
+
+Core inventory от них не зависит. Их должны читать только те UI- или gameplay-системы, которым эти данные нужны.

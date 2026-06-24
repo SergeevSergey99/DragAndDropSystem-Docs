@@ -1,173 +1,129 @@
 # Troubleshooting
 
-This page is organized by symptom.
+This page helps diagnose problems by symptom: what you see, what it usually means, and what to check.
 
-Format:
+## Item Cannot Be Picked Up
 
-- what you see
-- what it usually means
-- where to look in code and setup
-
----
-
-## `Wrong item type`
-
-This usually means a binding received an adapter from the wrong inventory boundary.
-
-Typical causes:
-
-- target-side conversion did not happen
-- swap was committed as a raw exchange
-- after a previous operation, the slot still stores a foreign adapter type
-
-Where to look:
-
-- `CreateItemConverter()` in the binding
-- `TransferItemConversionUtility`
-- `MappedSlotInventoryDataBinding.CanDrop()`
-- `MappedSlotInventoryDataBinding.CanStartDrag()`
-
----
-
-## Warnings for other slots while dropping into one slot
-
-This usually means the system fell into inventory-wide search when you expected a direct slot path.
-
-Typical causes:
-
-- the operation used `FindAlternative`
-- area-drop was activated instead of slot-drop
-- the transfer engine re-evaluated `GetAcceptableCount()`
-- the transfer engine did not receive a concrete target hint
-
-Where to look:
-
-- `DropPolicySettings`
-- the resolved `BlockedTargetResolutionKind`
-- `InventoryDropProcessor`
-- `InventoryTransferService`
-- `GetAcceptableCount` logs
-
----
-
-## Preview passes, but commit fails
-
-Usually the problem is not in rules, but in execution or domain hooks.
-
-Typical causes:
-
-- `CanStartTransfer` / `CanCommitTransfer` veto
-- `CanStartTransferAsync` veto
-- conversion failed during execution
-- placement failed after split
-
-Where to look:
-
-- `ITransferDomainHandler`
-- `IAsyncTransferDomainHandler`
-- `InventoryTransferService`
-
----
-
-## First swap works, second swap breaks
-
-This almost always means the slot stores the wrong adapter type after the first swap.
-
-Typical causes:
-
-- swap was a raw exchange
-- conversion was applied in preview but not in commit
-- add/remove events synchronized one format while the slot physically stores another
-
-Where to look:
-
-- swap execution path
-- `ValidateSwapRules`
-- conversion in both directions
-
----
-
-## Drag does not start at all
-
-Typical causes:
+Common causes:
 
 - source slot is empty
 - `CanStartDrag` returned failure
-- the slot stores the wrong adapter type
-- the binding did not load data into UI
+- data was not loaded into UI
+- slot contains an adapter of the wrong type
 
-Where to look:
+Check:
 
-- `OnDragAttempting`
-- `ValidateStartDrag`
-- `ReloadUI()`
-- `GetItems()`
+- whether `DataBinding` is assigned to the correct `UniversalInventory`
+- whether `ReloadUI()` is called
+- what `GetItems()` / `GetOccupiedSlots()` returns
+- whether a rule blocks drag from this slot or inventory
 
----
+## Item Cannot Be Dropped Into A Slot
 
-## Data did not sync after a successful transfer
+Common causes:
 
-Typical causes:
+- the slot forbids this item type
+- the target stack is already full
+- `CanDrop` returned failure
+- `DropPolicySettings` is set to `Reject`
+- the item was converted to the wrong adapter type
 
-- execution never reached deferred events
-- the binding is attached to the wrong inventory
-- `AddToData` / `RemoveFromData` work against the wrong backing source
+Check:
 
-Where to look:
+- rules on the slot and inventory
+- `CanDrop` in your binding
+- `DropPolicySettings`
+- converter, if transfer goes between different inventory types
 
-- `DispatchTransferEvents`
-- `DispatchSwapEvents`
-- `OnItemAdded` / `OnItemRemoved`
-- the concrete binding
+## Item Is Placed In A Different Slot
 
----
+This is usually not a bug, but policy behavior.
 
-## A stack behaves like one repeated item, but instances should be different
+Check:
 
-Typical causes:
+- whether `FindAlternative` is enabled
+- whether alternative placement inside the same inventory is enabled
+- whether the item was dropped on the inventory area instead of a concrete slot
+- which `PlacementCandidateOrderer` is selected
 
-- one adapter instance is reused as a representative for the whole stack
-- conversion does not preserve instance state
-- `ItemId` does not match real stacking semantics
+If you need strict “only this slot” behavior, use `Reject` for blocked target.
 
-Where to look:
+## Data Did Not Update After Transfer
 
-- adapter implementation
-- conversion cookbook
-- `ItemId`
+If UI changed but your game data did not, the problem is almost always in the binding.
 
----
+Check:
 
-## `CanDrop` is called many times
+- whether the binding is assigned to the correct inventory
+- whether `AddToData` / `RemoveFromData` are implemented
+- whether those methods modify the exact list or object you expect
+- whether you change data directly and forget to call `ReloadUI()`
 
-This can be normal when:
+## `Wrong Item Type` Appears
 
-- preview candidate search is running
-- `FindAlternative` is active
-- area-drop is active
-- swap validates both directions
+This usually means an inventory received an adapter that belongs to another data model.
 
-This is not normal when:
+Common causes:
 
-- you are doing a direct slot drop into a concrete slot without `FindAlternative`
-- and logs still show neighboring slots being checked
+- `CreateItemConverter()` is not configured
+- converter returns the wrong adapter
+- swap left another inventory's adapter in the slot
+- data after transfer is synchronized in one format, while the slot stores another
 
-In that case, look for a route/policy problem.
+Check:
 
----
+- converter on source and target bindings
+- `CanDrop` / `CanStartDrag` in fixed-slot or equipment binding
+- which adapter is actually stored in the slot after transfer
 
-## Where to start debugging
+## First Swap Works, Second Swap Breaks
 
-1. Identify the phase: drag start, preview, domain validation, execution, or swap.
-2. Look at the first meaningful log in the stack, not the last one.
-3. Check whether a concrete `targetSlot` exists.
-4. Check which adapter type is physically stored in the slot after the operation.
+Almost always, after the first swap one of the slots stores an item with the wrong adapter type.
 
----
+Check:
 
-## Related pages
+- whether conversion exists in both directions
+- whether you are exchanging two stacks directly without conversion
+- whether data and UI update with the same adapter type
+
+## `CanDrop` Is Called Many Times
+
+This is normal when the system is searching for a suitable place:
+
+- drop was on an inventory area
+- `FindAlternative` is enabled
+- swap is being checked
+- the system iterates slots for auto placement
+
+It is suspicious if you are definitely dropping into a concrete slot and policy does not allow alternative search.
+
+In that case, check:
+
+- whether the pointer hits the slot
+- whether `InventoryDropArea` is placed over slots
+- which `BlockedTargetResolutionKind` is used
+
+## Stack Behaves Like The Same Item
+
+This happens when several instances in a stack reuse the same adapter object, even though they should be different items.
+
+Check:
+
+- whether a separate adapter is created for each unique instance
+- whether converter preserves runtime item state
+- whether `ItemId` matches your stacking logic
+
+## Where To Start Debugging
+
+1. Name the symptom: cannot pick up, cannot drop, data did not update, swap breaks.
+2. Check Inspector settings: strategy, slot management, drop policy, rules.
+3. Check binding: data loading, `CanStartDrag`, `CanDrop`, add/remove methods.
+4. If inventories use different data models, check converter.
+5. If the issue is only with trading, server validation, or gold, check domain handler.
+
+See also:
 
 - [Logs and Debugging](logs-and-debugging.md)
+- [Drop Policy](../architecture/drop-policy-matrix.md)
+- [Item Conversion](../architecture/item-conversion-cookbook.md)
 - [Transfer Pipeline](../architecture/transfer-pipeline.md)
-- [Cookbook: Item Conversion](../architecture/item-conversion-cookbook.md)
-- [Drop Policy Matrix](../architecture/drop-policy-matrix.md)

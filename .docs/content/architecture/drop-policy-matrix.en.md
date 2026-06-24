@@ -1,58 +1,84 @@
-# Drop Policy Matrix
+# Drop Policy
 
-The full flow is described in [Transfer Pipeline](transfer-pipeline.md).
+Drop policy answers a simple question: **what should happen when the player drops an item somewhere it cannot be placed directly**.
 
-## Policy fields
+For example:
 
-- `BlockedTargetResolutionKind`: `Reject`, `FindAlternative`, or `Swap`
-- `AlternativeOrderer`: ordering used only for automatic alternative placement
-- `AllowSameInventoryAlternativePlacement`: whether a blocked same-inventory drop
-  may use another placement
-- `PartialTransferMode`: allow a partial entry or require the whole amount
+- the slot is occupied
+- the slot is blocked by rules
+- the target stack is already full
+- the item was dropped on an inventory area instead of a slot
 
-## Behavior matrix
+## Main Options
 
-| Scenario | `Reject` | `FindAlternative` | `Swap` |
-|---|---|---|---|
-| explicit target is valid | use it | use it | use it |
-| explicit target is blocked | reject entry | search ordered candidates | try single-entry swap |
-| area drop, no target slot | automatic candidates | automatic candidates | automatic candidates |
-| occupied handler accepts target | handler executes | handler executes | handler executes |
-| batch with multiple entries | sequential best-effort | sequential best-effort | rejected before mutation |
+| Setting | What it does |
+|---|---|
+| `Reject` | Rejects the transfer. The item returns to where it came from. |
+| `FindAlternative` | Looks for another suitable slot. |
+| `Swap` | Tries to swap the dragged item with the item in the occupied slot. |
 
-## Candidate ordering
+## If The Slot Is Occupied
 
-The configured orderer is used only when placement is automatic:
+| Policy | Behavior |
+|---|---|
+| `Reject` | Nothing moves. |
+| `FindAlternative` | The system searches for another slot where the item can fit. |
+| `Swap` | The system tries to exchange the two items. |
 
-- `NaturalPlacementCandidateOrderer`
-- `MergeFirstPlacementCandidateOrderer`
-- `EmptyFirstPlacementCandidateOrderer`
-- `MergeOnlyPlacementCandidateOrderer`
-- `EmptyOnlyPlacementCandidateOrderer`
+If the selected slot is valid, policy does not interfere: the item is placed into that slot.
 
-An explicit slot is validated directly and is never reordered.
+## If The Item Was Dropped On An Inventory Area
 
-## Partial transfer
+When the player drops an item on the inventory area instead of a concrete slot, the system searches for a suitable place.
 
-`Allow` moves the amount that currently fits and leaves the remainder in the
-source. `RequireFull` restores the entry when the full requested amount cannot be
-placed.
+This uses `PlacementCandidateOrderer`:
 
-This is per-entry behavior. There is no `Atomic` batch mode.
+| Orderer | Behavior |
+|---|---|
+| `Natural` | Uses the natural slot order. |
+| `MergeFirst` | Tries to merge with existing stacks first. |
+| `EmptyFirst` | Tries empty slots first. |
+| `MergeOnly` | Tries only stack merging. |
+| `EmptyOnly` | Tries only empty slots. |
 
-## Same-inventory alternatives
+If the player drops directly on a concrete slot, sorting is not used: the selected slot is checked first.
 
-When `AllowSameInventoryAlternativePlacement` is disabled, a blocked explicit drop
-inside the same inventory does not fall back to another slot. Area drops and valid
-explicit targets are unaffected.
+## Partial Transfer
 
-## Swap constraints
+`PartialTransferMode` controls whether only part of a stack may be transferred.
 
-Swap currently requires:
+| Value | Behavior |
+|---|---|
+| `Allow` | Transfers as much as fits. The rest returns back. |
+| `RequireFull` | Cancels the transfer if the whole stack cannot fit. |
 
-- exactly one drag entry;
-- the full dragged entry, not a partial split;
-- bidirectional rule and placement validity;
-- successful restoration if either direction fails.
+This applies to one transfer entry. If the player drags several selected items, failure of one item does not cancel items that were already transferred before it.
 
-Large shaped batch swaps are intentionally not supported by this policy.
+## Alternative Slot Inside The Same Inventory
+
+`AllowSameInventoryAlternativePlacement` matters when moving an item inside the same inventory.
+
+If enabled, dropping onto an occupied slot can make the system look for another free slot in the same inventory.
+
+If disabled, that drop does not become “put it somewhere else”. The item stays where it was if the selected slot is not valid.
+
+## Swap
+
+`Swap` exchanges two items.
+
+It works only for one dragged item and one concrete occupied slot. If the player drags several items onto one occupied slot, batch swap is rejected before anything changes.
+
+## What To Choose
+
+| Desired behavior | Choose |
+|---|---|
+| Place only into the selected slot | `Reject` |
+| Allow “put it somewhere suitable” | `FindAlternative` |
+| Allow exchange with an occupied slot | `Swap` |
+| Allow moving part of a stack | `PartialTransferMode.Allow` |
+| Forbid partial transfers | `PartialTransferMode.RequireFull` |
+
+See also:
+
+- [Transfer Pipeline](transfer-pipeline.md)
+- [Placement Strategies](strategies.md)

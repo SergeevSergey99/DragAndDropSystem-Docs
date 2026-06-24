@@ -1,186 +1,106 @@
-# Logs and Debugging
+# Logs And Debugging
 
-This page helps you quickly identify which phase of the pipeline failed.
+This page helps you find where to look when a transfer does not work.
 
-Core idea:
+Start from what you see in the game, not from an internal phase name:
 
-- `InventoryTransferService` validates candidates against current state and commits one entry
-- `rules` handle mechanical constraints
-- `domain hooks` may veto the whole transfer before entry processing
+- the item cannot be picked up
+- the item cannot be dropped
+- the item returns back
+- data did not change after transfer
+- swap behaves incorrectly
+- Console shows many warnings
 
----
+## Quick Map
 
-## Short log map
-
-| Where the log appears | What it usually means |
+| What you see | Start with |
 |---|---|
-| `RuleResult` | one specific rule check was rejected |
-| `InventoryTransferService` | target selection, conversion, placement, swap, or rollback problem |
-| `InventoryDropProcessor` | policy resolution or transfer rejection |
-| `GetAcceptableCount` | inventory-wide slot search |
-| `CanCommitTransfer` / domain validation | business logic vetoed the commit |
+| Item cannot be picked up | `CanStartDrag`, rules on the source slot, data loading into UI |
+| Item cannot be dropped | `CanDrop`, rules on the target slot, `DropPolicySettings` |
+| Item goes to another slot | `FindAlternative`, `PlacementCandidateOrderer`, drop on inventory area |
+| UI changed, data did not | `AddToData`, `RemoveFromData`, correct binding |
+| Wrong item type error | `CreateItemConverter()`, adapter type in source and target |
+| Swap breaks after the first time | conversion in both directions and adapter type in slots after swap |
 
----
+## What Logs Usually Mean
 
-## How to read common logs
+| Log or class | Usually means |
+|---|---|
+| `RuleResult` | A rule blocked drag or drop. |
+| `CanStartDrag` | Binding blocked drag start. |
+| `CanDrop` | Binding blocked drop into target inventory or slot. |
+| `InventoryDropProcessor` | Drop was rejected before the actual transfer. Often policy or target slot is the reason. |
+| `InventoryTransferService` | The problem happened during transfer: placement, swap, conversion, or rollback. |
+| `GetAcceptableCount` | The system is iterating slots and searching for a place to put the item. |
+| `CanCommitTransfer` | Business logic blocked the transfer right before commit, for example not enough gold. |
 
-### `[RuleResult] Validation failed: ...`
+## If Warnings Mention Other Slots
 
-This is the rejection of one concrete rule branch.
+This is often normal. The system may check more than the selected slot when:
 
-Important:
+- the item was dropped on an inventory area
+- `FindAlternative` is enabled
+- a large stack needs space
+- swap is being checked
 
-- by itself it does not always mean a bug
-- sometimes it is a normal rejection of a trial candidate slot
-- the call stack matters: look at who initiated the check
+If you expected only one slot to be checked, verify:
 
-If the log comes from:
+- the pointer really hits the slot, not `InventoryDropArea`
+- policy does not allow `FindAlternative`
+- the selected slot is not covered by another UI element
 
-- `MappedSlotInventoryDataBinding.CanDrop()` -> usually adapter type or slot compatibility
-- `CanStartDrag()` -> wrong adapter type in the source slot or source-side drag veto
+## If The Log Mentions A Rule
 
-### `[InventoryDropProcessor] ...`
+A rule log does not always mean a bug. Sometimes the system checks several options and
+one of them is correctly rejected.
 
-The drop was rejected before an entry committed.
+Look at the context:
 
-Common causes:
+- which slot was checked
+- which item was checked
+- whether it was the selected slot or an alternative one
+- whether the transfer still succeeded afterward
 
-- target slot is invalid
-- policy does not allow a fallback
-- there is no valid candidate slot
+## If The Problem Is Data
 
-### `[InventoryTransferService] ...`
+When UI and game data differ after a transfer, check the binding:
 
-The problem happened while validating or executing the current entry:
+- does `GetItems()` / `GetOccupiedSlots()` load the correct data?
+- does `AddToData(...)` add to the correct list?
+- does `RemoveFromData(...)` remove from the correct list?
+- do external data changes call `ReloadUI()`?
 
-- domain validation
-- split/remove
-- outgoing/incoming conversion
-- placement into the target inventory
-- swap commit
-- rollback
+## If The Problem Is Between Different Inventories
 
-### `[InventoryName] GetAcceptableCount: ...`
-
-This is inventory-wide acceptance search.
-
-If you expected a direct slot drop and still see this log, usually check:
-
-- whether a concrete `targetSlot` actually existed
-- whether the operation fell into `FindAlternative`
-- whether this was an area-drop path
-
----
-
-## Fast diagnosis by phase
-
-### 1. Drag start
-
-Look at:
-
-- `OnDragAttempting`
-- `ValidateStartDrag`
-- binding `CanStartDrag`
-
-Typical causes:
-
-- source slot is empty
-- slot contains the wrong adapter type
-- source binding forbids dragging
-
-### 2. Preview / candidate resolution
-
-Look at:
-
-- `InventoryTransferService`
-- `ValidateDrop`
-- `InventoryAcceptanceRequest`
-- `GetAcceptableCount`
-
-Typical causes:
-
-- target-side conversion failed
-- slot rules reject the target adapter
-- the transfer engine searches candidates more broadly than expected
-
-### 3. Domain validation
-
-Look at:
-
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
-- `ValidateDomainHandlers`
-
-Typical causes:
-
-- money
-- access rights
-- server veto
-- external synchronous/asynchronous validation
-
-### 4. Execution
-
-Look at:
-
-- `InventoryTransferService`
-- conversion utility
-- `TryAddStack` / placement mutation primitives
-
-Typical causes:
-
-- conversion failed during commit
-- placement failed
-- rollback restored the previous state
-
-### 5. Swap
-
-Look at:
-
-- `RequiresSwap`
-- `ValidateSwapRules`
-- `OnSwapAttempting`
-- `OnSwapCompleted`
-
-Typical causes:
-
-- one swap direction does not pass rules
-- swap was implemented as a raw exchange instead of a conversion-aware commit
-- after the first swap, a slot still contains a foreign adapter type
-
----
-
-## Practical patterns
-
-### Preview passed, commit failed
-
-That usually means the issue is not in rules, but in execution or domain hooks.
+For example: merchant, player, equipment, or container use different data models.
 
 Check:
 
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
-- conversion
-- placement / rollback
+- whether the right binding has `CreateItemConverter()`
+- which adapter is in the source slot
+- which adapter should be in the target slot
+- whether the converter preserves unique item data
 
-### Warnings appear for other slots
+## If The Problem Is Trading Or External Validation
 
-That usually means some path triggered inventory-wide search.
+Check the domain handler:
 
-Check:
+- `CanStartTransfer` — whether transfer may start at all
+- `CanStartTransferAsync` — whether a server or another external check rejected transfer
+- `CanCommitTransfer` — whether a specific placement may be committed
+- `OnTransferSucceeded` — whether a side effect breaks data after successful transfer
 
-- `GetAcceptableCount`
-- `FindAlternative`
-- area-drop
-- incorrect routing for a direct slot drop
+## Useful Check Order
 
-### First swap succeeds, second swap fails
+1. Make sure the item is actually loaded into UI.
+2. Check rules and `CanStartDrag`.
+3. Check target slot, `CanDrop`, and drop policy.
+4. If transfer goes between different models, check converter.
+5. If there is money, server, access rights, or ownership logic, check domain handler.
+6. If UI and data diverged, check binding add/remove methods.
 
-This almost always means the slot stores the wrong adapter type after the first swap.
+See also:
 
----
-
-## Read this together with
-
-- [Troubleshooting](troubleshooting.md) — symptom -> cause -> where to look
-- [Transfer Pipeline](../architecture/transfer-pipeline.md) — phase order
-- [Cookbook: Item Conversion](../architecture/item-conversion-cookbook.md) — adapter-boundary problems
+- [Troubleshooting](troubleshooting.md)
+- [Drop Policy](../architecture/drop-policy-matrix.md)
+- [Item Conversion](../architecture/item-conversion-cookbook.md)

@@ -1,30 +1,27 @@
-# Cookbook: Item Conversion
+# Conversión de objetos
 
-Esta página responde a una pregunta práctica:
-"¿cómo debería configurar la conversión entre dos inventarios que usan modelos de adapter distintos?"
+Esta página explica cómo mover objetos entre inventarios que usan modelos de datos distintos.
 
-La visión arquitectónica general ya existe en [Transfer Pipeline](transfer-pipeline.md).
-Esta página se centra en reglas de trabajo reales y errores comunes.
-
----
+Ejemplo: un comerciante guarda mercancía como `ScriptableObject`, el jugador guarda los
+objetos comprados como modelos runtime, y el equipamiento usa slots fijos con sus propias
+comprobaciones.
 
 ## Cuándo hace falta un converter
 
-Hace falta un converter cuando dos inventarios usan representaciones distintas del mismo item.
+Hace falta un converter cuando un objeto debe pasar de un tipo de adapter a otro.
 
-Ejemplos típicos:
+Casos típicos:
 
-- un comerciante almacena `ScriptableObject`s mientras el jugador usa runtime models
-- un inventario orientado a UI usa adapters ligeros mientras el modelo de dominio usa instancias ricas
-- un límite de inventario dentro de un item contenedor usa otro modelo de adapter
+- comerciante y jugador guardan objetos en modelos distintos
+- inventario de equipamiento acepta solo adapters especiales
+- un contenedor dentro de un objeto guarda instancias runtime
+- el mismo objeto debe verse de forma distinta en diferentes inventarios
 
-Si ambos lados ya usan el mismo tipo de adapter, normalmente no hace falta converter.
+Si ambos inventarios usan el mismo tipo de adapter, normalmente no hace falta converter.
 
----
+## Dónde configurarlo
 
-## Dónde vive el converter
-
-El converter se declara en el lado del inventory binding:
+El converter se configura en el binding:
 
 ```csharp
 protected override IItemAdapterConverter CreateItemConverter()
@@ -33,160 +30,103 @@ protected override IItemAdapterConverter CreateItemConverter()
 }
 ```
 
-Así, el binding define:
+El binding le dice al sistema:
 
-- cómo este inventario exporta un item
-- cómo este inventario importa un item
+- cómo se ven los objetos de este inventario cuando salen
+- cómo deben verse los objetos cuando entran en este inventario
 
-Por defecto, el sistema usa un identity converter.
+Si no se configura converter, el objeto se deja tal cual.
 
----
+## Modelo simple
 
-## Quién llama a la conversión
-
-### Preview
-
-Durante el preview, la conversión está orquestada por `TransferItemConversionUtility`.
-
-Esto es necesario para que las rules del target y los hooks del binding vean un target-side adapter en lugar del source-side adapter original.
-
-### Ejecución normal
-
-Para una transferencia normal, la cadena es:
-
-1. el item se toma del slot de origen
-2. se ejecuta `source outgoing`
-3. después se ejecuta `target incoming`
-4. solo después de eso se coloca el item en el inventario objetivo
-
-### Swap
-
-El swap no es una conversión simétrica única.
-Son dos cadenas separadas:
-
-- `A -> B`
-- `B -> A`
-
-Cada una pasa por su propia secuencia `outgoing -> incoming`.
-
----
-
-## Modelo mental correcto
-
-No pienses en términos de "el inventario de origen entrega el objeto final del target".
-
-Piensa mejor así:
+Cuando un objeto se mueve de un inventario a otro, el sistema necesita un adapter que el
+inventario destino entienda.
 
 ```text
-source adapter
-  -> source outgoing
-  -> intermediate representation
-  -> target incoming
-  -> target adapter
+adapter del inventario origen
+  -> converter
+  -> adapter del inventario destino
 ```
 
-La representación intermedia no necesita ser un tipo dedicado.
-Lo importante es que los límites de origen y destino permanezcan independientes.
+El objetivo principal del converter es no perder el significado del objeto al pasar de un modelo de datos a otro.
 
----
+## Qué debe conservar un converter
 
-## Qué debe preservar un adapter
+Si los objetos son únicos, el converter debe conservar más que icono y nombre.
 
-Si tus items tienen state de instancia, el adapter debe transportarlo con seguridad a través de la conversión:
+Comprueba que conserva:
 
-- un `ItemId` estable, si la semántica de stacking depende de él
-- campos runtime de la instancia concreta
-- una referencia a la entidad de dominio, si el item es único
-- datos que luego usa `CanStartDrag`, `CanDrop`, tooltips y side effects
+- `ItemId`, si afecta al stacking
+- cantidad de objetos en el stack
+- estado runtime único
+- referencia al modelo de dominio, si el objeto no es solo un `ScriptableObject`
+- datos usados por `CanDrop`, tooltip, precio, rareza o equipamiento
 
-Si el item "parece correcto después de la transferencia pero el drag falla más tarde", la causa habitual es que el target recibió el tipo de adapter equivocado o el state de instancia equivocado.
+Si después de la transferencia “el objeto se ve bien, pero ya no se puede arrastrar”, probablemente el slot destino recibió un adapter incorrecto o perdió datos necesarios.
 
----
+## Swap entre inventarios distintos
 
-## Qué no debes hacer
+Swap entre distintos tipos de inventario no es un simple intercambio de dos stacks.
 
-### No uses un solo adapter como representante de todo el stack
+Cada objeto debe convertirse al modelo del inventario al que entra:
 
-Si un stack contiene distintas instancias runtime, no clones un solo adapter mediante `Repeat`.
+```text
+objeto A -> modelo del inventario B
+objeto B -> modelo del inventario A
+```
 
-Eso provoca:
+Si simplemente intercambias dos adapters, el siguiente drag/drop puede romperse porque un slot guarda un objeto en formato incorrecto.
 
-- pérdida de state de instancia
-- divergencia entre preview y execution
-- payloads de remove/add distorsionados
+## Cuándo devolver `null`
 
-### No implementes el swap entre inventarios como un raw stack exchange
+Un converter puede devolver `null` si el objeto no se puede convertir de forma segura al modelo requerido.
 
-Si el swap simplemente intercambia dos `ItemStack`:
+Es apropiado cuando:
 
-- el slot objetivo recibe un tipo de adapter extranjero
-- el siguiente `CanStartDrag` o `CanDrop` empieza a fallar por type checks
+- el objeto no debe entrar en este inventario
+- no se puede crear el tipo de adapter destino
+- la conversión perdería datos importantes
 
-### No dependas de que preview y execution compartan la misma referencia de objeto
+No uses `null` para bloqueos temporales como “no hay dinero suficiente” o “la tienda está cerrada”.
+Para eso usa rules o `ITransferDomainHandler`.
 
-El preview stack y el execution stack pueden ser objetos distintos.
-La estabilidad debe venir de los datos y de la semántica de conversión, no de la igualdad por referencia.
+## Errores comunes
 
----
+### Aparece `Wrong Item Type` después de la transferencia
 
-## Cuándo un converter debería devolver `null`
+Comprueba:
 
-`null` no significa "no quiero hacerlo ahora mismo", sino "este límite no puede exportar/importar este item".
+- si `CreateItemConverter()` está implementado
+- si converter devuelve el adapter del inventario destino
+- si quedó en el slot el adapter del inventario origen
 
-Eso es apropiado cuando:
+### El primer swap funciona, el segundo se rompe
 
-- el item no debe cruzar nunca este límite
-- el binding no puede materializar el target adapter requerido
-- la pérdida de datos sería inaceptable
+Comprueba:
 
-Si la operación está solo temporalmente prohibida por lógica de negocio, ese no es trabajo del converter.
-Usa:
+- si existe conversión en ambas direcciones
+- si dos stacks se intercambian directamente sin converter
+- qué adapter queda en cada slot después del primer swap
 
-- rules
-- `CanStartTransfer` / `CanStartTransferAsync`
-- `CanCommitTransfer`
+### Se perdieron datos del objeto
 
----
+Comprueba:
 
-## Cómo diagnosticar errores de conversión
+- si se transfiere el estado runtime de la instancia
+- si todos los objetos del stack se crean desde un solo adapter
+- si se pierden precio, rareza, durabilidad, dueño u otros campos del modelo
 
-### Síntoma: `Wrong item type`
+## Checklist para un converter nuevo
 
-Normalmente significa:
+- inventarios origen y destino realmente usan tipos de adapter distintos
+- binding sobreescribe `CreateItemConverter()`
+- converter crea el tipo de adapter esperado por el inventario destino
+- cada objeto único conserva su propio estado
+- swap está probado en ambas direcciones
+- después de la transferencia, el siguiente drag/drop desde el slot destino funciona
 
-- el target binding recibió el source adapter type
-- el swap se confirmó como raw exchange
-- el preview convirtió correctamente, pero la execution no
+Ver también:
 
-### Síntoma: el primer swap funciona y el segundo se rompe
-
-Normalmente significa:
-
-- el commit tuvo éxito, pero se guardó el tipo de adapter incorrecto en el slot
-- después del primer swap, el slot contiene físicamente un objeto del otro límite de inventario
-
-### Síntoma: el preview pasa, pero el commit falla
-
-Normalmente significa:
-
-- el preview stack se montó correctamente
-- pero la execution usó una ruta de conversión diferente
-
----
-
-## Mini checklist para converters nuevos
-
-- el binding realmente sobreescribe `CreateItemConverter()`
-- outgoing e incoming son tan simétricos como requiere tu modelo de dominio
-- cada adapter del stack se convierte individualmente
-- el target almacena su propio inventory-specific adapter type después del commit
-- el swap se ejecuta como dos cadenas de conversión independientes
-
----
-
-## Dónde continuar
-
-- [Pipeline de transferencia](transfer-pipeline.md) — el orden completo de transferencia
-- [Demo4 Trading](../examples/demo4-trading.md) — ejemplo funcional de conversión entre merchant/player/equipment
-- [Troubleshooting](../reference/troubleshooting.md) — síntomas y causas comunes
-
+- [Demo4 Trading](../examples/demo4-trading.md)
+- [Troubleshooting](../reference/troubleshooting.md)
+- [Pipeline de transferencia](transfer-pipeline.md)

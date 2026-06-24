@@ -1,174 +1,129 @@
 # Troubleshooting
 
-Esta página está organizada por síntoma.
+Esta página ayuda a diagnosticar problemas por síntoma: qué ves, qué suele significar y qué comprobar.
 
-Formato:
+## El objeto no se puede tomar
 
-- lo que ves
-- lo que suele significar
-- dónde mirar en el código y en la configuración
+Causas comunes:
 
----
-
-## `Wrong item type`
-
-Esto normalmente significa que un binding recibió un adapter del límite de inventario equivocado.
-
-Causas típicas:
-
-- no ocurrió la conversión del lado objetivo
-- el swap se confirmó como raw exchange
-- después de una operación previa, el slot aún almacena un tipo de adapter extranjero
-
-Dónde mirar:
-
-- `CreateItemConverter()` en el binding
-- `TransferItemConversionUtility`
-- `MappedSlotInventoryDataBinding.CanDrop()`
-- `MappedSlotInventoryDataBinding.CanStartDrag()`
-
----
-
-## Warnings para otros slots al soltar en un único slot
-
-Esto normalmente significa que el sistema cayó en una búsqueda a nivel de inventario cuando esperabas una ruta de slot directo.
-
-Causas típicas:
-
-- la operación usó `FindAlternative`
-- se activó area-drop en lugar de slot-drop
-- el motor de transferencia volvió a evaluar `GetAcceptableCount()`
-- el motor de transferencia no recibió un target hint concreto
-
-Dónde mirar:
-
-- `DropPolicySettings`
-- el `BlockedTargetResolutionKind` resuelto
-- `InventoryDropProcessor`
-- `InventoryTransferService`
-- logs de `GetAcceptableCount`
-
----
-
-## El preview pasa, pero el commit falla
-
-Normalmente el problema no está en las rules, sino en la execution o en los domain hooks.
-
-Causas típicas:
-
-- veto de `CanStartTransfer` / `CanCommitTransfer`
-- veto de `CanStartTransferAsync`
-- la conversión falló durante la execution
-- el placement falló después del split
-
-Dónde mirar:
-
-- `ITransferDomainHandler`
-- `IAsyncTransferDomainHandler`
-- `InventoryTransferService`
-
----
-
-## El primer swap funciona y el segundo se rompe
-
-Esto casi siempre significa que el slot almacena el tipo de adapter incorrecto después del primer swap.
-
-Causas típicas:
-
-- el swap fue un raw exchange
-- la conversión se aplicó en preview pero no en commit
-- los eventos add/remove sincronizaron un formato mientras que el slot almacenaba físicamente otro distinto
-
-Dónde mirar:
-
-- ruta de ejecución del swap
-- `ValidateSwapRules`
-- conversión en ambas direcciones
-
----
-
-## El drag no empieza en absoluto
-
-Causas típicas:
-
-- el source slot está vacío
+- el slot origen está vacío
 - `CanStartDrag` devolvió fallo
-- el slot almacena el tipo de adapter incorrecto
-- el binding no cargó los datos en la UI
+- los datos no se cargaron en UI
+- el slot contiene un adapter de tipo incorrecto
 
-Dónde mirar:
+Comprueba:
 
-- `OnDragAttempting`
-- `ValidateStartDrag`
-- `ReloadUI()`
-- `GetItems()`
+- si `DataBinding` está asignado al `UniversalInventory` correcto
+- si se llama a `ReloadUI()`
+- qué devuelve `GetItems()` / `GetOccupiedSlots()`
+- si alguna regla bloquea drag desde este slot o inventario
 
----
+## El objeto no se puede soltar en un slot
 
-## Los datos no se sincronizaron después de una transferencia exitosa
+Causas comunes:
 
-Causas típicas:
+- el slot prohíbe este tipo de objeto
+- el stack destino ya está lleno
+- `CanDrop` devolvió fallo
+- `DropPolicySettings` está configurado como `Reject`
+- el objeto se convirtió al tipo de adapter incorrecto
 
-- la execution nunca llegó a los deferred events
-- el binding está adjunto al inventario equivocado
-- `AddToData` / `RemoveFromData` trabajan contra la backing source equivocada
+Comprueba:
 
-Dónde mirar:
+- reglas del slot e inventario
+- `CanDrop` en tu binding
+- `DropPolicySettings`
+- converter, si la transferencia va entre tipos de inventario distintos
 
-- `DispatchTransferEvents`
-- `DispatchSwapEvents`
-- `OnItemAdded` / `OnItemRemoved`
-- el binding concreto
+## El objeto se coloca en otro slot
 
----
+Normalmente no es un bug, sino comportamiento de policy.
 
-## Un stack se comporta como un item repetido, pero las instancias deberían ser distintas
+Comprueba:
 
-Causas típicas:
+- si `FindAlternative` está activado
+- si está activada la búsqueda de alternativas dentro del mismo inventario
+- si el objeto se soltó sobre el área del inventario en lugar de un slot concreto
+- qué `PlacementCandidateOrderer` está seleccionado
 
-- se reutiliza una sola instancia de adapter como representante de todo el stack
-- la conversión no preserva el state de instancia
-- `ItemId` no coincide con la semántica real de stacking
+Si necesitas comportamiento estricto de “solo este slot”, usa `Reject` para destino bloqueado.
 
-Dónde mirar:
+## Los datos no se actualizaron tras la transferencia
 
-- implementación del adapter
-- conversion cookbook
-- `ItemId`
+Si la UI cambió pero tus datos del juego no, el problema casi siempre está en el binding.
 
----
+Comprueba:
+
+- si el binding está asignado al inventario correcto
+- si `AddToData` / `RemoveFromData` están implementados
+- si esos métodos modifican exactamente la lista u objeto que esperas
+- si cambias datos directamente y olvidas llamar a `ReloadUI()`
+
+## Aparece `Wrong Item Type`
+
+Normalmente significa que un inventario recibió un adapter que pertenece a otro modelo de datos.
+
+Causas comunes:
+
+- `CreateItemConverter()` no está configurado
+- converter devuelve el adapter incorrecto
+- swap dejó un adapter de otro inventario en el slot
+- los datos tras la transferencia se sincronizan en un formato, mientras el slot guarda otro
+
+Comprueba:
+
+- converter en bindings de origen y destino
+- `CanDrop` / `CanStartDrag` en binding de slots fijos o equipamiento
+- qué adapter está realmente guardado en el slot tras la transferencia
+
+## El primer swap funciona, el segundo se rompe
+
+Casi siempre, tras el primer swap uno de los slots guarda un objeto con tipo de adapter incorrecto.
+
+Comprueba:
+
+- si existe conversión en ambas direcciones
+- si estás intercambiando dos stacks directamente sin conversión
+- si datos y UI se actualizan con el mismo tipo de adapter
 
 ## `CanDrop` se llama muchas veces
 
-Esto puede ser normal cuando:
+Esto es normal cuando el sistema busca un lugar adecuado:
 
-- se está ejecutando una búsqueda de candidatos durante el preview
-- `FindAlternative` está activo
-- area-drop está activo
-- el swap valida ambas direcciones
+- drop fue sobre un área de inventario
+- `FindAlternative` está activado
+- se está comprobando swap
+- el sistema itera slots para auto placement
 
-Esto no es normal cuando:
+Es sospechoso si definitivamente sueltas sobre un slot concreto y la policy no permite búsqueda alternativa.
 
-- estás haciendo un direct slot drop sobre un slot concreto sin `FindAlternative`
-- y aun así los logs muestran comprobaciones sobre slots vecinos
+En ese caso, comprueba:
 
-En ese caso, busca un problema de ruta/policy.
+- si el pointer llega al slot
+- si `InventoryDropArea` está encima de los slots
+- qué `BlockedTargetResolutionKind` se usa
 
----
+## El stack se comporta como el mismo objeto
+
+Esto ocurre cuando varias instancias del stack reutilizan el mismo adapter, aunque deberían ser objetos distintos.
+
+Comprueba:
+
+- si se crea un adapter separado para cada instancia única
+- si converter conserva el estado runtime del objeto
+- si `ItemId` coincide con tu lógica de stacking
 
 ## Por dónde empezar a depurar
 
-1. Identifica la fase: inicio del drag, preview, validación de dominio, execution o swap.
-2. Mira el primer log significativo de la stack, no el último.
-3. Comprueba si existe un `targetSlot` concreto.
-4. Comprueba qué tipo de adapter está almacenado físicamente en el slot después de la operación.
+1. Nombra el síntoma: no se puede tomar, no se puede soltar, datos no actualizados, swap roto.
+2. Comprueba ajustes en Inspector: strategy, slot management, drop policy, rules.
+3. Comprueba binding: carga de datos, `CanStartDrag`, `CanDrop`, métodos add/remove.
+4. Si los inventarios usan modelos de datos distintos, comprueba converter.
+5. Si el problema aparece solo con comercio, validación de servidor u oro, comprueba domain handler.
 
----
+Ver también:
 
-## Páginas relacionadas
-
-- [Logs and Debugging](logs-and-debugging.md)
-- [Transfer Pipeline](../architecture/transfer-pipeline.md)
-- [Cookbook: Item Conversion](../architecture/item-conversion-cookbook.md)
-- [Drop Policy Matrix](../architecture/drop-policy-matrix.md)
-
+- [Logs y depuración](logs-and-debugging.md)
+- [Drop Policy](../architecture/drop-policy-matrix.md)
+- [Conversión de objetos](../architecture/item-conversion-cookbook.md)
+- [Pipeline de transferencia](../architecture/transfer-pipeline.md)
