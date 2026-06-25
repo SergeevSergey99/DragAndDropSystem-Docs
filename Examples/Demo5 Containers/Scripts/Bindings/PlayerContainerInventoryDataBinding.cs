@@ -39,7 +39,7 @@ namespace UDND.Examples.Containers
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter)
                 return false;
 
-            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container);
+            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container, occupiedBaseSlot);
         }
 
         private static bool WouldCreateCycle(ContainerItemInstance draggedContainer, ContainerItemInstance target)

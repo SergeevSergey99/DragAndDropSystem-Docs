@@ -54,7 +54,7 @@ namespace UDND.Examples.Containers
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter)
                 return false;
 
-            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container);
+            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container, occupiedBaseSlot);
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)

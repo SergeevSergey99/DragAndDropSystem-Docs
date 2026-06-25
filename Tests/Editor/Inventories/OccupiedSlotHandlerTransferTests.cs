@@ -170,6 +170,43 @@ namespace UDND.Tests.Inventories
                 "Exactly one gem must exist across all stores after the routed drop");
         }
 
+        [Test]
+        public void OccupiedHandler_OpenContainer_DropFromSameLiveInventoryOntoItsContainer_UsesPolicyAndDoesNotFindAlternative()
+        {
+            _source = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(2).Build();
+            _target = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(2).Build();
+
+            var sourceBinding = _source.gameObject.AddComponent<ContainerStoreBinding>();
+            _source.Initialize(sourceBinding);
+
+            var targetBinding = _target.gameObject.AddComponent<ContainerStoreBinding>();
+            _target.Initialize(targetBinding);
+            targetBinding.RouteTarget = _source;
+
+            var gem = new Token("gem");
+            sourceBinding.Store.Add(gem);
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Of(new TokenAdapter(gem)));
+
+            var container = new ContainerAdapter("box");
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Of(container));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var report = processor.ProcessDropWithReport(context);
+
+            Assert.IsFalse(report.Success, "Policy must reject same-live-inventory alternative placement");
+            Assert.AreEqual("gem", _source.GetSlot(0).Stack.PrimaryAdapter.ItemId);
+            Assert.IsTrue(_source.GetSlot(1).IsEmpty, "FindAlternative must not move the item to another live slot");
+            Assert.Contains(gem, sourceBinding.Store);
+            Assert.AreEqual(0, container.Children.Count);
+            Assert.AreEqual("container:box", _target.GetSlot(0).Stack.PrimaryAdapter.ItemId);
+            Assert.IsTrue(_target.GetSlot(1).IsEmpty);
+        }
+
         private static int CountFilled(IInventory inventory)
         {
             int n = 0;
@@ -238,8 +275,17 @@ namespace UDND.Tests.Inventories
                 // Open container → route through its live inventory's normal pipeline (incremental).
                 if (RouteTarget != null)
                 {
-                    var dropContext = new DragContext(entry.Stack, entry.SourceBaseSlot, entry.SourceInventory);
-                    return new InventoryDropProcessor(RouteTarget, new GlobalRuleValidator())
+                    var routedSourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+                    var routedTargetSlot = ReferenceEquals(RouteTarget, routedSourceInventory)
+                        ? occupiedBaseSlot
+                        : null;
+                    var dropContext = new DragContext(
+                        entry.Stack,
+                        entry.SourceBaseSlot,
+                        routedSourceInventory,
+                        routedTargetSlot,
+                        RouteTarget);
+                    return new InventoryDropProcessor(routedTargetSlot, RouteTarget, new GlobalRuleValidator())
                         .ProcessDropWithReport(dropContext)
                         .Success;
                 }

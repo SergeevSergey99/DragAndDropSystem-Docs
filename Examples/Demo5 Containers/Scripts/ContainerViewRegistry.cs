@@ -3,6 +3,7 @@ using CodeUtils;
 using UDND.Core;
 using UDND.Inventories;
 using UDND.Rules;
+using UDND.Slots;
 
 namespace UDND.Examples.Containers
 {
@@ -58,16 +59,30 @@ namespace UDND.Examples.Containers
         /// their own data through the usual add/remove events. When the container is not displayed,
         /// the item is removed from its real source inventory and written into the data directly.
         /// </summary>
-        public bool InsertIntoContainer(DragEntry entry, ContainerItemInstance container)
+        public bool InsertIntoContainer(
+            DragEntry entry,
+            ContainerItemInstance container,
+            BaseSlot occupiedSlot = null,
+            DropRequestPolicy? requestedPolicy = null)
         {
             if (container == null)
                 return false;
 
             if (TryGetLiveInventory(container, out var liveInventory))
             {
-                var dropContext = new DragContext(entry.Stack, entry.SourceBaseSlot, entry.SourceInventory);
-                return new InventoryDropProcessor(liveInventory, new GlobalRuleValidator())
-                    .ProcessDropWithReport(dropContext)
+                var routedSourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+                var routedTargetSlot = ReferenceEquals(routedSourceInventory, liveInventory)
+                    ? occupiedSlot
+                    : null;
+                var dropContext = new DragContext(
+                    entry.Stack,
+                    entry.SourceBaseSlot,
+                    routedSourceInventory,
+                    routedTargetSlot,
+                    liveInventory);
+
+                return new InventoryDropProcessor(routedTargetSlot, liveInventory, new GlobalRuleValidator())
+                    .ProcessDropWithReport(dropContext, requestedPolicy)
                     .Success;
             }
 
