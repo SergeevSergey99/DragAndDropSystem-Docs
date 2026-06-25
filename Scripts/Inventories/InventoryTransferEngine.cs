@@ -111,9 +111,15 @@ namespace UDND.Inventories
                 var entryTargetSlot = i == 0 ? targetBaseSlot : null;
                 var entryContext = context.WithTarget(entryTargetSlot, targetInventory);
 
+                // An explicit target slot must belong to the target inventory; a foreign slot is a
+                // blocked explicit target, handled by the blocked-target policy below (mirrors
+                // TryTransferEntry so CanAcceptDrop and ProcessDrop stay consistent).
+                bool entryTargetOwned = entryTargetSlot != null &&
+                    ReferenceEquals(entryTargetSlot.Inventory, targetInventory);
+
                 // Pre-rule occupied-slot handler: a different destination (e.g. a container),
                 // so it is consulted before and bypasses the target drop/placement rules.
-                if (entryTargetSlot != null && !entryTargetSlot.IsEmpty &&
+                if (entryTargetOwned && !entryTargetSlot.IsEmpty &&
                     ResolvePreRuleOccupiedHandler(targetInventory) is { } preRuleHandler &&
                     preRuleHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
                 {
@@ -134,7 +140,7 @@ namespace UDND.Inventories
                 }
 
                 // Post-rule occupied-slot handler: runs only after the target drop rules pass.
-                if (entryTargetSlot != null && !entryTargetSlot.IsEmpty &&
+                if (entryTargetOwned && !entryTargetSlot.IsEmpty &&
                     ResolvePostRuleOccupiedHandler(targetInventory) is { } postRuleHandler &&
                     postRuleHandler.CheckOccupiedSlotDrop(entry, entryTargetSlot))
                 {
@@ -162,7 +168,7 @@ namespace UDND.Inventories
 
                 if (entryTargetSlot != null)
                 {
-                    if (strategy.TryGetCandidate(
+                    if (entryTargetOwned && strategy.TryGetCandidate(
                             geometry,
                             acceptance,
                             entryTargetSlot,
@@ -184,7 +190,7 @@ namespace UDND.Inventories
 
                     if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap)
                     {
-                        if (!entryTargetSlot.IsEmpty)
+                        if (entryTargetOwned && !entryTargetSlot.IsEmpty)
                         {
                             return TransferProbe.Accepted(
                                 i,
@@ -371,8 +377,17 @@ namespace UDND.Inventories
 
             var validationContext = request.Context.WithTarget(request.TargetBaseSlot, targetInventory);
 
+            // An explicit target slot is only placeable when it actually belongs to the target
+            // inventory. A foreign slot reaches here when an occupied-slot handler routes a
+            // same-inventory drop through the container's own slot (which lives in a different
+            // inventory): treat it as a blocked explicit target so the blocked-target policy —
+            // including AllowSameInventoryAlternativePlacement — decides the outcome, instead of
+            // re-triggering the occupied handler or placing onto an unrelated slot.
+            bool hasOwnedTargetSlot = request.TargetBaseSlot != null &&
+                ReferenceEquals(request.TargetBaseSlot.Inventory, targetInventory);
+
             // Pre-rule occupied-slot handler: bypasses the target drop rules (different destination).
-            if (request.TargetBaseSlot != null &&
+            if (hasOwnedTargetSlot &&
                 !request.TargetBaseSlot.IsEmpty &&
                 ResolvePreRuleOccupiedHandler(targetInventory) is { } preRuleHandler &&
                 preRuleHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
@@ -396,7 +411,7 @@ namespace UDND.Inventories
             }
 
             // Post-rule occupied-slot handler: runs only after the target drop rules pass.
-            if (request.TargetBaseSlot != null &&
+            if (hasOwnedTargetSlot &&
                 !request.TargetBaseSlot.IsEmpty &&
                 ResolvePostRuleOccupiedHandler(targetInventory) is { } postRuleHandler &&
                 postRuleHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
@@ -410,7 +425,7 @@ namespace UDND.Inventories
 
             // Single-entry swap path bypasses the candidate-loop machinery after common rules.
             if (request.Policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
-                request.TargetBaseSlot != null &&
+                hasOwnedTargetSlot &&
                 !request.TargetBaseSlot.IsEmpty)
                 return TryExecuteSwap(request);
 
@@ -449,13 +464,17 @@ namespace UDND.Inventories
 
             if (request.TargetBaseSlot != null)
             {
-                var explicitRequest = CreateAcceptanceRequest(request, transaction);
-                bool explicitPlaced =
-                    strategy.TryGetCandidate(geometry, explicitRequest, request.TargetBaseSlot, out var explicitCandidate) &&
-                    TryApplyCandidate(request, transaction, geometry, explicitCandidate);
+                bool explicitPlaced = false;
+                if (hasOwnedTargetSlot)
+                {
+                    var explicitRequest = CreateAcceptanceRequest(request, transaction);
+                    explicitPlaced =
+                        strategy.TryGetCandidate(geometry, explicitRequest, request.TargetBaseSlot, out var explicitCandidate) &&
+                        TryApplyCandidate(request, transaction, geometry, explicitCandidate);
 
-                if (transaction.Aborted)
-                    return EntryTransferResult.Failed(requestedAmount, "Entry rolled back: source restore failed");
+                    if (transaction.Aborted)
+                        return EntryTransferResult.Failed(requestedAmount, "Entry rolled back: source restore failed");
+                }
 
                 if (!explicitPlaced)
                 {
