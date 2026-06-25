@@ -87,7 +87,7 @@ The tables below list every script file and describe the main class, interface, 
 |---|---|---|
 | `Scripts/DataBinding/ListInventoryDataBinding.cs` | `ListInventoryDataBinding<TData, TAdapter>` | Binding base for list-backed inventories. |
 | `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | `MappedSlotInventoryDataBinding<TData, TAdapter>` | Binding base for named or fixed semantic slots such as equipment layouts. |
-| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Binding base for slot-indexed data such as hotbars, crafting grids, and fixed arrays. |
+| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Binding base for slot-indexed data; reads and writes the full item/adapter list in each slot. |
 | `Scripts/DataBinding/GameManagerExample.cs` | `GameManagerExample`, `ItemData` | Example-only sample showing how an external manager can act as the data source for a binding. |
 
 ---
@@ -319,7 +319,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Item footprint models and shape/orientation helpers. |
 | `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Saved state of one placement for events, rollback, and DataBinding context. |
 | `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Global drag/drop/swap lifecycle events. |
-| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template for inventories that persist anchor/orientation placement data. |
+| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template for inventories that persist anchor/orientation and every item instance in a placement. |
 | `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Saved current input context of a slot or inventory for actions. |
 | `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Abstract MonoBehaviour base for inventory implementations. |
 | `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Manages covered-cell preview highlighting during hover/drag. |
@@ -328,7 +328,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Inventories/IInventorySlotCreationCapacity.cs` | `IInventorySlotCreationCapacity` | Internal capacity contract for dynamic slot creation. |
 | `Scripts/Inventories/IPlacementInventory.cs` | `IPlacementInventory`, `IShapedDragTargetResolver` | Placement-aware inventory contract and target-side anchor resolution for shaped drag. |
 | `Scripts/Inventories/InventoryPlacementGeometry.cs` | `InventoryPlacementGeometry` | Geometry-operation adapter over `IPlacementInventory` and topology. |
-| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Runtime capability interfaces used by the engine without a hard dependency on `UniversalInventory`. |
+| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IPreRuleOccupiedSlotDropHandler`, `IPostRuleOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Runtime capability interfaces used by the engine without a hard dependency on `UniversalInventory`; occupied-slot handlers are implemented on DataBinding. |
 | `Scripts/Inventories/PlacementCandidateSource.cs` | `PlacementCandidateSource` | Lazy enumerable source for placement candidates. |
 | `Scripts/Inventories/PlacementSnapshotCodec.cs` | `PlacementSnapshotCodec` | Internal codec for capturing/restoring placement state. |
 | `Scripts/Inventories/PlacementStore.cs` | `PlacementStore` | Placement storage and occupancy map for shaped/grid inventories. |

@@ -14,14 +14,17 @@ flowchart TD
     B -->|Yes| C["ListInventoryDataBinding\nBackpack, chest, loot"]
     B -->|No| D{"Slots with numeric index?"}
     D -->|Yes| E["SlotIndexedInventoryDataBinding\nHotbar, slot array"]
-    D -->|No| F["MappedSlotInventoryDataBinding\nEquipment, named slots"]
+    D -->|No| F{"Need to persist\nshape/anchor/orientation?"}
+    F -->|Yes| G["PlacementInventoryDataBinding\nShaped items, grid"]
+    F -->|No| H["MappedSlotInventoryDataBinding\nEquipment, named slots"]
 ```
 
 | Plantilla | Estructura de datos | Patrón de sync | Cuándo usarla |
 |---|---|---|---|
 | `ListInventoryDataBinding` | Lista dinámica | Por adapter (cada adapter por separado) | Mochila, cofre, loot, comerciante |
-| `SlotIndexedInventoryDataBinding` | Array/dict por índice | Por slot (una sola llamada por slot) | Hotbar, array de slots de equipamiento |
+| `SlotIndexedInventoryDataBinding` | Array/dict por índice | Por slot, con lista de adapters | Hotbar, array de slots de equipamiento |
 | `MappedSlotInventoryDataBinding` | Propiedades con nombre | Por slot + validación por slot | Equipamiento del personaje (cabeza, cuerpo, arma) |
+| `PlacementInventoryDataBinding` | Colocaciones con anchor/orientation | Por colocación, con todas las instancias del item | Items con forma, inventarios grid |
 
 ---
 
@@ -79,41 +82,43 @@ public class HotbarBinding : SlotIndexedInventoryDataBinding<ItemSO, ItemSOAdapt
     [SerializeField] private ItemSO[] _slots = new ItemSO[8];
 
     // 1. Qué slots están ocupados (omitir vacíos)
-    protected override IEnumerable<(int index, ItemSO item, int count)> GetOccupiedSlots()
+    protected override IEnumerable<(int index, IReadOnlyList<ItemSO> items)> GetOccupiedSlots()
     {
         for (int i = 0; i < _slots.Length; i++)
             if (_slots[i] != null)
-                yield return (i, _slots[i], 1);
+                yield return (i, new[] { _slots[i] });
     }
 
     // 2. Cómo crear un adapter a partir de un elemento de datos
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
 
-    // 3. Cómo escribir datos en un slot (una sola llamada para todo el stack)
-    protected override void AddToSlotData(int index, ItemSOAdapter adapter, int count)
-        => _slots[index] = adapter.Data;
+    // 3. Cómo escribir datos en un slot (lista completa de adapters del stack)
+    protected override void AddToSlotData(int index, IReadOnlyList<ItemSOAdapter> adapters)
+        => _slots[index] = adapters[0].Data;
 
-    // 4. Cómo limpiar los datos de un slot (una sola llamada para todo el stack)
-    protected override void RemoveFromSlotData(int index, ItemSOAdapter adapter, int count)
+    // 4. Cómo limpiar datos del slot (lista completa de adapters del stack)
+    protected override void RemoveFromSlotData(int index, IReadOnlyList<ItemSOAdapter> adapters)
         => _slots[index] = null;
 }
 ```
 
 ### Cómo funciona automáticamente
 
-**Al cargar**: itera `GetOccupiedSlots()`, crea un adapter para cada entrada y lo añade a la UI en el índice de slot correspondiente.
+**Al cargar**: itera `GetOccupiedSlots()`, crea un adapter para cada item de `items`, construye un stack y lo añade a la UI en el índice de slot correspondiente.
 
-**Al añadir/quitar**: se llama **una sola vez** para todo el stack, pasando `PrimaryAdapter` y el `count` total:
+**Al añadir/quitar**: se llama **una sola vez** para todo el stack y pasa todos los typed adapters de ese stack:
 
 ```
-Stack of 3 items into slot #2 → AddToSlotData(2, primaryAdapter, 3)
+Stack of 3 items into slot #2 → AddToSlotData(2, adapters[0..2])
 ```
+
+Esto conserva los datos de cada instancia dentro del stack. Si tres items parecen iguales pero tienen datos runtime distintos, el binding recibe los tres adapters.
 
 ### Diferencia con la plantilla List
 
 | | List | SlotIndexed |
 |---|---|---|
-| Sync | Por adapter | Una llamada por slot |
+| Sync | Por adapter | Una llamada por slot con lista de adapters |
 | Identidad del slot | Ninguna | Índice numérico |
 | Tamaño | Dinámico | Normalmente fijo |
 
@@ -217,14 +222,71 @@ new SlotBinding<TData, TAdapter>(
 | Identidad del slot | Índice numérico | Referencia a objeto `BaseSlot` |
 | Datos del slot | Mismo patrón para todos | `get/set/clear` individual por slot |
 | Validación | Compartida mediante override de `CanDrop` | `canDrop` / `canStartDrag` individual por slot |
-| Stacks | Mediante parámetro `count` | Mediante API basada en listas (cada adapter individualmente) |
+| Stacks | Mediante lista de adapters del slot | Mediante API basada en listas (cada adapter individualmente) |
 | Número de slots | Puede ser grande | Normalmente < 10 |
+
+---
+
+## PlacementInventoryDataBinding
+
+Para inventarios que necesitan persistir no solo el slot, sino también la colocación del item: anchor, orientation, celdas cubiertas y forma del item.
+
+Normalmente se usa para items con forma, inventarios de grid y cualquier sistema donde un item puede ocupar varias celdas.
+
+### Qué implementar
+
+```csharp
+public class ShapedItemsBinding
+    : PlacementInventoryDataBinding<ItemModel, ItemModelAdapter>
+{
+    [SerializeField] private List<MyPlacementModel> _placements;
+
+    protected override IEnumerable<PlacementData<ItemModel>> GetPlacements()
+    {
+        foreach (var placement in _placements)
+            yield return new PlacementData<ItemModel>(
+                placement.Items,
+                placement.AnchorIndex,
+                placement.Orientation);
+    }
+
+    protected override ItemModelAdapter CreateAdapter(ItemModel item) => new(item);
+    protected override ItemModel ExtractData(ItemModelAdapter adapter) => adapter.Model;
+
+    protected override void AddPlacementData(
+        PlacementCommitContext<ItemModel, ItemModelAdapter> context)
+    {
+        _placements.Add(new MyPlacementModel(
+            context.Data,
+            context.AnchorIndex,
+            context.Orientation));
+    }
+
+    protected override void RemovePlacementData(
+        PlacementCommitContext<ItemModel, ItemModelAdapter> context)
+    {
+        RemovePlacementAt(context.AnchorIndex);
+    }
+}
+```
+
+### Qué cambió en la API actual
+
+`PlacementData<TData>` ahora guarda `Items`, la lista completa de instancias del item en la colocación.
+
+`PlacementCommitContext<TData, TAdapter>` ahora expone:
+
+- `Data` — datos de cada adapter en el stack transferido
+- `Adapters` — todos los typed adapters del stack transferido
+- `PrimaryData` / `Adapter` — el primer item, solo como comodidad para casos de un solo item
+
+Usa `context.Data` cuando un stack puede contener instancias distintas. Usa `PrimaryData` solo cuando el slot realmente guarda un item o tus items son completamente homogéneos.
 
 ---
 
 ## Clase base: InventoryDataBindingBase
 
-Las tres plantillas heredan de `InventoryDataBindingBase`. Normalmente no heredas de ella directamente, pero conviene saber qué métodos virtuales están disponibles para override:
+Todas las plantillas heredan de `InventoryDataBindingBase`. Normalmente no heredas de ella directamente, pero conviene saber qué métodos virtuales están disponibles para override:
 
 | Método | Por defecto | Cuándo sobreescribir |
 |---|---|---|
@@ -235,8 +297,8 @@ Las tres plantillas heredan de `InventoryDataBindingBase`. Normalmente no hereda
 | `OnDropCompletedFrom(context)` | No-op | Reaccionar después de un drop completado donde este inventario fue el **source** |
 | `OnDropCompletedTo(context)` | No-op | Reaccionar después de un drop completado donde este inventario fue el **target** |
 | `CreateItemConverter()` | `null` | Conversión de items entre inventarios con formatos distintos |
-| `CanHandleOccupiedSlotDrop(entry, slot)` | `false` | Manejo personalizado de drops sobre slots ocupados |
-| `ExecuteOccupiedSlotDrop(entry, slot)` | `false` | Ejecutar el drop personalizado en slot ocupado |
+
+El manejo de drop sobre slot ocupado ya no es un método virtual de `InventoryDataBindingBase`. Implementa `IPreRuleOccupiedSlotDropHandler` o `IPostRuleOccupiedSlotDropHandler` en tu binding. Consulta [Interfaces opcionales](../reference/optional-interfaces.md).
 
 También hay métodos helper disponibles:
 

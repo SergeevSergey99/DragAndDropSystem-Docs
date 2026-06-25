@@ -21,7 +21,7 @@ flowchart LR
 
 ---
 
-## Три шаблона
+## Основные шаблоны
 
 Выберите шаблон в зависимости от структуры ваших данных:
 
@@ -30,6 +30,7 @@ flowchart LR
 | `ListInventoryDataBinding<TData, TAdapter>` | обычные списки предметов, рюкзак, сундук, лут |
 | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | хотбар, массив слотов с числовым индексом |
 | `MappedSlotInventoryDataBinding<TData, TAdapter>` | экипировка, quickbar, фиксированные именованные слоты |
+| `PlacementInventoryDataBinding<TData, TAdapter>` | фигурные предметы, grid-инвентари, сохранение anchor/orientation |
 
 Подробное описание каждого шаблона, какие методы реализовать и как они работают внутри — на отдельной странице [Шаблоны DataBinding](binding-templates.md).
 

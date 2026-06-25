@@ -8,6 +8,7 @@ These interfaces are not required for basic drag & drop. Use them when you need 
 |---|---|
 | Block a transfer because of currency, permissions, item ownership, or shop state | `ITransferDomainHandler` |
 | Ask a server or another external system before a transfer | `IAsyncTransferDomainHandler` |
+| Add special behavior for dropping onto an occupied slot: insert into a container, equip, open an item | `IPreRuleOccupiedSlotDropHandler` or `IPostRuleOccupiedSlotDropHandler` |
 | Set different stack limits for different items | `IStackSizeLimitable` |
 | Show an item description in a tooltip or another UI | `IDescribable` |
 
@@ -84,6 +85,44 @@ Important rules:
 - it runs before inventories are changed
 - if the check fails, the transfer does not start
 - if the check is fast and local, `ITransferDomainHandler` is usually enough
+
+## IOccupiedSlotDropHandler
+
+`IOccupiedSlotDropHandler` is for cases where dropping onto an occupied slot should mean your custom action, not regular swap or alternative placement.
+
+Examples:
+
+- drop an item onto a bag to put it inside
+- drop an item onto an equipped slot to perform a special replacement
+- drop a key onto a container to open it
+
+Do not implement the base `IOccupiedSlotDropHandler` directly. Implement one of the timing interfaces:
+
+| Interface | When it runs | Purpose |
+|---|---|---|
+| `IPreRuleOccupiedSlotDropHandler` | before target slot drop rules | the drop is effectively addressed to the object inside the slot, such as a container |
+| `IPostRuleOccupiedSlotDropHandler` | after target slot drop rules | the target's regular rules must allow the drop first |
+
+The interface is usually implemented on the target inventory DataBinding:
+
+```csharp
+public class ContainerInventoryBinding
+    : SlotIndexedInventoryDataBinding<ItemModel, ItemModelAdapter>,
+      IPreRuleOccupiedSlotDropHandler
+{
+    public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        return occupiedSlot.Stack?.PrimaryAdapter is ContainerAdapter;
+    }
+
+    public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        return TryPutIntoContainer(entry, occupiedSlot);
+    }
+}
+```
+
+If the handler accepts the drop, it owns the whole operation. The system does not run swap or alternative placement afterward.
 
 ## IStackSizeLimitable
 

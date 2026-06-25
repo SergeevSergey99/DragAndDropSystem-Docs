@@ -6,7 +6,7 @@ For a general overview of DataBinding and its role in the pipeline, see [Data Bi
 
 ---
 
-## Which template to choose
+## Which Template To Choose
 
 ```mermaid
 flowchart TD
@@ -14,14 +14,17 @@ flowchart TD
     B -->|Yes| C["ListInventoryDataBinding\nBackpack, chest, loot"]
     B -->|No| D{"Slots with numeric index?"}
     D -->|Yes| E["SlotIndexedInventoryDataBinding\nHotbar, slot array"]
-    D -->|No| F["MappedSlotInventoryDataBinding\nEquipment, named slots"]
+    D -->|No| F{"Need to persist\nshape/anchor/orientation?"}
+    F -->|Yes| G["PlacementInventoryDataBinding\nShaped items, grid"]
+    F -->|No| H["MappedSlotInventoryDataBinding\nEquipment, named slots"]
 ```
 
 | Template | Data structure | Sync pattern | When to use |
 |---|---|---|---|
 | `ListInventoryDataBinding` | Dynamic list | Per-adapter (each adapter separately) | Backpack, chest, loot, merchant |
-| `SlotIndexedInventoryDataBinding` | Array/dict by index | Per-slot (single call per slot) | Hotbar, equipment slot array |
+| `SlotIndexedInventoryDataBinding` | Array/dict by index | Per-slot, with adapter list | Hotbar, equipment slot array |
 | `MappedSlotInventoryDataBinding` | Named properties | Per-slot + per-slot validation | Character equipment (head, body, weapon) |
+| `PlacementInventoryDataBinding` | Placements with anchor/orientation | Per-placement, with every item instance | Shaped items, grid inventories |
 
 ---
 
@@ -79,41 +82,43 @@ public class HotbarBinding : SlotIndexedInventoryDataBinding<ItemSO, ItemSOAdapt
     [SerializeField] private ItemSO[] _slots = new ItemSO[8];
 
     // 1. Which slots are occupied (skip empties)
-    protected override IEnumerable<(int index, ItemSO item, int count)> GetOccupiedSlots()
+    protected override IEnumerable<(int index, IReadOnlyList<ItemSO> items)> GetOccupiedSlots()
     {
         for (int i = 0; i < _slots.Length; i++)
             if (_slots[i] != null)
-                yield return (i, _slots[i], 1);
+                yield return (i, new[] { _slots[i] });
     }
 
     // 2. How to create an adapter from a data element
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
 
-    // 3. How to write data to a slot (single call for the whole stack)
-    protected override void AddToSlotData(int index, ItemSOAdapter adapter, int count)
-        => _slots[index] = adapter.Data;
+    // 3. How to write data to a slot (full adapter list for the stack)
+    protected override void AddToSlotData(int index, IReadOnlyList<ItemSOAdapter> adapters)
+        => _slots[index] = adapters[0].Data;
 
-    // 4. How to clear a slot's data (single call for the whole stack)
-    protected override void RemoveFromSlotData(int index, ItemSOAdapter adapter, int count)
+    // 4. How to clear slot data (full adapter list for the stack)
+    protected override void RemoveFromSlotData(int index, IReadOnlyList<ItemSOAdapter> adapters)
         => _slots[index] = null;
 }
 ```
 
 ### How it works automatically
 
-**On load**: iterates `GetOccupiedSlots()`, creates an adapter for each, adds to UI at the slot index.
+**On load**: iterates `GetOccupiedSlots()`, creates an adapter for every item in `items`, builds a stack, and adds it to UI at the slot index.
 
-**On add/remove**: called **once** for the entire stack, passing `PrimaryAdapter` and total `count`:
+**On add/remove**: called **once** for the entire stack and passes all typed adapters from that stack:
 
 ```
-Stack of 3 items into slot #2 → AddToSlotData(2, primaryAdapter, 3)
+Stack of 3 items into slot #2 → AddToSlotData(2, adapters[0..2])
 ```
+
+This preserves per-instance data in a stack. If three items look the same but carry different runtime data, the binding receives all three adapters.
 
 ### Difference from List template
 
 | | List | SlotIndexed |
 |---|---|---|
-| Sync | Per adapter | Single call per slot |
+| Sync | Per adapter | Single call per slot with adapter list |
 | Slot identity | None | Numeric index |
 | Size | Dynamic | Usually fixed |
 
@@ -217,14 +222,71 @@ new SlotBinding<TData, TAdapter>(
 | Slot identity | Numeric index | `BaseSlot` object reference |
 | Slot data | Same pattern for all | Individual get/set/clear per slot |
 | Validation | Shared via `CanDrop` override | Individual `canDrop` / `canStartDrag` per slot |
-| Stacks | Via count parameter | Via list-based API (each adapter individually) |
+| Stacks | Via slot adapter list | Via list-based API (each adapter individually) |
 | Slot count | Can be many | Usually < 10 |
+
+---
+
+## PlacementInventoryDataBinding
+
+For inventories that need to persist not only the slot, but also item placement: anchor, orientation, covered cells, and item shape.
+
+This is usually used for shaped items, grid inventories, and any system where an item can occupy several cells.
+
+### What to implement
+
+```csharp
+public class ShapedItemsBinding
+    : PlacementInventoryDataBinding<ItemModel, ItemModelAdapter>
+{
+    [SerializeField] private List<MyPlacementModel> _placements;
+
+    protected override IEnumerable<PlacementData<ItemModel>> GetPlacements()
+    {
+        foreach (var placement in _placements)
+            yield return new PlacementData<ItemModel>(
+                placement.Items,
+                placement.AnchorIndex,
+                placement.Orientation);
+    }
+
+    protected override ItemModelAdapter CreateAdapter(ItemModel item) => new(item);
+    protected override ItemModel ExtractData(ItemModelAdapter adapter) => adapter.Model;
+
+    protected override void AddPlacementData(
+        PlacementCommitContext<ItemModel, ItemModelAdapter> context)
+    {
+        _placements.Add(new MyPlacementModel(
+            context.Data,
+            context.AnchorIndex,
+            context.Orientation));
+    }
+
+    protected override void RemovePlacementData(
+        PlacementCommitContext<ItemModel, ItemModelAdapter> context)
+    {
+        RemovePlacementAt(context.AnchorIndex);
+    }
+}
+```
+
+### What changed in the current API
+
+`PlacementData<TData>` now stores `Items`, the full list of item instances in the placement.
+
+`PlacementCommitContext<TData, TAdapter>` now exposes:
+
+- `Data` — data for every adapter in the transferred stack
+- `Adapters` — all typed adapters from the transferred stack
+- `PrimaryData` / `Adapter` — the first item, only as a convenience for single-item cases
+
+Use `context.Data` when a stack can contain different instances. Use `PrimaryData` only when the slot really stores one item or your items are fully homogeneous.
 
 ---
 
 ## Base class: InventoryDataBindingBase
 
-All three templates inherit from `InventoryDataBindingBase`. You normally don't inherit from it directly, but it's useful to know which virtual methods are available for override:
+All templates inherit from `InventoryDataBindingBase`. You normally don't inherit from it directly, but it's useful to know which virtual methods are available for override:
 
 | Method | Default | When to override |
 |---|---|---|
@@ -235,8 +297,8 @@ All three templates inherit from `InventoryDataBindingBase`. You normally don't 
 | `OnDropCompletedFrom(context)` | No-op | React after a drop completes where this inventory was the **source** |
 | `OnDropCompletedTo(context)` | No-op | React after a drop completes where this inventory was the **target** |
 | `CreateItemConverter()` | `null` | Item conversion between inventories with different formats |
-| `CanHandleOccupiedSlotDrop(entry, slot)` | `false` | Custom handling for drops onto occupied slots |
-| `ExecuteOccupiedSlotDrop(entry, slot)` | `false` | Execute the custom occupied slot drop |
+
+Occupied-slot drop handling is no longer a virtual method on `InventoryDataBindingBase`. Implement `IPreRuleOccupiedSlotDropHandler` or `IPostRuleOccupiedSlotDropHandler` on your binding instead. See [Optional Interfaces](../reference/optional-interfaces.md).
 
 Helper methods are also available:
 

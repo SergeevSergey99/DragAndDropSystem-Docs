@@ -8,6 +8,7 @@ Estas interfaces no son necesarias para el drag & drop básico. Úsalas cuando n
 |---|---|
 | Bloquear una transferencia por dinero, permisos, propietario del item o estado de la tienda | `ITransferDomainHandler` |
 | Preguntar a un servidor u otro sistema externo antes de transferir | `IAsyncTransferDomainHandler` |
+| Añadir comportamiento especial al soltar sobre un slot ocupado: insertar en contenedor, equipar, abrir un item | `IPreRuleOccupiedSlotDropHandler` o `IPostRuleOccupiedSlotDropHandler` |
 | Definir distintos límites de stack para distintos items | `IStackSizeLimitable` |
 | Mostrar una descripción del item en un tooltip u otra UI | `IDescribable` |
 
@@ -84,6 +85,44 @@ Reglas importantes:
 - se ejecuta antes de modificar inventarios
 - si la comprobación falla, la transferencia no empieza
 - si la comprobación es rápida y local, normalmente basta con `ITransferDomainHandler`
+
+## IOccupiedSlotDropHandler
+
+`IOccupiedSlotDropHandler` sirve cuando soltar sobre un slot ocupado debe significar una acción propia, no swap normal ni colocación alternativa.
+
+Ejemplos:
+
+- soltar un item sobre una bolsa para meterlo dentro
+- soltar un item sobre un slot equipado para hacer un reemplazo especial
+- soltar una llave sobre un contenedor para abrirlo
+
+No implementes directamente `IOccupiedSlotDropHandler`. Implementa una de las interfaces de timing:
+
+| Interface | Cuándo se ejecuta | Para qué sirve |
+|---|---|---|
+| `IPreRuleOccupiedSlotDropHandler` | antes de las drop rules del slot destino | el drop realmente va dirigido al objeto dentro del slot, por ejemplo un contenedor |
+| `IPostRuleOccupiedSlotDropHandler` | después de las drop rules del slot destino | las reglas normales del destino deben permitir el drop primero |
+
+Normalmente la interface se implementa en el DataBinding del inventario destino:
+
+```csharp
+public class ContainerInventoryBinding
+    : SlotIndexedInventoryDataBinding<ItemModel, ItemModelAdapter>,
+      IPreRuleOccupiedSlotDropHandler
+{
+    public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        return occupiedSlot.Stack?.PrimaryAdapter is ContainerAdapter;
+    }
+
+    public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        return TryPutIntoContainer(entry, occupiedSlot);
+    }
+}
+```
+
+Si el handler acepta el drop, controla toda la operación. El sistema no ejecuta swap ni colocación alternativa después.
 
 ## IStackSizeLimitable
 

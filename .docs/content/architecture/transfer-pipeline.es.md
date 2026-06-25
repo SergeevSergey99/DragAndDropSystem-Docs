@@ -99,12 +99,16 @@ toda la entrada o revertirse.
 
 ### Destino ocupado con handler
 
-Si el slot destino está ocupado y el binding del inventario implementa
-`CanHandleOccupiedSlotDrop` y `ExecuteOccupiedSlotDrop`, ese handler corre primero,
-después de las reglas, como comprobación pura, y luego se ejecuta todo-o-nada. Si
-`ExecuteOccupiedSlotDrop` devuelve false, la transferencia se cancela y el estado se
-restaura. Si devuelve true, la transferencia termina; si los objetos movidos no fueron
-procesados, desaparecerán. El handler no inicia alternatives ni swap después.
+Si un item se suelta sobre un slot ocupado, el DataBinding del inventario destino puede tomar control de ese caso mediante `IOccupiedSlotDropHandler`.
+
+Hay dos variantes de timing:
+
+| Interface | Cuándo se comprueba | Cuándo usarla |
+|---|---|---|
+| `IPreRuleOccupiedSlotDropHandler` | antes de las drop rules del slot destino | soltar sobre el slot ocupado realmente significa otro destino, por ejemplo un contenedor dentro de ese slot |
+| `IPostRuleOccupiedSlotDropHandler` | después de las drop rules del slot destino | el comportamiento personalizado debe pasar primero las reglas normales del destino |
+
+Si el handler acepta el drop, controla toda la operación. El sistema no ejecuta alternative placement ni swap después. Si la ejecución del handler devuelve `false`, la transferencia se cancela y el estado se restaura a la copia guardada.
 
 ### Batch
 
@@ -170,7 +174,7 @@ Todo lo destinado a conectar lógica propia está listado aquí:
 | **Veto asíncrono** | `IAsyncTransferDomainHandler.CanStartTransferAsync` | Lo mismo, cuando la respuesta requiere esperar a un servidor, archivo o base de datos. |
 | **Comprobación de negocio por commit** | `ITransferDomainHandler.CanCommitTransfer` | Permitir o denegar una colocación concreta, por ejemplo oro o propiedad. |
 | **Hook de éxito** | `ITransferDomainHandler.OnTransferSucceeded` | Aplicar efectos secundarios después de una colocación confirmada. |
-| **Handler de slot ocupado** | `IOccupiedSlotDropHandler` | Comportamiento propio al soltar sobre un slot ocupado, como equipar o meter en contenedor. |
+| **Handler de slot ocupado** | `IPreRuleOccupiedSlotDropHandler` / `IPostRuleOccupiedSlotDropHandler` | Comportamiento propio al soltar sobre un slot ocupado, como equipar o meter en contenedor. Se implementa en DataBinding. |
 | **Ciclo de vida de slots dinámicos** | `IDynamicSlotLifecycle` | Permite que un inventario crezca o se reduzca; el motor controla la creación y eliminación. |
 | **Conversor de objetos** | `IItemAdapterConverter` mediante `CreateItemConverter()` | Convierte objetos entre inventarios con distintos modelos de adapter. |
 | **Reglas** | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Restricciones mecánicas declarativas en tres niveles. |

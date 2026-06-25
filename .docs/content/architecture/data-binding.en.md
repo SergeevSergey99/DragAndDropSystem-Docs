@@ -21,7 +21,7 @@ flowchart LR
 
 ---
 
-## Three templates
+## Main Templates
 
 Choose a template based on your data structure:
 
@@ -30,6 +30,7 @@ Choose a template based on your data structure:
 | `ListInventoryDataBinding<TData, TAdapter>` | backpack, chest, loot, general item lists |
 | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | hotbar, slot array with numeric indices |
 | `MappedSlotInventoryDataBinding<TData, TAdapter>` | equipment, quickbar, named fixed slots |
+| `PlacementInventoryDataBinding<TData, TAdapter>` | shaped items, grid inventories, anchor/orientation persistence |
 
 For a detailed description of each template, which methods to implement, and how they work internally, see [Binding Templates](binding-templates.md).
 

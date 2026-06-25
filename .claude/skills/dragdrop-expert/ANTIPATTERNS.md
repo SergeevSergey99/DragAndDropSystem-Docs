@@ -208,25 +208,29 @@ methods check `IsSyncing` before calling virtual `OnItemAddedToUI()`/`OnItemRemo
 - suppresses the swap entirely, so changing `BlockedTargetBehavior` to `FindAlternative` or `Reject` later has no effect — the behavior is hardcoded inside the validation path
 - the transfer pipeline cannot roll back mutations done inside a rule check
 
-**Solution**: Use the proper occupied-slot handler hooks in `InventoryDataBindingBase`:
+**Solution**: Implement the proper occupied-slot handler timing interface on the target DataBinding:
 
 ```csharp
-// Read-only eligibility check
-protected override bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+public class ContainerBinding : SlotIndexedInventoryDataBinding<ItemModel, ItemModelAdapter>,
+    IPreRuleOccupiedSlotDropHandler
 {
-    // check capacity, type compatibility, etc.
-    return true; // or false to fall through to normal BlockedTargetBehavior
-}
+    // Read-only eligibility check
+    public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        // check capacity, type compatibility, etc.
+        return true; // or false to fall through to normal blocked-target behavior
+    }
 
-// Custom mutation, owned by DataBinding
-protected override bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
-{
-    // add to container, clear source slot, fire events
-    return true;
+    // Custom mutation, owned by DataBinding
+    public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        // add to container, clear source slot, fire events
+        return true;
+    }
 }
 ```
 
-If `CanHandleOccupiedSlotDrop` returns false, the pipeline continues normally (swap, findAlternative, reject) according to `BlockedTargetBehavior` — no behavior is lost.
+Use `IPreRuleOccupiedSlotDropHandler` when the real target is the object inside the occupied slot. Use `IPostRuleOccupiedSlotDropHandler` when normal target drop rules must pass first. If `CheckOccupiedSlotDrop` returns false, the pipeline continues normally (swap, findAlternative, reject) — no behavior is lost.
 
 **Check**: `Scripts/DataBinding/InventoryDataBindingBase.cs` and `Scripts/Inventories/InventoryTransferEngine.cs`.
 

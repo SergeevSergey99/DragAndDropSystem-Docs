@@ -87,7 +87,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 |---|---|---|
 | `Scripts/DataBinding/ListInventoryDataBinding.cs` | `ListInventoryDataBinding<TData, TAdapter>` | Base de binding para inventarios respaldados por listas. |
 | `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | `MappedSlotInventoryDataBinding<TData, TAdapter>` | Base de binding para slots semánticos o fijos con nombre, como layouts de equipamiento. |
-| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Base de binding para datos indexados por slot, como hotbars, crafting grids y arrays fijos. |
+| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Base de binding para datos indexados por slot; lee y escribe la lista completa de items/adapters de cada slot. |
 | `Scripts/DataBinding/GameManagerExample.cs` | `GameManagerExample`, `ItemData` | Ejemplo que muestra cómo un manager externo puede actuar como fuente de datos de un binding. |
 
 ---
@@ -319,7 +319,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Modelos de footprint de items y helpers de shape/orientation. |
 | `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Estado guardado de un placement para eventos, rollback y contexto de DataBinding. |
 | `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Eventos globales del lifecycle drag/drop/swap. |
-| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template para inventarios que persisten datos de placement anchor/orientation. |
+| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template para inventarios que persisten anchor/orientation y cada instancia de item dentro de una colocación. |
 | `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Contexto input actual guardado de un slot o inventario para actions. |
 | `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Base MonoBehaviour abstracta para implementaciones de inventario. |
 | `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Gestiona el resaltado preview de celdas cubiertas durante hover/drag. |
@@ -328,7 +328,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Inventories/IInventorySlotCreationCapacity.cs` | `IInventorySlotCreationCapacity` | Contrato interno de capacidad para creación dinámica de slots. |
 | `Scripts/Inventories/IPlacementInventory.cs` | `IPlacementInventory`, `IShapedDragTargetResolver` | Contrato placement-aware de inventario y resolución target-side de anchors para shaped drag. |
 | `Scripts/Inventories/InventoryPlacementGeometry.cs` | `InventoryPlacementGeometry` | Adapter de operaciones geometry sobre `IPlacementInventory` y topology. |
-| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Interfaces de capacidades runtime usadas por el motor sin depender directamente de `UniversalInventory`. |
+| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IPreRuleOccupiedSlotDropHandler`, `IPostRuleOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Interfaces de capacidades runtime usadas por el motor sin depender directamente de `UniversalInventory`; los occupied-slot handlers se implementan en DataBinding. |
 | `Scripts/Inventories/PlacementCandidateSource.cs` | `PlacementCandidateSource` | Fuente enumerable lazy para placement candidates. |
 | `Scripts/Inventories/PlacementSnapshotCodec.cs` | `PlacementSnapshotCodec` | Codec interno para capturar/restaurar placement state. |
 | `Scripts/Inventories/PlacementStore.cs` | `PlacementStore` | Almacenamiento de placements y occupancy map para inventarios shaped/grid. |

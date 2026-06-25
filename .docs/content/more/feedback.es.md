@@ -14,7 +14,7 @@ Puedes escribir sobre:
 
 ## Contacto
 
-- GitHub: [https://discord.gg/HXf6Wv6UTx](https://discord.gg/HXf6Wv6UTx)
+- Discord: [https://discord.gg/HXf6Wv6UTx](https://discord.gg/HXf6Wv6UTx)
 
 ---
 

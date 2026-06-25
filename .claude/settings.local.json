@@ -37,7 +37,18 @@
       "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build DragAndDropSystem.Runtime.csproj --no-restore /p:CustomBeforeMicrosoftCommonTargets='E:\\\\UnityProjects\\\\UniversalDragAndDropAsset\\\\Assets\\\\Plugins\\\\UniversalDragAndDrop\\\\codex-new-sources.targets')",
       "Bash(sort -t: -k1)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build DragAndDropSystem.Tests.Editor.csproj)",
-      "Bash(xargs -I{} basename {})"
+      "Bash(xargs -I{} basename {})",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build UDND.Runtime.csproj --no-restore)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build DragAndDropSystem.Tests.Editor.csproj --no-restore)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build UDND.Examples.csproj --no-restore)",
+      "Bash(timeout 180 .venv/bin/mkdocs build --strict)",
+      "Bash(echo \"exit=$? \\(1/empty = clean; only intentional 'no TransferPlan' negations allowed\\)\")",
+      "Bash(echo \"exit=$? \\(1=clean\\)\")",
+      "Read(//mnt/e/UnityProjects/UniversalDragAndDropAsset/**)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build UDND.Runtime.csproj --no-restore -nologo -clp:ErrorsOnly)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build DragAndDropSystem.Tests.Editor.csproj --no-restore -nologo -clp:ErrorsOnly)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build DragAndDropSystem.Tests.Editor.csproj --no-restore -nologo)",
+      "Bash('/mnt/c/Program Files/dotnet/dotnet.exe' build UDND.Runtime.csproj --no-restore -nologo)"
     ],
     "deny": [],
     "ask": []

@@ -87,7 +87,7 @@
 |---|---|---|
 | `Scripts/DataBinding/ListInventoryDataBinding.cs` | `ListInventoryDataBinding<TData, TAdapter>` | Базовый binding для инвентарей, построенных на списке. |
 | `Scripts/DataBinding/MappedSlotInventoryDataBinding.cs` | `MappedSlotInventoryDataBinding<TData, TAdapter>` | Базовый binding для именованных или фиксированных semantic slots, например экипировки. |
-| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Базовый binding для slot-indexed данных, например hotbar, crafting grid и фиксированных массивов. |
+| `Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs` | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | Базовый binding для slot-indexed данных; читает и записывает полный список элементов/адаптеров в каждом слоте. |
 | `Scripts/DataBinding/GameManagerExample.cs` | `GameManagerExample`, `ItemData` | Небольшой пример, показывающий, как внешний manager может быть источником данных для binding'а. |
 
 ---
@@ -319,7 +319,7 @@
 | `Scripts/Core/Models/PlacementShape.cs` | `IPlacementShape`, `IItemPlacementShapeProvider`, `RectPlacementShape`, `OffsetPlacementShape`, `ComplexPlacementShape`, `PlacementShapeUtility` | Модели footprint-ов предметов и helpers для shape/orientation. |
 | `Scripts/Core/Models/PlacementSnapshot.cs` | `PlacementSnapshot` | Снимок одного размещения для событий, отката и контекста DataBinding. |
 | `Scripts/Core/UDNDEvents.cs` | `UDNDEvents` | Глобальные события drag/drop/swap lifecycle. |
-| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template для инвентарей, которые сохраняют anchor/orientation placement data. |
+| `Scripts/DataBinding/PlacementInventoryDataBinding.cs` | `PlacementData<TData>`, `PlacementCommitContext<TData,TAdapter>`, `PlacementInventoryDataBinding<TData,TAdapter>` | Binding template для инвентарей, которые сохраняют anchor/orientation и все item-экземпляры в размещении. |
 | `Scripts/Interaction/RuntimeInteractionSnapshot.cs` | `InteractionInputKind`, `RuntimeInteractionSnapshot` | Снимок текущего input-контекста слота или инвентаря для actions. |
 | `Scripts/Inventories/BaseInventory.cs` | `BaseInventory` | Абстрактная MonoBehaviour-база inventory implementations. |
 | `Scripts/Inventories/DropPreviewController.cs` | `DropPreviewController` | Управляет preview подсветкой covered cells при наведении/drag. |
@@ -328,7 +328,7 @@
 | `Scripts/Inventories/IInventorySlotCreationCapacity.cs` | `IInventorySlotCreationCapacity` | Internal capacity contract для динамического создания слотов. |
 | `Scripts/Inventories/IPlacementInventory.cs` | `IPlacementInventory`, `IShapedDragTargetResolver` | Placement-aware inventory contract и target-side anchor resolution для shaped drag. |
 | `Scripts/Inventories/InventoryPlacementGeometry.cs` | `InventoryPlacementGeometry` | Адаптер geometry-операций поверх `IPlacementInventory` и topology. |
-| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Runtime capability interfaces, которые движок использует без жёсткой зависимости от `UniversalInventory`. |
+| `Scripts/Inventories/InventoryRuntimeCapabilities.cs` | `IInventoryRuleEvaluator`, `IOccupiedSlotDropHandler`, `IPreRuleOccupiedSlotDropHandler`, `IPostRuleOccupiedSlotDropHandler`, `IDynamicSlotLifecycle`, `IInventoryEventSink` | Runtime capability interfaces, которые движок использует без жёсткой зависимости от `UniversalInventory`; occupied-slot handlers реализуются на DataBinding. |
 | `Scripts/Inventories/PlacementCandidateSource.cs` | `PlacementCandidateSource` | Lazy enumerable source для placement candidates. |
 | `Scripts/Inventories/PlacementSnapshotCodec.cs` | `PlacementSnapshotCodec` | Internal codec для capture/restore placement state. |
 | `Scripts/Inventories/PlacementStore.cs` | `PlacementStore` | Хранилище placement-ов и occupancy map для shaped/grid инвентарей. |

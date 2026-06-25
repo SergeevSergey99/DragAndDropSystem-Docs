@@ -99,12 +99,16 @@ entry or roll back.
 
 ### Occupied Target Handler
 
-If the target slot is occupied and the inventory binding implements
-`CanHandleOccupiedSlotDrop` and `ExecuteOccupiedSlotDrop`, that handler runs first
-after rule checks as a pure check, then executes all-or-nothing. If
-`ExecuteOccupiedSlotDrop` returns false, the transfer is cancelled and the state is
-restored. If it returns true, the transfer finishes; if the moved items were not
-handled, they disappear. The handler does not trigger alternatives or swap afterward.
+If an item is dropped onto an occupied slot, the target inventory DataBinding can take over that case through `IOccupiedSlotDropHandler`.
+
+There are two timing variants:
+
+| Interface | When it is checked | When to use |
+|---|---|---|
+| `IPreRuleOccupiedSlotDropHandler` | before target slot drop rules | dropping onto the occupied slot really means another destination, such as a container inside that slot |
+| `IPostRuleOccupiedSlotDropHandler` | after target slot drop rules | custom behavior must still pass the target's normal rules first |
+
+If the handler accepts the drop, it owns the whole operation. The system does not run alternative placement or swap afterward. If handler execution returns `false`, the transfer is cancelled and state is restored to the saved copy.
 
 ### Batch
 
@@ -168,7 +172,7 @@ Everything intended for plugging in custom logic is listed here:
 | **Async transfer-wide veto** | `IAsyncTransferDomainHandler.CanStartTransferAsync` | Same, when the answer requires waiting for a server, file, or database. |
 | **Business commit check** | `ITransferDomainHandler.CanCommitTransfer` | Allow or deny one specific placement, such as checking gold or ownership. |
 | **Success hook** | `ITransferDomainHandler.OnTransferSucceeded` | Apply side effects after a committed placement. |
-| **Occupied-slot handler** | `IOccupiedSlotDropHandler` | Custom behavior when dropping onto an occupied slot, such as equip or insert into container. |
+| **Occupied-slot handler** | `IPreRuleOccupiedSlotDropHandler` / `IPostRuleOccupiedSlotDropHandler` | Custom behavior when dropping onto an occupied slot, such as equip or insert into container. Implemented on DataBinding. |
 | **Dynamic slot lifecycle** | `IDynamicSlotLifecycle` | Lets an inventory grow or shrink; the engine drives creation and removal. |
 | **Item converter** | `IItemAdapterConverter` via `CreateItemConverter()` | Converts items between inventories with different adapter models. |
 | **Rules** | `IGlobalRule` / `IInventoryRule` / `ISlotRule` | Declarative mechanical constraints on three levels. |

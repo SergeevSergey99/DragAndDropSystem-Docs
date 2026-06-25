@@ -95,7 +95,7 @@ before placement mutation.
 - `IInventorySnapshotProvider`: captures entry rollback checkpoints.
 - `ITransferDomainHandler`: transfer-wide veto, concrete candidate validation, and success hook.
 - `IAsyncTransferDomainHandler`: optional transfer-wide asynchronous veto before mutation.
-- `IOccupiedSlotDropHandler`: domain-owned occupied-target operation.
+- `IOccupiedSlotDropHandler` + timing variants `IPreRuleOccupiedSlotDropHandler` / `IPostRuleOccupiedSlotDropHandler`: DataBinding-owned occupied-target operation.
 - `IInventoryEventSink`: commits transfer outcomes to DataBinding and subscribers.
 
 ## UI Components

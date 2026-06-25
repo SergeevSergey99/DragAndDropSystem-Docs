@@ -43,19 +43,24 @@ Important note:
 
 ## Occupied Slot Handler
 
-Allows DataBinding to intercept a drop on an occupied slot **before** `BlockedTargetBehavior` (swap/findAlternative/reject) runs.
+Allows a DataBinding to intercept a drop on an occupied slot **before** normal blocked-target behavior (swap/findAlternative/reject) continues.
 
-Two virtual hooks in `InventoryDataBindingBase`:
+Implement one of the timing interfaces on the target inventory DataBinding:
 ```csharp
-protected virtual bool CanHandleOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);
-protected virtual bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot);
+public class ContainerBinding : SlotIndexedInventoryDataBinding<ItemModel, ItemModelAdapter>,
+    IPreRuleOccupiedSlotDropHandler
+{
+    public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot) => ...;
+    public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot) => ...;
+}
 ```
 
 Pipeline integration:
-1. JIT service sees an occupied explicit target and calls `CheckOccupiedSlotDrop(...)`.
-2. If accepted, it invokes `ExecuteOccupiedSlotDrop(...)` in the current entry transaction.
-3. If rejected, normal blocked-target resolution continues.
-4. DataBinding owns the custom mutation.
+1. The transfer service sees an occupied explicit target.
+2. `IPreRuleOccupiedSlotDropHandler` runs before target drop rules and can bypass them when the real target is the object inside the slot.
+3. `IPostRuleOccupiedSlotDropHandler` runs after target drop rules pass.
+4. If a handler accepts, it invokes `ExecuteOccupiedSlotDrop(...)` in the current entry transaction and owns the custom mutation.
+5. If rejected, normal blocked-target resolution continues.
 
 Example: Demo5 Containers — `PlayerContainerInventoryDataBinding` uses this to insert a dragged item into a container when dropped on it. If the container is full or the drop would create a cycle, the hook returns false and swap/other behavior applies normally.
 
@@ -100,9 +105,10 @@ This is possible because DataBinding has a 1:1 relationship with `UniversalInven
 
 ### Occupied Slot Drop Hooks
 
-See [Occupied Slot Handler](#occupied-slot-handler) above. These are called by the planner/executor — not via events:
-- `CanHandleOccupiedSlotDrop(entry, BaseSlot)` — pure check
+See [Occupied Slot Handler](#occupied-slot-handler) above. These are called by the transfer service — not via events:
+- `CheckOccupiedSlotDrop(entry, BaseSlot)` — pure check
 - `ExecuteOccupiedSlotDrop(entry, BaseSlot)` — full mutation
+- choose `IPreRuleOccupiedSlotDropHandler` or `IPostRuleOccupiedSlotDropHandler` for timing
 
 ### Swap (Event-Based)
 

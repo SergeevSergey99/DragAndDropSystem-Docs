@@ -21,7 +21,7 @@ flowchart LR
 
 ---
 
-## Tres plantillas
+## Plantillas principales
 
 Elige una plantilla según la estructura de tus datos:
 
@@ -30,6 +30,7 @@ Elige una plantilla según la estructura de tus datos:
 | `ListInventoryDataBinding<TData, TAdapter>` | mochila, cofre, loot, listas generales de items |
 | `SlotIndexedInventoryDataBinding<TData, TAdapter>` | hotbar, array de slots con índices numéricos |
 | `MappedSlotInventoryDataBinding<TData, TAdapter>` | equipamiento, quickbar, slots fijos con nombre |
+| `PlacementInventoryDataBinding<TData, TAdapter>` | items con forma, inventarios grid, persistencia de anchor/orientation |
 
 Para una descripción detallada de cada plantilla, qué métodos implementar y cómo funcionan internamente, consulta [Binding Templates](binding-templates.md).
 

@@ -8,6 +8,7 @@
 |---|---|
 | Запретить перенос из-за денег, прав доступа, владельца предмета или состояния магазина | `ITransferDomainHandler` |
 | Спросить сервер или другую внешнюю систему перед переносом | `IAsyncTransferDomainHandler` |
+| Сделать особое поведение при drop на занятый слот: вложить предмет в контейнер, надеть предмет, открыть предмет | `IPreRuleOccupiedSlotDropHandler` или `IPostRuleOccupiedSlotDropHandler` |
 | Задать разный лимит стека для разных предметов | `IStackSizeLimitable` |
 | Показать описание предмета в tooltip или другом UI | `IDescribable` |
 
@@ -84,6 +85,44 @@ public async Task<RuleResult> CanStartTransferAsync(
 - она выполняется до изменения инвентарей
 - если проверка отказала, перенос не начинается
 - если проверка быстрая и локальная, обычно достаточно `ITransferDomainHandler`
+
+## IOccupiedSlotDropHandler
+
+`IOccupiedSlotDropHandler` нужен, когда drop на занятый слот должен означать не обычный swap или поиск другого места, а ваше действие.
+
+Примеры:
+
+- бросить предмет на сумку, чтобы положить его внутрь
+- бросить предмет на экипированный слот, чтобы выполнить особую замену
+- бросить ключ на контейнер, чтобы открыть его
+
+Реализуйте не базовый `IOccupiedSlotDropHandler`, а один из timing-интерфейсов:
+
+| Интерфейс | Когда вызывается | Для чего |
+|---|---|---|
+| `IPreRuleOccupiedSlotDropHandler` | до drop-правил целевого слота | drop фактически адресован объекту внутри слота, например контейнеру |
+| `IPostRuleOccupiedSlotDropHandler` | после drop-правил целевого слота | обычные правила цели должны сначала разрешить drop |
+
+Обычно интерфейс реализуют на DataBinding целевого инвентаря:
+
+```csharp
+public class ContainerInventoryBinding
+    : SlotIndexedInventoryDataBinding<ItemModel, ItemModelAdapter>,
+      IPreRuleOccupiedSlotDropHandler
+{
+    public bool CheckOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        return occupiedSlot.Stack?.PrimaryAdapter is ContainerAdapter;
+    }
+
+    public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    {
+        return TryPutIntoContainer(entry, occupiedSlot);
+    }
+}
+```
+
+Если handler принял drop, он отвечает за всю операцию. После него система не запускает swap или alternative placement.
 
 ## IStackSizeLimitable
 

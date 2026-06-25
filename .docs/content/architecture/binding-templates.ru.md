@@ -14,14 +14,17 @@ flowchart TD
     B -->|Да| C["ListInventoryDataBinding\nРюкзак, сундук, лут"]
     B -->|Нет| D{"Слоты с числовым индексом?"}
     D -->|Да| E["SlotIndexedInventoryDataBinding\nХотбар, массив слотов"]
-    D -->|Нет| F["MappedSlotInventoryDataBinding\nЭкипировка, именованные слоты"]
+    D -->|Нет| F{"Нужно сохранять\nформу/anchor/orientation?"}
+    F -->|Да| G["PlacementInventoryDataBinding\nФигурные предметы, grid"]
+    F -->|Нет| H["MappedSlotInventoryDataBinding\nЭкипировка, именованные слоты"]
 ```
 
 | Шаблон | Структура данных | Синхронизация | Когда использовать |
 |---|---|---|---|
 | `ListInventoryDataBinding` | Динамический список | Поадаптерно (каждый адаптер отдельно) | Рюкзак, сундук, лут, торговец |
-| `SlotIndexedInventoryDataBinding` | Массив/словарь по индексу | Послотово (один вызов на слот) | Хотбар, массив ячеек экипировки |
+| `SlotIndexedInventoryDataBinding` | Массив/словарь по индексу | Послотово, со списком адаптеров | Хотбар, массив ячеек экипировки |
 | `MappedSlotInventoryDataBinding` | Именованные свойства | Послотово + валидация на слот | Экипировка персонажа (голова, тело, оружие) |
+| `PlacementInventoryDataBinding` | Размещения с anchor/orientation | По размещению, со всеми item-экземплярами | Фигурные предметы, grid-инвентари |
 
 ---
 
@@ -79,41 +82,43 @@ public class HotbarBinding : SlotIndexedInventoryDataBinding<ItemSO, ItemSOAdapt
     [SerializeField] private ItemSO[] _slots = new ItemSO[8];
 
     // 1. Какие слоты заняты (пустые можно не возвращать)
-    protected override IEnumerable<(int index, ItemSO item, int count)> GetOccupiedSlots()
+    protected override IEnumerable<(int index, IReadOnlyList<ItemSO> items)> GetOccupiedSlots()
     {
         for (int i = 0; i < _slots.Length; i++)
             if (_slots[i] != null)
-                yield return (i, _slots[i], 1);
+                yield return (i, new[] { _slots[i] });
     }
 
     // 2. Как создать адаптер из элемента данных
     protected override ItemSOAdapter CreateAdapter(ItemSO item) => new(item);
 
-    // 3. Как записать данные в слот (один вызов на весь стек)
-    protected override void AddToSlotData(int index, ItemSOAdapter adapter, int count)
-        => _slots[index] = adapter.Data;
+    // 3. Как записать данные в слот (полный список адаптеров стека)
+    protected override void AddToSlotData(int index, IReadOnlyList<ItemSOAdapter> adapters)
+        => _slots[index] = adapters[0].Data;
 
-    // 4. Как очистить данные слота (один вызов на весь стек)
-    protected override void RemoveFromSlotData(int index, ItemSOAdapter adapter, int count)
+    // 4. Как очистить данные слота (полный список адаптеров стека)
+    protected override void RemoveFromSlotData(int index, IReadOnlyList<ItemSOAdapter> adapters)
         => _slots[index] = null;
 }
 ```
 
 ### Как работает автоматически
 
-**При загрузке**: проходит по `GetOccupiedSlots()`, создаёт адаптер для каждого, добавляет в UI по индексу слота.
+**При загрузке**: проходит по `GetOccupiedSlots()`, создаёт адаптер для каждого элемента в списке `items`, собирает стек и добавляет его в UI по индексу слота.
 
-**При добавлении/удалении**: вызывается **один раз** для всего стека, передавая `PrimaryAdapter` и общий `count`:
+**При добавлении/удалении**: вызывается **один раз** для всего стека и передаёт все typed adapters этого стека:
 
 ```
-Стек из 3 предметов в слот #2 → AddToSlotData(2, primaryAdapter, 3)
+Стек из 3 предметов в слот #2 → AddToSlotData(2, adapters[0..2])
 ```
+
+Это сохраняет данные каждого экземпляра в стеке. Если три предмета выглядят одинаково, но имеют разные runtime-данные, binding получает все три адаптера.
 
 ### Отличие от List-шаблона
 
 | | List | SlotIndexed |
 |---|---|---|
-| Синхронизация | По каждому адаптеру отдельно | Один вызов на слот |
+| Синхронизация | По каждому адаптеру отдельно | Один вызов на слот со списком адаптеров |
 | Идентификация слота | Нет | Числовой индекс |
 | Размер | Динамический | Обычно фиксированный |
 
@@ -217,14 +222,71 @@ new SlotBinding<TData, TAdapter>(
 | Идентификация слота | Числовой индекс | Ссылка на объект `BaseSlot` |
 | Данные слота | Общий паттерн для всех | Индивидуальный get/set/clear на каждый |
 | Валидация | Общая через `CanDrop` override | Индивидуальная `canDrop` / `canStartDrag` на слот |
-| Стеки | Через count параметр | Через list-based API (каждый адаптер индивидуально) |
+| Стеки | Через список адаптеров слота | Через list-based API (каждый адаптер индивидуально) |
 | Количество слотов | Может быть много | Обычно < 10 |
+
+---
+
+## PlacementInventoryDataBinding
+
+Для инвентарей, где нужно сохранять не только слот, но и размещение предмета: anchor, orientation, covered cells и форму предмета.
+
+Обычно это фигурные предметы, grid-инвентари и любые системы, где предмет может занимать несколько клеток.
+
+### Что нужно реализовать
+
+```csharp
+public class ShapedItemsBinding
+    : PlacementInventoryDataBinding<ItemModel, ItemModelAdapter>
+{
+    [SerializeField] private List<MyPlacementModel> _placements;
+
+    protected override IEnumerable<PlacementData<ItemModel>> GetPlacements()
+    {
+        foreach (var placement in _placements)
+            yield return new PlacementData<ItemModel>(
+                placement.Items,
+                placement.AnchorIndex,
+                placement.Orientation);
+    }
+
+    protected override ItemModelAdapter CreateAdapter(ItemModel item) => new(item);
+    protected override ItemModel ExtractData(ItemModelAdapter adapter) => adapter.Model;
+
+    protected override void AddPlacementData(
+        PlacementCommitContext<ItemModel, ItemModelAdapter> context)
+    {
+        _placements.Add(new MyPlacementModel(
+            context.Data,
+            context.AnchorIndex,
+            context.Orientation));
+    }
+
+    protected override void RemovePlacementData(
+        PlacementCommitContext<ItemModel, ItemModelAdapter> context)
+    {
+        RemovePlacementAt(context.AnchorIndex);
+    }
+}
+```
+
+### Что изменилось в текущем API
+
+`PlacementData<TData>` теперь хранит `Items`, то есть полный список item-экземпляров в размещении.
+
+`PlacementCommitContext<TData, TAdapter>` теперь отдаёт:
+
+- `Data` — данные для каждого адаптера в перенесённом стеке
+- `Adapters` — все typed adapters из перенесённого стека
+- `PrimaryData` / `Adapter` — первый элемент, только как удобство для одиночных предметов
+
+Используйте `context.Data`, если стек может содержать разные экземпляры. Используйте `PrimaryData` только когда слот действительно хранит один предмет или ваши предметы полностью одинаковые.
 
 ---
 
 ## Базовый класс: InventoryDataBindingBase
 
-Все три шаблона наследуются от `InventoryDataBindingBase`. Обычно от него не наследуются напрямую, но полезно знать, какие виртуальные методы доступны для override:
+Все шаблоны наследуются от `InventoryDataBindingBase`. Обычно от него не наследуются напрямую, но полезно знать, какие виртуальные методы доступны для override:
 
 | Метод | По умолчанию | Когда переопределять |
 |---|---|---|
@@ -235,8 +297,8 @@ new SlotBinding<TData, TAdapter>(
 | `OnDropCompletedFrom(context)` | Ничего | Реакция после завершения drop-операции, если этот инвентарь был **источником** |
 | `OnDropCompletedTo(context)` | Ничего | Реакция после завершения drop-операции, если этот инвентарь был **целью** |
 | `CreateItemConverter()` | `null` | Конвертация предметов между инвентарями разных форматов |
-| `CanHandleOccupiedSlotDrop(entry, slot)` | `false` | Кастомная обработка дропа на занятый слот |
-| `ExecuteOccupiedSlotDrop(entry, slot)` | `false` | Выполнение кастомного дропа на занятый слот |
+
+Обработка drop на занятый слот больше не является virtual-методом `InventoryDataBindingBase`. Для этого реализуйте `IPreRuleOccupiedSlotDropHandler` или `IPostRuleOccupiedSlotDropHandler` на вашем binding. Подробности — в [Опциональных интерфейсах](../reference/optional-interfaces.md).
 
 Также доступны вспомогательные методы:
 
