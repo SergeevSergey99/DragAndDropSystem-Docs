@@ -25,14 +25,17 @@ namespace UDND.Tests.Inventories
     {
         private UniversalInventory _source;
         private UniversalInventory _target;
+        private UniversalInventory _live;
 
         [TearDown]
         public void TearDown()
         {
             InventoryBuilder.Destroy(_source);
             InventoryBuilder.Destroy(_target);
+            InventoryBuilder.Destroy(_live);
             _source = null;
             _target = null;
+            _live = null;
         }
 
         [Test]
@@ -117,6 +120,64 @@ namespace UDND.Tests.Inventories
             Assert.AreEqual("container:box", _source.GetSlot(1).Stack.PrimaryAdapter.ItemId);
         }
 
+        [Test]
+        public void OccupiedHandler_OpenContainer_RoutesIntoLiveInventory_Incrementally()
+        {
+            // The container is "open": a live inventory currently displays its contents. Dropping
+            // onto the container slot must route the item into that live inventory through the
+            // normal drop pipeline — filling one slot and writing its data via the binding — rather
+            // than mutating data out of band (which would force a full reload of the open view).
+            _source = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(1).Build();
+            _target = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(1).Build();
+            _live = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(4).Build();
+
+            var liveBinding = _live.gameObject.AddComponent<ContainerStoreBinding>();
+            _live.Initialize(liveBinding);
+
+            var sourceBinding = _source.gameObject.AddComponent<ContainerStoreBinding>();
+            _source.Initialize(sourceBinding);
+            var targetBinding = _target.gameObject.AddComponent<ContainerStoreBinding>();
+            _target.Initialize(targetBinding);
+            targetBinding.RouteTarget = _live; // container is open → route into its live inventory
+
+            var gem = new Token("gem");
+            sourceBinding.Store.Add(gem);
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Of(new TokenAdapter(gem)));
+
+            var container = new ContainerAdapter("box");
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Of(container));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _target)
+                .Build();
+
+            var processor = new InventoryDropProcessor(_target.GetSlot(0), _target, new GlobalRuleValidator());
+            var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithAlternativeOrderer());
+
+            Assert.IsTrue(report.Success, $"Routed occupied handler must succeed, got: {report.FailureReason}");
+
+            // The item entered the live inventory through the pipeline: one slot filled + data written.
+            Assert.Contains(gem, liveBinding.Store, "Live inventory's binding must receive the item via AddToData");
+            Assert.AreEqual(1, CountFilled(_live), "Exactly one live slot must be filled (incremental, not a rebuild)");
+
+            // Source drained, container-holder slot untouched, no duplication.
+            Assert.IsTrue(_source.GetSlot(0).IsEmpty, "Source slot must be emptied");
+            Assert.IsEmpty(sourceBinding.Store);
+            Assert.AreEqual("container:box", _target.GetSlot(0).Stack.PrimaryAdapter.ItemId);
+            Assert.AreEqual(1,
+                sourceBinding.Store.Count + targetBinding.Store.Count + liveBinding.Store.Count + container.Children.Count,
+                "Exactly one gem must exist across all stores after the routed drop");
+        }
+
+        private static int CountFilled(IInventory inventory)
+        {
+            int n = 0;
+            for (int i = 0; i < inventory.SlotCount; i++)
+                if (!inventory.GetSlot(i).IsEmpty) n++;
+            return n;
+        }
+
         // ── Test doubles ───────────────────────────────────────────────────────────────────────
 
         private sealed class Token
@@ -153,6 +214,9 @@ namespace UDND.Tests.Inventories
         {
             public readonly List<Token> Store = new();
 
+            /// <summary>When set, the container is "open": route the drop into this live inventory.</summary>
+            public IInventory RouteTarget;
+
             protected override void Awake() { }
 
             protected override IReadOnlyList<Token> GetItems() => Store;
@@ -171,6 +235,16 @@ namespace UDND.Tests.Inventories
                 if (entry.Stack?.PrimaryAdapter is not TokenAdapter token)
                     return false;
 
+                // Open container → route through its live inventory's normal pipeline (incremental).
+                if (RouteTarget != null)
+                {
+                    var dropContext = new DragContext(entry.Stack, entry.SourceBaseSlot, entry.SourceInventory);
+                    return new InventoryDropProcessor(RouteTarget, new GlobalRuleValidator())
+                        .ProcessDropWithReport(dropContext)
+                        .Success;
+                }
+
+                // Closed container → mutate data directly and remove from the real source.
                 container.Children.Add(token.Token);
 
                 var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;

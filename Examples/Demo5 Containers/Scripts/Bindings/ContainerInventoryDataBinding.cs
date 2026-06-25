@@ -11,6 +11,19 @@ namespace UDND.Examples.Containers
     {
         public ContainerItemInstance currentContainer { get; private set; }
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            ContainerViewRegistry.AutoCreateInstance.Register(this);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            if (ContainerViewRegistry.IsInstanceExist)
+                ContainerViewRegistry.Instance.Unregister(this);
+        }
+
         protected override IReadOnlyList<IContainerizeItemInstance> GetItems() => currentContainer.Items;
         protected override ContainerItemAdapterAdapter CreateAdapter(IContainerizeItemInstance item) => new(item);
         protected override void AddToData(ContainerItemAdapterAdapter adapterAdapter) => currentContainer.AddItem(adapterAdapter.Instance);
@@ -38,22 +51,12 @@ namespace UDND.Examples.Containers
             if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
 
-            if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
+            if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter)
                 return false;
-            
-            // Remove the dragged item from the inventory it actually came from, emitting that
-            // inventory's removal events so its own DataBinding updates its backing data. Removing
-            // it from THIS binding's container instead leaves the item in its real source store, so
-            // it reappears there on reload while also living in the container (duplication).
-            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
-            sourceInventory?.RemoveItemsFromSlot(entry.SourceBaseSlot, entry.Stack);
 
-            container.AddItem(sourceAdapter.Instance);
-
-            Events.InvokeContainerContentChanged(container);
-            return true;
+            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container);
         }
-        
+
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)
         {
             if (entry.Stack.PrimaryAdapter is ContainerItemAdapterAdapter { Instance: ContainerItemInstance draggedContainer } && WouldCreateCycle(draggedContainer, currentContainer))

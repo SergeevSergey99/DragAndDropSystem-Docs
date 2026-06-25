@@ -36,21 +36,10 @@ namespace UDND.Examples.Containers
             if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
                 return false;
 
-            if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
+            if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter)
                 return false;
-            
 
-            // Remove the dragged item from the inventory it actually came from, emitting that
-            // inventory's removal events so its own DataBinding updates its backing data. Removing
-            // it from THIS binding's player store instead leaves the item in its real source store,
-            // so it reappears there on reload while also living in the container (duplication).
-            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
-            sourceInventory?.RemoveItemsFromSlot(entry.SourceBaseSlot, entry.Stack);
-
-            container.AddItem(sourceAdapter.Instance);
-            
-            Events.InvokeContainerContentChanged(container);
-            return true;
+            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container);
         }
 
         private static bool WouldCreateCycle(ContainerItemInstance draggedContainer, ContainerItemInstance target)
