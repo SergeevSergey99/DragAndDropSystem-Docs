@@ -40,12 +40,15 @@ namespace UDND.Examples.Containers
 
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
                 return false;
+            
+            // Remove the dragged item from the inventory it actually came from, emitting that
+            // inventory's removal events so its own DataBinding updates its backing data. Removing
+            // it from THIS binding's container instead leaves the item in its real source store, so
+            // it reappears there on reload while also living in the container (duplication).
+            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+            sourceInventory?.RemoveItemsFromSlot(entry.SourceBaseSlot, entry.Stack);
 
             container.AddItem(sourceAdapter.Instance);
-            RemoveFromData(sourceAdapter);
-
-            entry.SourceBaseSlot.Clear();
-            entry.SourceBaseSlot.UpdateVisuals();
 
             Events.InvokeContainerContentChanged(container);
             return true;
