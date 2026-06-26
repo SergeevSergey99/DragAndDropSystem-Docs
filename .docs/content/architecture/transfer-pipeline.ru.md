@@ -100,7 +100,11 @@ flowchart TD
 | `IPreRuleOccupiedSlotDropHandler` | до drop-правил целевого слота | drop на занятый слот на самом деле означает другую цель, например контейнер внутри слота |
 | `IPostRuleOccupiedSlotDropHandler` | после drop-правил целевого слота | кастомное поведение должно сначала пройти обычные правила цели |
 
-Если handler принял drop, он выполняет операцию целиком. После него система не запускает alternative placement или swap. Если handler вернул `false` при выполнении, перенос отменяется и состояние возвращается к сохранённой копии.
+`ExecuteOccupiedSlotDrop` возвращает `OccupiedSlotDropResult`:
+
+- `Handled` — handler выполнил действие сам; обычное размещение, alternative placement и swap не запускаются.
+- `Rejected` — handler запретил действие; перенос отменяется и состояние возвращается к сохранённой копии.
+- `Fallthrough` — handler не забирает эту попытку; дальше работает обычный pipeline для занятого слота.
 
 ### Batch (несколько записей сразу)
 

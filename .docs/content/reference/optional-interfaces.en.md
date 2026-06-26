@@ -115,14 +115,24 @@ public class ContainerInventoryBinding
         return occupiedSlot.Stack?.PrimaryAdapter is ContainerAdapter;
     }
 
-    public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
+    public OccupiedSlotDropResult ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedSlot)
     {
-        return TryPutIntoContainer(entry, occupiedSlot);
+        return TryPutIntoContainer(entry, occupiedSlot)
+            ? OccupiedSlotDropResult.Handled
+            : OccupiedSlotDropResult.Rejected;
     }
 }
 ```
 
-If the handler accepts the drop, it owns the whole operation. The system does not run swap or alternative placement afterward.
+`ExecuteOccupiedSlotDrop` returns:
+
+| Result | What the pipeline does |
+|---|---|
+| `Handled` | the handler performed the action; regular drop, swap, and alternative placement do not run |
+| `Rejected` | the handler rejected the action; the transfer is rolled back |
+| `Fallthrough` | the handler chose not to intercept; the transfer continues as a regular drop onto an occupied slot |
+
+If the handler returns `Handled` or `Rejected`, it finishes that transfer attempt. The system does not run swap or alternative placement afterward.
 
 ## IStackSizeLimitable
 

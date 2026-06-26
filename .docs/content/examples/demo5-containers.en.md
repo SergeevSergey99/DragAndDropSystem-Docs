@@ -19,6 +19,7 @@ This is an example of inventory-items that contain their own nested item set.
 - a container as a regular item inside the player inventory
 - a separate UI panel for the active container contents
 - context menu action for opening a container
+- dropping an item directly onto a container icon to put it inside
 - protection against cycles when nesting containers
 
 ## How It Is Structured
@@ -51,11 +52,13 @@ Moving items:
 
 1. Regular drag/drop operations work between player inventory and container inventory.
 2. Bindings synchronize transfer into the player list or `ContainerItemInstance.Items`.
-3. On drop into an occupied slot, `PlayerContainerInventoryDataBinding` can run additional behavior.
-4. Before placing a container inside another container, `WouldCreateCycle(...)` is checked.
+3. If an item is dropped onto a slot that contains a container, `IPreRuleOccupiedSlotDropHandler` intercepts that attempt before regular drop rules.
+4. The binding checks that the container has capacity and that the move would not place a container into itself or one of its children.
+5. If the check passes, `ContainerViewRegistry.InsertIntoContainer(...)` puts the item inside the container and returns `OccupiedSlotDropResult.Handled`.
+6. If the check fails, the handler returns `Rejected`, and the item stays in its original place.
 
 ## When To Use This Example
 
 - an item must contain a nested inventory
 - you need a context menu for item operations
-- you need custom drop rules on top of the standard transfer process
+- dropping onto an already occupied slot should mean a separate action, such as "put this inside the container"

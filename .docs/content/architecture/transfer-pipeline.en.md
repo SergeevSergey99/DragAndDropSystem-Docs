@@ -108,7 +108,11 @@ There are two timing variants:
 | `IPreRuleOccupiedSlotDropHandler` | before target slot drop rules | dropping onto the occupied slot really means another destination, such as a container inside that slot |
 | `IPostRuleOccupiedSlotDropHandler` | after target slot drop rules | custom behavior must still pass the target's normal rules first |
 
-If the handler accepts the drop, it owns the whole operation. The system does not run alternative placement or swap afterward. If handler execution returns `false`, the transfer is cancelled and state is restored to the saved copy.
+`ExecuteOccupiedSlotDrop` returns `OccupiedSlotDropResult`:
+
+- `Handled` — the handler performed the action itself; regular placement, alternative placement, and swap do not run.
+- `Rejected` — the handler rejected the action; the transfer is cancelled and state is restored to the saved copy.
+- `Fallthrough` — the handler does not take over this attempt; the regular occupied-slot pipeline continues.
 
 ### Batch
 

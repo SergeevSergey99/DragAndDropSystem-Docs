@@ -108,7 +108,11 @@ Hay dos variantes de timing:
 | `IPreRuleOccupiedSlotDropHandler` | antes de las drop rules del slot destino | soltar sobre el slot ocupado realmente significa otro destino, por ejemplo un contenedor dentro de ese slot |
 | `IPostRuleOccupiedSlotDropHandler` | después de las drop rules del slot destino | el comportamiento personalizado debe pasar primero las reglas normales del destino |
 
-Si el handler acepta el drop, controla toda la operación. El sistema no ejecuta alternative placement ni swap después. Si la ejecución del handler devuelve `false`, la transferencia se cancela y el estado se restaura a la copia guardada.
+`ExecuteOccupiedSlotDrop` devuelve `OccupiedSlotDropResult`:
+
+- `Handled` — el handler ejecutó la acción; no se ejecutan la colocación normal, alternative placement ni swap.
+- `Rejected` — el handler rechazó la acción; la transferencia se cancela y el estado se restaura a la copia guardada.
+- `Fallthrough` — el handler no toma control de este intento; continúa el pipeline normal para un slot ocupado.
 
 ### Batch
 
