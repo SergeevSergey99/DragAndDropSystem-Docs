@@ -392,11 +392,10 @@ namespace UDND.Inventories
                 ResolvePreRuleOccupiedHandler(targetInventory) is { } preRuleHandler &&
                 preRuleHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
             {
-                return TryExecuteOccupiedHandler(
-                    request,
-                    sourceInventory,
-                    targetInventory,
-                    preRuleHandler);
+                if (TryExecuteOccupiedHandler(
+                        request, sourceInventory, targetInventory, preRuleHandler, out var preRuleResult))
+                    return preRuleResult;
+                // OccupiedSlotDropResult.Fallthrough: continue with the normal pipeline below.
             }
 
             var ruleResult = new RuleEvaluationService()
@@ -416,11 +415,10 @@ namespace UDND.Inventories
                 ResolvePostRuleOccupiedHandler(targetInventory) is { } postRuleHandler &&
                 postRuleHandler.CheckOccupiedSlotDrop(entry, request.TargetBaseSlot))
             {
-                return TryExecuteOccupiedHandler(
-                    request,
-                    sourceInventory,
-                    targetInventory,
-                    postRuleHandler);
+                if (TryExecuteOccupiedHandler(
+                        request, sourceInventory, targetInventory, postRuleHandler, out var postRuleResult))
+                    return postRuleResult;
+                // OccupiedSlotDropResult.Fallthrough: continue with the normal pipeline below.
             }
 
             // Single-entry swap path bypasses the candidate-loop machinery after common rules.
@@ -549,19 +547,28 @@ namespace UDND.Inventories
         private static IPostRuleOccupiedSlotDropHandler ResolvePostRuleOccupiedHandler(IInventory inventory)
             => inventory?.DataBinding as IPostRuleOccupiedSlotDropHandler;
 
-        private static EntryTransferResult TryExecuteOccupiedHandler(
+        /// <summary>
+        /// Runs the occupied-slot handler and maps its <see cref="OccupiedSlotDropResult"/> to a
+        /// pipeline decision. Returns true when the handler consumed the entry (Handled/Rejected,
+        /// with <paramref name="result"/> set); returns false when the handler fell through, in
+        /// which case the caller must continue the normal transfer pipeline.
+        /// </summary>
+        private static bool TryExecuteOccupiedHandler(
             TransferEntryRequest request,
             IInventory sourceInventory,
             IInventory targetInventory,
-            IOccupiedSlotDropHandler handler)
+            IOccupiedSlotDropHandler handler,
+            out EntryTransferResult result)
         {
+            result = null;
             int requestedAmount = request.Entry.Stack.Count;
             if (sourceInventory is not IInventorySnapshotProvider sourceProvider ||
                 targetInventory is not IInventorySnapshotProvider targetProvider)
             {
-                return EntryTransferResult.Failed(
+                result = EntryTransferResult.Failed(
                     requestedAmount,
                     "Occupied-slot handler requires snapshot-capable inventories");
+                return true;
             }
 
             var sourceSnapshot = sourceProvider.CaptureSnapshot();
@@ -576,43 +583,59 @@ namespace UDND.Inventories
                 targetInventory,
                 request.TargetBaseSlot);
 
+            OccupiedSlotDropResult outcomeKind;
             try
             {
-                if (!handler.ExecuteOccupiedSlotDrop(request.Entry, request.TargetBaseSlot))
-                {
-                    RestoreOccupiedHandlerSnapshots(
-                        sourceInventory, sourceProvider, sourceSnapshot,
-                        targetInventory, targetProvider, targetSnapshot);
-                    return EntryTransferResult.Failed(requestedAmount, "Occupied-slot handler failed");
-                }
+                outcomeKind = handler.ExecuteOccupiedSlotDrop(request.Entry, request.TargetBaseSlot);
             }
             catch (Exception ex)
             {
                 RestoreOccupiedHandlerSnapshots(
                     sourceInventory, sourceProvider, sourceSnapshot,
                     targetInventory, targetProvider, targetSnapshot);
-                return EntryTransferResult.Failed(requestedAmount, ex.Message);
+                result = EntryTransferResult.Failed(requestedAmount, ex.Message);
+                return true;
             }
 
-            sourceInventory.UpdateAllVisuals();
-            if (!ReferenceEquals(sourceInventory, targetInventory))
-                targetInventory.UpdateAllVisuals();
+            switch (outcomeKind)
+            {
+                case OccupiedSlotDropResult.Fallthrough:
+                    // Handler declined: undo anything it touched and let the normal pipeline run.
+                    RestoreOccupiedHandlerSnapshots(
+                        sourceInventory, sourceProvider, sourceSnapshot,
+                        targetInventory, targetProvider, targetSnapshot);
+                    return false;
 
-            var outcome = new PlacementTransferOutcome(
-                PlacementTransferOutcomeKind.OccupiedHandler,
-                sourceInventory,
-                targetInventory,
-                request.Entry.SourceBaseSlot,
-                request.TargetBaseSlot,
-                sourceRemovedStack,
-                sourceRemovedStack.CreateCopy(),
-                sourcePlacementSnapshot,
-                targetPlacementSnapshot,
-                targetWasEmptyBefore: false);
-            return EntryTransferResult.Committed(
-                requestedAmount,
-                requestedAmount,
-                new[] { outcome });
+                case OccupiedSlotDropResult.Rejected:
+                    RestoreOccupiedHandlerSnapshots(
+                        sourceInventory, sourceProvider, sourceSnapshot,
+                        targetInventory, targetProvider, targetSnapshot);
+                    result = EntryTransferResult.Failed(requestedAmount, "Occupied-slot handler rejected the drop");
+                    return true;
+
+                case OccupiedSlotDropResult.Handled:
+                default:
+                    sourceInventory.UpdateAllVisuals();
+                    if (!ReferenceEquals(sourceInventory, targetInventory))
+                        targetInventory.UpdateAllVisuals();
+
+                    var outcome = new PlacementTransferOutcome(
+                        PlacementTransferOutcomeKind.OccupiedHandler,
+                        sourceInventory,
+                        targetInventory,
+                        request.Entry.SourceBaseSlot,
+                        request.TargetBaseSlot,
+                        sourceRemovedStack,
+                        sourceRemovedStack.CreateCopy(),
+                        sourcePlacementSnapshot,
+                        targetPlacementSnapshot,
+                        targetWasEmptyBefore: false);
+                    result = EntryTransferResult.Committed(
+                        requestedAmount,
+                        requestedAmount,
+                        new[] { outcome });
+                    return true;
+            }
         }
 
         private static void RestoreOccupiedHandlerSnapshots(

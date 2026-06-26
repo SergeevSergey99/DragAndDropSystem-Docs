@@ -317,12 +317,12 @@ namespace UDND.Tests.Inventories
                 => occupiedBaseSlot?.Stack?.PrimaryAdapter is ContainerAdapter
                    && entry.Stack?.PrimaryAdapter is TokenAdapter;
 
-            public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+            public OccupiedSlotDropResult ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
             {
                 if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerAdapter container)
-                    return false;
+                    return OccupiedSlotDropResult.Rejected;
                 if (entry.Stack?.PrimaryAdapter is not TokenAdapter token)
-                    return false;
+                    return OccupiedSlotDropResult.Rejected;
 
                 // Open container → route through its live inventory's normal pipeline (incremental).
                 if (RouteTarget != null)
@@ -339,7 +339,9 @@ namespace UDND.Tests.Inventories
                         RouteTarget);
                     return new InventoryDropProcessor(routedTargetSlot, RouteTarget, new GlobalRuleValidator())
                         .ProcessDropWithReport(dropContext)
-                        .Success;
+                        .Success
+                        ? OccupiedSlotDropResult.Handled
+                        : OccupiedSlotDropResult.Rejected;
                 }
 
                 // Closed container → mutate data directly and remove from the real source.
@@ -347,7 +349,7 @@ namespace UDND.Tests.Inventories
 
                 var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
                 sourceInventory?.RemoveItemsFromSlot(entry.SourceBaseSlot, entry.Stack);
-                return true;
+                return OccupiedSlotDropResult.Handled;
             }
         }
     }

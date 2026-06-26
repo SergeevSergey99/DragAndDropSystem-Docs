@@ -52,15 +52,17 @@ namespace UDND.Examples.Containers
             return true;
         }
 
-        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public OccupiedSlotDropResult ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             if (occupiedBaseSlot?.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter { Instance: ContainerItemInstance container })
-                return false;
+                return OccupiedSlotDropResult.Rejected;
 
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter)
-                return false;
+                return OccupiedSlotDropResult.Rejected;
 
-            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container, occupiedBaseSlot);
+            return ContainerViewRegistry.AutoCreateInstance.InsertIntoContainer(entry, container, occupiedBaseSlot)
+                ? OccupiedSlotDropResult.Handled
+                : OccupiedSlotDropResult.Rejected;
         }
 
         protected override RuleResult CanDrop(DragContext context, DragEntry entry)

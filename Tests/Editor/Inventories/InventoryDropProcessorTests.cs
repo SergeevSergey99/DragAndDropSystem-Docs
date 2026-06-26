@@ -755,11 +755,11 @@ namespace UDND.Tests.Inventories
             return ReferenceEquals(occupiedBaseSlot, HandledSlot);
         }
 
-        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public OccupiedSlotDropResult ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             ExecuteCalls++;
             entry.SourceBaseSlot.Clear();
-            return true;
+            return OccupiedSlotDropResult.Handled;
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
@@ -785,11 +785,11 @@ namespace UDND.Tests.Inventories
             return ReferenceEquals(occupiedBaseSlot, HandledSlot);
         }
 
-        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public OccupiedSlotDropResult ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             ExecuteCalls++;
             entry.SourceBaseSlot.Clear();
-            return true;
+            return OccupiedSlotDropResult.Handled;
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
@@ -815,11 +815,11 @@ namespace UDND.Tests.Inventories
             return ReferenceEquals(occupiedBaseSlot, HandledSlot);
         }
 
-        public bool ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
+        public OccupiedSlotDropResult ExecuteOccupiedSlotDrop(DragEntry entry, BaseSlot occupiedBaseSlot)
         {
             ExecuteCalls++;
             entry.SourceBaseSlot.Clear();
-            return true;
+            return OccupiedSlotDropResult.Handled;
         }
 
         protected override void OnItemAddedToUI(InventoryItemEventContext context) { }
