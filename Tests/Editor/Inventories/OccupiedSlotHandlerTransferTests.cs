@@ -207,6 +207,58 @@ namespace UDND.Tests.Inventories
             Assert.IsTrue(_target.GetSlot(1).IsEmpty);
         }
 
+        // A same-inventory programmatic drop whose explicit target slot belongs to a DIFFERENT
+        // inventory (exactly what the container redirect produces for the same-live case). The slot
+        // is unplaceable in the target inventory, so the blocked-target policy decides — and
+        // AllowSameInventoryAlternativePlacement must control whether the engine relocates the item
+        // to a free slot or rejects. Before the foreign-target guard, the occupied handler re-fired
+        // and BOTH policy values behaved identically (the bug); this proves the policy now bites.
+        [TestCase(true, true)]    // allow → relocate to the free slot, success
+        [TestCase(false, false)]  // forbid → reject, item stays put
+        public void ForeignExplicitTarget_SameInventory_PolicyControlsAlternativeSearch(
+            bool allowSameInventory, bool expectSuccess)
+        {
+            _source = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(2).Build();
+            _target = new InventoryBuilder().WithStrategy(new UniqueItemStrategy()).WithFixedSlots(1).Build();
+
+            var sourceBinding = _source.gameObject.AddComponent<ContainerStoreBinding>();
+            _source.Initialize(sourceBinding);
+
+            var gem = new Token("gem");
+            sourceBinding.Store.Add(gem);
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Of(new TokenAdapter(gem)));
+
+            // The explicit target slot lives in _target, but the drop targets _source (== source).
+            var container = new ContainerAdapter("box");
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Of(container));
+
+            var context = DragContextBuilder
+                .FromSlots(_source, 0)
+                .ToTargetSlot(_target.GetSlot(0), _source)
+                .Build();
+
+            var policy = DropRequestPolicy.WithAlternativeOrderer(
+                allowSameInventoryAlternativePlacement: allowSameInventory);
+            var report = new InventoryDropProcessor(_target.GetSlot(0), _source, new GlobalRuleValidator())
+                .ProcessDropWithReport(context, policy);
+
+            Assert.AreEqual(expectSuccess, report.Success,
+                $"allowSameInventory={allowSameInventory} must drive the outcome");
+            Assert.AreEqual(0, container.Children.Count, "the foreign occupied slot must never be touched");
+
+            if (expectSuccess)
+            {
+                Assert.IsTrue(_source.GetSlot(0).IsEmpty, "item left its original slot");
+                Assert.AreEqual("gem", _source.GetSlot(1).Stack.PrimaryAdapter.ItemId,
+                    "FindAlternative relocated the item to the free slot");
+            }
+            else
+            {
+                Assert.AreEqual("gem", _source.GetSlot(0).Stack.PrimaryAdapter.ItemId, "item stayed put");
+                Assert.IsTrue(_source.GetSlot(1).IsEmpty, "no alternative slot was used");
+            }
+        }
+
         private static int CountFilled(IInventory inventory)
         {
             int n = 0;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UDND.Core;
 using UDND.DataBinding;
 using UDND.Inventories;
@@ -37,7 +38,12 @@ namespace UDND.Examples.Containers
             if (entry.Stack?.PrimaryAdapter is not ContainerItemAdapterAdapter sourceAdapter)
                 return false;
 
-            if (container.Items.Count >= container.Item.Capacity)
+            // An item already inside this container (dragged from its open view back onto its own
+            // icon) is not a new insertion, so capacity does not apply — let the handler fire and
+            // route a policy-driven drop into the container. Otherwise a full container would reject
+            // here and the normal pipeline would leak the item out into the player inventory.
+            bool alreadyInside = container.Items.Contains(sourceAdapter.Instance);
+            if (!alreadyInside && container.Items.Count >= container.Item.Capacity)
                 return false;
 
             if (sourceAdapter.Instance is ContainerItemInstance dragged && WouldCreateCycle(dragged, container))
