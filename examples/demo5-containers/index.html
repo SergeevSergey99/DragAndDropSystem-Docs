@@ -1891,6 +1891,7 @@
 <li>a container as a regular item inside the player inventory</li>
 <li>a separate UI panel for the active container contents</li>
 <li>context menu action for opening a container</li>
+<li>dropping an item directly onto a container icon to put it inside</li>
 <li>protection against cycles when nesting containers</li>
 </ul>
 <h2 id="how-it-is-structured">How It Is Structured</h2>
@@ -1921,14 +1922,16 @@
 <ol>
 <li>Regular drag/drop operations work between player inventory and container inventory.</li>
 <li>Bindings synchronize transfer into the player list or <code>ContainerItemInstance.Items</code>.</li>
-<li>On drop into an occupied slot, <code>PlayerContainerInventoryDataBinding</code> can run additional behavior.</li>
-<li>Before placing a container inside another container, <code>WouldCreateCycle(...)</code> is checked.</li>
+<li>If an item is dropped onto a slot that contains a container, <code>IPreRuleOccupiedSlotDropHandler</code> intercepts that attempt before regular drop rules.</li>
+<li>The binding checks that the container has capacity and that the move would not place a container into itself or one of its children.</li>
+<li>If the check passes, <code>ContainerViewRegistry.InsertIntoContainer(...)</code> puts the item inside the container and returns <code>OccupiedSlotDropResult.Handled</code>.</li>
+<li>If the check fails, the handler returns <code>Rejected</code>, and the item stays in its original place.</li>
 </ol>
 <h2 id="when-to-use-this-example">When To Use This Example</h2>
 <ul>
 <li>an item must contain a nested inventory</li>
 <li>you need a context menu for item operations</li>
-<li>you need custom drop rules on top of the standard transfer process</li>
+<li>dropping onto an already occupied slot should mean a separate action, such as "put this inside the container"</li>
 </ul>
 
 

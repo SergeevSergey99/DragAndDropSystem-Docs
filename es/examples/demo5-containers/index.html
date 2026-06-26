@@ -1891,6 +1891,7 @@
 <li>un contenedor como item normal en el inventario del jugador</li>
 <li>un panel de UI separado para el contenido del contenedor activo</li>
 <li>acción de context menu para abrir un contenedor</li>
+<li>soltar un item directamente sobre el icono de un contenedor para meterlo dentro</li>
 <li>protección contra ciclos al anidar contenedores</li>
 </ul>
 <h2 id="como-esta-estructurada">Cómo está estructurada</h2>
@@ -1921,14 +1922,16 @@
 <ol>
 <li>Las operaciones drag/drop normales funcionan entre el inventario del jugador y el del contenedor.</li>
 <li>Los bindings sincronizan la transferencia con la lista del jugador o <code>ContainerItemInstance.Items</code>.</li>
-<li>Al hacer drop en un slot ocupado, <code>PlayerContainerInventoryDataBinding</code> puede ejecutar comportamiento adicional.</li>
-<li>Antes de colocar un contenedor dentro de otro contenedor se comprueba <code>WouldCreateCycle(...)</code>.</li>
+<li>Si se suelta un item sobre un slot que contiene un contenedor, <code>IPreRuleOccupiedSlotDropHandler</code> intercepta el intento antes de las reglas normales de drop.</li>
+<li>El binding comprueba que el contenedor tenga capacidad y que el movimiento no coloque un contenedor dentro de sí mismo ni dentro de uno de sus hijos.</li>
+<li>Si la comprobación pasa, <code>ContainerViewRegistry.InsertIntoContainer(...)</code> mete el item en el contenedor y devuelve <code>OccupiedSlotDropResult.Handled</code>.</li>
+<li>Si la comprobación falla, el handler devuelve <code>Rejected</code> y el item se queda en su lugar original.</li>
 </ol>
 <h2 id="cuando-usar-este-ejemplo-como-base">Cuándo usar este ejemplo como base</h2>
 <ul>
 <li>un item debe contener un inventario anidado</li>
 <li>necesitas context menu para operaciones sobre items</li>
-<li>necesitas reglas de drop propias encima del proceso de transferencia estándar</li>
+<li>soltar sobre un slot ya ocupado debe significar una acción aparte, por ejemplo "meter esto dentro del contenedor"</li>
 </ul>
 
 

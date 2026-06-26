@@ -2172,8 +2172,35 @@
 перемещение может выполнить отдельную попытку с временно удалённым источником и
 обязано перенести запись целиком, иначе откат.</p>
 <h3 id="_9">Занятая цель с обработчиком</h3>
-<p>Если целевой слот занят, а биндинг инвентаря реализует <code>CanHandleOccupiedSlotDrop</code> и <code>ExecuteOccupiedSlotDrop</code>, то сначала отрабатывает этот обработчик (первым после проверки правил) как чистая проверка,
-затем исполняется all-or-nothing. Если <code>ExecuteOccupiedSlotDrop</code> возвращает false то перенос отменяется и состояние возвращается. Если true то перенос заканчивается, если переносимые предметы не были обработаны то они исчезнут. Обработчик больше не запускает alternatives или swap.</p>
+<p>Если предмет бросили на занятый слот, DataBinding целевого инвентаря может забрать эту ситуацию себе через <code>IOccupiedSlotDropHandler</code>.</p>
+<p>Есть два варианта timing:</p>
+<table>
+<thead>
+<tr>
+<th>Интерфейс</th>
+<th>Когда проверяется</th>
+<th>Когда использовать</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IPreRuleOccupiedSlotDropHandler</code></td>
+<td>до drop-правил целевого слота</td>
+<td>drop на занятый слот на самом деле означает другую цель, например контейнер внутри слота</td>
+</tr>
+<tr>
+<td><code>IPostRuleOccupiedSlotDropHandler</code></td>
+<td>после drop-правил целевого слота</td>
+<td>кастомное поведение должно сначала пройти обычные правила цели</td>
+</tr>
+</tbody>
+</table>
+<p><code>ExecuteOccupiedSlotDrop</code> возвращает <code>OccupiedSlotDropResult</code>:</p>
+<ul>
+<li><code>Handled</code> — handler выполнил действие сам; обычное размещение, alternative placement и swap не запускаются.</li>
+<li><code>Rejected</code> — handler запретил действие; перенос отменяется и состояние возвращается к сохранённой копии.</li>
+<li><code>Fallthrough</code> — handler не забирает эту попытку; дальше работает обычный pipeline для занятого слота.</li>
+</ul>
 <h3 id="batch">Batch (несколько записей сразу)</h3>
 <pre class="mermaid"><code>flowchart TD
     A["Однократная проверка запроса&lt;br/&gt;CanStartTransfer / CanStartTransferAsync"] --&gt; B["Запись (commit) 1"]
@@ -2298,8 +2325,8 @@
 </tr>
 <tr>
 <td><strong>Обработчик занятого слота</strong></td>
-<td><code>IOccupiedSlotDropHandler</code></td>
-<td>Своё поведение при drop на занятый слот (надеть, вложить в контейнер).</td>
+<td><code>IPreRuleOccupiedSlotDropHandler</code> / <code>IPostRuleOccupiedSlotDropHandler</code></td>
+<td>Своё поведение при drop на занятый слот (надеть, вложить в контейнер). Реализуется на DataBinding.</td>
 </tr>
 <tr>
 <td><strong>Жизненный цикл динамических слотов</strong></td>

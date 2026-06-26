@@ -1089,6 +1089,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#placementinventorydatabinding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlacementInventoryDataBinding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlacementInventoryDataBinding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что нужно реализовать
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что изменилось в текущем API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#inventorydatabindingbase" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1112,7 +1151,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Пример: слот результата крафта
@@ -2141,6 +2180,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#placementinventorydatabinding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlacementInventoryDataBinding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlacementInventoryDataBinding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что нужно реализовать
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Что изменилось в текущем API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#inventorydatabindingbase" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2164,7 +2242,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Пример: слот результата крафта
@@ -2217,7 +2295,9 @@
     B --&gt;|Да| C["ListInventoryDataBinding\nРюкзак, сундук, лут"]
     B --&gt;|Нет| D{"Слоты с числовым индексом?"}
     D --&gt;|Да| E["SlotIndexedInventoryDataBinding\nХотбар, массив слотов"]
-    D --&gt;|Нет| F["MappedSlotInventoryDataBinding\nЭкипировка, именованные слоты"]</code></pre>
+    D --&gt;|Нет| F{"Нужно сохранять\nформу/anchor/orientation?"}
+    F --&gt;|Да| G["PlacementInventoryDataBinding\nФигурные предметы, grid"]
+    F --&gt;|Нет| H["MappedSlotInventoryDataBinding\nЭкипировка, именованные слоты"]</code></pre>
 <table>
 <thead>
 <tr>
@@ -2237,7 +2317,7 @@
 <tr>
 <td><code>SlotIndexedInventoryDataBinding</code></td>
 <td>Массив/словарь по индексу</td>
-<td>Послотово (один вызов на слот)</td>
+<td>Послотово, со списком адаптеров</td>
 <td>Хотбар, массив ячеек экипировки</td>
 </tr>
 <tr>
@@ -2245,6 +2325,12 @@
 <td>Именованные свойства</td>
 <td>Послотово + валидация на слот</td>
 <td>Экипировка персонажа (голова, тело, оружие)</td>
+</tr>
+<tr>
+<td><code>PlacementInventoryDataBinding</code></td>
+<td>Размещения с anchor/orientation</td>
+<td>По размещению, со всеми item-экземплярами</td>
+<td>Фигурные предметы, grid-инвентари</td>
 </tr>
 </tbody>
 </table>
@@ -2288,30 +2374,31 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="p">[]</span><span class="w"> </span><span class="n">_slots</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ItemSO</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="c1">// 1. Какие слоты заняты (пустые можно не возвращать)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IEnumerable</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetOccupiedSlots</span><span class="p">()</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IEnumerable</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">items</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetOccupiedSlots</span><span class="p">()</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_slots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">                </span><span class="k">yield</span><span class="w"> </span><span class="nf">return</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">                </span><span class="k">yield</span><span class="w"> </span><span class="nf">return</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="p">[]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="p">});</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="c1">// 2. Как создать адаптер из элемента данных</span>
 <a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="c1">// 3. Как записать данные в слот (один вызов на весь стек)</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="c1">// 3. Как записать данные в слот (полный список адаптеров стека)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">adapters</span><span class="p">)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adapters</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">Data</span><span class="p">;</span>
 <a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="c1">// 4. Как очистить данные слота (один вызов на весь стек)</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="c1">// 4. Как очистить данные слота (полный список адаптеров стека)</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">adapters</span><span class="p">)</span>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">;</span>
 <a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="_5">Как работает автоматически</h3>
-<p><strong>При загрузке</strong>: проходит по <code>GetOccupiedSlots()</code>, создаёт адаптер для каждого, добавляет в UI по индексу слота.</p>
-<p><strong>При добавлении/удалении</strong>: вызывается <strong>один раз</strong> для всего стека, передавая <code>PrimaryAdapter</code> и общий <code>count</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Стек из 3 предметов в слот #2 → AddToSlotData(2, primaryAdapter, 3)
+<p><strong>При загрузке</strong>: проходит по <code>GetOccupiedSlots()</code>, создаёт адаптер для каждого элемента в списке <code>items</code>, собирает стек и добавляет его в UI по индексу слота.</p>
+<p><strong>При добавлении/удалении</strong>: вызывается <strong>один раз</strong> для всего стека и передаёт все typed adapters этого стека:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Стек из 3 предметов в слот #2 → AddToSlotData(2, adapters[0..2])
 </code></pre></div>
+<p>Это сохраняет данные каждого экземпляра в стеке. Если три предмета выглядят одинаково, но имеют разные runtime-данные, binding получает все три адаптера.</p>
 <h3 id="list-">Отличие от List-шаблона</h3>
 <table>
 <thead>
@@ -2325,7 +2412,7 @@
 <tr>
 <td>Синхронизация</td>
 <td>По каждому адаптеру отдельно</td>
-<td>Один вызов на слот</td>
+<td>Один вызов на слот со списком адаптеров</td>
 </tr>
 <tr>
 <td>Идентификация слота</td>
@@ -2439,7 +2526,7 @@
 </tr>
 <tr>
 <td>Стеки</td>
-<td>Через count параметр</td>
+<td>Через список адаптеров слота</td>
 <td>Через list-based API (каждый адаптер индивидуально)</td>
 </tr>
 <tr>
@@ -2450,8 +2537,55 @@
 </tbody>
 </table>
 <hr />
+<h2 id="placementinventorydatabinding">PlacementInventoryDataBinding</h2>
+<p>Для инвентарей, где нужно сохранять не только слот, но и размещение предмета: anchor, orientation, covered cells и форму предмета.</p>
+<p>Обычно это фигурные предметы, grid-инвентари и любые системы, где предмет может занимать несколько клеток.</p>
+<h3 id="_8">Что нужно реализовать</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ShapedItemsBinding</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">PlacementInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">MyPlacementModel</span><span class="o">&gt;</span><span class="w"> </span><span class="n">_placements</span><span class="p">;</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IEnumerable</span><span class="o">&lt;</span><span class="n">PlacementData</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">GetPlacements</span><span class="p">()</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">placement</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">_placements</span><span class="p">)</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">            </span><span class="k">yield</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PlacementData</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="o">&gt;</span><span class="p">(</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">                </span><span class="n">placement</span><span class="p">.</span><span class="n">Items</span><span class="p">,</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">                </span><span class="n">placement</span><span class="p">.</span><span class="n">AnchorIndex</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">                </span><span class="n">placement</span><span class="p">.</span><span class="n">Orientation</span><span class="p">);</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemModel</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemModel</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemModelAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Model</span><span class="p">;</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddPlacementData</span><span class="p">(</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">        </span><span class="n">PlacementCommitContext</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">        </span><span class="n">_placements</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">MyPlacementModel</span><span class="p">(</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">            </span><span class="n">context</span><span class="p">.</span><span class="n">Data</span><span class="p">,</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">            </span><span class="n">context</span><span class="p">.</span><span class="n">AnchorIndex</span><span class="p">,</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">            </span><span class="n">context</span><span class="p">.</span><span class="n">Orientation</span><span class="p">));</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemovePlacementData</span><span class="p">(</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">        </span><span class="n">PlacementCommitContext</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">        </span><span class="n">RemovePlacementAt</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">AnchorIndex</span><span class="p">);</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="api">Что изменилось в текущем API</h3>
+<p><code>PlacementData&lt;TData&gt;</code> теперь хранит <code>Items</code>, то есть полный список item-экземпляров в размещении.</p>
+<p><code>PlacementCommitContext&lt;TData, TAdapter&gt;</code> теперь отдаёт:</p>
+<ul>
+<li><code>Data</code> — данные для каждого адаптера в перенесённом стеке</li>
+<li><code>Adapters</code> — все typed adapters из перенесённого стека</li>
+<li><code>PrimaryData</code> / <code>Adapter</code> — первый элемент, только как удобство для одиночных предметов</li>
+</ul>
+<p>Используйте <code>context.Data</code>, если стек может содержать разные экземпляры. Используйте <code>PrimaryData</code> только когда слот действительно хранит один предмет или ваши предметы полностью одинаковые.</p>
+<hr />
 <h2 id="inventorydatabindingbase">Базовый класс: InventoryDataBindingBase</h2>
-<p>Все три шаблона наследуются от <code>InventoryDataBindingBase</code>. Обычно от него не наследуются напрямую, но полезно знать, какие виртуальные методы доступны для override:</p>
+<p>Все шаблоны наследуются от <code>InventoryDataBindingBase</code>. Обычно от него не наследуются напрямую, но полезно знать, какие виртуальные методы доступны для override:</p>
 <table>
 <thead>
 <tr>
@@ -2496,18 +2630,9 @@
 <td><code>null</code></td>
 <td>Конвертация предметов между инвентарями разных форматов</td>
 </tr>
-<tr>
-<td><code>CanHandleOccupiedSlotDrop(entry, slot)</code></td>
-<td><code>false</code></td>
-<td>Кастомная обработка дропа на занятый слот</td>
-</tr>
-<tr>
-<td><code>ExecuteOccupiedSlotDrop(entry, slot)</code></td>
-<td><code>false</code></td>
-<td>Выполнение кастомного дропа на занятый слот</td>
-</tr>
 </tbody>
 </table>
+<p>Обработка drop на занятый слот больше не является virtual-методом <code>InventoryDataBindingBase</code>. Для этого реализуйте <code>IPreRuleOccupiedSlotDropHandler</code> или <code>IPostRuleOccupiedSlotDropHandler</code> на вашем binding. Подробности — в <a href="../../reference/optional-interfaces/">Опциональных интерфейсах</a>.</p>
 <p>Также доступны вспомогательные методы:</p>
 <ul>
 <li><code>ReloadUI()</code> — полная пересинхронизация UI с данными</li>
@@ -2519,7 +2644,7 @@
 <h2 id="ondropcompletedfrom-ondropcompletedto">Отложенная обработка: OnDropCompletedFrom / OnDropCompletedTo</h2>
 <p><code>OnItemAddedToUI</code> и <code>OnItemRemovedFromUI</code> вызываются <strong>на каждую аллокацию</strong> в процессе трансфера. Если перенос разбивается на несколько target-слотов (batch transfer), вы получите несколько вызовов за одну drag-операцию.</p>
 <p>Когда это проблема — используйте <code>OnDropCompletedFrom</code> / <code>OnDropCompletedTo</code>. Они вызываются <strong>один раз</strong> после завершения всей drop-операции.</p>
-<h3 id="_8">Пример: слот результата крафта</h3>
+<h3 id="_9">Пример: слот результата крафта</h3>
 <p>Рецепт <code>3×A → 6×B</code>. В слоте 384×B. Игрок перетаскивает в инвентарь с max stack 64.</p>
 <ul>
 <li>Перенос распределяется по 6 слотам: <code>64+64+64+64+64+64 = 384</code></li>
@@ -2527,30 +2652,30 @@
 <li><code>64 / 6 = 10</code> (целочисленное) — остаток теряется на каждом вызове</li>
 </ul>
 <p>Решение — копить removed items и потреблять ингредиенты один раз:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">CraftResultDataBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryDataBindingBase</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="p">;</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnItemRemovedFromUI</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="c1">// Только копим, не потребляем</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">Stack</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDropCompletedFrom</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="c1">// Вызывается один раз после всего трансфера</span>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">craftsConsumed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">resultCount</span><span class="p">;</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="n">manager</span><span class="p">.</span><span class="n">ConsumeCraftIngredients</span><span class="p">(</span><span class="n">craftsConsumed</span><span class="p">);</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">CraftResultDataBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryDataBindingBase</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="p">;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnItemRemovedFromUI</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="c1">// Только копим, не потребляем</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">Stack</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDropCompletedFrom</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">        </span><span class="c1">// Вызывается один раз после всего трансфера</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">craftsConsumed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">resultCount</span><span class="p">;</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">        </span><span class="n">manager</span><span class="p">.</span><span class="n">ConsumeCraftIngredients</span><span class="p">(</span><span class="n">craftsConsumed</span><span class="p">);</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="dragamountstep">DragAmountStep</h3>
 <p>Перенос учитывает <code>DragAmountStep</code> инвентаря-источника: <strong>общее</strong> количество переносимых предметов округляется вниз до кратного step. Это гарантирует, что сумма всех размещений кратна step, даже если отдельные размещения — нет.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// В инвентаре-источнике:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Перенос: total = floor(total / step) * step</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// В инвентаре-источнике:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1">// Перенос: total = floor(total / step) * step</span>
 </code></pre></div>
 
 

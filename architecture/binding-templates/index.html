@@ -931,7 +931,7 @@
   <a href="#which-template-to-choose" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Which template to choose
+        Which Template To Choose
       
     </span>
   </a>
@@ -1077,6 +1077,45 @@
     <span class="md-ellipsis">
       
         Difference from SlotIndexed template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#placementinventorydatabinding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlacementInventoryDataBinding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlacementInventoryDataBinding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-to-implement_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to implement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-changed-in-the-current-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What changed in the current API
       
     </span>
   </a>
@@ -1983,7 +2022,7 @@
   <a href="#which-template-to-choose" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Which template to choose
+        Which Template To Choose
       
     </span>
   </a>
@@ -2141,6 +2180,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#placementinventorydatabinding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlacementInventoryDataBinding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlacementInventoryDataBinding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-to-implement_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to implement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-changed-in-the-current-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What changed in the current API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#base-class-inventorydatabindingbase" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2211,13 +2289,15 @@
 <p>This page describes the ready-made templates your DataBinding inherits from. Each template automatically implements UI loading, add/remove event handling, and data synchronization — you only need to define a few primitive methods.</p>
 <p>For a general overview of DataBinding and its role in the pipeline, see <a href="../data-binding/">Data Binding</a>.</p>
 <hr />
-<h2 id="which-template-to-choose">Which template to choose</h2>
+<h2 id="which-template-to-choose">Which Template To Choose</h2>
 <pre class="mermaid"><code>flowchart TD
     A["What data structure\nbacks your inventory?"] --&gt; B{"Dynamic list?"}
     B --&gt;|Yes| C["ListInventoryDataBinding\nBackpack, chest, loot"]
     B --&gt;|No| D{"Slots with numeric index?"}
     D --&gt;|Yes| E["SlotIndexedInventoryDataBinding\nHotbar, slot array"]
-    D --&gt;|No| F["MappedSlotInventoryDataBinding\nEquipment, named slots"]</code></pre>
+    D --&gt;|No| F{"Need to persist\nshape/anchor/orientation?"}
+    F --&gt;|Yes| G["PlacementInventoryDataBinding\nShaped items, grid"]
+    F --&gt;|No| H["MappedSlotInventoryDataBinding\nEquipment, named slots"]</code></pre>
 <table>
 <thead>
 <tr>
@@ -2237,7 +2317,7 @@
 <tr>
 <td><code>SlotIndexedInventoryDataBinding</code></td>
 <td>Array/dict by index</td>
-<td>Per-slot (single call per slot)</td>
+<td>Per-slot, with adapter list</td>
 <td>Hotbar, equipment slot array</td>
 </tr>
 <tr>
@@ -2245,6 +2325,12 @@
 <td>Named properties</td>
 <td>Per-slot + per-slot validation</td>
 <td>Character equipment (head, body, weapon)</td>
+</tr>
+<tr>
+<td><code>PlacementInventoryDataBinding</code></td>
+<td>Placements with anchor/orientation</td>
+<td>Per-placement, with every item instance</td>
+<td>Shaped items, grid inventories</td>
 </tr>
 </tbody>
 </table>
@@ -2288,30 +2374,31 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">ItemSO</span><span class="p">[]</span><span class="w"> </span><span class="n">_slots</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ItemSO</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="c1">// 1. Which slots are occupied (skip empties)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IEnumerable</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetOccupiedSlots</span><span class="p">()</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IEnumerable</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSO</span><span class="o">&gt;</span><span class="w"> </span><span class="n">items</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetOccupiedSlots</span><span class="p">()</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">{</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">.</span><span class="n">Length</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_slots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">                </span><span class="k">yield</span><span class="w"> </span><span class="nf">return</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">                </span><span class="k">yield</span><span class="w"> </span><span class="nf">return</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="p">[]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="p">});</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="c1">// 2. How to create an adapter from a data element</span>
 <a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemSO</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="c1">// 3. How to write data to a slot (single call for the whole stack)</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">;</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="c1">// 3. How to write data to a slot (full adapter list for the stack)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddToSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">adapters</span><span class="p">)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adapters</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">Data</span><span class="p">;</span>
 <a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="c1">// 4. How to clear a slot&#39;s data (single call for the whole stack)</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">)</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="c1">// 4. How to clear slot data (full adapter list for the stack)</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromSlotData</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">,</span><span class="w"> </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ItemSOAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">adapters</span><span class="p">)</span>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">        </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_slots</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">;</span>
 <a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="how-it-works-automatically_1">How it works automatically</h3>
-<p><strong>On load</strong>: iterates <code>GetOccupiedSlots()</code>, creates an adapter for each, adds to UI at the slot index.</p>
-<p><strong>On add/remove</strong>: called <strong>once</strong> for the entire stack, passing <code>PrimaryAdapter</code> and total <code>count</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Stack of 3 items into slot #2 → AddToSlotData(2, primaryAdapter, 3)
+<p><strong>On load</strong>: iterates <code>GetOccupiedSlots()</code>, creates an adapter for every item in <code>items</code>, builds a stack, and adds it to UI at the slot index.</p>
+<p><strong>On add/remove</strong>: called <strong>once</strong> for the entire stack and passes all typed adapters from that stack:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Stack of 3 items into slot #2 → AddToSlotData(2, adapters[0..2])
 </code></pre></div>
+<p>This preserves per-instance data in a stack. If three items look the same but carry different runtime data, the binding receives all three adapters.</p>
 <h3 id="difference-from-list-template">Difference from List template</h3>
 <table>
 <thead>
@@ -2325,7 +2412,7 @@
 <tr>
 <td>Sync</td>
 <td>Per adapter</td>
-<td>Single call per slot</td>
+<td>Single call per slot with adapter list</td>
 </tr>
 <tr>
 <td>Slot identity</td>
@@ -2439,7 +2526,7 @@
 </tr>
 <tr>
 <td>Stacks</td>
-<td>Via count parameter</td>
+<td>Via slot adapter list</td>
 <td>Via list-based API (each adapter individually)</td>
 </tr>
 <tr>
@@ -2450,8 +2537,55 @@
 </tbody>
 </table>
 <hr />
+<h2 id="placementinventorydatabinding">PlacementInventoryDataBinding</h2>
+<p>For inventories that need to persist not only the slot, but also item placement: anchor, orientation, covered cells, and item shape.</p>
+<p>This is usually used for shaped items, grid inventories, and any system where an item can occupy several cells.</p>
+<h3 id="what-to-implement_3">What to implement</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ShapedItemsBinding</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">PlacementInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">MyPlacementModel</span><span class="o">&gt;</span><span class="w"> </span><span class="n">_placements</span><span class="p">;</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">IEnumerable</span><span class="o">&lt;</span><span class="n">PlacementData</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">GetPlacements</span><span class="p">()</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">placement</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">_placements</span><span class="p">)</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">            </span><span class="k">yield</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PlacementData</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="o">&gt;</span><span class="p">(</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">                </span><span class="n">placement</span><span class="p">.</span><span class="n">Items</span><span class="p">,</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">                </span><span class="n">placement</span><span class="p">.</span><span class="n">AnchorIndex</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">                </span><span class="n">placement</span><span class="p">.</span><span class="n">Orientation</span><span class="p">);</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="w"> </span><span class="nf">CreateAdapter</span><span class="p">(</span><span class="n">ItemModel</span><span class="w"> </span><span class="n">item</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="n">ItemModel</span><span class="w"> </span><span class="nf">ExtractData</span><span class="p">(</span><span class="n">ItemModelAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">adapter</span><span class="p">.</span><span class="n">Model</span><span class="p">;</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">AddPlacementData</span><span class="p">(</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">        </span><span class="n">PlacementCommitContext</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">        </span><span class="n">_placements</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">MyPlacementModel</span><span class="p">(</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">            </span><span class="n">context</span><span class="p">.</span><span class="n">Data</span><span class="p">,</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">            </span><span class="n">context</span><span class="p">.</span><span class="n">AnchorIndex</span><span class="p">,</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">            </span><span class="n">context</span><span class="p">.</span><span class="n">Orientation</span><span class="p">));</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemovePlacementData</span><span class="p">(</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">        </span><span class="n">PlacementCommitContext</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">        </span><span class="n">RemovePlacementAt</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">AnchorIndex</span><span class="p">);</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="what-changed-in-the-current-api">What changed in the current API</h3>
+<p><code>PlacementData&lt;TData&gt;</code> now stores <code>Items</code>, the full list of item instances in the placement.</p>
+<p><code>PlacementCommitContext&lt;TData, TAdapter&gt;</code> now exposes:</p>
+<ul>
+<li><code>Data</code> — data for every adapter in the transferred stack</li>
+<li><code>Adapters</code> — all typed adapters from the transferred stack</li>
+<li><code>PrimaryData</code> / <code>Adapter</code> — the first item, only as a convenience for single-item cases</li>
+</ul>
+<p>Use <code>context.Data</code> when a stack can contain different instances. Use <code>PrimaryData</code> only when the slot really stores one item or your items are fully homogeneous.</p>
+<hr />
 <h2 id="base-class-inventorydatabindingbase">Base class: InventoryDataBindingBase</h2>
-<p>All three templates inherit from <code>InventoryDataBindingBase</code>. You normally don't inherit from it directly, but it's useful to know which virtual methods are available for override:</p>
+<p>All templates inherit from <code>InventoryDataBindingBase</code>. You normally don't inherit from it directly, but it's useful to know which virtual methods are available for override:</p>
 <table>
 <thead>
 <tr>
@@ -2496,18 +2630,9 @@
 <td><code>null</code></td>
 <td>Item conversion between inventories with different formats</td>
 </tr>
-<tr>
-<td><code>CanHandleOccupiedSlotDrop(entry, slot)</code></td>
-<td><code>false</code></td>
-<td>Custom handling for drops onto occupied slots</td>
-</tr>
-<tr>
-<td><code>ExecuteOccupiedSlotDrop(entry, slot)</code></td>
-<td><code>false</code></td>
-<td>Execute the custom occupied slot drop</td>
-</tr>
 </tbody>
 </table>
+<p>Occupied-slot drop handling is no longer a virtual method on <code>InventoryDataBindingBase</code>. Implement <code>IPreRuleOccupiedSlotDropHandler</code> or <code>IPostRuleOccupiedSlotDropHandler</code> on your binding instead. See <a href="../../reference/optional-interfaces/">Optional Interfaces</a>.</p>
 <p>Helper methods are also available:</p>
 <ul>
 <li><code>ReloadUI()</code> — full resync of UI with data</li>
@@ -2527,30 +2652,30 @@
 <li><code>64 / 6 = 10</code> (integer division) — remainder lost on each call</li>
 </ul>
 <p>Solution — accumulate removed items and consume ingredients once:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">CraftResultDataBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryDataBindingBase</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="p">;</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnItemRemovedFromUI</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="c1">// Only accumulate, don&#39;t consume yet</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">Stack</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDropCompletedFrom</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">        </span><span class="c1">// Called once after the entire transfer</span>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">craftsConsumed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">resultCount</span><span class="p">;</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="n">manager</span><span class="p">.</span><span class="n">ConsumeCraftIngredients</span><span class="p">(</span><span class="n">craftsConsumed</span><span class="p">);</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">CraftResultDataBinding</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">InventoryDataBindingBase</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="p">;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnItemRemovedFromUI</span><span class="p">(</span><span class="n">InventoryItemEventContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="c1">// Only accumulate, don&#39;t consume yet</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">Stack</span><span class="p">.</span><span class="n">Count</span><span class="p">;</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDropCompletedFrom</span><span class="p">(</span><span class="n">DragContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">        </span><span class="c1">// Called once after the entire transfer</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">craftsConsumed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">resultCount</span><span class="p">;</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">        </span><span class="n">_pendingRemovedItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">        </span><span class="n">manager</span><span class="p">.</span><span class="n">ConsumeCraftIngredients</span><span class="p">(</span><span class="n">craftsConsumed</span><span class="p">);</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="dragamountstep">DragAmountStep</h3>
 <p>The transfer respects the source inventory's <code>DragAmountStep</code>: the <strong>total</strong> number of transferred items is rounded down to a multiple of the step. This guarantees that the sum of all placements is divisible by the step, even if individual placements are not.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// In the source inventory:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// Transfer: total = floor(total / step) * step</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// In the source inventory:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">_inventory</span><span class="p">.</span><span class="n">SetDragAmountStep</span><span class="p">(</span><span class="n">recipe</span><span class="p">.</span><span class="n">ResultCount</span><span class="p">,</span><span class="w"> </span><span class="n">DragAmountStepRounding</span><span class="p">.</span><span class="n">Ceil</span><span class="p">);</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1">// Transfer: total = floor(total / step) * step</span>
 </code></pre></div>
 
 

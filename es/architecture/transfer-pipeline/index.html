@@ -2180,12 +2180,35 @@ destino no ocupen justo las celdas a las que el resto debería volver. Un movimi
 completo puede hacer un intento aparte con el origen eliminado temporalmente, y debe mover
 toda la entrada o revertirse.</p>
 <h3 id="destino-ocupado-con-handler">Destino ocupado con handler</h3>
-<p>Si el slot destino está ocupado y el binding del inventario implementa
-<code>CanHandleOccupiedSlotDrop</code> y <code>ExecuteOccupiedSlotDrop</code>, ese handler corre primero,
-después de las reglas, como comprobación pura, y luego se ejecuta todo-o-nada. Si
-<code>ExecuteOccupiedSlotDrop</code> devuelve false, la transferencia se cancela y el estado se
-restaura. Si devuelve true, la transferencia termina; si los objetos movidos no fueron
-procesados, desaparecerán. El handler no inicia alternatives ni swap después.</p>
+<p>Si un item se suelta sobre un slot ocupado, el DataBinding del inventario destino puede tomar control de ese caso mediante <code>IOccupiedSlotDropHandler</code>.</p>
+<p>Hay dos variantes de timing:</p>
+<table>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Cuándo se comprueba</th>
+<th>Cuándo usarla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IPreRuleOccupiedSlotDropHandler</code></td>
+<td>antes de las drop rules del slot destino</td>
+<td>soltar sobre el slot ocupado realmente significa otro destino, por ejemplo un contenedor dentro de ese slot</td>
+</tr>
+<tr>
+<td><code>IPostRuleOccupiedSlotDropHandler</code></td>
+<td>después de las drop rules del slot destino</td>
+<td>el comportamiento personalizado debe pasar primero las reglas normales del destino</td>
+</tr>
+</tbody>
+</table>
+<p><code>ExecuteOccupiedSlotDrop</code> devuelve <code>OccupiedSlotDropResult</code>:</p>
+<ul>
+<li><code>Handled</code> — el handler ejecutó la acción; no se ejecutan la colocación normal, alternative placement ni swap.</li>
+<li><code>Rejected</code> — el handler rechazó la acción; la transferencia se cancela y el estado se restaura a la copia guardada.</li>
+<li><code>Fallthrough</code> — el handler no toma control de este intento; continúa el pipeline normal para un slot ocupado.</li>
+</ul>
 <h3 id="batch">Batch</h3>
 <pre class="mermaid"><code>flowchart TD
     A["Validar la petición una vez&lt;br/&gt;CanStartTransfer / CanStartTransferAsync"] --&gt; B["Entrada commit 1"]
@@ -2316,8 +2339,8 @@ por 6.</p>
 </tr>
 <tr>
 <td><strong>Handler de slot ocupado</strong></td>
-<td><code>IOccupiedSlotDropHandler</code></td>
-<td>Comportamiento propio al soltar sobre un slot ocupado, como equipar o meter en contenedor.</td>
+<td><code>IPreRuleOccupiedSlotDropHandler</code> / <code>IPostRuleOccupiedSlotDropHandler</code></td>
+<td>Comportamiento propio al soltar sobre un slot ocupado, como equipar o meter en contenedor. Se implementa en DataBinding.</td>
 </tr>
 <tr>
 <td><strong>Ciclo de vida de slots dinámicos</strong></td>

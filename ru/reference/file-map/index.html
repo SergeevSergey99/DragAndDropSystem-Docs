@@ -2649,7 +2649,7 @@
 <tr>
 <td><code>Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs</code></td>
 <td><code>SlotIndexedInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
-<td>Базовый binding для slot-indexed данных, например hotbar, crafting grid и фиксированных массивов.</td>
+<td>Базовый binding для slot-indexed данных; читает и записывает полный список элементов/адаптеров в каждом слоте.</td>
 </tr>
 <tr>
 <td><code>Scripts/DataBinding/GameManagerExample.cs</code></td>
@@ -3479,7 +3479,7 @@
 <tr>
 <td><code>Scripts/DataBinding/PlacementInventoryDataBinding.cs</code></td>
 <td><code>PlacementData&lt;TData&gt;</code>, <code>PlacementCommitContext&lt;TData,TAdapter&gt;</code>, <code>PlacementInventoryDataBinding&lt;TData,TAdapter&gt;</code></td>
-<td>Binding template для инвентарей, которые сохраняют anchor/orientation placement data.</td>
+<td>Binding template для инвентарей, которые сохраняют anchor/orientation и все item-экземпляры в размещении.</td>
 </tr>
 <tr>
 <td><code>Scripts/Interaction/RuntimeInteractionSnapshot.cs</code></td>
@@ -3523,8 +3523,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Inventories/InventoryRuntimeCapabilities.cs</code></td>
-<td><code>IInventoryRuleEvaluator</code>, <code>IOccupiedSlotDropHandler</code>, <code>IDynamicSlotLifecycle</code>, <code>IInventoryEventSink</code></td>
-<td>Runtime capability interfaces, которые движок использует без жёсткой зависимости от <code>UniversalInventory</code>.</td>
+<td><code>IInventoryRuleEvaluator</code>, <code>IOccupiedSlotDropHandler</code>, <code>IPreRuleOccupiedSlotDropHandler</code>, <code>IPostRuleOccupiedSlotDropHandler</code>, <code>IDynamicSlotLifecycle</code>, <code>IInventoryEventSink</code></td>
+<td>Runtime capability interfaces, которые движок использует без жёсткой зависимости от <code>UniversalInventory</code>; occupied-slot handlers реализуются на DataBinding.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/PlacementCandidateSource.cs</code></td>

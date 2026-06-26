@@ -2649,7 +2649,7 @@
 <tr>
 <td><code>Scripts/DataBinding/SlotIndexedInventoryDataBinding.cs</code></td>
 <td><code>SlotIndexedInventoryDataBinding&lt;TData, TAdapter&gt;</code></td>
-<td>Binding base for slot-indexed data such as hotbars, crafting grids, and fixed arrays.</td>
+<td>Binding base for slot-indexed data; reads and writes the full item/adapter list in each slot.</td>
 </tr>
 <tr>
 <td><code>Scripts/DataBinding/GameManagerExample.cs</code></td>
@@ -3479,7 +3479,7 @@
 <tr>
 <td><code>Scripts/DataBinding/PlacementInventoryDataBinding.cs</code></td>
 <td><code>PlacementData&lt;TData&gt;</code>, <code>PlacementCommitContext&lt;TData,TAdapter&gt;</code>, <code>PlacementInventoryDataBinding&lt;TData,TAdapter&gt;</code></td>
-<td>Binding template for inventories that persist anchor/orientation placement data.</td>
+<td>Binding template for inventories that persist anchor/orientation and every item instance in a placement.</td>
 </tr>
 <tr>
 <td><code>Scripts/Interaction/RuntimeInteractionSnapshot.cs</code></td>
@@ -3523,8 +3523,8 @@
 </tr>
 <tr>
 <td><code>Scripts/Inventories/InventoryRuntimeCapabilities.cs</code></td>
-<td><code>IInventoryRuleEvaluator</code>, <code>IOccupiedSlotDropHandler</code>, <code>IDynamicSlotLifecycle</code>, <code>IInventoryEventSink</code></td>
-<td>Runtime capability interfaces used by the engine without a hard dependency on <code>UniversalInventory</code>.</td>
+<td><code>IInventoryRuleEvaluator</code>, <code>IOccupiedSlotDropHandler</code>, <code>IPreRuleOccupiedSlotDropHandler</code>, <code>IPostRuleOccupiedSlotDropHandler</code>, <code>IDynamicSlotLifecycle</code>, <code>IInventoryEventSink</code></td>
+<td>Runtime capability interfaces used by the engine without a hard dependency on <code>UniversalInventory</code>; occupied-slot handlers are implemented on DataBinding.</td>
 </tr>
 <tr>
 <td><code>Scripts/Inventories/PlacementCandidateSource.cs</code></td>

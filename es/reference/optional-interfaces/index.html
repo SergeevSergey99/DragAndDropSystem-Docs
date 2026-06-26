@@ -1475,6 +1475,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ioccupiedslotdrophandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IOccupiedSlotDropHandler
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#istacksizelimitable" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1868,6 +1879,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ioccupiedslotdrophandler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IOccupiedSlotDropHandler
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#istacksizelimitable" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1935,6 +1957,10 @@
 <tr>
 <td>Preguntar a un servidor u otro sistema externo antes de transferir</td>
 <td><code>IAsyncTransferDomainHandler</code></td>
+</tr>
+<tr>
+<td>Añadir comportamiento especial al soltar sobre un slot ocupado: insertar en contenedor, equipar, abrir un item</td>
+<td><code>IPreRuleOccupiedSlotDropHandler</code> o <code>IPostRuleOccupiedSlotDropHandler</code></td>
 </tr>
 <tr>
 <td>Definir distintos límites de stack para distintos items</td>
@@ -2029,12 +2055,84 @@
 <li>si la comprobación falla, la transferencia no empieza</li>
 <li>si la comprobación es rápida y local, normalmente basta con <code>ITransferDomainHandler</code></li>
 </ul>
+<h2 id="ioccupiedslotdrophandler">IOccupiedSlotDropHandler</h2>
+<p><code>IOccupiedSlotDropHandler</code> sirve cuando soltar sobre un slot ocupado debe significar una acción propia, no swap normal ni colocación alternativa.</p>
+<p>Ejemplos:</p>
+<ul>
+<li>soltar un item sobre una bolsa para meterlo dentro</li>
+<li>soltar un item sobre un slot equipado para hacer un reemplazo especial</li>
+<li>soltar una llave sobre un contenedor para abrirlo</li>
+</ul>
+<p>No implementes directamente <code>IOccupiedSlotDropHandler</code>. Implementa una de las interfaces de timing:</p>
+<table>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Cuándo se ejecuta</th>
+<th>Para qué sirve</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IPreRuleOccupiedSlotDropHandler</code></td>
+<td>antes de las drop rules del slot destino</td>
+<td>el drop realmente va dirigido al objeto dentro del slot, por ejemplo un contenedor</td>
+</tr>
+<tr>
+<td><code>IPostRuleOccupiedSlotDropHandler</code></td>
+<td>después de las drop rules del slot destino</td>
+<td>las reglas normales del destino deben permitir el drop primero</td>
+</tr>
+</tbody>
+</table>
+<p>Normalmente la interface se implementa en el DataBinding del inventario destino:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ContainerInventoryBinding</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">:</span><span class="w"> </span><span class="n">SlotIndexedInventoryDataBinding</span><span class="o">&lt;</span><span class="n">ItemModel</span><span class="p">,</span><span class="w"> </span><span class="n">ItemModelAdapter</span><span class="o">&gt;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span><span class="n">IPreRuleOccupiedSlotDropHandler</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">CheckOccupiedSlotDrop</span><span class="p">(</span><span class="n">DragEntry</span><span class="w"> </span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">occupiedSlot</span><span class="p">)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">occupiedSlot</span><span class="p">.</span><span class="n">Stack</span><span class="o">?.</span><span class="n">PrimaryAdapter</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ContainerAdapter</span><span class="p">;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">OccupiedSlotDropResult</span><span class="w"> </span><span class="nf">ExecuteOccupiedSlotDrop</span><span class="p">(</span><span class="n">DragEntry</span><span class="w"> </span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="n">BaseSlot</span><span class="w"> </span><span class="n">occupiedSlot</span><span class="p">)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nf">TryPutIntoContainer</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="n">occupiedSlot</span><span class="p">)</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="n">OccupiedSlotDropResult</span><span class="p">.</span><span class="n">Handled</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">            </span><span class="p">:</span><span class="w"> </span><span class="n">OccupiedSlotDropResult</span><span class="p">.</span><span class="n">Rejected</span><span class="p">;</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>ExecuteOccupiedSlotDrop</code> devuelve:</p>
+<table>
+<thead>
+<tr>
+<th>Resultado</th>
+<th>Qué hace el pipeline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Handled</code></td>
+<td>el handler ejecutó la acción; no se ejecutan el drop normal, swap ni colocación alternativa</td>
+</tr>
+<tr>
+<td><code>Rejected</code></td>
+<td>el handler rechazó la acción; la transferencia se revierte</td>
+</tr>
+<tr>
+<td><code>Fallthrough</code></td>
+<td>el handler decide no interceptar; la transferencia continúa como un drop normal sobre un slot ocupado</td>
+</tr>
+</tbody>
+</table>
+<p>Si el handler devuelve <code>Handled</code> o <code>Rejected</code>, termina ese intento de transferencia. El sistema no ejecuta swap ni colocación alternativa después.</p>
 <h2 id="istacksizelimitable">IStackSizeLimitable</h2>
 <p><code>IStackSizeLimitable</code> permite que un item concreto defina su propio límite de stack:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">AmmoAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IStackSizeLimitable</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MaxStackSize</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="mi">120</span><span class="p">;</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">AmmoAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IStackSizeLimitable</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MaxStackSize</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="mi">120</span><span class="p">;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 </code></pre></div>
 <p>Ejemplos:</p>
 <ul>
@@ -2071,10 +2169,10 @@ Si está activado y el item implementa <code>IStackSizeLimitable</code>, el lím
 </table>
 <h2 id="idescribable">IDescribable</h2>
 <p><code>IDescribable</code> permite que un adapter entregue una descripción del item para la UI.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IDescribable</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Description</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_item</span><span class="p">.</span><span class="n">Description</span><span class="p">;</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ItemAdapter</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">IItemAdapter</span><span class="p">,</span><span class="w"> </span><span class="n">IDescribable</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Description</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_item</span><span class="p">.</span><span class="n">Description</span><span class="p">;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">}</span>
 </code></pre></div>
 <p>El ejemplo estándar <code>DefaultTooltipView</code> muestra <code>Description</code> cuando el adapter implementa <code>IDescribable</code>.</p>
 <p>También puedes usar esta interface en tu propia UI:</p>
