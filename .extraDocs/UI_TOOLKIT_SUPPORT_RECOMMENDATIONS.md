@@ -1,617 +1,492 @@
 # UI Toolkit Support Recommendations
 
-**Last Updated**: 2026-04-25
-
-## Актуальный статус
-
-Документ всё ещё актуален по главному выводу: UI Toolkit лучше добавлять через отдельный adapter/view layer, а не через `if (uGUI/UITK)` внутри текущих компонентов.
-
-Что изменилось в коде с момента первой версии:
-- slot-сущность теперь называется `BaseSlot`; отдельного `ISlot` interface в runtime нет;
-- `SlotInteractionAction` уже работает через `RuntimeInteractionSnapshot`, поэтому action layer стал менее привязан к `SlotInputAdapter`, чем раньше;
-- но `RuntimeInteractionSnapshot`, `InputEventRouter`, `PointerBinding`, tooltip, drop areas и navigation всё ещё завязаны на `PointerEventData`, `Selectable`, `InventoryDropArea`, `RectTransform` и `Canvas`;
-- `UniversalInventory` кэширует `BaseSlot` через `GetComponentsInChildren<BaseSlot>()`, поэтому UITK `VisualElement` всё ещё не может быть полноценным slot backend без выделения отдельного slot contract/model.
-
-Вывод: рекомендация "делать вариант B" остаётся правильной, но первый шаг теперь следует формулировать не как `ISlot -> interface`, а как `BaseSlot/slot model -> framework-neutral contract + uGUI implementation`.
-
-Документ фиксирует практические рекомендации по добавлению поддержки Unity UI Toolkit в `UniversalDragAndDrop`.
+**Last Updated**: 2026-07-24
+**Status**: актуализировано по текущему runtime-коду и policy-driven JIT transfer architecture
 
 ## Короткий вывод
 
-Поддержка UI Toolkit в текущем проекте **реалистична**, но это не "маленькая интеграция".
+Поддержка UI Toolkit реалистична, но это отдельный UI backend, а не локальная замена
+`Image` на `VisualElement`.
 
-Сложность:
-- **Средняя**, если делать только базовый drag & drop без полного parity с текущим uGUI UX.
-- **Выше средней / высокая**, если нужна полноценная поддержка:
-  - pointer + keyboard/gamepad;
-  - tooltip;
-  - context menu;
-  - drag visual;
-  - batch drag;
-  - area drop;
-  - сохранение совместимости текущего API.
+Рекомендуемый путь:
 
-Главный вывод:
-- **core transfer pipeline уже достаточно хорошо отделен от UI**;
-- **input/presentation слой пока сильно привязан к uGUI**;
-- поэтому UI Toolkit лучше добавлять **как отдельный адаптерный слой**, а не как набор условных `if` внутри существующих uGUI-компонентов.
+1. Не менять transfer semantics ради UI Toolkit.
+2. Сначала сделать ограниченный vertical slice поверх существующих `DragAndDropManager`,
+   `DragContext` и `InventoryDropProcessor`.
+3. По результатам spike выделить framework-neutral slot identity, interaction event и view geometry.
+4. Сохранить uGUI как отдельный adapter и добавить UI Toolkit adapter.
+5. Разделять assembly только вместе с продуманной миграцией публичного API.
 
-## Что уже хорошо подготовлено
+Полный рефакторинг `BaseSlot` до первого работающего прототипа не рекомендуется: сейчас этот тип
+является частью почти всех inventory, placement и transfer contracts, поэтому преждевременная
+массовая замена создаст большой риск регрессий и не подтвердит, что выбран правильный UI seam.
 
-Текущая архитектура уже дает сильную базу для UI Toolkit:
+## Архитектурная база, которую нужно сохранить
 
-- `DragAndDropManager` управляет lifecycle drag и routing в `IDropProcessor`;
-- `InventoryDropProcessor` уже выступает границей между UI target layer и transfer core;
-- `TransferPlanner` / `TransferPlanExecutor` / `InventoryTransferService` в целом не зависят от UI-фреймворка;
-- правила (`Global`, `Inventory`, `Slot`) уже отделены от конкретного UI;
-- `SelectionManager` и `SelectionContext` — data-driven, работают с `HashSet<BaseSlot>` и `Dictionary<IInventory, List<BaseSlot>>` без прямой зависимости от uGUI-компонентов. Визуальный feedback (`SlotSelectionView`) привязан к `MonoBehaviour`, но state management переносим после выделения framework-neutral slot contract;
-- `InputEventRouter` концептуально отделяет raw input от действий;
-- `RuntimeInteractionSnapshot` уже является полезной промежуточной абстракцией между input router и actions, но пока всё ещё содержит `PointerEventData` и uGUI/drop-area references;
-- `.claude`-документация прямо фиксирует намерение держать input отдельно от transfer/domain logic.
+Текущий transfer pipeline уже достаточно отделён от конкретной отрисовки:
 
-Это значит, что **переписывать ядро drag/drop и selection state не нужно** — только визуальные компоненты.
+1. `DropRequestPolicy`, `DropPolicySettings` и `ResolvedDropPolicy` разрешают поведение drop.
+2. `InventoryDropProcessor` является границей inventory drop.
+3. `InventoryTransferService` обрабатывает entries последовательно и just-in-time против текущего
+   состояния inventory.
+4. `IStrategy.TryGetCandidate(...)` проверяет explicit target.
+5. `IStrategy.GetCandidates(...)` и `PlacementCandidateOrderer` используются только для
+   автоматического размещения.
+6. `InventoryAcceptanceRequest` и `TransferItemConversionUtility` обеспечивают target-aware preview
+   до mutation.
+7. Swap исполняется в том же pipeline, что и обычный transfer.
+8. Rollback ограничен текущим неуспешным entry; batch остаётся best-effort.
+9. `IAsyncTransferDomainHandler` вызывается один раз до любых mutation через async execution path.
+10. `IInventoryTopology` владеет footprint projection, orientation count, rotation, visual angle и
+    преобразованием grab offset.
 
-## Что сейчас мешает UI Toolkit
+В архитектуре больше нет актуального `TransferPlanner` / `TransferPlanExecutor` split и не должно
+появляться materialized transfer plan или virtual inventory state. UI Toolkit backend обязан
+использовать существующий JIT pipeline, а не строить параллельный resolver/executor.
 
-### 1. `BaseSlot` является `abstract class : MonoBehaviour`
+Ключевые файлы для сверки:
 
-Файл: `Scripts/Slots/BaseSlot.cs`
+- `Scripts/DragAndDropManager.cs`
+- `Scripts/Core/Models/DragContext.cs`
+- `Scripts/Inventories/InventoryDropProcessor.cs`
+- `Scripts/Inventories/InventoryTransferEngine.cs`
+- `Scripts/Inventories/InventoryTransferService.cs`
+- `Scripts/Inventories/Strategies/IStrategy.cs`
+- `Scripts/Inventories/IPlacementInventory.cs`
+- `Scripts/Core/Models/InventoryTopology.cs`
 
-Важно: текущий slot contract фактически живёт в `BaseSlot`, а `BaseSlot` наследует `MonoBehaviour`.
-Это значит, что UITK `VisualElement` не может быть полноценным slot object'ом в текущей модели — наследование от двух классов невозможно в C#.
+## Что уже пригодно для второго UI backend
 
-Сейчас слот одновременно является:
-- доменной сущностью;
-- view-компонентом (`UniversalSlot` использует `Image`, `CanvasGroup`);
-- сценовым объектом (expose `Transform` через `virtual Transform Transform => transform`);
-- объектом, на который завязаны selection, drag source и drop target.
+### Drag lifecycle и drop routing
 
-Для uGUI это удобно.
-Для UI Toolkit это **фундаментальный блокер**, потому что `VisualElement` не может стать наследником `MonoBehaviour`.
+`DragAndDropManager` уже хранит `DragContext`, активный `IDropTarget` и stack drop targets. Он умеет:
 
-Следствие:
-- текущий слот нельзя напрямую переиспользовать как UITK element;
-- **первым шагом** должно быть выделение framework-neutral slot contract/model из `BaseSlot`, с сохранением uGUI-реализации как `MonoBehaviour`;
-- без этого шага ни bridge-слой, ни разделение state/view не будут чистыми.
+- начинать single и batch drag;
+- менять topology-defined orientation через `RotateCurrentDrag(...)`;
+- завершать и отменять drag;
+- выполнять split drop;
+- маршрутизировать inventory drop через `InventoryDropProcessor`.
 
-### 2. `UniversalInventory` ожидает scene/prefab slots
+UI Toolkit adapter должен вызывать этот lifecycle, а не заводить собственное drag state.
 
-Файл: `Scripts/Inventories/UniversalInventory.cs`
+### Transfer boundary
 
-Сейчас инвентарь:
-- кэширует слоты через `GetComponentsInChildren<BaseSlot>()`;
-- инстанцирует `UniversalSlot` prefab;
-- хранит список `BaseSlot`, которые фактически являются `GameObject`-компонентами.
+`InventoryDropProcessor` уже принимает target slot или inventory area и возвращает advisory
+`TransferProbe` для preview. Его async метод `ProcessDropWithReportAsync(...)` сохраняет
+transfer-wide domain validation.
 
-Это означает, что текущий `UniversalInventory` спроектирован вокруг object-based scene UI, а не вокруг data-driven UITK tree.
+Важно: UITK drop completion не должен напрямую вызывать синхронный `ProcessDrop(...)`, если
+операция может иметь `IAsyncTransferDomainHandler`. Безопасный путь — завершать drag через
+`DragAndDropManager`, как это делает текущий uGUI flow.
 
-### 3. Input pipeline привязан к `PointerEventData` и `Selectable`
+### Placement и shaped items
 
-Файлы:
-- `Scripts/Interaction/SlotInputAdapter.cs`
-- `Scripts/Interaction/InputEventRouter.cs`
-- `Scripts/Interaction/SlotInteractionActions.cs`
+Shaped placement уже является текущей возможностью, а не будущим расширением. UI backend не должен
+сам вычислять footprint или предполагать четыре поворота по 90 градусов. Он получает orientation и
+covered slots/cells через активную topology и существующий preview pipeline.
 
-Сейчас маршрут выглядит так:
+### Selection state
 
-`EventSystem -> SlotInputAdapter -> InputEventRouter -> PointerBinding -> SlotInteractionAction`
+`SelectionManager` и `SelectionContext` отделяют состояние selection от его отображения, хотя
+по-прежнему используют `BaseSlot` как identity. UITK понадобится собственный visual presenter,
+но отдельный selection algorithm не нужен.
 
-Проблемы для UI Toolkit:
-- `SlotInputAdapter` наследуется от `Selectable`;
-- pointer flow использует `PointerEventData`;
-- focus/navigation опираются на `EventSystem.currentSelectedGameObject`;
-- actions уже принимают `RuntimeInteractionSnapshot`, но snapshot всё ещё несёт `PointerEventData`, `InventoryDropArea` и `BaseSlot`, поэтому контракт только частично отвязан от uGUI;
-- **критично**: `InputEventRouter.FindBestFocusTarget()` итерирует `Selectable.allSelectablesArray` — глобальный реестр uGUI. Для UITK потребуется полностью альтернативная система focus tracking, а не просто замена типов в сигнатурах.
+## Реальные блокеры в текущем коде
 
-Это главный и **самый сложный** участок рефакторинга. Простая замена `PointerEventData` на нейтральную структуру недостаточна — нужна замена механизма обнаружения и переключения focus targets.
+### 1. `BaseSlot` одновременно domain identity и uGUI scene component
 
-### 4. Presentation layer тоже uGUI-specific
+`BaseSlot : MonoBehaviour, ISlot` сейчас одновременно:
 
-Файлы:
-- `Scripts/UI/DragVisualPresenter.cs`
-- `Scripts/UI/TooltipManager.cs`
-- `Scripts/ContextMenu/UI/UniversalContextMenuView.cs`
-- `Scripts/ContextMenu/UI/ContextMenuViewBase.cs`
-- `Scripts/UI/InventoryDropArea.cs`
+- идентифицирует слот по `Index` и `Inventory`;
+- предоставляет stack и slot rules;
+- участвует в `DragEntry`, `DragContext`, `DropResult`, transfer requests и events;
+- используется placement topology и strategies;
+- управляет visual hooks (`UpdateVisuals`, dragged/highlight state);
+- обнаруживается через `GetComponent`;
+- существует как scene/prefab component.
 
-Сейчас здесь используются:
-- `Canvas`;
-- `RectTransform`;
-- `Image`;
-- `Selectable`;
-- `TextMeshProUGUI`;
-- позиционирование через экранные координаты и `RectTransformUtility`.
+`VisualElement` не может наследоваться от `MonoBehaviour`, поэтому полноценный UITK slot не может
+быть `BaseSlot`.
 
-Для UI Toolkit эти компоненты почти не переиспользуются.
-Даже `ContextMenuViewBase`, несмотря на комментарий про UI Toolkit, сейчас наследует `MonoBehaviour`; для UITK это может быть scene-wrapper, но не сам `VisualElement` view.
+Существующий `ISlot` нельзя считать готовым решением. Это узкий read-only contract, используемый
+filter/sorter rules. Согласно текущим design rules slot-domain code остаётся на `BaseSlot`, а
+`ISlot` не является общей mutable slot identity. Его расширение ради UITK было бы скрытым breaking
+change. Для разделения потребуется новый, явно названный контракт или model type.
 
-Следствие:
-- drag ghost;
-- tooltip;
-- context menu;
-- area drop highlight
+### 2. `IInventory` и runtime capabilities завязаны на `BaseSlot`
 
-нужно будет или переписывать, или абстрагировать.
+`IInventory.Slots`, `GetSlot`, mutation methods, `IPlacementInventory`,
+`IDynamicSlotLifecycle`, `IInventoryEventSink` и acceptance APIs используют `BaseSlot`.
+Следовательно, простое добавление `IInventorySlotModel` затронет большой публичный API.
 
-## Реальные варианты реализации
+`UniversalInventory` дополнительно:
 
-Ниже 3 реалистичных варианта.
+- ищет slots через `GetComponentsInChildren<BaseSlot>()`;
+- хранит `List<BaseSlot>`;
+- создаёт slot prefab через `Instantiate`;
+- exposes `Transform SlotContainer`.
 
----
+Для production UITK backend создание domain slots и создание visual elements должны стать разными
+lifecycle, при этом view/layout не должны владеть item mutation.
 
-## Вариант A. Быстрый bridge поверх текущей архитектуры
+### 3. Interaction pipeline привязан к uGUI
 
-### Идея
+Текущий путь:
 
-Оставить текущие core-классы почти без изменений и добавить слой адаптеров для UI Toolkit, который:
-- строит визуальные `VisualElement`-слоты;
-- хранит связь `VisualElement <-> BaseSlot` или `VisualElement <-> future slot contract`;
-- вручную конвертирует UITK события в вызовы `InputEventRouter`;
-- отдельно реализует tooltip / drag ghost / context menu.
+`EventSystem -> SlotInputAdapter -> InputEventRouter -> binding/action -> DragAndDropManager`
 
-### Что потребуется
+Зависимости:
 
-Примерно такие новые классы:
+- `SlotInputAdapter : Selectable`;
+- `PointerEventData` и `PointerEventData.InputButton`;
+- `Selectable.allSelectablesArray`;
+- `EventSystem.currentSelectedGameObject`;
+- `GameObject`, `RectTransform` и `InventoryDropArea` внутри interaction state.
 
-- `UIToolkitInventoryView`
-- `UIToolkitSlotView`
-- `UIToolkitInputAdapter`
-- `UIToolkitDragVisualPresenter`
-- `UIToolkitTooltipPresenter`
-- `UIToolkitContextMenuView`
-- `UIToolkitDropArea`
+`RuntimeInteractionSnapshot` уже является полезной границей для actions, но всё ещё содержит
+`BaseSlot`, `DropAreaBase` и `PointerEventData`. Поэтому его нужно эволюционировать, а не создавать
+второй UITK-only action contract.
 
-### Плюсы
+### 4. `IDropTarget` частично framework-neutral
 
-- самый быстрый путь к рабочему прототипу;
-- почти не затрагивает текущий uGUI-код;
-- низкий риск сломать existing demos;
-- можно быстро показать support в маркетинговом смысле.
+Сам интерфейс не наследуется от Unity UI типов, но `GetTargetSlot()` возвращает `BaseSlot`, а
+`DragAndDropManager.ActivateDropTargetForSlot(...)` ищет target через
+`targetBaseSlot.GetComponent<IDropTarget>()`.
 
-### Минусы
+Ручные `PushDropTarget(...)` / `PopDropTarget(...)` позволяют сделать UITK bridge, однако
+production API должен отделить target identity от способа поиска view component.
 
-- архитектурный долг;
-- сохранится сильная зависимость core API от uGUI-типов;
-- часть логики будет дублироваться между uGUI и UITK;
-- navigation/focus будет неудобно поддерживать одинаково;
-- future shaped items и сложные grid-сценарии будет труднее развивать.
+### 5. Presentation layer является uGUI-specific
 
-### Когда выбирать
+Drag visual, tooltip, context menu, selection feedback, drop preview overlay и drop areas используют
+`Canvas`, `RectTransform`, `Graphic`, `Selectable`, `Image` и TextMeshProUGUI. Для UI Toolkit нужны
+отдельные presenters поверх `VisualElement`.
 
-Подходит, если цель:
-- быстро получить "UI Toolkit supported" в ограниченном scope;
-- выпустить experimental support;
-- проверить спрос до большого рефакторинга.
+Не стоит объединять drag visual, tooltip и context menu в один крупный
+`IInventoryOverlayPresenter`: у них разные lifecycle, input ownership и правила позиционирования.
+Предпочтительны небольшие отдельные contracts.
 
-### Оценка
+### 6. Runtime assembly напрямую зависит от uGUI
 
-- Базовый drag/drop: **1-2 недели**
-- С tooltip/context menu/navigation parity: **3-5 недель**
+`Scripts/DragAndDropSystem.Runtime.asmdef` содержит reference на `Unity.ugui`. Одних C# interfaces
+недостаточно, чтобы получить framework-neutral package boundary.
 
----
+Целевое направление:
 
-## Вариант B. Рефакторинг interaction contracts + две реализации view layer
+- neutral core/domain assembly;
+- uGUI adapter assembly;
+- UI Toolkit adapter assembly;
+- compatibility facade или migration layer для существующего public API.
 
-### Идея
+Физическое разделение assembly не следует делать первым коммитом: пока contracts принимают
+`BaseSlot`, оно приведёт к циклическим зависимостям или массовому breaking change.
 
-Сохранить transfer core, но вынести из input/action слоя все зависимости на uGUI в framework-neutral контракты.
+## Рекомендуемая стратегия
 
-После этого сделать две реализации:
-- `uGUI adapter layer`
-- `UI Toolkit adapter layer`
+Основная стратегия — refactor + два view adapters, но через vertical slice перед широким изменением
+API.
 
-Это наиболее сбалансированный вариант.
+### Почему не чистый быстрый bridge
 
-### Что именно нужно абстрагировать
+Bridge поверх текущего `BaseSlot` пригоден для spike, но как финальная реализация он сохранит
+двойную identity (`VisualElement <-> hidden BaseSlot`) и заставит UITK подстраиваться под
+`PointerEventData` и GameObject focus.
 
-Вместо связки:
-- `SlotInputAdapter`
-- `PointerEventData`
-- `GameObject selected`
+### Почему не полный redesign сразу
 
-ввести нейтральные структуры вроде:
+Полное разделение inventory data model, slots и views затронет transfer, DataBinding, placement,
+selection, events, examples и пользовательские extensions. Без работающего vertical slice трудно
+понять, какие abstractions действительно нужны.
 
-- `InventoryInteractionContext`
-- `PointerLikeEvent`
-- `NavigationAnchor`
-- `IInventorySlotViewHandle`
+### Выбранный компромисс
 
-Пример состава `InventoryInteractionContext`:
-- `UniversalInventory Inventory`
-- `BaseSlot Slot` на переходном этапе или `IInventorySlot` после выделения slot contract
-- `Vector2 ScreenPosition`
-- `FocusSource FocusSource`
-- `PointerButton Button`
-- `ModifierState Modifiers`
-- `InteractionPhase Phase`
-- `object SourceHandle`
+1. Временно использовать существующий `BaseSlot` как domain identity в spike.
+2. Связать его с `VisualElement` через registry/bridge.
+3. Маршрутизировать drag и drop через существующий manager и processor.
+4. После проверки сценариев выделить минимальные neutral contracts.
+5. Перевести uGUI и UITK на эти contracts постепенно.
 
-Тогда:
-- `SlotInteractionAction` уже принимает `RuntimeInteractionSnapshot`; следующий шаг — убрать из snapshot uGUI-specific поля;
-- `InputEventRouter` будет работать не с `PointerEventData`, а с нейтральным input event;
-- uGUI и UITK будут только поставщиками этих данных.
+Временный hidden/headless `BaseSlot` допустим только как исследовательский scaffolding. Он не должен
+становиться обещанным production API.
 
-### Плюсы
+## Scope первого vertical slice
 
-- хорошая архитектурная чистота;
-- намного легче поддерживать два UI backend;
-- меньше дублирования логики;
-- проще тестировать input pipeline;
-- лучше база под shaped items, grid placement и complex previews.
+Поддерживается:
 
-### Минусы
-
-- заметный объём рефакторинга;
-- затрагивает публичные extension points;
-- потребует аккуратной миграции `InteractionBindingsProfile` и `SlotInteractionAction`;
-- нужна регрессионная проверка существующих сцен.
-
-### Когда выбирать
-
-Это **рекомендуемый вариант**, если цель:
-- качественная долгосрочная поддержка UI Toolkit;
-- сохранение развития проекта без хака;
-- подготовка к релизу `v2` или крупному feature update.
-
-### Оценка
-
-- Этап 0 (`BaseSlot`/slot model → framework-neutral contract): **1-2 недели** (высокий риск регрессий, много зависимого кода)
-- Архитектурный рефакторинг contracts + focus system: **2-3 недели** (замена `Selectable.allSelectablesArray` и построение альтернативного focus tracking — основная сложность)
-- Базовый UITK backend: **1-2 недели**
-- Tooltip/context menu/navigation parity: **2-4 недели** (navigation parity — самый сложный UX-этап)
-
-Итого:
-- **6-10 недель** на качественную поддержку.
-
----
-
-## Вариант C. Полное разделение data model и visual slots
-
-### Идея
-
-Сделать более фундаментальный шаг:
-- перестать считать `BaseSlot` одновременно data-unit и visual component;
-- ввести отдельную модель слота;
-- представление слота в uGUI и UITK сделать чисто визуальным.
-
-Пример целевой модели:
-
-- `InventorySlotState` или `InventorySlotModel`
-- `IInventorySlotView`
-- `UguiSlotView`
-- `UitkSlotView`
-
-Тогда:
-- `UniversalInventory` работает с data slot list;
-- view layer только отражает состояние;
-- selection/focus/input держатся на runtime handles, а не на `MonoBehaviour`.
-
-### Плюсы
-
-- наиболее правильная архитектура;
-- отличная база для shaped items;
-- проще виртуализация списков и большие inventory grids;
-- легче тестировать и сериализовать;
-- лучшая совместимость с любым UI backend.
-
-### Минусы
-
-- это уже почти redesign значительной части current inventory presentation architecture;
-- большой риск регрессий;
-- существенно дороже по времени;
-- не лучший шаг прямо перед релизом.
-
-### Когда выбирать
-
-Подходит, если:
-- планируется крупный `v2`;
-- параллельно всё равно будет большой рефакторинг под shaped items;
-- приоритетом является долгосрочная архитектура, а не быстрый rollout.
-
-### Оценка
-
-- **6-12+ недель**, в зависимости от глубины переписывания и обратной совместимости.
-
----
-
-## Рекомендуемый путь
-
-Наиболее прагматичный маршрут для текущего проекта:
-
-1. **Не делать полный redesign сразу.**
-2. Сделать **Вариант B** как основную стратегию.
-3. Внутри него сначала реализовать **минимальный scope UITK**:
-   - single-slot drag/drop;
-   - pointer support;
-   - drag visual;
-   - basic hover;
-   - без полного context menu/navigation parity на первом этапе.
-4. После стабилизации добавить:
-   - selection;
-   - keyboard/gamepad navigation;
-   - tooltip;
-   - context menu;
-   - area drop.
-
-Причина:
-- Вариант A слишком быстро превращается в два почти разных input UI стека;
-- Вариант C сейчас слишком дорогой;
-- Вариант B дает наилучший баланс качества и скорости.
-
-## Что не стоит делать
-
-### 1. Не смешивать uGUI и UITK условными `if` по всему коду
-
-Плохой путь:
-- в `SlotInputAdapter`, `InputEventRouter`, `TooltipManager`, `ContextMenuView` добавлять ветки:
-  - "если uGUI";
-  - "если UITK".
-
-Почему плохо:
-- код быстро станет хрупким;
-- сложнее тестировать;
-- regressions будут дороже.
-
-### 2. Не делать `VisualElement` эквивалентом `MonoBehaviour`-слота без нового контракта
-
-Если просто сделать UITK view, но продолжить таскать через всю систему `SlotInputAdapter` и `PointerEventData`, получится ломкий bridge, который сложно расширять.
-
-### 3. Не переписывать transfer core ради UI Toolkit
-
-`TransferPlanner`, `TransferPlanExecutor`, `InventoryDropProcessor` и правила сейчас как раз уже достаточно отделены.
-
-UI Toolkit support не должен приводить к переписыванию policy/planner/executor слоя.
-
-## Конкретный план реализации
-
-Ниже минимальный рекомендуемый поэтапный план.
-
-### Этап 0. Выделить slot contract из `BaseSlot`
-
-Цель:
-- устранить фундаментальный блокер: `VisualElement` не может наследовать `MonoBehaviour`.
-
-Сделать:
-- ввести чистый runtime-контракт, например `IInventorySlot` или `IInventorySlotModel`;
-- оставить `BaseSlot : MonoBehaviour, IInventorySlot` как uGUI/scene implementation;
-- постепенно перевести core contracts с `BaseSlot` на новый интерфейс там, где не нужен `Transform`/`Component`;
-- обновить места, которые используют `BaseSlot` как `MonoBehaviour` (`GetComponent<BaseSlot>()`, `GetComponentsInChildren<BaseSlot>()`, кастинг к `Component`/`Transform`).
-
-Риски:
-- **самый рискованный этап** с точки зрения регрессий — `BaseSlot` используется повсеместно;
-- `GetComponentsInChildren<BaseSlot>()` в `UniversalInventory` нужно оставить для uGUI path или заменить на регистрацию слотов через view bridge;
-- нужна тщательная проверка всех мест, где `BaseSlot` используется как `MonoBehaviour`, `Component` или `Transform`.
-
-Результат:
-- UITK-слоты смогут иметь slot model/contract без наследования от `MonoBehaviour`;
-- существующий uGUI-код продолжит работать через `BaseSlot`.
-
-### Этап 1. Выделить framework-neutral interaction context
-
-Цель:
-- отвязать actions и router от `SlotInputAdapter` и `PointerEventData`.
-
-Сделать:
-- ввести нейтральную модель interaction event;
-- адаптировать `PointerBinding`;
-- адаптировать `SlotInteractionAction`;
-- убрать прямую зависимость action contracts от uGUI типов.
-
-Результат:
-- uGUI продолжит работать через adapter;
-- UITK сможет подключиться через другой adapter.
-
-### Этап 2. Выделить slot view handle
-
-Цель:
-- не использовать `GameObject` и `EventSystem.currentSelectedGameObject` как универсальную опору.
-
-Сделать:
-- ввести handle/anchor abstraction для focused/hovered slot;
-- хранить slot model/contract отдельно от view reference;
-- дать router возможность работать без `GameObject`.
-
-Результат:
-- navigation и quick actions станут переносимее.
-
-### Этап 3. Сделать UITK inventory view
-
-Сделать:
-- `UIDocument`/`VisualElement`-based inventory root;
-- visual slots;
-- биндинг slot model/contract -> `VisualElement`;
-- hover/pressed/focus state mapping;
-- отправку событий в router.
-
-Первый scope:
-- pointer enter/exit/down/up;
-- drag start;
-- drop on slot.
-
-### Этап 4. Сделать UITK drag visual presenter
-
-Сделать отдельный presenter для:
-- single drag visual;
-- batch drag visual;
-- follow pointer / navigation anchor.
-
-Важно:
-- не пытаться переиспользовать `Canvas` presenter через слой костылей;
-- сделать отдельную реализацию поверх `VisualElement` overlay.
-
-### Этап 5. Добавить UITK tooltip
-
-Сделать отдельный presenter:
-- show/hide;
-- delayed display;
-- screen clamping;
-- позиционирование относительно курсора или anchor element.
-
-### Этап 6. Добавить UITK context menu
-
-Сделать:
-- view для списка entries;
-- keyboard/gamepad navigation;
-- позиционирование около slot element;
-- закрытие через global action.
-
-### Этап 7. Выравнять navigation parity
-
-Самый сложный UX-этап.
-
-Нужно отдельно проверить:
-- current focused slot;
-- drag completion при navigation mode;
-- context menu loop;
-- selection operations;
-- quick actions;
-- active inventory switching.
-
-## Рекомендуемый минимальный API для абстракции
-
-Ниже не окончательная реализация, а направление.
-
-### `InventoryPointerEvent`
-
-Поля:
-- `Vector2 ScreenPosition`
-- `PointerButton Button`
-- `ModifierState Modifiers`
-- `InteractionPhase Phase`
-- `bool IsPrimary`
-
-### `ISlotViewHandle`
-
-Минимальный контракт для связи interaction layer с конкретным UI-элементом без привязки к фреймворку:
-- `Vector2 ScreenPosition { get; }` — позиция элемента на экране
-- `bool IsVisible { get; }` — виден ли элемент (для виртуализации списков)
-- `void SetVisualState(SlotVisualState state)` — hover/pressed/focused/selected
-
-Реализации:
-- `UguiSlotViewHandle` — обёртка над `RectTransform`
-- `UitkSlotViewHandle` — обёртка над `VisualElement`
-
-### `InventoryInteractionContext`
-
-Поля:
-- `UniversalInventory Inventory`
-- `BaseSlot Slot` на переходном этапе или `IInventorySlot Slot` после Этапа 0
-- `FocusSource FocusSource`
-- `InventoryPointerEvent Pointer`
-- `ISlotViewHandle ViewHandle`
-
-### `IInventoryViewBridge`
-
-Ответственность:
-- сообщать focused/hovered slot;
-- предоставлять anchor position;
-- отправлять raw UI events в router;
-- управлять focus tracking (замена `Selectable.allSelectablesArray` для UITK).
-
-Lifecycle: создаётся и владеется inventory view (uGUI или UITK). Регистрируется в `InputEventRouter` при `OnEnable`, снимается при `OnDisable`.
-
-### `IInventoryOverlayPresenter`
-
-Ответственность:
+- pointer enter/leave/down/up;
+- single-slot drag;
+- drop на explicit target slot;
+- area drop;
 - drag visual;
-- tooltip;
-- context menu.
+- basic hover и accept/reject preview;
+- текущая drop policy;
+- same-inventory move;
+- cross-inventory move;
+- swap;
+- async transfer-wide veto;
+- topology-defined rotation;
+- shaped placement preview и execution;
+- best-effort batch execution как минимум на уровне domain integration test.
 
-Lifecycle: создаётся на уровне сцены (один на canvas / UIDocument). Инвентари используют его через DI или singleton-доступ.
+Временно не поддерживается:
 
-Можно иметь две реализации:
-- `UguiInventoryOverlayPresenter`
-- `UitkInventoryOverlayPresenter`
+- полная keyboard/gamepad navigation parity;
+- UITK context menu parity;
+- tooltip parity;
+- virtualization большого списка;
+- drag между uGUI и UITK в одной сцене;
+- сохранение UITK view state как часть inventory snapshot.
 
-## Риски
+Если shaped items исключаются из первого пользовательского релиза, это должно быть явным
+ограничением backend. Но adapter всё равно не должен вводить grid-specific flags или предполагать
+четыре orientation steps.
 
-### 1. Поломка текущего API расширений
+## Поэтапный план
 
-Особенно чувствительные точки:
-- `SlotInteractionAction`
-- `PointerBinding`
-- `InteractionBindingsProfile`
-- `InventoryExtraInteractionBinder`
+### Этап 0. Зафиксировать compatibility contract и тестовый baseline
 
-Если их менять, нужно заранее решить:
-- что считать стабильным public API;
-- как сохранить compatibility;
-- где использовать deprecated-path.
+Перед изменениями:
 
-### 2. Navigation parity
+- перечислить public interaction и slot APIs, которые считаются стабильными;
+- определить поддерживаемые версии Unity/UI Toolkit;
+- зафиксировать feature matrix первого релиза;
+- добавить regression tests для pointer phases, focused/hovered/pressed resolution и drag
+  completion;
+- сохранить существующие transfer, swap, async и shaped placement tests как обязательный baseline.
 
-Pointer support сделать сравнительно просто.
+Результат: известен допустимый размер breaking changes и есть защита текущего uGUI поведения.
 
-Сложнее всего:
-- keyboard/gamepad navigation;
-- active inventory focus;
-- drag completion без pointer hover;
-- context menu navigation loop;
-- quick actions через "current slot".
+### Этап 1. Сделать experimental UITK vertical slice
 
-### 3. Дублирование логики presentation
+Добавить экспериментальные компоненты:
 
-Если не ввести нормальные контракты, tooltip/context menu/drag visual будут почти продублированы между uGUI и UITK.
+- UITK inventory root/bridge;
+- registry `VisualElement <-> BaseSlot`;
+- UITK slot view;
+- UITK pointer adapter;
+- UITK drag visual;
+- UITK drop target adapter.
 
-### 4. Рост стоимости будущих shaped items
+Adapter вручную вызывает `PushDropTarget` / `PopDropTarget`, `StartDrag`, `CompleteDrag` и
+`CancelDrag`. Inventory drop создаётся существующим `InventoryDropProcessor`; transfer logic не
+дублируется.
 
-Если UI Toolkit внедрить хаком, shaped items потом станут дороже.
+Результат: проверена жизнеспособность UI Toolkit event flow и собраны реальные требования к
+neutral contracts.
 
-Если делать аккуратно через abstraction layer, наоборот получится хорошая база.
+### Этап 2. Выделить framework-neutral interaction event
 
-### 5. Гибридные сцены uGUI + UITK
+Нужна neutral model как минимум с:
 
-Unity позволяет смешивать `Canvas` и `UIDocument` в одной сцене. Пользователи могут захотеть перетаскивать предметы между uGUI-инвентарём и UITK-инвентарём.
+- pointer id и button;
+- pointer phase;
+- screen/panel position;
+- modifier state;
+- primary-pointer flag;
+- consumed/handled semantics;
+- optional native payload только на adapter boundary.
 
-**Рекомендация: явно не поддерживать на первом этапе.**
+`PointerBinding` и actions должны сопоставлять neutral event. uGUI adapter преобразует
+`PointerEventData`, UITK adapter — `PointerEventBase`/конкретные UITK events.
 
-Cross-framework drag потребует:
-- единого coordinate space для drag visual (overlay поверх обоих систем);
-- маршрутизации drop events между двумя разными event pipeline;
-- сложного определения hover target при пересечении Canvas и UIDocument.
+`RuntimeInteractionSnapshot` сохраняется как единый action snapshot, но перестаёт требовать uGUI
+types для pointer-driven actions.
 
-Это edge case, который кратно увеличит сложность. Стоит зафиксировать в документации: "одна сцена — один UI framework для inventory system".
+### Этап 3. Разделить slot identity и slot view
 
-## Связь с roadmap проекта
+Не расширять существующий `ISlot` автоматически. Спроектировать отдельный минимальный contract,
+например `IInventorySlotHandle` или immutable slot id + inventory lookup.
 
-С учетом текущих проектных рекомендаций, UI Toolkit support выглядит как **крупное расширение платформы UI**, а не как мелкий polishing task.
+Contract должен покрывать только реально нужную domain identity:
 
-Практически это значит:
-- если приоритетом является быстрый релиз, UI Toolkit лучше вводить после стабилизации тестов и API;
-- если приоритетом является сильная техническая платформа следующей версии, UI Toolkit можно делать как часть большого архитектурного update.
+- inventory ownership;
+- stable index/id;
+- получение read-only stack/rules через inventory API;
+- equality/lifetime semantics;
+- dynamic slot creation/removal.
 
-Особенно важно не начинать эту работу без:
-- regression checks для transfer pipeline;
-- tests для interaction flows;
-- ясного понимания stable extension points.
+View contract хранится отдельно и предоставляет:
 
-## Практическая рекомендация
+- visibility/attachment state;
+- geometry anchor;
+- visual state application;
+- focus request;
+- framework-specific object только внутри adapter.
 
-Если нужен самый разумный путь:
+`BaseSlot` остаётся uGUI compatibility implementation. Core APIs переводятся постепенно, начиная с
+новых contracts и boundary types, а не механической заменой всех сигнатур.
 
-### Рекомендуемый сценарий
+### Этап 4. Ввести slot registry и framework-neutral lifecycle
 
-1. Зафиксировать current public interaction API.
-2. Добавить несколько тестов на pointer phases и focus-sensitive actions.
-3. Провести умеренный рефакторинг interaction contracts.
-4. Сделать experimental UITK backend.
-5. Довести parity только после подтверждения, что backend действительно удобен.
+`UniversalInventory` не должен создавать UITK elements через domain mutation. Нужны:
 
-### Не рекомендуемый сценарий
+- slot identity registry;
+- lifecycle notifications о create/remove/reindex;
+- uGUI prefab factory;
+- UITK element factory;
+- layout reaction без ownership item mutation.
 
-1. Сразу писать UITK поверх текущих `Selectable`/`PointerEventData` assumptions.
-2. Дублировать router behavior в отдельном UITK-only pipeline.
-3. Поддерживать два разных action contract для uGUI и UITK.
+Динамические slots должны по-прежнему создаваться transfer pipeline через runtime capability.
+View только отражает результат lifecycle.
 
-Это почти гарантированно усложнит проект.
+### Этап 5. Выделить view geometry и focus services
 
-## Итог
+Одного `Vector2 ScreenPosition` недостаточно. Contract должен учитывать:
 
-Поддержка UI Toolkit:
-- **вполне достижима**;
-- **лучше всего реализуется через adapter/refactor approach**;
-- **не требует переписывания transfer core**;
-- **требует рефакторинга interaction contracts и presentation layer**.
+- panel/world/local coordinates;
+- panel scale;
+- attachment к конкретному `Panel`/`UIDocument`;
+- bounds, а не только одну anchor point;
+- отсутствующий visual element при virtualization;
+- conversion в координаты overlay presenter.
 
-Если делать аккуратно, это может стать хорошим шагом к более зрелой архитектуре.
-Если делать быстро и локально, получится рабочий prototype, но с заметным архитектурным долгом.
+Focus/navigation service заменяет предположение о `Selectable.allSelectablesArray` и
+`EventSystem.currentSelectedGameObject`. uGUI и UITK предоставляют разные реализации.
+
+### Этап 6. Production UITK inventory и placement preview
+
+Реализовать:
+
+- fixed и dynamic slot views;
+- binding slot identity -> `VisualElement`;
+- hover/pressed/focused/selected states;
+- preview всех covered cells;
+- invalid/out-of-bounds preview;
+- topology-defined visual rotation;
+- grab-offset-aware target anchor;
+- area drop.
+
+UI layer использует `TransferProbe`, `TryGetDropPreviewSlots` или их будущий neutral equivalent и
+не резервирует состояние inventory.
+
+### Этап 7. Разделить assemblies
+
+После стабилизации contracts:
+
+- вынести uGUI-specific types из neutral assembly;
+- создать uGUI adapter assembly;
+- создать UI Toolkit adapter assembly;
+- обновить examples и tests;
+- предоставить migration notes для extensions, наследующихся от `BaseSlot`, `SlotInputAdapter` или
+  `DropAreaBase`.
+
+### Этап 8. Довести UX parity
+
+В рекомендуемом порядке:
+
+1. selection и batch visual;
+2. keyboard/gamepad navigation;
+3. tooltip;
+4. context menu;
+5. quick actions и active inventory switching;
+6. virtualization;
+7. hybrid uGUI/UITK drag, только если подтверждён реальный спрос.
+
+## Правила реализации
+
+### Нельзя
+
+- добавлять `if (uGUI/UITK)` по всему `InputEventRouter` и presentation code;
+- создавать UITK-only transfer pipeline;
+- precompute batch transfer plan;
+- валидировать explicit target через enumeration всех candidates;
+- обходить `InventoryDropProcessor` или async domain veto;
+- мутировать inventory из layout/view;
+- вычислять shaped footprint в UI;
+- считать orientation углом, кратным 90 градусам;
+- делать `GridTopology` или `is grid` частью общего inventory/view contract;
+- использовать существующий filter/sorter `ISlot` как новый mutable domain API без миграции.
+
+### Нужно
+
+- держать `DragContext` единственным drag state;
+- сохранять policy resolution;
+- использовать JIT validation против текущего состояния;
+- сохранять swap в основном pipeline;
+- сохранять per-entry rollback и best-effort batch;
+- выполнять target-aware preview conversion до mutation;
+- позволять topology владеть projection и orientation;
+- держать UI target тонким;
+- отделять slot identity, view geometry, input adapter и presenters.
+
+## Минимальная тестовая матрица
+
+### Interaction
+
+- pointer enter/leave не оставляет stale active target;
+- press на одном slot и release на другом разрешаются предсказуемо;
+- cancel/capture loss завершает drag корректно;
+- повторный pointer не крадёт primary drag;
+- disabled/detached `VisualElement` не остаётся target;
+- focus и hover не смешиваются.
+
+### Transfer invariants
+
+- explicit target проходит через `TryGetCandidate`;
+- batch entries видят mutations предыдущих entries;
+- failed entry откатывается без отката успешных entries;
+- swap проверяет обе стороны и остаётся в основном pipeline;
+- async veto вызывается один раз до mutation;
+- sync UITK callback не обходит async handler;
+- dynamic area drop создаёт slot только во время execution.
+
+### Placement
+
+- single-cell и shaped items;
+- grab offset;
+- rotation с 4-step topology;
+- custom topology с 6 orientation steps;
+- partially out-of-bounds preview;
+- occupied covered cell;
+- same-inventory relocation;
+- preview conversion отличается от source adapter, если DataBinding это требует.
+
+### Compatibility
+
+- существующие uGUI examples компилируются и работают;
+- public bindings/actions продолжают загружаться из serialized assets;
+- selection, auto-transfer, tooltip и context menu uGUI не получают regressions;
+- assembly references не создают cycle;
+- UITK backend может быть исключён без поломки uGUI runtime.
+
+## Оценка сложности
+
+Оценки зависят от требований к обратной совместимости и поддерживаемым версиям Unity:
+
+- experimental pointer vertical slice: **1–3 недели**;
+- neutral interaction contracts и два adapters: **2–4 недели**;
+- slot identity/lifecycle migration: **3–6+ недель**;
+- shaped preview, dynamic slots и production hardening: **2–4 недели**;
+- navigation, tooltip и context menu parity: **3–6 недель**;
+- assembly split, migration и полная regression pass: **2–4 недели**.
+
+Рабочий экспериментальный backend можно получить сравнительно быстро. Production parity с
+сохранением текущего API — крупное архитектурное расширение ориентировочно на **8–16+ недель**, а
+не небольшая интеграция.
+
+## Критерии готовности первого релиза
+
+UI Toolkit support можно считать готовой к экспериментальному релизу, если:
+
+- UITK adapter не содержит собственной transfer semantics;
+- все inventory drops завершаются через безопасный manager/async path;
+- policy, swap, rollback и partial transfer совпадают с uGUI;
+- shaped preview использует topology-owned projection;
+- нет предположения о четырёх orientation steps;
+- view не мутирует inventory;
+- lifecycle attach/detach не оставляет stale targets;
+- существующий uGUI test baseline проходит;
+- ограничения navigation, hybrid scenes и virtualization явно документированы.
+
+## Итоговая рекомендация
+
+UI Toolkit следует развивать как второй adapter/view backend над существующим policy-driven JIT
+transfer core.
+
+Первый практический шаг — не массовый `BaseSlot -> interface` refactor, а тестируемый vertical slice,
+который использует текущие manager, context, processor, topology и async execution. После него нужно
+последовательно отделить interaction event, slot identity, slot lifecycle, view geometry и focus
+service, сохранив `BaseSlot` как совместимую uGUI implementation.
+
+Такой порядок минимизирует архитектурные догадки, не создаёт параллельный transfer pipeline и даёт
+реальный путь к независимым uGUI/UI Toolkit assemblies.
