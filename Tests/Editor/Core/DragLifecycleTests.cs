@@ -198,32 +198,127 @@ namespace UDND.Tests.Core
         /// <summary>
         /// uGUI relies on DropAreaBase.OnDisable -> PopDropTarget to clean up. A
         /// VisualElement has no OnDisable, so a UI Toolkit target detached from its panel
-        /// mid-drag will never pop itself. This asserts the manager survives a target that
-        /// disappears without popping, which is the "detached element must not stay a
-        /// target" invariant.
+        /// mid-drag will never pop itself, and the manager is left holding a reference to
+        /// a view that no longer exists.
+        ///
+        /// FakeDropTargetBehaviour is a real MonoBehaviour so it can actually be destroyed
+        /// while on the stack — the stack stores IDropTarget, so Unity's null-overload does
+        /// not apply and EndDrag will call straight into the destroyed object.
+        ///
+        /// CancelDrag is used here rather than CompleteDrag: it runs EndDrag synchronously,
+        /// so a failure surfaces as the actual exception instead of a fire-and-forget task
+        /// that silently never completes.
         /// </summary>
-        [UnityTest]
-        public IEnumerator DisappearingDropTarget_MidDrag_DoesNotBreakCompletion()
+        [Test]
+        public void DestroyedDropTarget_OnCancelDrag_DoesNotThrow()
         {
             BuildSourceAndTarget();
             _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
 
             Assert.IsTrue(_manager.StartDrag(_source.GetSlot(0)));
 
-            var stale = new FakeDropTarget("stale");
+            var stale = FakeDropTargetBehaviour.Create("StaleTarget");
+            stale.PopSelfOnDisable = false; // the whole point: it never pops itself
             _manager.PushDropTarget(stale);
+            Assert.AreSame(stale, _manager.ActiveDropTarget);
 
-            // Simulate the view going away without notifying the manager.
-            var staleSlotHost = new GameObject("StaleTargetHost");
-            UnityEngine.Object.DestroyImmediate(staleSlotHost);
+            UnityEngine.Object.DestroyImmediate(stale.gameObject);
 
-            Assert.DoesNotThrow(() => _manager.CompleteDrag());
-            yield return WaitForDragEnd();
-
+            Assert.DoesNotThrow(() => _manager.CancelDrag(),
+                "EndDrag must survive a drop target destroyed without popping itself");
             Assert.IsFalse(_manager.IsDragging);
             Assert.IsFalse(_manager.HasActiveDropTarget,
                 "A drag that ended must leave no active target behind");
-            Assert.IsFalse(stale.IsActive);
+        }
+
+        /// <summary>
+        /// Same scenario on the async completion path, where a throw inside EndDrag's
+        /// finally block would be swallowed by the fire-and-forget task and leave the
+        /// manager permanently stuck in IsDragging.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator DestroyedDropTarget_OnCompleteDrag_StillEndsDrag()
+        {
+            BuildSourceAndTarget();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            Assert.IsTrue(_manager.StartDrag(_source.GetSlot(0)));
+
+            var stale = FakeDropTargetBehaviour.Create("StaleTarget");
+            stale.PopSelfOnDisable = false;
+            _manager.PushDropTarget(stale);
+
+            UnityEngine.Object.DestroyImmediate(stale.gameObject);
+
+            _manager.CompleteDrag();
+            yield return WaitForDragEnd();
+
+            Assert.IsFalse(_manager.IsDragging);
+            Assert.IsFalse(_manager.HasActiveDropTarget);
+            Assert.IsFalse(_source.GetSlot(0).IsEmpty,
+                "A destroyed target carries no processor, so nothing should transfer");
+        }
+
+        /// <summary>
+        /// The uGUI counterpart, component-disable flavor: this is the path DropAreaBase
+        /// actually relies on, and the behavior a UITK adapter must reproduce via
+        /// DetachFromPanelEvent.
+        /// </summary>
+        [Test]
+        public void DropTarget_DisabledMidDrag_PopsItselfAndLeavesNoStaleEntry()
+        {
+            BuildSourceAndTarget();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            Assert.IsTrue(_manager.StartDrag(_source.GetSlot(0)));
+
+            var target = FakeDropTargetBehaviour.Create("WellBehavedTarget");
+            target.PopSelfOnDisable = true;
+            _manager.PushDropTarget(target);
+            Assert.AreSame(target, _manager.ActiveDropTarget);
+
+            target.enabled = false;
+
+            Assert.AreEqual(1, target.DisableCalls, "OnDisable must fire on component disable");
+            Assert.IsTrue(target.PopWasAttempted);
+            Assert.IsNull(_manager.ActiveDropTarget,
+                "A target that pops itself on disable must not stay active");
+            Assert.IsFalse(_manager.HasActiveDropTarget);
+        }
+
+        /// <summary>
+        /// The destruction flavor of the same contract. Split from the disable case because
+        /// the two go through different Unity lifecycle paths: DisableCalls and
+        /// PopWasAttempted tell us whether a failure here means "OnDisable never fired on
+        /// GameObject destruction" or "the pop ran but did not clear the active target".
+        ///
+        /// Note the fake-null trap when this fails: a destroyed UnityEngine.Object prints as
+        /// "null" but is not reference-null, so NUnit reports "Expected: null / But was:
+        /// &lt;null&gt;". That message means the stale reference is still there.
+        /// </summary>
+        [Test]
+        public void DropTarget_DestroyedMidDrag_PopsItselfAndLeavesNoStaleEntry()
+        {
+            BuildSourceAndTarget();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            Assert.IsTrue(_manager.StartDrag(_source.GetSlot(0)));
+
+            var target = FakeDropTargetBehaviour.Create("WellBehavedTarget");
+            target.PopSelfOnDisable = true;
+            _manager.PushDropTarget(target);
+            Assert.AreSame(target, _manager.ActiveDropTarget);
+
+            int disableCallsBefore = target.DisableCalls;
+            UnityEngine.Object.DestroyImmediate(target.gameObject);
+
+            Assert.Greater(target.DisableCalls, disableCallsBefore,
+                "OnDisable must fire when the target's GameObject is destroyed");
+            Assert.IsTrue(target.PopWasAttempted,
+                "OnDisable fired but never reached PopDropTarget");
+            Assert.IsNull(_manager.ActiveDropTarget,
+                "A destroyed target must not remain the active drop target");
+            Assert.IsFalse(_manager.HasActiveDropTarget);
         }
 
         // ---------- RotateCurrentDrag ----------
