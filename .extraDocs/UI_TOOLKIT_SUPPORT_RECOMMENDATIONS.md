@@ -1,7 +1,8 @@
 # UI Toolkit Support Recommendations
 
-**Last Updated**: 2026-07-24
-**Status**: актуализировано по текущему runtime-коду и policy-driven JIT transfer architecture
+**Last Updated**: 2026-07-25
+**Status**: актуализировано по текущему runtime-коду и policy-driven JIT transfer architecture;
+Этап 0 частично выполнен (см. раздел ниже)
 
 ## Короткий вывод
 
@@ -117,6 +118,7 @@ change. Для разделения потребуется новый, явно 
 
 `IInventory.Slots`, `GetSlot`, mutation methods, `IPlacementInventory`,
 `IDynamicSlotLifecycle`, `IInventoryEventSink` и acceptance APIs используют `BaseSlot`.
+Сюда же относится `IInventoryRuntimeCapabilities.ExecuteOccupiedSlotDrop(DragEntry, BaseSlot)`.
 Следовательно, простое добавление `IInventorySlotModel` затронет большой публичный API.
 
 `UniversalInventory` дополнительно:
@@ -255,6 +257,52 @@ selection, events, examples и пользовательские extensions. Бе
 - сохранить существующие transfer, swap, async и shaped placement tests как обязательный baseline.
 
 Результат: известен допустимый размер breaking changes и есть защита текущего uGUI поведения.
+
+#### Что уже сделано
+
+Исходный baseline (256 тестов) плотно закрывал transfer, placement и policy, но на границе,
+которую UI Toolkit будет заменять, покрытия почти не было: `CompleteDrag`, `PushDropTarget`,
+`PopDropTarget`, `IDropTarget`, `DropAreaBase`/`InventoryDropArea`, `RotateCurrentDrag` и
+`TransferProbe` не упоминались ни в одном тесте.
+
+Добавлено:
+
+- `Tests/Editor/Core/DragLifecycleTests.cs` — completion, cancel, повторное завершение,
+  async veto через manager, topology-defined rotation, уничтоженные drop targets;
+- `Tests/Editor/Core/DropTargetStackTests.cs` — push/pop/дубликаты/вложенность и порядок
+  drag enter/exit;
+- `Tests/Editor/Core/DropAreaRoutingTests.cs` — area drop на границе UI: enter/exit, отказ,
+  detach, slot-поверх-area, dynamic slots;
+- `Tests/Editor/Inventories/TransferProbeTests.cs` — advisory-контракт preview;
+- `Tests/Runtime/FakeDropTarget.cs`, `Tests/Runtime/FakeDropTargetBehaviour.cs` — тестовые
+  реализации `IDropTarget`.
+
+#### Найденный и исправленный баг
+
+`EndDrag` вызывал `OnBecomeInactiveTarget()` на всех элементах стека без проверки живости.
+Уничтоженный drop target бросал `MissingReferenceException` до `_dropTargetStack.Clear()` и
+`_currentContext = null`, а поскольку `EndDrag` вызывается из `finally` в `CompleteDragAsync`,
+менеджер оставался с залипшим `IsDragging` навсегда — все последующие `StartDrag` отклонялись.
+
+В uGUI это маскировалось тем, что `DropAreaBase.OnDisable` попает себя, но сценарий
+`Destroy(gameObject)` инвентаря во время drag оставался дырявым. Для UI Toolkit прикрытия нет
+вовсе: у `VisualElement` нет `OnDisable`.
+
+Исправлено в `DragAndDropManager` — `IsTargetAlive`/`PruneDeadDropTargets` плюс защита цикла в
+`EndDrag`. Стек хранит `IDropTarget`, поэтому Unity-овская перегрузка `==` сама не срабатывает и
+проверка обязана быть явной. Это же требование распространяется на любой будущий адаптер.
+
+#### Что в Этапе 0 осталось
+
+- **Завести PlayMode test assembly.** Вся текущая тестовая сборка — `includePlatforms: ["Editor"]`.
+  UITK-панель и `PointerEventBase` в EditMode не поднимаются, поэтому сборка понадобится уже в
+  Этапе 1; заводить её в середине vertical slice дороже, чем сейчас.
+- **Учесть ловушку `[ExecuteAlways]`.** В EditMode Unity не вызывает `Awake`/`OnEnable`/`OnDisable`
+  для обычных `MonoBehaviour`. `DropAreaBase` получает их только потому, что `Selectable` помечен
+  этим атрибутом. UITK drop target наследовать `Selectable` не будет, поэтому любой EditMode-тест
+  его detach-логики обязан явно ставить `[ExecuteAlways]` — иначе тест зелёный и не проверяет
+  ничего. По этой же причине `InventoryBuilder` вызывает `Start` рефлексией.
+- Перечислить стабильные public APIs, зафиксировать версии Unity и feature matrix — не начато.
 
 ### Этап 1. Сделать experimental UITK vertical slice
 
