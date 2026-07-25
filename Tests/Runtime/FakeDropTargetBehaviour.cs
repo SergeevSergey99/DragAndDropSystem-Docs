@@ -38,6 +38,15 @@ namespace UDND.Tests
         /// <summary>True once OnDisable actually reached PopDropTarget.</summary>
         public bool PopWasAttempted { get; private set; }
 
+        /// <summary>
+        /// When true, the activation callbacks touch native Unity state (transform) the way
+        /// a real presenter does. Counter-only callbacks are pure managed code and stay
+        /// silent on a destroyed object, which makes them useless for proving that the
+        /// manager survives a destroyed target — only a native access raises
+        /// MissingReferenceException.
+        /// </summary>
+        public bool TouchNativeStateOnActivation { get; set; }
+
         public static FakeDropTargetBehaviour Create(
             string name = "FakeDropTargetBehaviour",
             BaseSlot targetSlot = null,
@@ -54,9 +63,33 @@ namespace UDND.Tests
 
         public IDropProcessor GetDropProcessor() => _processor;
 
-        public void OnBecomeActiveTarget() => ActivateCount++;
+        public void OnBecomeActiveTarget()
+        {
+            ActivateCount++;
+            TouchNativeState();
+        }
 
-        public void OnBecomeInactiveTarget() => DeactivateCount++;
+        public void OnBecomeInactiveTarget()
+        {
+            DeactivateCount++;
+            TouchNativeState();
+        }
+
+        /// <summary>
+        /// Stands in for the highlight/geometry work a real drop target does. Reading
+        /// transform on a destroyed component throws MissingReferenceException, which is
+        /// exactly what a uGUI presenter or a detached VisualElement adapter would hit.
+        /// </summary>
+        private void TouchNativeState()
+        {
+            if (!TouchNativeStateOnActivation)
+                return;
+
+            LastTouchedPosition = transform.position;
+        }
+
+        /// <summary>Kept so the native read cannot be optimized away.</summary>
+        public Vector3 LastTouchedPosition { get; private set; }
 
         private void OnDisable()
         {

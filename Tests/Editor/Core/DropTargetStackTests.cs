@@ -41,8 +41,9 @@ namespace UDND.Tests.Core
         [TearDown]
         public void TearDown()
         {
-            if (_manager != null && _manager.IsDragging)
-                _manager.CancelDrag();
+            // Defensive: a drag left broken by another test must not stop this teardown from
+            // destroying the singleton, or the damage spreads to every later test.
+            TryCancelDrag();
 
             InventoryBuilder.Destroy(_inventory);
             _inventory = null;
@@ -256,6 +257,21 @@ namespace UDND.Tests.Core
         }
 
         // ---------- helpers ----------
+
+        private void TryCancelDrag()
+        {
+            if (_manager == null || !_manager.IsDragging)
+                return;
+
+            try
+            {
+                _manager.CancelDrag();
+            }
+            catch (MissingReferenceException)
+            {
+                // A destroyed target was still on the stack; teardown must continue anyway.
+            }
+        }
 
         private void StartDrag()
         {

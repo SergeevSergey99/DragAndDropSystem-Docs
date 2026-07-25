@@ -34,8 +34,11 @@ namespace UDND.Tests.Core
         [TearDown]
         public void TearDown()
         {
-            if (_manager != null && _manager.IsDragging)
-                _manager.CancelDrag();
+            // The manager is a singleton that outlives a single test. If a test leaves it in
+            // a broken state — CancelDrag can throw while cleaning up a destroyed target —
+            // the teardown must still reach the DestroyImmediate below, otherwise the
+            // poisoned instance leaks into every later test and one failure becomes dozens.
+            TryCancelDrag();
 
             InventoryBuilder.Destroy(_source);
             InventoryBuilder.Destroy(_target);
@@ -260,6 +263,63 @@ namespace UDND.Tests.Core
         }
 
         /// <summary>
+        /// The realistic version of the stale-target case. A counter-only callback is pure
+        /// managed code and stays silent on a destroyed object; a real presenter reads
+        /// transform/Graphic (or, in UI Toolkit, a detached VisualElement) and raises
+        /// MissingReferenceException from inside EndDrag's cleanup loop.
+        ///
+        /// EndDrag runs that loop in CompleteDragAsync's finally block, so an unguarded
+        /// throw here does not just log — it strands the manager in IsDragging forever.
+        /// </summary>
+        [Test]
+        public void DestroyedDropTarget_TouchingNativeState_DoesNotBreakCancelDrag()
+        {
+            BuildSourceAndTarget();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            Assert.IsTrue(_manager.StartDrag(_source.GetSlot(0)));
+
+            var stale = FakeDropTargetBehaviour.Create("NativeTouchingTarget");
+            stale.PopSelfOnDisable = false;
+            stale.TouchNativeStateOnActivation = true;
+            _manager.PushDropTarget(stale);
+            Assert.AreSame(stale, _manager.ActiveDropTarget);
+
+            UnityEngine.Object.DestroyImmediate(stale.gameObject);
+
+            Assert.DoesNotThrow(() => _manager.CancelDrag(),
+                "EndDrag must not propagate MissingReferenceException from a destroyed target");
+            Assert.IsFalse(_manager.IsDragging);
+            Assert.IsFalse(_manager.HasActiveDropTarget);
+        }
+
+        /// <summary>
+        /// Same target on the async completion path, where the throw would be swallowed by
+        /// the fire-and-forget task instead of surfacing.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator DestroyedDropTarget_TouchingNativeState_StillEndsDrag()
+        {
+            BuildSourceAndTarget();
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Unique(1, "gem"));
+
+            Assert.IsTrue(_manager.StartDrag(_source.GetSlot(0)));
+
+            var stale = FakeDropTargetBehaviour.Create("NativeTouchingTarget");
+            stale.PopSelfOnDisable = false;
+            stale.TouchNativeStateOnActivation = true;
+            _manager.PushDropTarget(stale);
+
+            UnityEngine.Object.DestroyImmediate(stale.gameObject);
+
+            _manager.CompleteDrag();
+            yield return WaitForDragEnd();
+
+            Assert.IsFalse(_manager.IsDragging);
+            Assert.IsFalse(_manager.HasActiveDropTarget);
+        }
+
+        /// <summary>
         /// The uGUI counterpart, component-disable flavor: this is the path DropAreaBase
         /// actually relies on, and the behavior a UITK adapter must reproduce via
         /// DetachFromPanelEvent.
@@ -369,6 +429,26 @@ namespace UDND.Tests.Core
         }
 
         // ---------- helpers ----------
+
+        /// <summary>
+        /// Cancels an in-flight drag without letting a broken drag state abort teardown.
+        /// Swallowing is correct only here: the test body has already asserted whatever it
+        /// cared about, and the exception is a known consequence of destroying a live target.
+        /// </summary>
+        private void TryCancelDrag()
+        {
+            if (_manager == null || !_manager.IsDragging)
+                return;
+
+            try
+            {
+                _manager.CancelDrag();
+            }
+            catch (MissingReferenceException)
+            {
+                // A test deliberately destroyed a target that was still on the stack.
+            }
+        }
 
         private void BuildSourceAndTarget()
         {
