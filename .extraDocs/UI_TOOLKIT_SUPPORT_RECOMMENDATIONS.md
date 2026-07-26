@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-07-25
 **Status**: актуализировано по текущему runtime-коду и policy-driven JIT transfer architecture;
-Этап 0 частично выполнен (см. раздел ниже)
+Этап 0 выполнен, следующий шаг — Этап 1
 
 ## Короткий вывод
 
@@ -292,17 +292,98 @@ selection, events, examples и пользовательские extensions. Бе
 `EndDrag`. Стек хранит `IDropTarget`, поэтому Unity-овская перегрузка `==` сама не срабатывает и
 проверка обязана быть явной. Это же требование распространяется на любой будущий адаптер.
 
-#### Что в Этапе 0 осталось
+#### PlayMode test assembly
 
-- **Завести PlayMode test assembly.** Вся текущая тестовая сборка — `includePlatforms: ["Editor"]`.
-  UITK-панель и `PointerEventBase` в EditMode не поднимаются, поэтому сборка понадобится уже в
-  Этапе 1; заводить её в середине vertical slice дороже, чем сейчас.
-- **Учесть ловушку `[ExecuteAlways]`.** В EditMode Unity не вызывает `Awake`/`OnEnable`/`OnDisable`
-  для обычных `MonoBehaviour`. `DropAreaBase` получает их только потому, что `Selectable` помечен
-  этим атрибутом. UITK drop target наследовать `Selectable` не будет, поэтому любой EditMode-тест
-  его detach-логики обязан явно ставить `[ExecuteAlways]` — иначе тест зелёный и не проверяет
-  ничего. По этой же причине `InventoryBuilder` вызывает `Start` рефлексией.
-- Перечислить стабильные public APIs, зафиксировать версии Unity и feature matrix — не начато.
+Заведена `UDND.Tests.PlayMode` (`Tests/PlayMode/`). Держать её маленькой: туда идёт только то,
+что требует настоящего player loop.
+
+Причина её существования — ловушка, на которой EditMode-тесты уже один раз дали ложно-зелёный
+результат: **в EditMode Unity не вызывает `Awake`/`OnEnable`/`OnDisable` для обычных
+`MonoBehaviour`**. `DropAreaBase` получает их только потому, что `Selectable` помечен
+`[ExecuteAlways]`. UITK drop target наследовать `Selectable` не будет, поэтому EditMode-тест его
+detach-логики обязан явно ставить `[ExecuteAlways]` — иначе он зелёный и не проверяет ничего. По
+этой же причине `InventoryBuilder` вызывает `Start` рефлексией.
+
+PlayMode-набор проверяет тот же контракт без этого костыля, на обычном `MonoBehaviour`.
+
+#### Поддерживаемые версии
+
+Baseline — **Unity 2022 LTS**, поддержка 2022 и выше. UI Toolkit присутствует во всех целевых
+версиях, поэтому отдельных `versionDefines` под наличие UITK не требуется. Если позже появится
+зависимость от API, добавленного после 2022, это оформляется как явное ограничение UITK-адаптера,
+а не как подъём baseline всего пакета.
+
+#### Feature matrix первого UITK-релиза
+
+**Shaped items входят в scope.** Соответственно, UITK-адаптер с самого начала обязан
+получать footprint и orientation от topology, а не вычислять их сам, и не может опираться на
+допущение о четырёх поворотах по 90 градусов. Раздел «Scope первого vertical slice» остаётся в
+силе без исключений по shaped placement.
+
+Вне scope первого релиза — без изменений: полная keyboard/gamepad parity, tooltip, context menu,
+virtualization, hybrid uGUI/UITK drag.
+
+#### Compatibility contract: что считается стабильным
+
+Замер по `Examples/` показал, что реальная поверхность расширения уже, чем формальная. Ни один
+пример не наследует `BaseSlot` и не наследует `SlotInputAdapter`. Расширяют `DropAreaBase`,
+DataBinding-базы, `DragRuleBase` и `IItemAdapter`. Это определяет три уровня.
+
+**Уровень 1 — стабильный. Ломать нельзя, изменения только через deprecation.**
+
+Это то, что пишет пользователь ассета:
+
+- `IItemAdapter` и его опциональные компаньоны — `IItemPlacementShapeProvider`, `IFilterable`,
+  `IDescribable`;
+- DataBinding-базы: `ListInventoryDataBinding<,>`, `SlotIndexedInventoryDataBinding<,>`,
+  `PlacementInventoryDataBinding<,>`;
+- domain handlers: `ITransferDomainHandler`, `IAsyncTransferDomainHandler`,
+  `IPreRuleOccupiedSlotDropHandler`, `IItemAdapterConverter`;
+- правила: `DragRuleBase`, `IInventoryRule`, `ISlotRule`, `IGlobalRule`;
+- `ItemStack` / `IReadOnlyItemStack`;
+- policy-типы: `DropRequestPolicy`, `DragRequestPolicy`, `DragAmount`,
+  `BlockedTargetResolutionKind`, `PartialTransferMode`;
+- topology и shapes: `IInventoryTopology`, `IPlacementShape` — кастомные топологии заявлены как
+  возможность, значит контракт публичный;
+- `UDNDEvents`;
+- protected override points `DropAreaBase`: `CanAcceptEntry`, `OnProcessedEntry`,
+  `OnHighlightChanged`, `OnTargetDeactivated`, `RemoveFromSource`;
+- `ContextMenuEntryDefinitionSO`.
+
+**Уровень 2 — публичный, но объявляется изменяемым в ходе UITK-рефакторинга.**
+
+Всё, что типизировано на view. Ломать можно, но с migration notes:
+
+- `BaseSlot` и любые сигнатуры, принимающие или возвращающие его;
+- `SlotInputAdapter`;
+- `RuntimeInteractionSnapshot`;
+- `IDropTarget.GetTargetSlot()`;
+- `BaseSlot`-типизированные члены `IInventory`, `IPlacementInventory`, `IDynamicSlotLifecycle`,
+  `IInventoryEventSink`, `IInventoryRuntimeCapabilities.ExecuteOccupiedSlotDrop`;
+- `UniversalInventory.SlotContainer` и создание слотов через prefab `Instantiate`.
+
+То, что примеры их не наследуют, снижает риск: менять придётся сигнатуры, а не поведение
+пользовательских подклассов.
+
+**Уровень 3 — не контракт, следует закрыть при разделении сборок.**
+
+`InventoryTransferEngine`, `InventoryTransferService`, `DropPreviewController`,
+`InventoryPlacementGeometry` и подобная внутренняя механика. Сейчас публичны де-факто, а не по
+замыслу.
+
+**Отдельно — API для авторов бэкендов.** `DragAndDropManager.StartDrag`, `CompleteDrag`,
+`CancelDrag`, `RotateCurrentDrag`, `SplitDrop`, `PushDropTarget`, `PopDropTarget` плюс
+`IDropTarget` и `IDropProcessor` — это и есть точка входа для UITK-адаптера. С момента появления
+второго backend они переходят на уровень 1 и покрыты тестами
+(`Tests/Editor/Core/DropTargetStackTests.cs`, `DragLifecycleTests.cs`).
+
+Две мины при разделении сборок:
+
+- `DropAreaBase.TryActivateAsFocusedTarget` объявлен `internal virtual` — при выносе адаптеров в
+  отдельные сборки он станет недоступен и потребует либо `protected`, либо `InternalsVisibleTo`;
+- `DragAndDropManager.RaiseSwapAttempting` / `RaiseSwapCompleted` публичны только ради
+  `InventoryDropArea`; при разделении их придётся либо оставить публичными осознанно, либо
+  закрыть тем же способом.
 
 ### Этап 1. Сделать experimental UITK vertical slice
 
