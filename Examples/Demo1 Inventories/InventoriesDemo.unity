@@ -392,7 +392,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Consumable
+  m_Text: Food
 --- !u!222 &97618375
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3006,7 +3006,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Consumable
+  m_Text: Food
 --- !u!222 &859534220
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5272,7 +5272,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Consumable
+  m_Text: Food
 --- !u!222 &1463658546
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5351,7 +5351,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Consumable
+  m_Text: Food
 --- !u!222 &1503654752
 CanvasRenderer:
   m_ObjectHideFlags: 0
