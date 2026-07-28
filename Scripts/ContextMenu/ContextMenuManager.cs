@@ -104,10 +104,10 @@ namespace UDND.ContextMenu
                 Debug.LogWarning("[ContextMenuManager] View prefab/instance is not assigned.");
                 return;
             }
-            _activeView = view;
-
             if (IsOpen)
             {
+                // Hide() resets _activeView, so the field is assigned only after this block —
+                // a repeated click on the same slot closes the menu and stops here (toggle behaviour).
                 Hide();
                 if (ctx.BaseSlot == _lastContext.BaseSlot && ctx.Inventory == _lastContext.Inventory)
                 {
@@ -116,6 +116,7 @@ namespace UDND.ContextMenu
             }
             _lastContext = ctx;
 
+            _activeView = view;
             _activeView.Show(visible, ctx);
             IsOpen = true;
             OnOpened?.Invoke();
