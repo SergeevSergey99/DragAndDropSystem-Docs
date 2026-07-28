@@ -85,19 +85,31 @@ namespace UDND.Examples.Loot
 
         private void HandleInput()
         {
-            // Read WASD input (8 directions)
-            float horizontal = Input.GetAxisRaw("Horizontal"); // A/D
-            float vertical = Input.GetAxisRaw("Vertical");     // W/S
+            // Read WASD input (8 directions). Read through KeyCodeInput so the demo works with both
+            // the legacy Input Manager and the Input System package.
+            float horizontal = ReadAxis(KeyCode.D, KeyCode.RightArrow, KeyCode.A, KeyCode.LeftArrow);
+            float vertical = ReadAxis(KeyCode.W, KeyCode.UpArrow, KeyCode.S, KeyCode.DownArrow);
 
             _movement = new Vector2(horizontal, vertical).normalized;
             
             MovePlayer();
         }
 
+        private static float ReadAxis(KeyCode positive, KeyCode positiveAlt, KeyCode negative, KeyCode negativeAlt)
+        {
+            bool up = UDND.Interaction.KeyCodeInput.GetKey(positive) || UDND.Interaction.KeyCodeInput.GetKey(positiveAlt);
+            bool down = UDND.Interaction.KeyCodeInput.GetKey(negative) || UDND.Interaction.KeyCodeInput.GetKey(negativeAlt);
+
+            if (up == down)
+                return 0f;
+
+            return up ? 1f : -1f;
+        }
+
         private void MovePlayer()
         {
             // Determine speed (running or walking)
-            bool isRunning = Input.GetKey(KeyCode.LeftShift);
+            bool isRunning = UDND.Interaction.KeyCodeInput.GetKey(KeyCode.LeftShift);
             float currentSpeed = isRunning ? _runSpeed : _walkSpeed;
 
             // Target speed

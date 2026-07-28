@@ -80,7 +80,7 @@ namespace UDND.UI
             {
                 if (_anchor == TooltipAnchor.Cursor)
                 {
-                    _currentHoverArgs.ScreenPosition = Input.mousePosition;
+                    _currentHoverArgs.ScreenPosition = UDND.Interaction.KeyCodeInput.MousePosition;
                     UpdateTooltipPosition(_currentHoverArgs);
                 }
             }

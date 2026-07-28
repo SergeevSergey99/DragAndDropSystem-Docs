@@ -139,7 +139,7 @@ namespace UDND.Examples.Loot
                 return;
 
             // If the interaction key is pressed
-            if (Input.GetKeyDown(_interactKey))
+            if (UDND.Interaction.KeyCodeInput.GetKeyDown(_interactKey))
             {
                 // Perform interaction on the object
                 _currentInteractable.Interact(this);

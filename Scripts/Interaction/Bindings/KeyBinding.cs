@@ -48,13 +48,13 @@ namespace UDND.Interaction
             switch (_triggerPhase)
             {
                 case KeyTriggerPhase.Down:
-                    keyActive = Input.GetKeyDown(_key);
+                    keyActive = KeyCodeInput.GetKeyDown(_key);
                     break;
                 case KeyTriggerPhase.Up:
-                    keyActive = Input.GetKeyUp(_key);
+                    keyActive = KeyCodeInput.GetKeyUp(_key);
                     break;
                 case KeyTriggerPhase.Hold:
-                    keyActive = Input.GetKey(_key);
+                    keyActive = KeyCodeInput.GetKey(_key);
                     break;
                 default:
                     return false;

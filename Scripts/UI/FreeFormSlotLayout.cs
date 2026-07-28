@@ -95,7 +95,7 @@ namespace UDND.UI
         private void HandleDropAttempting(DragContext context)
         {
             // Only remember where the pointer is at drop time; the source was captured at drag start.
-            _pendingDropScreenPosition = Input.mousePosition;
+            _pendingDropScreenPosition = UDND.Interaction.KeyCodeInput.MousePosition;
             _hasPendingDropPosition = true;
         }
 
@@ -140,7 +140,7 @@ namespace UDND.UI
             if (amountInSourceNow != _dragSourceCountBefore)
                 return;
 
-            Vector2 releaseScreenPos = Input.mousePosition;
+            Vector2 releaseScreenPos = UDND.Interaction.KeyCodeInput.MousePosition;
             bool inArea = IsScreenPointInArea(releaseScreenPos);
             bool overSlot = inArea && IsScreenPointOverExistingSlot(releaseScreenPos, sourceSlot);
 

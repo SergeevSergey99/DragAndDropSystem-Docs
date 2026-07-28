@@ -115,13 +115,13 @@ namespace UDND.Examples.Loot
 
         private void Update()
         {
-            if (!_isLootUIOpen && Input.GetKeyDown(_toggleInventoryKey))
+            if (!_isLootUIOpen && UDND.Interaction.KeyCodeInput.GetKeyDown(_toggleInventoryKey))
             {
                 ToggleInventoryUI();
             }
 
             // Handle the close key
-            if ((_isLootUIOpen || _isInventoryUIOpen) && Input.GetKeyDown(_closeKey))
+            if ((_isLootUIOpen || _isInventoryUIOpen) && UDND.Interaction.KeyCodeInput.GetKeyDown(_closeKey))
             {
                 if (_isLootUIOpen)
                     CloseLootUI();
