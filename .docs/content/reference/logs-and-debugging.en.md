@@ -11,6 +11,30 @@ Start from what you see in the game, not from an internal phase name:
 - swap behaves incorrectly
 - Console shows many warnings
 
+## How To Enable Logs
+
+!!! warning There are no logs by default
+    The asset's logs are disabled at compile time. Until you add the `UDND_LOG` define, the
+    Console stays empty even when something is being rejected internally.
+
+To enable them:
+
+1. `Edit → Project Settings → Player`
+2. Expand `Other Settings` and find `Scripting Define Symbols`
+3. Add `UDND_LOG` and press `Apply`
+4. Wait for the recompile
+
+Worth knowing:
+
+- logs work **in the Editor only** — the code is wrapped in `#if UNITY_EDITOR && UDND_LOG`, so nothing reaches a build
+- `Scripting Define Symbols` are per build target, so add the define on the platform you are currently working on
+- every message from the asset is prefixed with `[UDND]`, which makes Console filtering easy
+- rejected rules are printed as a separate line: `[RuleResult] Validation failed: <reason>`
+- messages are printed in English, regardless of the documentation language
+
+Once you are done debugging you can remove the define — it affects only Console output,
+not the behavior of the system.
+
 ## Quick Map
 
 | What you see | Start with |

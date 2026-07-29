@@ -59,7 +59,17 @@ Comprueba:
 - si esos métodos modifican exactamente la lista u objeto que esperas
 - si cambias datos directamente y olvidas llamar a `ReloadUI()`
 
-## Aparece `Wrong Item Type`
+## Aparece `Invalid item type`
+
+Todos los mensajes del sistema se muestran en inglés, así que busca en la Console exactamente esta cadena:
+
+```text
+[RuleResult] Validation failed: Invalid item type
+```
+
+!!! info ¿No ves el mensaje?
+    Los logs están desactivados por defecto. Añade el define `UDND_LOG` para activarlos —
+    consulta [Logs y depuración](logs-and-debugging.md).
 
 Normalmente significa que un inventario recibió un adapter que pertenece a otro modelo de datos.
 

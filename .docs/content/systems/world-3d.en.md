@@ -89,7 +89,7 @@ flowchart LR
 
 ## Implementation Details
 
-- `WorldDropZone` extends [`DropAreaBase`](../architecture/drop-areas.en.md) using the **simple consumption** pattern --- it overrides `CanAcceptEntry` and `ProcessEntry`. Source removal and zone highlighting are handled automatically by the base class.
+- `WorldDropZone` extends [`DropAreaBase`](../architecture/drop-areas.md) using the **simple consumption** pattern --- it overrides `CanAcceptEntry` and `ProcessEntry`. Source removal and zone highlighting are handled automatically by the base class.
 - `WorldDropZone` checks **every** item in the drag context: in the demo it must be an `ItemAdapterSoWith3DAdapter` with a non-null `WorldPrefab`. If even one item fails that check, the drop is rejected.
 - For stacks, each instance is spawned as a separate object with a slight offset.
 - Zone highlighting works automatically: green if the item can be dropped, red if it cannot.
@@ -100,7 +100,7 @@ flowchart LR
 
 | Class | Role |
 |-------|------|
-| `DropAreaBase` | Base class for drop areas (see [Drop Areas](../architecture/drop-areas.en.md)) |
+| `DropAreaBase` | Base class for drop areas (see [Drop Areas](../architecture/drop-areas.md)) |
 | `WorldDropZone` | UI drop zone: creates 3D objects on drop |
 | `WorldItem` | Component on a 3D object: in the demo it stores `ItemExampleWith3DSO` |
 | `ItemAdapterSoWith3DAdapter` | Demo adapter with access to `WorldPrefab` |

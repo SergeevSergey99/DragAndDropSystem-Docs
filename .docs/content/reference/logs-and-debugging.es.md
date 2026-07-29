@@ -11,6 +11,30 @@ Empieza por lo que ves en el juego, no por el nombre de una fase interna:
 - swap se comporta mal
 - Console muestra muchos warnings
 
+## Cómo activar los logs
+
+!!! warning Por defecto no hay logs
+    Los logs del asset están desactivados en tiempo de compilación. Hasta que añadas el define
+    `UDND_LOG`, la Console estará vacía aunque internamente algo se esté rechazando.
+
+Para activarlos:
+
+1. `Edit → Project Settings → Player`
+2. Despliega `Other Settings` y busca `Scripting Define Symbols`
+3. Añade `UDND_LOG` y pulsa `Apply`
+4. Espera a que recompile
+
+Conviene saber:
+
+- los logs funcionan **solo en el Editor** — el código está envuelto en `#if UNITY_EDITOR && UDND_LOG`, así que no llegan a la build
+- `Scripting Define Symbols` se define por plataforma, así que añádelo en la plataforma en la que estés trabajando
+- todos los mensajes del asset llevan el prefijo `[UDND]`, lo que facilita filtrar la Console
+- las reglas rechazadas se imprimen en una línea aparte: `[RuleResult] Validation failed: <motivo>`
+- los mensajes se imprimen en inglés, independientemente del idioma de la documentación
+
+Cuando termines de depurar puedes quitar el define — solo afecta a la salida en Console,
+no al comportamiento del sistema.
+
 ## Mapa rápido
 
 | Qué ves | Empieza por |

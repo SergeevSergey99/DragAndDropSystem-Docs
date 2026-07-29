@@ -100,19 +100,21 @@ flowchart LR
 
 ## Subsystems
 
-- displaying data in inventory
-- transfer between inventories
-- drop areas
-- rule system
-- configurable actions
-- auto-transfer
-- multi-selection
-- multi-transfer
-- context menu
-- tooltip example
-- type conversion example during transfer
-- nested inventory example
-- complex-shaped item example
+| Subsystem | Where to read |
+|---|---|
+| Displaying data in inventory | [Data Binding](architecture/data-binding.md), [Binding Templates](architecture/binding-templates.md) |
+| Transfer between inventories | [Transfer Pipeline](architecture/transfer-pipeline.md) |
+| Drop areas | [Drop Areas](architecture/drop-areas.md) |
+| Rule system | [Rules](architecture/rules.md) |
+| Configurable actions and input bindings | [Input and Interaction](systems/interaction.md) |
+| Auto-transfer | [Transfer Pipeline](architecture/transfer-pipeline.md) |
+| Multi-selection and multi-transfer | [Selection](systems/selection.md) |
+| Context menu | [Context Menu](systems/context-menu.md) |
+| Filtering and sorting | [Filter and Sort](systems/filter-sort.md) |
+| Tooltip example | [Tooltips](systems/tooltips.md) |
+| Type conversion during transfer | [Item Conversion](architecture/item-conversion-cookbook.md) |
+| Nested inventory example | [Demo5 Containers](examples/demo5-containers.md) |
+| Complex-shaped item example | [Demo6 Shaped Items](examples/demo6-shaped-items.md) |
 
 See also:
 

@@ -59,7 +59,17 @@ Check:
 - whether those methods modify the exact list or object you expect
 - whether you change data directly and forget to call `ReloadUI()`
 
-## `Wrong Item Type` Appears
+## `Invalid item type` Appears
+
+Search the Console for this exact string:
+
+```text
+[RuleResult] Validation failed: Invalid item type
+```
+
+!!! info Not seeing the message?
+    Logs are disabled by default. Add the `UDND_LOG` define to turn them on —
+    see [Logs and Debugging](logs-and-debugging.md).
 
 This usually means an inventory received an adapter that belongs to another data model.
 

@@ -103,19 +103,21 @@ flowchart LR
 
 ## Subsistemas
 
-- visualización de datos en inventario
-- transferencia entre inventarios
-- áreas de drop
-- sistema de reglas
-- acciones configurables
-- auto-transfer
-- selección múltiple
-- transferencia múltiple
-- menú contextual
-- ejemplo de tooltip
-- ejemplo de conversión de tipos durante transferencia
-- ejemplo de inventarios anidados
-- ejemplo de objetos de forma compleja
+| Subsistema | Dónde leer |
+|---|---|
+| Visualización de datos en inventario | [Data Binding](architecture/data-binding.md), [Plantillas de DataBinding](architecture/binding-templates.md) |
+| Transferencia entre inventarios | [Pipeline de transferencia](architecture/transfer-pipeline.md) |
+| Áreas de drop | [Áreas de drop](architecture/drop-areas.md) |
+| Sistema de reglas | [Reglas](architecture/rules.md) |
+| Acciones configurables y bindings de entrada | [Entrada e interacción](systems/interaction.md) |
+| Auto-transfer | [Pipeline de transferencia](architecture/transfer-pipeline.md) |
+| Selección múltiple y transferencia múltiple | [Selección](systems/selection.md) |
+| Menú contextual | [Menú contextual](systems/context-menu.md) |
+| Filtrado y ordenación | [Filtros y ordenación](systems/filter-sort.md) |
+| Ejemplo de tooltip | [Tooltips](systems/tooltips.md) |
+| Conversión de tipos durante la transferencia | [Conversión de items](architecture/item-conversion-cookbook.md) |
+| Ejemplo de inventarios anidados | [Demo5 Containers](examples/demo5-containers.md) |
+| Ejemplo de objetos de forma compleja | [Demo6 Shaped Items](examples/demo6-shaped-items.md) |
 
 Ver también:
 

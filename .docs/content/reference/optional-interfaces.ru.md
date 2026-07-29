@@ -152,18 +152,29 @@ public class AmmoAdapter : IItemAdapter, IStackSizeLimitable
 - оружие по 1
 - ресурсы и инструменты имеют разные лимиты
 
-Чтобы этот лимит учитывался, в `UniversalInventory` должна быть включена настройка `_allowItemStackOverride`.
+Чтобы этот лимит учитывался, нужно включить `Allow Item Stack Override` **в стратегии инвентаря**, а не в самом `UniversalInventory`.
 
-Если `_allowItemStackOverride` выключен, используется общий `_maxStackSize` инвентаря.
+Обе настройки живут в `StackBasedInventoryStrategyBase`, поэтому в инспекторе они находятся в группе `Strategy` внутри выбранной стратегии:
+
+| Настройка | Где искать |
+|---|---|
+| `Max Stack Size` | `UniversalInventory` → `Strategy` → выбранная стратегия |
+| `Allow Item Stack Override` | там же, **появляется только когда `Max Stack Size` больше 0** |
+
+!!! warning Стратегия должна быть stack-based
+    Эти поля есть только у `StackableItemStrategy` и `SeparableStacksStrategy`.
+    У `UniqueItemStrategy` стеков нет, поэтому `IStackSizeLimitable` на неё не влияет.
+
+Если override выключен, используется общий `Max Stack Size` стратегии.
 Если включён и item реализует `IStackSizeLimitable`, лимит предмета заменяет общий лимит.
 
 Примеры:
 
 | Настройки | Итог |
 |---|---|
-| inventory `_maxStackSize = 20`, override выключен, item `MaxStackSize = 99` | лимит `20` |
-| inventory `_maxStackSize = 20`, override включён, item `MaxStackSize = 99` | лимит `99` |
-| inventory `_maxStackSize = 20`, override включён, item `MaxStackSize = 5` | лимит `5` |
+| стратегия `Max Stack Size = 20`, override выключен, item `MaxStackSize = 99` | лимит `20` |
+| стратегия `Max Stack Size = 20`, override включён, item `MaxStackSize = 99` | лимит `99` |
+| стратегия `Max Stack Size = 20`, override включён, item `MaxStackSize = 5` | лимит `5` |
 
 ## IDescribable
 

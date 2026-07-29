@@ -34,8 +34,8 @@ This subsection is intended for **real projects using the asset**: games, protot
 
 ---
 
-You can also add a plot to your project.
-To do this, please send:
+You can add your own project here too.
+To do that, write on Discord — [https://discord.gg/HXf6Wv6UTx](https://discord.gg/HXf6Wv6UTx) — and send:
 
 - screenshots
 - YouTube video or gif with gameplay or UI

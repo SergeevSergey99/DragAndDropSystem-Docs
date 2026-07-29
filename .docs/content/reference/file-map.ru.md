@@ -35,7 +35,7 @@
 | Файл | Types | Назначение |
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Глобальный менеджер активного drag-and-drop в сцене. Отслеживает lifecycle перетаскивания, текущий context и верхнеуровневую координацию. |
-| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Главный компонент инвентаря. Владеет слотами, прямыми `[SerializeReference]` полями стратегий, наборами правил и inventory-level поведением переноса. |
+| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory` | Главный компонент инвентаря. Владеет слотами, прямыми `[SerializeReference]` полями стратегий, наборами правил и inventory-level поведением переноса. |
 | `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Абстрактная базовая сущность слота, которую используют инвентари и движок переноса. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Стандартная конкретная реализация слота, используемая пакетом. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Базовый binding, связывающий `UniversalInventory` с вашим источником игровых данных. |
@@ -179,6 +179,7 @@
 | `Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs` | `AssetLegacyInputActionBinding` | Сериализуемая profile-версия binding старого Input Manager по имени кнопки. |
 | `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Сериализуемая profile-версия Input System binding. |
 | `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper для проверки modifier keys в процессе оценки bindings. |
+| `Scripts/Interaction/Bindings/KeyCodeInput.cs` | `KeyCodeInput` | Читает `KeyCode` через активный input-бэкенд. Если в Player Settings выбран Input System, legacy-класс `Input` бросает исключение, поэтому `KeyCode` транслируется в control нового Input System. Позволяет одним и тем же key-биндингам работать на обоих бэкендах. |
 
 ---
 
@@ -442,6 +443,7 @@
 | `Examples/Demo5 Containers/Scripts/Bindings/ContainerInventoryDataBinding.cs` | `ContainerInventoryDataBinding` | Binding текущего открытого вложенного контейнера. |
 | `Examples/Demo5 Containers/Scripts/ContainerDemoManager.cs` | `ContainerDemoManager` | Scene-manager, управляющий active container state и координацией демо. |
 | `Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs` | `ContainerUIController` | Управляет открытием, переключением и отображением nested container UI. |
+| `Examples/Demo5 Containers/Scripts/ContainerViewRegistry.cs` | `ContainerViewRegistry` | Реестр открытых на экране container-view. Позволяет при drop в занятый слот обновить уже открытый вложенный инвентарь точечно, без полного reload. |
 | `Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | `OpenContainerMenuEntrySO` | Context menu entry, открывающий container item. |
 | `Examples/Demo5 Containers/Scripts/Events.cs` | `Events` | Общие event names/helpers внутри container demo. |
 

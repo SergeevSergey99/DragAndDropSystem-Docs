@@ -152,18 +152,29 @@ Ejemplos:
 - armas con stack de 1
 - recursos y herramientas con límites distintos
 
-Para que este límite se use, `_allowItemStackOverride` debe estar activado en `UniversalInventory`.
+Para que este límite se use, activa `Allow Item Stack Override` **en la estrategia del inventario**, no en el propio `UniversalInventory`.
 
-Si `_allowItemStackOverride` está desactivado, se usa el `_maxStackSize` general del inventario.
+Ambos ajustes viven en `StackBasedInventoryStrategyBase`, así que en el Inspector están en el grupo `Strategy`, dentro de la estrategia seleccionada:
+
+| Ajuste | Dónde buscarlo |
+|---|---|
+| `Max Stack Size` | `UniversalInventory` → `Strategy` → estrategia seleccionada |
+| `Allow Item Stack Override` | en el mismo sitio, **solo aparece cuando `Max Stack Size` es mayor que 0** |
+
+!!! warning La estrategia debe ser stack-based
+    Estos campos solo existen en `StackableItemStrategy` y `SeparableStacksStrategy`.
+    `UniqueItemStrategy` no tiene stacks, así que `IStackSizeLimitable` no le afecta.
+
+Si el override está desactivado, se usa el `Max Stack Size` general de la estrategia.
 Si está activado y el item implementa `IStackSizeLimitable`, el límite del item sustituye al límite general.
 
 Ejemplos:
 
 | Configuración | Resultado |
 |---|---|
-| inventario `_maxStackSize = 20`, override desactivado, item `MaxStackSize = 99` | límite `20` |
-| inventario `_maxStackSize = 20`, override activado, item `MaxStackSize = 99` | límite `99` |
-| inventario `_maxStackSize = 20`, override activado, item `MaxStackSize = 5` | límite `5` |
+| estrategia `Max Stack Size = 20`, override desactivado, item `MaxStackSize = 99` | límite `20` |
+| estrategia `Max Stack Size = 20`, override activado, item `MaxStackSize = 99` | límite `99` |
+| estrategia `Max Stack Size = 20`, override activado, item `MaxStackSize = 5` | límite `5` |
 
 ## IDescribable
 

@@ -35,7 +35,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | File | Types | Rol |
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Gestor global de escena para arrastres activos. Sigue el lifecycle del drag, el contexto actual y la orquestación de alto nivel. |
-| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Componente principal del inventario. Posee slots, campos de strategy directos con `[SerializeReference]`, colecciones de rules y comportamiento de transferencia a nivel de inventario. |
+| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory` | Componente principal del inventario. Posee slots, campos de strategy directos con `[SerializeReference]`, colecciones de rules y comportamiento de transferencia a nivel de inventario. |
 | `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Base abstracta de slot usada por inventarios y el motor de transferencia. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Implementación concreta por defecto del slot usada por el paquete. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Clase base que conecta `UniversalInventory` con tu fuente de datos de juego. |
@@ -179,6 +179,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs` | `AssetLegacyInputActionBinding` | Entrada serializada de asset/profile para binding del Input Manager antiguo por nombre de botón. |
 | `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Entrada serializada de asset/profile para Input System binding. |
 | `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper para comprobaciones de modifier keys usadas durante la evaluación de bindings. |
+| `Scripts/Interaction/Bindings/KeyCodeInput.cs` | `KeyCodeInput` | Lee un `KeyCode` a través del backend de input activo. Si en Player Settings está seleccionado el Input System, la clase legacy `Input` lanza excepción, así que el `KeyCode` se traduce a un control del Input System. Permite que los mismos key bindings funcionen en ambos backends. |
 
 ---
 
@@ -442,6 +443,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Examples/Demo5 Containers/Scripts/Bindings/ContainerInventoryDataBinding.cs` | `ContainerInventoryDataBinding` | Binding del inventario anidado del contenedor actualmente abierto. |
 | `Examples/Demo5 Containers/Scripts/ContainerDemoManager.cs` | `ContainerDemoManager` | Scene manager que mantiene el estado del contenedor activo y coordina la demo. |
 | `Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs` | `ContainerUIController` | Controla la apertura, cambio y presentación de la UI de contenedores anidados. |
+| `Examples/Demo5 Containers/Scripts/ContainerViewRegistry.cs` | `ContainerViewRegistry` | Registro de las container views presentes en pantalla. Permite que un drop en un slot ocupado actualice de forma incremental un inventario anidado ya abierto, en lugar de recargarlo entero. |
 | `Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | `OpenContainerMenuEntrySO` | Entrada de context menu que abre un item contenedor. |
 | `Examples/Demo5 Containers/Scripts/Events.cs` | `Events` | Nombres/helpers de eventos compartidos usados dentro de la container demo. |
 

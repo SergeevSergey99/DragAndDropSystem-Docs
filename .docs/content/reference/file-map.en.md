@@ -35,7 +35,7 @@ The tables below list every script file and describe the main class, interface, 
 | File | Types | Role |
 |---|---|---|
 | `Scripts/DragAndDropManager.cs` | `DragAndDropManager` | Global scene manager for active drags. Tracks drag lifecycle, current context, and high-level orchestration. |
-| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory`, `ItemBehaviorType`, `SlotManagementType` | Main inventory component. Owns slots, direct `[SerializeReference]` strategy fields, rule collections, and inventory-level transfer behavior. |
+| `Scripts/Inventories/UniversalInventory.cs` | `UniversalInventory` | Main inventory component. Owns slots, direct `[SerializeReference]` strategy fields, rule collections, and inventory-level transfer behavior. |
 | `Scripts/Slots/BaseSlot.cs` | `BaseSlot` | Abstract slot base used by inventories and the transfer engine. |
 | `Scripts/Slots/UniversalSlot.cs` | `UniversalSlot` | Default concrete slot implementation used by the package. |
 | `Scripts/DataBinding/InventoryDataBindingBase.cs` | `InventoryDataBindingBase` | Base class that connects `UniversalInventory` to your game data source. |
@@ -179,6 +179,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Interaction/Bindings/AssetLegacyInputActionBinding.cs` | `AssetLegacyInputActionBinding` | Serialized old Input Manager button-name binding asset/profile entry. |
 | `Scripts/Interaction/Bindings/AssetInputActionBinding.cs` | `AssetInputActionBinding` | Serialized Input System binding asset/profile entry. |
 | `Scripts/Interaction/Bindings/ModifierKeyHelper.cs` | `ModifierKeyHelper` | Helper for modifier-key checks used by binding evaluation. |
+| `Scripts/Interaction/Bindings/KeyCodeInput.cs` | `KeyCodeInput` | Reads a `KeyCode` through whichever input backend is active. When Player Settings select the Input System, the legacy `Input` class throws, so the `KeyCode` is translated to an Input System control instead. Lets the same key bindings work on both backends. |
 
 ---
 
@@ -442,6 +443,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Examples/Demo5 Containers/Scripts/Bindings/ContainerInventoryDataBinding.cs` | `ContainerInventoryDataBinding` | Binding for the currently opened nested container inventory. |
 | `Examples/Demo5 Containers/Scripts/ContainerDemoManager.cs` | `ContainerDemoManager` | Scene manager that owns active container state and demo coordination. |
 | `Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs` | `ContainerUIController` | Controls opening, switching, and presenting nested container UI. |
+| `Examples/Demo5 Containers/Scripts/ContainerViewRegistry.cs` | `ContainerViewRegistry` | Registry of container views currently on screen. Lets an occupied-slot insert update an already open nested inventory incrementally instead of doing a full reload. |
 | `Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs` | `OpenContainerMenuEntrySO` | Context menu entry that opens a container item. |
 | `Examples/Demo5 Containers/Scripts/Events.cs` | `Events` | Shared event names/helpers used inside the container demo. |
 

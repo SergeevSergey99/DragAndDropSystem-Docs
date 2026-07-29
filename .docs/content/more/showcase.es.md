@@ -35,7 +35,7 @@ Esta subsección está pensada para **proyectos reales que usan el asset**: jueg
 ---
 
 También puedes añadir una ficha de tu proyecto.
-Para ello, envía:
+Para ello, escribe en Discord — [https://discord.gg/HXf6Wv6UTx](https://discord.gg/HXf6Wv6UTx) — y envía:
 
 - capturas de pantalla
 - vídeo de YouTube o gif con gameplay o UI
