@@ -1598,10 +1598,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#invalid-item-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Появляется Неверный тип предмета
+        Появляется Invalid item type
       
     </span>
   </a>
@@ -1631,7 +1631,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Стек ведёт себя как один и тот же предмет
@@ -1642,7 +1642,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         С чего начать отладку
@@ -1912,10 +1912,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#invalid-item-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Появляется Неверный тип предмета
+        Появляется Invalid item type
       
     </span>
   </a>
@@ -1945,7 +1945,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Стек ведёт себя как один и тот же предмет
@@ -1956,7 +1956,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         С чего начать отладку
@@ -2035,7 +2035,13 @@
 <li>меняют ли эти методы именно тот список или объект, который вы ожидаете</li>
 <li>не меняете ли вы данные напрямую, забывая вызвать <code>ReloadUI()</code></li>
 </ul>
-<h2 id="_5">Появляется <code>Неверный тип предмета</code></h2>
+<h2 id="invalid-item-type">Появляется <code>Invalid item type</code></h2>
+<p>Все сообщения системы выводятся на английском, поэтому в Console ищите именно эту строку:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[RuleResult] Validation failed: Invalid item type
+</code></pre></div>
+<p>!!! info Не видно сообщения?
+    Логи по умолчанию выключены. Чтобы они появились, добавьте define <code>UDND_LOG</code> —
+    см. <a href="../logs-and-debugging/">Логи и отладка</a>.</p>
 <p>Обычно это значит, что инвентарь получил adapter, который относится к другой модели данных.</p>
 <p>Частые причины:</p>
 <ul>
@@ -2073,7 +2079,7 @@
 <li>есть ли <code>InventoryDropArea</code> поверх слотов</li>
 <li>какой <code>BlockedTargetResolutionKind</code> используется</li>
 </ul>
-<h2 id="_6">Стек ведёт себя как один и тот же предмет</h2>
+<h2 id="_5">Стек ведёт себя как один и тот же предмет</h2>
 <p>Так бывает, когда несколько экземпляров в стеке используют один и тот же adapter-объект, хотя должны быть разными предметами.</p>
 <p>Проверьте:</p>
 <ul>
@@ -2081,7 +2087,7 @@
 <li>сохраняет ли converter runtime-состояние предмета</li>
 <li>соответствует ли <code>ItemId</code> вашей логике stacking</li>
 </ul>
-<h2 id="_7">С чего начать отладку</h2>
+<h2 id="_6">С чего начать отладку</h2>
 <ol>
 <li>Сформулируйте симптом: не берётся, не кладётся, данные не обновились, swap ломается.</li>
 <li>Проверьте настройки в инспекторе: strategy, slot management, drop policy, rules.</li>

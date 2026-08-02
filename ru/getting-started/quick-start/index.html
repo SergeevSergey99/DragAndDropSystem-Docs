@@ -1949,22 +1949,100 @@
 <li><code>SimpleBinding</code> как мост между UI и вашим списком данных</li>
 </ul>
 <h2 id="1">Шаг 1. Подготовьте сцену</h2>
+<p>Инвентари — это обычный uGUI, поэтому они живут на UI-канвасе.</p>
 <ol>
-<li>Создайте <code>Canvas</code> на котором будут располагаться инвентрари, если его ещё нет.</li>
-<li>Добавьте на сцену <code>DragAndDropManager</code>. Можно перетащить на сцену префаб из <code>Prefabs/DragCanvas.prefab</code>.<blockquote>
-<p>На сцене нужен один <code>DragAndDropManager</code>. Он управляет всеми операциями переноса и контролирует объект переносимого объекта.</p>
-</blockquote>
+<li>
+<p><strong>Создайте <code>Canvas</code> для инвентарей</strong>, если его ещё нет.</p>
+<p>В окне <code>Hierarchy</code> кликните правой кнопкой по пустому месту и выберите
+<code>UI → Canvas</code>.</p>
+<p>Вместе с <code>Canvas</code> Unity создаст объект <code>EventSystem</code>.
+Для быстрого старта оставьте у <code>Canvas</code> значение <code>Render Mode</code> = <code>Screen Space - Overlay</code>.</p>
 </li>
-<li>Убедитесь, что на сцене есть <code>EventSystem</code>.
-   Если проект использует legacy input, на <code>EventSystem</code> должен быть <code>StandaloneInputModule</code>. Также ассет поддерживает New Input System. В <code>DragAndDropManager</code> по умолчанию указан минимальный рабочий конфиг действий. Можете его поправить под себя или создать свою копию, не забыв заменить её в сцене.</li>
+<li>
+<p><strong>Добавьте на сцену <code>DragAndDropManager</code>.</strong></p>
+<p>Найдите в <code>Project</code> префаб <code>Prefabs/DragCanvas.prefab</code> и перетащите его в <code>Hierarchy</code>
+на пустое место — он должен стать корневым объектом сцены, рядом с вашим <code>Canvas</code>.</p>
+<p>У <code>DragCanvas</code> свой <code>Canvas</code> со значением <code>Sorting Order = 100</code> — за счёт этого
+перетаскиваемый предмет рисуется поверх остального интерфейса.
+Кроме <code>DragAndDropManager</code> на префабе лежат <code>InputEventRouter</code> и <code>DragVisualPresenter</code>.
+На сцене нужен ровно один такой объект: он управляет всеми операциями переноса и
+отвечает за визуал предмета «в руке».</p>
+</li>
+<li>
+<p><strong>Проверьте <code>EventSystem</code>.</strong></p>
+<p>Если в <code>Hierarchy</code> его нет, кликните правой кнопкой по пустому месту и выберите
+<code>UI → Event System</code>.</p>
+<p>Выделите <code>EventSystem</code> и посмотрите в <code>Inspector</code>, какой модуль ввода на нём стоит:</p>
+<ul>
+<li>проект на legacy input — нужен <code>StandaloneInputModule</code>;</li>
+<li>проект на New Input System — нужен <code>InputSystemUIInputModule</code>.</li>
+</ul>
+<p>Ассет поддерживает оба варианта. В <code>DragAndDropManager</code> по умолчанию указан минимальный
+рабочий конфиг действий: можете поправить его под себя или создать свою копию, не забыв
+заменить её в сцене.</p>
+</li>
 </ol>
 <hr />
 <h2 id="2">Шаг 2. Создайте два инвентаря</h2>
 <ol>
-<li>Создайте внутри <code>Canvas</code> объект <code>Backpack</code>.</li>
-<li>Добавьте на него <code>UniversalInventory</code>.</li>
 <li>
-<p>Укажите:</p>
+<p>В <code>Hierarchy</code> кликните правой кнопкой по объекту <code>Canvas</code> и выберите <code>Create Empty</code>.
+   Назовите новый объект <code>Backpack</code>.</p>
+<p>Так как родитель — <code>Canvas</code>, Unity сама даст объекту <code>RectTransform</code>.
+Если сразу нужен фон, вместо <code>Create Empty</code> выберите <code>UI → Panel</code>.</p>
+</li>
+<li>
+<p>Задайте <code>Backpack</code> размер и положение.</p>
+<p>У UI-объекта вместо <code>Transform</code> стоит <code>RectTransform</code>, и после <code>Create Empty</code> его
+<code>Width</code> и <code>Height</code> равны нулю. Размер задаётся здесь, а не масштабом:</p>
+<ul>
+<li>выделите <code>Backpack</code> и в <code>Inspector</code> в компоненте <code>RectTransform</code> укажите
+  <code>Width</code> = <code>540</code>, <code>Height</code> = <code>240</code>;</li>
+<li>положение удобно задать кнопкой пресетов якорей — это квадрат с крестом в левом
+  верхнем углу <code>RectTransform</code>. Нажмите его и для быстрого старта выберите
+  <code>middle center</code>, затем сдвиньте объект полями <code>Pos X</code> и <code>Pos Y</code>.</li>
+</ul>
+<p>Если вы делали <code>UI → Panel</code>, размер уже растянут на весь экран — тогда просто
+поставьте нужные <code>Width</code> и <code>Height</code> тем же способом.</p>
+</li>
+<li>
+<p>Кликните правой кнопкой по <code>Backpack</code>, выберите <code>Create Empty</code> и назовите объект
+   <code>SlotContainer</code>.</p>
+<p>Растяните его на весь <code>Backpack</code>: нажмите кнопку пресетов якорей и с зажатыми
+<code>Alt</code> и <code>Shift</code> выберите правый нижний вариант <code>stretch / stretch</code>.</p>
+<p>Затем нажмите <code>Add Component → Layout → Grid Layout Group</code> и заполните его поля:</p>
+<table>
+<thead>
+<tr>
+<th>Поле <code>Grid Layout Group</code></th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cell Size</code></td>
+<td><code>100</code> × <code>100</code> — размер слота из <code>Prefabs/Slot.prefab</code></td>
+</tr>
+<tr>
+<td><code>Spacing</code></td>
+<td><code>5</code> по X и Y</td>
+</tr>
+<tr>
+<td><code>Constraint</code></td>
+<td><code>Fixed Column Count</code></td>
+</tr>
+<tr>
+<td><code>Constraint Count</code></td>
+<td><code>5</code> — тогда 10 слотов лягут сеткой 5 × 2</td>
+</tr>
+</tbody>
+</table>
+<p>Именно этот компонент раскладывает слоты сеткой.</p>
+</li>
+<li>
+<p>Добавьте на <code>Backpack</code> компонент <code>UniversalInventory</code> и заполните поля.</p>
+<p>В инспекторе они разложены по сворачиваемым группам:</p>
+<p><strong>Группа <code>Slot Setup</code>:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1975,34 +2053,51 @@
 <tbody>
 <tr>
 <td><code>Slot Container</code></td>
-<td>родитель для слотов (желательно с <code>GridLayout</code> или другим компонентом управляющим расположением дочерних объектов)</td>
+<td>объект <code>SlotContainer</code> из шага 3 — родитель, внутри которого создаются слоты</td>
 </tr>
 <tr>
 <td><code>Slot Prefab</code></td>
-<td>Префаб который вы хотите использовать для слотов <code>Prefabs/Slot.prefab</code></td>
+<td>префаб слота, для старта подойдёт <code>Prefabs/Slot.prefab</code></td>
 </tr>
 <tr>
 <td><code>Initial Slot Count</code></td>
-<td>например <code>10</code>. При запуске они создасться в <code>Slot Container</code>. Если вы сами их там уже создали, можете их закешировать нажав на кнопку</td>
+<td>например <code>10</code>. При запуске столько слотов будет создано в <code>Slot Container</code>. Если вы создали их сами, их можно закэшировать кнопкой <code>Cache Slots</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Группа <code>Strategy</code></strong> — здесь два поля без подписи, каждое выбирается выпадающим списком:</p>
+<table>
+<thead>
+<tr>
+<th>Что выбрать</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>верхний список (стратегия инвентаря)</td>
+<td><code>UniqueItemStrategy</code> для самого простого старта, чтобы каждый предмет лежал в отдельном слоте</td>
 </tr>
 <tr>
-<td><code>Inventory Strategy</code></td>
-<td><code>UniqueItemStrategy</code> для самого простого старта, чтобы каждый предмет был в отдельном слоте</td>
-</tr>
-<tr>
-<td><code>Slot Management</code></td>
+<td>нижний список (управление слотами)</td>
 <td><code>FixedSlotManagementSettings</code> для фиксированного количества слотов</td>
 </tr>
 </tbody>
 </table>
+<p>Остальные группы (<code>Rules</code>, <code>Drop Policy</code>, <code>Placement</code>) для быстрого старта можно не трогать.</p>
 </li>
 <li>
-<p>Скопируйте объект и сделайте второй инвентарь, например <code>Chest</code>.</p>
+<p>Скопируйте <code>Backpack</code> и сделайте второй инвентарь, например <code>Chest</code>.
+   Разведите их по экрану полем <code>Pos X</code>, чтобы оба были видны одновременно.</p>
 </li>
 </ol>
 <div class="admonition info инициализация">
 <p class="admonition-title">Info</p>
-<p>Инвентарь на старте пробует найти уже созданные слоты, дочерные к <code>Slot Container</code> и закэшировать их для управления. Если их оказалось не достаточно создаст слоты <code>Slot Prefab</code> в указанном до <code>Initial Slot Count</code> количестве. Вы также можете создать все сдоты вручную в режиме редактирования и закэшировать их кнопкой <code>Cache Slots</code> чтобы этой операции не происходило во время игры</p>
+<p>Инвентарь на старте пробует найти уже созданные слоты, дочерние к <code>Slot Container</code>, и
+закэшировать их для управления. Если их оказалось недостаточно, он создаст слоты из
+<code>Slot Prefab</code> до количества <code>Initial Slot Count</code>. Вы также можете создать все слоты вручную
+в режиме редактирования и закэшировать их кнопкой <code>Cache Slots</code>, чтобы этой операции не
+происходило во время игры.</p>
 </div>
 <hr />
 <h2 id="3">Шаг 3. Опишите тип предмета</h2>
@@ -2034,8 +2129,8 @@
 </code></pre></div>
 <p>Значения обязательных полей:</p>
 <ul>
-<li><code>ItemId</code> - Нужен чтобы различать можно ли объеденить предметы в один слот для стратегий <code>Stackable</code> и <code>SeparableStacks</code>.</li>
-<li><code>Icon</code> - Нужно чтобы отображать карткинку предмета в слоте</li>
+<li><code>ItemId</code> - Нужен чтобы различать, можно ли объединить предметы в один слот, для стратегий <code>Stackable</code> и <code>SeparableStacks</code>.</li>
+<li><code>Icon</code> - Нужно чтобы отображать картинку предмета в слоте</li>
 <li><code>DisplayName</code> - Используется в основном в логах и некоторых дополнительных системах вроде примера подсказок. Можно оставить равным пустой строке</li>
 </ul>
 <hr />
@@ -2058,7 +2153,7 @@
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="k">protected</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">RemoveFromData</span><span class="p">(</span><span class="n">ItemSOAdapter</span><span class="w"> </span><span class="n">adapter</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">_items</span><span class="p">.</span><span class="n">Remove</span><span class="p">(</span><span class="n">adapter</span><span class="p">.</span><span class="n">Data</span><span class="p">);</span>
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="p">}</span>
 </code></pre></div>
-<code>ListInventoryDataBinding</code> это специальный шаблон DataBinding для работы с данными хранящемися в виде списка. У него при наследовании указывается тип вашего предмета и адаптера для него.</p>
+<code>ListInventoryDataBinding</code> это специальный шаблон DataBinding для работы с данными, хранящимися в виде списка. У него при наследовании указывается тип вашего предмета и адаптера для него.</p>
 <p>Значения обязательных методов:</p>
 <ul>
 <li><code>GetItems</code> - Используется для первичного рендера данных</li>
@@ -2067,7 +2162,7 @@
 <li><code>RemoveFromData</code> - вызывается при выносе предмета <strong>из этого</strong> инвентаря</li>
 </ul>
 <p>Повесьте такой binding на оба инвентаря или другие объекты в сцене.
-Укажите ссыли на соответсвующие инвентари.
+Укажите ссылки на соответствующие инвентари.
 У каждого будет свой список <code>_items</code>.</p>
 <div class="admonition info данные">
 <p class="admonition-title">Info</p>
@@ -2084,7 +2179,7 @@
 <ul>
 <li>оба инвентаря покажут предметы</li>
 <li>предмет можно перетащить из одного инвентаря в другой</li>
-<li>списки данных обновится автоматически при переносе</li>
+<li>списки данных обновятся автоматически при переносе</li>
 </ul>
 <hr />
 <h2 id="_2">Что происходит под капотом</h2>
@@ -2094,6 +2189,11 @@
     C --&gt; D["Ваш List&lt;ItemSO&gt; обновляется"]</code></pre>
 <h2 id="_3">Частые ошибки в первом проекте</h2>
 <ul>
+<li>инвентарь создан как 2D- или обычный объект сцены, а не как UI внутри <code>Canvas</code>: в инспекторе у него <code>Transform</code> вместо <code>RectTransform</code></li>
+<li>у <code>Backpack</code> или <code>SlotContainer</code> в <code>RectTransform</code> остались нулевые <code>Width</code> и <code>Height</code>, поэтому инвентарь не видно или он стоит не там, где ожидалось</li>
+<li>размер пытались задать через <code>Scale</code> вместо <code>Width</code> и <code>Height</code></li>
+<li><code>DragCanvas</code> положили внутрь своего <code>Canvas</code>, и перетаскиваемый предмет пропадает под интерфейсом</li>
+<li><code>Slot Container</code> указывает на сам инвентарь, а не на дочерний объект с <code>Grid Layout Group</code></li>
 <li><code>ItemId</code> не соответствует вашей логике stacking, и предметы начинают merge-иться или не merge-иться неожиданно</li>
 <li>на сцене нет <code>DragAndDropManager</code></li>
 <li>на сцене нет <code>EventSystem</code></li>

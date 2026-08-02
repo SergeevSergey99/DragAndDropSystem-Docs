@@ -1598,10 +1598,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#aparece-wrong-item-type" class="md-nav__link">
+  <a href="#aparece-invalid-item-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Aparece Wrong Item Type
+        Aparece Invalid item type
       
     </span>
   </a>
@@ -1912,10 +1912,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#aparece-wrong-item-type" class="md-nav__link">
+  <a href="#aparece-invalid-item-type" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Aparece Wrong Item Type
+        Aparece Invalid item type
       
     </span>
   </a>
@@ -2035,7 +2035,13 @@
 <li>si esos métodos modifican exactamente la lista u objeto que esperas</li>
 <li>si cambias datos directamente y olvidas llamar a <code>ReloadUI()</code></li>
 </ul>
-<h2 id="aparece-wrong-item-type">Aparece <code>Wrong Item Type</code></h2>
+<h2 id="aparece-invalid-item-type">Aparece <code>Invalid item type</code></h2>
+<p>Todos los mensajes del sistema se muestran en inglés, así que busca en la Console exactamente esta cadena:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[RuleResult] Validation failed: Invalid item type
+</code></pre></div>
+<p>!!! info ¿No ves el mensaje?
+    Los logs están desactivados por defecto. Añade el define <code>UDND_LOG</code> para activarlos —
+    consulta <a href="../logs-and-debugging/">Logs y depuración</a>.</p>
 <p>Normalmente significa que un inventario recibió un adapter que pertenece a otro modelo de datos.</p>
 <p>Causas comunes:</p>
 <ul>

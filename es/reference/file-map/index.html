@@ -2467,7 +2467,7 @@
 </tr>
 <tr>
 <td><code>Scripts/Inventories/UniversalInventory.cs</code></td>
-<td><code>UniversalInventory</code>, <code>ItemBehaviorType</code>, <code>SlotManagementType</code></td>
+<td><code>UniversalInventory</code></td>
 <td>Componente principal del inventario. Posee slots, campos de strategy directos con <code>[SerializeReference]</code>, colecciones de rules y comportamiento de transferencia a nivel de inventario.</td>
 </tr>
 <tr>
@@ -2995,6 +2995,11 @@
 <td><code>Scripts/Interaction/Bindings/ModifierKeyHelper.cs</code></td>
 <td><code>ModifierKeyHelper</code></td>
 <td>Helper para comprobaciones de modifier keys usadas durante la evaluación de bindings.</td>
+</tr>
+<tr>
+<td><code>Scripts/Interaction/Bindings/KeyCodeInput.cs</code></td>
+<td><code>KeyCodeInput</code></td>
+<td>Lee un <code>KeyCode</code> a través del backend de input activo. Si en Player Settings está seleccionado el Input System, la clase legacy <code>Input</code> lanza excepción, así que el <code>KeyCode</code> se traduce a un control del Input System. Permite que los mismos key bindings funcionen en ambos backends.</td>
 </tr>
 </tbody>
 </table>
@@ -3980,6 +3985,11 @@
 <td><code>Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs</code></td>
 <td><code>ContainerUIController</code></td>
 <td>Controla la apertura, cambio y presentación de la UI de contenedores anidados.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo5 Containers/Scripts/ContainerViewRegistry.cs</code></td>
+<td><code>ContainerViewRegistry</code></td>
+<td>Registro de las container views presentes en pantalla. Permite que un drop en un slot ocupado actualice de forma incremental un inventario anidado ya abierto, en lugar de recargarlo entero.</td>
 </tr>
 <tr>
 <td><code>Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs</code></td>

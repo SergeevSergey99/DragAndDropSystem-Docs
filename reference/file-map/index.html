@@ -2467,7 +2467,7 @@
 </tr>
 <tr>
 <td><code>Scripts/Inventories/UniversalInventory.cs</code></td>
-<td><code>UniversalInventory</code>, <code>ItemBehaviorType</code>, <code>SlotManagementType</code></td>
+<td><code>UniversalInventory</code></td>
 <td>Main inventory component. Owns slots, direct <code>[SerializeReference]</code> strategy fields, rule collections, and inventory-level transfer behavior.</td>
 </tr>
 <tr>
@@ -2995,6 +2995,11 @@
 <td><code>Scripts/Interaction/Bindings/ModifierKeyHelper.cs</code></td>
 <td><code>ModifierKeyHelper</code></td>
 <td>Helper for modifier-key checks used by binding evaluation.</td>
+</tr>
+<tr>
+<td><code>Scripts/Interaction/Bindings/KeyCodeInput.cs</code></td>
+<td><code>KeyCodeInput</code></td>
+<td>Reads a <code>KeyCode</code> through whichever input backend is active. When Player Settings select the Input System, the legacy <code>Input</code> class throws, so the <code>KeyCode</code> is translated to an Input System control instead. Lets the same key bindings work on both backends.</td>
 </tr>
 </tbody>
 </table>
@@ -3980,6 +3985,11 @@
 <td><code>Examples/Demo5 Containers/Scripts/UI/ContainerUIController.cs</code></td>
 <td><code>ContainerUIController</code></td>
 <td>Controls opening, switching, and presenting nested container UI.</td>
+</tr>
+<tr>
+<td><code>Examples/Demo5 Containers/Scripts/ContainerViewRegistry.cs</code></td>
+<td><code>ContainerViewRegistry</code></td>
+<td>Registry of container views currently on screen. Lets an occupied-slot insert update an already open nested inventory incrementally instead of doing a full reload.</td>
 </tr>
 <tr>
 <td><code>Examples/Demo5 Containers/Scripts/ContextMenu/OpenContainerMenuEntrySO.cs</code></td>

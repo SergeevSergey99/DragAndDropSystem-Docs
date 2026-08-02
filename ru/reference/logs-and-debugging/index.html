@@ -1529,7 +1529,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Быстрая карта
+        Как включить логи
       
     </span>
   </a>
@@ -1540,7 +1540,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Какие логи что означают
+        Быстрая карта
       
     </span>
   </a>
@@ -1549,6 +1549,17 @@
       
         <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Какие логи что означают
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если предупреждения идут по другим слотам
@@ -1570,7 +1581,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если проблема в данных
@@ -1581,7 +1592,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если проблема между разными инвентарями
@@ -1592,7 +1603,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если проблема в торговле или внешней проверке
@@ -1603,7 +1614,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Полезный порядок проверки
@@ -1860,7 +1871,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Быстрая карта
+        Как включить логи
       
     </span>
   </a>
@@ -1871,7 +1882,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Какие логи что означают
+        Быстрая карта
       
     </span>
   </a>
@@ -1880,6 +1891,17 @@
       
         <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Какие логи что означают
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если предупреждения идут по другим слотам
@@ -1901,7 +1923,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если проблема в данных
@@ -1912,7 +1934,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если проблема между разными инвентарями
@@ -1923,7 +1945,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         Если проблема в торговле или внешней проверке
@@ -1934,7 +1956,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         Полезный порядок проверки
@@ -1972,7 +1994,31 @@
 <li>swap работает неправильно</li>
 <li>в Console много предупреждений</li>
 </ul>
-<h2 id="_2">Быстрая карта</h2>
+<h2 id="_2">Как включить логи</h2>
+<div class="admonition warning по умолчанию логов нет">
+<p class="admonition-title">Warning</p>
+<p>Логи ассета выключены на уровне компиляции. Пока вы не добавите define <code>UDND_LOG</code>,
+Console будет пустой, даже если внутри что-то отклоняется.</p>
+</div>
+<p>Чтобы включить:</p>
+<ol>
+<li><code>Edit → Project Settings → Player</code></li>
+<li>Разверните <code>Other Settings</code> и найдите <code>Scripting Define Symbols</code></li>
+<li>Добавьте <code>UDND_LOG</code> и нажмите <code>Apply</code></li>
+<li>Дождитесь перекомпиляции</li>
+</ol>
+<p>Полезно знать:</p>
+<ul>
+<li>логи работают <strong>только в редакторе</strong> — код обёрнут в <code>#if UNITY_EDITOR &amp;&amp; UDND_LOG</code>, в билд они не попадают</li>
+<li><code>Scripting Define Symbols</code> задаются отдельно для каждой платформы, поэтому добавляйте define на той платформе, на которой сейчас работаете</li>
+<li>все сообщения ассета помечены префиксом <code>[UDND]</code>, по нему удобно фильтровать Console</li>
+<li>отклонённые правила выводятся отдельной строкой вида
+  <code>[RuleResult] Validation failed: &lt;причина&gt;</code></li>
+<li>сообщения выводятся на английском, независимо от языка документации</li>
+</ul>
+<p>Когда закончите отладку, define можно убрать — на поведение системы он не влияет,
+только на вывод в Console.</p>
+<h2 id="_3">Быстрая карта</h2>
 <table>
 <thead>
 <tr>
@@ -2007,7 +2053,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="_3">Какие логи что означают</h2>
+<h2 id="_4">Какие логи что означают</h2>
 <table>
 <thead>
 <tr>
@@ -2046,7 +2092,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="_4">Если предупреждения идут по другим слотам</h2>
+<h2 id="_5">Если предупреждения идут по другим слотам</h2>
 <p>Это часто нормально. Система может проверять не только выбранный слот, если:</p>
 <ul>
 <li>предмет отпустили на область инвентаря</li>
@@ -2069,7 +2115,7 @@
 <li>это был выбранный слот или один из альтернативных</li>
 <li>после этого перенос всё-таки прошёл или нет</li>
 </ul>
-<h2 id="_5">Если проблема в данных</h2>
+<h2 id="_6">Если проблема в данных</h2>
 <p>Когда после переноса данные не совпадают с UI, смотрите binding:</p>
 <ul>
 <li><code>GetItems()</code> / <code>GetOccupiedSlots()</code> загружают правильные данные?</li>
@@ -2077,7 +2123,7 @@
 <li><code>RemoveFromData(...)</code> удаляет из правильного списка?</li>
 <li>внешние изменения данных вызывают <code>ReloadUI()</code>?</li>
 </ul>
-<h2 id="_6">Если проблема между разными инвентарями</h2>
+<h2 id="_7">Если проблема между разными инвентарями</h2>
 <p>Например: торговец, игрок, экипировка или контейнер используют разные модели данных.</p>
 <p>Проверьте:</p>
 <ul>
@@ -2086,7 +2132,7 @@
 <li>какой adapter должен лежать в целевом слоте</li>
 <li>сохраняет ли converter уникальные данные предмета</li>
 </ul>
-<h2 id="_7">Если проблема в торговле или внешней проверке</h2>
+<h2 id="_8">Если проблема в торговле или внешней проверке</h2>
 <p>Проверьте domain handler:</p>
 <ul>
 <li><code>CanStartTransfer</code> — можно ли вообще начинать перенос</li>
@@ -2094,7 +2140,7 @@
 <li><code>CanCommitTransfer</code> — можно ли зафиксировать конкретное размещение</li>
 <li><code>OnTransferSucceeded</code> — не ломает ли побочный эффект данные после успешного переноса</li>
 </ul>
-<h2 id="_8">Полезный порядок проверки</h2>
+<h2 id="_9">Полезный порядок проверки</h2>
 <ol>
 <li>Убедитесь, что предмет реально загружен в UI.</li>
 <li>Проверьте rules и <code>CanStartDrag</code>.</li>

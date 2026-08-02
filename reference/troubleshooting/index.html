@@ -1598,10 +1598,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#wrong-item-type-appears" class="md-nav__link">
+  <a href="#invalid-item-type-appears" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Wrong Item Type Appears
+        Invalid item type Appears
       
     </span>
   </a>
@@ -1912,10 +1912,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#wrong-item-type-appears" class="md-nav__link">
+  <a href="#invalid-item-type-appears" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Wrong Item Type Appears
+        Invalid item type Appears
       
     </span>
   </a>
@@ -2035,7 +2035,13 @@
 <li>whether those methods modify the exact list or object you expect</li>
 <li>whether you change data directly and forget to call <code>ReloadUI()</code></li>
 </ul>
-<h2 id="wrong-item-type-appears"><code>Wrong Item Type</code> Appears</h2>
+<h2 id="invalid-item-type-appears"><code>Invalid item type</code> Appears</h2>
+<p>Search the Console for this exact string:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[RuleResult] Validation failed: Invalid item type
+</code></pre></div>
+<p>!!! info Not seeing the message?
+    Logs are disabled by default. Add the <code>UDND_LOG</code> define to turn them on —
+    see <a href="../logs-and-debugging/">Logs and Debugging</a>.</p>
 <p>This usually means an inventory received an adapter that belongs to another data model.</p>
 <p>Common causes:</p>
 <ul>

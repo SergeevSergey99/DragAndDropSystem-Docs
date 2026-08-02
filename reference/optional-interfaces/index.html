@@ -2141,9 +2141,33 @@
 <li>weapons stack to 1</li>
 <li>resources and tools use different limits</li>
 </ul>
-<p>For this limit to be used, <code>_allowItemStackOverride</code> must be enabled on <code>UniversalInventory</code>.</p>
-<p>If <code>_allowItemStackOverride</code> is disabled, the inventory-wide <code>_maxStackSize</code> is used.
-If it is enabled and the item implements <code>IStackSizeLimitable</code>, the item limit replaces the inventory-wide limit.</p>
+<p>For this limit to be used, enable <code>Allow Item Stack Override</code> <strong>on the inventory strategy</strong>, not on <code>UniversalInventory</code> itself.</p>
+<p>Both settings live in <code>StackBasedInventoryStrategyBase</code>, so in the Inspector you find them in the <code>Strategy</code> group, inside the selected strategy:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Where to look</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Max Stack Size</code></td>
+<td><code>UniversalInventory</code> → <code>Strategy</code> → selected strategy</td>
+</tr>
+<tr>
+<td><code>Allow Item Stack Override</code></td>
+<td>same place, <strong>only shown when <code>Max Stack Size</code> is greater than 0</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning the strategy must be stack-based">
+<p class="admonition-title">Warning</p>
+<p>These fields only exist on <code>StackableItemStrategy</code> and <code>SeparableStacksStrategy</code>.
+<code>UniqueItemStrategy</code> has no stacks, so <code>IStackSizeLimitable</code> has no effect there.</p>
+</div>
+<p>If the override is disabled, the strategy-wide <code>Max Stack Size</code> is used.
+If it is enabled and the item implements <code>IStackSizeLimitable</code>, the item limit replaces the shared limit.</p>
 <p>Examples:</p>
 <table>
 <thead>
@@ -2154,15 +2178,15 @@ If it is enabled and the item implements <code>IStackSizeLimitable</code>, the i
 </thead>
 <tbody>
 <tr>
-<td>inventory <code>_maxStackSize = 20</code>, override disabled, item <code>MaxStackSize = 99</code></td>
+<td>strategy <code>Max Stack Size = 20</code>, override disabled, item <code>MaxStackSize = 99</code></td>
 <td>limit is <code>20</code></td>
 </tr>
 <tr>
-<td>inventory <code>_maxStackSize = 20</code>, override enabled, item <code>MaxStackSize = 99</code></td>
+<td>strategy <code>Max Stack Size = 20</code>, override enabled, item <code>MaxStackSize = 99</code></td>
 <td>limit is <code>99</code></td>
 </tr>
 <tr>
-<td>inventory <code>_maxStackSize = 20</code>, override enabled, item <code>MaxStackSize = 5</code></td>
+<td>strategy <code>Max Stack Size = 20</code>, override enabled, item <code>MaxStackSize = 5</code></td>
 <td>limit is <code>5</code></td>
 </tr>
 </tbody>

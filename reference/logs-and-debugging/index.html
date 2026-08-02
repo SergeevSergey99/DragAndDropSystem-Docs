@@ -1526,6 +1526,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#how-to-enable-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How To Enable Logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#quick-map" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1857,6 +1868,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#how-to-enable-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How To Enable Logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#quick-map" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1972,6 +1994,29 @@
 <li>swap behaves incorrectly</li>
 <li>Console shows many warnings</li>
 </ul>
+<h2 id="how-to-enable-logs">How To Enable Logs</h2>
+<div class="admonition warning there are no logs by default">
+<p class="admonition-title">Warning</p>
+<p>The asset's logs are disabled at compile time. Until you add the <code>UDND_LOG</code> define, the
+Console stays empty even when something is being rejected internally.</p>
+</div>
+<p>To enable them:</p>
+<ol>
+<li><code>Edit → Project Settings → Player</code></li>
+<li>Expand <code>Other Settings</code> and find <code>Scripting Define Symbols</code></li>
+<li>Add <code>UDND_LOG</code> and press <code>Apply</code></li>
+<li>Wait for the recompile</li>
+</ol>
+<p>Worth knowing:</p>
+<ul>
+<li>logs work <strong>in the Editor only</strong> — the code is wrapped in <code>#if UNITY_EDITOR &amp;&amp; UDND_LOG</code>, so nothing reaches a build</li>
+<li><code>Scripting Define Symbols</code> are per build target, so add the define on the platform you are currently working on</li>
+<li>every message from the asset is prefixed with <code>[UDND]</code>, which makes Console filtering easy</li>
+<li>rejected rules are printed as a separate line: <code>[RuleResult] Validation failed: &lt;reason&gt;</code></li>
+<li>messages are printed in English, regardless of the documentation language</li>
+</ul>
+<p>Once you are done debugging you can remove the define — it affects only Console output,
+not the behavior of the system.</p>
 <h2 id="quick-map">Quick Map</h2>
 <table>
 <thead>

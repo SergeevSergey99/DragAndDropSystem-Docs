@@ -1951,27 +1951,96 @@ In this guide that means:</p>
 <li><code>SimpleBinding</code> as the bridge between UI and your data list</li>
 </ul>
 <h2 id="step-1-prepare-the-scene">Step 1. Prepare The Scene</h2>
+<p>Inventories are plain uGUI, so they live on a UI canvas.</p>
 <ol>
-<li>Create a <code>Canvas</code> for the inventories if the scene does not have one yet.</li>
-<li>Add <code>DragAndDropManager</code> to the scene. You can drag the prefab from
-   <code>Prefabs/DragCanvas.prefab</code>.<blockquote>
-<p>The scene needs one <code>DragAndDropManager</code>. It manages all transfer operations and
-controls the dragged object.</p>
-</blockquote>
+<li>
+<p><strong>Create a <code>Canvas</code> for the inventories</strong> if the scene does not have one yet.</p>
+<p>In the <code>Hierarchy</code> window, right-click empty space and choose <code>UI → Canvas</code>.</p>
+<p>Unity creates an <code>EventSystem</code> object along with the <code>Canvas</code>.
+For a quick start, leave the <code>Canvas</code> at <code>Render Mode</code> = <code>Screen Space - Overlay</code>.</p>
 </li>
-<li>Make sure the scene has an <code>EventSystem</code>.
-   If the project uses legacy input, the <code>EventSystem</code> should have <code>StandaloneInputModule</code>.
-   The asset also supports the New Input System. <code>DragAndDropManager</code> has a minimal
-   working action config by default. You can edit it or create your own copy, then assign
-   it in the scene.</li>
+<li>
+<p><strong>Add <code>DragAndDropManager</code> to the scene.</strong></p>
+<p>Find <code>Prefabs/DragCanvas.prefab</code> in the <code>Project</code> window and drag it into empty space in
+the <code>Hierarchy</code> — it should become a root object of the scene, next to your <code>Canvas</code>.</p>
+<p><code>DragCanvas</code> has its own <code>Canvas</code> with <code>Sorting Order = 100</code>, which is what keeps the
+dragged item rendered above the rest of the interface.
+Besides <code>DragAndDropManager</code>, the prefab carries <code>InputEventRouter</code> and
+<code>DragVisualPresenter</code>. The scene needs exactly one such object: it manages all transfer
+operations and owns the visual of the item "in hand".</p>
+</li>
+<li>
+<p><strong>Check the <code>EventSystem</code>.</strong></p>
+<p>If the <code>Hierarchy</code> has none, right-click empty space and choose <code>UI → Event System</code>.</p>
+<p>Select <code>EventSystem</code> and check in the <code>Inspector</code> which input module it carries:</p>
+<ul>
+<li>legacy input project — it needs <code>StandaloneInputModule</code>;</li>
+<li>New Input System project — it needs <code>InputSystemUIInputModule</code>.</li>
+</ul>
+<p>The asset supports both. <code>DragAndDropManager</code> has a minimal working action config by
+default. You can edit it or create your own copy, then assign it in the scene.</p>
+</li>
 </ol>
 <hr />
 <h2 id="step-2-create-two-inventories">Step 2. Create Two Inventories</h2>
 <ol>
-<li>Create an object named <code>Backpack</code> inside <code>Canvas</code>.</li>
-<li>Add <code>UniversalInventory</code> to it.</li>
 <li>
-<p>Set:</p>
+<p>In the <code>Hierarchy</code>, right-click the <code>Canvas</code> object and choose <code>Create Empty</code>.
+   Name the new object <code>Backpack</code>.</p>
+<p>Because the parent is a <code>Canvas</code>, Unity gives the object a <code>RectTransform</code>.
+If you want a background right away, choose <code>UI → Panel</code> instead of <code>Create Empty</code>.</p>
+</li>
+<li>
+<p>Give <code>Backpack</code> a size and a position.</p>
+<p>A UI object has a <code>RectTransform</code> instead of a <code>Transform</code>, and after <code>Create Empty</code> its
+<code>Width</code> and <code>Height</code> are zero. Size is set here, not through scale:</p>
+<ul>
+<li>select <code>Backpack</code> and in the <code>Inspector</code>, in the <code>RectTransform</code> component, set
+  <code>Width</code> = <code>540</code>, <code>Height</code> = <code>240</code>;</li>
+<li>position is easiest to set with the anchor presets button — the square with a cross in
+  the top-left corner of <code>RectTransform</code>. Press it and pick <code>middle center</code> for a quick
+  start, then move the object with the <code>Pos X</code> and <code>Pos Y</code> fields.</li>
+</ul>
+<p>If you used <code>UI → Panel</code>, it already stretches to the full screen — just set the
+<code>Width</code> and <code>Height</code> you want the same way.</p>
+</li>
+<li>
+<p>Right-click <code>Backpack</code>, choose <code>Create Empty</code> and name the object <code>SlotContainer</code>.</p>
+<p>Stretch it over the whole <code>Backpack</code>: press the anchor presets button and, holding
+<code>Alt</code> and <code>Shift</code>, pick the bottom-right <code>stretch / stretch</code> option.</p>
+<p>Then press <code>Add Component → Layout → Grid Layout Group</code> and fill in its fields:</p>
+<table>
+<thead>
+<tr>
+<th><code>Grid Layout Group</code> field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cell Size</code></td>
+<td><code>100</code> × <code>100</code> — the slot size from <code>Prefabs/Slot.prefab</code></td>
+</tr>
+<tr>
+<td><code>Spacing</code></td>
+<td><code>5</code> on X and Y</td>
+</tr>
+<tr>
+<td><code>Constraint</code></td>
+<td><code>Fixed Column Count</code></td>
+</tr>
+<tr>
+<td><code>Constraint Count</code></td>
+<td><code>5</code>, so 10 slots form a 5 × 2 grid</td>
+</tr>
+</tbody>
+</table>
+<p>This component is what arranges the slots into a grid.</p>
+</li>
+<li>
+<p>Add the <code>UniversalInventory</code> component to <code>Backpack</code> and fill in the fields.</p>
+<p>In the Inspector they are split into collapsible groups:</p>
+<p><strong><code>Slot Setup</code> group:</strong></p>
 <table>
 <thead>
 <tr>
@@ -1982,29 +2051,42 @@ controls the dragged object.</p>
 <tbody>
 <tr>
 <td><code>Slot Container</code></td>
-<td>Parent for slots, preferably with <code>GridLayout</code> or another component controlling child layout</td>
+<td>The <code>SlotContainer</code> object from step 3 — the parent the slots are created under</td>
 </tr>
 <tr>
 <td><code>Slot Prefab</code></td>
-<td>Slot prefab you want to use, for example <code>Prefabs/Slot.prefab</code></td>
+<td>Slot prefab you want to use; <code>Prefabs/Slot.prefab</code> works for a start</td>
 </tr>
 <tr>
 <td><code>Initial Slot Count</code></td>
-<td>For example <code>10</code>. On startup, slots are created in <code>Slot Container</code>. If you already created them manually, you can cache them with the button</td>
+<td>For example <code>10</code>. That many slots are created in <code>Slot Container</code> on startup. If you created them yourself, cache them with the <code>Cache Slots</code> button</td>
 </tr>
+</tbody>
+</table>
+<p><strong><code>Strategy</code> group</strong> — two unlabeled fields, each picked from a dropdown:</p>
+<table>
+<thead>
 <tr>
-<td><code>Inventory Strategy</code></td>
+<th>What to pick</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>top dropdown (inventory strategy)</td>
 <td><code>UniqueItemStrategy</code> for the simplest start, so each item occupies its own slot</td>
 </tr>
 <tr>
-<td><code>Slot Management</code></td>
+<td>bottom dropdown (slot management)</td>
 <td><code>FixedSlotManagementSettings</code> for a fixed number of slots</td>
 </tr>
 </tbody>
 </table>
+<p>The remaining groups (<code>Rules</code>, <code>Drop Policy</code>, <code>Placement</code>) can stay untouched for a quick start.</p>
 </li>
 <li>
-<p>Duplicate the object and create a second inventory, for example <code>Chest</code>.</p>
+<p>Duplicate <code>Backpack</code> and create a second inventory, for example <code>Chest</code>.
+   Move them apart with the <code>Pos X</code> field so both are visible at the same time.</p>
 </li>
 </ol>
 <div class="admonition info initialization">
@@ -2111,6 +2193,11 @@ with your own scripts that store data. See examples for implementations of this 
     C --&gt; D["Your List&lt;ItemSO&gt; is updated"]</code></pre>
 <h2 id="common-first-project-mistakes">Common First-Project Mistakes</h2>
 <ul>
+<li>the inventory was created as a 2D or plain scene object instead of UI inside a <code>Canvas</code>: the Inspector shows a <code>Transform</code> instead of a <code>RectTransform</code></li>
+<li><code>Backpack</code> or <code>SlotContainer</code> still has <code>Width</code> and <code>Height</code> of zero in its <code>RectTransform</code>, so the inventory is invisible or sits somewhere unexpected</li>
+<li>size was set through <code>Scale</code> instead of <code>Width</code> and <code>Height</code></li>
+<li><code>DragCanvas</code> was placed inside your own <code>Canvas</code>, so the dragged item disappears behind the interface</li>
+<li><code>Slot Container</code> points at the inventory itself instead of a child object with a <code>Grid Layout Group</code></li>
 <li><code>ItemId</code> does not match your stacking logic, so items unexpectedly merge or do not merge</li>
 <li>there is no <code>DragAndDropManager</code> in the scene</li>
 <li>there is no <code>EventSystem</code> in the scene</li>

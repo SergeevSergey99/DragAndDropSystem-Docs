@@ -1526,6 +1526,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#como-activar-los-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo activar los logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mapa-rapido" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1857,6 +1868,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#como-activar-los-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cómo activar los logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#mapa-rapido" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1972,6 +1994,29 @@
 <li>swap se comporta mal</li>
 <li>Console muestra muchos warnings</li>
 </ul>
+<h2 id="como-activar-los-logs">Cómo activar los logs</h2>
+<div class="admonition warning por defecto no hay logs">
+<p class="admonition-title">Warning</p>
+<p>Los logs del asset están desactivados en tiempo de compilación. Hasta que añadas el define
+<code>UDND_LOG</code>, la Console estará vacía aunque internamente algo se esté rechazando.</p>
+</div>
+<p>Para activarlos:</p>
+<ol>
+<li><code>Edit → Project Settings → Player</code></li>
+<li>Despliega <code>Other Settings</code> y busca <code>Scripting Define Symbols</code></li>
+<li>Añade <code>UDND_LOG</code> y pulsa <code>Apply</code></li>
+<li>Espera a que recompile</li>
+</ol>
+<p>Conviene saber:</p>
+<ul>
+<li>los logs funcionan <strong>solo en el Editor</strong> — el código está envuelto en <code>#if UNITY_EDITOR &amp;&amp; UDND_LOG</code>, así que no llegan a la build</li>
+<li><code>Scripting Define Symbols</code> se define por plataforma, así que añádelo en la plataforma en la que estés trabajando</li>
+<li>todos los mensajes del asset llevan el prefijo <code>[UDND]</code>, lo que facilita filtrar la Console</li>
+<li>las reglas rechazadas se imprimen en una línea aparte: <code>[RuleResult] Validation failed: &lt;motivo&gt;</code></li>
+<li>los mensajes se imprimen en inglés, independientemente del idioma de la documentación</li>
+</ul>
+<p>Cuando termines de depurar puedes quitar el define — solo afecta a la salida en Console,
+no al comportamiento del sistema.</p>
 <h2 id="mapa-rapido">Mapa rápido</h2>
 <table>
 <thead>

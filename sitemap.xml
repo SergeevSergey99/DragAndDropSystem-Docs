@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>None./</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="None"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/"/>
@@ -10,7 +10,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/binding-templates/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/binding-templates/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/binding-templates/"/>
@@ -18,7 +18,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/data-binding/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/data-binding/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/data-binding/"/>
@@ -26,7 +26,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/drop-areas/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/drop-areas/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/drop-areas/"/>
@@ -34,7 +34,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/drop-policy-matrix/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/drop-policy-matrix/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/drop-policy-matrix/"/>
@@ -42,7 +42,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/item-conversion-cookbook/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/item-conversion-cookbook/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/item-conversion-cookbook/"/>
@@ -50,7 +50,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/rules/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/rules/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/rules/"/>
@@ -58,7 +58,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/strategies/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/strategies/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/strategies/"/>
@@ -66,7 +66,7 @@
     </url>
     <url>
         <loc>Nonearchitecture/transfer-pipeline/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/transfer-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/transfer-pipeline/"/>
@@ -74,7 +74,7 @@
     </url>
     <url>
         <loc>Noneexamples/demo1-inventories/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo1-inventories/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo1-inventories/"/>
@@ -82,7 +82,7 @@
     </url>
     <url>
         <loc>Noneexamples/demo2-loot/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo2-loot/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo2-loot/"/>
@@ -90,7 +90,7 @@
     </url>
     <url>
         <loc>Noneexamples/demo3-Craft/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo3-Craft/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo3-Craft/"/>
@@ -98,7 +98,7 @@
     </url>
     <url>
         <loc>Noneexamples/demo4-trading/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo4-trading/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo4-trading/"/>
@@ -106,7 +106,7 @@
     </url>
     <url>
         <loc>Noneexamples/demo5-containers/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo5-containers/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo5-containers/"/>
@@ -114,7 +114,7 @@
     </url>
     <url>
         <loc>Noneexamples/demo6-shaped-items/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo6-shaped-items/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo6-shaped-items/"/>
@@ -122,7 +122,7 @@
     </url>
     <url>
         <loc>Noneexamples/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/"/>
@@ -130,7 +130,7 @@
     </url>
     <url>
         <loc>Nonegetting-started/quick-start/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonegetting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/getting-started/quick-start/"/>
@@ -138,7 +138,7 @@
     </url>
     <url>
         <loc>Nonemore/extra-support/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/extra-support/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/extra-support/"/>
@@ -146,7 +146,7 @@
     </url>
     <url>
         <loc>Nonemore/feedback/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/feedback/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/feedback/"/>
@@ -154,7 +154,7 @@
     </url>
     <url>
         <loc>Nonemore/future-plans/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/future-plans/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/future-plans/"/>
@@ -162,7 +162,7 @@
     </url>
     <url>
         <loc>Nonemore/showcase/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/showcase/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/showcase/"/>
@@ -170,7 +170,7 @@
     </url>
     <url>
         <loc>Nonereference/events/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/events/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/events/"/>
@@ -178,7 +178,7 @@
     </url>
     <url>
         <loc>Nonereference/file-map/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/file-map/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/file-map/"/>
@@ -186,7 +186,7 @@
     </url>
     <url>
         <loc>Nonereference/logs-and-debugging/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/logs-and-debugging/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/logs-and-debugging/"/>
@@ -194,7 +194,7 @@
     </url>
     <url>
         <loc>Nonereference/optional-interfaces/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/optional-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/optional-interfaces/"/>
@@ -202,7 +202,7 @@
     </url>
     <url>
         <loc>Nonereference/troubleshooting/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/troubleshooting/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/troubleshooting/"/>
@@ -210,7 +210,7 @@
     </url>
     <url>
         <loc>Nonesystems/context-menu/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/context-menu/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/context-menu/"/>
@@ -218,7 +218,7 @@
     </url>
     <url>
         <loc>Nonesystems/filter-sort/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/filter-sort/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/filter-sort/"/>
@@ -226,7 +226,7 @@
     </url>
     <url>
         <loc>Nonesystems/free-form-layout/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/free-form-layout/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/free-form-layout/"/>
@@ -234,7 +234,7 @@
     </url>
     <url>
         <loc>Nonesystems/interaction/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/interaction/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/interaction/"/>
@@ -242,7 +242,7 @@
     </url>
     <url>
         <loc>Nonesystems/selection/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/selection/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/selection/"/>
@@ -250,7 +250,7 @@
     </url>
     <url>
         <loc>Nonesystems/tooltips/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/tooltips/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/tooltips/"/>
@@ -258,7 +258,7 @@
     </url>
     <url>
         <loc>Nonesystems/world-3d/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/world-3d/"/>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/world-3d/"/>
@@ -266,7 +266,7 @@
     </url>
     <url>
         <loc>Noneru/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/"/>
         <xhtml:link rel="alternate" hreflang="en" href="None"/>
@@ -274,7 +274,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/binding-templates/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/binding-templates/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/binding-templates/"/>
@@ -282,7 +282,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/data-binding/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/data-binding/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/data-binding/"/>
@@ -290,7 +290,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/drop-areas/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/drop-areas/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/drop-areas/"/>
@@ -298,7 +298,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/drop-policy-matrix/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/drop-policy-matrix/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/drop-policy-matrix/"/>
@@ -306,7 +306,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/item-conversion-cookbook/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/item-conversion-cookbook/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/item-conversion-cookbook/"/>
@@ -314,7 +314,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/rules/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/rules/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/rules/"/>
@@ -322,7 +322,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/strategies/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/strategies/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/strategies/"/>
@@ -330,7 +330,7 @@
     </url>
     <url>
         <loc>Noneru/architecture/transfer-pipeline/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/architecture/transfer-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/transfer-pipeline/"/>
@@ -338,7 +338,7 @@
     </url>
     <url>
         <loc>Noneru/examples/demo1-inventories/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/demo1-inventories/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo1-inventories/"/>
@@ -346,7 +346,7 @@
     </url>
     <url>
         <loc>Noneru/examples/demo2-loot/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/demo2-loot/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo2-loot/"/>
@@ -354,7 +354,7 @@
     </url>
     <url>
         <loc>Noneru/examples/demo3-Craft/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/demo3-Craft/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo3-Craft/"/>
@@ -362,7 +362,7 @@
     </url>
     <url>
         <loc>Noneru/examples/demo4-trading/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/demo4-trading/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo4-trading/"/>
@@ -370,7 +370,7 @@
     </url>
     <url>
         <loc>Noneru/examples/demo5-containers/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/demo5-containers/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo5-containers/"/>
@@ -378,7 +378,7 @@
     </url>
     <url>
         <loc>Noneru/examples/demo6-shaped-items/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/demo6-shaped-items/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo6-shaped-items/"/>
@@ -386,7 +386,7 @@
     </url>
     <url>
         <loc>Noneru/examples/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/examples/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/"/>
@@ -394,7 +394,7 @@
     </url>
     <url>
         <loc>Noneru/getting-started/quick-start/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonegetting-started/quick-start/"/>
@@ -402,7 +402,7 @@
     </url>
     <url>
         <loc>Noneru/more/extra-support/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/more/extra-support/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/extra-support/"/>
@@ -410,7 +410,7 @@
     </url>
     <url>
         <loc>Noneru/more/feedback/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/more/feedback/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/feedback/"/>
@@ -418,7 +418,7 @@
     </url>
     <url>
         <loc>Noneru/more/future-plans/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/more/future-plans/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/future-plans/"/>
@@ -426,7 +426,7 @@
     </url>
     <url>
         <loc>Noneru/more/showcase/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/more/showcase/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/showcase/"/>
@@ -434,7 +434,7 @@
     </url>
     <url>
         <loc>Noneru/reference/events/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/reference/events/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/events/"/>
@@ -442,7 +442,7 @@
     </url>
     <url>
         <loc>Noneru/reference/file-map/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/reference/file-map/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/file-map/"/>
@@ -450,7 +450,7 @@
     </url>
     <url>
         <loc>Noneru/reference/logs-and-debugging/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/reference/logs-and-debugging/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/logs-and-debugging/"/>
@@ -458,7 +458,7 @@
     </url>
     <url>
         <loc>Noneru/reference/optional-interfaces/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/reference/optional-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/optional-interfaces/"/>
@@ -466,7 +466,7 @@
     </url>
     <url>
         <loc>Noneru/reference/troubleshooting/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/reference/troubleshooting/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/troubleshooting/"/>
@@ -474,7 +474,7 @@
     </url>
     <url>
         <loc>Noneru/systems/context-menu/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/context-menu/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/context-menu/"/>
@@ -482,7 +482,7 @@
     </url>
     <url>
         <loc>Noneru/systems/filter-sort/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/filter-sort/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/filter-sort/"/>
@@ -490,7 +490,7 @@
     </url>
     <url>
         <loc>Noneru/systems/free-form-layout/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/free-form-layout/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/free-form-layout/"/>
@@ -498,7 +498,7 @@
     </url>
     <url>
         <loc>Noneru/systems/interaction/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/interaction/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/interaction/"/>
@@ -506,7 +506,7 @@
     </url>
     <url>
         <loc>Noneru/systems/selection/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/selection/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/selection/"/>
@@ -514,7 +514,7 @@
     </url>
     <url>
         <loc>Noneru/systems/tooltips/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/tooltips/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/tooltips/"/>
@@ -522,7 +522,7 @@
     </url>
     <url>
         <loc>Noneru/systems/world-3d/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ru" href="Noneru/systems/world-3d/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/world-3d/"/>
@@ -530,7 +530,7 @@
     </url>
     <url>
         <loc>Nonees/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/"/>
         <xhtml:link rel="alternate" hreflang="en" href="None"/>
@@ -538,7 +538,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/binding-templates/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/binding-templates/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/binding-templates/"/>
@@ -546,7 +546,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/data-binding/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/data-binding/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/data-binding/"/>
@@ -554,7 +554,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/drop-areas/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/drop-areas/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/drop-areas/"/>
@@ -562,7 +562,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/drop-policy-matrix/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/drop-policy-matrix/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/drop-policy-matrix/"/>
@@ -570,7 +570,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/item-conversion-cookbook/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/item-conversion-cookbook/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/item-conversion-cookbook/"/>
@@ -578,7 +578,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/rules/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/rules/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/rules/"/>
@@ -586,7 +586,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/strategies/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/strategies/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/strategies/"/>
@@ -594,7 +594,7 @@
     </url>
     <url>
         <loc>Nonees/architecture/transfer-pipeline/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/architecture/transfer-pipeline/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonearchitecture/transfer-pipeline/"/>
@@ -602,7 +602,7 @@
     </url>
     <url>
         <loc>Nonees/examples/demo1-inventories/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo1-inventories/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo1-inventories/"/>
@@ -610,7 +610,7 @@
     </url>
     <url>
         <loc>Nonees/examples/demo2-loot/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo2-loot/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo2-loot/"/>
@@ -618,7 +618,7 @@
     </url>
     <url>
         <loc>Nonees/examples/demo3-Craft/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo3-Craft/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo3-Craft/"/>
@@ -626,7 +626,7 @@
     </url>
     <url>
         <loc>Nonees/examples/demo4-trading/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo4-trading/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo4-trading/"/>
@@ -634,7 +634,7 @@
     </url>
     <url>
         <loc>Nonees/examples/demo5-containers/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo5-containers/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo5-containers/"/>
@@ -642,7 +642,7 @@
     </url>
     <url>
         <loc>Nonees/examples/demo6-shaped-items/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/demo6-shaped-items/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/demo6-shaped-items/"/>
@@ -650,7 +650,7 @@
     </url>
     <url>
         <loc>Nonees/examples/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/examples/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Noneexamples/"/>
@@ -658,7 +658,7 @@
     </url>
     <url>
         <loc>Nonees/getting-started/quick-start/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/getting-started/quick-start/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonegetting-started/quick-start/"/>
@@ -666,7 +666,7 @@
     </url>
     <url>
         <loc>Nonees/more/extra-support/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/extra-support/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/extra-support/"/>
@@ -674,7 +674,7 @@
     </url>
     <url>
         <loc>Nonees/more/feedback/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/feedback/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/feedback/"/>
@@ -682,7 +682,7 @@
     </url>
     <url>
         <loc>Nonees/more/future-plans/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/future-plans/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/future-plans/"/>
@@ -690,7 +690,7 @@
     </url>
     <url>
         <loc>Nonees/more/showcase/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/more/showcase/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonemore/showcase/"/>
@@ -698,7 +698,7 @@
     </url>
     <url>
         <loc>Nonees/reference/events/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/events/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/events/"/>
@@ -706,7 +706,7 @@
     </url>
     <url>
         <loc>Nonees/reference/file-map/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/file-map/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/file-map/"/>
@@ -714,7 +714,7 @@
     </url>
     <url>
         <loc>Nonees/reference/logs-and-debugging/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/logs-and-debugging/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/logs-and-debugging/"/>
@@ -722,7 +722,7 @@
     </url>
     <url>
         <loc>Nonees/reference/optional-interfaces/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/optional-interfaces/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/optional-interfaces/"/>
@@ -730,7 +730,7 @@
     </url>
     <url>
         <loc>Nonees/reference/troubleshooting/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/reference/troubleshooting/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonereference/troubleshooting/"/>
@@ -738,7 +738,7 @@
     </url>
     <url>
         <loc>Nonees/systems/context-menu/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/context-menu/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/context-menu/"/>
@@ -746,7 +746,7 @@
     </url>
     <url>
         <loc>Nonees/systems/filter-sort/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/filter-sort/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/filter-sort/"/>
@@ -754,7 +754,7 @@
     </url>
     <url>
         <loc>Nonees/systems/free-form-layout/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/free-form-layout/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/free-form-layout/"/>
@@ -762,7 +762,7 @@
     </url>
     <url>
         <loc>Nonees/systems/interaction/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/interaction/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/interaction/"/>
@@ -770,7 +770,7 @@
     </url>
     <url>
         <loc>Nonees/systems/selection/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/selection/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/selection/"/>
@@ -778,7 +778,7 @@
     </url>
     <url>
         <loc>Nonees/systems/tooltips/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/tooltips/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/tooltips/"/>
@@ -786,7 +786,7 @@
     </url>
     <url>
         <loc>Nonees/systems/world-3d/</loc>
-        <lastmod>2026-06-26</lastmod>
+        <lastmod>2026-08-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="Nonees/systems/world-3d/"/>
         <xhtml:link rel="alternate" hreflang="en" href="Nonesystems/world-3d/"/>

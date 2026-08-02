@@ -2141,8 +2141,32 @@
 <li>оружие по 1</li>
 <li>ресурсы и инструменты имеют разные лимиты</li>
 </ul>
-<p>Чтобы этот лимит учитывался, в <code>UniversalInventory</code> должна быть включена настройка <code>_allowItemStackOverride</code>.</p>
-<p>Если <code>_allowItemStackOverride</code> выключен, используется общий <code>_maxStackSize</code> инвентаря.
+<p>Чтобы этот лимит учитывался, нужно включить <code>Allow Item Stack Override</code> <strong>в стратегии инвентаря</strong>, а не в самом <code>UniversalInventory</code>.</p>
+<p>Обе настройки живут в <code>StackBasedInventoryStrategyBase</code>, поэтому в инспекторе они находятся в группе <code>Strategy</code> внутри выбранной стратегии:</p>
+<table>
+<thead>
+<tr>
+<th>Настройка</th>
+<th>Где искать</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Max Stack Size</code></td>
+<td><code>UniversalInventory</code> → <code>Strategy</code> → выбранная стратегия</td>
+</tr>
+<tr>
+<td><code>Allow Item Stack Override</code></td>
+<td>там же, <strong>появляется только когда <code>Max Stack Size</code> больше 0</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning стратегия должна быть stack-based">
+<p class="admonition-title">Warning</p>
+<p>Эти поля есть только у <code>StackableItemStrategy</code> и <code>SeparableStacksStrategy</code>.
+У <code>UniqueItemStrategy</code> стеков нет, поэтому <code>IStackSizeLimitable</code> на неё не влияет.</p>
+</div>
+<p>Если override выключен, используется общий <code>Max Stack Size</code> стратегии.
 Если включён и item реализует <code>IStackSizeLimitable</code>, лимит предмета заменяет общий лимит.</p>
 <p>Примеры:</p>
 <table>
@@ -2154,15 +2178,15 @@
 </thead>
 <tbody>
 <tr>
-<td>inventory <code>_maxStackSize = 20</code>, override выключен, item <code>MaxStackSize = 99</code></td>
+<td>стратегия <code>Max Stack Size = 20</code>, override выключен, item <code>MaxStackSize = 99</code></td>
 <td>лимит <code>20</code></td>
 </tr>
 <tr>
-<td>inventory <code>_maxStackSize = 20</code>, override включён, item <code>MaxStackSize = 99</code></td>
+<td>стратегия <code>Max Stack Size = 20</code>, override включён, item <code>MaxStackSize = 99</code></td>
 <td>лимит <code>99</code></td>
 </tr>
 <tr>
-<td>inventory <code>_maxStackSize = 20</code>, override включён, item <code>MaxStackSize = 5</code></td>
+<td>стратегия <code>Max Stack Size = 20</code>, override включён, item <code>MaxStackSize = 5</code></td>
 <td>лимит <code>5</code></td>
 </tr>
 </tbody>
