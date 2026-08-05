@@ -85,7 +85,7 @@ namespace UDND.UI
                 _bindersByInventory.Remove(binder.Inventory);
         }
 
-        public MonoBehaviour ResolveVisualPrefab(IInventory inventory)
+        public IDragVisual ResolveVisualPrefab(IInventory inventory)
         {
             if (inventory != null &&
                 _bindersByInventory.TryGetValue(inventory, out var binder) &&
