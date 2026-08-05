@@ -7,10 +7,10 @@ namespace UDND.UI
     public class InventoryDragVisualBinder : MonoBehaviour
     {
         [SerializeField] private BaseInventory _inventory;
-        [SerializeField] private IDragVisual _dragVisualPrefab;
+        [SerializeField] private BaseDragVisual _dragVisualPrefab;
 
         public IInventory Inventory => _inventory;
-        public IDragVisual DragVisualPrefab => _dragVisualPrefab;
+        public BaseDragVisual DragVisualPrefab => _dragVisualPrefab;
 
         private void Awake()
         {

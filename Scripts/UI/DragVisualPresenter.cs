@@ -16,7 +16,7 @@ namespace UDND.UI
     public class DragVisualPresenter : MonoSingleton<DragVisualPresenter>
     {
         [SerializeField] private Canvas _canvas;
-        [SerializeField] private IDragVisual _defaultDragVisualPrefab;
+        [SerializeField] private BaseDragVisual _defaultDragVisualPrefab;
         [SerializeField] private Transform _visualContainer;
         [Header("Batch Layout")]
         [SerializeField, Min(0f)] private float _batchVisualRadius = 36f;
@@ -85,7 +85,7 @@ namespace UDND.UI
                 _bindersByInventory.Remove(binder.Inventory);
         }
 
-        public IDragVisual ResolveVisualPrefab(IInventory inventory)
+        public BaseDragVisual ResolveVisualPrefab(IInventory inventory)
         {
             if (inventory != null &&
                 _bindersByInventory.TryGetValue(inventory, out var binder) &&
@@ -228,7 +228,7 @@ namespace UDND.UI
                 return null;
 
             var instance = Instantiate(prefab, VisualContainer);
-            if (instance is IDragVisual dragVisual)
+            if (instance is BaseDragVisual dragVisual)
                 return new VisualInstance(instance, dragVisual);
 
             Debug.LogError($"Prefab {prefab.name} does not implement IDragVisual!");
@@ -404,7 +404,7 @@ namespace UDND.UI
 
         private sealed class VisualInstance
         {
-            public VisualInstance(MonoBehaviour behaviour, IDragVisual view)
+            public VisualInstance(MonoBehaviour behaviour, BaseDragVisual view)
             {
                 Behaviour = behaviour;
                 View = view;
@@ -412,7 +412,7 @@ namespace UDND.UI
             }
 
             public MonoBehaviour Behaviour { get; }
-            public IDragVisual View { get; }
+            public BaseDragVisual View { get; }
             public Vector3 BaseScale { get; }
             public Transform Transform => Behaviour != null ? Behaviour.transform : null;
 

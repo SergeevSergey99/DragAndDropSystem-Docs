@@ -10,7 +10,7 @@ namespace UDND.UI
     /// Demonstrates how the default visual can be overridden
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class FancyDragVisual : IDragVisual
+    public class FancyBaseDragVisual : BaseDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;

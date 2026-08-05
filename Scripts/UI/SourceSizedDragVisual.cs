@@ -12,7 +12,7 @@ namespace UDND.UI
     /// current orientation is conveyed solely by rotating the icon in <see cref="ApplyOrientation"/>.
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class SourceSizedDragVisual : IDragVisual
+    public class SourceSizedBaseDragVisual : BaseDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;

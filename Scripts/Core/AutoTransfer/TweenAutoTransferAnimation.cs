@@ -45,7 +45,7 @@ namespace UDND.Core
             // Create the visual instance
             var visualInstance = UnityEngine.Object.Instantiate(visualPrefab, visualContainer);
 
-            if (!(visualInstance is IDragVisual dragVisual))
+            if (!(visualInstance is BaseDragVisual dragVisual))
             {
                 Debug.LogError("TweenAutoTransferAnimation: Visual prefab doesn't implement IDragVisual!");
                 UnityEngine.Object.Destroy(visualInstance.gameObject);

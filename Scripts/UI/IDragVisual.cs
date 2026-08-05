@@ -7,7 +7,7 @@ namespace UDND.UI
     /// <summary>
     /// Interface for drag item visualization
     /// </summary>
-    public abstract class IDragVisual : MonoBehaviour
+    public abstract class BaseDragVisual : MonoBehaviour
     {
         protected RectTransform _rectTransform => transform as RectTransform;
         

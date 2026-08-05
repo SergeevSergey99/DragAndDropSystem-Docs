@@ -10,7 +10,7 @@ namespace UDND.UI
     /// A simple icon that follows the cursor
     /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public class DefaultDragVisual : IDragVisual
+    public class DefaultBaseDragVisual : BaseDragVisual
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
