@@ -32,6 +32,8 @@ namespace UDND.Tests
         private bool _useGridTopology;
         private GridTopology _gridTopology = new GridTopology(1, 1);
         private string _name = "TestInventory";
+        private int _preexistingSlotCount;
+        private bool _invokeLifecycleStart = true;
 
         public InventoryBuilder WithStrategy(InventoryStrategyBase strategy)
         {
@@ -82,7 +84,32 @@ namespace UDND.Tests
             return this;
         }
 
-        public UniversalInventory Build()
+        /// <summary>
+        /// Puts slots inside the slot container and into the serialized _slots list before the
+        /// inventory component exists, reproducing a prefab that ships with design-time slots
+        /// already cached in the Inspector.
+        /// </summary>
+        public InventoryBuilder WithPreexistingSlots(int count)
+        {
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            _preexistingSlotCount = count;
+            return this;
+        }
+
+        /// <summary>
+        /// Skips the manual Start() call, leaving the inventory in the state a freshly
+        /// instantiated prefab is in: fields serialized, strategy not yet initialized.
+        /// PlayMode tests use this to control when initialization actually happens.
+        /// </summary>
+        public InventoryBuilder WithoutLifecycleStart()
+        {
+            _invokeLifecycleStart = false;
+            return this;
+        }
+
+        public UniversalInventory Build() => Build<UniversalInventory>();
+
+        public T Build<T>() where T : UniversalInventory
         {
             if (_maxStackSize.HasValue && _strategy is StackBasedInventoryStrategyBase)
                 _strategy.SetMaxStackSize(_maxStackSize.Value, _allowItemOverride);
@@ -97,13 +124,23 @@ namespace UDND.Tests
             prefabGo.transform.SetParent(root.transform);
             var prefab = prefabGo.AddComponent<TestSlot>();
 
-            var inventory = root.AddComponent<UniversalInventory>();
+            // Slots the "prefab" was authored with: children of the container and already listed
+            // in _slots, the way the Inspector would have serialized them.
+            var preexistingSlots = new List<BaseSlot>();
+            for (int i = 0; i < _preexistingSlotCount; i++)
+            {
+                var slotGo = new GameObject($"DesignTimeSlot{i}");
+                slotGo.transform.SetParent(containerGo.transform);
+                preexistingSlots.Add(slotGo.AddComponent<TestSlot>());
+            }
+
+            var inventory = root.AddComponent<T>();
 
             SetField(inventory, "_slotContainer", containerGo.transform);
             SetField(inventory, "baseSlotPrefab", prefab);
             SetField(inventory, "_initialSlotCount", _slotCount);
             SetField(inventory, "_inventoryStrategy", _strategy);
-            SetField(inventory, "_slots", new List<BaseSlot>());
+            SetField(inventory, "_slots", preexistingSlots);
             SetField(inventory, "_slotManagementSettings", _slotManagementSettings);
             SetField(inventory, "_useGridTopology", _useGridTopology);
             SetField(inventory, "_gridTopology", _gridTopology);
@@ -112,7 +149,8 @@ namespace UDND.Tests
 
             // In EditMode, Unity lifecycle methods do not fire for this test object.
             // Invoke Start manually after fields are injected so slots/strategies are ready.
-            InvokeLifecycleMethod(inventory, "Start");
+            if (_invokeLifecycleStart)
+                InvokeLifecycleMethod(inventory, "Start");
 
             return inventory;
         }

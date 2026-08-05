@@ -1506,7 +1506,7 @@ namespace UDND.Inventories
             for (int i = _slots.Count - 1; i >= 0; i--)
             {
                 var slot = _slots[i];
-                if (slot.IsEmpty)
+                if (slot != null && slot.IsEmpty)
                     return slot;
             }
 
@@ -1571,7 +1571,7 @@ namespace UDND.Inventories
             int freeSlots = 0;
             for (int i = 0; i < _slots.Count; i++)
             {
-                if (_slots[i].IsEmpty)
+                if (_slots[i] != null && _slots[i].IsEmpty)
                     freeSlots++;
             }
             return freeSlots;
