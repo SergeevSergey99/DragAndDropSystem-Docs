@@ -12,9 +12,9 @@ namespace UDND.UI
         protected RectTransform _rectTransform => transform as RectTransform;
         
         /// <summary>
-        /// Show the visual using the specified entries
+        /// Show the visual using the specified entry
         /// </summary>
-        public abstract void Show(IReadOnlyList<DragEntry> entries);
+        public abstract void Show(DragEntry entry);
 
         /// <summary>
         /// Hide the visual

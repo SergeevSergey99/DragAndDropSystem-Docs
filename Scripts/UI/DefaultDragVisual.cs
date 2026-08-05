@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UDND.Core;
@@ -24,15 +23,15 @@ namespace UDND.UI
         [SerializeField] private bool _showCount = true;
         [SerializeField] private Color _normalColor = Color.white;
 
-        public override void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(DragEntry entry)
         {
-            if (entries == null || entries.Count == 0 || _iconImage == null)
+            if (_iconImage == null)
             {
                 Hide();
                 return;
             }
 
-            var stack = entries[0].Stack;
+            var stack = entry.Stack;
             if (stack == null || stack.IsEmpty)
             {
                 Hide();
@@ -41,7 +40,7 @@ namespace UDND.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
-            _iconImage.rectTransform.localEulerAngles = ToEulerAngles(entries[0]);
+            _iconImage.rectTransform.localEulerAngles = ToEulerAngles(entry);
 
             if (_showCount && _countText != null)
             {

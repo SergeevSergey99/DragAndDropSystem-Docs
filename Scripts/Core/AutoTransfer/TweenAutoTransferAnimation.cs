@@ -71,9 +71,7 @@ namespace UDND.Core
             visualRect.position = startPos;
 
             // Show the visual with the item
-            // Create a temporary DragEntry for the visual
-            var entries = new[] { new DragEntry(stack, sourceBaseSlot, null) };
-            dragVisual.Show(entries);
+            dragVisual.Show(new DragEntry(stack, sourceBaseSlot, null));
 
             Func<float, Vector3> customPath = null;
             if (_useArc)

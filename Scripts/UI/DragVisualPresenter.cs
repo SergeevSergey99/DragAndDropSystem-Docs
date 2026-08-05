@@ -144,8 +144,7 @@ namespace UDND.UI
                 if (visual == null)
                     continue;
 
-                var entryPayload = new List<DragEntry>(1) { context.Entries[i] };
-                visual.View.Show(entryPayload);
+                visual.View.Show(context.Entries[i]);
                 _activeVisuals.Add(new ActiveVisual(visual, i));
             }
 
@@ -163,8 +162,7 @@ namespace UDND.UI
                 if (visual.Instance == null || !visual.Instance.IsAlive || visual.Index >= context.Entries.Count)
                     continue;
 
-                var entryPayload = new List<DragEntry>(1) { context.Entries[visual.Index] };
-                visual.Instance.View.Show(entryPayload);
+                visual.Instance.View.Show(context.Entries[visual.Index]);
             }
         }
 

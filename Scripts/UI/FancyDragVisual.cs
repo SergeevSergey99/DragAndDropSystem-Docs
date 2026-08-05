@@ -32,15 +32,15 @@ namespace UDND.UI
         private float _bobTimer;
         private float _orientationAngle;
 
-        public override void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(DragEntry entry)
         {
-            if (entries == null || entries.Count == 0 || _iconImage == null)
+            if (_iconImage == null)
             {
                 Hide();
                 return;
             }
 
-            var stack = entries[0].Stack;
+            var stack = entry.Stack;
             if (stack == null || stack.IsEmpty)
             {
                 Hide();
@@ -49,8 +49,8 @@ namespace UDND.UI
 
             _iconImage.sprite = stack.Icon;
             _iconImage.color = _normalColor;
-            _orientationAngle = entries[0].OrientationTopology
-                .GetVisualAngleDegrees(entries[0].Orientation);
+            _orientationAngle = entry.OrientationTopology
+                .GetVisualAngleDegrees(entry.Orientation);
 
             if (_glowEffect != null)
             {
@@ -59,15 +59,10 @@ namespace UDND.UI
 
             if (_countText != null)
             {
-                if (entries.Count > 1)
+                if (entry.Stack.Count > 1)
                 {
                     _countText.gameObject.SetActive(true);
-                    _countText.text = entries.Count.ToString();
-                }
-                else if (stack.Count > 1)
-                {
-                    _countText.gameObject.SetActive(true);
-                    _countText.text = stack.Count.ToString();
+                    _countText.text = entry.Stack.Count.ToString();
                 }
                 else
                 {

@@ -28,15 +28,14 @@ namespace UDND.UI
 
         public bool IsVisible => gameObject.activeSelf;
 
-        public override void Show(IReadOnlyList<DragEntry> entries)
+        public override void Show(DragEntry entry)
         {
-            if (entries == null || entries.Count == 0 || _iconImage == null)
+            if (_iconImage == null)
             {
                 Hide();
                 return;
             }
 
-            var entry = entries[0];
             var stack = entry.Stack;
             if (stack == null || stack.IsEmpty)
             {
