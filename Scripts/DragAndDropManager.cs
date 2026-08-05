@@ -395,7 +395,10 @@ namespace UDND
             if (!IsDragging || _isCompletingDrag)
                 return;
 
-            _ = CompleteDragAsync(requested);
+            // Fire-and-forget: the returned task is the only place an exception raised outside
+            // CompleteDragAsync's own try block (its finally, most notably) can surface. Dropping
+            // it on the floor would let the drag pipeline fail without a single line in the console.
+            CompleteDragAsync(requested).LogFaults();
         }
 
         public bool RotateCurrentDrag(int orientationSteps = 1)
@@ -603,7 +606,7 @@ namespace UDND
                 return true;
             }
 
-            _ = SplitDropAsync(requested, splitCount);
+            SplitDropAsync(requested, splitCount).LogFaults();
             return true;
         }
 
@@ -733,14 +736,33 @@ namespace UDND
 
             if (_activeDropTarget != null)
             {
-                UDNDEvents.RaiseDragExitSlot(_currentContext);
+                try
+                {
+                    UDNDEvents.RaiseDragExitSlot(_currentContext);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
             }
 
-            SetDraggedState(dragContext?.Entries, false);
-            RefreshDragInventories(dragContext);
+            // Drop the drag state before any presentation work. Everything below this point talks to
+            // slots and inventories that may have been destroyed or rebuilt mid-drag, and a throw
+            // there must not leave IsDragging stuck true.
             _currentContext = null;
             _activeDropTarget = null;
             _currentProcessor = null;
+
+            try
+            {
+                SetDraggedState(dragContext?.Entries, false);
+                RefreshDragInventories(dragContext);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+
             UDNDEvents.RaiseDragEnded();
         }
 
@@ -795,7 +817,7 @@ namespace UDND
                 return false;
             }
 
-            _ = TryAutoTransferAsync(sourceSlots, sourceInventory, targetInventory, CancellationToken.None);
+            TryAutoTransferAsync(sourceSlots, sourceInventory, targetInventory, CancellationToken.None).LogFaults();
             return true;
         }
 

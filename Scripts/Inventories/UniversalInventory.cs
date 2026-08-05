@@ -299,14 +299,14 @@ namespace UDND.Inventories
         private void InitializeSlots()
         {
             CacheSlots();
-            
+
+            // Slots destroyed since the last cache would otherwise keep their place in the list and
+            // push every following slot onto an index the placement store knows nothing about.
+            _slots.RemoveAll(slot => slot == null);
+
             for (int i = 0; i < _slots.Count; i++)
             {
-                var slot = _slots[i];
-                if (slot == null)
-                    continue;
-
-                slot.Initialize(i, this);
+                _slots[i].Initialize(i, this);
             }
 
             for (int i = _slots.Count; i < _initialSlotCount; i++)
@@ -1070,6 +1070,10 @@ namespace UDND.Inventories
                 _slots = new List<BaseSlot>();
             }
 
+            // Destroyed slots still occupy a place in the list, so drop them before the counts
+            // below decide how many slots to create or trim.
+            _slots.RemoveAll(slot => slot == null);
+
             // Increase the number of slots to the required amount
             while (_slots.Count < desiredCount)
             {
@@ -1133,6 +1137,13 @@ namespace UDND.Inventories
             if (_slots == null)
                 _slots = new List<BaseSlot>();
 
+            // Take ownership of strategy initialization before rebuilding the slot list. Left to
+            // itself, _strategy stays null and the next entry point (Start, Initialize, or simply
+            // reading the Strategy property) falls into InitializeSlots -> CacheSlots, which
+            // re-scans the container and undoes the rebuild below.
+            if (_strategy == null)
+                InitializeStrategy();
+
             for (int i = _slots.Count - 1; i >= 0; i--)
             {
                 BaseSlot baseSlot = _slots[i];
@@ -1167,8 +1178,13 @@ namespace UDND.Inventories
         
         public override void UpdateAllVisuals()
         {
+            // A destroyed slot must never take down the caller: UpdateAllVisuals runs from
+            // DragAndDropManager.EndDrag, where an escaping exception would strand the drag state.
             foreach (var slot in _slots)
             {
+                if (slot == null)
+                    continue;
+
                 slot.UpdateVisuals();
             }
         }
@@ -1182,6 +1198,9 @@ namespace UDND.Inventories
 
             foreach (var slot in _slots)
             {
+                if (slot == null)
+                    continue;
+
                 slot.Clear();
             }
 
@@ -1198,7 +1217,7 @@ namespace UDND.Inventories
             var stacks = new List<ItemStack>();
             foreach (var slot in _slots)
             {
-                if (!slot.IsEmpty)
+                if (slot != null && !slot.IsEmpty)
                 {
                     stacks.Add(slot.Stack.CreateCopy());
                 }
@@ -1211,7 +1230,7 @@ namespace UDND.Inventories
             var stacks = new List<IReadOnlyItemStack>();
             foreach (var slot in _slots)
             {
-                if (!slot.IsEmpty)
+                if (slot != null && !slot.IsEmpty)
                     stacks.Add(slot.Stack);
             }
 
@@ -1228,7 +1247,7 @@ namespace UDND.Inventories
 
             foreach (var slot in _slots)
             {
-                if (!slot.IsEmpty && !addedIds.Contains(slot.Stack.ID))
+                if (slot != null && !slot.IsEmpty && !addedIds.Contains(slot.Stack.ID))
                 {
                     items.Add(slot.Stack.PrimaryAdapter);
                     addedIds.Add(slot.Stack.ID);
@@ -1513,6 +1532,9 @@ namespace UDND.Inventories
             _slots.RemoveAt(index);
             for (int i = index; i < _slots.Count; i++)
             {
+                if (_slots[i] == null)
+                    continue;
+
                 _slots[i].SetInventoryIndex(i, this);
             }
 
@@ -1531,7 +1553,15 @@ namespace UDND.Inventories
                 return;
 
             if (Application.isPlaying)
+            {
+                // Destroy() only lands at the end of the frame, so until then the slot is still a
+                // child of the container and GetComponentsInChildren keeps handing it out. Any
+                // CacheSlots running later in the same frame would re-adopt the doomed slot, and
+                // the entry turns into a "Missing" reference once the destroy actually happens.
+                // Detaching makes the removal visible to the hierarchy immediately.
+                slotObject.transform.SetParent(null, false);
                 Destroy(slotObject);
+            }
             else
                 DestroyImmediate(slotObject);
         }

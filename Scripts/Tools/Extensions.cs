@@ -1,9 +1,34 @@
-﻿using UnityEngine;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace UDND.Tools
 {
     public static class Extensions
     {
+        /// <summary>
+        /// Observe a fire-and-forget task so its exceptions reach the console.
+        /// An unobserved faulted Task is silent in Unity, which turns a crashed async drag
+        /// operation into a hang with an empty log.
+        /// </summary>
+        public static void LogFaults(this Task task)
+        {
+            if (task == null)
+                return;
+
+            task.ContinueWith(
+                completed => Debug.LogException(completed.Exception),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        /// <inheritdoc cref="LogFaults(Task)"/>
+        public static void LogFaults<T>(this Task<T> task)
+        {
+            LogFaults((Task)task);
+        }
+
         public static void DragAndDropLog(string message)
         {
 #if UNITY_EDITOR && UDND_LOG
