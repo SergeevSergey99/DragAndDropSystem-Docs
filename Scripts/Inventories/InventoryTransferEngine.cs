@@ -194,6 +194,25 @@ namespace UDND.Inventories
                     {
                         if (entryTargetOwned && !entryTargetSlot.IsEmpty)
                         {
+                            // The counterpart is checked here too: a preview that promised a swap
+                            // the execution then refuses is exactly the disagreement this probe
+                            // exists to prevent.
+                            var probeCounterpart = ValidateSwapCounterpart(
+                                entryContext,
+                                globalRules,
+                                sourceInventory,
+                                targetInventory,
+                                entry.SourceBaseSlot,
+                                entryTargetSlot,
+                                geometry.GetPlacementAt(entryTargetSlot));
+                            if (!probeCounterpart.IsValid)
+                            {
+                                failureReason = string.IsNullOrEmpty(probeCounterpart.FailureReason)
+                                    ? "Swap: counterpart rules rejected the item"
+                                    : $"Swap: {probeCounterpart.FailureReason}";
+                                continue;
+                            }
+
                             return TransferProbe.Accepted(
                                 i,
                                 entry,
@@ -1212,6 +1231,21 @@ namespace UDND.Inventories
             var sourceStackBefore = sourcePlacement.Stack.CreateCopy();
             var targetStackBefore = targetPlacement.Stack.CreateCopy();
 
+            // A swap is two transfers, and each lands in an inventory with its own rules. The
+            // forward direction was validated by the caller; without the same check for the
+            // counterpart, a swap is a way to put an item where a plain drop would be refused.
+            var counterpartResult = ValidateSwapCounterpart(
+                request.Context, request.GlobalRules,
+                sourceInventory, targetInventory, sourceSlot, targetSlot, targetPlacement);
+            if (!counterpartResult.IsValid)
+            {
+                return EntryTransferResult.Failed(
+                    requestedAmount,
+                    string.IsNullOrEmpty(counterpartResult.FailureReason)
+                        ? "Swap: counterpart rules rejected the item"
+                        : $"Swap: {counterpartResult.FailureReason}");
+            }
+
             // Both directions cross a domain boundary, so both go through the session: the forward
             // item reuses whatever the preview already resolved for this drag.
             var swapSession = request.Context?.ConversionSession;
@@ -1330,6 +1364,49 @@ namespace UDND.Inventories
                 targetWasEmptyBefore: false);
 
             return EntryTransferResult.Committed(requestedAmount, requestedAmount, new[] { outcome });
+        }
+
+        /// <summary>
+        /// Validates the item travelling the opposite way in a swap: it must be allowed to leave
+        /// the target slot and to land in the source slot.
+        /// <para>
+        /// The entry is built in the target's own domain and handed to the shared evaluator, which
+        /// converts it into the source domain exactly like any other drop — so the source's rules
+        /// judge the counterpart as it would exist after the swap.
+        /// </para>
+        /// </summary>
+        private static RuleResult ValidateSwapCounterpart(
+            DragContext context,
+            GlobalRuleValidator globalRules,
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            BaseSlot sourceSlot,
+            BaseSlot targetSlot,
+            Placement targetPlacement)
+        {
+            var counterpartStack = targetPlacement?.Stack?.CreateCopy();
+            if (counterpartStack == null || counterpartStack.IsEmpty)
+                return RuleResult.Failure("counterpart stack is empty");
+
+            var counterpartEntry = new DragEntry(
+                counterpartStack,
+                targetSlot,
+                targetInventory,
+                targetPlacement);
+
+            var counterpartContext = context != null
+                ? context
+                    .CreateDerived(new[] { counterpartEntry })
+                    .WithTarget(sourceSlot, sourceInventory)
+                : new DragContext(counterpartStack, targetSlot, targetInventory, sourceSlot, sourceInventory);
+
+            var evaluator = new RuleEvaluationService();
+            var startResult = evaluator.ValidateEntryStart(
+                counterpartContext, counterpartEntry, globalRules);
+            if (!startResult.IsValid)
+                return startResult;
+
+            return evaluator.ValidateEntryDrop(counterpartContext, counterpartEntry, globalRules);
         }
 
         private static void RestoreSwapSnapshots(
