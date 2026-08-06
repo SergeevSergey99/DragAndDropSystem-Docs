@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UDND.Core;
@@ -58,7 +57,11 @@ namespace UDND.Inventories
                 if (slot.Stack == null || slot.Stack.IsEmpty)
                     continue;
 
-                if (!ItemStack.TryCreate(slot.Stack.Adapters.Take(dragAmount), out var entryStack))
+                // Take from the tail, like ItemStack.Split and DragAndDropManager.StartDrag: these
+                // are the instances a partial transfer will actually move, and rules, conversion
+                // and mutation must all be talking about the same ones.
+                var entryStack = slot.Stack.CreateCopy(dragAmount);
+                if (entryStack == null || entryStack.IsEmpty)
                     continue;
 
                 entries.Add(new DragEntry(entryStack, slot, sourceInventory));

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UDND.Core;
 
@@ -207,8 +208,19 @@ namespace UDND.Inventories
         }
 
         /// <summary>
-        /// The tail slice of the source entry stack, or false when the request carries no concrete
-        /// source instances (generic acceptance queries, code-driven adds).
+        /// The instances the next split would actually take out of the source.
+        /// <para>
+        /// Splits consume the entry from the tail, so after a placement has taken some items the
+        /// untransferred remainder is the <em>head</em> of the entry stack — its length is the
+        /// request's <see cref="InventoryAcceptanceRequest.DesiredCount"/>. The slice is therefore
+        /// the tail of that remainder, not the tail of the whole entry: an entry spread over
+        /// several placements would otherwise re-validate items that are already in the target
+        /// while execution moves different ones.
+        /// </para>
+        /// <para>
+        /// Returns false when the request carries no concrete source instances (generic acceptance
+        /// queries, code-driven adds).
+        /// </para>
         /// </summary>
         private static bool TryGetSourceSlice(
             InventoryAcceptanceRequest request,
@@ -217,11 +229,15 @@ namespace UDND.Inventories
         {
             slice = null;
             var sourceAdapters = request.SourceEntry?.Stack?.Adapters;
-            if (sourceAdapters == null || sourceAdapters.Count < count)
+            if (sourceAdapters == null)
+                return false;
+
+            int remaining = Math.Min(request.DesiredCount, sourceAdapters.Count);
+            if (count > remaining)
                 return false;
 
             slice = new List<IItemAdapter>(count);
-            for (int i = sourceAdapters.Count - count; i < sourceAdapters.Count; i++)
+            for (int i = remaining - count; i < remaining; i++)
                 slice.Add(sourceAdapters[i]);
 
             return true;

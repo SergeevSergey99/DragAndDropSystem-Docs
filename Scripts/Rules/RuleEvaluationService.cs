@@ -132,26 +132,42 @@ namespace UDND.Rules
                 stack.PrimaryAdapter == null)
                 return true;
 
+            // Every instance is resolved, not just the primary one: a converter may legitimately
+            // pass some items through unchanged and rebuild others, and inferring "nothing to do"
+            // from the first adapter would hand the rules a half-converted stack.
             var session = context.ConversionSession;
-            if (!TransferItemConversionUtility.TryResolveTargetItem(
-                    sourceInventory,
-                    targetInventory,
-                    stack.PrimaryAdapter,
-                    session,
-                    out var convertedPrimary))
-                return false;
+            var sourceAdapters = stack.Adapters;
+            List<IItemAdapter> convertedAdapters = null;
+            for (int i = 0; i < sourceAdapters.Count; i++)
+            {
+                if (!TransferItemConversionUtility.TryResolveTargetItem(
+                        sourceInventory,
+                        targetInventory,
+                        sourceAdapters[i],
+                        session,
+                        out var converted))
+                    return false;
 
-            // Identity conversion (no converter, or one that passes the item through): reuse the
-            // entry as-is so same-domain drags stay allocation-free.
-            if (ReferenceEquals(convertedPrimary, stack.PrimaryAdapter))
+                if (convertedAdapters == null && ReferenceEquals(converted, sourceAdapters[i]))
+                    continue;
+
+                if (convertedAdapters == null)
+                {
+                    // First item that actually changed: materialize what we skipped so far.
+                    convertedAdapters = new List<IItemAdapter>(sourceAdapters.Count);
+                    for (int j = 0; j < i; j++)
+                        convertedAdapters.Add(sourceAdapters[j]);
+                }
+
+                convertedAdapters.Add(converted);
+            }
+
+            // Nothing changed at this boundary: reuse the entry as-is so same-domain drags stay
+            // allocation-free.
+            if (convertedAdapters == null)
                 return true;
 
-            var convertedStack = stack.CreateCopy();
-            if (!TransferItemConversionUtility.TryConvertStackToTargetDomain(
-                    sourceInventory,
-                    targetInventory,
-                    convertedStack,
-                    session))
+            if (!ItemStack.TryCreate(convertedAdapters, out var convertedStack))
                 return false;
 
             targetEntry = new DragEntry(
