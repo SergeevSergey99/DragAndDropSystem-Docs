@@ -44,6 +44,12 @@ namespace UDND
 
         public bool IsDragging => _currentContext != null;
         public DragContext CurrentContext => _currentContext;
+
+        /// <summary>
+        /// Processor bound to the active drop target. Bound before the target is told it became
+        /// active, so drop-preview code can reuse the very probe the drop would run.
+        /// </summary>
+        public IDropProcessor CurrentProcessor => _currentProcessor;
         public bool HasActiveDropTarget => _currentProcessor != null || _dropTargetStack.Count > 0;
         public bool HasActiveSlotDropTarget => _activeDropTarget?.GetTargetSlot() != null;
 
@@ -636,7 +642,9 @@ namespace UDND
                     entry.GrabOffset,
                     entry.Orientation,
                     entry.OrientationTopology);
-                var splitContext = new DragContext(new[] { splitEntry });
+                // Derived, not new: the split portion keeps the drag's conversion session, so the
+                // items it moves are the ones the preview already resolved.
+                var splitContext = _currentContext.CreateDerived(new[] { splitEntry });
 
                 bool success = false;
                 if (_currentProcessor is InventoryDropProcessor inventoryProcessor)

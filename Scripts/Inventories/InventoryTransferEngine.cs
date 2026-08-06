@@ -74,6 +74,7 @@ namespace UDND.Inventories
             public InventorySnapshot TargetSnapshot;
             public PlacementSnapshot SourcePlacementSnapshot;
             public IItemAdapter PreviewTargetItemAdapter;
+            public TransferConversionSession ConversionSession;
             public int RequestedAmount;
             public int Remaining;
             public bool Aborted;
@@ -156,6 +157,7 @@ namespace UDND.Inventories
                         sourceInventory,
                         targetInventory,
                         entry.Stack.PrimaryAdapter,
+                        context.ConversionSession,
                         out var previewAdapter))
                     continue;
 
@@ -435,7 +437,13 @@ namespace UDND.Inventories
                 targetInventory is not IInventorySnapshotProvider targetSnapshotProvider)
                 return EntryTransferResult.Failed(requestedAmount, "Entry transfer requires snapshot-capable inventories");
 
-            if (!TryResolvePreviewAdapter(sourceInventory, targetInventory, entry.Stack.PrimaryAdapter, out var previewAdapter))
+            var conversionSession = request.Context?.ConversionSession;
+            if (!TryResolvePreviewAdapter(
+                    sourceInventory,
+                    targetInventory,
+                    entry.Stack.PrimaryAdapter,
+                    conversionSession,
+                    out var previewAdapter))
                 return EntryTransferResult.Failed(requestedAmount, "Item conversion failed");
 
             var transaction = new EntryTransaction
@@ -451,6 +459,7 @@ namespace UDND.Inventories
                     : targetSnapshotProvider.CaptureSnapshot(),
                 SourcePlacementSnapshot = ResolvePlacementSnapshot(sourceInventory, entry.SourceBaseSlot),
                 PreviewTargetItemAdapter = previewAdapter,
+                ConversionSession = conversionSession,
                 RequestedAmount = requestedAmount,
                 Remaining = requestedAmount
             };
@@ -790,8 +799,13 @@ namespace UDND.Inventories
 
             var sourceRemovedStack = subStack.CreateCopy();
 
-            if (!TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, subStack) ||
-                !TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, subStack))
+            // Resolved through the drag's conversion session: these are the very objects the probe
+            // and the drop preview validated, not fresh copies of them.
+            if (!TransferItemConversionUtility.TryConvertStackToTargetDomain(
+                    sourceInventory,
+                    targetInventory,
+                    subStack,
+                    transaction.ConversionSession))
             {
                 RestoreCandidateCheckpoint(transaction, sourceCheckpoint, targetCheckpoint);
                 return false;
@@ -932,6 +946,14 @@ namespace UDND.Inventories
             {
                 outcomes.Add(committed.Outcome);
                 transferred += committed.Outcome.Amount;
+
+                // The converted objects now belong to the target inventory, so they must stop
+                // being offered as conversion results for the rest of this drag.
+                TransferItemConversionUtility.ConsumeCommitted(
+                    transaction.SourceInventory,
+                    transaction.TargetInventory,
+                    committed.Outcome.SourceRemovedStack?.Adapters,
+                    transaction.ConversionSession);
 
                 foreach (var handler in EnumerateDomainHandlers(committed.DomainContext))
                 {
@@ -1141,21 +1163,15 @@ namespace UDND.Inventories
             IInventory sourceInventory,
             IInventory targetInventory,
             IItemAdapter sourceAdapter,
+            TransferConversionSession session,
             out IItemAdapter previewAdapter)
         {
-            previewAdapter = null;
-            if (sourceAdapter == null)
-                return false;
-
-            if (!ItemStack.TryCreate(new[] { sourceAdapter }, out var previewStack))
-                return false;
-
-            if (!TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, previewStack) ||
-                !TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, previewStack))
-                return false;
-
-            previewAdapter = previewStack.PrimaryAdapter;
-            return previewAdapter != null;
+            return TransferItemConversionUtility.TryResolveTargetItem(
+                sourceInventory,
+                targetInventory,
+                sourceAdapter,
+                session,
+                out previewAdapter);
         }
 
         // ──── Swap ─────────────────────────────────────────────────────────────────────────────
@@ -1196,16 +1212,20 @@ namespace UDND.Inventories
             var sourceStackBefore = sourcePlacement.Stack.CreateCopy();
             var targetStackBefore = targetPlacement.Stack.CreateCopy();
 
+            // Both directions cross a domain boundary, so both go through the session: the forward
+            // item reuses whatever the preview already resolved for this drag.
+            var swapSession = request.Context?.ConversionSession;
+
             // Forward: source item will be placed in the target inventory.
             if (!ItemStack.TryCreate(sourcePlacement.Stack.Adapters, out var targetStackAfter) ||
-                !TransferItemConversionUtility.TryConvertOutgoingStack(sourceInventory, targetStackAfter) ||
-                !TransferItemConversionUtility.TryConvertIncomingStack(targetInventory, targetStackAfter))
+                !TransferItemConversionUtility.TryConvertStackToTargetDomain(
+                    sourceInventory, targetInventory, targetStackAfter, swapSession))
                 return EntryTransferResult.Failed(requestedAmount, "Swap: forward conversion failed");
 
             // Reverse: target item will be placed in the source inventory.
             if (!ItemStack.TryCreate(targetPlacement.Stack.Adapters, out var sourceStackAfter) ||
-                !TransferItemConversionUtility.TryConvertOutgoingStack(targetInventory, sourceStackAfter) ||
-                !TransferItemConversionUtility.TryConvertIncomingStack(sourceInventory, sourceStackAfter))
+                !TransferItemConversionUtility.TryConvertStackToTargetDomain(
+                    targetInventory, sourceInventory, sourceStackAfter, swapSession))
                 return EntryTransferResult.Failed(requestedAmount, "Swap: reverse conversion failed");
 
             // Domain validation in both directions.
@@ -1276,6 +1296,12 @@ namespace UDND.Inventories
 
             var forwardAddedSnapshot = PlacementSnapshot.FromPlacement(forwardPlacement, targetPlacementInventory.GetSlot);
             var reverseAddedSnapshot = PlacementSnapshot.FromPlacement(reversePlacement, sourcePlacementInventory.GetSlot);
+
+            // Both sets of converted objects are owned by their new inventories now.
+            TransferItemConversionUtility.ConsumeCommitted(
+                sourceInventory, targetInventory, sourceStackBefore.Adapters, swapSession);
+            TransferItemConversionUtility.ConsumeCommitted(
+                targetInventory, sourceInventory, targetStackBefore.Adapters, swapSession);
 
             // Commit domain hooks.
             forwardDomain.MarkCommitted(targetSlot, targetStackAfter.PrimaryAdapter, sourceStackBefore.Count);

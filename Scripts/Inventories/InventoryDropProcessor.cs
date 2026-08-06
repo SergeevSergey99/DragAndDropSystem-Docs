@@ -24,6 +24,9 @@ namespace UDND.Inventories
         public TransferExecutionReport LastExecutionReport { get; private set; }
         public TransferProbe LastProbe { get; private set; }
 
+        /// <summary>Slot this processor drops into, or null for an inventory-area processor.</summary>
+        public BaseSlot TargetBaseSlot => _targetBaseSlot;
+
         /// <summary>
         /// Create a processor for a specific slot
         /// </summary>
@@ -62,23 +65,43 @@ namespace UDND.Inventories
             return CanAcceptDrop(context, null);
         }
 
-        public bool CanAcceptDrop(DragContext context, DropRequestPolicy? requested)
+        /// <summary>
+        /// Runs the acceptance probe with this processor's effective policy and remembers it as
+        /// <see cref="LastProbe"/>.
+        /// <para>
+        /// Drop feedback must reuse this result rather than probe on its own: only the processor
+        /// knows the bound policy override, so an independently resolved probe can disagree with
+        /// the drop it is supposed to be previewing.
+        /// </para>
+        /// </summary>
+        public TransferProbe ProbeDrop(DragContext context, DropRequestPolicy? requested = null)
         {
             if (context == null || _targetInventory == null)
             {
                 LastProbe = TransferProbe.Rejected("Null drag context or target inventory");
-                Extensions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: null context or inventory</color>");
-                return false;
+                return LastProbe;
             }
-
-            var effectivePolicy = ResolveEffectivePolicy(context, requested);
 
             LastProbe = _jitService.Probe(
                 context,
                 _targetInventory,
                 _targetBaseSlot,
-                effectivePolicy,
+                ResolveEffectivePolicy(context, requested),
                 _globalRules);
+
+            return LastProbe;
+        }
+
+        public bool CanAcceptDrop(DragContext context, DropRequestPolicy? requested)
+        {
+            if (context == null || _targetInventory == null)
+            {
+                ProbeDrop(context, requested);
+                Extensions.DragAndDropLog("<color=red>[InventoryDropProcessor] CanAcceptDrop: null context or inventory</color>");
+                return false;
+            }
+
+            ProbeDrop(context, requested);
 
             if (!LastProbe.CanAttempt)
             {

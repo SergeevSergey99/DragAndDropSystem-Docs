@@ -540,6 +540,16 @@ namespace UDND.Inventories
             return EnsureDropPreviewController().ShowDropPreview(targetBaseSlot, context);
         }
 
+        public bool ShowDropPreview(BaseSlot targetBaseSlot, DragContext context, TransferProbe probe)
+        {
+            return EnsureDropPreviewController().ShowDropPreview(targetBaseSlot, context, probe);
+        }
+
+        public bool TryGetActiveDropVerdict(BaseSlot baseSlot, out DropVerdict verdict)
+        {
+            return EnsureDropPreviewController().TryGetActiveDropVerdict(baseSlot, out verdict);
+        }
+
         public void ClearDropPreview()
         {
             EnsureDropPreviewController().ClearDropPreview();

@@ -5,6 +5,12 @@ namespace UDND.Inventories
 {
     /// <summary>
     /// Centralizes preview and execution-time adapter conversion for cross-inventory transfers.
+    /// <para>
+    /// Every conversion goes through the drag's <see cref="TransferConversionSession"/> when one is
+    /// available, so a source adapter resolves to the same target-domain object for the whole drag.
+    /// A null session is a supported mode, not a degraded one: code-driven transfers that never
+    /// build a drag simply convert on the spot.
+    /// </para>
     /// </summary>
     internal static class TransferItemConversionUtility
     {
@@ -13,22 +19,43 @@ namespace UDND.Inventories
             IInventory targetInventory,
             IItemAdapter sourceItemAdapter,
             out IItemAdapter targetItemAdapter)
+            => TryResolveTargetItem(sourceInventory, targetInventory, sourceItemAdapter, null, out targetItemAdapter);
+
+        public static bool TryResolveTargetItem(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            IItemAdapter sourceItemAdapter,
+            TransferConversionSession session,
+            out IItemAdapter targetItemAdapter)
         {
             targetItemAdapter = sourceItemAdapter;
             if (sourceItemAdapter == null)
                 return false;
 
-            var intermediateItem = ConvertOutgoing(sourceInventory, sourceItemAdapter);
-            if (intermediateItem == null)
+            if (session != null)
             {
-                targetItemAdapter = null;
-                return false;
+                return session.TryResolve(
+                    sourceInventory,
+                    targetInventory,
+                    sourceItemAdapter,
+                    adapter => ConvertAcrossBoundary(sourceInventory, targetInventory, adapter),
+                    out targetItemAdapter);
             }
 
-            targetItemAdapter = ConvertIncoming(targetInventory, intermediateItem);
+            targetItemAdapter = ConvertAcrossBoundary(sourceInventory, targetInventory, sourceItemAdapter);
             return targetItemAdapter != null;
         }
 
+        /// <summary>
+        /// Builds the target-domain view of <paramref name="previewCount"/> items of an entry.
+        /// <para>
+        /// The slice is taken from the tail, matching <c>ItemStack.Split</c> and
+        /// <c>ItemStack.CreateCopy</c>: execution splits the last N adapters off the source stack,
+        /// so a preview over the first N would resolve instances that never move and the promise
+        /// of "the previewed object is the transferred object" would silently break for every
+        /// partial transfer.
+        /// </para>
+        /// </summary>
         public static bool TryCreatePreviewStack(
             InventoryAcceptanceRequest request,
             int previewCount,
@@ -39,13 +66,17 @@ namespace UDND.Inventories
             if (request == null || previewCount <= 0)
                 return false;
 
-            var sourceAdapters = request.SourceEntry?.Stack?.Adapters;
-            if (sourceAdapters != null && sourceAdapters.Count >= previewCount)
+            if (TryGetSourceSlice(request, previewCount, out var sourceSlice))
             {
-                var convertedAdapters = new List<IItemAdapter>(previewCount);
-                for (int i = 0; i < previewCount; i++)
+                var convertedAdapters = new List<IItemAdapter>(sourceSlice.Count);
+                foreach (var sourceAdapter in sourceSlice)
                 {
-                    if (!TryResolveTargetItem(request.SourceInventory, request.TargetInventory, sourceAdapters[i], out var convertedAdapter))
+                    if (!TryResolveTargetItem(
+                            request.SourceInventory,
+                            request.TargetInventory,
+                            sourceAdapter,
+                            request.ConversionSession,
+                            out var convertedAdapter))
                         return false;
 
                     convertedAdapters.Add(convertedAdapter);
@@ -60,11 +91,17 @@ namespace UDND.Inventories
 
             // Fallback for generic acceptance requests that have no concrete source instances.
             // We must still end up with distinct adapter objects; repeating the same reference
-            // would corrupt stacks that carry per-instance runtime state.
+            // would corrupt stacks that carry per-instance runtime state. The conversion session
+            // is deliberately bypassed here: it is keyed by source instance and would hand back
+            // the very same object for all previewCount items.
             var syntheticAdapters = new List<IItemAdapter>(previewCount);
             for (int i = 0; i < previewCount; i++)
             {
-                if (!TryResolveTargetItem(request.SourceInventory, request.TargetInventory, previewAdapter, out var convertedPreviewAdapter))
+                if (!TryResolveTargetItem(
+                        request.SourceInventory,
+                        request.TargetInventory,
+                        previewAdapter,
+                        out var convertedPreviewAdapter))
                     return false;
 
                 if (convertedPreviewAdapter == null)
@@ -83,11 +120,69 @@ namespace UDND.Inventories
             return ItemStack.TryCreate(syntheticAdapters, out previewStack);
         }
 
+        /// <summary>
+        /// The source-domain slice an entry would hand to execution, without any conversion.
+        /// Used to build drop-rule validation input: the conversion to the target domain happens
+        /// once, in the rule pipeline itself.
+        /// <para>
+        /// Returns false when the request carries no concrete source instances; such a request is
+        /// already expressed in the target domain and has nothing to convert.
+        /// </para>
+        /// </summary>
+        public static bool TryCreateSourceStack(
+            InventoryAcceptanceRequest request,
+            int count,
+            out ItemStack sourceStack)
+        {
+            sourceStack = null;
+            if (request == null || count <= 0)
+                return false;
+
+            return TryGetSourceSlice(request, count, out var sourceSlice) &&
+                   ItemStack.TryCreate(sourceSlice, out sourceStack);
+        }
+
         public static bool TryConvertOutgoingStack(IInventory sourceInventory, ItemStack stack)
             => TryConvertStack(stack, adapter => ConvertOutgoing(sourceInventory, adapter));
 
         public static bool TryConvertIncomingStack(IInventory targetInventory, ItemStack stack)
             => TryConvertStack(stack, adapter => ConvertIncoming(targetInventory, adapter));
+
+        /// <summary>
+        /// Converts a stack in place from the source domain to the target domain, reusing the
+        /// objects this drag already resolved. This is the call that makes the committed instance
+        /// identical to the previewed one.
+        /// </summary>
+        public static bool TryConvertStackToTargetDomain(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            ItemStack stack,
+            TransferConversionSession session)
+        {
+            return TryConvertStack(
+                stack,
+                adapter => TryResolveTargetItem(sourceInventory, targetInventory, adapter, session, out var converted)
+                    ? converted
+                    : null);
+        }
+
+        /// <summary>
+        /// Releases the cached conversions for adapters that have just been committed into the
+        /// target inventory: the converted objects belong to that inventory now and must not be
+        /// offered to a later placement of the same drag.
+        /// </summary>
+        public static void ConsumeCommitted(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            IReadOnlyList<IItemAdapter> committedSourceAdapters,
+            TransferConversionSession session)
+        {
+            if (session == null || committedSourceAdapters == null)
+                return;
+
+            for (int i = 0; i < committedSourceAdapters.Count; i++)
+                session.Consume(sourceInventory, targetInventory, committedSourceAdapters[i]);
+        }
 
         public static bool TryCreateConvertedStack(
             IInventory sourceInventory,
@@ -109,6 +204,36 @@ namespace UDND.Inventories
             }
 
             return ItemStack.TryCreate(convertedAdapters, out convertedStack);
+        }
+
+        /// <summary>
+        /// The tail slice of the source entry stack, or false when the request carries no concrete
+        /// source instances (generic acceptance queries, code-driven adds).
+        /// </summary>
+        private static bool TryGetSourceSlice(
+            InventoryAcceptanceRequest request,
+            int count,
+            out List<IItemAdapter> slice)
+        {
+            slice = null;
+            var sourceAdapters = request.SourceEntry?.Stack?.Adapters;
+            if (sourceAdapters == null || sourceAdapters.Count < count)
+                return false;
+
+            slice = new List<IItemAdapter>(count);
+            for (int i = sourceAdapters.Count - count; i < sourceAdapters.Count; i++)
+                slice.Add(sourceAdapters[i]);
+
+            return true;
+        }
+
+        private static IItemAdapter ConvertAcrossBoundary(
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            IItemAdapter sourceItemAdapter)
+        {
+            var intermediateItem = ConvertOutgoing(sourceInventory, sourceItemAdapter);
+            return intermediateItem == null ? null : ConvertIncoming(targetInventory, intermediateItem);
         }
 
         private static bool TryConvertStack(ItemStack stack, System.Func<IItemAdapter, IItemAdapter> converter)

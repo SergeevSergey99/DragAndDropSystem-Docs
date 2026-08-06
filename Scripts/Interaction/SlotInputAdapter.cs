@@ -191,8 +191,17 @@ namespace UDND.Interaction
             if (baseSlot == null)
                 return;
 
+            var manager = DragAndDropManager.AutoCreateInstance;
+
+            // The manager has already bound this slot's processor, so the preview can reuse the
+            // probe the drop itself would run instead of deriving a second, possibly divergent one.
+            TransferProbe probe = null;
+            if (manager.CurrentProcessor is InventoryDropProcessor inventoryProcessor &&
+                ReferenceEquals(inventoryProcessor.TargetBaseSlot, baseSlot))
+                probe = inventoryProcessor.ProbeDrop(manager.CurrentContext);
+
             if (baseSlot.Inventory is IInventoryInteraction interactionFeedback &&
-                interactionFeedback.ShowDropPreview(baseSlot, DragAndDropManager.AutoCreateInstance.CurrentContext))
+                interactionFeedback.ShowDropPreview(baseSlot, manager.CurrentContext, probe))
                 return;
 
             baseSlot.Highlight(true);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UDND.Slots;
 using UDND.Core;
 using UDND.Inventories;
@@ -6,6 +7,11 @@ namespace UDND.Rules
 {
     /// <summary>
     /// Single rule evaluation entry point for transfer services and handlers.
+    /// <para>
+    /// Domain boundary: start rules see the item in the source domain, drop rules see it in the
+    /// target domain. Conversion happens here, once per entry, before any drop rule runs — a
+    /// target must never be asked to judge an item shaped for somebody else's inventory.
+    /// </para>
     /// </summary>
     public class RuleEvaluationService
     {
@@ -56,36 +62,133 @@ namespace UDND.Rules
             if (context.TargetInventory == null)
                 return RuleResult.Failure("Target inventory is null");
 
+            // An item that cannot cross into the target domain cannot be dropped there. Reporting
+            // it here — instead of letting the rules pass and failing at mutation time — is what
+            // keeps the drop preview honest.
+            if (!TryResolveTargetDomain(context, entry, out var targetContext, out var targetEntry))
+                return RuleResult.Failure("Item cannot be converted for the target inventory");
+
             if (globalRules != null)
             {
-                var globalDropResult = globalRules.ValidateDrop(context, entry);
+                var globalDropResult = globalRules.ValidateDrop(targetContext, targetEntry);
                 if (!globalDropResult.IsValid)
                     return globalDropResult;
             }
 
-            if (context.TargetInventory is IInventoryRuleEvaluator targetRuleEvaluator)
+            if (targetContext.TargetInventory is IInventoryRuleEvaluator targetRuleEvaluator)
             {
-                var inventoryDropResult = targetRuleEvaluator.RuleValidator.ValidateDrop(context, entry);
+                var inventoryDropResult = targetRuleEvaluator.RuleValidator.ValidateDrop(targetContext, targetEntry);
                 if (!inventoryDropResult.IsValid)
                     return inventoryDropResult;
             }
 
-            var targetBinding = context.TargetInventory.DataBinding;
+            var targetBinding = targetContext.TargetInventory.DataBinding;
             if (targetBinding != null)
             {
-                var bindingDropResult = targetBinding.ValidateDropRules(context, entry);
+                var bindingDropResult = targetBinding.ValidateDropRules(targetContext, targetEntry);
                 if (!bindingDropResult.IsValid)
                     return bindingDropResult;
             }
 
-            if (context.TargetBaseSlot?.SlotRuleValidator != null)
+            if (targetContext.TargetBaseSlot?.SlotRuleValidator != null)
             {
-                var slotDropResult = context.TargetBaseSlot.SlotRuleValidator.ValidateDrop(context, entry);
+                var slotDropResult = targetContext.TargetBaseSlot.SlotRuleValidator.ValidateDrop(targetContext, targetEntry);
                 if (!slotDropResult.IsValid)
                     return slotDropResult;
             }
 
             return RuleResult.Success();
+        }
+
+        /// <summary>
+        /// Produces the target-domain view of the validated entry.
+        /// <para>
+        /// Conversion is resolved through the drag's conversion session, so the object the rules
+        /// judge is the object the transfer will later commit. Only the entry under validation is
+        /// converted: the remaining batch entries keep their source domain until their own turn,
+        /// which is where their own target is known.
+        /// </para>
+        /// </summary>
+        private static bool TryResolveTargetDomain(
+            DragContext context,
+            DragEntry entry,
+            out DragContext targetContext,
+            out DragEntry targetEntry)
+        {
+            targetContext = context;
+            targetEntry = entry;
+
+            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+            var targetInventory = context.TargetInventory;
+            var stack = entry.Stack;
+
+            // No source inventory means the entry carries no source domain to convert from: the
+            // caller already handed us a target-domain item (generic acceptance queries, prefab
+            // rule checks, code-driven adds).
+            if (sourceInventory == null ||
+                ReferenceEquals(sourceInventory, targetInventory) ||
+                stack == null ||
+                stack.IsEmpty ||
+                stack.PrimaryAdapter == null)
+                return true;
+
+            var session = context.ConversionSession;
+            if (!TransferItemConversionUtility.TryResolveTargetItem(
+                    sourceInventory,
+                    targetInventory,
+                    stack.PrimaryAdapter,
+                    session,
+                    out var convertedPrimary))
+                return false;
+
+            // Identity conversion (no converter, or one that passes the item through): reuse the
+            // entry as-is so same-domain drags stay allocation-free.
+            if (ReferenceEquals(convertedPrimary, stack.PrimaryAdapter))
+                return true;
+
+            var convertedStack = stack.CreateCopy();
+            if (!TransferItemConversionUtility.TryConvertStackToTargetDomain(
+                    sourceInventory,
+                    targetInventory,
+                    convertedStack,
+                    session))
+                return false;
+
+            targetEntry = new DragEntry(
+                convertedStack,
+                entry.SourceBaseSlot,
+                entry.SourceInventory,
+                entry.SourcePlacement,
+                entry.GrabOffset,
+                entry.Orientation,
+                entry.OrientationTopology);
+            targetContext = ReplaceEntry(context, entry, targetEntry);
+            return true;
+        }
+
+        /// <summary>
+        /// Copy of the context with the validated entry swapped for its target-domain view,
+        /// keeping the position and the rest of a batch intact.
+        /// </summary>
+        private static DragContext ReplaceEntry(DragContext context, DragEntry original, DragEntry replacement)
+        {
+            var entries = context.Entries;
+            if (entries != null)
+            {
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    if (!ReferenceEquals(entries[i].Stack, original.Stack))
+                        continue;
+
+                    var replaced = new List<DragEntry>(entries.Count);
+                    for (int j = 0; j < entries.Count; j++)
+                        replaced.Add(j == i ? replacement : entries[j]);
+
+                    return context.WithEntries(replaced);
+                }
+            }
+
+            return context.WithEntries(new[] { replacement });
         }
     }
 }

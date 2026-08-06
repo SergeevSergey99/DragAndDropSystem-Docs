@@ -112,6 +112,14 @@ namespace UDND.Core
     {
         public IReadOnlyList<DragEntry> Entries { get; }
         public bool IsBatchDrag => Entries.Count > 1;
+
+        /// <summary>
+        /// Adapter conversions resolved during this drag. Shared by every derived context
+        /// (<see cref="WithTarget"/>, <see cref="WithEntries"/>, split drops), so a probe, the
+        /// drop preview and the final mutation all work with the same converted objects.
+        /// Dies with the context.
+        /// </summary>
+        public TransferConversionSession ConversionSession { get; }
         public bool HasShapedEntries
         {
             get
@@ -177,6 +185,7 @@ namespace UDND.Core
         public DragContext(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory)
         {
             Entries = new[] { new DragEntry(stack, sourceBaseSlot, sourceInventory) };
+            ConversionSession = new TransferConversionSession();
         }
         /// <summary>
         /// Constructor for a single entry with a target (for example, a code call with a pre-known target)
@@ -184,6 +193,7 @@ namespace UDND.Core
         public DragContext(ItemStack stack, BaseSlot sourceBaseSlot, IInventory sourceInventory, BaseSlot targetBaseSlot, IInventory targetInventory)
         {
             Entries = new[] { new DragEntry(stack, sourceBaseSlot, sourceInventory) };
+            ConversionSession = new TransferConversionSession();
             SetTarget(targetBaseSlot, targetInventory);
         }
 
@@ -193,13 +203,19 @@ namespace UDND.Core
         public DragContext(IReadOnlyList<DragEntry> entries)
         {
             Entries = entries;
+            ConversionSession = new TransferConversionSession();
         }
 
-        private DragContext(IReadOnlyList<DragEntry> entries, BaseSlot targetBaseSlot, IInventory targetInventory)
+        private DragContext(
+            IReadOnlyList<DragEntry> entries,
+            BaseSlot targetBaseSlot,
+            IInventory targetInventory,
+            TransferConversionSession conversionSession)
         {
             Entries = entries;
             TargetBaseSlot = targetBaseSlot;
             TargetInventory = targetInventory;
+            ConversionSession = conversionSession ?? new TransferConversionSession();
         }
 
         /// <summary>
@@ -207,10 +223,18 @@ namespace UDND.Core
         /// The original context is not modified.
         /// </summary>
         public DragContext WithTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
-            => new DragContext(Entries, targetBaseSlot, targetInventory);
+            => new DragContext(Entries, targetBaseSlot, targetInventory, ConversionSession);
 
         public DragContext WithEntries(IReadOnlyList<DragEntry> entries)
-            => new DragContext(entries, TargetBaseSlot, TargetInventory);
+            => new DragContext(entries, TargetBaseSlot, TargetInventory, ConversionSession);
+
+        /// <summary>
+        /// Creates an independent context for a sub-operation of the same drag (for example a
+        /// split drop) that keeps the conversion session, so the split portion reuses the objects
+        /// the preview already resolved.
+        /// </summary>
+        public DragContext CreateDerived(IReadOnlyList<DragEntry> entries)
+            => new DragContext(entries, null, null, ConversionSession);
 
         public void SetTarget(BaseSlot targetBaseSlot, IInventory targetInventory)
         {
