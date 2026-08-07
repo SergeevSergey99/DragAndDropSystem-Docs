@@ -372,10 +372,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _iconImage: {fileID: 7266324965710756675}
+  _countParent: {fileID: 8226461779532702426}
   _countText: {fileID: 4625927222538737930}
+  _rotatingObject: {fileID: 8930210598650366920}
   _glowEffect: {fileID: 7266324965710756675}
-  _bobSpeed: 2
-  _bobAmount: 5
+  _bobSpeed: 5
+  _bobAmount: 8
   _rotationSpeed: 50
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
   _glowColor: {r: 1, g: 1, b: 0, a: 0.5}

@@ -14,14 +14,16 @@ namespace UDND.UI
     {
         [Header("Components")]
         [SerializeField] private Image _iconImage;
+        [SerializeField] private GameObject _countParent;
         // Replace to TMP Support
         // [SerializeField] private TMPro.TMP_Text _countText;
         [SerializeField] private Text _countText;
+        [SerializeField] private GameObject _rotatingObject;
         [SerializeField] private Image _glowEffect;
 
         [Header("Animation")]
-        [SerializeField] private float _bobSpeed = 2f;
-        [SerializeField] private float _bobAmount = 5f;
+        [SerializeField] private float _bobSpeed = 5f;
+        [SerializeField] private float _bobAmount = 8f;
         [SerializeField] private float _rotationSpeed = 50f;
 
         [Header("Colors")]
@@ -57,16 +59,17 @@ namespace UDND.UI
                 _glowEffect.color = _glowColor;
             }
 
-            if (_countText != null)
+            if (_countParent != null)
             {
                 if (entry.Stack.Count > 1)
                 {
-                    _countText.gameObject.SetActive(true);
-                    _countText.text = entry.Stack.Count.ToString();
+                    _countParent.SetActive(true);
+                    if (_countText != null)
+                        _countText.text = entry.Stack.Count.ToString();
                 }
                 else
                 {
-                    _countText.gameObject.SetActive(false);
+                    _countParent.SetActive(false);
                 }
             }
 
@@ -91,9 +94,9 @@ namespace UDND.UI
             _rectTransform.position = _basePosition + Vector3.up * bobOffset;
 
             // Rotation
-            if (_iconImage != null)
+            if (_rotatingObject != null)
             {
-                _iconImage.transform.rotation = Quaternion.Euler(0, 0, _orientationAngle + Mathf.Sin(_bobTimer) * _rotationSpeed);
+                _rotatingObject.transform.rotation = Quaternion.Euler(0, 0, _orientationAngle + Mathf.Sin(_bobTimer) * _rotationSpeed);
             }
 
             // Glow pulse
