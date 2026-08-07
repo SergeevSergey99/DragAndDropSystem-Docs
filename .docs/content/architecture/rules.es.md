@@ -135,7 +135,22 @@ Puntos específicos de validación:
 
 1. **Inicio del drag** — global + inventory + slot rules del origen.
 2. **Validación del objetivo** — global + inventory + slot rules del objetivo.
-3. **Swap** — las rules se validan en ambas direcciones (A&rarr;B y B&rarr;A).
+3. **Swap** — las rules se validan en ambas direcciones (A&rarr;B y B&rarr;A). El objeto que vuelve
+   del destino debe poder salir de su slot y entrar en el slot origen, así que un swap no puede
+   colocar un objeto donde un drop normal sería rechazado.
+
+### En qué forma recibe el objeto una regla
+
+Las reglas del origen ven el objeto en el modelo del inventario origen; las del destino lo ven en el
+modelo del inventario **destino**. Si ambos inventarios usan modelos de datos distintos, la
+conversión ocurre antes de que se ejecuten las reglas del destino.
+
+Por eso un `CanDrop` escrito contra tu propio tipo de adapter sigue funcionando con objetos
+arrastrados desde un inventario que los guarda de otra forma, y nunca hace falta llamar al converter
+dentro de una regla. Ver [Conversión de objetos](item-conversion-cookbook.md).
+
+Un objeto que no se puede convertir para el destino se rechaza como cualquier otra denegación de
+regla, con un motivo y mientras el jugador todavía está arrastrando.
 
 Si las rules parecen dispararse "demasiado a menudo", empieza por [Logs and Debugging](../reference/logs-and-debugging.md) y [Troubleshooting](../reference/troubleshooting.md).
 

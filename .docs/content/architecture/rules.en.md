@@ -135,7 +135,22 @@ Specific validation points:
 
 1. **Drag start** --- global + inventory + slot rules of the source.
 2. **Target validation** --- global + inventory + slot rules of the target.
-3. **Swap** --- rules are validated in both directions (A&rarr;B and B&rarr;A).
+3. **Swap** --- rules are validated in both directions (A&rarr;B and B&rarr;A). The item coming back
+   from the target must be allowed to leave its slot and to enter the source slot, so a swap cannot
+   place an item where a plain drop would be refused.
+
+### Which Form Of The Item A Rule Receives
+
+Rules of the source see the item in the source inventory's model; rules of the target see it in the
+**target** inventory's model. If the two inventories use different data models, the conversion
+happens before the target's rules run.
+
+That means a `CanDrop` written against your own adapter type keeps working for items dragged in from
+an inventory that stores them differently, and you never call a converter inside a rule. See
+[Item Conversion](item-conversion-cookbook.md).
+
+An item that cannot be converted for the target is refused like any other rule denial, with a reason,
+while the player is still hovering.
 
 If rules seem to fire "too often", start with [Logs and Debugging](../reference/logs-and-debugging.md) and [Troubleshooting](../reference/troubleshooting.md).
 

@@ -112,6 +112,8 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Métodos helper para construir y leer estado guardado del inventario. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Servicio que realiza movimientos de estilo quick-transfer entre inventarios. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Utility interna que aplica de forma consistente la conversión de adapters de origen/target en preview y execution. |
+| `Scripts/Inventories/TransferConversionSession.cs` | `TransferConversionSession` | Memo de adapters convertidos durante el arrastre: preview, probe y commit comparten una instancia. |
+| `Scripts/Inventories/DropVerdict.cs` | `DropVerdict` | Veredicto de la vista previa activa, leído por visuales de feedback como `CrossFeedbackSlot`. |
 
 ---
 

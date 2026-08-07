@@ -49,6 +49,40 @@ source inventory adapter
 
 The converter's main job is to keep the meaning of the item when it crosses from one data model to another.
 
+## Rules See The Converted Item
+
+The target inventory's checks run **after** conversion. `CanDrop`, the inventory's rules and the
+slot's rules all receive the item as it will exist once it is inside — already in the target
+inventory's adapter type.
+
+This is what makes typed bindings work across data models. A binding declared as
+`MappedSlotInventoryDataBinding<TradableItemModel, TradableItemAdapterModelAdapter>` receives its own
+adapter type even when the item is dragged in from a merchant that stores `ScriptableObject`s:
+
+```csharp
+canDrop: adapter => adapter.Item.originalSO.ItemType == ItemType.Weapon
+    ? RuleResult.Success()
+    : RuleResult.Failure("Only weapons can be placed in this slot")
+```
+
+You never call the converter yourself inside a rule. If you do, you create a second object that is
+not the one the transfer will store, and you pay for it on every hover frame.
+
+`CanStartDrag`, by contrast, runs on the source side and sees the source inventory's adapter.
+
+## Conversion Runs During Preview
+
+A converter is called while the player is only hovering, long before anything is dropped. Two
+consequences:
+
+**The converter must be a pure factory.** No registering the new item anywhere, no taking an id from
+a counter, no spawning objects. A hover the player abandons must leave no trace. Do that work in
+`ITransferDomainHandler.OnTransferSucceeded`, which only runs after a committed transfer.
+
+**The object you build during preview is the object that gets stored.** Conversions are resolved
+once per drag and reused, so the adapter validated by `CanDrop` is the same instance that ends up in
+the target slot. You do not need to make the conversion cheap by cutting corners — it happens once.
+
 ## What A Converter Must Preserve
 
 If items are unique, the converter must preserve more than icon and name.
@@ -76,6 +110,10 @@ item B -> inventory A model
 
 If you simply swap two adapters, the next drag/drop may break because a slot stores an item in the wrong format.
 
+Both directions are also checked against the rules of the inventory they land in. The item coming
+back from the target must be allowed to leave its slot and to enter the source slot, exactly as if
+you had dropped it there. A swap is not a way around a rule that would refuse a plain drop.
+
 ## When To Return `null`
 
 A converter may return `null` if the item cannot be safely converted to the required model.
@@ -89,6 +127,9 @@ That is appropriate when:
 Do not use `null` for temporary blocks such as “not enough money” or “shop is closed”.
 Use rules or `ITransferDomainHandler` for that.
 
+Returning `null` refuses the drop the same way a rule does: the slot shows the refusal while the
+player is still hovering, instead of the drag ending with nothing happening.
+
 ## Common Mistakes
 
 ### `Wrong Item Type` Appears After Transfer
@@ -98,6 +139,26 @@ Check:
 - whether `CreateItemConverter()` is implemented
 - whether the converter returns the target inventory adapter
 - whether the source inventory adapter remained in the slot
+
+### The Target Refuses Everything From Another Inventory
+
+If a slot with a typed check rejects every item coming from an inventory with a different data
+model, the converter is the thing to look at — not the rule. The rule already receives the converted
+item, so a rejection means the conversion did not produce the expected adapter type.
+
+Check:
+
+- whether the target binding overrides `CreateItemConverter()`
+- whether `TryConvertIncoming` handles the source adapter type at all (a `switch` with no matching
+  case returning `null` refuses the drop)
+- whether the converter preserves the fields the rule reads
+
+### A Partial Transfer Behaves Oddly
+
+Dragging part of a stack moves the **last** items of that stack. If your own code builds a stack to
+predict what will move, build it the same way (`stack.CreateCopy(count)`), otherwise your prediction
+and the actual transfer refer to different item instances — which only shows up on partial moves,
+never on full ones.
 
 ### First Swap Works, Second Swap Breaks
 
@@ -120,8 +181,11 @@ Check:
 - source and target inventories really use different adapter types
 - binding overrides `CreateItemConverter()`
 - converter creates the adapter type expected by the target inventory
+- converter is a pure factory: no registration, no id counters, no spawning
+- converter preserves the fields the target's rules read (`ItemId`, type, price, …)
 - each unique item keeps its own state
 - swap is tested in both directions
+- partial transfer is tested, not only full-stack moves
 - after transfer, the next drag/drop from the target slot works
 
 See also:

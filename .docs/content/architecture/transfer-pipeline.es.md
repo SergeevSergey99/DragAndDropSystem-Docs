@@ -33,8 +33,10 @@ Una transferencia típica funciona así:
 
 1. El sistema resuelve el origen, el destino y la configuración activa de drop policy.
 2. Si los inventarios usan modelos de objeto distintos, el objeto se convierte al modelo
-   del inventario de destino.
-3. El sistema comprueba si el destino elegido puede aceptar el objeto.
+   del inventario de destino. La conversión ocurre una sola vez por arrastre y se reutiliza, así
+   que el objeto que mostró la vista previa es el objeto que se guardará.
+3. El sistema comprueba si el destino elegido puede aceptar el objeto. Esas comprobaciones ven el
+   objeto ya convertido, y un objeto que no se puede convertir se rechaza aquí, con un motivo.
 4. Si el destino es válido, el objeto se mueve o se une al stack del slot destino.
 5. Si el destino no es válido, `DropPolicySettings` decide qué ocurre después según las
    opciones seleccionadas: rechazar la transferencia, buscar otro lugar o probar swap.
@@ -52,7 +54,7 @@ Lo que ocurre después lo define `BlockedTargetResolutionKind`:
 |---|---|
 | `Reject` | La entrada de transferencia falla. No se mueve nada. |
 | `FindAlternative` | La estrategia devuelve candidatos disponibles y el `PlacementCandidateOrderer` configurado los ordena por prioridad. |
-| `Swap` | El sistema intenta un swap único con el destino ocupado. |
+| `Swap` | El sistema intenta un swap único con el destino ocupado. Ambos objetos se validan contra las reglas del inventario en el que aterrizan, así que un swap no puede saltarse una regla que rechazaría un drop normal. |
 
 `AllowSameInventoryAlternativePlacement` controla si `FindAlternative`, al mover un
 objeto dentro del mismo inventario sobre un slot ocupado, puede elegir otro slot dentro

@@ -112,6 +112,8 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Helper methods for building and reading saved inventory state. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Service that performs quick-transfer style moves between inventories. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Internal utility that applies target/source adapter conversion consistently across preview and execution. |
+| `Scripts/Inventories/TransferConversionSession.cs` | `TransferConversionSession` | Drag-scoped memo of converted adapters so preview, probe and commit share one instance. |
+| `Scripts/Inventories/DropVerdict.cs` | `DropVerdict` | Drop decision of the active preview, read by feedback visuals such as `CrossFeedbackSlot`. |
 
 ---
 

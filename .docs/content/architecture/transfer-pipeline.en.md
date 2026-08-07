@@ -33,8 +33,10 @@ A typical transfer works like this:
 
 1. The system resolves the source, target, and active drop policy settings.
 2. If the inventories use different item models, the item is converted to the target
-   inventory model.
-3. The system checks whether the selected target can accept the item.
+   inventory model. The conversion happens once per drag and is reused, so the item the
+   preview showed is the item that will be stored.
+3. The system checks whether the selected target can accept the item. Those checks see the
+   already-converted item, and an item that cannot be converted is refused here, with a reason.
 4. If the target is valid, the item is moved or merged into the stack in the target slot.
 5. If the target is not valid, `DropPolicySettings` decides what happens next according
    to the selected options: reject the transfer, find another place, or try swap.
@@ -52,7 +54,7 @@ happens next is controlled by `BlockedTargetResolutionKind`:
 |---|---|
 | `Reject` | The transfer entry fails. Nothing moves. |
 | `FindAlternative` | The strategy provides available candidates, and the configured `PlacementCandidateOrderer` sorts them by priority. |
-| `Swap` | The system attempts a single swap with the occupied target. |
+| `Swap` | The system attempts a single swap with the occupied target. Both items are validated against the rules of the inventory they land in, so a swap cannot bypass a rule that would refuse a plain drop. |
 
 `AllowSameInventoryAlternativePlacement` controls whether `FindAlternative`, when
 moving an item inside the same inventory onto an occupied slot, may choose another

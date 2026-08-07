@@ -112,6 +112,8 @@
 | `Scripts/Inventories/InventorySnapshotUtility.cs` | `InventorySnapshotUtility` | Вспомогательные методы для построения и чтения снимков состояния. |
 | `Scripts/Inventories/AutoTransferService.cs` | `AutoTransferService` | Сервис для quick-transfer поведения между инвентарями. |
 | `Scripts/Inventories/TransferItemConversionUtility.cs` | `TransferItemConversionUtility` | Внутренний utility, который последовательно применяет конвертацию adapter'ов в preview и execution. |
+| `Scripts/Inventories/TransferConversionSession.cs` | `TransferConversionSession` | Кэш сконвертированных adapter'ов на время перетаскивания: preview, probe и коммит используют один экземпляр. |
+| `Scripts/Inventories/DropVerdict.cs` | `DropVerdict` | Вердикт активного превью дропа, который читают визуальные индикаторы вроде `CrossFeedbackSlot`. |
 
 ---
 
