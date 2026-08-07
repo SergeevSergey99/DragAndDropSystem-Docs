@@ -294,7 +294,7 @@ GameObject:
   - component: {fileID: 1499650782804321092}
   - component: {fileID: -5734934353143878177}
   m_Layer: 5
-  m_Name: FancyDragingObj
+  m_Name: FancyDraggingObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

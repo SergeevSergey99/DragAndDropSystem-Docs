@@ -294,7 +294,7 @@ GameObject:
   - component: {fileID: 1499650782804321092}
   - component: {fileID: 6982264044130136322}
   m_Layer: 5
-  m_Name: DragingObj
+  m_Name: DefaultDraggingObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
