@@ -1,26 +1,33 @@
 # Data Flow
 
-**Last Updated**: 2026-06-14
+**Last Updated**: 2026-08-06
 
 ## Transfer Flow
 
 ```text
-DragContext
+DragContext (owns TransferConversionSession)
   -> InventoryDropProcessor resolves policy
   -> InventoryTransferService validates synchronous transfer-wide veto
   -> async execution validates optional asynchronous transfer-wide veto
   -> process DragEntry values in order
-      -> resolve target-side preview adapter
       -> validate rules
+           RuleEvaluationService.ValidateEntryDrop:
+             resolve entry into the target domain (via session)
+             -> global -> inventory -> DataBinding.CanDrop -> slot rules
+      -> resolve target-side preview adapter (session hit)
       -> explicit TryGetCandidate OR ordered GetCandidates
       -> validate concrete capacity/topology/domain context
-      -> split exact adapter instances from source
-      -> convert outgoing/incoming stack
+      -> split exact adapter instances from source (tail of the remainder)
+      -> convert stack to the target domain (session hit: same objects the rules saw)
       -> mutate one target placement
       -> enumerate again while remainder exists
-      -> rollback current entry or commit outcomes
+      -> rollback current entry or commit outcomes (+ consume session entries)
       -> DataBinding + inventory events
 ```
+
+Conversion sits **before** the drop rules, not after: the target must judge the item as it will
+exist after the drop. Because the session memoizes by source adapter reference, the object the
+rules validated is the object the mutation commits.
 
 No `TransferPlan`, projected occupancy, or batch-wide transaction is created.
 Mixed single-cell and shaped entries use the same loop and observe committed mutations from earlier
@@ -42,6 +49,21 @@ DragContext
 
 The probe is advisory. It does not reserve state, calculate exact batch packing, or replace
 execution-time validation. It does not invoke asynchronous domain handlers.
+
+## Drop Feedback Flow
+
+```text
+SlotInputAdapter.OnBecomeActiveTarget
+  -> DragAndDropManager.CurrentProcessor (already bound to this slot)
+  -> InventoryDropProcessor.ProbeDrop(context)      // effective policy, incl. bound override
+  -> IInventoryInteraction.ShowDropPreview(slot, context, probe)
+       -> DropPreviewController resolves covered slots + one DropVerdict
+       -> highlights the covered slots
+  -> CrossFeedbackSlot.Highlight reads TryGetActiveDropVerdict(this, out verdict)
+```
+
+One probe per hover. Slots render the verdict; they never derive it. A slot that probes on its own
+resolves a different policy and can contradict the drop it previews.
 
 ## Topology Flow
 
@@ -85,6 +107,17 @@ A failed entry restores its source/target snapshots and emits no outcome notific
 
 ## Swap Flow
 
-Swap resolves both converted stacks, validates forward and reverse domain contexts, removes both
-placements, checks both incoming footprints against the vacated state, and places both stacks.
-Any failure restores snapshots.
+```text
+forward direction validated by the caller's ValidateEntryDrop
+  -> ValidateSwapCounterpart(target item -> source slot)
+       ValidateEntryStart  (may it leave the target slot?)
+       ValidateEntryDrop   (may it land in the source slot?  converts into the source domain)
+  -> convert both stacks through the session
+  -> forward + reverse domain handler validation
+  -> remove both placements
+  -> check both incoming footprints against the vacated state
+  -> place both stacks, consume session entries, dispatch events
+```
+
+The counterpart check runs before any mutation, and the same check runs inside `Probe` so preview
+and execution agree. Any failure restores snapshots and moves neither item.

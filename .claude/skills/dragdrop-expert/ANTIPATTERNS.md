@@ -2,7 +2,7 @@
 
 Comprehensive catalog of anti-patterns and how to avoid them.
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-08-06
 
 ## Anti-Pattern #1: Adding Locks Instead of Checking DragContext
 
@@ -256,6 +256,130 @@ Use `IPreRuleOccupiedSlotDropHandler` when the real target is the object inside 
 
 ---
 
+## Anti-Pattern #15: Converting Adapters Inside a Rule
+
+❌ **BAD**:
+```csharp
+protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+{
+    // Reaching for the converter because entry.Stack "has the wrong type"
+    var mine = ItemConverter.TryConvertIncoming(entry.Stack.PrimaryAdapter) as MyAdapter;
+    return mine != null ? RuleResult.Success() : RuleResult.Failure("Wrong type");
+}
+```
+
+✅ **GOOD**:
+```csharp
+protected override RuleResult CanDrop(DragContext context, DragEntry entry)
+{
+    // Drop rules already receive the target-domain entry.
+    if (entry.Stack.PrimaryAdapter is not MyAdapter mine)
+        return RuleResult.Failure("Wrong type");
+
+    return mine.Kind == ItemKind.Weapon
+        ? RuleResult.Success()
+        : RuleResult.Failure("Only weapons");
+}
+```
+
+**Why**: `RuleEvaluationService.ValidateEntryDrop` converts the entry before any drop rule runs, and
+routes it through the drag's conversion session. A hand-rolled conversion allocates a second object
+that is *not* the one the transfer will commit, and it re-runs on every hover frame.
+
+**Check**: `Scripts/Rules/RuleEvaluationService.cs`.
+
+---
+
+## Anti-Pattern #16: A Feedback Slot That Probes on Its Own
+
+❌ **BAD**:
+```csharp
+public override void Highlight(bool highlight)
+{
+    base.Highlight(highlight);
+    var probe = new InventoryTransferService().Probe(manager.CurrentContext, Inventory, this, policy);
+    _redCross.SetActive(highlight && !probe.CanAttempt);
+}
+```
+
+✅ **GOOD**:
+```csharp
+public override void Highlight(bool highlight)
+{
+    base.Highlight(highlight);
+
+    if (_redCross != null)
+        _redCross.SetActive(highlight && IsCurrentDropRefused());
+}
+
+private bool IsCurrentDropRefused()
+    => Inventory is IInventoryInteraction interaction &&
+       interaction.TryGetActiveDropVerdict(this, out var verdict) &&
+       verdict.IsRejected;
+```
+
+**Why**: only `InventoryDropProcessor` knows the effective policy (it merges the bound override), so
+a locally resolved probe can green-light a drop that then refuses, or vice versa. It also doubles
+the probe cost per covered slot. Read the `DropVerdict` the preview already produced.
+
+Do not store the verdict on the slot either: it is drag state, and a copy has to be invalidated.
+
+**Check**: `Scripts/Slots/CrossFeedbackSlot.cs`, `Scripts/Inventories/DropPreviewController.cs`.
+
+---
+
+## Anti-Pattern #17: Predicting a Transfer From the Head of a Stack
+
+❌ **BAD**:
+```csharp
+ItemStack.TryCreate(slot.Stack.Adapters.Take(dragAmount), out var entryStack);
+```
+
+✅ **GOOD**:
+```csharp
+var entryStack = slot.Stack.CreateCopy(dragAmount);
+```
+
+**Why**: `ItemStack.Split` and `ItemStack.CreateCopy` consume a stack from the **tail**. Anything
+that predicts which instances will move — drag start, auto-transfer, preview slices — must slice the
+same way, otherwise rules and conversion talk about instances that execution never touches. It looks
+correct for full-stack moves and breaks only on partial ones.
+
+For an entry spread over several placements, the remaining instances are the **head** of the entry
+stack (length `DesiredCount`), and the next split takes the tail of that remainder.
+
+**Check**: `Scripts/Inventories/TransferItemConversionUtility.cs`,
+`Scripts/Inventories/AutoTransferService.cs`.
+
+---
+
+## Anti-Pattern #18: A Converter With Side Effects
+
+❌ **BAD**:
+```csharp
+public IItemAdapter TryConvertIncoming(IItemAdapter adapter)
+{
+    var model = new ItemModel(adapter) { Uid = _registry.NextUid() };  // burns an id
+    _registry.Register(model);                                        // and registers it
+    return new MyAdapter(model);
+}
+```
+
+✅ **GOOD**:
+```csharp
+public IItemAdapter TryConvertIncoming(IItemAdapter adapter)
+    => adapter is ITradable t ? new MyAdapter(new ItemModel(t.OriginalSO)) : null;
+```
+
+**Why**: conversion runs during previews that may never become a drop. The session limits it to one
+object per drag instead of one per hover frame, but a converter that touches the outside world still
+leaves debris for a hover the player abandoned. Register in `ITransferDomainHandler.OnTransferSucceeded`,
+which only runs on commit.
+
+**Check**: `Scripts/Inventories/TransferConversionSession.cs`.
+
+---
+
 ## Summary: Quick Check Before Coding
 
 **Ask Yourself**:
@@ -263,7 +387,9 @@ Use `IPreRuleOccupiedSlotDropHandler` when the real target is the object inside 
 2. Am I validating or mutating in rules? (should only validate!)
 3. Did I check for null on `TargetSlot`?
 4. Am I using `slot.IsEmpty` instead of `slot.Stack.IsEmpty`?
-5. Will this work in any Unity project with any architecture?
+5. Am I converting by hand where the pipeline already converted for me?
+6. Am I slicing a stack from the head where `Split` takes the tail?
+7. Will this work in any Unity project with any architecture?
 
 **If uncertain** → Check actual script files for implementation patterns.
 

@@ -4,8 +4,8 @@ description: Quick reference for the UniversalDragAndDrop JIT transfer pipeline,
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 3.0
-**Last Updated**: 2026-06-14
+**Version**: 3.1
+**Last Updated**: 2026-08-06
 
 ## System Overview
 
@@ -17,11 +17,15 @@ Core drag & drop uses one just-in-time transfer pipeline:
 4. `IStrategy` (`Scripts/Inventories/Strategies/IStrategy.cs`) - validates explicit targets and enumerates placement candidates.
 5. `PlacementCandidateOrderer` (`Scripts/Inventories/PlacementCandidateOrderer.cs`) - orders candidates only for automatic distribution.
 6. `InventoryAcceptanceRequest` and `TransferItemConversionUtility` - provide target-aware, non-mutating preview data.
-7. `IAsyncTransferDomainHandler` - optional transfer-wide asynchronous veto before any mutation.
+7. `RuleEvaluationService` (`Scripts/Rules/RuleEvaluationService.cs`) - the domain boundary: converts the entry to the target domain, then runs global/inventory/binding/slot drop rules.
+8. `TransferConversionSession` (`Scripts/Inventories/TransferConversionSession.cs`) - drag-scoped memo so probe, preview, and mutation share one converted object.
+9. `IAsyncTransferDomainHandler` - optional transfer-wide asynchronous veto before any mutation.
 
 Main benefits:
 - unified behavior for single and batch drag
 - no precomputed transfer plan or virtual inventory state
+- drop rules judge the item as it will exist in the target, so typed bindings accept foreign adapters
+- the object validated by the preview is the object committed to the target
 - batch is sequential best-effort and each entry sees mutations from previous entries
 - explicit target validation does not enumerate or order all candidates
 - topology-owned footprints work for single-cell and shaped items
@@ -46,6 +50,13 @@ Main benefits:
   - orders automatic candidates; it is not used for an explicit target
 - `TransferItemConversionUtility` (`Scripts/Inventories/TransferItemConversionUtility.cs`)
   - resolves target preview item before mutation
+  - slices entries from the tail, matching `ItemStack.Split`
+- `TransferConversionSession` (`Scripts/Inventories/TransferConversionSession.cs`)
+  - drag-scoped conversion memo owned by `DragContext`, keyed by source adapter reference
+  - requires `IItemAdapterConverter` implementations to be pure factories
+- `DropVerdict` (`Scripts/Inventories/DropVerdict.cs`)
+  - the drop decision for the slots of the active preview, exposed through
+    `IInventoryInteraction.TryGetActiveDropVerdict(...)` and rendered by `CrossFeedbackSlot`
 - `InputEventRouter` / `InputModalityTracker` (`Scripts/Interaction/`)
   - input routing and modality state
 - `InventoryDropArea` (`Scripts/UI/InventoryDropArea.cs`)
@@ -74,6 +85,9 @@ Main fields:
 
 - `TransferProbe` describes the first currently viable entry, candidate, anchor, orientation, and
   covered slots; it does not reserve state or predict the whole batch
+- one probe per hover: `SlotInputAdapter` takes it from the bound `InventoryDropProcessor` (the only
+  place that knows the effective policy) and passes it to `ShowDropPreview`; feedback visuals read
+  the resulting `DropVerdict` instead of probing again
 - area-drops and transfer preview resolve target-side item before capacity checks
 - `InventoryAcceptanceRequest` lets strategies validate concrete candidate slots
 - mapped-slot bindings no longer need ad-hoc preview guards in feature code

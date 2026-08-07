@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-08-06
 
 ## Quick Click Auto-Transfer
 
@@ -118,13 +118,18 @@ DataBinding subscribes to swap events via `OnEnable` / `OnDisable`:
 
 ### Item Conversion Pipeline
 
-Current implementation keeps item conversion on `UniversalInventory` via `ItemConverter`, and preview/execution go through
-shared transfer helpers:
-- `IInventoryItemConverter`
-- `IdentityInventoryItemConverter`
-- preview chain: `TransferItemConversionUtility` → `TryPreviewOutgoingItem` → `TryPreviewIncomingItem`
-- mutation chain: source inventory applies outgoing conversion, target inventory applies incoming conversion
-- `InventoryDataBindingBase` configures converter via `CreateItemConverter()` (returns null → identity)
+⚠️ The names below were corrected on 2026-08-06; earlier revisions of this file listed
+`IInventoryItemConverter`, `IdentityInventoryItemConverter`, and `TryPreviewOutgoingItem` /
+`TryPreviewIncomingItem`, none of which exist.
+
+Conversion hangs off the inventory's DataBinding and is applied by shared transfer helpers:
+- `IItemAdapterConverter` with `TryConvertOutgoing(...)` / `TryConvertIncoming(...)`
+- `IdentityItemAdapterConverter.Instance` is the default (`CreateItemConverter()` returns it)
+- boundary chain: `TransferItemConversionUtility.TryResolveTargetItem(...)` applies the source's
+  outgoing conversion, then the target's incoming conversion
+- results are memoized per drag by `TransferConversionSession`, so preview, probe, and mutation share
+  one converted object
+- conversion runs **before** the target's drop rules — see `CORE_CONCEPTS.md` §2 and §8
 
 ### Template DataBindings
 

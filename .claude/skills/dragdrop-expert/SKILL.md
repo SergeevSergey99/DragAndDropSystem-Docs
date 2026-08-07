@@ -4,8 +4,8 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-06-14
-**Version**: 3.0
+**Last Updated**: 2026-08-06
+**Version**: 3.1
 
 ## Expert Baseline
 
@@ -24,6 +24,12 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
     mutation through the asynchronous execution path.
 12. Keep orientation topology-defined; manager, UI, snapshots, and placement code must not assume
     four 90-degree rotations.
+13. Let `RuleEvaluationService.ValidateEntryDrop` own the adapter-domain boundary. Drop rules receive
+    the target-domain entry; never call a converter from a rule or a binding check.
+14. Resolve adapters through the drag's `TransferConversionSession` so preview and commit share one
+    object; keep `IItemAdapterConverter` implementations pure.
+15. Slice stacks from the tail, matching `ItemStack.Split`; preview slices the tail of the remainder.
+16. Keep drop feedback on one probe: read `DropVerdict`, never probe from a slot.
 
 ## Review Priorities
 
@@ -31,7 +37,10 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - Candidate validity against current inventory state.
 - Preview correctness (`InventoryAcceptanceRequest`, target-side conversion).
 - Per-entry rollback and best-effort batch continuation.
-- Bidirectional rule checks for swap.
+- Bidirectional rule checks for swap, in `Probe` as well as execution.
+- Adapter-domain boundary: start rules source-side, drop rules target-side, one conversion point.
+- Instance identity: the adapter the preview validated is the adapter that gets committed.
+- Stack slicing follows the tail convention on every partial-transfer path.
 - Same-inventory area-drop behavior: source slot is excluded, dynamic inventories create a new target slot during execution.
 - No duplicate or premature event emission.
 - Async transfer-wide veto is not bypassed by a synchronous execution path.
@@ -48,6 +57,10 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 - `Scripts/Inventories/PlacementCandidateOrderer.cs`
 - `Scripts/Inventories/InventoryAcceptanceRequest.cs`
 - `Scripts/Inventories/TransferItemConversionUtility.cs`
+- `Scripts/Inventories/TransferConversionSession.cs`
+- `Scripts/Inventories/DropVerdict.cs`
+- `Scripts/Inventories/DropPreviewController.cs`
+- `Scripts/Rules/RuleEvaluationService.cs`
 - `Scripts/Inventories/IAsyncTransferDomainHandler.cs`
 - `Scripts/DragAndDropManager.cs`
 

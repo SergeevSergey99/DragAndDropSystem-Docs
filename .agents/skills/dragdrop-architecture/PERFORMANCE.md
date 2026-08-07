@@ -2,7 +2,7 @@
 
 Performance considerations and optimization strategies.
 
-**Last Updated**: 2026-05-01
+**Last Updated**: 2026-08-06
 
 ## Hot Paths
 
@@ -48,9 +48,35 @@ Current flow:
 Potential future improvement:
 - cache likely-acceptable slots per item type when safe
 - cache empty slot lists
-- avoid repeated preview requests for identical hover states
 
 ## Existing Optimization
+
+### Drag-Scoped Conversion Memo
+
+Location:
+- `Scripts/Inventories/TransferConversionSession.cs`
+
+Cross-inventory conversion allocates (a converter typically builds a new adapter, sometimes a new
+domain model with it). Without memoization that happened on every probe, every preview and again at
+mutation.
+
+Current behavior:
+- converted adapters are resolved once per `(source inventory, target inventory, source adapter)`
+  and reused for the whole drag
+- entries are consumed on commit, so a converted object is never offered twice
+- failures are not cached
+
+Correctness first, allocation second: reusing one object is what makes the previewed item and the
+committed item the same instance.
+
+### One Probe Per Hover
+
+Location:
+- `Scripts/Interaction/SlotInputAdapter.cs`, `Scripts/Inventories/DropPreviewController.cs`
+
+`ShowDropPreview` used to probe, and each covered slot rendering drop feedback probed again — twice
+per slot per hover, multiplied by the footprint of a shaped item. The processor's probe is now
+resolved once and passed down; feedback visuals read the stored `DropVerdict`.
 
 ### Rule Caching
 

@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-06-14
+**Last Updated**: 2026-08-06
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -18,6 +18,22 @@ Validation order:
 3. slot-level rules
 
 `RuleEvaluationService` is used by the transfer service to validate candidates and swap directions.
+
+### Domain Boundary (⚠️ CHANGED 2026-08-06)
+
+Start rules see the item in the **source** domain; drop rules see it in the **target** domain.
+`RuleEvaluationService.ValidateEntryDrop(...)` performs the conversion itself, once per entry,
+before global/inventory/binding/slot drop rules run.
+
+Consequences:
+- a typed target binding (for example `MappedSlotInventoryDataBinding<TData,TAdapter>`) receives its
+  own adapter type even when the item came from an inventory with a different adapter domain
+- an item that cannot cross the boundary is rejected **as a rule failure with a reason**, not by a
+  late "conversion failed" during mutation, so the drop preview can show it
+- rule authors never call a converter themselves
+
+Only the entry under validation is converted. Other batch entries keep their source domain until
+their own turn, which is when their target is known.
 
 ## 3. Policy-Driven Transfer Behavior
 
@@ -54,7 +70,15 @@ Important current detail:
 
 Current flow:
 - transfer service enters swap only for a blocked explicit target and a single full entry
-- service validates reverse and forward drop legality
+- the forward direction is validated by the caller's `ValidateEntryDrop(...)`
+- the counterpart (the item travelling the opposite way) is validated by
+  `ValidateSwapCounterpart(...)`: it must be allowed to leave the target slot
+  (`ValidateEntryStart`) and to land in the source slot (`ValidateEntryDrop`) — ⚠️ ADDED 2026-08-06,
+  previously only domain handlers saw the reverse direction, so a swap could place an item where a
+  plain drop was refused
+- the same counterpart check runs inside `Probe(...)`, so a preview never promises a swap that
+  execution would refuse
+- counterpart validation happens before any mutation; a refusal leaves both inventories untouched
 - `SwapAttempting` callback can cancel
 - service mutates both placements inside the current entry transaction
 - `SwapCompleted` callback runs after successful commit
@@ -84,17 +108,50 @@ This matters for:
 - mapped-slot inventories
 - cross-inventory adapter conversion
 
-## 8. Conversion Is Previewed Before Execution
+## 8. Conversion Happens Once Per Drag, Before The Rules
 
-`Scripts/Inventories/TransferItemConversionUtility.cs`
+`Scripts/Inventories/TransferItemConversionUtility.cs`,
+`Scripts/Inventories/TransferConversionSession.cs`
 
-- source inventory preview-converts outgoing item
-- target inventory preview-converts incoming item
-- probe, drop area, and execution work with the target-side preview item
+- conversion crosses one boundary: `ItemConverter.TryConvertOutgoing` on the source inventory, then
+  `TryConvertIncoming` on the target inventory
+- conversion lives on the inventory-side `ItemConverter`; `DataBinding` only provides the wiring
+- it runs **before** drop rules (see §2), not after
 
-Current note:
-- conversion now lives on inventory-side `ItemConverter`
-- `DataBinding` only provides wiring plus legacy fallback when needed
+### Drag-Scoped Conversion Session (NEW 2026-08-06)
+
+`TransferConversionSession` memoizes converted adapters for the lifetime of one drag.
+
+- key: `(source inventory, target inventory, source adapter reference)` — reference identity on all
+  three; value equality would collapse distinct instances of a stack into one entry
+- owned by `DragContext` and shared by every derived context (`WithTarget`, `WithEntries`,
+  `CreateDerived` for split drops)
+- failed conversions are not cached
+- entries are consumed on commit: the converted object belongs to the target inventory afterwards
+- a null session is a supported mode — code-driven transfers with no drag convert on the spot
+
+The point is not only allocation. Probe, drop preview and the final mutation resolve the **same
+object**, so what the player saw validated is literally what lands in the target inventory.
+
+**Converter contract**: an `IItemAdapterConverter` must be a pure factory for the duration of a
+drag — no registry writes, no id counters, no spawning. A conversion that never reaches a drop must
+leave no trace.
+
+### Tail-Slice Convention (⚠️ CHANGED 2026-08-06)
+
+`ItemStack.Split(n)` and `ItemStack.CreateCopy(n)` take the **last** n adapters. Everything that
+predicts what a transfer will move must follow the same convention, or preview and execution end up
+talking about different instances:
+
+- `DragAndDropManager.StartDrag` uses `CreateCopy(dragCount)`
+- `AutoTransferService` uses `CreateCopy(dragAmount)` (it used `Take(n)` — the head — before)
+- `TransferItemConversionUtility.TryCreatePreviewStack` slices
+  `[DesiredCount - count, DesiredCount)`
+
+The `DesiredCount` offset matters for an entry spread over several placements: splits eat the entry
+from the tail, so the untransferred remainder is the **head** of the entry stack, and the next split
+takes the tail of that remainder. Slicing the tail of the whole entry would re-validate items
+already sitting in the target.
 
 ## 9. Handler Boundary
 
@@ -102,9 +159,32 @@ Current note:
 
 Responsibilities:
 - resolve effective target and policy
-- expose advisory probe data
+- expose advisory probe data (`ProbeDrop(...)` stores `LastProbe`)
 - execute the JIT transfer with options
 - return `DropResult`
+
+Only the processor knows the bound policy override (`DropRequestPolicy.Merge(_boundRequestOverride,
+requested)`), so anything that previews a drop must reuse **its** probe rather than resolving one of
+its own.
+
+## 9a. One Probe Per Hover Drives All Drop Feedback (NEW 2026-08-06)
+
+`Scripts/Inventories/DropVerdict.cs`, `Scripts/Inventories/DropPreviewController.cs`
+
+- `SlotInputAdapter.OnBecomeActiveTarget` asks `DragAndDropManager.CurrentProcessor` (an
+  `InventoryDropProcessor` bound to this slot) for a probe and passes it into
+  `IInventoryInteraction.ShowDropPreview(slot, context, probe)`
+- `DropPreviewController` turns that probe into one `DropVerdict` and keeps it for as long as the
+  highlight it belongs to
+- feedback visuals read it back with `IInventoryInteraction.TryGetActiveDropVerdict(slot, out ...)`;
+  `CrossFeedbackSlot` does exactly that inside `Highlight(bool)`
+
+`DropVerdict` carries `CanPlace`, `IsRejected` and a `FailureReason` suitable for a tooltip.
+`TryGetActiveDropVerdict` returning false means "no opinion" (the slot is not part of a preview),
+which is not the same as a refusal and must not be rendered as one.
+
+Slots must never run their own probe: only the processor's probe carries the effective policy, and a
+second one can contradict the drop it is supposed to be previewing.
 
 ## 10. Asynchronous Transfer-Wide Veto
 

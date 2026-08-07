@@ -1,6 +1,6 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-06-13
+**Last Updated**: 2026-08-06
 
 Follow the mandatory commands and reporting rules in
 [Compilation And Test Verification](../VERIFICATION.md).
@@ -33,7 +33,35 @@ Follow the mandatory commands and reporting rules in
 - [ ] swap requires one full entry
 - [ ] batch swap is rejected before mutation
 - [ ] forward and reverse conversion/rules/domain checks run
+- [ ] the counterpart must be allowed to leave the target slot and to land in the source slot
+- [ ] a counterpart refusal moves neither item
+- [ ] `Probe` refuses a swap that execution would refuse
 - [ ] failed swap restores both inventories and emits no success events
+
+## Adapter Domain And Conversion
+
+- [ ] drop rules receive the item in the target domain; start rules receive the source domain
+- [ ] a typed target binding accepts an item arriving from a different adapter domain
+- [ ] a conversion failure is a rule failure with a reason, not a late mutation error
+- [ ] the adapter validated by the preview is the exact instance committed to the target
+- [ ] the conversion session is shared by derived contexts, including split drops
+- [ ] committed entries are consumed and never handed out again during the same drag
+- [ ] a converter that changes only some instances of a stack still yields a fully converted stack
+- [ ] code-driven transfers work with no session at all
+
+## Stack Slicing
+
+- [ ] preview slices match the instances `ItemStack.Split` takes (tail)
+- [ ] after a partial placement, the slice skips instances already in the target
+- [ ] an entry spread over several placements commits exactly the validated instances
+- [ ] partial auto-transfer carries the tail of the source stack
+
+## Drop Feedback
+
+- [ ] one probe per hover reaches both the footprint highlight and the feedback visual
+- [ ] the preview uses the processor's effective policy, including a bound override
+- [ ] a slot outside any preview reports no verdict rather than a refusal
+- [ ] clearing the preview stops reporting a verdict for its slots
 
 ## Stack Semantics
 
@@ -56,10 +84,13 @@ Follow the mandatory commands and reporting rules in
 ## Suggested Fixtures
 
 - `UDND.Tests.Inventories.InventoryTransferServiceTests`
+- `UDND.Tests.Inventories.TransferConversionTests` - domain boundary, instance identity, slicing
+- `UDND.Tests.Inventories.SwapRuleValidationTests` - both swap directions, probe agreement
 - `UDND.Tests.Inventories.StackableItemStrategyTests`
 - `UDND.Tests.Inventories.SeparableStacksStrategyTests`
 - `UDND.Tests.Inventories.ShapedItemPlacementTests`
 - `UDND.Tests.Inventories.InventoryDropProcessorTests`
+- `UDND.Tests.Inventories.TransferProbeTests`
 - `UDND.Tests.Core.DropRequestPolicyTests`
 
 For architecture-wide transfer changes, run the complete

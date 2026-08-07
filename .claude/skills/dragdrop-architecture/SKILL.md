@@ -4,20 +4,23 @@ description: Architecture reference for UniversalDragAndDrop with a policy-drive
 ---
 # DragDrop Architecture
 
-**Version**: 3.0
-**Last Updated**: 2026-06-14
+**Version**: 3.1
+**Last Updated**: 2026-08-06
 
 ## Architectural Baseline
 
 Transfer architecture is centered on:
 - `DropRequestPolicy`, `DropPolicySettings`, `ResolvedDropPolicy` (behavior resolution)
-- `InventoryDropProcessor` (drop boundary)
+- `InventoryDropProcessor` (drop boundary and the only owner of the effective policy)
 - `InventoryTransferService` (sequential JIT validation and mutation)
+- `RuleEvaluationService` (adapter-domain boundary: converts, then validates drop rules)
 - `IStrategy` (explicit-target checks and lazy placement candidates)
 - `PlacementCandidateOrderer` (automatic candidate ordering only)
 - `IPlacementGeometry` and inventory topology (footprint projection and occupancy)
 - `InventoryAcceptanceRequest` (context-aware preview request)
-- `TransferItemConversionUtility` (preview conversion helper)
+- `TransferItemConversionUtility` (conversion helper) and `TransferConversionSession`
+  (drag-scoped conversion identity)
+- `DropVerdict` (single drop decision shared by preview and feedback visuals)
 - runtime capabilities such as `IDynamicSlotLifecycle` (dynamic slot creation/removal without UI coupling)
 
 ## Core Documents
@@ -46,3 +49,16 @@ Transfer architecture is centered on:
     flag or nullable `GridTopology` through the shared contract.
 14. Treat orientation as a topology-defined discrete step. Shared code must not assume four
     directions or multiply orientation values by 90 degrees.
+15. Keep the adapter-domain boundary in one place: start rules see the source domain, drop rules see
+    the target domain, and `RuleEvaluationService.ValidateEntryDrop` is the only converter caller in
+    the rule path. A failed conversion is a rule failure with a reason, not a late mutation error.
+16. Keep conversion identity drag-scoped. Resolve adapters through `TransferConversionSession` so
+    probe, preview, and mutation share one object; require converters to be pure factories; consume
+    cache entries on commit.
+17. Keep the tail-slice convention. `ItemStack.Split`/`CreateCopy` take the last N adapters, so every
+    predictor of a transfer (drag start, auto-transfer, preview slices) must slice from the tail —
+    preview slices from the tail of the *remainder* (`[DesiredCount - count, DesiredCount)`).
+18. Keep one probe per hover. Only `InventoryDropProcessor` knows the effective policy; drop feedback
+    reads the resulting `DropVerdict` and never probes on its own.
+19. Validate both directions of a swap. The counterpart must be allowed to leave its slot and to land
+    in the source slot, in `Probe` as well as in execution.
