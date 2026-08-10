@@ -36,6 +36,7 @@ namespace UDND.UI
         private bool _subscribed;
 
         public Canvas PresentationCanvas => _canvas;
+        public BaseDragVisual DefaultDragVisualPrefab => _defaultDragVisualPrefab;
         public Transform VisualContainer => _visualContainer != null ? _visualContainer : _canvas != null ? _canvas.transform : transform;
 
         protected override void Init()

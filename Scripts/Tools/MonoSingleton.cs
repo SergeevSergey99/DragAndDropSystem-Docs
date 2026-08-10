@@ -9,27 +9,40 @@ namespace CodeUtils
         public static bool IsInstanceExist => _instance != null;
         private static bool _isSelfCreating = false;
         public static T Instance => _instance;
-        public static T AutoCreateInstance {
+
+        /// <summary>
+        /// The live instance: the cached one, or one already present in the scene. Never creates
+        /// anything, so setup validation can ask "is this component in the scene?" without the
+        /// asking itself making the answer yes. Null when there is none.
+        /// </summary>
+        public static T AutoFindInstance
+        {
             get
             {
                 if (_instance == null)
                 {
                     _instance = FindFirstObjectByType<T>();
-                    if (_instance == null)
-                    {
-                        _isSelfCreating = true;
-                        var go = new GameObject(typeof(T).Name);
-                        _instance = go.AddComponent<T>();
-                        _isSelfCreating = false;
-                    }
-
-                    _instance.Init();
+                    if (_instance != null)
+                        _instance.Init();
                 }
+
                 return _instance;
             }
-            private set
+        }
+
+        public static T AutoCreateInstance {
+            get
             {
-                _instance = value;
+                if (AutoFindInstance != null)
+                    return _instance;
+
+                _isSelfCreating = true;
+                var go = new GameObject(typeof(T).Name);
+                _instance = go.AddComponent<T>();
+                _isSelfCreating = false;
+                _instance.Init();
+
+                return _instance;
             }
         }
 

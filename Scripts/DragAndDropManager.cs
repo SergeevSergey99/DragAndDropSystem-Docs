@@ -23,6 +23,11 @@ namespace UDND
     [DisallowMultipleComponent]
     public class DragAndDropManager : MonoSingleton<DragAndDropManager>
     {
+        [Header("Setup")]
+        [SerializeField, Tooltip("Warn once at startup when the scene is missing a DragVisualPresenter, " +
+            "an InputEventRouter or a correctly configured drag canvas. Editor and development builds only.")]
+        private bool _validateSceneSetupOnStart = true;
+
         [Header("Quick Click Auto-Transfer (LMB)")]
         [SerializeField] private bool _enableQuickClickAutoTransfer = true;
         [SerializeField, Range(0.05f, 1f), Tooltip("Maximum click duration for auto-transfer (seconds)")]
@@ -82,6 +87,17 @@ namespace UDND
         protected override void DeInit()
         {
             base.DeInit();
+        }
+
+        /// <summary>
+        /// Runs from Start, not Init: the presenter and the router are found by scanning the scene,
+        /// so every other Awake has to have run first or a perfectly good setup reports as missing.
+        /// </summary>
+        private void Start()
+        {
+            // A duplicate manager is destroyed in Awake but still gets its Start call this frame.
+            if (_validateSceneSetupOnStart && ReferenceEquals(_instance, this))
+                UDNDSetupValidator.LogSceneSetupIssues();
         }
 
         /// <summary>
