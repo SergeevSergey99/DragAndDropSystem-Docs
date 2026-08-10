@@ -41,8 +41,7 @@ namespace UDND.Tools
             message
                 .Append("\n\nDragAndDropManager, DragVisualPresenter and InputEventRouter all live on ")
                 .Append(DragCanvasPrefabPath)
-                .Append(" — dropping that prefab into the scene sets up the whole system. ")
-                .Append("Uncheck 'Validate Scene Setup On Start' on DragAndDropManager to silence this.");
+                .Append(" — dropping that prefab into the scene sets up the whole system.");
 
             Debug.LogWarning(message.ToString());
 #endif
