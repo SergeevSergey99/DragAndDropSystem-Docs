@@ -1,186 +1,213 @@
 ---
-Last Updated: 2026-08-11
+Last Updated: 2026-08-12
 ---
 
-# Multi Swap Plan
+# Multi Swap MVP Plan
 
-Поддержка свопа «один входящий предмет вытесняет несколько» (например, 3×1 переносят на три 1×1) в существующем swap-пути, без параллельной ветки кода и без изменения поведения по умолчанию.
+## Цель
 
-## Текущее состояние
+Добавить opt-in своп «один входящий предмет вытесняет несколько размещений» внутри существующего
+JIT swap-пути. Основной кейс: предмет `3×1` переносится на три предмета `1×1`, а три вытесненных
+предмета занимают соответствующие позиции в области источника.
 
-Своп строго 1↔1. `TryExecuteSwap` (`Scripts/Inventories/InventoryTransferEngine.cs:1198`) берёт ровно одно размещение под слотом-целью:
+MVP не добавляет поиск свободных мест, новый planner, виртуальное состояние или отдельную ветку
+transfer pipeline.
 
-```csharp
-var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
-var targetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
-```
-
-Про остальные клетки, которые накроет footprint входящего предмета, движок ничего не знает.
-
-Что происходит при 3×1 на три 1×1:
-
-1. берётся только тот 1×1, который лежит под слотом-целью;
-2. освобождается его клетка, два соседних 1×1 остаются на месте;
-3. `TryPlace` для 3×1 падает — footprint упирается в оставшиеся два предмета;
-4. `RestoreSwapSnapshots` откатывает всё, запись падает с `"Swap: cannot place source item in target"`.
-
-Фолбэка на `FindAlternative` нет: ветка `Swap` в `InventoryTransferEngine.cs:446` и `:511` терминальная.
-
-Дополнительно probe в swap-ветке (`InventoryTransferEngine.cs:193-226`) возвращает `coveredSlots: new[] { entryTargetSlot }` — подсвечивается одна клетка, а не весь след предмета.
-
-## Ведущее решение: зеркальное смещение
-
-Якорь входящего предмета в цели — `A_t`, якорь источника — `A_s`. Вытесненное размещение с якорем `P` едет на `A_s + (P − A_t)` в клеточных координатах, со своей формой и ориентацией.
-
-Почему так:
-
-- **Это обобщение текущего поведения, а не замена.** Сейчас при 1↔1 входящий садится на `targetPlacement.AnchorIndex`, а вытесненный — на `sourcePlacement.AnchorIndex`, то есть смещение 0. Если для случая «вытеснен ровно один» определить `A_t = P`, формула даёт ровно текущий результат.
-- **Геометрия предсказуема для игрока.** Три 1×1 переезжают в освобождённый след 3×1 в том же взаимном расположении.
-- **Probe остаётся дешёвым.** Нет перебора кандидатов на каждый кадр ховера.
-
-Альтернатива — «каждый вытесненный ищет любой свободный слот в источнике через orderer» — даёт больше успешных свопов, но телепортирует предметы в непредсказуемые места и стоит N прогонов кандидатного цикла на ховер. Она добавляется вторым режимом, а не поведением по умолчанию.
+## Поведение
 
 ```csharp
 public enum MultiSwapMode : byte
 {
-    Single = 0,            // текущее поведение: >1 вытесненного = отказ
-    MirrorOffset = 1,      // зеркальное смещение в освобождённый след
-    SourceInventoryFit = 2 // fallback на кандидатный цикл в источнике
+    Single = 0,
+    PreserveOffsets = 1
 }
 ```
 
-`Single` по умолчанию — изменение не трогает существующие проекты.
+- `Single` сохраняет текущее поведение и остаётся значением по умолчанию.
+- `PreserveOffsets` разрешает одному входящему placement вытеснить несколько placements.
+- Batch drag + Swap остаётся запрещённым: MVP поддерживает один входящий `DragEntry`.
+- Вытесненные предметы не ищут альтернативные места.
+- Любая неудача откатывает весь текущий swap через существующие snapshots.
 
-## Правило разрешения якоря входящего предмета
+Для входящего target anchor `A_t`, исходного source anchor `A_s` и вытесненного anchor `P`
+назначение вытесненного предмета вычисляется как:
 
-| Вытеснено | `A_t` |
-|---|---|
-| ровно одно размещение | `displaced[0].AnchorIndex` — сохраняется текущий снап к вытесняемому предмету |
-| больше одного | `geometry.TryResolveAnchor(targetSlot, request, out anchor)` — тот же grab-offset путь, что использует `TryCreatePlacementCandidate` |
-
-Разделение нужно, чтобы 1↔1 своп не поменял поведение: сейчас входящий предмет снапится к якорю вытесняемого, а не к grab-offset позиции.
-
-`TryResolveAnchor` требует `InventoryAcceptanceRequest`, которого на swap-пути сейчас нет — его нужно собрать так же, как это делает `CreateAcceptanceRequest` для обычного пути (`InventoryTransferEngine.cs:496`).
-
-## Этап 1. Расширить `CanPlace` до множества игнорируемых
-
-Сейчас потолок — два игнора: `Scripts/Inventories/IPlacementInventory.cs:25-28`, реализация в `Scripts/Inventories/PlacementStore.cs:38`:
-
-```csharp
-if (_cellToPlacement.TryGetValue(coveredIndices[i], out var existing) &&
-    !ReferenceEquals(existing, ignoredA) &&
-    !ReferenceEquals(existing, ignoredB))
-    return false;
+```text
+A_reverse = A_s + (P - A_t)
 ```
 
-При N вытесненных нужно игнорировать весь набор — иначе вытесняемые предметы блокируют друг друга при проверке.
+Это параллельный перенос: взаимное расположение вытесненных предметов сохраняется.
 
-- `PlacementStore.CanPlace(PlacementRequest, IReadOnlyCollection<Placement> ignored)` — заменить два `ReferenceEquals` на проверку принадлежности набору. Старые перегрузки оставить обёртками: они часть публичного API.
-- Такую же перегрузку добавить в `IPlacementInventory`, `UniversalInventory` (`:520`), `IPlacementGeometry` и `InventoryPlacementGeometry` (`:60`).
-- Набор передавать как `HashSet<Placement>`. При 1-2 элементах аллокация заметна на ховере, поэтому буфер переиспользуется в `InventoryTransferEngine`, а не создаётся на каждый вызов.
+## Ограничения MVP
 
-## Этап 2. Сбор вытесняемого набора
+- Геометрия вычисляется только через `IInventoryTopology`; grid-specific ветки запрещены.
+- Если destination cell отсутствует в топологии источника, swap отклоняется.
+- Если reverse placements пересекаются с посторонними placements или друг с другом, swap отклоняется.
+- Каждый вытесненный предмет сохраняет свою shape и orientation, нормализованную топологией источника.
+- Кеш probe, третий цвет подсветки и candidate fallback не входят в MVP.
 
-Новый метод в `InventoryTransferEngine`, в секции `// ──── Swap ───`:
+## Этап 1. Policy
+
+Добавить `MultiSwapMode` в:
+
+- `DropPolicySettings`;
+- `DropRequestPolicy` как nullable override;
+- `ResolvedDropPolicy`;
+- `DropRequestPolicy.Merge`;
+- `DropRequestPolicy.WithSwap(MultiSwapMode mode = MultiSwapMode.Single)`.
+
+Поле в inspector показывается только при `BlockedTargetResolutionKind.Swap`.
+
+## Этап 2. Общий read-only resolver
+
+В swap-секции `InventoryTransferService` добавить внутренний resolver, который вызывается и из
+`Probe`, и из `TryExecuteSwap`. Он ничего не мутирует и возвращает либо готовое описание операции,
+либо причину отказа.
+
+Минимальные внутренние модели:
 
 ```csharp
-private static bool TryCollectDisplacedPlacements(
-    InventoryPlacementGeometry geometry,
-    BaseSlot anchorSlot,
-    IPlacementShape shape,
-    int orientation,
-    Placement ignoredSourcePlacement,
-    out List<Placement> displaced)
+private sealed class ResolvedMultiSwap
+{
+    public Placement SourcePlacement;
+    public BaseSlot ForwardAnchor;
+    public ItemStack ForwardStack;
+    public IPlacementShape ForwardShape;
+    public int ForwardOrientation;
+    public List<ResolvedDisplacement> Displacements;
+}
+
+private sealed class ResolvedDisplacement
+{
+    public Placement Placement;
+    public BaseSlot DestinationAnchor;
+    public ItemStack ConvertedStack;
+    public TransferDomainContext DomainContext;
+}
 ```
 
-Логика:
+Resolver выполняет шаги строго в таком порядке:
 
-1. `geometry.GetCoveredSlots(anchor, shape, orientation)`;
-2. по каждому слоту `geometry.GetPlacementAt(slot)`;
-3. дедупликация через `HashSet<Placement>` — одно размещение накрывает несколько клеток;
-4. пропуск `ignoredSourcePlacement` для перемещения внутри одного инвентаря;
-5. `false`, если хотя бы одна клетка footprint вне границ — это уже не своп, а отказ.
+1. Проверяет существующие swap-инварианты: один полный entry, непустые source/target,
+   snapshot-capable и placement-capable inventories.
+2. Через `TransferConversionSession` получает target-domain adapter входящего предмета.
+3. По target-domain adapter определяет forward shape; orientation нормализует target topology.
+4. Сначала разрешает hover anchor через тот же `InventoryAcceptanceRequest` и `TryResolveAnchor`,
+   что обычный shaped explicit drop, и собирает его displaced set. Если набор содержит только
+   primary placement под курсором, переключается на anchor этого placement и собирает набор заново —
+   это сохраняет legacy 1↔1 snap. При нескольких placements остаётся hover anchor.
+5. Получает все covered target slots и собирает уникальные placements в порядке обхода footprint.
+   `HashSet` используется только для дедупликации, не как источник порядка.
+6. Placement непосредственно под `TargetBaseSlot` сохраняется как primary displaced placement для
+   обратной совместимости `TargetStack`/`TargetBaseSlot`.
+7. При `Single` и количестве displaced placements больше одного возвращает отказ.
+8. Для каждого displaced placement вычисляет фактический destination anchor по формуле
+   `A_s + (P - A_t)` через topology source inventory.
+9. Проверяет всю итоговую геометрию без мутаций:
+   - forward footprint может игнорировать source placement при same-inventory swap и весь displaced set;
+   - reverse footprints могут игнорировать source placement и displaced set;
+   - reverse footprints не пересекаются друг с другом;
+   - остальные placements продолжают блокировать размещение.
+10. Конвертирует каждый displaced stack в source domain через ту же conversion session.
+11. Для каждого displaced item проверяет start/drop rules против его реального
+    `DestinationAnchor`, а не общего source slot.
+12. Создаёт forward domain context и по одному reverse domain context на displacement; каждый
+    context содержит фактический planned target slot.
 
-## Этап 3. Переписать `TryExecuteSwap`
+Проверку occupancy выполнить внутренним swap-helper через topology, covered slots и
+`GetPlacementAt`. Для MVP не расширять `IPlacementInventory`, `IPlacementGeometry` и
+`PlacementStore` публичной перегрузкой с коллекцией ignored placements.
 
-`InventoryTransferEngine.cs:1198` работает со списком вместо одного `targetPlacement`. Порядок операций сохраняется, меняется кратность.
+## Этап 3. Probe и выполнение
 
-1. Ранние проверки как есть (snapshot-capable, placement-capable, вся стопка источника).
-2. `TryCollectDisplacedPlacements`. Если `count > 1` и режим `Single` → `Failed("Swap: target footprint covers multiple items")`.
-3. **Правила.** `ValidateSwapCounterpart` (`:1378`) прогоняется по каждому вытесненному отдельно — каждый едет в источник и должен пройти его правила. Первый отказ валит весь своп с указанием, какой предмет отказан.
-4. **Конверсия.** Forward — один вызов как сейчас. Reverse — цикл `TryConvertStackToTargetDomain` по каждому вытесненному стеку. Сессия конверсии (`request.Context.ConversionSession`) одна на всех.
-5. **Домен.** `forwardDomain` один, `reverseDomain` — по одному на вытесненный.
-6. **Мутация.** Снапшоты обоих инвентарей → `RemovePlacement` для источника и всех вытесненных → `TryPlace` входящего на `A_t` → `TryPlace` каждого вытесненного на `A_s + (P − A_t)` через `topology.TryToIndex`. Любой сбой → `RestoreSwapSnapshots` (`:1412`) и отказ. Атомарность уже обеспечена снапшотами, новой машинерии не нужно.
-7. **Результат.** `EntryTransferResult.Committed` сейчас возвращает один `PlacementTransferOutcome`; нужен массив — outcome входящего плюс по одному на каждый вытесненный.
+### Probe
 
-### Уступка в `CounterpartContext`
+Swap-ветка `Probe` вызывает общий resolver.
 
-`TransferDomainContext.CounterpartContext` — двусторонняя ссылка, построенная на предположении «своп это пара». При N вытесненных она определяется как «forward ↔ первый reverse», остальным reverse проставляется `CounterpartContext = forwardDomain` односторонне.
+- При успехе возвращает `TransferProbe.Accepted` с окончательным forward anchor и полным
+  `CoveredSlots` входящего предмета.
+- При отказе возвращает ту же причину, которую получил бы execution.
+- `TransferProbe.DisplacedPlacements` и новый `DropVerdictKind` в MVP не добавляются.
 
-Обработчики, которые идут от reverse к counterpart, продолжат работать. Те, кто идёт от forward к counterpart, увидят только первый вытесненный. Это надо зафиксировать в xml-doc.
+### Execution
 
-## Этап 4. События и контекст
+`TryExecuteSwap` повторно вызывает resolver против актуального состояния, затем:
 
-`Scripts/Core/Models/InventoryEvents.cs:76` — `InventorySwapContext` несёт ровно одну пару стеков, и на нём завязан `CanSwap` в биндинге (`Scripts/DataBinding/InventoryDataBindingBase.cs:114`).
+1. Вызывает `SwapAttempting` один раз.
+2. Снимает snapshots обоих inventories; для same-inventory — один snapshot.
+3. Удаляет source placement и все displaced placements.
+4. Размещает forward stack в разрешённом target anchor.
+5. Размещает каждый converted displaced stack в его `DestinationAnchor`.
+6. При любой ошибке восстанавливает snapshots и не испускает success events.
+7. После полного успеха consume-ит committed conversion entries, вызывает domain success hooks,
+   публикует inventory events и один `SwapCompleted`.
 
-Не ломая API, добавить:
+`EntryTransferResult.Outcomes` продолжает содержать только forward swap outcome. Reverse
+перемещения не добавляются туда, иначе `DropResult` и анимации начнут считать последним target
+слот из исходного inventory.
+
+## Этап 4. События и domain contexts
+
+В `InventorySwapContext` добавить без удаления старых свойств:
 
 ```csharp
 public IReadOnlyList<ItemStack> DisplacedStacks { get; }
-public IReadOnlyList<BaseSlot> DisplacedSlots { get; }
+public IReadOnlyList<BaseSlot> DisplacedSourceSlots { get; }
+public IReadOnlyList<BaseSlot> DisplacedDestinationSlots { get; }
 ```
 
-`TargetStack` / `TargetBaseSlot` продолжают указывать на предмет под курсором — первый вытесненный. Существующие подписчики `CanSwap` работают дальше, но видят только его; это надо явно написать в xml-doc, иначе биндинг, разрешающий своп по `TargetStack`, молча пропустит остальные. Кому нужна строгость — читает `DisplacedStacks`.
+- `TargetStack` и `TargetBaseSlot` всегда относятся к placement непосредственно под курсором.
+- Списки имеют детерминированный порядок footprint traversal, primary placement идёт первым.
+- `OnSwapAttempting` и `OnSwapCompleted` вызываются один раз на весь multi-swap.
+- `DispatchSwapEvents` испускает remove/add для каждого вытесненного placement после общего commit.
 
-`OnSwapAttempting` / `OnSwapCompleted` вызываются один раз с полным контекстом, не N раз.
+В `TransferDomainContext` добавить read-only список counterpart contexts. Старое
+`CounterpartContext` оставить legacy-проекцией на primary counterpart:
 
-`DispatchSwapEvents` (`:1429`) — цикл `EmitItemRemoved` / `EmitItemAdded` по вытесненным вместо одиночной пары.
+```csharp
+public IReadOnlyList<TransferDomainContext> CounterpartContexts { get; internal set; }
+```
 
-## Этап 5. Probe и превью
+- forward context видит все reverse contexts;
+- каждый reverse context видит только forward context;
+- при обычном 1↔1 список содержит один элемент и старое поведение сохраняется.
 
-Swap-ветка probe (`InventoryTransferEngine.cs:193-226`) возвращает `coveredSlots: new[] { entryTargetSlot }`. Заменить на реальную проекцию `geometry.GetCoveredSlots(A_t, shape, orientation)` и прогнать тот же `TryCollectDisplacedPlacements` плюс проверку правил по всем вытесненным — иначе превью пообещает своп, который упадёт на релизе. Ровно эту рассинхронизацию probe и существует, чтобы предотвращать.
+## Этап 5. Тесты и документация
 
-В `TransferProbe` (`Scripts/Inventories/InventoryTransferService.cs:12`) добавить `IReadOnlyList<Placement> DisplacedPlacements`.
-
-Отдельной фазой, опционально: `DropVerdict` сейчас двоичный — `CanPlace` плюс причина. Чтобы подсветить вытесняемые предметы третьим цветом, нужен `DropVerdictKind { Accepted, Displaced, Rejected }` и правка `CrossFeedbackSlot`. Без этого фича работает, но игрок не видит, что именно он вытесняет — при мульти-свопе это важнее, чем при 1↔1.
-
-## Этап 6. Настройка и точки входа
-
-- `MultiSwapMode` в `DropPolicySettings` (с `ShowIf` на `Swap`, как сделано для `FindAlternative`), в `DropRequestPolicy` как `MultiSwapMode?`, в `ResolvedDropPolicy` и в `Merge` (`Scripts/Core/Drop/DropPolicy.cs:72`).
-- `DropRequestPolicy.WithSwap(MultiSwapMode mode = MultiSwapMode.Single)`.
-- Batch + Swap остаётся отклонённым (`InventoryTransferEngine.cs:94`, `:296`): мульти-своп — это «один входящий вытесняет много», а не «много входящих».
-
-## Этап 7. Тесты
-
-Новый фикстур `Tests/Editor/Inventories/MultiSwapTests.cs` в стиле `SwapRuleValidationTests` (`InventoryBuilder` + `DragContextBuilder` + `ResolvedDropPolicy`).
+Обязательные тесты `MultiSwapTests`:
 
 | Кейс | Ожидание |
 |---|---|
-| 3×1 на три 1×1, `MirrorOffset` | своп, три 1×1 в следе 3×1 в исходном порядке |
-| то же, режим `Single` | отказ, оба инвентаря нетронуты |
-| 3×1 накрывает 1×1 и половину 2×2 | отказ: 2×2 не влезает в след 3×1 |
-| один из вытесненных отклонён правилом источника | отказ целиком, полный откат |
-| 1×1 на 3×1 | как раньше — регресс на сохранение снапа якоря |
-| 3×1 ↔ 3×1 | как раньше |
-| мульти-своп между разными инвентарями | конверсия отработала на каждом вытесненном |
-| probe при мульти-свопе | `CoveredSlots` = весь footprint, `DisplacedPlacements` = 3 |
-| `OnSwapCompleted` | вызван один раз, `DisplacedStacks.Count == 3` |
+| `3×1` на три `1×1`, `PreserveOffsets` | полный swap, порядок `1×1` сохранён |
+| тот же кейс, `Single` | отказ без мутаций |
+| reverse destination вне bounds или занят | полный отказ и rollback |
+| один reverse destination отклонён slot rule | полный отказ; правило получает фактический слот |
+| target-domain converter меняет forward shape | displaced set рассчитан по converted shape |
+| cross-inventory swap | каждый displaced stack конвертирован в source domain |
+| same-inventory с пересекающимися областями | корректная проверка ignored set и rollback |
+| курсор на неякорной клетке shaped placement | primary target и legacy `TargetStack` стабильны |
+| probe | полный forward footprint и тот же verdict, что execution |
+| события | один `SwapCompleted`, детерминированные displaced lists |
+| результат | `EntryTransferResult` содержит только forward outcome |
 
-Регресс: существующие `SwapRuleValidationTests` и `ShapedItemPlacementTests` должны пройти без правок. Если правка понадобилась — поведение по умолчанию поехало.
+Регрессии:
 
-Верификация по `.claude/skills/VERIFICATION.md`: сборка `UDND.Runtime`, `DragAndDropSystem.Tests.Editor`, `UDND.Examples`, затем EditMode-фикстуры `MultiSwapTests`, `SwapRuleValidationTests`, `ShapedItemPlacementTests`, `InventoryTransferServiceTests`, `TransferProbeTests`. Изменение затрагивает `IPlacementInventory` — по регламенту это повод прогнать всю сборку `DragAndDropSystem.Tests.Editor`.
+- `SwapRuleValidationTests`;
+- `ShapedItemPlacementTests`;
+- `InventoryTransferServiceTests`;
+- `TransferProbeTests`;
+- полная сборка `DragAndDropSystem.Tests.Editor`.
 
-## Этап 8. Документация
+После реализации обновить `transfer-pipeline`, `rules`, file map и архитектурные skills на всех
+поддерживаемых языках. Производительность probe сначала измерить; кеш добавлять только по
+результатам профилирования.
 
-- `transfer-pipeline.{ru,en,es}.md` — таблица `BlockedTargetResolutionKind`, строка `Swap` сейчас говорит «одиночный swap»;
-- `rules.{ru,en,es}.md` — что правила источника прогоняются по каждому вытесненному;
-- `file-map.*.md` — если появятся новые файлы;
-- скиллы `dragdrop-system/{SKILL,CORE_CONCEPTS,ADVANCED_FEATURES}.md` и `dragdrop-architecture/DATA_FLOW.md` — зеркально в `.claude/skills/` и `.agents/skills/`, они дублируются.
+## Не входит в MVP
 
-## Риски
-
-**Стоимость probe.** Мульти-своп добавляет N прогонов `ValidateSwapCounterpart` на каждый кадр ховера, а каждый строит `DragContext` и `RuleEvaluationService`. При 4-5 вытесненных и пользовательских правилах это заметно. Нужен кеш результата probe по ключу (якорь + ориентация) в пределах ховера — сейчас такого кеша нет.
-
-**Односторонний `CounterpartContext`** при N вытесненных — см. этап 3.
-
-**Объём.** Этапы 1-3 — ядро, ориентировочно 250-350 строк с учётом xml-doc. Этапы 4-6 — по 50-80. Тесты — 300+. Целиком: полный рабочий день с прогонами.
+- поиск альтернативных слотов для вытесненных предметов;
+- `SourceInventoryFit`;
+- отдельный multi-swap planner;
+- batch из нескольких входящих entries;
+- кеш probe;
+- отдельный визуальный статус displaced slots;
+- новые публичные collection-based overloads placement API.
