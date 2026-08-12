@@ -49,6 +49,26 @@ namespace UDND.Core
         AllCoveredPlacements = 1
     }
 
+    /// <summary>
+    /// Where a displaced item may go when the position mirroring its offset does not fit.
+    /// <para>
+    /// Independent of <see cref="SwapDisplacementMode"/>: a swap that displaces a single item can
+    /// need this just as much as one that displaces several.
+    /// </para>
+    /// </summary>
+    public enum SwapDisplacementFallback : byte
+    {
+        /// <summary>Only the mirrored position. If it does not fit, the swap is refused.</summary>
+        MirroredOnly = 0,
+
+        /// <summary>
+        /// Search the cells the swap actually frees — the incoming item's own footprint plus the
+        /// footprints of everything it displaces — and take the free position nearest the mirrored
+        /// one. The displaced item never leaves the area the two items exchange.
+        /// </summary>
+        VacatedArea = 1
+    }
+
     public readonly struct DropRequestPolicy
     {
         public DropRequestPolicy(
@@ -56,13 +76,15 @@ namespace UDND.Core
             PlacementCandidateOrderer alternativeOrderer = null,
             bool? allowSameInventoryAlternativePlacement = null,
             PartialTransferMode? partialTransferMode = null,
-            SwapDisplacementMode? swapDisplacementMode = null)
+            SwapDisplacementMode? swapDisplacementMode = null,
+            SwapDisplacementFallback? swapDisplacementFallback = null)
         {
             BlockedTargetResolution = blockedTargetResolution;
             AlternativeOrderer = alternativeOrderer;
             AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
             SwapDisplacementMode = swapDisplacementMode;
+            SwapDisplacementFallback = swapDisplacementFallback;
         }
 
         public BlockedTargetResolutionKind? BlockedTargetResolution { get; }
@@ -70,12 +92,18 @@ namespace UDND.Core
         public bool? AllowSameInventoryAlternativePlacement { get; }
         public PartialTransferMode? PartialTransferMode { get; }
         public SwapDisplacementMode? SwapDisplacementMode { get; }
+        public SwapDisplacementFallback? SwapDisplacementFallback { get; }
 
         public static DropRequestPolicy WithReject()
             => new DropRequestPolicy(BlockedTargetResolutionKind.Reject);
 
-        public static DropRequestPolicy WithSwap(SwapDisplacementMode mode = Core.SwapDisplacementMode.SinglePlacement)
-            => new DropRequestPolicy(BlockedTargetResolutionKind.Swap, swapDisplacementMode: mode);
+        public static DropRequestPolicy WithSwap(
+            SwapDisplacementMode mode = Core.SwapDisplacementMode.SinglePlacement,
+            SwapDisplacementFallback fallback = Core.SwapDisplacementFallback.MirroredOnly)
+            => new DropRequestPolicy(
+                BlockedTargetResolutionKind.Swap,
+                swapDisplacementMode: mode,
+                swapDisplacementFallback: fallback);
 
         public static DropRequestPolicy WithAlternativeOrderer(
             PlacementCandidateOrderer orderer = null,
@@ -106,7 +134,8 @@ namespace UDND.Core
                 overridingValue.AllowSameInventoryAlternativePlacement ??
                 baseValue.AllowSameInventoryAlternativePlacement,
                 overridingValue.PartialTransferMode ?? baseValue.PartialTransferMode,
-                overridingValue.SwapDisplacementMode ?? baseValue.SwapDisplacementMode);
+                overridingValue.SwapDisplacementMode ?? baseValue.SwapDisplacementMode,
+                overridingValue.SwapDisplacementFallback ?? baseValue.SwapDisplacementFallback);
         }
     }
 
@@ -129,13 +158,15 @@ namespace UDND.Core
             PlacementCandidateOrderer alternativeOrderer,
             bool allowSameInventoryAlternativePlacement,
             PartialTransferMode partialTransferMode,
-            SwapDisplacementMode swapDisplacementMode = Core.SwapDisplacementMode.SinglePlacement)
+            SwapDisplacementMode swapDisplacementMode = Core.SwapDisplacementMode.SinglePlacement,
+            SwapDisplacementFallback swapDisplacementFallback = Core.SwapDisplacementFallback.MirroredOnly)
         {
             BlockedTargetResolution = blockedTargetResolution;
             AlternativeOrderer = alternativeOrderer;
             AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
             SwapDisplacementMode = swapDisplacementMode;
+            SwapDisplacementFallback = swapDisplacementFallback;
         }
 
         public BlockedTargetResolutionKind BlockedTargetResolution { get; }
@@ -143,5 +174,6 @@ namespace UDND.Core
         public bool AllowSameInventoryAlternativePlacement { get; }
         public PartialTransferMode PartialTransferMode { get; }
         public SwapDisplacementMode SwapDisplacementMode { get; }
+        public SwapDisplacementFallback SwapDisplacementFallback { get; }
     }
 }

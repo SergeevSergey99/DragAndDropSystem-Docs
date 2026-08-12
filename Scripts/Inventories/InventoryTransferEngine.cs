@@ -1465,36 +1465,24 @@ namespace UDND.Inventories
             List<Placement> displaced;
             IReadOnlyList<BaseSlot> forwardCoveredSlots;
 
-            if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement)
+            // The anchor decides where the incoming item lands and at which orientation — nothing
+            // else. It is always the one the pointer resolves to, exactly like an ordinary shaped
+            // drop. What the swap displaces is then read off the cells that anchor actually covers,
+            // so the decision never depends on where the item underneath happens to be anchored.
+            var acceptance = new InventoryAcceptanceRequest(
+                targetInventory,
+                forwardStack.PrimaryAdapter,
+                sourceStackBefore.Count,
+                request.Context.WithTarget(targetSlot, targetInventory),
+                entry);
+            if (!geometry.TryResolveAnchor(targetSlot, acceptance, out forwardAnchor) ||
+                !TryCollectDisplacedPlacements(
+                    geometry, forwardAnchor, forwardShape, forwardOrientation,
+                    sourceInventory, targetInventory, sourcePlacement,
+                    out displaced, out forwardCoveredSlots))
             {
-                forwardAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
-                if (!TryCollectDisplacedPlacements(
-                        geometry, forwardAnchor, forwardShape, forwardOrientation,
-                        sourceInventory, targetInventory, sourcePlacement,
-                        out displaced, out forwardCoveredSlots))
-                {
-                    failureReason = "Swap: incoming footprint is outside the target";
-                    return false;
-                }
-            }
-            else
-            {
-                var acceptance = new InventoryAcceptanceRequest(
-                    targetInventory,
-                    forwardStack.PrimaryAdapter,
-                    sourceStackBefore.Count,
-                    request.Context.WithTarget(targetSlot, targetInventory),
-                    entry);
-                if (!geometry.TryResolveAnchor(targetSlot, acceptance, out forwardAnchor) ||
-                    !TryCollectDisplacedPlacements(
-                        geometry, forwardAnchor, forwardShape, forwardOrientation,
-                        sourceInventory, targetInventory, sourcePlacement,
-                        out displaced, out forwardCoveredSlots))
-                {
-                    failureReason = "Swap: cannot resolve the target footprint";
-                    return false;
-                }
-
+                failureReason = "Swap: cannot resolve the target footprint";
+                return false;
             }
 
             if (primaryTargetPlacement == null)
@@ -1505,22 +1493,6 @@ namespace UDND.Inventories
                     return false;
                 }
                 primaryTargetPlacement = displaced[0];
-            }
-            else if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.AllCoveredPlacements &&
-                     displaced.Count == 1 &&
-                     ReferenceEquals(displaced[0], primaryTargetPlacement))
-            {
-                var legacyAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
-                if (TryCollectDisplacedPlacements(
-                        geometry, legacyAnchor, forwardShape, forwardOrientation,
-                        sourceInventory, targetInventory, sourcePlacement,
-                        out var legacyDisplaced, out var legacyCovered) &&
-                    SamePlacementSet(displaced, legacyDisplaced))
-                {
-                    forwardAnchor = legacyAnchor;
-                    displaced = legacyDisplaced;
-                    forwardCoveredSlots = legacyCovered;
-                }
             }
 
             if (forwardAnchor == null || !ContainsPlacement(displaced, primaryTargetPlacement))
@@ -1558,6 +1530,12 @@ namespace UDND.Inventories
             };
 
             var targetAnchorCell = targetPlacementInventory.Topology.ToCell(forwardAnchor.Index);
+            // Cells the swap actually frees in the source inventory. A displaced item that cannot
+            // take its mirrored position may fall back inside this area and nowhere else, so it
+            // always stays within the region the two items exchange.
+            var vacatedCells = request.Policy.SwapDisplacementFallback == SwapDisplacementFallback.VacatedArea
+                ? BuildVacatedCells(resolved, displaced)
+                : null;
             for (int i = 0; i < displaced.Count; i++)
             {
                 var placement = displaced[i];
@@ -1582,12 +1560,28 @@ namespace UDND.Inventories
                     .GetVisualAngleDegrees(placement.Orientation);
                 int convertedOrientation = sourcePlacementInventory.Topology
                     .GetOrientationForVisualAngleDegrees(visualAngle);
+                var ruleTargetPlacement = placement;
+                var ruleOriginSlot = originSlot;
+                bool IsAcceptableDestination(BaseSlot candidate) =>
+                    ValidateSwapCounterpartAt(
+                        request.Context, request.GlobalRules,
+                        sourceInventory, targetInventory,
+                        candidate, ruleOriginSlot, ruleTargetPlacement).IsValid;
+
                 if (!TryResolveDisplacedDestination(
                         resolved,
                         desiredDestinationCell,
                         convertedShape,
                         convertedOrientation,
-                        out var destinationSlot))
+                        out var destinationSlot) &&
+                    !TryFindVacatedAreaDestination(
+                        resolved,
+                        desiredDestinationCell,
+                        convertedShape,
+                        convertedOrientation,
+                        vacatedCells,
+                        IsAcceptableDestination,
+                        out destinationSlot))
                 {
                     failureReason = "Swap: displaced destination is outside or overlaps the incoming footprint";
                     resolved = null;
@@ -1616,6 +1610,16 @@ namespace UDND.Inventories
                     ConvertedShape = convertedShape,
                     ConvertedOrientation = convertedOrientation
                 });
+
+                // Whatever this item took is no longer free for the ones resolved after it.
+                if (vacatedCells != null)
+                {
+                    var claimed = sourcePlacementInventory.GetCoveredCells(
+                        destinationSlot.Index, convertedShape, convertedOrientation);
+                    if (claimed != null)
+                        for (int c = 0; c < claimed.Count; c++)
+                            vacatedCells.Remove(claimed[c]);
+                }
             }
 
             if (!ValidateResolvedSwapGeometry(resolved, out failureReason))
@@ -1740,6 +1744,98 @@ namespace UDND.Inventories
             return false;
         }
 
+        /// <summary>
+        /// Cells the swap frees inside the source inventory: the dragged item's own footprint plus,
+        /// when both sides are the same inventory, the footprints of everything it displaces — minus
+        /// the cells the incoming item is about to occupy.
+        /// </summary>
+        private static HashSet<int> BuildVacatedCells(ResolvedSwap swap, List<Placement> displaced)
+        {
+            var cells = new HashSet<int>();
+            var sourceCovered = swap.SourcePlacement.CoveredIndices;
+            for (int i = 0; i < sourceCovered.Count; i++)
+                cells.Add(sourceCovered[i]);
+
+            // Displaced placements live in the target inventory, so their cell indices only mean
+            // anything here when the two sides are the same inventory.
+            if (!ReferenceEquals(swap.SourceInventory, swap.TargetInventory))
+                return cells;
+
+            for (int i = 0; i < displaced.Count; i++)
+            {
+                var covered = displaced[i].CoveredIndices;
+                for (int c = 0; c < covered.Count; c++)
+                    cells.Add(covered[c]);
+            }
+
+            for (int i = 0; i < swap.ForwardCoveredSlots.Count; i++)
+                cells.Remove(swap.ForwardCoveredSlots[i].Index);
+
+            return cells;
+        }
+
+        /// <summary>
+        /// Nearest free position for a displaced item inside the vacated area. Distance is measured
+        /// from the mirrored cell so the item moves as little as possible, and candidates are walked
+        /// in index order so ties never depend on hash ordering.
+        /// <para>
+        /// Positions their own rules refuse are skipped rather than failing the swap, which is why
+        /// this takes a predicate instead of leaving validation to the caller.
+        /// </para>
+        /// </summary>
+        private static bool TryFindVacatedAreaDestination(
+            ResolvedSwap swap,
+            Vector2Int desiredCell,
+            IPlacementShape shape,
+            int orientation,
+            HashSet<int> vacatedCells,
+            Func<BaseSlot, bool> isAcceptable,
+            out BaseSlot destinationSlot)
+        {
+            destinationSlot = null;
+            var inventory = swap?.SourcePlacementInventory;
+            var topology = inventory?.Topology;
+            if (topology == null || vacatedCells == null || vacatedCells.Count == 0)
+                return false;
+
+            var candidates = new List<int>(vacatedCells);
+            candidates.Sort();
+
+            int bestDistance = int.MaxValue;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                int anchorIndex = candidates[i];
+                var covered = inventory.GetCoveredCells(anchorIndex, shape, orientation);
+                if (covered == null || covered.Count == 0)
+                    continue;
+
+                bool fits = true;
+                for (int c = 0; c < covered.Count; c++)
+                {
+                    if (vacatedCells.Contains(covered[c]))
+                        continue;
+                    fits = false;
+                    break;
+                }
+                if (!fits)
+                    continue;
+
+                var cell = topology.ToCell(anchorIndex);
+                int distance = Math.Abs(cell.x - desiredCell.x) + Math.Abs(cell.y - desiredCell.y);
+                if (distance >= bestDistance)
+                    continue;
+
+                var slot = inventory.GetSlot(anchorIndex);
+                if (slot == null || (isAcceptable != null && !isAcceptable(slot)))
+                    continue;
+
+                bestDistance = distance;
+                destinationSlot = slot;
+            }
+
+            return destinationSlot != null;
+        }
+
         private static bool ContainsIndex(IReadOnlyList<int> indices, int expected)
         {
             if (indices == null)
@@ -1777,16 +1873,6 @@ namespace UDND.Inventories
                     continue;
                 displaced.Add(placement);
             }
-            return true;
-        }
-
-        private static bool SamePlacementSet(IReadOnlyList<Placement> a, IReadOnlyList<Placement> b)
-        {
-            if (a == null || b == null || a.Count != b.Count)
-                return false;
-            for (int i = 0; i < a.Count; i++)
-                if (!ContainsPlacement(b, a[i]))
-                    return false;
             return true;
         }
 

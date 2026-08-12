@@ -29,6 +29,12 @@ namespace UDND.Core
                  "occupies exactly one cell, both modes behave identically.")]
         private SwapDisplacementMode _swapDisplacement = SwapDisplacementMode.SinglePlacement;
 
+        [SerializeField, ShowIf(nameof(ShowSwapDisplacement)),
+         Tooltip("What to do when a displaced item does not fit the position mirroring its offset. " +
+                 "VacatedArea lets it take the nearest free spot inside the area the two items " +
+                 "exchange, instead of refusing the swap.")]
+        private SwapDisplacementFallback _swapDisplacementFallback = SwapDisplacementFallback.MirroredOnly;
+
         [SerializeField] private bool _overrideAllowPartial;
         [SerializeField, ShowIf(nameof(_overrideAllowPartial))]
         private bool _allowPartial = true;
@@ -61,7 +67,10 @@ namespace UDND.Core
                     : (PartialTransferMode?)null,
                 ShowSwapDisplacement
                     ? _swapDisplacement
-                    : (SwapDisplacementMode?)null);
+                    : (SwapDisplacementMode?)null,
+                ShowSwapDisplacement
+                    ? _swapDisplacementFallback
+                    : (SwapDisplacementFallback?)null);
         }
     }
 }

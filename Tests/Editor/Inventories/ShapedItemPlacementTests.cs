@@ -2106,6 +2106,66 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        /// <summary>
+        /// 3x3 grid, a 2x1 standing on {0,3} and a 2x2 on {1,2,4,5}. Dragging the 2x2 onto {3,4,6,7}
+        /// mirrors the 2x1 to a cell above the grid, so the mirrored position is unusable — but the
+        /// area the two items exchange still has room for it at {2,5}.
+        /// </summary>
+        [TestCase(SwapDisplacementFallback.MirroredOnly, false)]
+        [TestCase(SwapDisplacementFallback.VacatedArea, true)]
+        public void ProcessDrop_MultiSwap_MirroredDestinationOutOfBounds_FallbackDecidesTheOutcome(
+            SwapDisplacementFallback fallback,
+            bool expectSuccess)
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bar", 2, 1)), 0, 1)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("box", 2, 2)), 1)));
+                CollectionAssert.AreEqual(new[] { 0, 3 }, inventory.GetPlacementAt(0).CoveredIndices);
+                CollectionAssert.AreEqual(new[] { 1, 2, 4, 5 }, inventory.GetPlacementAt(1).CoveredIndices);
+
+                var dragSlot = inventory.GetSlot(1);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                });
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(3), inventory, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements, fallback));
+
+                Assert.AreEqual(expectSuccess, report.Success, report.EntryResults[0].FailureReason);
+
+                if (!expectSuccess)
+                {
+                    CollectionAssert.AreEqual(new[] { 0, 3 }, inventory.GetPlacementAt(0).CoveredIndices);
+                    CollectionAssert.AreEqual(new[] { 1, 2, 4, 5 }, inventory.GetPlacementAt(1).CoveredIndices);
+                    return;
+                }
+
+                // The 2x2 goes exactly where it was dropped; the 2x1 keeps its orientation and takes
+                // the nearest free spot inside the vacated area.
+                var box = inventory.GetPlacementAt(3);
+                Assert.AreEqual("box", box.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 3, 4, 6, 7 }, box.CoveredIndices);
+
+                var bar = inventory.GetPlacementAt(2);
+                Assert.AreEqual("bar", bar.Stack.ID);
+                Assert.AreEqual(1, bar.Orientation);
+                CollectionAssert.AreEqual(new[] { 2, 5 }, bar.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [Test]
         public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
         {

@@ -76,6 +76,16 @@ La opción solo importa donde un objeto puede cubrir más de una celda: si un ob
 exactamente una celda, su footprint nunca alcanza una segunda colocación y ambos modos se comportan
 igual.
 
+El anchor del objeto entrante siempre proviene del puntero, igual que en un drop shaped normal: solo
+decide en qué slots cae el objeto y con qué orientación. Lo que se desplaza se lee de las celdas que
+ese anchor cubre realmente, así que un objeto posicionado con cuidado nunca se reubica sobre el
+anchor de otro.
+
+`SwapDisplacementFallback` decide qué ocurre cuando la posición espejo no le sirve al objeto
+desplazado. `MirroredOnly` (por defecto) rechaza el swap. `VacatedArea` le permite tomar la posición
+libre más cercana dentro del área que los dos objetos intercambian, y nunca fuera de ella. La
+resolución es voraz, por objeto y sin backtracking.
+
 ### Drop en área / auto-transferencia
 
 No hay un slot concreto: el jugador soltó el objeto sobre el área del inventario, o un

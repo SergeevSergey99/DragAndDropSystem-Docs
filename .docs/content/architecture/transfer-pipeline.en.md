@@ -74,6 +74,16 @@ per item, so in this case the displaced items' relative order may not be preserv
 The setting only matters where an item can cover more than one cell: if an item always occupies
 exactly one cell, its footprint can never reach a second placement and both modes behave the same.
 
+The incoming item's anchor always comes from the pointer, exactly like an ordinary shaped drop: it
+only decides which slots the item lands on and at which orientation. What gets displaced is read off
+the cells that anchor actually covers, so a carefully positioned item is never relocated onto
+something else's anchor.
+
+`SwapDisplacementFallback` decides what happens when the mirrored position does not fit the displaced
+item. `MirroredOnly` (default) refuses the swap. `VacatedArea` lets it take the nearest free position
+inside the area the two items exchange, and never outside it. Resolution is greedy, per item, with no
+backtracking.
+
 ### Area Drop / Auto Transfer
 
 There is no concrete slot: the player dropped onto the inventory area, or
