@@ -2111,6 +2111,58 @@ namespace UDND.Tests.Inventories
         /// mirrors the 2x1 to a cell above the grid, so the mirrored position is unusable — but the
         /// area the two items exchange still has room for it at {2,5}.
         /// </summary>
+        /// <summary>
+        /// Same swap, reached by grabbing the 2x2 by each of its four cells. The footprint the item
+        /// lands on is identical every time, so the outcome must be identical too — the cell that
+        /// happens to sit under the pointer is not what decides whether this is a swap.
+        /// </summary>
+        [TestCase(1, 3)]
+        [TestCase(2, 4)]
+        [TestCase(4, 6)]
+        [TestCase(5, 7)]
+        public void ProcessDrop_MultiSwap_OutcomeDoesNotDependOnTheGrabbedCell(
+            int grabSlotIndex,
+            int targetSlotIndex)
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bar", 2, 1)), 0, 1)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("box", 2, 2)), 1)));
+
+                var dragSlot = inventory.GetSlot(grabSlotIndex);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                });
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(targetSlotIndex), inventory, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements,
+                        SwapDisplacementFallback.VacatedArea));
+
+                Assert.IsTrue(report.Success, report.EntryResults[0].FailureReason);
+
+                var box = inventory.GetPlacementAt(3);
+                Assert.AreEqual("box", box.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 3, 4, 6, 7 }, box.CoveredIndices);
+
+                var bar = inventory.GetPlacementAt(2);
+                Assert.AreEqual("bar", bar.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 2, 5 }, bar.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [TestCase(SwapDisplacementFallback.MirroredOnly, false)]
         [TestCase(SwapDisplacementFallback.VacatedArea, true)]
         public void ProcessDrop_MultiSwap_MirroredDestinationOutOfBounds_FallbackDecidesTheOutcome(

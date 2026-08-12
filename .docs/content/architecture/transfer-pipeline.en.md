@@ -77,7 +77,10 @@ exactly one cell, its footprint can never reach a second placement and both mode
 The incoming item's anchor always comes from the pointer, exactly like an ordinary shaped drop: it
 only decides which slots the item lands on and at which orientation. What gets displaced is read off
 the cells that anchor actually covers, so a carefully positioned item is never relocated onto
-something else's anchor.
+something else's anchor. The pointer cell itself does not take part in the decision: it may be empty, or
+covered by the dragged item, and the swap still happens as long as the footprint covers someone
+else's placement. For a multi-cell item that cell depends on where the item was grabbed, and the
+same drop would otherwise succeed or fail on that alone.
 
 `SwapDisplacementFallback` decides what happens when the mirrored position does not fit the displaced
 item. `MirroredOnly` (default) refuses the swap. `VacatedArea` lets it take the nearest free position

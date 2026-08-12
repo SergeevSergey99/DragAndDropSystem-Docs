@@ -79,7 +79,10 @@ igual.
 El anchor del objeto entrante siempre proviene del puntero, igual que en un drop shaped normal: solo
 decide en qué slots cae el objeto y con qué orientación. Lo que se desplaza se lee de las celdas que
 ese anchor cubre realmente, así que un objeto posicionado con cuidado nunca se reubica sobre el
-anchor de otro.
+anchor de otro. La celda del puntero no participa en la decisión: puede estar vacía o cubierta por el
+propio objeto arrastrado, y el swap ocurre igualmente si el footprint cubre la colocación de otro.
+En un objeto de varias celdas esa celda depende del punto de agarre, y de lo contrario el mismo drop
+funcionaría o no solo por eso.
 
 `SwapDisplacementFallback` decide qué ocurre cuando la posición espejo no le sirve al objeto
 desplazado. `MirroredOnly` (por defecto) rechaza el swap. `VacatedArea` le permite tomar la posición

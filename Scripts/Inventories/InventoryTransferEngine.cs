@@ -227,7 +227,10 @@ namespace UDND.Inventories
 
                     if (policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap)
                     {
-                        if (entryTargetOwned && !entryTargetSlot.IsEmpty)
+                        // No IsEmpty gate here: whether this is a swap depends on what the incoming
+                        // footprint covers, not on what sits under the pointer cell. The resolver
+                        // reports "does not displace another placement" when nothing is covered.
+                        if (entryTargetOwned)
                         {
                             var swapRequest = new TransferEntryRequest(
                                 context,
@@ -250,7 +253,7 @@ namespace UDND.Inventories
                                 isExplicitTargetCandidate: true);
                         }
 
-                        failureReason = "Swap target is empty";
+                        failureReason = "Swap target is not owned by the target inventory";
                         continue;
                     }
 
@@ -1407,9 +1410,9 @@ namespace UDND.Inventories
 
             if (sourceInventory == null || targetInventory == null || sourceSlot == null || targetSlot == null)
                 return false;
-            if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
+            if (sourceSlot.IsEmpty)
             {
-                failureReason = "Swap requires non-empty source and target";
+                failureReason = "Swap requires a non-empty source";
                 return false;
             }
             if (sourceSlot.Stack?.Count != requestedAmount)
@@ -1431,20 +1434,23 @@ namespace UDND.Inventories
             }
 
             var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
-            var hoveredTargetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
-            if (sourcePlacement?.Stack == null || hoveredTargetPlacement?.Stack == null)
+            if (sourcePlacement?.Stack == null)
             {
                 failureReason = "Swap: cannot resolve placements";
                 return false;
             }
+
+            // What sits under the pointer is only used to pick which displaced item counts as the
+            // primary one for the legacy TargetStack/TargetBaseSlot fields. It never decides whether
+            // this is a swap: with a multi-cell footprint the pointer cell depends on where the item
+            // was grabbed, and the same drop would otherwise succeed or fail based on that alone.
+            var hoveredTargetPlacement = targetSlot.IsEmpty
+                ? null
+                : targetPlacementInventory.GetPlacementAt(targetSlot);
             bool hoveredSourcePlacement =
+                hoveredTargetPlacement != null &&
                 ReferenceEquals(sourceInventory, targetInventory) &&
                 ReferenceEquals(sourcePlacement, hoveredTargetPlacement);
-            if (hoveredSourcePlacement && request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement)
-            {
-                failureReason = "Swap: source and target are the same placement";
-                return false;
-            }
             var primaryTargetPlacement = hoveredSourcePlacement ? null : hoveredTargetPlacement;
 
             var session = request.Context?.ConversionSession;
@@ -1485,21 +1491,22 @@ namespace UDND.Inventories
                 return false;
             }
 
-            if (primaryTargetPlacement == null)
+            if (forwardAnchor == null)
             {
-                if (displaced.Count == 0)
-                {
-                    failureReason = "Swap: incoming footprint does not displace another placement";
-                    return false;
-                }
-                primaryTargetPlacement = displaced[0];
-            }
-
-            if (forwardAnchor == null || !ContainsPlacement(displaced, primaryTargetPlacement))
-            {
-                failureReason = "Swap: incoming footprint does not cover the target placement";
+                failureReason = "Swap: cannot resolve the target footprint";
                 return false;
             }
+            if (displaced.Count == 0)
+            {
+                failureReason = "Swap: incoming footprint does not displace another placement";
+                return false;
+            }
+
+            // The pointer may rest on a cell the footprint covers but that belongs to nothing, or to
+            // the dragged item itself. Then the first displaced placement in footprint order stands
+            // in as the primary one, so the legacy single-swap fields always describe a real item.
+            if (!ContainsPlacement(displaced, primaryTargetPlacement))
+                primaryTargetPlacement = displaced[0];
             MovePrimaryFirst(displaced, primaryTargetPlacement);
             if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement && displaced.Count > 1)
             {
