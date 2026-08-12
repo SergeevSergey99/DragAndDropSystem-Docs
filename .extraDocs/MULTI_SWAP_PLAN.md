@@ -92,15 +92,13 @@ Resolver выполняет шаги строго в таком порядке:
    snapshot-capable и placement-capable inventories.
 2. Через `TransferConversionSession` получает target-domain adapter входящего предмета.
 3. По target-domain adapter определяет forward shape; orientation нормализует target topology.
-4. Сначала разрешает hover anchor через тот же `InventoryAcceptanceRequest` и `TryResolveAnchor`,
-   что обычный shaped explicit drop, и собирает его displaced set. Если набор содержит только
-   primary placement под курсором, переключается на anchor этого placement и собирает набор заново —
-   это сохраняет legacy 1↔1 snap. При нескольких placements остаётся hover anchor.
-   Если пересборка изменила набор, её результат отбрасывается и resolver возвращается к hover anchor
-   и его набору. Вторая итерация не выполняется: правило обязано быть терминальным, иначе выбор
-   якоря начинает зависеть от порядка проверок. Пример расхождения — предмет `2×1`, взятый за
-   правую клетку, ряд `[пусто][A][B]`, курсор на `A`: hover anchor даёт след `{пусто, A}` и один
-   вытесненный, а якорь `A` даёт след `{A, B}` и два.
+4. Определяет target anchor по режиму:
+   - `Single` всегда использует anchor primary placement под курсором — ровно как текущий swap;
+   - `PreserveOffsets` разрешает hover anchor через тот же `InventoryAcceptanceRequest` и
+     `TryResolveAnchor`, что обычный shaped explicit drop;
+   - если в `PreserveOffsets` hover footprint содержит только primary placement, resolver пробует
+     legacy anchor. Он принимается только когда повторная проекция даёт тот же displaced set;
+     иначе сохраняются hover anchor и исходный набор. Правило терминально, без новых итераций.
 5. Получает все covered target slots и собирает уникальные placements в порядке обхода footprint.
    `HashSet` используется только для дедупликации, не как источник порядка.
 6. Placement непосредственно под `TargetBaseSlot` сохраняется как primary displaced placement для
@@ -124,16 +122,8 @@ Resolver выполняет шаги строго в таком порядке:
 `PlacementStore` публичной перегрузкой с коллекцией ignored placements: проверка «reverse footprints
 не пересекаются друг с другом» требует инкрементального учёта уже запланированных позиций и через
 `CanPlace(request, ignored)` не выражается, поэтому перегрузка почти ничего не давала бы.
-
-Плата за это — вторая реализация occupancy рядом с единственным авторитетом
-`PlacementStore.CanPlace`, включая bounds-проверку `PlacementBoundsMode.RequireAllInBounds`. Это
-граничит с принципом «без альтернативных путей» из `SHAPED_ITEMS_ARCHITECTURE_PLAN.md`, поэтому
-обязательны:
-
-- xml-doc на helper со ссылкой на `PlacementStore.CanPlace` как на источник истины и с явным
-  указанием, почему swap считает occupancy сам;
-- тест, что helper и `PlacementStore.CanPlace` дают одинаковый вердикт на одиночном footprint без
-  запланированных reverse-позиций — то есть в вырожденном случае реализации не разошлись.
+Bounds и covered cells resolver получает через существующий topology-aware placement API; helper
+добавляет только проверку текущей и уже зарезервированной occupancy.
 
 ## Этап 3. Probe и выполнение
 
@@ -144,10 +134,8 @@ Swap-ветка `Probe` вызывает общий resolver.
 - При успехе возвращает `TransferProbe.Accepted` с окончательным forward anchor и полным
   `CoveredSlots` входящего предмета.
 - При отказе возвращает ту же причину, которую получил бы execution.
-- `TransferProbe.DisplacedPlacements` добавляется: без него ни UI, ни тест не могут проверить,
-  какие именно предметы будут вытеснены, — а probe правится и так, поле стоит трёх строк.
-- Новый `DropVerdictKind` в MVP не добавляется: подсветка вытесняемых предметов отдельным статусом
-  тянет за собой `DropVerdict` и `CrossFeedbackSlot`.
+- `TransferProbe.DisplacedPlacements` и новый `DropVerdictKind` в MVP не добавляются. UI использует
+  только полный forward footprint и итоговый verdict; внутренние placement-ссылки наружу не выходят.
 
 ### Execution
 
@@ -206,8 +194,7 @@ public IReadOnlyList<TransferDomainContext> CounterpartContexts { get; internal 
 | cross-inventory swap | каждый displaced stack конвертирован в source domain |
 | same-inventory с пересекающимися областями | корректная проверка ignored set и rollback |
 | курсор на неякорной клетке shaped placement | primary target и legacy `TargetStack` стабильны |
-| probe | полный forward footprint, тот же verdict, что execution, и `DisplacedPlacements` из трёх элементов в порядке обхода |
-| occupancy helper против `PlacementStore.CanPlace` | одинаковый вердикт на одиночном footprint без запланированных reverse-позиций |
+| probe | полный forward footprint и тот же verdict, что execution |
 | события | один `SwapCompleted`, детерминированные displaced lists |
 | результат | `EntryTransferResult` содержит только forward outcome |
 
