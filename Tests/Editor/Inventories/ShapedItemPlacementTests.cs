@@ -1941,6 +1941,62 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        [TestCase(2, 1)]
+        [TestCase(3, 2)]
+        public void ProcessDrop_MultiSwap_SameInventoryOverlapMovesDisplacedItemToVacatedCell(
+            int draggedSlotIndex,
+            int hoveredSlotIndex)
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(4, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 0)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 1)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1)), 2)));
+
+                var sourceSlot = inventory.GetSlot(draggedSlotIndex);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, inventory)
+                });
+                InventorySwapContext completed = null;
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(hoveredSlotIndex),
+                    inventory,
+                    new GlobalRuleValidator(),
+                    swapCompleted: value => completed = value);
+                var policy = DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets);
+
+                var probe = processor.ProbeDrop(context, policy);
+                Assert.IsTrue(probe.CanAttempt, probe.FailureReason);
+                Assert.AreSame(inventory.GetSlot(1), probe.AnchorSlot);
+                CollectionAssert.AreEqual(
+                    new[] { 1, 2 },
+                    new[] { probe.CoveredSlots[0].Index, probe.CoveredSlots[1].Index });
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    policy);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual("a", inventory.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("blade", inventory.GetPlacementAt(1).Stack.ID);
+                CollectionAssert.AreEqual(
+                    new[] { 1, 2 },
+                    inventory.GetPlacementAt(1).CoveredIndices);
+                Assert.AreEqual("b", inventory.GetPlacementAt(3).Stack.ID);
+                Assert.IsNotNull(completed);
+                Assert.AreEqual(1, completed.DisplacedStacks.Count);
+                Assert.AreSame(inventory.GetSlot(3), completed.DisplacedDestinationSlots[0]);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [Test]
         public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
         {

@@ -1405,17 +1405,21 @@ namespace UDND.Inventories
             }
 
             var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
-            var primaryTargetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
-            if (sourcePlacement?.Stack == null || primaryTargetPlacement?.Stack == null)
+            var hoveredTargetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
+            if (sourcePlacement?.Stack == null || hoveredTargetPlacement?.Stack == null)
             {
                 failureReason = "Swap: cannot resolve placements";
                 return false;
             }
-            if (ReferenceEquals(sourcePlacement, primaryTargetPlacement))
+            bool hoveredSourcePlacement =
+                ReferenceEquals(sourceInventory, targetInventory) &&
+                ReferenceEquals(sourcePlacement, hoveredTargetPlacement);
+            if (hoveredSourcePlacement && request.Policy.MultiSwapMode == MultiSwapMode.Single)
             {
                 failureReason = "Swap: source and target are the same placement";
                 return false;
             }
+            var primaryTargetPlacement = hoveredSourcePlacement ? null : hoveredTargetPlacement;
 
             var session = request.Context?.ConversionSession;
             var sourceStackBefore = sourcePlacement.Stack.CreateCopy();
@@ -1465,19 +1469,31 @@ namespace UDND.Inventories
                     return false;
                 }
 
-                if (displaced.Count == 1 && ReferenceEquals(displaced[0], primaryTargetPlacement))
+            }
+
+            if (primaryTargetPlacement == null)
+            {
+                if (displaced.Count == 0)
                 {
-                    var legacyAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
-                    if (TryCollectDisplacedPlacements(
-                            geometry, legacyAnchor, forwardShape, forwardOrientation,
-                            sourceInventory, targetInventory, sourcePlacement,
-                            out var legacyDisplaced, out var legacyCovered) &&
-                        SamePlacementSet(displaced, legacyDisplaced))
-                    {
-                        forwardAnchor = legacyAnchor;
-                        displaced = legacyDisplaced;
-                        forwardCoveredSlots = legacyCovered;
-                    }
+                    failureReason = "Swap: incoming footprint does not displace another placement";
+                    return false;
+                }
+                primaryTargetPlacement = displaced[0];
+            }
+            else if (request.Policy.MultiSwapMode == MultiSwapMode.PreserveOffsets &&
+                     displaced.Count == 1 &&
+                     ReferenceEquals(displaced[0], primaryTargetPlacement))
+            {
+                var legacyAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
+                if (TryCollectDisplacedPlacements(
+                        geometry, legacyAnchor, forwardShape, forwardOrientation,
+                        sourceInventory, targetInventory, sourcePlacement,
+                        out var legacyDisplaced, out var legacyCovered) &&
+                    SamePlacementSet(displaced, legacyDisplaced))
+                {
+                    forwardAnchor = legacyAnchor;
+                    displaced = legacyDisplaced;
+                    forwardCoveredSlots = legacyCovered;
                 }
             }
 
@@ -1502,7 +1518,9 @@ namespace UDND.Inventories
                 SourceSnapshotProvider = sourceSnapshotProvider,
                 TargetSnapshotProvider = targetSnapshotProvider,
                 SourceSlot = sourceSlot,
-                TargetSlot = targetSlot,
+                TargetSlot = hoveredSourcePlacement
+                    ? targetPlacementInventory.GetSlot(ResolvePlacementPrimaryIndex(primaryTargetPlacement))
+                    : targetSlot,
                 ForwardAnchor = forwardAnchor,
                 SourcePlacement = sourcePlacement,
                 PrimaryTargetPlacement = primaryTargetPlacement,
@@ -1517,19 +1535,12 @@ namespace UDND.Inventories
             for (int i = 0; i < displaced.Count; i++)
             {
                 var placement = displaced[i];
-                var destinationCell = sourcePlacement.AnchorCell +
+                var desiredDestinationCell = sourcePlacement.AnchorCell +
                     (placement.AnchorCell - targetAnchorCell);
-                if (!sourcePlacementInventory.Topology.TryToIndex(destinationCell, out int destinationIndex))
-                {
-                    failureReason = "Swap: displaced destination is outside the source";
-                    resolved = null;
-                    return false;
-                }
 
                 var originSlot = targetPlacementInventory.GetSlot(ResolvePlacementPrimaryIndex(placement));
-                var destinationSlot = sourcePlacementInventory.GetSlot(destinationIndex);
                 var stackBefore = placement.Stack.CreateCopy();
-                if (originSlot == null || destinationSlot == null ||
+                if (originSlot == null ||
                     !ItemStack.TryCreate(placement.Stack.Adapters, out var convertedStack) ||
                     !TransferItemConversionUtility.TryConvertStackToTargetDomain(
                         targetInventory, sourceInventory, convertedStack, session))
@@ -1545,6 +1556,17 @@ namespace UDND.Inventories
                     .GetVisualAngleDegrees(placement.Orientation);
                 int convertedOrientation = sourcePlacementInventory.Topology
                     .GetOrientationForVisualAngleDegrees(visualAngle);
+                if (!TryResolveDisplacedDestination(
+                        resolved,
+                        desiredDestinationCell,
+                        convertedShape,
+                        convertedOrientation,
+                        out var destinationSlot))
+                {
+                    failureReason = "Swap: displaced destination is outside or overlaps the incoming footprint";
+                    resolved = null;
+                    return false;
+                }
                 var rules = ValidateSwapCounterpartAt(
                     request.Context, request.GlobalRules,
                     sourceInventory, targetInventory,
@@ -1619,6 +1641,87 @@ namespace UDND.Inventories
 
             failureReason = null;
             return true;
+        }
+
+        private static bool TryResolveDisplacedDestination(
+            ResolvedSwap swap,
+            Vector2Int desiredCell,
+            IPlacementShape shape,
+            int orientation,
+            out BaseSlot destinationSlot)
+        {
+            destinationSlot = null;
+            var topology = swap?.SourcePlacementInventory?.Topology;
+            if (topology == null)
+                return false;
+
+            bool sameInventory = ReferenceEquals(swap.SourceInventory, swap.TargetInventory);
+            if (!sameInventory)
+            {
+                if (!topology.TryToIndex(desiredCell, out int destinationIndex))
+                    return false;
+                destinationSlot = swap.SourcePlacementInventory.GetSlot(destinationIndex);
+                return destinationSlot != null;
+            }
+
+            var shift = swap.SourcePlacement.AnchorCell -
+                swap.TargetPlacementInventory.Topology.ToCell(swap.ForwardAnchor.Index);
+            var incomingCells = new HashSet<int>();
+            for (int i = 0; i < swap.ForwardCoveredSlots.Count; i++)
+                incomingCells.Add(swap.ForwardCoveredSlots[i].Index);
+
+            bool shiftedForOverlap = false;
+            int attempts = Math.Max(1, topology.CellCount);
+            for (int attempt = 0; attempt < attempts; attempt++)
+            {
+                if (!topology.TryToIndex(desiredCell, out int destinationIndex))
+                    return false;
+                var covered = swap.SourcePlacementInventory.GetCoveredCells(
+                    destinationIndex, shape, orientation);
+                if (covered == null || covered.Count == 0)
+                    return false;
+
+                bool overlapsIncoming = false;
+                for (int i = 0; i < covered.Count; i++)
+                {
+                    if (!incomingCells.Contains(covered[i]))
+                        continue;
+                    overlapsIncoming = true;
+                    break;
+                }
+
+                if (!overlapsIncoming)
+                {
+                    // An overlapping same-inventory move can translate a counterpart into a cell
+                    // still occupied by the incoming shape. After pushing through that overlap,
+                    // keep the counterpart inside the part of the original source footprint that
+                    // is actually being vacated.
+                    if (shiftedForOverlap)
+                    {
+                        for (int i = 0; i < covered.Count; i++)
+                            if (!ContainsIndex(swap.SourcePlacement.CoveredIndices, covered[i]))
+                                return false;
+                    }
+                    destinationSlot = swap.SourcePlacementInventory.GetSlot(destinationIndex);
+                    return destinationSlot != null;
+                }
+
+                if (shift == Vector2Int.zero)
+                    return false;
+                desiredCell += shift;
+                shiftedForOverlap = true;
+            }
+            return false;
+        }
+
+        private static bool ContainsIndex(IReadOnlyList<int> indices, int expected)
+        {
+            if (indices == null)
+                return false;
+            for (int i = 0; i < indices.Count; i++)
+                if (indices[i] == expected)
+                    return true;
+            return false;
         }
 
         private static bool TryCollectDisplacedPlacements(

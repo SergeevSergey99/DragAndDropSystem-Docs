@@ -6438,10 +6438,11 @@ MonoBehaviour:
     _presets: []
     _inlineRules: []
   _dropPolicy:
-    _blockedTargetResolution: 1
+    _blockedTargetResolution: 2
     _alternativeOrderer:
       rid: 8757923508012974083
     _allowSameInventoryAlternativePlacement: 0
+    _multiSwapMode: 1
     _allowPartial: 1
   _slots:
   - {fileID: 1391442368}
@@ -9624,6 +9625,7 @@ MonoBehaviour:
     _alternativeOrderer:
       rid: 8757923508012974083
     _allowSameInventoryAlternativePlacement: 0
+    _multiSwapMode: 0
     _allowPartial: 1
   _slots:
   - {fileID: 608804925}
@@ -14819,6 +14821,7 @@ MonoBehaviour:
     _alternativeOrderer:
       rid: 8757923508012974083
     _allowSameInventoryAlternativePlacement: 0
+    _multiSwapMode: 0
     _allowPartial: 1
   _slots:
   - {fileID: 1450716824}
