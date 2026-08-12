@@ -1997,6 +1997,115 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        /// <summary>
+        /// A displaced placement whose anchor sits left of the incoming anchor mirrors to a cell
+        /// before the source anchor. There is no such cell, so the whole swap is refused instead of
+        /// silently dropping that item.
+        /// </summary>
+        [Test]
+        public void ProcessDrop_MultiSwap_ReverseDestinationOutOfBounds_RejectsWithoutMutation()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(4, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("wide", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "c"), 2)));
+
+                var sourceSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(1), target, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+
+                // "wide" anchors at cell 0 while the incoming footprint anchors at cell 1, so its
+                // mirrored destination is one cell before the source anchor — outside the source.
+                Assert.IsFalse(report.Success);
+                StringAssert.Contains(
+                    "displaced destination is outside",
+                    report.EntryResults[0].FailureReason,
+                    "The swap must be refused for the unreachable destination, not for another reason");
+                Assert.AreEqual("blade", source.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("wide", target.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("c", target.GetPlacementAt(2).Stack.ID);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        /// <summary>
+        /// Pins the documented consequence of the same-inventory overlap shift: a displaced item
+        /// whose mirrored cell still lies under the incoming footprint is pushed on by the swap
+        /// vector, while a displaced item that already cleared the footprint is not. The two are
+        /// shifted by different amounts, so their relative order is not preserved.
+        /// See MULTI_SWAP_PLAN.md, "Перекрытие внутри одного инвентаря".
+        /// </summary>
+        [Test]
+        public void ProcessDrop_MultiSwap_SameInventoryOverlap_ShiftsOnlyTheBlockedDisplacement()
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(6).WithGridTopology(6, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 1)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 2)));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 3, 1)), 3)));
+
+                var sourceSlot = inventory.GetSlot(3);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, inventory)
+                });
+                InventorySwapContext completed = null;
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(1),
+                    inventory,
+                    new GlobalRuleValidator(),
+                    swapCompleted: value => completed = value);
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual("blade", inventory.GetPlacementAt(1).Stack.ID);
+                CollectionAssert.AreEqual(
+                    new[] { 1, 2, 3 },
+                    inventory.GetPlacementAt(1).CoveredIndices);
+
+                // "a" mirrored onto cell 3, still covered by the incoming blade, so it was pushed
+                // on by the swap vector (2 cells) and landed on 5. "b" mirrored onto cell 4, which
+                // was already clear, so it stayed there. "a" started left of "b" and ends right.
+                Assert.AreEqual("b", inventory.GetPlacementAt(4).Stack.ID);
+                Assert.AreEqual("a", inventory.GetPlacementAt(5).Stack.ID);
+                Assert.IsNull(inventory.GetPlacementAt(0));
+
+                Assert.IsNotNull(completed);
+                Assert.AreEqual(2, completed.DisplacedStacks.Count);
+                Assert.AreEqual("a", completed.DisplacedStacks[0].ID);
+                Assert.AreSame(inventory.GetSlot(5), completed.DisplacedDestinationSlots[0]);
+                Assert.AreSame(inventory.GetSlot(4), completed.DisplacedDestinationSlots[1]);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [Test]
         public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
         {

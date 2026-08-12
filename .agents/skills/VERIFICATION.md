@@ -63,6 +63,11 @@ may be stale until Unity refreshes the project files.
 Check `ProjectSettings/ProjectVersion.txt` and use the matching Unity executable. The current project
 uses Unity `2022.3.62f3`.
 
+Never pass `-quit` together with `-runTests`. The Editor then shuts down before the test runner
+starts: Unity compiles the project, logs `Exiting batchmode successfully now!`, returns exit code 0
+and writes no result file. That reads like a green run while nothing was executed. The test runner
+ends the batch session by itself, so `-quit` is unnecessary as well as harmful.
+
 Run a focused fixture first:
 
 ```bash
@@ -74,8 +79,7 @@ Run a focused fixture first:
   -testPlatform EditMode \
   -testFilter 'UDND.Tests.Inventories.ShapedItemPlacementTests' \
   -testResults 'E:\UnityProjects\UniversalDragAndDropAsset\Temp\udnd-editmode-tests.xml' \
-  -logFile - \
-  -quit
+  -logFile -
 ```
 
 Replace `-testFilter` with the narrowest affected fixture or fully qualified test name. Examples:
@@ -99,12 +103,13 @@ changes:
   -testPlatform EditMode \
   -assemblyNames 'DragAndDropSystem.Tests.Editor' \
   -testResults 'E:\UnityProjects\UniversalDragAndDropAsset\Temp\udnd-editmode-all.xml' \
-  -logFile - \
-  -quit
+  -logFile -
 ```
 
-Treat the process exit code and the XML test result as authoritative. A successful assembly build is
-not a successful test run.
+Treat the XML test result as authoritative, not the exit code. A successful assembly build is not a
+successful test run, and neither is exit code 0 on its own: a run that never started the test runner
+also exits 0. If the result file is missing, the tests did not run — report that, do not report a
+pass.
 
 ## Open Unity Editor
 

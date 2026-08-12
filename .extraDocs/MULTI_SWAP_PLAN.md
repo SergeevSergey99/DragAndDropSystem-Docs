@@ -36,13 +36,41 @@ public enum MultiSwapMode : byte
 A_reverse = A_s + (P - A_t)
 ```
 
-Это параллельный перенос: взаимное расположение вытесненных предметов сохраняется.
+Это параллельный перенос: взаимное расположение вытесненных предметов сохраняется — кроме случая
+перекрытия внутри одного инвентаря, описанного ниже.
+
+### Перекрытие внутри одного инвентаря
+
+При same-inventory swap освобождаемая область источника может пересекаться со следом, который
+занимает входящий предмет. Тогда `A_reverse` указывает на клетку, где уже стоит въехавший предмет,
+и параллельного переноса не существует. Вместо отказа resolver сдвигает такое назначение на вектор
+самого свопа `A_s - A_t`, повторяя сдвиг, пока назначение не выйдет из следа входящего предмета.
+
+Сдвинутое назначение дополнительно обязано целиком лежать внутри исходного следа источника — то
+есть внутри области, которая действительно освобождается. Иначе swap отклоняется.
+
+Кросс-инвентарный swap этого шага не делает: входящий след находится в другом инвентаре и
+пересечься с назначениями не может.
+
+**Следствие, которое надо знать.** Сдвиг вычисляется для каждого вытесненного предмета
+независимо, поэтому предметы, которым сдвиг понадобился, и предметы, которым он не понадобился,
+смещаются на разную величину. Их взаимный порядок при этом не сохраняется.
+
+Сетка `6×1`, предмет `3×1` на `{3,4,5}`, предметы `a`@1 и `b`@2, перенос `3×1` на якорь 1
+(след `{1,2,3}`, вектор свопа `+2`):
+
+- `a` зеркалится в клетку 3 — она под входящим следом, поэтому сдвиг: клетка **5**;
+- `b` зеркалится в клетку 4 — она уже свободна, сдвига нет: клетка **4**.
+
+`a` был левее `b`, стал правее. Это принятое поведение, а не дефект; тест
+`ProcessDrop_MultiSwap_SameInventoryOverlap_ShiftsOnlyTheBlockedDisplacement` фиксирует его.
 
 ## Ограничения MVP
 
 - Геометрия вычисляется только через `IInventoryTopology`; grid-specific ветки запрещены.
 - Если destination cell отсутствует в топологии источника, swap отклоняется.
 - Если reverse placements пересекаются с посторонними placements или друг с другом, swap отклоняется.
+  Пересечение с самим входящим следом — единственный случай, который разбирается сдвигом, а не отказом.
 - Каждый вытесненный предмет сохраняет свою shape и orientation, нормализованную топологией источника.
 - Кеш probe, третий цвет подсветки и candidate fallback не входят в MVP.
 
@@ -164,7 +192,10 @@ public IReadOnlyList<BaseSlot> DisplacedSourceSlots { get; }
 public IReadOnlyList<BaseSlot> DisplacedDestinationSlots { get; }
 ```
 
-- `TargetStack` и `TargetBaseSlot` всегда относятся к placement непосредственно под курсором.
+- `TargetStack` и `TargetBaseSlot` относятся к placement непосредственно под курсором. Исключение —
+  same-inventory swap, где под курсором лежит сам перетаскиваемый предмет: тогда они указывают на
+  первый вытесненный placement, потому что «встречный предмет» в этом сценарии не тот, что под
+  курсором.
 - Списки имеют детерминированный порядок footprint traversal, primary placement идёт первым.
 - `OnSwapAttempting` и `OnSwapCompleted` вызываются один раз на весь multi-swap.
 - `DispatchSwapEvents` испускает remove/add для каждого вытесненного placement после общего commit.
@@ -188,9 +219,10 @@ public IReadOnlyList<TransferDomainContext> CounterpartContexts { get; internal 
 |---|---|
 | `3×1` на три `1×1`, `PreserveOffsets` | полный swap, порядок `1×1` сохранён |
 | тот же кейс, `Single` | отказ без мутаций |
-| reverse destination вне bounds или занят | полный отказ и rollback |
+| reverse destination вне bounds или занят | полный отказ и rollback (`ProcessDrop_MultiSwap_ReverseDestinationOutOfBounds_RejectsWithoutMutation`) |
+| same-inventory перекрытие с разным сдвигом | сдвигается только заблокированное назначение; порядок не сохраняется (`ProcessDrop_MultiSwap_SameInventoryOverlap_ShiftsOnlyTheBlockedDisplacement`) |
 | один reverse destination отклонён slot rule | полный отказ; правило получает фактический слот |
-| target-domain converter меняет forward shape | displaced set рассчитан по converted shape |
+| target-domain converter меняет forward shape | displaced set рассчитан по converted shape (`MultiSwap_ResolvesDisplacedSetFromTheTargetDomainFootprint` в `TransferConversionTests`) |
 | cross-inventory swap | каждый displaced stack конвертирован в source domain |
 | same-inventory с пересекающимися областями | корректная проверка ignored set и rollback |
 | курсор на неякорной клетке shaped placement | primary target и legacy `TargetStack` стабильны |

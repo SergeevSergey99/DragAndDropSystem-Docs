@@ -266,6 +266,58 @@ namespace UDND.Tests.Inventories
         }
 
         /// <summary>
+        /// A converter may change the item's footprint at the domain boundary, and a multi-swap
+        /// has to decide which placements it displaces from the shape the item will actually have
+        /// in the target. Resolving the displaced set from the source placement instead would
+        /// vacate one cell and then drop a three-cell item onto it.
+        /// </summary>
+        [Test]
+        public void MultiSwap_ResolvesDisplacedSetFromTheTargetDomainFootprint()
+        {
+            _source = new InventoryBuilder()
+                .WithFixedSlots(3)
+                .WithGridTopology(3, 1)
+                .WithName("Source")
+                .Build();
+            _target = new InventoryBuilder()
+                .WithFixedSlots(3)
+                .WithGridTopology(3, 1)
+                .WithName("Target")
+                .Build();
+
+            var binding = _bindings.AddComponent<ShapeWideningBinding>();
+            binding.AttachTo(_target);
+
+            Assert.IsTrue(_source.TryPlace(new PlacementRequest(
+                ItemStackBuilder.Of(new ShapedTestAdapter("blade", 1)), 0)));
+            Assert.IsTrue(_target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 0)));
+            Assert.IsTrue(_target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 1)));
+            Assert.IsTrue(_target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "c"), 2)));
+
+            var sourceSlot = _source.GetSlot(0);
+            var context = new DragContext(new[]
+            {
+                new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, _source)
+            });
+            var processor = new InventoryDropProcessor(
+                _target.GetSlot(0), _target, new GlobalRuleValidator());
+
+            var report = processor.ProcessDropWithReport(
+                context,
+                DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+
+            Assert.IsTrue(report.Success, report.FailureReason);
+            Assert.AreEqual("blade", _target.GetPlacementAt(0).Stack.ID);
+            Assert.AreEqual(
+                3,
+                _target.GetPlacementAt(0).CoveredIndices.Count,
+                "The incoming footprint must come from the converted adapter, not the source placement");
+            Assert.AreEqual("a", _source.GetPlacementAt(0).Stack.ID);
+            Assert.AreEqual("b", _source.GetPlacementAt(1).Stack.ID);
+            Assert.AreEqual("c", _source.GetPlacementAt(2).Stack.ID);
+        }
+
+        /// <summary>
         /// Converts any adapter into this binding's domain, producing a new instance unless the
         /// item is already there — the same shape as the demo converters.
         /// </summary>
@@ -333,6 +385,53 @@ namespace UDND.Tests.Inventories
 
                 return RuleResult.Success();
             }
+        }
+
+        /// <summary>An adapter whose footprint is a single row of <c>width</c> cells.</summary>
+        private sealed class ShapedTestAdapter : IItemAdapter, IItemPlacementShapeProvider
+        {
+            public ShapedTestAdapter(string itemId, int width)
+            {
+                ItemId = itemId;
+                DisplayName = itemId;
+                Width = width;
+                PlacementShape = new RectPlacementShape(width, 1);
+            }
+
+            public string ItemId { get; }
+            public string DisplayName { get; }
+            public Sprite Icon => null;
+            public int Width { get; }
+            public IPlacementShape PlacementShape { get; }
+        }
+
+        /// <summary>Widens an arriving one-cell item to three cells; outgoing items are untouched.</summary>
+        private sealed class ShapeWideningConverter : IItemAdapterConverter
+        {
+            public IItemAdapter TryConvertIncoming(IItemAdapter itemAdapter)
+                => itemAdapter is ShapedTestAdapter shaped && shaped.Width == 1
+                    ? new ShapedTestAdapter(shaped.ItemId, 3)
+                    : itemAdapter;
+
+            public IItemAdapter TryConvertOutgoing(IItemAdapter itemAdapter) => itemAdapter;
+        }
+
+        private sealed class ShapeWideningBinding : ListInventoryDataBinding<ShapedTestAdapter, ShapedTestAdapter>
+        {
+            public void AttachTo(BaseInventory inventory)
+            {
+                _inventory = inventory;
+                inventory.Initialize(this);
+            }
+
+            protected override void Awake() { }
+
+            protected override IReadOnlyList<ShapedTestAdapter> GetItems() => null;
+            protected override ShapedTestAdapter CreateAdapter(ShapedTestAdapter item) => item;
+            protected override void AddToData(ShapedTestAdapter adapter) { }
+            protected override void RemoveFromData(ShapedTestAdapter adapter) { }
+
+            protected override IItemAdapterConverter CreateItemConverter() => new ShapeWideningConverter();
         }
     }
 }
