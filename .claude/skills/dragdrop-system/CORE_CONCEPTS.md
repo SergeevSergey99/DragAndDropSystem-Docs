@@ -1,6 +1,6 @@
 # Core Concepts
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-12
 
 ## 1. DragContext Is Runtime Source of Truth
 
@@ -70,6 +70,10 @@ Important current detail:
 
 Current flow:
 - transfer service enters swap only for a blocked explicit target and a single full entry
+- `MultiSwapMode.Single` preserves one-for-one behavior; `PreserveOffsets` lets one shaped entry
+  displace every distinct placement under its destination footprint
+- displaced placements land relative to the source anchor using the same topology-coordinate
+  offsets they had relative to the target anchor
 - the forward direction is validated by the caller's `ValidateEntryDrop(...)`
 - the counterpart (the item travelling the opposite way) is validated by
   `ValidateSwapCounterpart(...)`: it must be allowed to leave the target slot
@@ -82,6 +86,11 @@ Current flow:
 - `SwapAttempting` callback can cancel
 - service mutates both placements inside the current entry transaction
 - `SwapCompleted` callback runs after successful commit
+
+For plural displacement, every counterpart is validated against its actual reverse destination.
+The service removes and places the forward entry plus all counterparts in one entry transaction.
+`InventorySwapContext` exposes ordered plural stacks/source slots/destination slots while its
+singular fields remain a compatibility view of the primary displaced placement.
 
 ## 6. Event Architecture
 

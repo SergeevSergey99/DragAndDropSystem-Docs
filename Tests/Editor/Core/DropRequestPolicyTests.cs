@@ -33,6 +33,16 @@ namespace UDND.Tests.Core
             Assert.AreEqual(
                 BlockedTargetResolutionKind.Swap,
                 policy.BlockedTargetResolution);
+            Assert.AreEqual(MultiSwapMode.Single, policy.MultiSwapMode);
+        }
+
+        [Test]
+        public void WithSwap_PreserveOffsets_StoresMultiSwapMode()
+        {
+            var policy = DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets);
+
+            Assert.AreEqual(BlockedTargetResolutionKind.Swap, policy.BlockedTargetResolution);
+            Assert.AreEqual(MultiSwapMode.PreserveOffsets, policy.MultiSwapMode);
         }
 
         [Test]
@@ -78,6 +88,19 @@ namespace UDND.Tests.Core
             Assert.AreSame(baseOrderer, merged.AlternativeOrderer);
             Assert.AreEqual(false, merged.AllowSameInventoryAlternativePlacement);
             Assert.AreEqual(PartialTransferMode.Allow, merged.PartialTransferMode);
+        }
+
+        [Test]
+        public void Merge_UnsetMultiSwapMode_KeepsBaseValue()
+        {
+            var basePolicy = DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets);
+            var overridePolicy = new DropRequestPolicy(
+                null,
+                partialTransferMode: PartialTransferMode.RequireFull);
+
+            var merged = DropRequestPolicy.Merge(basePolicy, overridePolicy).Value;
+
+            Assert.AreEqual(MultiSwapMode.PreserveOffsets, merged.MultiSwapMode);
         }
 
         [Test]

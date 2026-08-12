@@ -57,7 +57,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Core/Models/DragContext.cs` | `DragContext` | Contexto por arrastre que contiene entries de origen, info del target y flags de la operación actual. |
 | `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Objeto de resultado genérico para APIs orientadas a acciones. |
 | `Scripts/Core/Models/DropResult.cs` | `DropResult` | Objeto de resultado devuelto por el procesamiento de drop. |
-| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Tipos payload de eventos usados cuando se despachan notificaciones de transferencia y swap. |
+| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Payloads de eventos de transferencia y swap, incluidos los desplazamientos ordenados del multi-swap shaped. |
 | `Scripts/Slots/SlotHoverEventArgs.cs` | `SlotHoverEventArgs` | Datos del evento hover para la UI de slots y sistemas relacionados. |
 
 ---
@@ -71,7 +71,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Interface de processor especializada usada por el drop handling basado en requests. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Clase base para targets de drop no basados en slot, como áreas de inventario o world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Target de drop estándar para áreas de inventario construido sobre `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Modelos que describen el comportamiento de drop: rechazar, buscar otro slot, swap y transferencia parcial. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `MultiSwapMode`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Modelos de drop: rechazar, buscar otro slot, swap único/con offsets preservados y transferencia parcial. |
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Ajustes para targets ocupados, colocación alternativa y transferencia parcial. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Helper serializable para overrides temporales de drop request en acciones y triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Helper serializable para overrides temporales de cantidad al iniciar un drag. |
@@ -103,7 +103,7 @@ Las tablas siguientes enumeran todos los archivos de scripts y describen las pri
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Converter pass-through usado cuando no se necesita conversión de modelo. |
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum que describe el tipo de flujo de transferencia que se está ejecutando. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Objeto de contexto pasado a los domain handlers. |
-| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Servicio de transferencia: procesa entradas una por una, soporta rollback de entradas fallidas, swap y búsqueda automática de posición. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Servicio de transferencia: procesa entradas una por una, soporta rollback, multi-swap atómico topology-aware y búsqueda automática. |
 | `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Resultado de sondeo orientativo para preview y aceptación. |
 | `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Descripción de una posible colocación: unir stack, usar un slot existente o crear un slot dinámico. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Orden usado solo para colocación automática. |

@@ -1,6 +1,6 @@
 # Data Flow
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-12
 
 ## Transfer Flow
 
@@ -107,6 +107,9 @@ A failed entry restores its source/target snapshots and emits no outcome notific
 
 ## Swap Flow
 
+`MultiSwapMode.Single` keeps one-for-one behavior. With `PreserveOffsets`, one shaped entry may
+displace every distinct placement covered by its destination footprint; this is not batch swap.
+
 ```text
 forward direction validated by the caller's ValidateEntryDrop
   -> ValidateSwapCounterpart(target item -> source slot)
@@ -119,5 +122,8 @@ forward direction validated by the caller's ValidateEntryDrop
   -> place both stacks, consume session entries, dispatch events
 ```
 
-The counterpart check runs before any mutation, and the same check runs inside `Probe` so preview
-and execution agree. Any failure restores snapshots and moves neither item.
+For plural displacement, each counterpart keeps its topology-coordinate offset from the target
+anchor when mapped around the source anchor. Every counterpart is checked against that actual
+reverse destination, and all incoming footprints are validated together against the vacated state.
+The same resolver runs inside `Probe` and execution, so preview reports the complete forward
+footprint and agrees with commit. Any failure restores snapshots and moves no item.

@@ -21,6 +21,10 @@ namespace UDND.Core
          Tooltip("Allow a blocked same-inventory drop to use another placement.")]
         private bool _allowSameInventoryAlternativePlacement = false;
 
+        [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.Swap),
+         Tooltip("Allow one incoming item to displace every placement covered by its footprint.")]
+        private MultiSwapMode _multiSwapMode = MultiSwapMode.Single;
+
         [SerializeField, Tooltip("Allow partial transfer if only part of one entry fits.")]
         private bool _allowPartial = true;
 
@@ -32,7 +36,8 @@ namespace UDND.Core
                 requested?.AllowSameInventoryAlternativePlacement ?? _allowSameInventoryAlternativePlacement,
                 requested?.PartialTransferMode ?? (_allowPartial
                     ? PartialTransferMode.Allow
-                    : PartialTransferMode.RequireFull));
+                    : PartialTransferMode.RequireFull),
+                requested?.MultiSwapMode ?? _multiSwapMode);
         }
     }
 }

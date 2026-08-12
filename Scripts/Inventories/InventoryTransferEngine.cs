@@ -81,6 +81,41 @@ namespace UDND.Inventories
             public List<CommittedOutcome> Committed = new List<CommittedOutcome>();
         }
 
+        private sealed class ResolvedSwapDisplacement
+        {
+            public Placement Placement;
+            public BaseSlot SourceSlot;
+            public BaseSlot DestinationSlot;
+            public ItemStack StackBefore;
+            public ItemStack ConvertedStack;
+            public IPlacementShape ConvertedShape;
+            public int ConvertedOrientation;
+            public TransferDomainContext DomainContext;
+        }
+
+        private sealed class ResolvedSwap
+        {
+            public IInventory SourceInventory;
+            public IInventory TargetInventory;
+            public IPlacementInventory SourcePlacementInventory;
+            public IPlacementInventory TargetPlacementInventory;
+            public IInventorySnapshotProvider SourceSnapshotProvider;
+            public IInventorySnapshotProvider TargetSnapshotProvider;
+            public BaseSlot SourceSlot;
+            public BaseSlot TargetSlot;
+            public BaseSlot ForwardAnchor;
+            public Placement SourcePlacement;
+            public Placement PrimaryTargetPlacement;
+            public ItemStack SourceStackBefore;
+            public ItemStack ForwardStack;
+            public IPlacementShape ForwardShape;
+            public int ForwardOrientation;
+            public IReadOnlyList<BaseSlot> ForwardCoveredSlots;
+            public TransferDomainContext ForwardDomain;
+            public readonly List<ResolvedSwapDisplacement> Displacements =
+                new List<ResolvedSwapDisplacement>();
+        }
+
         public TransferProbe Probe(
             DragContext context,
             IInventory targetInventory,
@@ -194,30 +229,24 @@ namespace UDND.Inventories
                     {
                         if (entryTargetOwned && !entryTargetSlot.IsEmpty)
                         {
-                            // The counterpart is checked here too: a preview that promised a swap
-                            // the execution then refuses is exactly the disagreement this probe
-                            // exists to prevent.
-                            var probeCounterpart = ValidateSwapCounterpart(
-                                entryContext,
-                                globalRules,
-                                sourceInventory,
+                            var swapRequest = new TransferEntryRequest(
+                                context,
+                                entry,
                                 targetInventory,
-                                entry.SourceBaseSlot,
                                 entryTargetSlot,
-                                geometry.GetPlacementAt(entryTargetSlot));
-                            if (!probeCounterpart.IsValid)
+                                policy,
+                                globalRules: globalRules);
+                            if (!TryResolveSwap(swapRequest, out var resolvedSwap, out var swapFailure))
                             {
-                                failureReason = string.IsNullOrEmpty(probeCounterpart.FailureReason)
-                                    ? "Swap: counterpart rules rejected the item"
-                                    : $"Swap: {probeCounterpart.FailureReason}";
+                                failureReason = swapFailure;
                                 continue;
                             }
 
                             return TransferProbe.Accepted(
                                 i,
                                 entry,
-                                anchorSlot: entryTargetSlot,
-                                coveredSlots: new[] { entryTargetSlot },
+                                anchorSlot: resolvedSwap.ForwardAnchor,
+                                coveredSlots: resolvedSwap.ForwardCoveredSlots,
                                 isExplicitTargetCandidate: true);
                         }
 
@@ -1197,216 +1226,612 @@ namespace UDND.Inventories
 
         private EntryTransferResult TryExecuteSwap(TransferEntryRequest request)
         {
-            var entry = request.Entry;
-            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
-            var targetInventory = request.TargetInventory;
-            var sourceSlot = entry.SourceBaseSlot;
-            var targetSlot = request.TargetBaseSlot;
-            int requestedAmount = entry.Stack.Count;
+            int requestedAmount = request?.Entry.Stack?.Count ?? 0;
+            if (!TryResolveSwap(request, out var swap, out var failureReason))
+                return EntryTransferResult.Failed(requestedAmount, failureReason);
 
-            if (sourceInventory == null || targetInventory == null || sourceSlot == null || targetSlot == null)
-                return EntryTransferResult.Failed(requestedAmount, "Swap: invalid source/target");
-
-            if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
-                return EntryTransferResult.Failed(requestedAmount, "Swap requires non-empty source and target");
-
-            // Swap transfers the entire source placement stack.
-            if (sourceSlot.Stack?.Count != requestedAmount)
-                return EntryTransferResult.Failed(requestedAmount, "Swap requires the entire source stack");
-
-            if (sourceInventory is not IInventorySnapshotProvider sourceSnapshotProvider ||
-                targetInventory is not IInventorySnapshotProvider targetSnapshotProvider)
-                return EntryTransferResult.Failed(requestedAmount, "Swap requires snapshot-capable inventories");
-
-            if (sourceInventory is not IPlacementInventory sourcePlacementInventory ||
-                targetInventory is not IPlacementInventory targetPlacementInventory)
-                return EntryTransferResult.Failed(requestedAmount, "Swap requires placement-capable inventories");
-
-            var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
-            var targetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
-            if (sourcePlacement?.Stack == null || targetPlacement?.Stack == null)
-                return EntryTransferResult.Failed(requestedAmount, "Swap: cannot resolve placements");
-
-            // Clone stacks for events (before mutation) and build converted copies for placement.
-            var sourceStackBefore = sourcePlacement.Stack.CreateCopy();
-            var targetStackBefore = targetPlacement.Stack.CreateCopy();
-
-            // A swap is two transfers, and each lands in an inventory with its own rules. The
-            // forward direction was validated by the caller; without the same check for the
-            // counterpart, a swap is a way to put an item where a plain drop would be refused.
-            var counterpartResult = ValidateSwapCounterpart(
-                request.Context, request.GlobalRules,
-                sourceInventory, targetInventory, sourceSlot, targetSlot, targetPlacement);
-            if (!counterpartResult.IsValid)
+            var displacedStacks = new ItemStack[swap.Displacements.Count];
+            var displacedSourceSlots = new BaseSlot[swap.Displacements.Count];
+            var displacedDestinationSlots = new BaseSlot[swap.Displacements.Count];
+            for (int i = 0; i < swap.Displacements.Count; i++)
             {
-                return EntryTransferResult.Failed(
-                    requestedAmount,
-                    string.IsNullOrEmpty(counterpartResult.FailureReason)
-                        ? "Swap: counterpart rules rejected the item"
-                        : $"Swap: {counterpartResult.FailureReason}");
+                displacedStacks[i] = swap.Displacements[i].StackBefore;
+                displacedSourceSlots[i] = swap.Displacements[i].SourceSlot;
+                displacedDestinationSlots[i] = swap.Displacements[i].DestinationSlot;
             }
 
-            // Both directions cross a domain boundary, so both go through the session: the forward
-            // item reuses whatever the preview already resolved for this drag.
-            var swapSession = request.Context?.ConversionSession;
-
-            // Forward: source item will be placed in the target inventory.
-            if (!ItemStack.TryCreate(sourcePlacement.Stack.Adapters, out var targetStackAfter) ||
-                !TransferItemConversionUtility.TryConvertStackToTargetDomain(
-                    sourceInventory, targetInventory, targetStackAfter, swapSession))
-                return EntryTransferResult.Failed(requestedAmount, "Swap: forward conversion failed");
-
-            // Reverse: target item will be placed in the source inventory.
-            if (!ItemStack.TryCreate(targetPlacement.Stack.Adapters, out var sourceStackAfter) ||
-                !TransferItemConversionUtility.TryConvertStackToTargetDomain(
-                    targetInventory, sourceInventory, sourceStackAfter, swapSession))
-                return EntryTransferResult.Failed(requestedAmount, "Swap: reverse conversion failed");
-
-            // Domain validation in both directions.
-            var forwardDomain = new TransferDomainContext(
-                sourceInventory, targetInventory, sourceSlot, targetSlot,
-                sourceStackBefore.PrimaryAdapter, targetStackAfter.PrimaryAdapter,
-                sourceStackBefore.Count, TransferKind.Swap);
-            var reverseDomain = new TransferDomainContext(
-                targetInventory, sourceInventory, targetSlot, sourceSlot,
-                targetStackBefore.PrimaryAdapter, sourceStackAfter.PrimaryAdapter,
-                targetStackBefore.Count, TransferKind.Swap);
-            forwardDomain.CounterpartContext = reverseDomain;
-            reverseDomain.CounterpartContext = forwardDomain;
-
-            if (!ValidateDomainHandlers(forwardDomain) || !ValidateDomainHandlers(reverseDomain))
-                return EntryTransferResult.Failed(requestedAmount, "Swap: domain validation failed");
-
-            // Optional UI callback before mutation.
+            var primary = swap.Displacements[0];
             var swapContext = new InventorySwapContext(
-                sourceStackBefore, targetStackBefore, sourceSlot, targetSlot,
-                sourceInventory, targetInventory);
+                swap.SourceStackBefore,
+                primary.StackBefore,
+                swap.SourceSlot,
+                swap.TargetSlot,
+                swap.SourceInventory,
+                swap.TargetInventory,
+                displacedStacks,
+                displacedSourceSlots,
+                displacedDestinationSlots);
             if (request.SwapAttempting != null && !request.SwapAttempting(swapContext))
                 return EntryTransferResult.Failed(requestedAmount, "Swap cancelled by listener");
 
-            var sourceSnapshot = sourceSnapshotProvider.CaptureSnapshot();
-            var targetSnapshot = ReferenceEquals(sourceInventory, targetInventory)
+            var sourceSnapshot = swap.SourceSnapshotProvider.CaptureSnapshot();
+            var targetSnapshot = ReferenceEquals(swap.SourceInventory, swap.TargetInventory)
                 ? null
-                : targetSnapshotProvider.CaptureSnapshot();
+                : swap.TargetSnapshotProvider.CaptureSnapshot();
+            var sourceRemovedSnapshot = PlacementSnapshot.FromPlacement(
+                swap.SourcePlacement, swap.SourcePlacementInventory.GetSlot);
+            var displacedRemovedSnapshots = new PlacementSnapshot[swap.Displacements.Count];
+            for (int i = 0; i < swap.Displacements.Count; i++)
+                displacedRemovedSnapshots[i] = PlacementSnapshot.FromPlacement(
+                    swap.Displacements[i].Placement, swap.TargetPlacementInventory.GetSlot);
 
-            var sourceRemovedSnapshot = PlacementSnapshot.FromPlacement(sourcePlacement, sourcePlacementInventory.GetSlot);
-            var targetRemovedSnapshot = PlacementSnapshot.FromPlacement(targetPlacement, targetPlacementInventory.GetSlot);
-
-            if (!sourcePlacementInventory.RemovePlacement(sourcePlacement) ||
-                !targetPlacementInventory.RemovePlacement(targetPlacement))
+            bool removed = swap.SourcePlacementInventory.RemovePlacement(swap.SourcePlacement);
+            for (int i = 0; removed && i < swap.Displacements.Count; i++)
+                removed = swap.TargetPlacementInventory.RemovePlacement(swap.Displacements[i].Placement);
+            if (!removed)
             {
-                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
-                    targetInventory, targetSnapshotProvider, targetSnapshot);
+                RestoreSwapSnapshots(
+                    swap.SourceInventory, swap.SourceSnapshotProvider, sourceSnapshot,
+                    swap.TargetInventory, swap.TargetSnapshotProvider, targetSnapshot);
                 return EntryTransferResult.Failed(requestedAmount, "Swap: failed to vacate placements");
             }
 
-            // Each item keeps its own footprint while moving to the opposite anchor.
-            var forwardShape = PlacementShapeUtility.Resolve(targetStackAfter.PrimaryAdapter)
-                ?? sourcePlacement.Shape;
-            var forwardReq = new PlacementRequest(
-                targetStackAfter.CreateCopy(), targetPlacement.AnchorIndex,
-                sourcePlacement.Orientation, forwardShape);
-            if (!targetPlacementInventory.TryPlace(forwardReq, out var forwardPlacement))
+            var forwardRequest = new PlacementRequest(
+                swap.ForwardStack.CreateCopy(),
+                swap.ForwardAnchor.Index,
+                swap.ForwardOrientation,
+                swap.ForwardShape);
+            if (!swap.TargetPlacementInventory.TryPlace(forwardRequest, out var forwardPlacement))
             {
-                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
-                    targetInventory, targetSnapshotProvider, targetSnapshot);
+                RestoreSwapSnapshots(
+                    swap.SourceInventory, swap.SourceSnapshotProvider, sourceSnapshot,
+                    swap.TargetInventory, swap.TargetSnapshotProvider, targetSnapshot);
                 return EntryTransferResult.Failed(requestedAmount, "Swap: cannot place source item in target");
             }
 
-            var reverseShape = PlacementShapeUtility.Resolve(sourceStackAfter.PrimaryAdapter)
-                ?? targetPlacement.Shape;
-            var reverseReq = new PlacementRequest(
-                sourceStackAfter.CreateCopy(), sourcePlacement.AnchorIndex,
-                targetPlacement.Orientation, reverseShape);
-            if (!sourcePlacementInventory.TryPlace(reverseReq, out var reversePlacement))
+            var reversePlacements = new Placement[swap.Displacements.Count];
+            for (int i = 0; i < swap.Displacements.Count; i++)
             {
-                RestoreSwapSnapshots(sourceInventory, sourceSnapshotProvider, sourceSnapshot,
-                    targetInventory, targetSnapshotProvider, targetSnapshot);
-                return EntryTransferResult.Failed(requestedAmount, "Swap: cannot place target item in source");
+                var displacement = swap.Displacements[i];
+                var reverseRequest = new PlacementRequest(
+                    displacement.ConvertedStack.CreateCopy(),
+                    displacement.DestinationSlot.Index,
+                    displacement.ConvertedOrientation,
+                    displacement.ConvertedShape);
+                if (swap.SourcePlacementInventory.TryPlace(reverseRequest, out reversePlacements[i]))
+                    continue;
+
+                RestoreSwapSnapshots(
+                    swap.SourceInventory, swap.SourceSnapshotProvider, sourceSnapshot,
+                    swap.TargetInventory, swap.TargetSnapshotProvider, targetSnapshot);
+                return EntryTransferResult.Failed(
+                    requestedAmount,
+                    $"Swap: cannot place displaced item '{displacement.StackBefore.PrimaryAdapter?.ItemId}' in source");
             }
 
-            sourceInventory.UpdateAllVisuals();
-            targetInventory.UpdateAllVisuals();
+            swap.SourceInventory.UpdateAllVisuals();
+            swap.TargetInventory.UpdateAllVisuals();
+            var forwardAddedSnapshot = PlacementSnapshot.FromPlacement(
+                forwardPlacement, swap.TargetPlacementInventory.GetSlot);
+            var reverseAddedSnapshots = new PlacementSnapshot[reversePlacements.Length];
+            for (int i = 0; i < reversePlacements.Length; i++)
+                reverseAddedSnapshots[i] = PlacementSnapshot.FromPlacement(
+                    reversePlacements[i], swap.SourcePlacementInventory.GetSlot);
 
-            var forwardAddedSnapshot = PlacementSnapshot.FromPlacement(forwardPlacement, targetPlacementInventory.GetSlot);
-            var reverseAddedSnapshot = PlacementSnapshot.FromPlacement(reversePlacement, sourcePlacementInventory.GetSlot);
-
-            // Both sets of converted objects are owned by their new inventories now.
+            var session = request.Context?.ConversionSession;
             TransferItemConversionUtility.ConsumeCommitted(
-                sourceInventory, targetInventory, sourceStackBefore.Adapters, swapSession);
-            TransferItemConversionUtility.ConsumeCommitted(
-                targetInventory, sourceInventory, targetStackBefore.Adapters, swapSession);
+                swap.SourceInventory, swap.TargetInventory, swap.SourceStackBefore.Adapters, session);
+            for (int i = 0; i < swap.Displacements.Count; i++)
+                TransferItemConversionUtility.ConsumeCommitted(
+                    swap.TargetInventory,
+                    swap.SourceInventory,
+                    swap.Displacements[i].StackBefore.Adapters,
+                    session);
 
-            // Commit domain hooks.
-            forwardDomain.MarkCommitted(targetSlot, targetStackAfter.PrimaryAdapter, sourceStackBefore.Count);
-            reverseDomain.MarkCommitted(sourceSlot, sourceStackAfter.PrimaryAdapter, targetStackBefore.Count);
-            foreach (var h in EnumerateDomainHandlers(forwardDomain))
-                try { h.OnTransferSucceeded(forwardDomain); } catch (Exception ex)
-                { Extensions.DragAndDropLog($"<color=red>[InventoryTransferService] Swap domain hook threw: {ex.Message}</color>"); }
-            foreach (var h in EnumerateDomainHandlers(reverseDomain))
-                try { h.OnTransferSucceeded(reverseDomain); } catch (Exception ex)
-                { Extensions.DragAndDropLog($"<color=red>[InventoryTransferService] Swap domain hook threw: {ex.Message}</color>"); }
+            swap.ForwardDomain.MarkCommitted(
+                swap.ForwardAnchor,
+                swap.ForwardStack.PrimaryAdapter,
+                swap.SourceStackBefore.Count);
+            InvokeSwapSuccessHandlers(swap.ForwardDomain);
+            for (int i = 0; i < swap.Displacements.Count; i++)
+            {
+                var displacement = swap.Displacements[i];
+                displacement.DomainContext.MarkCommitted(
+                    displacement.DestinationSlot,
+                    displacement.ConvertedStack.PrimaryAdapter,
+                    displacement.StackBefore.Count);
+                InvokeSwapSuccessHandlers(displacement.DomainContext);
+            }
 
-            DispatchSwapEvents(
-                sourceInventory, targetInventory, sourceSlot, targetSlot,
-                sourceStackBefore, targetStackBefore, targetStackAfter, sourceStackAfter,
-                sourceRemovedSnapshot, targetRemovedSnapshot,
-                forwardAddedSnapshot, reverseAddedSnapshot);
-
+            DispatchMultiSwapEvents(
+                swap,
+                sourceRemovedSnapshot,
+                displacedRemovedSnapshots,
+                forwardAddedSnapshot,
+                reverseAddedSnapshots);
             request.SwapCompleted?.Invoke(swapContext);
 
             var outcome = new PlacementTransferOutcome(
                 PlacementTransferOutcomeKind.Swap,
-                sourceInventory, targetInventory,
-                sourceSlot, targetSlot,
-                sourceStackBefore, targetStackAfter,
-                sourceRemovedSnapshot, forwardAddedSnapshot,
+                swap.SourceInventory,
+                swap.TargetInventory,
+                swap.SourceSlot,
+                swap.ForwardAnchor,
+                swap.SourceStackBefore,
+                swap.ForwardStack,
+                sourceRemovedSnapshot,
+                forwardAddedSnapshot,
                 targetWasEmptyBefore: false);
-
             return EntryTransferResult.Committed(requestedAmount, requestedAmount, new[] { outcome });
         }
 
-        /// <summary>
-        /// Validates the item travelling the opposite way in a swap: it must be allowed to leave
-        /// the target slot and to land in the source slot.
-        /// <para>
-        /// The entry is built in the target's own domain and handed to the shared evaluator, which
-        /// converts it into the source domain exactly like any other drop — so the source's rules
-        /// judge the counterpart as it would exist after the swap.
-        /// </para>
-        /// </summary>
-        private static RuleResult ValidateSwapCounterpart(
+        private bool TryResolveSwap(
+            TransferEntryRequest request,
+            out ResolvedSwap resolved,
+            out string failureReason)
+        {
+            resolved = null;
+            failureReason = "Swap: invalid request";
+            var entry = request?.Entry ?? default;
+            int requestedAmount = entry.Stack?.Count ?? 0;
+            var sourceInventory = entry.SourceInventory ?? entry.SourceBaseSlot?.Inventory;
+            var targetInventory = request?.TargetInventory;
+            var sourceSlot = entry.SourceBaseSlot;
+            var targetSlot = request?.TargetBaseSlot;
+
+            if (sourceInventory == null || targetInventory == null || sourceSlot == null || targetSlot == null)
+                return false;
+            if (sourceSlot.IsEmpty || targetSlot.IsEmpty)
+            {
+                failureReason = "Swap requires non-empty source and target";
+                return false;
+            }
+            if (sourceSlot.Stack?.Count != requestedAmount)
+            {
+                failureReason = "Swap requires the entire source stack";
+                return false;
+            }
+            if (sourceInventory is not IInventorySnapshotProvider sourceSnapshotProvider ||
+                targetInventory is not IInventorySnapshotProvider targetSnapshotProvider)
+            {
+                failureReason = "Swap requires snapshot-capable inventories";
+                return false;
+            }
+            if (sourceInventory is not IPlacementInventory sourcePlacementInventory ||
+                targetInventory is not IPlacementInventory targetPlacementInventory)
+            {
+                failureReason = "Swap requires placement-capable inventories";
+                return false;
+            }
+
+            var sourcePlacement = sourcePlacementInventory.GetPlacementAt(sourceSlot);
+            var primaryTargetPlacement = targetPlacementInventory.GetPlacementAt(targetSlot);
+            if (sourcePlacement?.Stack == null || primaryTargetPlacement?.Stack == null)
+            {
+                failureReason = "Swap: cannot resolve placements";
+                return false;
+            }
+            if (ReferenceEquals(sourcePlacement, primaryTargetPlacement))
+            {
+                failureReason = "Swap: source and target are the same placement";
+                return false;
+            }
+
+            var session = request.Context?.ConversionSession;
+            var sourceStackBefore = sourcePlacement.Stack.CreateCopy();
+            if (!ItemStack.TryCreate(sourcePlacement.Stack.Adapters, out var forwardStack) ||
+                !TransferItemConversionUtility.TryConvertStackToTargetDomain(
+                    sourceInventory, targetInventory, forwardStack, session))
+            {
+                failureReason = "Swap: forward conversion failed";
+                return false;
+            }
+
+            var forwardShape = PlacementShapeUtility.Resolve(forwardStack.PrimaryAdapter)
+                ?? sourcePlacement.Shape;
+            int forwardOrientation = targetPlacementInventory.Topology.NormalizeOrientation(entry.Orientation);
+            var geometry = new InventoryPlacementGeometry(targetInventory);
+            BaseSlot forwardAnchor;
+            List<Placement> displaced;
+            IReadOnlyList<BaseSlot> forwardCoveredSlots;
+
+            if (request.Policy.MultiSwapMode == MultiSwapMode.Single)
+            {
+                forwardAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
+                if (!TryCollectDisplacedPlacements(
+                        geometry, forwardAnchor, forwardShape, forwardOrientation,
+                        sourceInventory, targetInventory, sourcePlacement,
+                        out displaced, out forwardCoveredSlots))
+                {
+                    failureReason = "Swap: incoming footprint is outside the target";
+                    return false;
+                }
+            }
+            else
+            {
+                var acceptance = new InventoryAcceptanceRequest(
+                    targetInventory,
+                    forwardStack.PrimaryAdapter,
+                    sourceStackBefore.Count,
+                    request.Context.WithTarget(targetSlot, targetInventory),
+                    entry);
+                if (!geometry.TryResolveAnchor(targetSlot, acceptance, out forwardAnchor) ||
+                    !TryCollectDisplacedPlacements(
+                        geometry, forwardAnchor, forwardShape, forwardOrientation,
+                        sourceInventory, targetInventory, sourcePlacement,
+                        out displaced, out forwardCoveredSlots))
+                {
+                    failureReason = "Swap: cannot resolve the target footprint";
+                    return false;
+                }
+
+                if (displaced.Count == 1 && ReferenceEquals(displaced[0], primaryTargetPlacement))
+                {
+                    var legacyAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
+                    if (TryCollectDisplacedPlacements(
+                            geometry, legacyAnchor, forwardShape, forwardOrientation,
+                            sourceInventory, targetInventory, sourcePlacement,
+                            out var legacyDisplaced, out var legacyCovered) &&
+                        SamePlacementSet(displaced, legacyDisplaced))
+                    {
+                        forwardAnchor = legacyAnchor;
+                        displaced = legacyDisplaced;
+                        forwardCoveredSlots = legacyCovered;
+                    }
+                }
+            }
+
+            if (forwardAnchor == null || !ContainsPlacement(displaced, primaryTargetPlacement))
+            {
+                failureReason = "Swap: incoming footprint does not cover the target placement";
+                return false;
+            }
+            MovePrimaryFirst(displaced, primaryTargetPlacement);
+            if (request.Policy.MultiSwapMode == MultiSwapMode.Single && displaced.Count > 1)
+            {
+                failureReason = "Swap: target footprint covers multiple items";
+                return false;
+            }
+
+            resolved = new ResolvedSwap
+            {
+                SourceInventory = sourceInventory,
+                TargetInventory = targetInventory,
+                SourcePlacementInventory = sourcePlacementInventory,
+                TargetPlacementInventory = targetPlacementInventory,
+                SourceSnapshotProvider = sourceSnapshotProvider,
+                TargetSnapshotProvider = targetSnapshotProvider,
+                SourceSlot = sourceSlot,
+                TargetSlot = targetSlot,
+                ForwardAnchor = forwardAnchor,
+                SourcePlacement = sourcePlacement,
+                PrimaryTargetPlacement = primaryTargetPlacement,
+                SourceStackBefore = sourceStackBefore,
+                ForwardStack = forwardStack,
+                ForwardShape = forwardShape,
+                ForwardOrientation = forwardOrientation,
+                ForwardCoveredSlots = forwardCoveredSlots
+            };
+
+            var targetAnchorCell = targetPlacementInventory.Topology.ToCell(forwardAnchor.Index);
+            for (int i = 0; i < displaced.Count; i++)
+            {
+                var placement = displaced[i];
+                var destinationCell = sourcePlacement.AnchorCell +
+                    (placement.AnchorCell - targetAnchorCell);
+                if (!sourcePlacementInventory.Topology.TryToIndex(destinationCell, out int destinationIndex))
+                {
+                    failureReason = "Swap: displaced destination is outside the source";
+                    resolved = null;
+                    return false;
+                }
+
+                var originSlot = targetPlacementInventory.GetSlot(ResolvePlacementPrimaryIndex(placement));
+                var destinationSlot = sourcePlacementInventory.GetSlot(destinationIndex);
+                var stackBefore = placement.Stack.CreateCopy();
+                if (originSlot == null || destinationSlot == null ||
+                    !ItemStack.TryCreate(placement.Stack.Adapters, out var convertedStack) ||
+                    !TransferItemConversionUtility.TryConvertStackToTargetDomain(
+                        targetInventory, sourceInventory, convertedStack, session))
+                {
+                    failureReason = "Swap: reverse conversion failed";
+                    resolved = null;
+                    return false;
+                }
+
+                var convertedShape = PlacementShapeUtility.Resolve(convertedStack.PrimaryAdapter)
+                    ?? placement.Shape;
+                float visualAngle = targetPlacementInventory.Topology
+                    .GetVisualAngleDegrees(placement.Orientation);
+                int convertedOrientation = sourcePlacementInventory.Topology
+                    .GetOrientationForVisualAngleDegrees(visualAngle);
+                var rules = ValidateSwapCounterpartAt(
+                    request.Context, request.GlobalRules,
+                    sourceInventory, targetInventory,
+                    destinationSlot, originSlot, placement);
+                if (!rules.IsValid)
+                {
+                    failureReason = string.IsNullOrEmpty(rules.FailureReason)
+                        ? "Swap: counterpart rules rejected the item"
+                        : $"Swap: {rules.FailureReason}";
+                    resolved = null;
+                    return false;
+                }
+
+                resolved.Displacements.Add(new ResolvedSwapDisplacement
+                {
+                    Placement = placement,
+                    SourceSlot = originSlot,
+                    DestinationSlot = destinationSlot,
+                    StackBefore = stackBefore,
+                    ConvertedStack = convertedStack,
+                    ConvertedShape = convertedShape,
+                    ConvertedOrientation = convertedOrientation
+                });
+            }
+
+            if (!ValidateResolvedSwapGeometry(resolved, out failureReason))
+            {
+                resolved = null;
+                return false;
+            }
+
+            resolved.ForwardDomain = new TransferDomainContext(
+                sourceInventory, targetInventory, sourceSlot, forwardAnchor,
+                sourceStackBefore.PrimaryAdapter, forwardStack.PrimaryAdapter,
+                sourceStackBefore.Count, TransferKind.Swap);
+            var reverseDomains = new TransferDomainContext[resolved.Displacements.Count];
+            for (int i = 0; i < resolved.Displacements.Count; i++)
+            {
+                var displacement = resolved.Displacements[i];
+                var domain = new TransferDomainContext(
+                    targetInventory, sourceInventory,
+                    displacement.SourceSlot, displacement.DestinationSlot,
+                    displacement.StackBefore.PrimaryAdapter,
+                    displacement.ConvertedStack.PrimaryAdapter,
+                    displacement.StackBefore.Count, TransferKind.Swap);
+                displacement.DomainContext = domain;
+                reverseDomains[i] = domain;
+            }
+
+            resolved.ForwardDomain.CounterpartContexts = reverseDomains;
+            resolved.ForwardDomain.CounterpartContext = reverseDomains[0];
+            for (int i = 0; i < reverseDomains.Length; i++)
+            {
+                reverseDomains[i].CounterpartContext = resolved.ForwardDomain;
+                reverseDomains[i].CounterpartContexts = new[] { resolved.ForwardDomain };
+            }
+
+            if (!ValidateDomainHandlers(resolved.ForwardDomain))
+            {
+                failureReason = "Swap: forward domain validation failed";
+                resolved = null;
+                return false;
+            }
+            for (int i = 0; i < reverseDomains.Length; i++)
+            {
+                if (ValidateDomainHandlers(reverseDomains[i]))
+                    continue;
+                failureReason = "Swap: reverse domain validation failed";
+                resolved = null;
+                return false;
+            }
+
+            failureReason = null;
+            return true;
+        }
+
+        private static bool TryCollectDisplacedPlacements(
+            InventoryPlacementGeometry geometry,
+            BaseSlot anchorSlot,
+            IPlacementShape shape,
+            int orientation,
+            IInventory sourceInventory,
+            IInventory targetInventory,
+            Placement sourcePlacement,
+            out List<Placement> displaced,
+            out IReadOnlyList<BaseSlot> coveredSlots)
+        {
+            displaced = new List<Placement>();
+            coveredSlots = geometry.GetCoveredSlots(anchorSlot, shape, orientation);
+            if (coveredSlots == null || coveredSlots.Count == 0)
+                return false;
+
+            var seen = new HashSet<Placement>();
+            for (int i = 0; i < coveredSlots.Count; i++)
+            {
+                var placement = geometry.GetPlacementAt(coveredSlots[i]);
+                if (placement == null ||
+                    ReferenceEquals(sourceInventory, targetInventory) &&
+                    ReferenceEquals(placement, sourcePlacement) ||
+                    !seen.Add(placement))
+                    continue;
+                displaced.Add(placement);
+            }
+            return true;
+        }
+
+        private static bool SamePlacementSet(IReadOnlyList<Placement> a, IReadOnlyList<Placement> b)
+        {
+            if (a == null || b == null || a.Count != b.Count)
+                return false;
+            for (int i = 0; i < a.Count; i++)
+                if (!ContainsPlacement(b, a[i]))
+                    return false;
+            return true;
+        }
+
+        private static bool ContainsPlacement(IReadOnlyList<Placement> placements, Placement expected)
+        {
+            if (placements == null || expected == null)
+                return false;
+            for (int i = 0; i < placements.Count; i++)
+                if (ReferenceEquals(placements[i], expected))
+                    return true;
+            return false;
+        }
+
+        private static void MovePrimaryFirst(List<Placement> placements, Placement primary)
+        {
+            for (int i = 0; i < placements.Count; i++)
+            {
+                if (!ReferenceEquals(placements[i], primary) || i == 0)
+                    continue;
+                placements.RemoveAt(i);
+                placements.Insert(0, primary);
+                return;
+            }
+        }
+
+        private static bool ValidateResolvedSwapGeometry(ResolvedSwap swap, out string failureReason)
+        {
+            var sourceRemoved = new HashSet<Placement> { swap.SourcePlacement };
+            var targetRemoved = new HashSet<Placement>();
+            for (int i = 0; i < swap.Displacements.Count; i++)
+                targetRemoved.Add(swap.Displacements[i].Placement);
+            if (ReferenceEquals(swap.SourceInventory, swap.TargetInventory))
+            {
+                foreach (var placement in targetRemoved)
+                    sourceRemoved.Add(placement);
+                targetRemoved = sourceRemoved;
+            }
+
+            var sourceReserved = new HashSet<int>();
+            var targetReserved = ReferenceEquals(swap.SourceInventory, swap.TargetInventory)
+                ? sourceReserved
+                : new HashSet<int>();
+            if (!TryReserveSwapFootprint(
+                    swap.TargetPlacementInventory, swap.ForwardAnchor,
+                    swap.ForwardShape, swap.ForwardOrientation,
+                    targetRemoved, targetReserved))
+            {
+                failureReason = "Swap: source item cannot occupy the target footprint";
+                return false;
+            }
+
+            for (int i = 0; i < swap.Displacements.Count; i++)
+            {
+                var displacement = swap.Displacements[i];
+                if (TryReserveSwapFootprint(
+                        swap.SourcePlacementInventory, displacement.DestinationSlot,
+                        displacement.ConvertedShape, displacement.ConvertedOrientation,
+                        sourceRemoved, sourceReserved))
+                    continue;
+                failureReason =
+                    $"Swap: displaced item '{displacement.StackBefore.PrimaryAdapter?.ItemId}' cannot occupy its destination";
+                return false;
+            }
+
+            failureReason = null;
+            return true;
+        }
+
+        private static bool TryReserveSwapFootprint(
+            IPlacementInventory inventory,
+            BaseSlot anchor,
+            IPlacementShape shape,
+            int orientation,
+            HashSet<Placement> removed,
+            HashSet<int> reserved)
+        {
+            if (inventory == null || anchor == null)
+                return false;
+            var covered = inventory.GetCoveredCells(anchor.Index, shape, orientation);
+            if (covered == null || covered.Count == 0)
+                return false;
+            for (int i = 0; i < covered.Count; i++)
+            {
+                int index = covered[i];
+                if (reserved.Contains(index))
+                    return false;
+                var existing = inventory.GetPlacementAt(index);
+                if (existing != null && (removed == null || !removed.Contains(existing)))
+                    return false;
+            }
+            for (int i = 0; i < covered.Count; i++)
+                reserved.Add(covered[i]);
+            return true;
+        }
+
+        private static RuleResult ValidateSwapCounterpartAt(
             DragContext context,
             GlobalRuleValidator globalRules,
             IInventory sourceInventory,
             IInventory targetInventory,
-            BaseSlot sourceSlot,
-            BaseSlot targetSlot,
+            BaseSlot destinationSlot,
+            BaseSlot originSlot,
             Placement targetPlacement)
         {
             var counterpartStack = targetPlacement?.Stack?.CreateCopy();
             if (counterpartStack == null || counterpartStack.IsEmpty)
                 return RuleResult.Failure("counterpart stack is empty");
-
             var counterpartEntry = new DragEntry(
-                counterpartStack,
-                targetSlot,
-                targetInventory,
-                targetPlacement);
-
+                counterpartStack, originSlot, targetInventory, targetPlacement);
             var counterpartContext = context != null
-                ? context
-                    .CreateDerived(new[] { counterpartEntry })
-                    .WithTarget(sourceSlot, sourceInventory)
-                : new DragContext(counterpartStack, targetSlot, targetInventory, sourceSlot, sourceInventory);
-
+                ? context.CreateDerived(new[] { counterpartEntry })
+                    .WithTarget(destinationSlot, sourceInventory)
+                : new DragContext(
+                    counterpartStack, originSlot, targetInventory,
+                    destinationSlot, sourceInventory);
             var evaluator = new RuleEvaluationService();
             var startResult = evaluator.ValidateEntryStart(
                 counterpartContext, counterpartEntry, globalRules);
-            if (!startResult.IsValid)
-                return startResult;
+            return startResult.IsValid
+                ? evaluator.ValidateEntryDrop(counterpartContext, counterpartEntry, globalRules)
+                : startResult;
+        }
 
-            return evaluator.ValidateEntryDrop(counterpartContext, counterpartEntry, globalRules);
+        private static void InvokeSwapSuccessHandlers(TransferDomainContext context)
+        {
+            foreach (var handler in EnumerateDomainHandlers(context))
+            {
+                try { handler.OnTransferSucceeded(context); }
+                catch (Exception ex)
+                {
+                    Extensions.DragAndDropLog(
+                        $"<color=red>[InventoryTransferService] Swap domain hook threw: {ex.Message}</color>");
+                }
+            }
+        }
+
+        private static void DispatchMultiSwapEvents(
+            ResolvedSwap swap,
+            PlacementSnapshot sourceRemovedSnapshot,
+            IReadOnlyList<PlacementSnapshot> displacedRemovedSnapshots,
+            PlacementSnapshot forwardAddedSnapshot,
+            IReadOnlyList<PlacementSnapshot> reverseAddedSnapshots)
+        {
+            if (swap.TargetInventory is IInventoryEventSink targetSink)
+            {
+                for (int i = 0; i < swap.Displacements.Count; i++)
+                {
+                    var displacement = swap.Displacements[i];
+                    targetSink.EmitItemRemoved(
+                        displacement.StackBefore, displacement.SourceSlot.Index,
+                        swap.SourceInventory, displacement.SourceSlot,
+                        displacement.DestinationSlot, displacedRemovedSnapshots[i]);
+                }
+                targetSink.EmitItemAdded(
+                    swap.ForwardStack, swap.ForwardAnchor.Index,
+                    swap.SourceInventory, swap.SourceSlot,
+                    swap.ForwardAnchor, forwardAddedSnapshot);
+            }
+
+            if (swap.SourceInventory is IInventoryEventSink sourceSink)
+            {
+                sourceSink.EmitItemRemoved(
+                    swap.SourceStackBefore, swap.SourceSlot.Index,
+                    swap.TargetInventory, swap.SourceSlot,
+                    swap.ForwardAnchor, sourceRemovedSnapshot);
+                for (int i = 0; i < swap.Displacements.Count; i++)
+                {
+                    var displacement = swap.Displacements[i];
+                    sourceSink.EmitItemAdded(
+                        displacement.ConvertedStack, displacement.DestinationSlot.Index,
+                        swap.TargetInventory, displacement.SourceSlot,
+                        displacement.DestinationSlot, reverseAddedSnapshots[i]);
+                }
+            }
         }
 
         private static void RestoreSwapSnapshots(
@@ -1423,41 +1848,6 @@ namespace UDND.Inventories
             {
                 targetProvider.RestoreSnapshot(targetSnapshot);
                 targetInventory.UpdateAllVisuals();
-            }
-        }
-
-        private static void DispatchSwapEvents(
-            IInventory sourceInventory,
-            IInventory targetInventory,
-            BaseSlot sourceSlot,
-            BaseSlot targetSlot,
-            ItemStack sourceStackBefore,
-            ItemStack targetStackBefore,
-            ItemStack targetStackAfter,
-            ItemStack sourceStackAfter,
-            PlacementSnapshot sourceRemovedSnapshot,
-            PlacementSnapshot targetRemovedSnapshot,
-            PlacementSnapshot forwardAddedSnapshot,
-            PlacementSnapshot reverseAddedSnapshot)
-        {
-            if (targetInventory is IInventoryEventSink targetEventSink)
-            {
-                targetEventSink.EmitItemRemoved(
-                    targetStackBefore, targetSlot.Index, sourceInventory,
-                    targetSlot, sourceSlot, targetRemovedSnapshot);
-                targetEventSink.EmitItemAdded(
-                    targetStackAfter, targetSlot.Index, sourceInventory,
-                    sourceSlot, targetSlot, forwardAddedSnapshot);
-            }
-
-            if (sourceInventory is IInventoryEventSink sourceEventSink)
-            {
-                sourceEventSink.EmitItemRemoved(
-                    sourceStackBefore, sourceSlot.Index, targetInventory,
-                    sourceSlot, targetSlot, sourceRemovedSnapshot);
-                sourceEventSink.EmitItemAdded(
-                    sourceStackAfter, sourceSlot.Index, targetInventory,
-                    targetSlot, sourceSlot, reverseAddedSnapshot);
             }
         }
 

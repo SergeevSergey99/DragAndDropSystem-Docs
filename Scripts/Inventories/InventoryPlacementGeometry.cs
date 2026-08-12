@@ -35,15 +35,16 @@ namespace UDND.Inventories
             if (request?.SourceEntry is DragEntry entry &&
                 _placementInventory is IShapedDragTargetResolver resolver &&
                 !PlacementShapeUtility.IsSingleCell(
-                    entry.Shape,
+                    PlacementShapeUtility.Resolve(request.ItemAdapter) ?? entry.Shape,
                     entry.Orientation,
                     _placementInventory.Topology))
             {
+                var targetShape = PlacementShapeUtility.Resolve(request.ItemAdapter) ?? entry.Shape;
                 if (!resolver.TryResolveShapedPlacementAnchor(
                         targetSlot,
                         request.Context,
                         entry,
-                        entry.Shape,
+                        targetShape,
                         request.ItemAdapter,
                         out _,
                         out int anchorIndex))

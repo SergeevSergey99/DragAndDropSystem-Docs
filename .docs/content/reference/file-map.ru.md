@@ -57,7 +57,7 @@
 | `Scripts/Core/Models/DragContext.cs` | `DragContext` | Контекст одного drag-оператора: source entries, target info и флаги текущей операции. |
 | `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Универсальный result-объект для action-style API. |
 | `Scripts/Core/Models/DropResult.cs` | `DropResult` | Result-объект, возвращаемый обработчиками drop. |
-| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Payload-типы для событий переноса и swap. |
+| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Payload-типы событий переноса и swap, включая упорядоченные данные обо всех вытеснениях shaped multi-swap. |
 | `Scripts/Slots/SlotHoverEventArgs.cs` | `SlotHoverEventArgs` | Данные hover-события слота для UI и связанных подсистем. |
 
 ---
@@ -71,7 +71,7 @@
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Стандартная drop-area инвентаря на основе `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Модели, описывающие поведение drop: отказ, поиск другого слота, swap и частичный перенос. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `MultiSwapMode`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Модели поведения drop: отказ, поиск другого слота, одиночный/preserve-offset swap и частичный перенос. |
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Настройки поведения при занятой цели, поиска другого слота и частичного переноса. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемые настройки для временного переопределения drop behavior в actions и triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемые настройки для временного переопределения количества предметов при старте drag. |
@@ -103,7 +103,7 @@
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Pass-through converter для случаев, когда конвертация не нужна. |
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum, описывающий тип переноса. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Контекст, который передаётся в domain handlers. |
-| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Сервис переноса: обрабатывает записи по очереди, поддерживает откат неудачной записи, swap и автоматический поиск места. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Сервис переноса: обрабатывает записи по очереди, поддерживает откат, topology-aware атомарный multi-swap и автоматический поиск места. |
 | `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Совещательный probe-результат для preview и acceptance. |
 | `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Описание возможного размещения: объединить стек, занять существующий слот или создать динамический слот. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Сортировка вариантов при автоматическом поиске места. |

@@ -1,6 +1,6 @@
 # Advanced Features
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-12
 
 ## Quick Click Auto-Transfer
 
@@ -88,6 +88,10 @@ Same-inventory area drops are handled by the core pipeline:
 Swap remains inventory-scoped and event-based:
 - `OnSwapAttempting(InventorySwapContext)` (cancelable)
 - `OnSwapCompleted(InventorySwapContext)`
+
+For shaped multi-swap, `InventorySwapContext.DisplacedStacks`, `DisplacedSourceSlots`, and
+`DisplacedDestinationSlots` expose all reverse movements in deterministic footprint order. The
+singular target/source fields remain the compatibility view of the primary displaced placement.
 
 Transfer-level domain hooks now also run for swap path:
 - domain validation executes before swap commit

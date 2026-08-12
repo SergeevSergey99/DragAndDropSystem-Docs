@@ -27,6 +27,19 @@ namespace UDND.Tests.Core
                 resolved.AlternativeOrderer);
             Assert.AreEqual(PartialTransferMode.Allow, resolved.PartialTransferMode);
             Assert.IsFalse(resolved.AllowSameInventoryAlternativePlacement);
+            Assert.AreEqual(MultiSwapMode.Single, resolved.MultiSwapMode);
+        }
+
+
+        [Test]
+        public void Resolve_RequestOverridesMultiSwapMode()
+        {
+            var resolved = _settings.Resolve(
+                DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets),
+                context: null);
+
+            Assert.AreEqual(BlockedTargetResolutionKind.Swap, resolved.BlockedTargetResolution);
+            Assert.AreEqual(MultiSwapMode.PreserveOffsets, resolved.MultiSwapMode);
         }
 
         [Test]

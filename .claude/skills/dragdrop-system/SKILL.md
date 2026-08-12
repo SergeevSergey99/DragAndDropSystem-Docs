@@ -4,8 +4,8 @@ description: Quick reference for the UniversalDragAndDrop JIT transfer pipeline,
 ---
 # Unity Drag & Drop Inventory System - Quick Reference
 
-**Version**: 3.1
-**Last Updated**: 2026-08-06
+**Version**: 3.2
+**Last Updated**: 2026-08-12
 
 ## System Overview
 
@@ -80,6 +80,7 @@ Main fields:
 - `AlternativeCandidateOrderer`
 - `AllowSameInventoryAlternative`
 - `PartialTransferMode`
+- `MultiSwapMode`: `Single` (default) or `PreserveOffsets`
 
 ## Preview Model
 

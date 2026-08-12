@@ -105,6 +105,15 @@ namespace UDND.Core
         /// </summary>
         public IInventory TargetInventory { get; }
 
+        /// <summary>All target-side stacks displaced by this swap, primary stack first.</summary>
+        public IReadOnlyList<ItemStack> DisplacedStacks { get; }
+
+        /// <summary>Original slots of <see cref="DisplacedStacks"/>, in matching order.</summary>
+        public IReadOnlyList<BaseSlot> DisplacedSourceSlots { get; }
+
+        /// <summary>Committed destination slots of <see cref="DisplacedStacks"/>, in matching order.</summary>
+        public IReadOnlyList<BaseSlot> DisplacedDestinationSlots { get; }
+
         /// <summary>
         /// Can be set to true to cancel the swap
         /// </summary>
@@ -116,7 +125,10 @@ namespace UDND.Core
             BaseSlot sourceBaseSlot,
             BaseSlot targetBaseSlot,
             IInventory sourceInventory,
-            IInventory targetInventory)
+            IInventory targetInventory,
+            IReadOnlyList<ItemStack> displacedStacks = null,
+            IReadOnlyList<BaseSlot> displacedSourceSlots = null,
+            IReadOnlyList<BaseSlot> displacedDestinationSlots = null)
         {
             SourceStack = sourceStack;
             TargetStack = targetStack;
@@ -124,7 +136,21 @@ namespace UDND.Core
             TargetBaseSlot = targetBaseSlot;
             SourceInventory = sourceInventory;
             TargetInventory = targetInventory;
+            DisplacedStacks = CopyOrDefault(displacedStacks, targetStack);
+            DisplacedSourceSlots = CopyOrDefault(displacedSourceSlots, targetBaseSlot);
+            DisplacedDestinationSlots = CopyOrDefault(displacedDestinationSlots, sourceBaseSlot);
             Cancel = false;
+        }
+
+        private static IReadOnlyList<T> CopyOrDefault<T>(IReadOnlyList<T> source, T fallback)
+        {
+            if (source == null || source.Count == 0)
+                return ReferenceEquals(fallback, null) ? Array.Empty<T>() : new[] { fallback };
+
+            var copy = new T[source.Count];
+            for (int i = 0; i < source.Count; i++)
+                copy[i] = source[i];
+            return copy;
         }
     }
 }

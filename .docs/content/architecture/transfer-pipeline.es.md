@@ -54,12 +54,17 @@ Lo que ocurre después lo define `BlockedTargetResolutionKind`:
 |---|---|
 | `Reject` | La entrada de transferencia falla. No se mueve nada. |
 | `FindAlternative` | La estrategia devuelve candidatos disponibles y el `PlacementCandidateOrderer` configurado los ordena por prioridad. |
-| `Swap` | El sistema intenta un swap único con el destino ocupado. Ambos objetos se validan contra las reglas del inventario en el que aterrizan, así que un swap no puede saltarse una regla que rechazaría un drop normal. |
+| `Swap` | El sistema intenta un swap con el destino ocupado. `MultiSwapMode.Single` (por defecto) permite desplazar una colocación; `PreserveOffsets` permite que una entrada shaped desplace todas las colocaciones distintas bajo su footprint. Cada objeto se valida contra su destino real. |
 
 `AllowSameInventoryAlternativePlacement` controla si `FindAlternative`, al mover un
 objeto dentro del mismo inventario sobre un slot ocupado, puede elegir otro slot dentro
 de ese mismo inventario. Si no puede, el objeto permanece donde estaba antes del intento
 de transferencia.
+
+`PreserveOffsets` coloca cada objeto desplazado alrededor del anchor de origen conservando su
+offset topológico respecto al anchor de destino. Probe y execution comparten el mismo resolver, y
+el movimiento directo junto con todos los movimientos inversos se confirman atómicamente. Es un
+multi-swap de una sola entrada, no un batch swap de varias entradas arrastradas.
 
 ### Drop en área / auto-transferencia
 

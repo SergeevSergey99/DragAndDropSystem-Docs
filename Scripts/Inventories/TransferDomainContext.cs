@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UDND.Core;
 using UDND.DataBinding;
 using UDND.Slots;
@@ -48,6 +50,13 @@ namespace UDND.Inventories
         public bool IsCommitted { get; private set; }
         public TransferKind Kind { get; }
         public TransferDomainContext CounterpartContext { get; internal set; }
+
+        /// <summary>
+        /// All transfers travelling in the opposite direction of this operation. A normal swap
+        /// contains one entry; a multi-swap forward context contains every displaced reverse entry.
+        /// </summary>
+        public IReadOnlyList<TransferDomainContext> CounterpartContexts { get; internal set; }
+            = Array.Empty<TransferDomainContext>();
 
         public void MarkCommitted(BaseSlot targetBaseSlot, IItemAdapter targetItemAdapter, int committedAmount)
         {

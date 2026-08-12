@@ -54,12 +54,17 @@ happens next is controlled by `BlockedTargetResolutionKind`:
 |---|---|
 | `Reject` | The transfer entry fails. Nothing moves. |
 | `FindAlternative` | The strategy provides available candidates, and the configured `PlacementCandidateOrderer` sorts them by priority. |
-| `Swap` | The system attempts a single swap with the occupied target. Both items are validated against the rules of the inventory they land in, so a swap cannot bypass a rule that would refuse a plain drop. |
+| `Swap` | The system attempts a swap with the occupied target. `MultiSwapMode.Single` (default) allows one displaced placement; `PreserveOffsets` lets one shaped entry displace every distinct placement under its footprint. Every item is validated against its actual destination. |
 
 `AllowSameInventoryAlternativePlacement` controls whether `FindAlternative`, when
 moving an item inside the same inventory onto an occupied slot, may choose another
 slot inside that same inventory. If it cannot, the item remains where it was before
 the transfer attempt.
+
+`PreserveOffsets` maps each displaced placement around the source anchor using its
+topology-coordinate offset from the target anchor. Probe and execution use the same resolver, and
+the forward move plus all reverse moves commit atomically. This is one-entry multi-swap, not batch
+swap of several dragged entries.
 
 ### Area Drop / Auto Transfer
 

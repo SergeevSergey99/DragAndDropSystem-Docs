@@ -21,6 +21,9 @@ namespace UDND.Core
         [SerializeField, ShowIf(nameof(ShowAlternativeOrderer))]
         private bool _allowSameInventoryAlternativePlacement = true;
 
+        [SerializeField, ShowIf(nameof(ShowMultiSwapMode))]
+        private MultiSwapMode _multiSwapMode = MultiSwapMode.Single;
+
         [SerializeField] private bool _overrideAllowPartial;
         [SerializeField, ShowIf(nameof(_overrideAllowPartial))]
         private bool _allowPartial = true;
@@ -28,6 +31,10 @@ namespace UDND.Core
         private bool ShowAlternativeOrderer =>
             _overrideBlockedTargetResolution &&
             _blockedTargetResolution == BlockedTargetResolutionKind.FindAlternative;
+
+        private bool ShowMultiSwapMode =>
+            _overrideBlockedTargetResolution &&
+            _blockedTargetResolution == BlockedTargetResolutionKind.Swap;
 
         public DropRequestPolicy? TryBuild()
         {
@@ -46,7 +53,10 @@ namespace UDND.Core
                     ? _allowPartial
                         ? PartialTransferMode.Allow
                         : PartialTransferMode.RequireFull
-                    : (PartialTransferMode?)null);
+                    : (PartialTransferMode?)null,
+                ShowMultiSwapMode
+                    ? _multiSwapMode
+                    : (MultiSwapMode?)null);
         }
     }
 }

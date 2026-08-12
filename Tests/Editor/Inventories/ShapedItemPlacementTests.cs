@@ -1890,6 +1890,174 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void ProcessDrop_MultiSwap_PreserveOffsetsMovesAllDisplacedPlacements()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 3, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 1)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "c"), 2)));
+
+                var sourceSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source)
+                });
+                InventorySwapContext completed = null;
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(0),
+                    target,
+                    new GlobalRuleValidator(),
+                    swapCompleted: value => completed = value);
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                Assert.AreEqual("blade", target.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual(3, target.GetPlacementAt(0).CoveredIndices.Count);
+                Assert.AreEqual("a", source.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("b", source.GetPlacementAt(1).Stack.ID);
+                Assert.AreEqual("c", source.GetPlacementAt(2).Stack.ID);
+                Assert.AreEqual(1, report.EntryResults[0].Outcomes.Count,
+                    "Only the forward entry belongs in the transfer result");
+                Assert.IsNotNull(completed);
+                Assert.AreEqual(3, completed.DisplacedStacks.Count);
+                Assert.AreEqual("a", completed.DisplacedStacks[0].ID);
+                Assert.AreEqual("b", completed.DisplacedStacks[1].ID);
+                Assert.AreEqual("c", completed.DisplacedStacks[2].ID);
+                Assert.AreSame(source.GetSlot(1), completed.DisplacedDestinationSlots[1]);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 3, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 1)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "c"), 2)));
+
+                var sourceSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(0), target, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap());
+
+                Assert.IsFalse(report.Success);
+                Assert.AreEqual("blade", source.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("a", target.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("b", target.GetPlacementAt(1).Stack.ID);
+                Assert.AreEqual("c", target.GetPlacementAt(2).Stack.ID);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void ProcessDrop_MultiSwapReverseRuleUsesActualDestinationSlot()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 3, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 1)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "c"), 2)));
+                source.GetSlot(1).SlotRuleValidator.AddRule(
+                    new ItemIdFilterRule(new[] { "a", "c" }, whitelist: true));
+
+                var sourceSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(0), target, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+
+                Assert.IsFalse(report.Success);
+                Assert.AreEqual("blade", source.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("b", target.GetPlacementAt(1).Stack.ID);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void Probe_MultiSwapReturnsFullForwardFootprint()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 3, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "b"), 1)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "c"), 2)));
+                var sourceSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, source)
+                });
+                var policy = new ResolvedDropPolicy(
+                    BlockedTargetResolutionKind.Swap,
+                    null,
+                    true,
+                    PartialTransferMode.Allow,
+                    MultiSwapMode.PreserveOffsets);
+
+                var probe = new InventoryTransferService().Probe(
+                    context, target, target.GetSlot(0), policy);
+
+                Assert.IsTrue(probe.CanAttempt, probe.FailureReason);
+                CollectionAssert.AreEqual(
+                    new[] { target.GetSlot(0), target.GetSlot(1), target.GetSlot(2) },
+                    probe.CoveredSlots);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
         public void ProcessDrop_CrossTopologySwap_GridToSlot_ExchangesItems()
         {
             // Universal swap across different topologies: a multi-cell item from a grid inventory

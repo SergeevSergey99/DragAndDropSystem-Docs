@@ -57,7 +57,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Models/DragContext.cs` | `DragContext` | Per-drag context containing source entries, target info, and flags for the current operation. |
 | `Scripts/Core/Models/ActionResult.cs` | `ActionResult` | Generic result object for action-style APIs. |
 | `Scripts/Core/Models/DropResult.cs` | `DropResult` | Result object returned by drop processing. |
-| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Event payload types used when transfer and swap notifications are dispatched. |
+| `Scripts/Core/Models/InventoryEvents.cs` | `InventoryItemEventContext`, `InventorySwapContext` | Event payloads for transfer and swap notifications, including ordered plural displacement data for shaped multi-swap. |
 | `Scripts/Slots/SlotHoverEventArgs.cs` | `SlotHoverEventArgs` | Hover event data for slot UI and related systems. |
 
 ---
@@ -71,7 +71,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Specialized processor interface used by request-driven drop handling. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Base class for non-slot drop targets such as inventory areas or world drop zones. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Standard inventory area drop target built on top of `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Models that describe drop behavior: reject, find another slot, swap, and partial transfer. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `MultiSwapMode`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Models that describe drop behavior: reject, find another slot, single/preserve-offset swap, and partial transfer. |
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Settings for occupied targets, alternative placement, and partial transfer. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Serializable authoring helper for one-off drop request overrides in actions and triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Serializable authoring helper for temporary drag-amount overrides when starting a drag. |
@@ -103,7 +103,7 @@ The tables below list every script file and describe the main class, interface, 
 | `Scripts/Inventories/IdentityItemAdapterConverter.cs` | `IdentityItemAdapterConverter` | Pass-through converter used when no model conversion is needed. |
 | `Scripts/Inventories/TransferKind.cs` | `TransferKind` | Enum describing the type of transfer flow being executed. |
 | `Scripts/Inventories/TransferDomainContext.cs` | `TransferDomainContext` | Context object passed into domain handlers. |
-| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Transfer service: processes entries one by one, supports rollback for failed entries, swap, and automatic placement search. |
+| `Scripts/Inventories/InventoryTransferEngine.cs` | `InventoryTransferService`, `TransferEntryRequest` | Transfer service: processes entries one by one, supports rollback, topology-aware atomic multi-swap, and automatic placement search. |
 | `Scripts/Inventories/InventoryTransferService.cs` | `TransferProbe` | Advisory probe result used for preview and acceptance. |
 | `Scripts/Inventories/PlacementCandidate.cs` | `PlacementCandidate`, `PlacementCandidateKind` | Description of a possible placement: merge stack, use an existing slot, or create a dynamic slot. |
 | `Scripts/Inventories/PlacementCandidateOrderer.cs` | placement candidate orderers | Ordering policies used only for automatic placement. |
