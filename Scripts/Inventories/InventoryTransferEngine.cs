@@ -472,9 +472,15 @@ namespace UDND.Inventories
             }
 
             // Single-entry swap path bypasses the candidate-loop machinery after common rules.
+            // A cell "occupied" by the dragged item itself is not a swap target: the source
+            // placement is vacated before the new one lands, so a move or rotation over its own
+            // footprint is an ordinary placement. Such a drop goes through the candidate path
+            // first; if that path finds nothing, the blocked-target switch below still routes it
+            // here, so a self-overlapping footprint that also covers other items still swaps.
             if (request.Policy.BlockedTargetResolution == BlockedTargetResolutionKind.Swap &&
                 hasOwnedTargetSlot &&
-                !request.TargetBaseSlot.IsEmpty)
+                !request.TargetBaseSlot.IsEmpty &&
+                !IsCoveredBySourcePlacement(request, sourceInventory, targetInventory))
                 return TryExecuteSwap(request);
 
             var strategy = (targetInventory as IPlacementInventory)?.Strategy;
@@ -1223,6 +1229,26 @@ namespace UDND.Inventories
         }
 
         // ──── Swap ─────────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// True when the explicit target cell is covered by the placement being dragged, so the
+        /// only thing "blocking" it is the item's own footprint.
+        /// </summary>
+        private static bool IsCoveredBySourcePlacement(
+            TransferEntryRequest request,
+            IInventory sourceInventory,
+            IInventory targetInventory)
+        {
+            if (!ReferenceEquals(sourceInventory, targetInventory) ||
+                targetInventory is not IPlacementInventory placementInventory ||
+                request.TargetBaseSlot == null)
+                return false;
+
+            var sourcePlacement = request.Entry.SourcePlacement
+                ?? placementInventory.GetPlacementAt(request.Entry.SourceBaseSlot);
+            return sourcePlacement != null &&
+                   ReferenceEquals(placementInventory.GetPlacementAt(request.TargetBaseSlot), sourcePlacement);
+        }
 
         private EntryTransferResult TryExecuteSwap(TransferEntryRequest request)
         {

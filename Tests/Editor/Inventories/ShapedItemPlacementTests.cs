@@ -2490,6 +2490,67 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        /// <summary>
+        /// Rotating an item in place over its own footprint. 2x2 grid, a 2x1 item stands vertically
+        /// on cells 0 and 2; grabbed by cell 2 and rotated flat it should land on cells 0 and 1.
+        /// <para>
+        /// The regression this pins: under <see cref="BlockedTargetResolutionKind.Swap"/> the drop
+        /// was routed straight into the swap path because the released cell was "occupied" — by the
+        /// dragged item itself. The swap cannot resolve an item against itself, and that early exit
+        /// had no fallback, so rotating in place silently stopped working the moment an inventory
+        /// switched from FindAlternative to Swap.
+        /// </para>
+        /// </summary>
+        // The released cell differs per anchor strategy: the default rotates the grab offset with
+        // the item, so the grabbed part ends up over cell 1, while SourceGrabOffsetAnchorStrategy
+        // keeps the raw offset and the drop happens over cell 2 — the item's own cell. Both must
+        // behave the same under either blocked-target policy.
+        [TestCase(1, false, false)]
+        [TestCase(1, false, true)]
+        [TestCase(2, true, false)]
+        [TestCase(2, true, true)]
+        public void ProcessDrop_RotateInPlaceOverOwnFootprint_SucceedsUnderEveryBlockedTargetPolicy(
+            int targetSlotIndex,
+            bool sourceGrabOffsetStrategy,
+            bool swapPolicy)
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(2, 2).Build();
+
+            try
+            {
+                if (sourceGrabOffsetStrategy)
+                    inventory.SetShapedPlacementAnchorStrategy(new SourceGrabOffsetAnchorStrategy());
+
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(stack, 0, 1)));
+                CollectionAssert.AreEqual(
+                    new[] { 0, 2 },
+                    inventory.GetPlacementAt(0).CoveredIndices,
+                    "Precondition: the item stands vertically on cells 0 and 2");
+
+                var dragSlot = inventory.GetSlot(2);
+                var entry = new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                    .WithOrientation(0);
+                var context = new DragContext(new[] { entry });
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(targetSlotIndex), inventory, new GlobalRuleValidator());
+
+                var report = swapPolicy
+                    ? processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap())
+                    : processor.ProcessDropWithReport(context);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                var moved = inventory.GetPlacementAt(0);
+                Assert.IsNotNull(moved);
+                Assert.AreEqual(0, moved.Orientation);
+                CollectionAssert.AreEqual(new[] { 0, 1 }, moved.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [Test]
         public void ProcessDrop_ShapedWithinSameGrid_AllowsOverlapWithSourcePlacement()
         {
