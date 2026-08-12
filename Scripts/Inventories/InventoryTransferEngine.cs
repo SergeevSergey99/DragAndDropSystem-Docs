@@ -1414,7 +1414,7 @@ namespace UDND.Inventories
             bool hoveredSourcePlacement =
                 ReferenceEquals(sourceInventory, targetInventory) &&
                 ReferenceEquals(sourcePlacement, hoveredTargetPlacement);
-            if (hoveredSourcePlacement && request.Policy.MultiSwapMode == MultiSwapMode.Single)
+            if (hoveredSourcePlacement && request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement)
             {
                 failureReason = "Swap: source and target are the same placement";
                 return false;
@@ -1439,7 +1439,7 @@ namespace UDND.Inventories
             List<Placement> displaced;
             IReadOnlyList<BaseSlot> forwardCoveredSlots;
 
-            if (request.Policy.MultiSwapMode == MultiSwapMode.Single)
+            if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement)
             {
                 forwardAnchor = targetPlacementInventory.GetSlot(primaryTargetPlacement.AnchorIndex);
                 if (!TryCollectDisplacedPlacements(
@@ -1480,7 +1480,7 @@ namespace UDND.Inventories
                 }
                 primaryTargetPlacement = displaced[0];
             }
-            else if (request.Policy.MultiSwapMode == MultiSwapMode.PreserveOffsets &&
+            else if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.AllCoveredPlacements &&
                      displaced.Count == 1 &&
                      ReferenceEquals(displaced[0], primaryTargetPlacement))
             {
@@ -1503,7 +1503,7 @@ namespace UDND.Inventories
                 return false;
             }
             MovePrimaryFirst(displaced, primaryTargetPlacement);
-            if (request.Policy.MultiSwapMode == MultiSwapMode.Single && displaced.Count > 1)
+            if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement && displaced.Count > 1)
             {
                 failureReason = "Swap: target footprint covers multiple items";
                 return false;

@@ -54,17 +54,25 @@ happens next is controlled by `BlockedTargetResolutionKind`:
 |---|---|
 | `Reject` | The transfer entry fails. Nothing moves. |
 | `FindAlternative` | The strategy provides available candidates, and the configured `PlacementCandidateOrderer` sorts them by priority. |
-| `Swap` | The system attempts a swap with the occupied target. `MultiSwapMode.Single` (default) allows one displaced placement; `PreserveOffsets` lets one shaped entry displace every distinct placement under its footprint. Every item is validated against its actual destination. |
+| `Swap` | The system attempts a swap with the occupied target. `SwapDisplacementMode.SinglePlacement` (default) allows one displaced placement; `AllCoveredPlacements` lets one shaped entry displace every distinct placement under its footprint. Every item is validated against its actual destination. |
 
 `AllowSameInventoryAlternativePlacement` controls whether `FindAlternative`, when
 moving an item inside the same inventory onto an occupied slot, may choose another
 slot inside that same inventory. If it cannot, the item remains where it was before
 the transfer attempt.
 
-`PreserveOffsets` maps each displaced placement around the source anchor using its
+`AllCoveredPlacements` maps each displaced placement around the source anchor using its
 topology-coordinate offset from the target anchor. Probe and execution use the same resolver, and
 the forward move plus all reverse moves commit atomically. This is one-entry multi-swap, not batch
 swap of several dragged entries.
+
+The exception is a same-inventory move where the area being vacated overlaps the footprint the
+incoming item takes. A displaced item that would land under that footprint is pushed on by the swap
+vector and must stay inside the vacated area, otherwise the swap is refused. That shift is computed
+per item, so in this case the displaced items' relative order may not be preserved.
+
+The setting only matters where an item can cover more than one cell: if an item always occupies
+exactly one cell, its footprint can never reach a second placement and both modes behave the same.
 
 ### Area Drop / Auto Transfer
 

@@ -107,7 +107,7 @@ A failed entry restores its source/target snapshots and emits no outcome notific
 
 ## Swap Flow
 
-`MultiSwapMode.Single` keeps one-for-one behavior. With `PreserveOffsets`, one shaped entry may
+`SwapDisplacementMode.SinglePlacement` keeps one-for-one behavior. With `AllCoveredPlacements`, one shaped entry may
 displace every distinct placement covered by its destination footprint; this is not batch swap.
 
 ```text

@@ -70,7 +70,7 @@ Important current detail:
 
 Current flow:
 - transfer service enters swap only for a blocked explicit target and a single full entry
-- `MultiSwapMode.Single` preserves one-for-one behavior; `PreserveOffsets` lets one shaped entry
+- `SwapDisplacementMode.SinglePlacement` preserves one-for-one behavior; `AllCoveredPlacements` lets one shaped entry
   displace every distinct placement under its destination footprint
 - displaced placements land relative to the source anchor using the same topology-coordinate
   offsets they had relative to the target anchor

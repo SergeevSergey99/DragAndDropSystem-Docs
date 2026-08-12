@@ -32,14 +32,21 @@ namespace UDND.Core
         Swap = 2
     }
 
-    /// <summary>How many placements one incoming swap entry may displace.</summary>
-    public enum MultiSwapMode : byte
+    /// <summary>
+    /// How many placements one incoming swap entry may displace.
+    /// <para>
+    /// Only meaningful where an item can cover more than one cell. In an inventory whose items
+    /// always occupy exactly one cell the incoming footprint can never reach a second placement,
+    /// so both values behave identically.
+    /// </para>
+    /// </summary>
+    public enum SwapDisplacementMode : byte
     {
-        /// <summary>Preserve the legacy one-placement swap behavior.</summary>
-        Single = 0,
+        /// <summary>Displace at most the one placement under the target slot.</summary>
+        SinglePlacement = 0,
 
-        /// <summary>Displace every placement covered by the incoming footprint and preserve offsets.</summary>
-        PreserveOffsets = 1
+        /// <summary>Displace every placement the incoming footprint covers.</summary>
+        AllCoveredPlacements = 1
     }
 
     public readonly struct DropRequestPolicy
@@ -49,26 +56,26 @@ namespace UDND.Core
             PlacementCandidateOrderer alternativeOrderer = null,
             bool? allowSameInventoryAlternativePlacement = null,
             PartialTransferMode? partialTransferMode = null,
-            MultiSwapMode? multiSwapMode = null)
+            SwapDisplacementMode? swapDisplacementMode = null)
         {
             BlockedTargetResolution = blockedTargetResolution;
             AlternativeOrderer = alternativeOrderer;
             AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
-            MultiSwapMode = multiSwapMode;
+            SwapDisplacementMode = swapDisplacementMode;
         }
 
         public BlockedTargetResolutionKind? BlockedTargetResolution { get; }
         public PlacementCandidateOrderer AlternativeOrderer { get; }
         public bool? AllowSameInventoryAlternativePlacement { get; }
         public PartialTransferMode? PartialTransferMode { get; }
-        public MultiSwapMode? MultiSwapMode { get; }
+        public SwapDisplacementMode? SwapDisplacementMode { get; }
 
         public static DropRequestPolicy WithReject()
             => new DropRequestPolicy(BlockedTargetResolutionKind.Reject);
 
-        public static DropRequestPolicy WithSwap(MultiSwapMode mode = Core.MultiSwapMode.Single)
-            => new DropRequestPolicy(BlockedTargetResolutionKind.Swap, multiSwapMode: mode);
+        public static DropRequestPolicy WithSwap(SwapDisplacementMode mode = Core.SwapDisplacementMode.SinglePlacement)
+            => new DropRequestPolicy(BlockedTargetResolutionKind.Swap, swapDisplacementMode: mode);
 
         public static DropRequestPolicy WithAlternativeOrderer(
             PlacementCandidateOrderer orderer = null,
@@ -99,7 +106,7 @@ namespace UDND.Core
                 overridingValue.AllowSameInventoryAlternativePlacement ??
                 baseValue.AllowSameInventoryAlternativePlacement,
                 overridingValue.PartialTransferMode ?? baseValue.PartialTransferMode,
-                overridingValue.MultiSwapMode ?? baseValue.MultiSwapMode);
+                overridingValue.SwapDisplacementMode ?? baseValue.SwapDisplacementMode);
         }
     }
 
@@ -122,19 +129,19 @@ namespace UDND.Core
             PlacementCandidateOrderer alternativeOrderer,
             bool allowSameInventoryAlternativePlacement,
             PartialTransferMode partialTransferMode,
-            MultiSwapMode multiSwapMode = Core.MultiSwapMode.Single)
+            SwapDisplacementMode swapDisplacementMode = Core.SwapDisplacementMode.SinglePlacement)
         {
             BlockedTargetResolution = blockedTargetResolution;
             AlternativeOrderer = alternativeOrderer;
             AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
-            MultiSwapMode = multiSwapMode;
+            SwapDisplacementMode = swapDisplacementMode;
         }
 
         public BlockedTargetResolutionKind BlockedTargetResolution { get; }
         public PlacementCandidateOrderer AlternativeOrderer { get; }
         public bool AllowSameInventoryAlternativePlacement { get; }
         public PartialTransferMode PartialTransferMode { get; }
-        public MultiSwapMode MultiSwapMode { get; }
+        public SwapDisplacementMode SwapDisplacementMode { get; }
     }
 }

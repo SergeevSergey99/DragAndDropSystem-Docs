@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UDND.Inventories;
 using UDND.Tools.Inspector;
 
@@ -22,8 +23,11 @@ namespace UDND.Core
         private bool _allowSameInventoryAlternativePlacement = false;
 
         [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.Swap),
-         Tooltip("Allow one incoming item to displace every placement covered by its footprint.")]
-        private MultiSwapMode _multiSwapMode = MultiSwapMode.Single;
+         FormerlySerializedAs("_multiSwapMode"),
+         Tooltip("How many placements one incoming item may displace. " +
+                 "Only affects inventories with multi-cell footprints: where an item always " +
+                 "occupies exactly one cell, both modes behave identically.")]
+        private SwapDisplacementMode _swapDisplacement = SwapDisplacementMode.SinglePlacement;
 
         [SerializeField, Tooltip("Allow partial transfer if only part of one entry fits.")]
         private bool _allowPartial = true;
@@ -37,7 +41,7 @@ namespace UDND.Core
                 requested?.PartialTransferMode ?? (_allowPartial
                     ? PartialTransferMode.Allow
                     : PartialTransferMode.RequireFull),
-                requested?.MultiSwapMode ?? _multiSwapMode);
+                requested?.SwapDisplacementMode ?? _swapDisplacement);
         }
     }
 }

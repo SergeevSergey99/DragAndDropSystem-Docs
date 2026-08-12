@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UDND.Inventories;
 using UDND.Tools.Inspector;
 
@@ -21,8 +22,12 @@ namespace UDND.Core
         [SerializeField, ShowIf(nameof(ShowAlternativeOrderer))]
         private bool _allowSameInventoryAlternativePlacement = true;
 
-        [SerializeField, ShowIf(nameof(ShowMultiSwapMode))]
-        private MultiSwapMode _multiSwapMode = MultiSwapMode.Single;
+        [SerializeField, ShowIf(nameof(ShowSwapDisplacement)),
+         FormerlySerializedAs("_multiSwapMode"),
+         Tooltip("How many placements one incoming item may displace. " +
+                 "Only affects inventories with multi-cell footprints: where an item always " +
+                 "occupies exactly one cell, both modes behave identically.")]
+        private SwapDisplacementMode _swapDisplacement = SwapDisplacementMode.SinglePlacement;
 
         [SerializeField] private bool _overrideAllowPartial;
         [SerializeField, ShowIf(nameof(_overrideAllowPartial))]
@@ -32,7 +37,7 @@ namespace UDND.Core
             _overrideBlockedTargetResolution &&
             _blockedTargetResolution == BlockedTargetResolutionKind.FindAlternative;
 
-        private bool ShowMultiSwapMode =>
+        private bool ShowSwapDisplacement =>
             _overrideBlockedTargetResolution &&
             _blockedTargetResolution == BlockedTargetResolutionKind.Swap;
 
@@ -54,9 +59,9 @@ namespace UDND.Core
                         ? PartialTransferMode.Allow
                         : PartialTransferMode.RequireFull
                     : (PartialTransferMode?)null,
-                ShowMultiSwapMode
-                    ? _multiSwapMode
-                    : (MultiSwapMode?)null);
+                ShowSwapDisplacement
+                    ? _swapDisplacement
+                    : (SwapDisplacementMode?)null);
         }
     }
 }

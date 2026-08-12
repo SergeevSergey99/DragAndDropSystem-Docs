@@ -304,7 +304,7 @@ namespace UDND.Tests.Inventories
 
             var report = processor.ProcessDropWithReport(
                 context,
-                DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+                DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements));
 
             Assert.IsTrue(report.Success, report.FailureReason);
             Assert.AreEqual("blade", _target.GetPlacementAt(0).Stack.ID);

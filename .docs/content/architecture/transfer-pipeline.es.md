@@ -54,17 +54,27 @@ Lo que ocurre después lo define `BlockedTargetResolutionKind`:
 |---|---|
 | `Reject` | La entrada de transferencia falla. No se mueve nada. |
 | `FindAlternative` | La estrategia devuelve candidatos disponibles y el `PlacementCandidateOrderer` configurado los ordena por prioridad. |
-| `Swap` | El sistema intenta un swap con el destino ocupado. `MultiSwapMode.Single` (por defecto) permite desplazar una colocación; `PreserveOffsets` permite que una entrada shaped desplace todas las colocaciones distintas bajo su footprint. Cada objeto se valida contra su destino real. |
+| `Swap` | El sistema intenta un swap con el destino ocupado. `SwapDisplacementMode.SinglePlacement` (por defecto) permite desplazar una colocación; `AllCoveredPlacements` permite que una entrada shaped desplace todas las colocaciones distintas bajo su footprint. Cada objeto se valida contra su destino real. |
 
 `AllowSameInventoryAlternativePlacement` controla si `FindAlternative`, al mover un
 objeto dentro del mismo inventario sobre un slot ocupado, puede elegir otro slot dentro
 de ese mismo inventario. Si no puede, el objeto permanece donde estaba antes del intento
 de transferencia.
 
-`PreserveOffsets` coloca cada objeto desplazado alrededor del anchor de origen conservando su
+`AllCoveredPlacements` coloca cada objeto desplazado alrededor del anchor de origen conservando su
 offset topológico respecto al anchor de destino. Probe y execution comparten el mismo resolver, y
 el movimiento directo junto con todos los movimientos inversos se confirman atómicamente. Es un
 multi-swap de una sola entrada, no un batch swap de varias entradas arrastradas.
+
+La excepción es un movimiento dentro del mismo inventario donde el área que se libera se solapa con
+el footprint que ocupa el objeto entrante. Un objeto desplazado que caería bajo ese footprint se
+empuja según el vector del propio swap y debe permanecer dentro del área liberada; de lo contrario
+el swap se rechaza. Ese desplazamiento se calcula por objeto, así que en este caso el orden relativo
+de los objetos desplazados puede no conservarse.
+
+La opción solo importa donde un objeto puede cubrir más de una celda: si un objeto siempre ocupa
+exactamente una celda, su footprint nunca alcanza una segunda colocación y ambos modos se comportan
+igual.
 
 ### Drop en área / auto-transferencia
 

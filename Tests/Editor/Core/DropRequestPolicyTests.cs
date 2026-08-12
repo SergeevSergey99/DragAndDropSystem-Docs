@@ -33,16 +33,16 @@ namespace UDND.Tests.Core
             Assert.AreEqual(
                 BlockedTargetResolutionKind.Swap,
                 policy.BlockedTargetResolution);
-            Assert.AreEqual(MultiSwapMode.Single, policy.MultiSwapMode);
+            Assert.AreEqual(SwapDisplacementMode.SinglePlacement, policy.SwapDisplacementMode);
         }
 
         [Test]
-        public void WithSwap_PreserveOffsets_StoresMultiSwapMode()
+        public void WithSwap_AllCoveredPlacements_StoresSwapDisplacementMode()
         {
-            var policy = DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets);
+            var policy = DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements);
 
             Assert.AreEqual(BlockedTargetResolutionKind.Swap, policy.BlockedTargetResolution);
-            Assert.AreEqual(MultiSwapMode.PreserveOffsets, policy.MultiSwapMode);
+            Assert.AreEqual(SwapDisplacementMode.AllCoveredPlacements, policy.SwapDisplacementMode);
         }
 
         [Test]
@@ -91,16 +91,16 @@ namespace UDND.Tests.Core
         }
 
         [Test]
-        public void Merge_UnsetMultiSwapMode_KeepsBaseValue()
+        public void Merge_UnsetSwapDisplacementMode_KeepsBaseValue()
         {
-            var basePolicy = DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets);
+            var basePolicy = DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements);
             var overridePolicy = new DropRequestPolicy(
                 null,
                 partialTransferMode: PartialTransferMode.RequireFull);
 
             var merged = DropRequestPolicy.Merge(basePolicy, overridePolicy).Value;
 
-            Assert.AreEqual(MultiSwapMode.PreserveOffsets, merged.MultiSwapMode);
+            Assert.AreEqual(SwapDisplacementMode.AllCoveredPlacements, merged.SwapDisplacementMode);
         }
 
         [Test]

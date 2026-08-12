@@ -37,8 +37,8 @@ Follow the mandatory commands and reporting rules in
 - [ ] a counterpart refusal moves neither item
 - [ ] `Probe` refuses a swap that execution would refuse
 - [ ] failed swap restores both inventories and emits no success events
-- [ ] `MultiSwapMode.Single` rejects a shaped drop that would displace multiple placements
-- [ ] `PreserveOffsets` moves every distinct displaced placement to its source-relative anchor
+- [ ] `SwapDisplacementMode.SinglePlacement` rejects a shaped drop that would displace multiple placements
+- [ ] `AllCoveredPlacements` moves every distinct displaced placement to its source-relative anchor
 - [ ] each displaced item is checked against its actual reverse destination slot
 - [ ] multi-swap callback lists are complete, ordered, and emitted once after atomic commit
 - [ ] multi-swap probe reports the complete forward footprint

@@ -16,15 +16,19 @@ transfer pipeline.
 ## Поведение
 
 ```csharp
-public enum MultiSwapMode : byte
+/// <summary>
+/// How many placements one incoming swap entry may displace.
+/// Only meaningful where an item can cover more than one cell.
+/// </summary>
+public enum SwapDisplacementMode : byte
 {
-    Single = 0,
-    PreserveOffsets = 1
+    SinglePlacement = 0,
+    AllCoveredPlacements = 1
 }
 ```
 
-- `Single` сохраняет текущее поведение и остаётся значением по умолчанию.
-- `PreserveOffsets` разрешает одному входящему placement вытеснить несколько placements.
+- `SinglePlacement` сохраняет текущее поведение и остаётся значением по умолчанию.
+- `AllCoveredPlacements` разрешает одному входящему placement вытеснить несколько placements.
 - Batch drag + Swap остаётся запрещённым: MVP поддерживает один входящий `DragEntry`.
 - Вытесненные предметы не ищут альтернативные места.
 - Любая неудача откатывает весь текущий swap через существующие snapshots.
@@ -76,13 +80,13 @@ A_reverse = A_s + (P - A_t)
 
 ## Этап 1. Policy
 
-Добавить `MultiSwapMode` в:
+Добавить `SwapDisplacementMode` в:
 
 - `DropPolicySettings`;
 - `DropRequestPolicy` как nullable override;
 - `ResolvedDropPolicy`;
 - `DropRequestPolicy.Merge`;
-- `DropRequestPolicy.WithSwap(MultiSwapMode mode = MultiSwapMode.Single)`.
+- `DropRequestPolicy.WithSwap(SwapDisplacementMode mode = SwapDisplacementMode.SinglePlacement)`.
 
 Поле в inspector показывается только при `BlockedTargetResolutionKind.Swap`.
 
@@ -95,17 +99,17 @@ A_reverse = A_s + (P - A_t)
 Минимальные внутренние модели:
 
 ```csharp
-private sealed class ResolvedMultiSwap
+private sealed class ResolvedSwap
 {
     public Placement SourcePlacement;
     public BaseSlot ForwardAnchor;
     public ItemStack ForwardStack;
     public IPlacementShape ForwardShape;
     public int ForwardOrientation;
-    public List<ResolvedDisplacement> Displacements;
+    public List<ResolvedSwapDisplacement> Displacements;
 }
 
-private sealed class ResolvedDisplacement
+private sealed class ResolvedSwapDisplacement
 {
     public Placement Placement;
     public BaseSlot DestinationAnchor;
@@ -121,17 +125,17 @@ Resolver выполняет шаги строго в таком порядке:
 2. Через `TransferConversionSession` получает target-domain adapter входящего предмета.
 3. По target-domain adapter определяет forward shape; orientation нормализует target topology.
 4. Определяет target anchor по режиму:
-   - `Single` всегда использует anchor primary placement под курсором — ровно как текущий swap;
-   - `PreserveOffsets` разрешает hover anchor через тот же `InventoryAcceptanceRequest` и
+   - `SinglePlacement` всегда использует anchor primary placement под курсором — ровно как текущий swap;
+   - `AllCoveredPlacements` разрешает hover anchor через тот же `InventoryAcceptanceRequest` и
      `TryResolveAnchor`, что обычный shaped explicit drop;
-   - если в `PreserveOffsets` hover footprint содержит только primary placement, resolver пробует
+   - если в `AllCoveredPlacements` hover footprint содержит только primary placement, resolver пробует
      legacy anchor. Он принимается только когда повторная проекция даёт тот же displaced set;
      иначе сохраняются hover anchor и исходный набор. Правило терминально, без новых итераций.
 5. Получает все covered target slots и собирает уникальные placements в порядке обхода footprint.
    `HashSet` используется только для дедупликации, не как источник порядка.
 6. Placement непосредственно под `TargetBaseSlot` сохраняется как primary displaced placement для
    обратной совместимости `TargetStack`/`TargetBaseSlot`.
-7. При `Single` и количестве displaced placements больше одного возвращает отказ.
+7. При `SinglePlacement` и количестве displaced placements больше одного возвращает отказ.
 8. Для каждого displaced placement вычисляет фактический destination anchor по формуле
    `A_s + (P - A_t)` через topology source inventory.
 9. Проверяет всю итоговую геометрию без мутаций:
@@ -217,8 +221,8 @@ public IReadOnlyList<TransferDomainContext> CounterpartContexts { get; internal 
 
 | Кейс | Ожидание |
 |---|---|
-| `3×1` на три `1×1`, `PreserveOffsets` | полный swap, порядок `1×1` сохранён |
-| тот же кейс, `Single` | отказ без мутаций |
+| `3×1` на три `1×1`, `AllCoveredPlacements` | полный swap, порядок `1×1` сохранён |
+| тот же кейс, `SinglePlacement` | отказ без мутаций |
 | reverse destination вне bounds или занят | полный отказ и rollback (`ProcessDrop_MultiSwap_ReverseDestinationOutOfBounds_RejectsWithoutMutation`) |
 | same-inventory перекрытие с разным сдвигом | сдвигается только заблокированное назначение; порядок не сохраняется (`ProcessDrop_MultiSwap_SameInventoryOverlap_ShiftsOnlyTheBlockedDisplacement`) |
 | один reverse destination отклонён slot rule | полный отказ; правило получает фактический слот |

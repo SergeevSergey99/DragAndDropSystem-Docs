@@ -80,7 +80,7 @@ Main fields:
 - `AlternativeCandidateOrderer`
 - `AllowSameInventoryAlternative`
 - `PartialTransferMode`
-- `MultiSwapMode`: `Single` (default) or `PreserveOffsets`
+- `SwapDisplacementMode`: `SinglePlacement` (default) or `AllCoveredPlacements`
 
 ## Preview Model
 

@@ -1890,7 +1890,7 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
-        public void ProcessDrop_MultiSwap_PreserveOffsetsMovesAllDisplacedPlacements()
+        public void ProcessDrop_MultiSwap_AllCoveredPlacementsMovesEveryDisplacement()
         {
             var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
             var target = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
@@ -1917,7 +1917,7 @@ namespace UDND.Tests.Inventories
 
                 var report = processor.ProcessDropWithReport(
                     context,
-                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements));
 
                 Assert.IsTrue(report.Success, report.FailureReason);
                 Assert.AreEqual("blade", target.GetPlacementAt(0).Stack.ID);
@@ -1967,7 +1967,7 @@ namespace UDND.Tests.Inventories
                     inventory,
                     new GlobalRuleValidator(),
                     swapCompleted: value => completed = value);
-                var policy = DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets);
+                var policy = DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements);
 
                 var probe = processor.ProbeDrop(context, policy);
                 Assert.IsTrue(probe.CanAttempt, probe.FailureReason);
@@ -2026,7 +2026,7 @@ namespace UDND.Tests.Inventories
 
                 var report = processor.ProcessDropWithReport(
                     context,
-                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements));
 
                 // "wide" anchors at cell 0 while the incoming footprint anchors at cell 1, so its
                 // mirrored destination is one cell before the source anchor — outside the source.
@@ -2079,7 +2079,7 @@ namespace UDND.Tests.Inventories
 
                 var report = processor.ProcessDropWithReport(
                     context,
-                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements));
 
                 Assert.IsTrue(report.Success, report.FailureReason);
                 Assert.AreEqual("blade", inventory.GetPlacementAt(1).Stack.ID);
@@ -2169,7 +2169,7 @@ namespace UDND.Tests.Inventories
 
                 var report = processor.ProcessDropWithReport(
                     context,
-                    DropRequestPolicy.WithSwap(MultiSwapMode.PreserveOffsets));
+                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements));
 
                 Assert.IsFalse(report.Success);
                 Assert.AreEqual("blade", source.GetPlacementAt(0).Stack.ID);
@@ -2205,7 +2205,7 @@ namespace UDND.Tests.Inventories
                     null,
                     true,
                     PartialTransferMode.Allow,
-                    MultiSwapMode.PreserveOffsets);
+                    SwapDisplacementMode.AllCoveredPlacements);
 
                 var probe = new InventoryTransferService().Probe(
                     context, target, target.GetSlot(0), policy);
