@@ -13,7 +13,6 @@ namespace UDND.Tools.Inspector.Editor
             return member != null
                    && (Attribute.IsDefined(member, typeof(FoldoutGroupAttribute), true)
                        || Attribute.IsDefined(member, typeof(ShowIfAttribute), true)
-                       || Attribute.IsDefined(member, typeof(ShowIfOwnerAttribute), true)
                        || Attribute.IsDefined(member, typeof(InfoBoxAttribute), true)
                        || Attribute.IsDefined(member, typeof(RequiredAttribute), true)
                        || Attribute.IsDefined(member, typeof(ReadOnlyAttribute), true)
@@ -33,7 +32,6 @@ namespace UDND.Tools.Inspector.Editor
         {
             AddFoldoutGroup(attributes);
             AddShowIf(attributes);
-            AddShowIfOwner(attributes);
             AddInfoBox(attributes);
             AddRequired(attributes);
             AddReadOnly(attributes);
@@ -71,27 +69,6 @@ namespace UDND.Tools.Inspector.Editor
             }
 
             attributes.Add(new Sirenix.OdinInspector.ShowIfAttribute(attribute.ConditionMemberName, attribute.ExpectedValue));
-        }
-
-        /// <summary>
-        /// Maps every <see cref="ShowIfOwnerAttribute"/> onto an Odin expression rooted at the
-        /// inspected object, since Odin resolves a bare member name against the declaring type and
-        /// would not find a member that lives on the owner.
-        /// </summary>
-        private static void AddShowIfOwner(List<Attribute> attributes)
-        {
-            foreach (Attribute raw in attributes.ToArray())
-            {
-                if (raw is not ShowIfOwnerAttribute attribute ||
-                    string.IsNullOrEmpty(attribute.ConditionMemberName))
-                    continue;
-
-                string expression = "@$root." + attribute.ConditionMemberName;
-                if (!string.IsNullOrEmpty(attribute.ExpectedValue))
-                    expression += ".ToString() == \"" + attribute.ExpectedValue + "\"";
-
-                attributes.Add(new Sirenix.OdinInspector.ShowIfAttribute(expression));
-            }
         }
 
         private static void AddInfoBox(List<Attribute> attributes)

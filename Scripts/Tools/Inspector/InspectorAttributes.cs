@@ -98,41 +98,6 @@ namespace UDND.Tools.Inspector
         }
     }
 
-    /// <summary>
-    /// Shows the field only while a condition on an <em>owning</em> object holds — the object that
-    /// embeds the one declaring this field, or anything further up to the inspected component.
-    /// <para>
-    /// A serializable settings class knows nothing about whoever embeds it, so a condition such as
-    /// "is this inventory a grid?" cannot be expressed with <see cref="ShowIfAttribute"/>, which
-    /// only ever looks beside the field. Kept as a separate attribute deliberately: <c>ShowIf</c> is
-    /// a name other inspector frameworks also use, and it must keep mapping onto them one to one.
-    /// </para>
-    /// <para>
-    /// Several may be stacked, and they combine with <see cref="ShowIfAttribute"/>: the field
-    /// appears only when every condition passes. A member that exists on no ancestor is ignored
-    /// rather than hiding the field, so embedding the same settings class somewhere that does not
-    /// have it stays safe.
-    /// </para>
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = true)]
-    public sealed class ShowIfOwnerAttribute : PropertyAttribute
-    {
-        public string ConditionMemberName { get; }
-        public string ExpectedValue { get; }
-
-        public ShowIfOwnerAttribute(string conditionMemberName)
-        {
-            ConditionMemberName = conditionMemberName;
-        }
-
-        /// <summary>Supports enums and other value types: ShowIfOwner(nameof(Member), MyEnum.Value)</summary>
-        public ShowIfOwnerAttribute(string conditionMemberName, object expectedValue)
-        {
-            ConditionMemberName = conditionMemberName;
-            ExpectedValue = expectedValue?.ToString();
-        }
-    }
-
     [AttributeUsage(AttributeTargets.Field, Inherited = true)]
     public sealed class HideLabelAttribute : PropertyAttribute
     {

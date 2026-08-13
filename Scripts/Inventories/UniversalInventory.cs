@@ -1434,6 +1434,10 @@ namespace UDND.Inventories
         {
             _gridTopology = _gridTopology.Normalized();
 
+            // The drop policy is a plain serializable class and cannot see this component, so it is
+            // handed the owner it belongs to and reads the configuration it needs from there.
+            _dropPolicy?.SetOwner(this);
+
             if (_useGridTopology && _slotManagementSettings is DynamicSlotManagementSettings)
             {
                 Debug.LogError($"[{name}] Grid placement requires fixed slot management. Dynamic slot management was replaced with FixedSlotManagementSettings.");

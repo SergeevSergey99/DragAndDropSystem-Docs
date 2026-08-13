@@ -20,54 +20,6 @@ namespace UDND.Tools.Inspector.Editor
             return Attribute.GetCustomAttribute(field, typeof(T), true) as T;
         }
 
-        public static T[] GetAttributes<T>(SerializedProperty property) where T : Attribute
-        {
-            FieldInfo field = GetFieldInfo(property);
-            return field == null
-                ? Array.Empty<T>()
-                : (T[])Attribute.GetCustomAttributes(field, typeof(T), true);
-        }
-
-        /// <summary>
-        /// Whether the property's visibility conditions all pass: <see cref="ShowIfAttribute"/>
-        /// against the object declaring the field, and <see cref="ShowIfOwnerAttribute"/> against
-        /// the nearest owner that has the member.
-        /// </summary>
-        public static bool PassesShowIfConditions(SerializedProperty property)
-        {
-            var showIf = GetAttribute<ShowIfAttribute>(property);
-            if (showIf != null)
-            {
-                object parent = GetParentObject(property);
-                object value = GetMemberValue(parent, showIf.ConditionMemberName);
-                if (!Matches(value, showIf.ExpectedValue))
-                    return false;
-            }
-
-            var ownerConditions = GetAttributes<ShowIfOwnerAttribute>(property);
-            for (int i = 0; i < ownerConditions.Length; i++)
-            {
-                object value = GetAncestorMemberValue(
-                    property, ownerConditions[i].ConditionMemberName, out bool found);
-
-                // Nothing up the chain declares it: the field is simply not gated by this condition.
-                if (found && !Matches(value, ownerConditions[i].ExpectedValue))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static bool Matches(object value, string expectedValue)
-        {
-            if (value == null)
-                return false;
-
-            return string.IsNullOrEmpty(expectedValue)
-                ? value is bool flag && flag
-                : string.Equals(value.ToString(), expectedValue, StringComparison.Ordinal);
-        }
-
         public static FieldInfo GetFieldInfo(SerializedProperty property)
         {
             if (property == null)
@@ -171,78 +123,6 @@ namespace UDND.Tools.Inspector.Editor
 
             propertyType = resolvedType;
             return propertyType != null;
-        }
-
-        /// <summary>
-        /// Every object on the way to <paramref name="property"/>, nearest first: the object that
-        /// declares the field, then its owner, and so on up to the inspected component.
-        /// <para>
-        /// A serializable settings class knows nothing about whoever embeds it, so a condition it
-        /// wants to test — "is this inventory a grid?" — lives on an ancestor rather than beside it.
-        /// </para>
-        /// </summary>
-        public static IReadOnlyList<object> GetAncestorObjects(SerializedProperty property)
-        {
-            var chain = new List<object>();
-            if (property == null)
-                return chain;
-
-            object current = property.serializedObject.targetObject;
-            string path = property.propertyPath.Replace(".Array.data[", "[");
-            string[] elements = path.Split('.');
-
-            chain.Add(current);
-            for (int i = 0; i < elements.Length - 1; i++)
-            {
-                current = GetPathValue(current, elements[i]);
-                if (current == null)
-                    break;
-                chain.Add(current);
-            }
-
-            chain.Reverse();
-            return chain;
-        }
-
-        /// <summary>
-        /// Reads <paramref name="memberName"/> from the nearest ancestor that declares it.
-        /// <paramref name="found"/> separates "no such member anywhere" from "the member is null":
-        /// a missing member must not silently hide the field it guards.
-        /// </summary>
-        public static object GetAncestorMemberValue(
-            SerializedProperty property,
-            string memberName,
-            out bool found)
-        {
-            found = false;
-            if (string.IsNullOrEmpty(memberName))
-                return null;
-
-            var chain = GetAncestorObjects(property);
-            for (int i = 0; i < chain.Count; i++)
-            {
-                object owner = chain[i];
-                if (owner == null || !HasMember(owner.GetType(), memberName))
-                    continue;
-
-                found = true;
-                return GetMemberValue(owner, memberName);
-            }
-
-            return null;
-        }
-
-        private static bool HasMember(Type type, string memberName)
-        {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            while (type != null)
-            {
-                if (type.GetField(memberName, flags) != null || type.GetProperty(memberName, flags) != null)
-                    return true;
-                type = type.BaseType;
-            }
-
-            return false;
         }
 
         public static object GetParentObject(SerializedProperty property)
@@ -1135,7 +1015,20 @@ namespace UDND.Tools.Inspector.Editor
 
         private bool ShouldShowProperty(SerializedProperty property)
         {
-            return InspectorReflectionUtility.PassesShowIfConditions(property);
+            ShowIfAttribute showIf = InspectorReflectionUtility.GetAttribute<ShowIfAttribute>(property);
+            if (showIf == null)
+                return true;
+
+            object parent = InspectorReflectionUtility.GetParentObject(property);
+            object conditionValue = InspectorReflectionUtility.GetMemberValue(parent, showIf.ConditionMemberName);
+
+            if (conditionValue == null)
+                return false;
+
+            if (string.IsNullOrEmpty(showIf.ExpectedValue))
+                return conditionValue is bool boolValue && boolValue;
+
+            return string.Equals(conditionValue.ToString(), showIf.ExpectedValue, StringComparison.Ordinal);
         }
 
         private void DrawShowInInspectorMembers()
@@ -1441,30 +1334,6 @@ namespace UDND.Tools.Inspector.Editor
     }
 #endif
 
-    /// <summary>
-    /// Draws fields guarded by <see cref="ShowIfOwnerAttribute"/>. Unity picks a single drawer per
-    /// field, so this and <see cref="ShowIfPropertyDrawer"/> both evaluate every condition on the
-    /// field rather than only the attribute that happened to select the drawer.
-    /// </summary>
-    [CustomPropertyDrawer(typeof(ShowIfOwnerAttribute))]
-    public sealed class ShowIfOwnerPropertyDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            if (!InspectorReflectionUtility.PassesShowIfConditions(property))
-                return;
-
-            EditorGUI.PropertyField(position, property, label, true);
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return InspectorReflectionUtility.PassesShowIfConditions(property)
-                ? EditorGUI.GetPropertyHeight(property, label, true)
-                : -EditorGUIUtility.standardVerticalSpacing;
-        }
-    }
-
     [CustomPropertyDrawer(typeof(ShowIfAttribute))]
     public sealed class ShowIfPropertyDrawer : PropertyDrawer
     {
@@ -1483,11 +1352,21 @@ namespace UDND.Tools.Inspector.Editor
                 : -EditorGUIUtility.standardVerticalSpacing;
         }
 
-        // A field may also carry ShowIfOwner conditions, and Unity gives it only one drawer, so the
-        // check reads every condition off the field instead of trusting this drawer's own attribute.
         private bool ShouldShow(SerializedProperty property)
         {
-            return InspectorReflectionUtility.PassesShowIfConditions(property);
+            var showIf = (ShowIfAttribute)attribute;
+            object parent = InspectorReflectionUtility.GetParentObject(property);
+            object conditionValue = InspectorReflectionUtility.GetMemberValue(parent, showIf.ConditionMemberName);
+
+            if (conditionValue == null)
+                return false;
+
+            if (string.IsNullOrEmpty(showIf.ExpectedValue))
+            {
+                return conditionValue is bool boolValue && boolValue;
+            }
+
+            return string.Equals(conditionValue.ToString(), showIf.ExpectedValue, StringComparison.Ordinal);
         }
     }
 
