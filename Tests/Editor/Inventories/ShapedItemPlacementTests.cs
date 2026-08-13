@@ -2481,6 +2481,78 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        /// <summary>
+        /// The same situation mirrored into the lower half of the board: "a" stands on {3,6}, the
+        /// L-shaped "b" occupies {4,7,8}, and cells 7 and 8 refuse "a". Moving "b" onto {3,6,7}
+        /// leaves two equally close positions for "a" — {1,4} and {5,8} — and only the rule on
+        /// cell 8, which no candidate anchors on, separates them.
+        /// </summary>
+        [TestCase(PartialOverlapSwapMode.WithDragOffset, false)]
+        [TestCase(PartialOverlapSwapMode.VacatedArea, true)]
+        public void ProcessDrop_Swap_DisplacedItemObeysRulesOnEveryCoveredCell_Mirrored(
+            PartialOverlapSwapMode partialOverlap,
+            bool expectSuccess)
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("a", 2, 1)), 3, 1)));
+                var lShape = new TestPlacementShape(
+                    new Vector2Int(0, 0), new Vector2Int(0, 1), new Vector2Int(1, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("b", lShape)), 4)));
+
+                CollectionAssert.AreEqual(new[] { 3, 6 }, inventory.GetPlacementAt(3).CoveredIndices);
+                CollectionAssert.AreEqual(new[] { 4, 7, 8 }, inventory.GetPlacementAt(4).CoveredIndices);
+
+                foreach (int index in new[] { 7, 8 })
+                {
+                    inventory.GetSlot(index).SlotRuleValidator.AddRule(
+                        new ItemIdFilterRule(new[] { "a" }, whitelist: false));
+                }
+
+                // Grabbed by its anchor cell, so hovering cell 3 puts "b" on {3,6,7}.
+                var dragSlot = inventory.GetSlot(4);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                });
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(3), inventory, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements, partialOverlap));
+
+                Assert.AreEqual(expectSuccess, report.Success, report.EntryResults[0].FailureReason);
+
+                if (!expectSuccess)
+                {
+                    CollectionAssert.AreEqual(new[] { 3, 6 }, inventory.GetPlacementAt(3).CoveredIndices);
+                    CollectionAssert.AreEqual(new[] { 4, 7, 8 }, inventory.GetPlacementAt(4).CoveredIndices);
+                    return;
+                }
+
+                var b = inventory.GetPlacementAt(3);
+                Assert.AreEqual("b", b.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 3, 6, 7 }, b.CoveredIndices);
+
+                var a = inventory.GetPlacementAt(1);
+                Assert.AreEqual("a", a.Stack.ID);
+                CollectionAssert.AreEqual(
+                    new[] { 1, 4 },
+                    a.CoveredIndices,
+                    "The {5,8} position is just as close, but cell 8 forbids the item");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [Test]
         public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
         {
