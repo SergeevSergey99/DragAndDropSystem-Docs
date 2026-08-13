@@ -193,8 +193,10 @@ Resolver выполняет шаги строго в таком порядке:
    - reverse footprints не пересекаются друг с другом;
    - остальные placements продолжают блокировать размещение.
 10. Конвертирует каждый displaced stack в source domain через ту же conversion session.
-11. Для каждого displaced item проверяет start/drop rules против его реального
-    `DestinationAnchor`, а не общего source slot.
+11. Проверяет правила по фактическим слотам, а не по клетке под курсором:
+    - входящий предмет — против разрешённого якоря (вызывающий код успел проверить его только
+      против курсорной клетки, а у многоклеточного следа это разные слоты);
+    - каждый вытесненный — против своего реального `DestinationAnchor`, а не общего source slot.
 12. Создаёт forward domain context и по одному reverse domain context на displacement; каждый
     context содержит фактический planned target slot.
 

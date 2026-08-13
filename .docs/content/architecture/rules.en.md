@@ -137,8 +137,9 @@ Specific validation points:
 2. **Target validation** --- global + inventory + slot rules of the target.
 3. **Swap** --- rules are validated in both directions (A&rarr;B and B&rarr;A). The item coming back
    from the target must be allowed to leave its slot and to enter the source slot, so a swap cannot
-   place an item where a plain drop would be refused. In `AllCoveredPlacements` multi-swap, this check
-   runs separately for every displaced placement and its actual reverse destination slot.
+   place an item where a plain drop would be refused. The check follows the actual slots rather than
+   the cell under the pointer: the incoming item is judged at its resolved anchor, and every
+   displaced item at its real destination slot.
 
 ### Which Form Of The Item A Rule Receives
 

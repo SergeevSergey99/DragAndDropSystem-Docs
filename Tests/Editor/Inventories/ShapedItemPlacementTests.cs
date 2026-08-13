@@ -2272,6 +2272,54 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        /// <summary>
+        /// The incoming item's own slot rules must be judged where it lands, not where the pointer
+        /// happens to be. Grabbing a 2x1 by its right cell puts the pointer one cell away from the
+        /// anchor, so a rule on the anchor cell decides the swap even though the pointer never
+        /// touches it.
+        /// </summary>
+        [Test]
+        public void ProcessDrop_Swap_ForwardRuleUsesTheResolvedAnchorSlot()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+            var target = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(ItemStackBuilder.Unique(1, "a"), 1)));
+
+                // Cell 0 of the target accepts only "a", so the blade must not land there.
+                target.GetSlot(0).SlotRuleValidator.AddRule(
+                    new ItemIdFilterRule(new[] { "a" }, whitelist: true));
+
+                // Grabbed by its right cell, so hovering cell 1 anchors the blade at cell 0.
+                var dragSlot = source.GetSlot(1);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(1), target, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements,
+                        PartialOverlapSwapMode.WithDragOffset));
+
+                Assert.IsFalse(report.Success, "The anchor cell refuses the blade, so the swap must not happen");
+                Assert.AreEqual("blade", source.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("a", target.GetPlacementAt(1).Stack.ID);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
         [Test]
         public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
         {

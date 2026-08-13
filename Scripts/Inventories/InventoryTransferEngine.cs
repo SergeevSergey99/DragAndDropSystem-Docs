@@ -1508,6 +1508,24 @@ namespace UDND.Inventories
                 return false;
             }
 
+            // The caller judged the drop against the cell under the pointer, which for a multi-cell
+            // footprint is not where the item anchors. Judge it again where it will actually land,
+            // exactly as the counterpart is judged against its real destination.
+            if (!ReferenceEquals(forwardAnchor, targetSlot))
+            {
+                var forwardRules = new RuleEvaluationService().ValidateEntryDrop(
+                    request.Context.WithTarget(forwardAnchor, targetInventory),
+                    entry,
+                    request.GlobalRules);
+                if (!forwardRules.IsValid)
+                {
+                    failureReason = string.IsNullOrEmpty(forwardRules.FailureReason)
+                        ? "Swap: drop rules rejected the item at its anchor"
+                        : $"Swap: {forwardRules.FailureReason}";
+                    return false;
+                }
+            }
+
             // The pointer may rest on a cell the footprint covers but that belongs to nothing, or to
             // the dragged item itself. Then the first displaced placement in footprint order stands
             // in as the primary one, so the legacy single-swap fields always describe a real item.
