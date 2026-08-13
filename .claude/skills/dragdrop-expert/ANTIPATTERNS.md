@@ -12,7 +12,7 @@ Comprehensive catalog of anti-patterns and how to avoid them.
 
 **Solution**: Use existing `DragContext.SourceSlot` to check if slot is in use.
 
-**Check**: `Scripts/Core/DragContext.cs` for what's already tracked.
+**Check**: `Scripts/Core/Models/DragContext.cs` for what's already tracked.
 
 ---
 

@@ -23,6 +23,29 @@ namespace UDND.Inventories
         public Placement GetPlacementAt(BaseSlot slot)
             => _placementInventory?.GetPlacementAt(slot);
 
+        internal static IPlacementShape ResolveTargetShape(InventoryAcceptanceRequest request)
+        {
+            if (request == null)
+                return null;
+
+            return PlacementShapeUtility.Resolve(request.ItemAdapter)
+                ?? request.SourceEntry?.Shape;
+        }
+
+        internal static int ResolveTargetOrientation(
+            IInventory targetInventory,
+            InventoryAcceptanceRequest request)
+        {
+            if (request?.SourceEntry is not DragEntry entry)
+                return 0;
+
+            var targetTopology = (targetInventory as IPlacementInventory)?.Topology;
+            return OrientationStepUtility.Project(
+                entry.OrientationTopology,
+                entry.Orientation,
+                targetTopology);
+        }
+
         public bool TryResolveAnchor(
             BaseSlot targetSlot,
             InventoryAcceptanceRequest request,
@@ -35,15 +58,19 @@ namespace UDND.Inventories
             if (request?.SourceEntry is DragEntry entry &&
                 _placementInventory is IShapedDragTargetResolver resolver &&
                 !PlacementShapeUtility.IsSingleCell(
-                    PlacementShapeUtility.Resolve(request.ItemAdapter) ?? entry.Shape,
-                    entry.Orientation,
+                    ResolveTargetShape(request),
+                    ResolveTargetOrientation(Inventory, request),
                     _placementInventory.Topology))
             {
-                var targetShape = PlacementShapeUtility.Resolve(request.ItemAdapter) ?? entry.Shape;
+                var targetShape = ResolveTargetShape(request);
+                int targetOrientation = ResolveTargetOrientation(Inventory, request);
+                var targetEntry = entry.WithOrientation(
+                    targetOrientation,
+                    _placementInventory.Topology);
                 if (!resolver.TryResolveShapedPlacementAnchor(
                         targetSlot,
                         request.Context,
-                        entry,
+                        targetEntry,
                         targetShape,
                         request.ItemAdapter,
                         out _,

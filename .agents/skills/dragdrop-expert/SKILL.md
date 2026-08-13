@@ -4,14 +4,15 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 ---
 # DragAndDrop Expert Guide
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-13
 **Version**: 3.1
 
 ## Expert Baseline
 
 1. Keep drag state in `DragContext`; avoid ad-hoc lock flags.
 2. Keep behavior policy-driven (`DropRequestPolicy` / `DropPolicySettings` / `ResolvedDropPolicy`).
-3. Keep transfer decisions just-in-time; do not introduce a materialized plan or virtual inventory state.
+3. Keep regular transfer decisions just-in-time. Atomic multi-swap may resolve only its bounded
+   displacement set before mutation; do not introduce a transfer-wide planner or virtual inventory.
 4. Keep explicit-target validation in `IStrategy.TryGetCandidate(...)`.
 5. Use `IStrategy.GetCandidates(...)` plus an orderer only for automatic distribution.
 6. Keep swap in the main transfer service, not parallel resolver/strategy branches.
@@ -49,9 +50,9 @@ description: Expert guidance for reviewing and extending UniversalDragAndDrop wi
 ## Critical Files
 
 - `Scripts/Core/Drop/DropPolicy.cs`
-- `Scripts/Core/DragContext.cs`
+- `Scripts/Core/Models/DragContext.cs`
 - `Scripts/Inventories/InventoryDropProcessor.cs`
-- `Scripts/Inventories/InventoryTransferService.cs`
+- `Scripts/Inventories/InventoryTransferEngine.cs`
 - `Scripts/Inventories/Strategies/IStrategy.cs`
 - `Scripts/Inventories/PlacementCandidate.cs`
 - `Scripts/Inventories/PlacementCandidateOrderer.cs`

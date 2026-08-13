@@ -13,7 +13,7 @@ Core drag & drop uses one just-in-time transfer pipeline:
 
 1. `DropRequestPolicy` / `DropPolicySettings` / `ResolvedDropPolicy` (`Scripts/Core/Drop/DropPolicy.cs`, `Scripts/Core/Drop/DropPolicySettings.cs`) - resolves runtime request + inventory defaults into final behavior.
 2. `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`) - resolves policy and starts the transfer.
-3. `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`) - processes entries sequentially against current inventory state.
+3. `InventoryTransferService` (`Scripts/Inventories/InventoryTransferEngine.cs`) - processes entries sequentially against current inventory state.
 4. `IStrategy` (`Scripts/Inventories/Strategies/IStrategy.cs`) - validates explicit targets and enumerates placement candidates.
 5. `PlacementCandidateOrderer` (`Scripts/Inventories/PlacementCandidateOrderer.cs`) - orders candidates only for automatic distribution.
 6. `InventoryAcceptanceRequest` and `TransferItemConversionUtility` - provide target-aware, non-mutating preview data.
@@ -41,7 +41,7 @@ Main benefits:
 - `InventoryDropProcessor` (`Scripts/Inventories/InventoryDropProcessor.cs`)
   - inventory-drop entry point and policy boundary
   - exposes the last advisory `TransferProbe` used by `CanAcceptDrop`
-- `InventoryTransferService` (`Scripts/Inventories/InventoryTransferService.cs`)
+- `InventoryTransferService` (`Scripts/Inventories/InventoryTransferEngine.cs`)
   - performs conversion, validation, placement, swap, rollback of a failed entry, and result aggregation
 - `IStrategy`
   - `TryGetCandidate(...)` validates a selected slot or placement area

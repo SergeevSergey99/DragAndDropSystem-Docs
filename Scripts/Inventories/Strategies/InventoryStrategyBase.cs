@@ -113,9 +113,10 @@ namespace UDND.Inventories
                     request))
                 yield break;
 
-            var entry = request.SourceEntry;
-            var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
-            var orientation = entry?.Orientation ?? 0;
+            var shape = InventoryPlacementGeometry.ResolveTargetShape(request);
+            var orientation = InventoryPlacementGeometry.ResolveTargetOrientation(
+                geometry.Inventory,
+                request);
             yield return PlacementCandidate.NewDynamicSlot(
                 orientation,
                 shape,
@@ -152,9 +153,10 @@ namespace UDND.Inventories
                 !geometry.TryResolveAnchor(targetBaseSlot, request, out var anchor))
                 return false;
 
-            var entry = request.SourceEntry;
-            var shape = entry?.Shape ?? PlacementShapeUtility.Resolve(request.ItemAdapter);
-            var orientation = entry?.Orientation ?? 0;
+            var shape = InventoryPlacementGeometry.ResolveTargetShape(request);
+            var orientation = InventoryPlacementGeometry.ResolveTargetOrientation(
+                geometry.Inventory,
+                request);
             var previewStack = request.CreatePreviewStack(capacity);
             var sourcePlacement = GetSourcePlacement(geometry, request);
             bool movesWholeRemainingStack =

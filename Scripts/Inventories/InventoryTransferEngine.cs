@@ -51,7 +51,8 @@ namespace UDND.Inventories
 
     /// <summary>
     /// JIT transfer service: resolves candidates against the real inventory state and mutates it
-    /// directly through narrow placement primitives. No materialized plan, no virtual occupancy.
+    /// directly through narrow placement primitives. Regular entries are not preplanned; atomic
+    /// multi-swap is the bounded exception and resolves only its displacement set before mutation.
     /// Each entry is its own transaction: a failed entry restores source and target snapshots,
     /// events/DataBinding notifications are dispatched only after the entry commits.
     /// </summary>
@@ -1471,7 +1472,10 @@ namespace UDND.Inventories
 
             var forwardShape = PlacementShapeUtility.Resolve(forwardStack.PrimaryAdapter)
                 ?? sourcePlacement.Shape;
-            int forwardOrientation = targetPlacementInventory.Topology.NormalizeOrientation(entry.Orientation);
+            int forwardOrientation = OrientationStepUtility.Project(
+                entry.OrientationTopology,
+                entry.Orientation,
+                targetPlacementInventory.Topology);
             var geometry = new InventoryPlacementGeometry(targetInventory);
             BaseSlot forwardAnchor;
             List<Placement> displaced;
@@ -1536,7 +1540,6 @@ namespace UDND.Inventories
             // in as the primary one, so the legacy single-swap fields always describe a real item.
             if (!ContainsPlacement(displaced, primaryTargetPlacement))
                 primaryTargetPlacement = displaced[0];
-            MovePrimaryFirst(displaced, primaryTargetPlacement);
             if (request.Policy.SwapDisplacementMode == SwapDisplacementMode.SinglePlacement && displaced.Count > 1)
             {
                 failureReason = "Swap: target footprint covers multiple items";
@@ -1603,9 +1606,12 @@ namespace UDND.Inventories
             // item looks when the mode searches rather than trusting the grab offset.
             if (partialOverlap == PartialOverlapSwapMode.VacatedArea)
                 PrepareDisplacementSearch(resolved, displaced);
-            for (int i = 0; i < displaced.Count; i++)
+            var displacementResolutionOrder = CreateDisplacementResolutionOrder(
+                displaced,
+                partialOverlap);
+            for (int i = 0; i < displacementResolutionOrder.Count; i++)
             {
-                var placement = displaced[i];
+                var placement = displacementResolutionOrder[i];
                 var desiredDestinationCell = sourcePlacement.AnchorCell +
                     (placement.AnchorCell - targetAnchorCell);
 
@@ -1691,6 +1697,11 @@ namespace UDND.Inventories
                         }
                 }
             }
+
+            // Primary is a legacy callback projection, not a placement priority. Reorder only after
+            // every destination has been resolved so the cell under the pointer cannot change which
+            // displacement gets first claim on the vacated area.
+            MovePrimaryFirst(resolved.Displacements, primaryTargetPlacement);
 
             if (!ValidateResolvedSwapGeometry(resolved, out failureReason))
             {
@@ -2026,14 +2037,54 @@ namespace UDND.Inventories
             return false;
         }
 
-        private static void MovePrimaryFirst(List<Placement> placements, Placement primary)
+        /// <summary>
+        /// Produces a deterministic mutation-independent resolution order. Vacated-area placement
+        /// is greedy by policy, so larger footprints go first to avoid a one-cell item fragmenting
+        /// the only region that can hold a later shaped item. Equal-size placements retain topology
+        /// traversal order.
+        /// </summary>
+        private static List<Placement> CreateDisplacementResolutionOrder(
+            IReadOnlyList<Placement> placements,
+            PartialOverlapSwapMode partialOverlap)
         {
-            for (int i = 0; i < placements.Count; i++)
+            var result = placements == null
+                ? new List<Placement>()
+                : new List<Placement>(placements);
+            if (partialOverlap != PartialOverlapSwapMode.VacatedArea)
+                return result;
+
+            // Stable insertion sort: displacement counts are normally tiny, and avoiding a
+            // comparer allocation matters because the same resolver also runs during Probe.
+            for (int i = 1; i < result.Count; i++)
             {
-                if (!ReferenceEquals(placements[i], primary) || i == 0)
+                var current = result[i];
+                int currentSize = current?.CoveredIndices?.Count ?? 0;
+                int destination = i;
+                while (destination > 0)
+                {
+                    int previousSize = result[destination - 1]?.CoveredIndices?.Count ?? 0;
+                    if (previousSize >= currentSize)
+                        break;
+                    result[destination] = result[destination - 1];
+                    destination--;
+                }
+                result[destination] = current;
+            }
+
+            return result;
+        }
+
+        private static void MovePrimaryFirst(
+            List<ResolvedSwapDisplacement> displacements,
+            Placement primary)
+        {
+            for (int i = 0; i < displacements.Count; i++)
+            {
+                if (!ReferenceEquals(displacements[i].Placement, primary) || i == 0)
                     continue;
-                placements.RemoveAt(i);
-                placements.Insert(0, primary);
+                var primaryDisplacement = displacements[i];
+                displacements.RemoveAt(i);
+                displacements.Insert(0, primaryDisplacement);
                 return;
             }
         }

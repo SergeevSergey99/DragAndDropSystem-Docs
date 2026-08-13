@@ -528,6 +528,22 @@ namespace UDND.Tests.Inventories
         }
 
         [Test]
+        public void OrientationProjection_PreservesVisualAngleAcrossTopologies()
+        {
+            IInventoryTopology sixStep = new SixStepTestTopology();
+            IInventoryTopology rectGrid = new RectGridTopology(3, 3);
+
+            Assert.AreEqual(
+                1,
+                OrientationStepUtility.Project(sixStep, 2, rectGrid),
+                "Six-step orientation 2 is -120 degrees and must project to the nearest rect-grid step, not raw step 2");
+            Assert.AreEqual(
+                2,
+                OrientationStepUtility.Project(rectGrid, 1, sixStep),
+                "Rect-grid orientation 1 is -90 degrees and must project through the visual angle");
+        }
+
+        [Test]
         public void SlotTopology_TryToIndex_UsesOneDimensionalCells()
         {
             IInventoryTopology topology = new SlotTopology(3);
@@ -1077,6 +1093,50 @@ namespace UDND.Tests.Inventories
                 Assert.IsTrue(canPlace);
                 CollectionAssert.AreEqual(
                     new[] { 0, 1, 3, 4 },
+                    previewSlots.Select(slot => slot.Index).ToArray());
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [Test]
+        public void DropPreview_CrossTopologyOrientation_MatchesTargetProjection()
+        {
+            var source = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+            var target = new InventoryBuilder()
+                .WithFixedSlots(9)
+                .WithGridTopology(3, 3)
+                .Build();
+
+            try
+            {
+                var stack = ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1));
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(stack, 0), out var placement));
+
+                var entry = new DragEntry(
+                    stack.CreateCopy(),
+                    source.GetSlot(0),
+                    source,
+                    placement,
+                    orientation: 2,
+                    orientationTopology: new SixStepTestTopology());
+                var context = new DragContext(new[] { entry });
+
+                Assert.IsTrue(target.TryGetDropPreviewSlots(
+                    target.GetSlot(4),
+                    context,
+                    out var previewSlots,
+                    out bool canPlace));
+
+                Assert.IsTrue(canPlace);
+                CollectionAssert.AreEqual(
+                    new[] { 4, 7 },
                     previewSlots.Select(slot => slot.Index).ToArray());
             }
             finally
@@ -2164,6 +2224,63 @@ namespace UDND.Tests.Inventories
             finally
             {
                 InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        /// <summary>
+        /// The same incoming 3x1 footprint covers a one-cell item and a 2x1 item. If the one-cell
+        /// item receives the vacated middle cell first, the bar no longer fits even though the valid
+        /// packing {single: 0, bar: 1-2} exists. Which target placement is primary depends on the
+        /// grabbed cell, but primary is callback metadata and must not influence resolution order.
+        /// </summary>
+        [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        public void ProcessDrop_MultiSwap_VacatedAreaMixedShapes_IsIndependentOfGrabbedCell(
+            int grabSlotIndex,
+            int targetSlotIndex)
+        {
+            var source = new InventoryBuilder().WithFixedSlots(3).WithGridTopology(3, 1).Build();
+            var target = new InventoryBuilder().WithFixedSlots(4).WithGridTopology(4, 1).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 3, 1)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Unique(1, "single"), 1)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bar", 2, 1)), 2)));
+
+                var dragSlot = source.GetSlot(grabSlotIndex);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(targetSlotIndex), target, new GlobalRuleValidator());
+                var policy = DropRequestPolicy.WithSwap(
+                    SwapDisplacementMode.AllCoveredPlacements,
+                    PartialOverlapSwapMode.VacatedArea);
+
+                var probe = processor.ProbeDrop(context, policy);
+                Assert.IsTrue(probe.CanAttempt, probe.FailureReason);
+
+                var report = processor.ProcessDropWithReport(context, policy);
+
+                Assert.IsTrue(report.Success, report.FailureReason);
+                CollectionAssert.AreEqual(
+                    new[] { 0, 1, 2 },
+                    target.GetPlacementAt(0).CoveredIndices);
+                Assert.AreEqual("single", source.GetPlacementAt(0).Stack.ID);
+                Assert.AreEqual("bar", source.GetPlacementAt(1).Stack.ID);
+                CollectionAssert.AreEqual(
+                    new[] { 1, 2 },
+                    source.GetPlacementAt(1).CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
             }
         }
 

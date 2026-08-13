@@ -114,7 +114,12 @@ namespace UDND.Inventories
             }
 
             var shape = PlacementShapeUtility.Resolve(targetItem);
-            var offsets = _inventory.Topology.GetPlacementOffsets(shape, entry.Orientation);
+            int targetOrientation = OrientationStepUtility.Project(
+                entry.OrientationTopology,
+                entry.Orientation,
+                _inventory.Topology);
+            var targetEntry = entry.WithOrientation(targetOrientation, _inventory.Topology);
+            var offsets = _inventory.Topology.GetPlacementOffsets(shape, targetOrientation);
             if (offsets == null || offsets.Count <= 1)
             {
                 previewSlots = new[] { targetBaseSlot };
@@ -124,7 +129,7 @@ namespace UDND.Inventories
             if (!_anchorResolver.TryResolveShapedPlacementAnchorCell(
                     targetBaseSlot,
                     context,
-                    entry,
+                    targetEntry,
                     shape,
                     targetItem,
                     out var anchorCell))
@@ -133,7 +138,7 @@ namespace UDND.Inventories
                 return true;
             }
 
-            var coveredIndices = GetPreviewCoveredCells(anchorCell, shape, entry.Orientation);
+            var coveredIndices = GetPreviewCoveredCells(anchorCell, shape, targetOrientation);
             if (coveredIndices == null || coveredIndices.Count == 0)
             {
                 previewSlots = new[] { targetBaseSlot };

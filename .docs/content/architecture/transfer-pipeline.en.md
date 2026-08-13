@@ -94,7 +94,9 @@ offset implies; if that does not fit, the swap is refused.
 
 `VacatedArea` allows the partial overlap and searches for a position, preferring the cells the swap
 frees, then positions leaning on them with the most cells, and only then proximity to where the grab
-offset pointed. The search is greedy, per item, with no backtracking.
+offset pointed. The search is greedy, per item, with no backtracking. Larger displaced footprints
+are resolved first; the primary placement is moved to the front only in callback payloads, so the
+cell under the cursor cannot change which item claims the vacated area first.
 
 ### Area Drop / Auto Transfer
 

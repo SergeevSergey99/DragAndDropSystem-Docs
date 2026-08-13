@@ -1,6 +1,6 @@
 # Testing Scenarios
 
-**Last Updated**: 2026-08-12
+**Last Updated**: 2026-08-13
 
 Follow the mandatory commands and reporting rules in
 [Compilation And Test Verification](../VERIFICATION.md).
@@ -42,6 +42,8 @@ Follow the mandatory commands and reporting rules in
 - [ ] each displaced item is checked against its actual reverse destination slot
 - [ ] multi-swap callback lists are complete, ordered, and emitted once after atomic commit
 - [ ] multi-swap probe reports the complete forward footprint
+- [ ] `VacatedArea` resolution is independent of which covered cell was grabbed
+- [ ] mixed-size displacements resolve larger footprints before one-cell items fragment the free area
 
 ## Adapter Domain And Conversion
 
@@ -53,6 +55,12 @@ Follow the mandatory commands and reporting rules in
 - [ ] committed entries are consumed and never handed out again during the same drag
 - [ ] a converter that changes only some instances of a stack still yields a fully converted stack
 - [ ] code-driven transfers work with no session at all
+- [ ] regular explicit and automatic transfers commit the target-domain footprint after conversion
+
+## Orientation Projection
+
+- [ ] cross-topology transfers preserve visual angle rather than reusing a topology-local step number
+- [ ] forward and reverse swap directions use the same angle-based projection rule
 
 ## Stack Slicing
 

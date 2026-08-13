@@ -4,7 +4,7 @@
 
 ## 1. DragContext Is Runtime Source of Truth
 
-`Scripts/Core/DragContext.cs`
+`Scripts/Core/Models/DragContext.cs`
 
 - contains drag entry data, source and target hints
 - must be treated as ephemeral runtime state

@@ -7,7 +7,7 @@ description: Instructions for maintaining and updating Claude skills when the Dr
 
 **Purpose**: Keep Claude skills synchronized with codebase changes
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-13
 
 **When to use this skill**:
 - After implementing major architectural changes
@@ -137,7 +137,7 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 
 **Key files to monitor**:
 - `Scripts/DragAndDropManager.cs` - Core orchestrator
-- `Scripts/Core/DragContext.cs` - State management
+- `Scripts/Core/Models/DragContext.cs` - State management
 - `Scripts/Inventories/UniversalInventory.cs` - Main inventory
 - `Scripts/Inventories/Strategies/` - Strategy implementations
 - `Scripts/Inventories/InventoryAcceptanceRequest.cs` - Context-aware preview request
@@ -147,7 +147,6 @@ grep -r "public.*interface\|public.*class" Scripts/Core/ Scripts/Inventories/ Sc
 - `Scripts/Inventories/DropPreviewController.cs` - Preview footprint and active verdict
 - `Scripts/Rules/RuleEvaluationService.cs` - Adapter-domain boundary for rule validation
 - `Scripts/Inventories/InventoryTransferEngine.cs` - JIT execution, rollback, swap, and event dispatch
-- `Scripts/Inventories/InventoryTransferService.cs` - Transfer request/result models
 - `Scripts/Inventories/IPlacementInventory.cs` - Topology-neutral placement contract
 - `Scripts/Inventories/Strategies/IStrategy.cs` - Explicit and automatic candidate contract
 - `Scripts/Inventories/InventoryRuntimeCapabilities.cs` - Runtime capabilities such as dynamic slot lifecycle

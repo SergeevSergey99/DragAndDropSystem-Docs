@@ -96,7 +96,9 @@ implica su offset de agarre; si no cabe, el swap se rechaza.
 
 `VacatedArea` permite el solapamiento parcial y busca una posición, prefiriendo las celdas que el swap
 libera, luego las posiciones que se apoyan en ellas con más celdas, y solo después la cercanía a donde
-apuntaba el offset de agarre. La búsqueda es voraz, por objeto y sin backtracking.
+apuntaba el offset de agarre. La búsqueda es voraz, por objeto y sin backtracking. Los footprints
+desplazados más grandes se resuelven primero; el placement primario solo se mueve al principio en los
+payloads de callbacks, por lo que la celda bajo el cursor no cambia quién reclama primero el área liberada.
 
 ### Drop en área / auto-transferencia
 

@@ -318,6 +318,55 @@ namespace UDND.Tests.Inventories
         }
 
         /// <summary>
+        /// Target-domain shape projection belongs to the shared candidate path, not only the swap
+        /// resolver. Both an explicit drop and automatic distribution must validate and commit the
+        /// footprint of the converted adapter.
+        /// </summary>
+        [TestCase(true)]
+        [TestCase(false)]
+        public void RegularTransfer_UsesTheTargetDomainFootprint(bool explicitTarget)
+        {
+            _source = new InventoryBuilder()
+                .WithFixedSlots(3)
+                .WithGridTopology(3, 1)
+                .WithName("Source")
+                .Build();
+            _target = new InventoryBuilder()
+                .WithFixedSlots(3)
+                .WithGridTopology(3, 1)
+                .WithName("Target")
+                .Build();
+
+            var binding = _bindings.AddComponent<ShapeWideningBinding>();
+            binding.AttachTo(_target);
+
+            Assert.IsTrue(_source.TryPlace(new PlacementRequest(
+                ItemStackBuilder.Of(new ShapedTestAdapter("blade", 1)), 0)));
+
+            var sourceSlot = _source.GetSlot(0);
+            var context = new DragContext(new[]
+            {
+                new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, _source)
+            });
+            var processor = explicitTarget
+                ? new InventoryDropProcessor(
+                    _target.GetSlot(0), _target, new GlobalRuleValidator())
+                : new InventoryDropProcessor(
+                    _target, new GlobalRuleValidator());
+
+            var report = processor.ProcessDropWithReport(
+                context,
+                DropRequestPolicy.WithReject());
+
+            Assert.IsTrue(report.Success, report.FailureReason);
+            var placement = _target.GetPlacementAt(0);
+            Assert.IsNotNull(placement);
+            Assert.AreEqual("blade", placement.Stack.ID);
+            CollectionAssert.AreEqual(new[] { 0, 1, 2 }, placement.CoveredIndices);
+            Assert.IsNull(_source.GetPlacementAt(0));
+        }
+
+        /// <summary>
         /// Converts any adapter into this binding's domain, producing a new instance unless the
         /// item is already there — the same shape as the demo converters.
         /// </summary>

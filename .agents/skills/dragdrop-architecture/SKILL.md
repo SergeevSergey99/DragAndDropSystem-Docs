@@ -5,7 +5,7 @@ description: Architecture reference for UniversalDragAndDrop with a policy-drive
 # DragDrop Architecture
 
 **Version**: 3.1
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-13
 
 ## Architectural Baseline
 
@@ -32,7 +32,8 @@ Transfer architecture is centered on:
 
 ## Current Design Rules
 
-1. Do not precompute a transfer plan; process entries sequentially against current state.
+1. Do not precompute a transfer-wide plan; process entries sequentially against current state.
+   Atomic multi-swap is the bounded exception and resolves only its displacement set before mutation.
 2. Keep drop behavior policy-driven.
 3. Keep swap execution in the same pipeline as regular transfers.
 4. Keep rollback scoped to the current failed entry; batch is best-effort.

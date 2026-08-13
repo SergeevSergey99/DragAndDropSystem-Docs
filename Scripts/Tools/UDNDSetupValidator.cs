@@ -82,25 +82,33 @@ namespace UDND.Tools
 
         /// <summary>
         /// The drag visual has to draw above the inventories it is dragged over. Only a strictly
-        /// higher sorting order elsewhere is reported: ties are resolved by hierarchy order, which
-        /// is a legitimate setup, and flagging those would turn this warning into noise.
+        /// higher sorting layer/order elsewhere is reported: ties are resolved by hierarchy order,
+        /// which is a legitimate setup, and flagging those would turn this warning into noise.
         /// </summary>
         private static void CollectCanvasOrderIssues(Canvas dragCanvas, List<string> issues)
         {
             var canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            int dragLayerValue = SortingLayer.GetLayerValueFromID(dragCanvas.sortingLayerID);
             for (int i = 0; i < canvases.Length; i++)
             {
                 var canvas = canvases[i];
                 if (canvas == dragCanvas ||
-                    canvas != canvas.rootCanvas ||
-                    canvas.sortingLayerID != dragCanvas.sortingLayerID ||
-                    canvas.sortingOrder <= dragCanvas.sortingOrder)
+                    canvas != canvas.rootCanvas)
+                    continue;
+
+                int canvasLayerValue = SortingLayer.GetLayerValueFromID(canvas.sortingLayerID);
+                bool drawsAbove = canvasLayerValue > dragLayerValue ||
+                    canvasLayerValue == dragLayerValue &&
+                    canvas.sortingOrder > dragCanvas.sortingOrder;
+                if (!drawsAbove)
                     continue;
 
                 issues.Add(
-                    $"Canvas '{canvas.name}' (sorting order {canvas.sortingOrder}) draws above the drag " +
-                    $"canvas '{dragCanvas.name}' (sorting order {dragCanvas.sortingOrder}), so the dragged " +
-                    "item disappears behind it. The drag canvas needs the highest sorting order in the scene.");
+                    $"Canvas '{canvas.name}' (sorting layer '{SortingLayer.IDToName(canvas.sortingLayerID)}', " +
+                    $"order {canvas.sortingOrder}) draws above the drag canvas '{dragCanvas.name}' " +
+                    $"(sorting layer '{SortingLayer.IDToName(dragCanvas.sortingLayerID)}', " +
+                    $"order {dragCanvas.sortingOrder}), so the dragged " +
+                    "item disappears behind it. The drag canvas needs the highest sorting layer/order in the scene.");
             }
         }
 

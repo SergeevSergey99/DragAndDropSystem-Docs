@@ -287,6 +287,26 @@ namespace UDND.Core
 
     public static class OrientationStepUtility
     {
+        /// <summary>
+        /// Projects an orientation from one topology into another by preserving its visual angle.
+        /// Orientation numbers are topology-local steps: step 1 may mean 60 degrees in one
+        /// topology and 90 degrees in another, so normalizing the raw number is not sufficient.
+        /// </summary>
+        public static int Project(
+            IInventoryTopology sourceTopology,
+            int sourceOrientation,
+            IInventoryTopology targetTopology)
+        {
+            if (targetTopology == null)
+                return 0;
+
+            if (sourceTopology == null)
+                return targetTopology.NormalizeOrientation(sourceOrientation);
+
+            float visualAngle = sourceTopology.GetVisualAngleDegrees(sourceOrientation);
+            return targetTopology.GetOrientationForVisualAngleDegrees(visualAngle);
+        }
+
         public static int Normalize(
             int orientation,
             int orientationCount)
