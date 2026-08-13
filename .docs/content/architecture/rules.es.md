@@ -137,9 +137,10 @@ Puntos específicos de validación:
 2. **Validación del objetivo** — global + inventory + slot rules del objetivo.
 3. **Swap** — las rules se validan en ambas direcciones (A&rarr;B y B&rarr;A). El objeto que vuelve
    del destino debe poder salir de su slot y entrar en el slot origen, así que un swap no puede
-   colocar un objeto donde un drop normal sería rechazado. La comprobación sigue los slots reales y no la celda bajo
-   el puntero: el objeto entrante se juzga en su anchor resuelto y cada objeto desplazado en su slot
-   de destino real.
+   colocar un objeto donde un drop normal sería rechazado. La comprobación cubre todas las celdas que el objeto
+   ocupará, y no solo la celda bajo el puntero o el anchor: una celda que prohíbe el objeto lo
+   prohíbe también cuando llega a ella con su cola. Vale para el objeto entrante y para cada objeto
+   desplazado.
 
 ### En qué forma recibe el objeto una regla
 

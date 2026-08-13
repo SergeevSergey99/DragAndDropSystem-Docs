@@ -161,7 +161,7 @@ namespace UDND.Inventories
                 request.SourceBaseSlot?.Stack != null &&
                 capacity >= request.SourceBaseSlot.Stack.Count;
             if (previewStack == null ||
-                !PassesRules(anchor, request.ItemAdapter, capacity, request) ||
+                !PassesRulesOnFootprint(geometry, anchor, shape, orientation, request.ItemAdapter, capacity, request) ||
                 !geometry.CanPlace(
                     previewStack,
                     anchor,
@@ -290,6 +290,33 @@ namespace UDND.Inventories
             }
             var entry = context.Entries[0];
             return baseSlotPrefab.SlotRuleValidator.ValidateDrop(context, entry).IsValid;
+        }
+
+        /// <summary>
+        /// Runs the slot rules of every cell the item would occupy, not only the one it anchors on.
+        /// A cell forbidding the item forbids it whether the item lands there with its anchor or
+        /// with its tail, so which cell happens to be the anchor must not change the answer.
+        /// </summary>
+        protected bool PassesRulesOnFootprint(
+            IPlacementGeometry geometry,
+            BaseSlot anchor,
+            IPlacementShape shape,
+            int orientation,
+            IItemAdapter itemAdapter,
+            int previewCount,
+            InventoryAcceptanceRequest request)
+        {
+            var covered = geometry?.GetCoveredSlots(anchor, shape, orientation);
+            if (covered == null || covered.Count == 0)
+                return PassesRules(anchor, itemAdapter, previewCount, request);
+
+            for (int i = 0; i < covered.Count; i++)
+            {
+                if (!PassesRules(covered[i], itemAdapter, previewCount, request))
+                    return false;
+            }
+
+            return true;
         }
 
         protected static BaseSlot ResolveBaseSlot(ISlot slot)

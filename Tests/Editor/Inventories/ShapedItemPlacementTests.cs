@@ -2320,6 +2320,167 @@ namespace UDND.Tests.Inventories
             }
         }
 
+        /// <summary>
+        /// A slot rule must apply to every cell the item covers, not only the one it anchors on.
+        /// A 2x1 dropped at anchor 0 spans cells 0 and 1, so a rule living on cell 1 alone has to
+        /// refuse it.
+        /// </summary>
+        [Test]
+        public void ProcessDrop_SlotRuleOnNonAnchorCell_RefusesThePlacement()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+            var target = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("blade", 2, 1)), 0)));
+                target.GetSlot(1).SlotRuleValidator.AddRule(
+                    new ItemIdFilterRule(new[] { "blade" }, whitelist: false));
+
+                var dragSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(0), target, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(context, DropRequestPolicy.WithReject());
+
+                Assert.IsFalse(report.Success, "Cell 1 refuses the blade, and the blade covers cell 1");
+                Assert.IsNull(target.GetPlacementAt(0));
+                Assert.AreEqual("blade", source.GetPlacementAt(0).Stack.ID);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        /// <summary>
+        /// 3x3 grid. "a" stands on {0,3}; the L-shaped "b" occupies {1,2,4}. Cells 1 and 2 refuse
+        /// "a". Moving "b" onto {0,1,3} displaces "a", whose grab-offset destination lands on cells
+        /// those rules cover — so WithDragOffset has nowhere legal to put it, while VacatedArea
+        /// keeps looking and settles on {4,7}.
+        /// </summary>
+        [TestCase(PartialOverlapSwapMode.WithDragOffset, false)]
+        [TestCase(PartialOverlapSwapMode.VacatedArea, true)]
+        public void ProcessDrop_Swap_DisplacedItemObeysRulesOnEveryCoveredCell(
+            PartialOverlapSwapMode partialOverlap,
+            bool expectSuccess)
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("a", 2, 1)), 0, 1)));
+                var lShape = new TestPlacementShape(
+                    new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(0, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("b", lShape)), 1)));
+
+                CollectionAssert.AreEqual(new[] { 0, 3 }, inventory.GetPlacementAt(0).CoveredIndices);
+                CollectionAssert.AreEqual(new[] { 1, 2, 4 }, inventory.GetPlacementAt(1).CoveredIndices);
+
+                foreach (int index in new[] { 1, 2 })
+                {
+                    inventory.GetSlot(index).SlotRuleValidator.AddRule(
+                        new ItemIdFilterRule(new[] { "a" }, whitelist: false));
+                }
+
+                // Grabbed by its anchor cell, so hovering cell 0 puts "b" on {0,1,3}.
+                var dragSlot = inventory.GetSlot(1);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                });
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(0), inventory, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements, partialOverlap));
+
+                Assert.AreEqual(expectSuccess, report.Success, report.EntryResults[0].FailureReason);
+
+                if (!expectSuccess)
+                {
+                    CollectionAssert.AreEqual(new[] { 0, 3 }, inventory.GetPlacementAt(0).CoveredIndices);
+                    CollectionAssert.AreEqual(new[] { 1, 2, 4 }, inventory.GetPlacementAt(1).CoveredIndices);
+                    return;
+                }
+
+                var b = inventory.GetPlacementAt(0);
+                Assert.AreEqual("b", b.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3 }, b.CoveredIndices);
+
+                var a = inventory.GetPlacementAt(4);
+                Assert.AreEqual("a", a.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 4, 7 }, a.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
+        /// <summary>
+        /// Same board as the test above, but the only rule sits on cell 5 — a cell no candidate
+        /// anchors on. The search still has to reject the position covering {2,5} and settle on
+        /// {4,7}: whether a forbidding cell is reached by the anchor or by the tail is irrelevant.
+        /// </summary>
+        [Test]
+        public void ProcessDrop_Swap_SearchSkipsPositionBlockedByATailCellRule()
+        {
+            var inventory = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("a", 2, 1)), 0, 1)));
+                var lShape = new TestPlacementShape(
+                    new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(0, 1));
+                Assert.IsTrue(inventory.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("b", lShape)), 1)));
+
+                // Cell 5 is only ever the second cell of the {2,5} position, never its anchor.
+                inventory.GetSlot(5).SlotRuleValidator.AddRule(
+                    new ItemIdFilterRule(new[] { "a" }, whitelist: false));
+
+                var dragSlot = inventory.GetSlot(1);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, inventory)
+                });
+                var processor = new InventoryDropProcessor(
+                    inventory.GetSlot(0), inventory, new GlobalRuleValidator());
+
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements,
+                        PartialOverlapSwapMode.VacatedArea));
+
+                Assert.IsTrue(report.Success, report.EntryResults[0].FailureReason);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3 }, inventory.GetPlacementAt(0).CoveredIndices);
+
+                var a = inventory.GetPlacementAt(4);
+                Assert.AreEqual("a", a.Stack.ID);
+                CollectionAssert.AreEqual(
+                    new[] { 4, 7 },
+                    a.CoveredIndices,
+                    "The {2,5} position is nearer, but cell 5 forbids the item");
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(inventory);
+            }
+        }
+
         [Test]
         public void ProcessDrop_MultiSwapSingleMode_RejectsWithoutMutation()
         {

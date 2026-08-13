@@ -1508,19 +1508,24 @@ namespace UDND.Inventories
                 return false;
             }
 
-            // The caller judged the drop against the cell under the pointer, which for a multi-cell
-            // footprint is not where the item anchors. Judge it again where it will actually land,
-            // exactly as the counterpart is judged against its real destination.
-            if (!ReferenceEquals(forwardAnchor, targetSlot))
+            // The caller judged the drop against the cell under the pointer alone. Judge it against
+            // every cell the item will occupy: a cell that forbids the item forbids it whether the
+            // item arrives there with its anchor or with its tail.
+            var forwardEvaluator = new RuleEvaluationService();
+            for (int i = 0; i < forwardCoveredSlots.Count; i++)
             {
-                var forwardRules = new RuleEvaluationService().ValidateEntryDrop(
-                    request.Context.WithTarget(forwardAnchor, targetInventory),
+                var coveredSlot = forwardCoveredSlots[i];
+                if (ReferenceEquals(coveredSlot, targetSlot))
+                    continue;
+
+                var forwardRules = forwardEvaluator.ValidateEntryDrop(
+                    request.Context.WithTarget(coveredSlot, targetInventory),
                     entry,
                     request.GlobalRules);
                 if (!forwardRules.IsValid)
                 {
                     failureReason = string.IsNullOrEmpty(forwardRules.FailureReason)
-                        ? "Swap: drop rules rejected the item at its anchor"
+                        ? "Swap: drop rules rejected the item on a cell it covers"
                         : $"Swap: {forwardRules.FailureReason}";
                     return false;
                 }
@@ -1624,11 +1629,14 @@ namespace UDND.Inventories
                     .GetOrientationForVisualAngleDegrees(visualAngle);
                 var ruleTargetPlacement = placement;
                 var ruleOriginSlot = originSlot;
+                var ruleShape = convertedShape;
+                int ruleOrientation = convertedOrientation;
                 bool IsAcceptableDestination(BaseSlot candidate) =>
                     ValidateSwapCounterpartAt(
                         request.Context, request.GlobalRules,
                         sourceInventory, targetInventory,
-                        candidate, ruleOriginSlot, ruleTargetPlacement).IsValid;
+                        candidate, ruleOriginSlot, ruleTargetPlacement,
+                        ruleShape, ruleOrientation).IsValid;
 
                 bool destinationFound = partialOverlap == PartialOverlapSwapMode.VacatedArea
                     ? TryFindSearchedDestination(
@@ -1648,7 +1656,8 @@ namespace UDND.Inventories
                 var rules = ValidateSwapCounterpartAt(
                     request.Context, request.GlobalRules,
                     sourceInventory, targetInventory,
-                    destinationSlot, originSlot, placement);
+                    destinationSlot, originSlot, placement,
+                    convertedShape, convertedOrientation);
                 if (!rules.IsValid)
                 {
                     failureReason = string.IsNullOrEmpty(rules.FailureReason)
@@ -2106,25 +2115,83 @@ namespace UDND.Inventories
             IInventory targetInventory,
             BaseSlot destinationSlot,
             BaseSlot originSlot,
-            Placement targetPlacement)
+            Placement targetPlacement,
+            IPlacementShape destinationShape,
+            int destinationOrientation)
         {
             var counterpartStack = targetPlacement?.Stack?.CreateCopy();
             if (counterpartStack == null || counterpartStack.IsEmpty)
                 return RuleResult.Failure("counterpart stack is empty");
             var counterpartEntry = new DragEntry(
                 counterpartStack, originSlot, targetInventory, targetPlacement);
-            var counterpartContext = context != null
+
+            var evaluator = new RuleEvaluationService();
+            var startContext = BuildCounterpartContext(
+                context, counterpartEntry, counterpartStack, originSlot,
+                targetInventory, destinationSlot, sourceInventory);
+            var startResult = evaluator.ValidateEntryStart(startContext, counterpartEntry, globalRules);
+            if (!startResult.IsValid)
+                return startResult;
+
+            // Judged on every cell it would occupy, so a rule sitting on a cell the item merely
+            // covers counts exactly as much as one on the cell it anchors to.
+            foreach (var slot in EnumerateDestinationSlots(
+                         sourceInventory, destinationSlot, destinationShape, destinationOrientation))
+            {
+                var dropContext = BuildCounterpartContext(
+                    context, counterpartEntry, counterpartStack, originSlot,
+                    targetInventory, slot, sourceInventory);
+                var dropResult = evaluator.ValidateEntryDrop(dropContext, counterpartEntry, globalRules);
+                if (!dropResult.IsValid)
+                    return dropResult;
+            }
+
+            return RuleResult.Success();
+        }
+
+        private static DragContext BuildCounterpartContext(
+            DragContext context,
+            DragEntry counterpartEntry,
+            ItemStack counterpartStack,
+            BaseSlot originSlot,
+            IInventory targetInventory,
+            BaseSlot destinationSlot,
+            IInventory sourceInventory)
+        {
+            return context != null
                 ? context.CreateDerived(new[] { counterpartEntry })
                     .WithTarget(destinationSlot, sourceInventory)
                 : new DragContext(
                     counterpartStack, originSlot, targetInventory,
                     destinationSlot, sourceInventory);
-            var evaluator = new RuleEvaluationService();
-            var startResult = evaluator.ValidateEntryStart(
-                counterpartContext, counterpartEntry, globalRules);
-            return startResult.IsValid
-                ? evaluator.ValidateEntryDrop(counterpartContext, counterpartEntry, globalRules)
-                : startResult;
+        }
+
+        private static IEnumerable<BaseSlot> EnumerateDestinationSlots(
+            IInventory sourceInventory,
+            BaseSlot destinationSlot,
+            IPlacementShape destinationShape,
+            int destinationOrientation)
+        {
+            if (destinationSlot == null)
+                yield break;
+
+            var covered = sourceInventory is IPlacementInventory placementInventory
+                ? placementInventory.GetCoveredCells(
+                    destinationSlot.Index, destinationShape, destinationOrientation)
+                : null;
+
+            if (covered == null || covered.Count == 0)
+            {
+                yield return destinationSlot;
+                yield break;
+            }
+
+            for (int i = 0; i < covered.Count; i++)
+            {
+                var slot = ((IPlacementInventory)sourceInventory).GetSlot(covered[i]);
+                if (slot != null)
+                    yield return slot;
+            }
         }
 
         private static void InvokeSwapSuccessHandlers(TransferDomainContext context)
