@@ -23,6 +23,7 @@ namespace UDND.Core
         private bool _allowSameInventoryAlternativePlacement = false;
 
         [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.Swap),
+         ShowIfOwner(nameof(UniversalInventory.UsesGridTopology)),
          FormerlySerializedAs("_multiSwapMode"),
          Tooltip("How many placements one incoming item may displace. " +
                  "Only affects inventories with multi-cell footprints: where an item always " +
@@ -30,6 +31,7 @@ namespace UDND.Core
         private SwapDisplacementMode _swapDisplacement = SwapDisplacementMode.SinglePlacement;
 
         [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.Swap),
+         ShowIfOwner(nameof(UniversalInventory.UsesGridTopology)),
          Tooltip("What a swap does when the incoming footprint covers an item only partly. " +
                  "Reject allows clean exchanges only; WithDragOffset places the displaced item by " +
                  "its grab offset; VacatedArea searches the freed cells first, then their free " +

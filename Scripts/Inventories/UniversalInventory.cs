@@ -79,6 +79,12 @@ namespace UDND.Inventories
         public override int SlotCount => _slots.Count;
         public IReadOnlyCollection<Placement> Placements => EnsurePlacementStore().Placements;
 
+        /// <summary>
+        /// Whether items here can cover more than one cell. Settings that only mean anything
+        /// for shaped inventories key their inspector visibility off this.
+        /// </summary>
+        public bool UsesGridTopology => _useGridTopology;
+
         public IInventoryTopology Topology => EnsurePlacementStore().Topology;
         public InventoryRuleValidator RuleValidator => _ruleValidator;
         public BaseSlot BaseSlotPrefab => baseSlotPrefab;
