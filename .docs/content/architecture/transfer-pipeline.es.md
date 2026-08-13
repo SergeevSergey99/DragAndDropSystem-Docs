@@ -84,10 +84,19 @@ propio objeto arrastrado, y el swap ocurre igualmente si el footprint cubre la c
 En un objeto de varias celdas esa celda depende del punto de agarre, y de lo contrario el mismo drop
 funcionaría o no solo por eso.
 
-`SwapDisplacementFallback` decide qué ocurre cuando la posición espejo no le sirve al objeto
-desplazado. `MirroredOnly` (por defecto) rechaza el swap. `VacatedArea` le permite tomar la posición
-libre más cercana dentro del área que los dos objetos intercambian, y nunca fuera de ella. La
-resolución es voraz, por objeto y sin backtracking.
+`PartialOverlapSwapMode` decide qué ocurre cuando el footprint entrante cubre un objeto solo en
+parte, algo habitual entre objetos de formas distintas.
+
+`Reject` (por defecto) rechaza ese swap, pero solo cuando un intercambio limpio era alcanzable. Un
+objeto cuya forma nunca podría cubrir al que está debajo, por bien que se apunte, sigue
+intercambiándose: así los swaps de un objeto pequeño sobre uno grande siguen funcionando.
+
+`WithDragOffset` permite el solapamiento parcial y coloca el objeto desplazado en la posición que
+implica su offset de agarre; si no cabe, el swap se rechaza.
+
+`VacatedArea` permite el solapamiento parcial y busca una posición, prefiriendo las celdas que el swap
+libera, luego las posiciones que se apoyan en ellas con más celdas, y solo después la cercanía a donde
+apuntaba el offset de agarre. La búsqueda es voraz, por objeto y sin backtracking.
 
 ### Drop en área / auto-transferencia
 

@@ -114,6 +114,12 @@ namespace UDND.Inventories
             public TransferDomainContext ForwardDomain;
             public readonly List<ResolvedSwapDisplacement> Displacements =
                 new List<ResolvedSwapDisplacement>();
+
+            // Search state, only filled for PartialOverlapSwapMode.VacatedArea.
+            public HashSet<int> VacatedCells;
+            public HashSet<Placement> RemovedPlacements;
+            public HashSet<int> IncomingCells;
+            public readonly HashSet<int> ClaimedCells = new HashSet<int>();
         }
 
         public TransferProbe Probe(
@@ -1536,13 +1542,44 @@ namespace UDND.Inventories
                 ForwardCoveredSlots = forwardCoveredSlots
             };
 
+            // Items of different shapes never cover each other exactly, so a swap that only clips a
+            // neighbour is the common case. Reject keeps swaps to clean exchanges: every displaced
+            // item must sit entirely under the incoming footprint.
+            var partialOverlap = request.Policy.PartialOverlapSwap;
+            if (partialOverlap == PartialOverlapSwapMode.Reject)
+            {
+                var coveredCells = new HashSet<int>();
+                for (int i = 0; i < forwardCoveredSlots.Count; i++)
+                    coveredCells.Add(forwardCoveredSlots[i].Index);
+
+                var incomingOffsets = targetPlacementInventory.Topology
+                    .GetPlacementOffsets(forwardShape, forwardOrientation);
+
+                for (int i = 0; i < displaced.Count; i++)
+                {
+                    if (IsFullyCovered(displaced[i], coveredCells))
+                        continue;
+
+                    // An item smaller than the one under it can never cover it whole, however
+                    // carefully it is aimed. Refusing those would ban every small-onto-large swap,
+                    // so Reject only fires where a clean exchange was actually achievable.
+                    var displacedOffsets = targetPlacementInventory.Topology
+                        .GetPlacementOffsets(displaced[i].Shape, displaced[i].Orientation);
+                    if (!CanContainShape(incomingOffsets, displacedOffsets))
+                        continue;
+
+                    failureReason =
+                        $"Swap: '{displaced[i].Stack?.ID}' is only partly covered by the incoming footprint";
+                    resolved = null;
+                    return false;
+                }
+            }
+
             var targetAnchorCell = targetPlacementInventory.Topology.ToCell(forwardAnchor.Index);
-            // Cells the swap actually frees in the source inventory. A displaced item that cannot
-            // take its mirrored position may fall back inside this area and nowhere else, so it
-            // always stays within the region the two items exchange.
-            var vacatedCells = request.Policy.SwapDisplacementFallback == SwapDisplacementFallback.VacatedArea
-                ? BuildVacatedCells(resolved, displaced)
-                : null;
+            // Cells the swap frees in the source inventory. They are the first place a displaced
+            // item looks when the mode searches rather than trusting the grab offset.
+            if (partialOverlap == PartialOverlapSwapMode.VacatedArea)
+                PrepareDisplacementSearch(resolved, displaced);
             for (int i = 0; i < displaced.Count; i++)
             {
                 var placement = displaced[i];
@@ -1575,22 +1612,18 @@ namespace UDND.Inventories
                         sourceInventory, targetInventory,
                         candidate, ruleOriginSlot, ruleTargetPlacement).IsValid;
 
-                if (!TryResolveDisplacedDestination(
-                        resolved,
-                        desiredDestinationCell,
-                        convertedShape,
-                        convertedOrientation,
-                        out var destinationSlot) &&
-                    !TryFindVacatedAreaDestination(
-                        resolved,
-                        desiredDestinationCell,
-                        convertedShape,
-                        convertedOrientation,
-                        vacatedCells,
-                        IsAcceptableDestination,
-                        out destinationSlot))
+                bool destinationFound = partialOverlap == PartialOverlapSwapMode.VacatedArea
+                    ? TryFindSearchedDestination(
+                        resolved, desiredDestinationCell, convertedShape, convertedOrientation,
+                        IsAcceptableDestination, out var destinationSlot)
+                    : TryResolveDisplacedDestination(
+                        resolved, desiredDestinationCell, convertedShape, convertedOrientation,
+                        out destinationSlot);
+                if (!destinationFound)
                 {
-                    failureReason = "Swap: displaced destination is outside or overlaps the incoming footprint";
+                    failureReason = partialOverlap == PartialOverlapSwapMode.VacatedArea
+                        ? $"Swap: nowhere to put the displaced item '{placement.Stack?.ID}'"
+                        : "Swap: displaced destination is outside or overlaps the incoming footprint";
                     resolved = null;
                     return false;
                 }
@@ -1619,13 +1652,16 @@ namespace UDND.Inventories
                 });
 
                 // Whatever this item took is no longer free for the ones resolved after it.
-                if (vacatedCells != null)
+                if (resolved.VacatedCells != null)
                 {
                     var claimed = sourcePlacementInventory.GetCoveredCells(
                         destinationSlot.Index, convertedShape, convertedOrientation);
                     if (claimed != null)
                         for (int c = 0; c < claimed.Count; c++)
-                            vacatedCells.Remove(claimed[c]);
+                        {
+                            resolved.VacatedCells.Remove(claimed[c]);
+                            resolved.ClaimedCells.Add(claimed[c]);
+                        }
                 }
             }
 
@@ -1752,90 +1788,160 @@ namespace UDND.Inventories
         }
 
         /// <summary>
-        /// Cells the swap frees inside the source inventory: the dragged item's own footprint plus,
-        /// when both sides are the same inventory, the footprints of everything it displaces — minus
-        /// the cells the incoming item is about to occupy.
+        /// Fills the state the displacement search needs: which placements are about to disappear,
+        /// which cells the incoming item will take, and which cells the swap therefore frees.
         /// </summary>
-        private static HashSet<int> BuildVacatedCells(ResolvedSwap swap, List<Placement> displaced)
+        private static void PrepareDisplacementSearch(ResolvedSwap swap, List<Placement> displaced)
         {
-            var cells = new HashSet<int>();
+            bool sameInventory = ReferenceEquals(swap.SourceInventory, swap.TargetInventory);
+
+            var removed = new HashSet<Placement> { swap.SourcePlacement };
+            var incoming = new HashSet<int>();
+            var vacated = new HashSet<int>();
+
             var sourceCovered = swap.SourcePlacement.CoveredIndices;
             for (int i = 0; i < sourceCovered.Count; i++)
-                cells.Add(sourceCovered[i]);
+                vacated.Add(sourceCovered[i]);
 
-            // Displaced placements live in the target inventory, so their cell indices only mean
-            // anything here when the two sides are the same inventory.
-            if (!ReferenceEquals(swap.SourceInventory, swap.TargetInventory))
-                return cells;
-
-            for (int i = 0; i < displaced.Count; i++)
+            // Displaced placements live in the target inventory, so their cells and the incoming
+            // footprint only mean anything on this side when both sides are the same inventory.
+            if (sameInventory)
             {
-                var covered = displaced[i].CoveredIndices;
-                for (int c = 0; c < covered.Count; c++)
-                    cells.Add(covered[c]);
+                for (int i = 0; i < displaced.Count; i++)
+                {
+                    removed.Add(displaced[i]);
+                    var covered = displaced[i].CoveredIndices;
+                    for (int c = 0; c < covered.Count; c++)
+                        vacated.Add(covered[c]);
+                }
+
+                for (int i = 0; i < swap.ForwardCoveredSlots.Count; i++)
+                {
+                    incoming.Add(swap.ForwardCoveredSlots[i].Index);
+                    vacated.Remove(swap.ForwardCoveredSlots[i].Index);
+                }
             }
 
-            for (int i = 0; i < swap.ForwardCoveredSlots.Count; i++)
-                cells.Remove(swap.ForwardCoveredSlots[i].Index);
-
-            return cells;
+            swap.RemovedPlacements = removed;
+            swap.IncomingCells = incoming;
+            swap.VacatedCells = vacated;
         }
 
         /// <summary>
-        /// Nearest free position for a displaced item inside the vacated area. Distance is measured
-        /// from the mirrored cell so the item moves as little as possible, and candidates are walked
-        /// in index order so ties never depend on hash ordering.
+        /// Whether <paramref name="inner"/> fits entirely inside <paramref name="outer"/> under some
+        /// alignment — a question about the two shapes, not about where they currently sit. Cell
+        /// counts alone would not answer it: a 3x1 has as many cells as an L of three, yet can never
+        /// contain it.
+        /// </summary>
+        private static bool CanContainShape(
+            IReadOnlyList<Vector2Int> outer,
+            IReadOnlyList<Vector2Int> inner)
+        {
+            if (outer == null || inner == null || inner.Count == 0 || inner.Count > outer.Count)
+                return false;
+
+            var outerCells = new HashSet<Vector2Int>(outer);
+            for (int i = 0; i < outer.Count; i++)
+            {
+                var delta = outer[i] - inner[0];
+                bool contained = true;
+                for (int j = 0; j < inner.Count; j++)
+                {
+                    if (outerCells.Contains(inner[j] + delta))
+                        continue;
+                    contained = false;
+                    break;
+                }
+                if (contained)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>True when every cell of <paramref name="placement"/> lies under the footprint.</summary>
+        private static bool IsFullyCovered(Placement placement, HashSet<int> footprintCells)
+        {
+            var covered = placement?.CoveredIndices;
+            if (covered == null || covered.Count == 0)
+                return false;
+            for (int i = 0; i < covered.Count; i++)
+                if (!footprintCells.Contains(covered[i]))
+                    return false;
+            return true;
+        }
+
+        /// <summary>
+        /// A cell a displaced item may occupy: not taken by the incoming item, not already claimed
+        /// by an earlier displacement, and either empty or held by a placement this swap removes.
+        /// </summary>
+        private static bool IsCellFreeForDisplacement(ResolvedSwap swap, int cellIndex)
+        {
+            if (swap.IncomingCells.Contains(cellIndex) || swap.ClaimedCells.Contains(cellIndex))
+                return false;
+            var existing = swap.SourcePlacementInventory.GetPlacementAt(cellIndex);
+            return existing == null || swap.RemovedPlacements.Contains(existing);
+        }
+
+        /// <summary>
+        /// Best free position for a displaced item. Every candidate anchor is tested the way any
+        /// placement is tested — project the footprint with <c>GetCoveredCells</c> and check each
+        /// cell — then ranked: positions lying entirely in the freed area win, then the ones leaning
+        /// on it with the most cells, and only then proximity to where the grab offset pointed.
         /// <para>
-        /// Positions their own rules refuse are skipped rather than failing the swap, which is why
-        /// this takes a predicate instead of leaving validation to the caller.
+        /// Positions the item's own rules refuse are skipped instead of failing the swap, so this
+        /// takes a predicate rather than leaving validation to the caller. Candidates are walked in
+        /// index order, so equal-ranking positions always resolve to the lowest cell index.
         /// </para>
         /// </summary>
-        private static bool TryFindVacatedAreaDestination(
+        private static bool TryFindSearchedDestination(
             ResolvedSwap swap,
-            Vector2Int desiredCell,
+            Vector2Int preferredCell,
             IPlacementShape shape,
             int orientation,
-            HashSet<int> vacatedCells,
             Func<BaseSlot, bool> isAcceptable,
             out BaseSlot destinationSlot)
         {
             destinationSlot = null;
             var inventory = swap?.SourcePlacementInventory;
             var topology = inventory?.Topology;
-            if (topology == null || vacatedCells == null || vacatedCells.Count == 0)
+            if (topology == null || swap.VacatedCells == null)
                 return false;
 
-            var candidates = new List<int>(vacatedCells);
-            candidates.Sort();
-
+            int bestOutside = int.MaxValue;
             int bestDistance = int.MaxValue;
-            for (int i = 0; i < candidates.Count; i++)
+
+            for (int anchorIndex = 0; anchorIndex < topology.CellCount; anchorIndex++)
             {
-                int anchorIndex = candidates[i];
                 var covered = inventory.GetCoveredCells(anchorIndex, shape, orientation);
                 if (covered == null || covered.Count == 0)
                     continue;
 
                 bool fits = true;
-                for (int c = 0; c < covered.Count; c++)
+                int outside = 0;
+                for (int i = 0; i < covered.Count; i++)
                 {
-                    if (vacatedCells.Contains(covered[c]))
-                        continue;
-                    fits = false;
-                    break;
+                    if (!IsCellFreeForDisplacement(swap, covered[i]))
+                    {
+                        fits = false;
+                        break;
+                    }
+                    if (!swap.VacatedCells.Contains(covered[i]))
+                        outside++;
                 }
                 if (!fits)
                     continue;
 
                 var cell = topology.ToCell(anchorIndex);
-                int distance = Math.Abs(cell.x - desiredCell.x) + Math.Abs(cell.y - desiredCell.y);
-                if (distance >= bestDistance)
+                int distance = Math.Abs(cell.x - preferredCell.x) + Math.Abs(cell.y - preferredCell.y);
+                if (outside > bestOutside || (outside == bestOutside && distance >= bestDistance))
                     continue;
 
                 var slot = inventory.GetSlot(anchorIndex);
                 if (slot == null || (isAcceptable != null && !isAcceptable(slot)))
                     continue;
 
+                bestOutside = outside;
                 bestDistance = distance;
                 destinationSlot = slot;
             }

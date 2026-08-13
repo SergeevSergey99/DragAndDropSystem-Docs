@@ -30,10 +30,11 @@ namespace UDND.Core
         private SwapDisplacementMode _swapDisplacement = SwapDisplacementMode.SinglePlacement;
 
         [SerializeField, ShowIf(nameof(_blockedTargetResolution), BlockedTargetResolutionKind.Swap),
-         Tooltip("What to do when a displaced item does not fit the position mirroring its offset. " +
-                 "VacatedArea lets it take the nearest free spot inside the area the two items " +
-                 "exchange, instead of refusing the swap.")]
-        private SwapDisplacementFallback _swapDisplacementFallback = SwapDisplacementFallback.MirroredOnly;
+         Tooltip("What a swap does when the incoming footprint covers an item only partly. " +
+                 "Reject allows clean exchanges only; WithDragOffset places the displaced item by " +
+                 "its grab offset; VacatedArea searches the freed cells first, then their free " +
+                 "neighbours, then the rest of the inventory.")]
+        private PartialOverlapSwapMode _partialOverlapSwap = PartialOverlapSwapMode.Reject;
 
         [SerializeField, Tooltip("Allow partial transfer if only part of one entry fits.")]
         private bool _allowPartial = true;
@@ -48,7 +49,7 @@ namespace UDND.Core
                     ? PartialTransferMode.Allow
                     : PartialTransferMode.RequireFull),
                 requested?.SwapDisplacementMode ?? _swapDisplacement,
-                requested?.SwapDisplacementFallback ?? _swapDisplacementFallback);
+                requested?.PartialOverlapSwap ?? _partialOverlapSwap);
         }
     }
 }

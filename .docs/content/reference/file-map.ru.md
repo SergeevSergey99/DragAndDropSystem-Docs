@@ -71,7 +71,7 @@
 | `Scripts/Core/Contracts/IDropRequestProcessor.cs` | `IDropRequestProcessor` | Специализированный интерфейс для request-driven drop processing. |
 | `Scripts/Core/Drop/DropAreaBase.cs` | `DropAreaBase` | Базовый класс для не-слотовых drop target'ов, например inventory area или world drop zone. |
 | `Scripts/UI/InventoryDropArea.cs` | `InventoryDropArea` | Стандартная drop-area инвентаря на основе `DropAreaBase`. |
-| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `SwapDisplacementMode`, `SwapDisplacementFallback`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Модели поведения drop: отказ, поиск другого слота, своп одного размещения или всех накрытых и частичный перенос. |
+| `Scripts/Core/Drop/DropPolicy.cs` | `BlockedTargetResolutionKind`, `SwapDisplacementMode`, `PartialOverlapSwapMode`, `PartialTransferMode`, `ResolvedDropPolicy`, `DropRequestPolicy`, `DragRequestPolicy` | Модели поведения drop: отказ, поиск другого слота, своп одного размещения или всех накрытых и частичный перенос. |
 | `Scripts/Core/Drop/DropPolicySettings.cs` | `DropPolicySettings` | Настройки поведения при занятой цели, поиска другого слота и частичного переноса. |
 | `Scripts/Core/Drop/DropRequestPolicySettings.cs` | `DropRequestPolicySettings` | Сериализуемые настройки для временного переопределения drop behavior в actions и triggers. |
 | `Scripts/Core/Drop/DragRequestPolicySettings.cs` | `DragRequestPolicySettings` | Сериализуемые настройки для временного переопределения количества предметов при старте drag. |

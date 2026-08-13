@@ -82,10 +82,19 @@ covered by the dragged item, and the swap still happens as long as the footprint
 else's placement. For a multi-cell item that cell depends on where the item was grabbed, and the
 same drop would otherwise succeed or fail on that alone.
 
-`SwapDisplacementFallback` decides what happens when the mirrored position does not fit the displaced
-item. `MirroredOnly` (default) refuses the swap. `VacatedArea` lets it take the nearest free position
-inside the area the two items exchange, and never outside it. Resolution is greedy, per item, with no
-backtracking.
+`PartialOverlapSwapMode` decides what happens when the incoming footprint covers an item only partly,
+which is the normal state of affairs between items of different shapes.
+
+`Reject` (default) refuses such a swap, but only where a clean exchange was achievable. An item whose
+shape could never cover the one beneath it, however it were aimed, still swaps — so dropping a small
+item onto a large one keeps working.
+
+`WithDragOffset` allows the partial overlap and places the displaced item at the position its grab
+offset implies; if that does not fit, the swap is refused.
+
+`VacatedArea` allows the partial overlap and searches for a position, preferring the cells the swap
+frees, then positions leaning on them with the most cells, and only then proximity to where the grab
+offset pointed. The search is greedy, per item, with no backtracking.
 
 ### Area Drop / Auto Transfer
 

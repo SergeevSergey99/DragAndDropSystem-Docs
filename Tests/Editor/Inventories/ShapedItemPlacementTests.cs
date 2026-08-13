@@ -1998,9 +1998,9 @@ namespace UDND.Tests.Inventories
         }
 
         /// <summary>
-        /// A displaced placement whose anchor sits left of the incoming anchor mirrors to a cell
-        /// before the source anchor. There is no such cell, so the whole swap is refused instead of
-        /// silently dropping that item.
+        /// A displaced placement whose anchor sits left of the incoming anchor takes its grab-offset
+        /// destination before the source anchor. There is no such cell, so the whole swap is refused
+        /// instead of silently dropping that item.
         /// </summary>
         [Test]
         public void ProcessDrop_MultiSwap_ReverseDestinationOutOfBounds_RejectsWithoutMutation()
@@ -2026,10 +2026,12 @@ namespace UDND.Tests.Inventories
 
                 var report = processor.ProcessDropWithReport(
                     context,
-                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements));
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements,
+                        PartialOverlapSwapMode.WithDragOffset));
 
                 // "wide" anchors at cell 0 while the incoming footprint anchors at cell 1, so its
-                // mirrored destination is one cell before the source anchor — outside the source.
+                // grab-offset destination is one cell before the source anchor — outside the source.
                 Assert.IsFalse(report.Success);
                 StringAssert.Contains(
                     "displaced destination is outside",
@@ -2048,7 +2050,7 @@ namespace UDND.Tests.Inventories
 
         /// <summary>
         /// Pins the documented consequence of the same-inventory overlap shift: a displaced item
-        /// whose mirrored cell still lies under the incoming footprint is pushed on by the swap
+        /// whose grab-offset cell still lies under the incoming footprint is pushed on by the swap
         /// vector, while a displaced item that already cleared the footprint is not. The two are
         /// shifted by different amounts, so their relative order is not preserved.
         /// See MULTI_SWAP_PLAN.md, "Перекрытие внутри одного инвентаря".
@@ -2087,8 +2089,8 @@ namespace UDND.Tests.Inventories
                     new[] { 1, 2, 3 },
                     inventory.GetPlacementAt(1).CoveredIndices);
 
-                // "a" mirrored onto cell 3, still covered by the incoming blade, so it was pushed
-                // on by the swap vector (2 cells) and landed on 5. "b" mirrored onto cell 4, which
+                // "a" offsets onto cell 3, still covered by the incoming blade, so it was pushed
+                // on by the swap vector (2 cells) and landed on 5. "b" offsets onto cell 4, which
                 // was already clear, so it stayed there. "a" started left of "b" and ends right.
                 Assert.AreEqual("b", inventory.GetPlacementAt(4).Stack.ID);
                 Assert.AreEqual("a", inventory.GetPlacementAt(5).Stack.ID);
@@ -2108,8 +2110,10 @@ namespace UDND.Tests.Inventories
 
         /// <summary>
         /// 3x3 grid, a 2x1 standing on {0,3} and a 2x2 on {1,2,4,5}. Dragging the 2x2 onto {3,4,6,7}
-        /// mirrors the 2x1 to a cell above the grid, so the mirrored position is unusable — but the
-        /// area the two items exchange still has room for it at {2,5}.
+        /// clips the 2x1 on one of its two cells, and its grab-offset destination lands above the
+        /// grid. Each mode answers that differently: Reject refuses the partial overlap outright,
+        /// WithDragOffset accepts the overlap but has nowhere to put the item, and VacatedArea finds
+        /// it room at {2,5} among the cells the swap frees.
         /// </summary>
         /// <summary>
         /// Same swap, reached by grabbing the 2x2 by each of its four cells. The footprint the item
@@ -2145,7 +2149,7 @@ namespace UDND.Tests.Inventories
                     context,
                     DropRequestPolicy.WithSwap(
                         SwapDisplacementMode.AllCoveredPlacements,
-                        SwapDisplacementFallback.VacatedArea));
+                        PartialOverlapSwapMode.VacatedArea));
 
                 Assert.IsTrue(report.Success, report.EntryResults[0].FailureReason);
 
@@ -2163,10 +2167,60 @@ namespace UDND.Tests.Inventories
             }
         }
 
-        [TestCase(SwapDisplacementFallback.MirroredOnly, false)]
-        [TestCase(SwapDisplacementFallback.VacatedArea, true)]
-        public void ProcessDrop_MultiSwap_MirroredDestinationOutOfBounds_FallbackDecidesTheOutcome(
-            SwapDisplacementFallback fallback,
+        /// <summary>
+        /// An item counts as displaced as soon as the incoming footprint touches any of its cells —
+        /// it does not have to be covered whole. Here a 2x2 lands on {0,1,3,4} and overlaps a 2x1
+        /// standing on {1,2} by a single cell, and that one cell is enough to move it.
+        /// </summary>
+        [Test]
+        public void ProcessDrop_Swap_PartiallyOverlappedPlacementIsDisplaced()
+        {
+            var source = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+            var target = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
+
+            try
+            {
+                Assert.IsTrue(source.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("box", 2, 2)), 0)));
+                Assert.IsTrue(target.TryPlace(new PlacementRequest(
+                    ItemStackBuilder.Of(new ShapeAdapter("bar", 2, 1)), 1)));
+                CollectionAssert.AreEqual(new[] { 1, 2 }, target.GetPlacementAt(1).CoveredIndices);
+
+                var dragSlot = source.GetSlot(0);
+                var context = new DragContext(new[]
+                {
+                    new DragEntry(dragSlot.Stack.CreateCopy(), dragSlot, source)
+                });
+                var processor = new InventoryDropProcessor(
+                    target.GetSlot(0), target, new GlobalRuleValidator());
+
+                // WithDragOffset allows the partial overlap and places "bar" by its grab offset.
+                var report = processor.ProcessDropWithReport(
+                    context,
+                    DropRequestPolicy.WithSwap(
+                        SwapDisplacementMode.AllCoveredPlacements,
+                        PartialOverlapSwapMode.WithDragOffset));
+
+                Assert.IsTrue(report.Success, report.EntryResults[0].FailureReason);
+                CollectionAssert.AreEqual(new[] { 0, 1, 3, 4 }, target.GetPlacementAt(0).CoveredIndices);
+                Assert.AreEqual("box", target.GetPlacementAt(0).Stack.ID);
+
+                var bar = source.GetPlacementAt(1);
+                Assert.AreEqual("bar", bar.Stack.ID);
+                CollectionAssert.AreEqual(new[] { 1, 2 }, bar.CoveredIndices);
+            }
+            finally
+            {
+                InventoryBuilder.Destroy(source);
+                InventoryBuilder.Destroy(target);
+            }
+        }
+
+        [TestCase(PartialOverlapSwapMode.Reject, false)]
+        [TestCase(PartialOverlapSwapMode.WithDragOffset, false)]
+        [TestCase(PartialOverlapSwapMode.VacatedArea, true)]
+        public void ProcessDrop_MultiSwap_PartialOverlapModeDecidesTheOutcome(
+            PartialOverlapSwapMode partialOverlap,
             bool expectSuccess)
         {
             var inventory = new InventoryBuilder().WithFixedSlots(9).WithGridTopology(3, 3).Build();
@@ -2190,7 +2244,7 @@ namespace UDND.Tests.Inventories
 
                 var report = processor.ProcessDropWithReport(
                     context,
-                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements, fallback));
+                    DropRequestPolicy.WithSwap(SwapDisplacementMode.AllCoveredPlacements, partialOverlap));
 
                 Assert.AreEqual(expectSuccess, report.Success, report.EntryResults[0].FailureReason);
 

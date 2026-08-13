@@ -50,23 +50,33 @@ namespace UDND.Core
     }
 
     /// <summary>
-    /// Where a displaced item may go when the position mirroring its offset does not fit.
+    /// What a swap does when the incoming footprint covers a placement only partly.
     /// <para>
-    /// Independent of <see cref="SwapDisplacementMode"/>: a swap that displaces a single item can
-    /// need this just as much as one that displaces several.
+    /// Items of different shapes never cover each other exactly, so this is the common case rather
+    /// than an edge one, and where the displaced item should go has no single obvious answer.
     /// </para>
     /// </summary>
-    public enum SwapDisplacementFallback : byte
+    public enum PartialOverlapSwapMode : byte
     {
-        /// <summary>Only the mirrored position. If it does not fit, the swap is refused.</summary>
-        MirroredOnly = 0,
+        /// <summary>
+        /// Refuse the swap when a displaced item is not covered whole although the incoming shape
+        /// could have contained it. An item too small or the wrong shape to ever cover the one under
+        /// it still swaps: otherwise dropping a small item onto a large one could never work.
+        /// </summary>
+        Reject = 0,
 
         /// <summary>
-        /// Search the cells the swap actually frees — the incoming item's own footprint plus the
-        /// footprints of everything it displaces — and take the free position nearest the mirrored
-        /// one. The displaced item never leaves the area the two items exchange.
+        /// Place the displaced item at the position its own grab offset implies: it keeps the offset
+        /// it had from the incoming item, measured from the source anchor. If that does not fit, the
+        /// swap is refused.
         /// </summary>
-        VacatedArea = 1
+        WithDragOffset = 1,
+
+        /// <summary>
+        /// Search for a free position, preferring the cells the swap frees, then positions that lean
+        /// on those cells and extend into free neighbours, and only then anywhere in the source.
+        /// </summary>
+        VacatedArea = 2
     }
 
     public readonly struct DropRequestPolicy
@@ -77,14 +87,14 @@ namespace UDND.Core
             bool? allowSameInventoryAlternativePlacement = null,
             PartialTransferMode? partialTransferMode = null,
             SwapDisplacementMode? swapDisplacementMode = null,
-            SwapDisplacementFallback? swapDisplacementFallback = null)
+            PartialOverlapSwapMode? partialOverlapSwap = null)
         {
             BlockedTargetResolution = blockedTargetResolution;
             AlternativeOrderer = alternativeOrderer;
             AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
             SwapDisplacementMode = swapDisplacementMode;
-            SwapDisplacementFallback = swapDisplacementFallback;
+            PartialOverlapSwap = partialOverlapSwap;
         }
 
         public BlockedTargetResolutionKind? BlockedTargetResolution { get; }
@@ -92,18 +102,18 @@ namespace UDND.Core
         public bool? AllowSameInventoryAlternativePlacement { get; }
         public PartialTransferMode? PartialTransferMode { get; }
         public SwapDisplacementMode? SwapDisplacementMode { get; }
-        public SwapDisplacementFallback? SwapDisplacementFallback { get; }
+        public PartialOverlapSwapMode? PartialOverlapSwap { get; }
 
         public static DropRequestPolicy WithReject()
             => new DropRequestPolicy(BlockedTargetResolutionKind.Reject);
 
         public static DropRequestPolicy WithSwap(
             SwapDisplacementMode mode = Core.SwapDisplacementMode.SinglePlacement,
-            SwapDisplacementFallback fallback = Core.SwapDisplacementFallback.MirroredOnly)
+            PartialOverlapSwapMode partialOverlap = Core.PartialOverlapSwapMode.Reject)
             => new DropRequestPolicy(
                 BlockedTargetResolutionKind.Swap,
                 swapDisplacementMode: mode,
-                swapDisplacementFallback: fallback);
+                partialOverlapSwap: partialOverlap);
 
         public static DropRequestPolicy WithAlternativeOrderer(
             PlacementCandidateOrderer orderer = null,
@@ -135,7 +145,7 @@ namespace UDND.Core
                 baseValue.AllowSameInventoryAlternativePlacement,
                 overridingValue.PartialTransferMode ?? baseValue.PartialTransferMode,
                 overridingValue.SwapDisplacementMode ?? baseValue.SwapDisplacementMode,
-                overridingValue.SwapDisplacementFallback ?? baseValue.SwapDisplacementFallback);
+                overridingValue.PartialOverlapSwap ?? baseValue.PartialOverlapSwap);
         }
     }
 
@@ -159,14 +169,14 @@ namespace UDND.Core
             bool allowSameInventoryAlternativePlacement,
             PartialTransferMode partialTransferMode,
             SwapDisplacementMode swapDisplacementMode = Core.SwapDisplacementMode.SinglePlacement,
-            SwapDisplacementFallback swapDisplacementFallback = Core.SwapDisplacementFallback.MirroredOnly)
+            PartialOverlapSwapMode partialOverlapSwap = Core.PartialOverlapSwapMode.Reject)
         {
             BlockedTargetResolution = blockedTargetResolution;
             AlternativeOrderer = alternativeOrderer;
             AllowSameInventoryAlternativePlacement = allowSameInventoryAlternativePlacement;
             PartialTransferMode = partialTransferMode;
             SwapDisplacementMode = swapDisplacementMode;
-            SwapDisplacementFallback = swapDisplacementFallback;
+            PartialOverlapSwap = partialOverlapSwap;
         }
 
         public BlockedTargetResolutionKind BlockedTargetResolution { get; }
@@ -174,6 +184,6 @@ namespace UDND.Core
         public bool AllowSameInventoryAlternativePlacement { get; }
         public PartialTransferMode PartialTransferMode { get; }
         public SwapDisplacementMode SwapDisplacementMode { get; }
-        public SwapDisplacementFallback SwapDisplacementFallback { get; }
+        public PartialOverlapSwapMode PartialOverlapSwap { get; }
     }
 }
