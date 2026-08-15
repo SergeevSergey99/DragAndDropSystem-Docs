@@ -1260,6 +1260,24 @@ namespace UDND.Inventories
                    ReferenceEquals(placementInventory.GetPlacementAt(request.TargetBaseSlot), sourcePlacement);
         }
 
+        /// <summary>
+        /// Whether the receiving inventory's strategy allows this many items in one placement.
+        /// <para>
+        /// A swap moves whole stacks straight through the placement primitives and never runs the
+        /// candidate loop, which is where every other drop has its capacity capped. Without asking
+        /// here, a swap could put ten items into a slot whose strategy allows one.
+        /// </para>
+        /// </summary>
+        private static bool FitsReceivingStrategy(IPlacementInventory receiver, ItemStack stack)
+        {
+            var strategy = receiver?.Strategy;
+            if (strategy == null || stack == null || stack.IsEmpty)
+                return true;
+
+            int maxStackSize = strategy.GetMaxStackSizeForItem(stack.PrimaryAdapter);
+            return maxStackSize <= 0 || stack.Count <= maxStackSize;
+        }
+
         private EntryTransferResult TryExecuteSwap(TransferEntryRequest request)
         {
             int requestedAmount = request?.Entry.Stack?.Count ?? 0;
@@ -1470,6 +1488,13 @@ namespace UDND.Inventories
                 return false;
             }
 
+            if (!FitsReceivingStrategy(targetPlacementInventory, forwardStack))
+            {
+                failureReason =
+                    $"Swap: the target does not accept {forwardStack.Count} of '{forwardStack.ID}' in one placement";
+                return false;
+            }
+
             var forwardShape = PlacementShapeUtility.Resolve(forwardStack.PrimaryAdapter)
                 ?? sourcePlacement.Shape;
             int forwardOrientation = OrientationStepUtility.Project(
@@ -1623,6 +1648,14 @@ namespace UDND.Inventories
                         targetInventory, sourceInventory, convertedStack, session))
                 {
                     failureReason = "Swap: reverse conversion failed";
+                    resolved = null;
+                    return false;
+                }
+
+                if (!FitsReceivingStrategy(sourcePlacementInventory, convertedStack))
+                {
+                    failureReason =
+                        $"Swap: the source does not accept {convertedStack.Count} of '{convertedStack.ID}' in one placement";
                     resolved = null;
                     return false;
                 }

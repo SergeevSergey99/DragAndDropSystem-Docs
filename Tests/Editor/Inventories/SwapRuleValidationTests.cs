@@ -72,6 +72,112 @@ namespace UDND.Tests.Inventories
                     ? RuleResult.Failure(reason)
                     : RuleResult.Success());
 
+        /// <summary>
+        /// A swap moves whole stacks through the placement primitives, skipping the candidate loop
+        /// that caps capacity everywhere else. It still has to respect what the receiving strategy
+        /// allows in one placement: ten gems must not land in a unique slot that holds one item.
+        /// </summary>
+        [Test]
+        public void Swap_CounterpartStackExceedsUniqueCapacity_IsRefused()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new UniqueItemStrategy())
+                .WithFixedSlots(10)
+                .WithName("Unique")
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(1)
+                .WithName("Stackable")
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Of(new FakeItemAdapter("sword")));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Of(FakeItemAdapter.Many(10, "gem")));
+
+            // Rules on other slots must not enter into it: the counterpart travels to slot 0 alone.
+            for (int i = 5; i < 10; i++)
+            {
+                _source.GetSlot(i).SlotRuleValidator.AddRule(
+                    new ItemIdFilterRule(new[] { "gem" }, whitelist: false));
+            }
+
+            var report = ExecuteSwapDrop();
+
+            Assert.IsFalse(report.Success);
+            StringAssert.Contains("does not accept", report.EntryResults[0].FailureReason);
+            Assert.AreEqual("sword", _source.GetSlot(0).Stack.ID);
+            Assert.AreEqual(10, _target.GetSlot(0).Stack.Count);
+        }
+
+        /// <summary>The same limit applies to a stackable receiver whose maximum is simply smaller.</summary>
+        [Test]
+        public void Swap_CounterpartStackExceedsStackableLimit_IsRefused()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(4)
+                .WithFixedSlots(1)
+                .WithName("SmallStacks")
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(1)
+                .WithName("BigStacks")
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Of(new FakeItemAdapter("sword")));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Of(FakeItemAdapter.Many(10, "gem")));
+
+            var report = ExecuteSwapDrop();
+
+            Assert.IsFalse(report.Success);
+            StringAssert.Contains("does not accept", report.EntryResults[0].FailureReason);
+            Assert.AreEqual("sword", _source.GetSlot(0).Stack.ID);
+            Assert.AreEqual(10, _target.GetSlot(0).Stack.Count);
+        }
+
+        /// <summary>A counterpart that fits the receiving limit still swaps.</summary>
+        [Test]
+        public void Swap_CounterpartStackWithinLimit_Succeeds()
+        {
+            _source = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(1)
+                .WithName("BigStacks")
+                .Build();
+            _target = new InventoryBuilder()
+                .WithStrategy(new StackableItemStrategy())
+                .WithMaxStackSize(10)
+                .WithFixedSlots(1)
+                .WithName("AlsoBig")
+                .Build();
+
+            _source.GetSlot(0).SetStack(ItemStackBuilder.Of(new FakeItemAdapter("sword")));
+            _target.GetSlot(0).SetStack(ItemStackBuilder.Of(FakeItemAdapter.Many(10, "gem")));
+
+            var report = ExecuteSwapDrop();
+
+            Assert.IsTrue(report.Success, report.EntryResults[0].FailureReason);
+            Assert.AreEqual("gem", _source.GetSlot(0).Stack.ID);
+            Assert.AreEqual(10, _source.GetSlot(0).Stack.Count);
+            Assert.AreEqual("sword", _target.GetSlot(0).Stack.ID);
+        }
+
+        private TransferExecutionReport ExecuteSwapDrop()
+        {
+            var sourceSlot = _source.GetSlot(0);
+            var context = new DragContext(new[]
+            {
+                new DragEntry(sourceSlot.Stack.CreateCopy(), sourceSlot, _source)
+            });
+            var processor = new InventoryDropProcessor(
+                _target.GetSlot(0), _target, new GlobalRuleValidator());
+            return processor.ProcessDropWithReport(context, DropRequestPolicy.WithSwap());
+        }
+
         [Test]
         public void Swap_SourceInventoryRejectsCounterpart_IsRefused()
         {
